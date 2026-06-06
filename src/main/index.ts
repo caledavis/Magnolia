@@ -919,6 +919,15 @@ app.on('before-quit', () => {
   isQuitting = true
 })
 
+// Squirrel.Mac fires `before-quit-for-update` (NOT `before-quit`) when
+// autoUpdater.quitAndInstall() runs. Without flagging isQuitting here, the
+// main window's `closed` handler re-opens the Welcome screen instead of
+// letting the app exit, so the macOS update never installs (the app keeps
+// running on the old version). Treat it as a quit, same as `before-quit`.
+app.on('before-quit-for-update', () => {
+  isQuitting = true
+})
+
 app.whenReady().then(() => {
   // Customise the native About panel (Cmd-? on macOS, Help → About on
   // Linux). applicationName is forced to "Magnolia" so dev builds don't
