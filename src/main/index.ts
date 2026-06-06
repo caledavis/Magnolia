@@ -260,6 +260,15 @@ function createWindow(): void {
     mainWindow?.show()
   })
 
+  // Keep the renderer's custom window controls (Windows/Linux, where there
+  // is no native frame) in sync with the maximised state so the
+  // maximise/restore icon is correct.
+  const emitMaximized = (): void => {
+    mainWindow?.webContents.send('window-maximized-changed', !!mainWindow?.isMaximized())
+  }
+  mainWindow.on('maximize', emitMaximized)
+  mainWindow.on('unmaximize', emitMaximized)
+
   // Prevent the window from navigating away (e.g. on file drop)
   mainWindow.webContents.on('will-navigate', (event) => {
     event.preventDefault()
@@ -329,6 +338,19 @@ ipcMain.on('update-panel-visibility', (_event, visibility: Record<string, boolea
   currentPanelVisibility = visibility
   rebuildMenu()
 })
+
+// Custom window controls. Windows/Linux render their own minimise /
+// maximise / close buttons in the toolbar (the window is frameless there);
+// macOS uses the native traffic lights. Each acts on the requesting window.
+ipcMain.on('window-minimize', (e) => BrowserWindow.fromWebContents(e.sender)?.minimize())
+ipcMain.on('window-maximize-toggle', (e) => {
+  const w = BrowserWindow.fromWebContents(e.sender)
+  if (!w) return
+  if (w.isMaximized()) w.unmaximize()
+  else w.maximize()
+})
+ipcMain.on('window-close', (e) => BrowserWindow.fromWebContents(e.sender)?.close())
+ipcMain.handle('window-is-maximized', (e) => !!BrowserWindow.fromWebContents(e.sender)?.isMaximized())
 
 ipcMain.on('raise-child-windows', (event) => {
   const sourceWin = BrowserWindow.fromWebContents(event.sender)

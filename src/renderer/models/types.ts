@@ -517,6 +517,12 @@ export interface ElectronAPI {
   exportCsv: (content: string, defaultName: string) => Promise<string | null>
   exportSvg: (content: string, defaultName: string) => Promise<string | null>
   focusWindow: () => void
+  // Custom window controls (Windows/Linux frameless main window)
+  minimizeWindow: () => void
+  toggleMaximizeWindow: () => void
+  closeWindow: () => void
+  isWindowMaximized: () => Promise<boolean>
+  onWindowMaximizedChanged: (callback: (isMax: boolean) => void) => () => void
   // Query results window (pop-out)
   openQueryResultsWindow: (data: QueryResultsInitData) => void
   updateQueryResultsWindow: (data: QueryResultsInitData) => void

@@ -166,6 +166,16 @@ const api: ElectronAPI = {
   exportCsv: (content: string, defaultName: string) => ipcRenderer.invoke('export-csv', content, defaultName),
   exportSvg: (content: string, defaultName: string) => ipcRenderer.invoke('export-svg', content, defaultName),
   focusWindow: () => ipcRenderer.send('raise-child-windows'),
+  // Custom window controls (Windows/Linux frameless main window)
+  minimizeWindow: () => ipcRenderer.send('window-minimize'),
+  toggleMaximizeWindow: () => ipcRenderer.send('window-maximize-toggle'),
+  closeWindow: () => ipcRenderer.send('window-close'),
+  isWindowMaximized: () => ipcRenderer.invoke('window-is-maximized'),
+  onWindowMaximizedChanged: (callback) => {
+    const handler = (_event: any, isMax: boolean) => callback(isMax)
+    ipcRenderer.on('window-maximized-changed', handler)
+    return () => { ipcRenderer.removeListener('window-maximized-changed', handler) }
+  },
   // Query results window (pop-out)
   openQueryResultsWindow: (data) => ipcRenderer.send('open-query-results-window', data),
   updateQueryResultsWindow: (data) => ipcRenderer.send('update-query-results-window', data),

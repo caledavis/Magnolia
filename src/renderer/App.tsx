@@ -69,6 +69,7 @@ import { FindDialog } from './components/Find/FindDialog'
 import { MemosPane } from './components/Memos/MemosPane'
 import { QuotesPane } from './components/Quotes/QuotesPane'
 import { AnalysisPopover } from './components/Toolbar/AnalysisPopover'
+import { WindowControls } from './components/Toolbar/WindowControls'
 import type { Project, Query, CodeCondition, Code, TextSource, QDASet, LogbookInitData, AnalysisInitData, AnalysisToolType, PlainTextSelection, Memo, MemoEditInitData } from './models/types'
 
 function describeCondition(cond: CodeCondition, findCode: (guid: string) => Code | undefined, depth?: number): string {
@@ -2072,6 +2073,7 @@ function App() {
             icon-over-label style of the centre-cell buttons but sits
             justifySelf: 'end' so it hugs the right edge — visually
             balances the wordmark in the left cell. */}
+        <div style={{ justifySelf: 'end', display: 'flex', alignItems: 'center', gap: 6, height: '100%' }}>
         <button
           className="app-toolbar-btn"
           title="Licence & attributions"
@@ -2103,6 +2105,8 @@ function App() {
         >
           <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>European Union Public Licence</span>
         </button>
+          <WindowControls />
+        </div>
       </div>
 
       <PanelGroup direction="vertical" className="app-main-panels" style={{ flex: 1 }}>
