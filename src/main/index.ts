@@ -289,7 +289,7 @@ function createWindow(): void {
 
   // Wire auto-update to GitHub Releases. Safe in dev — electron-updater
   // no-ops when running unpackaged.
-  initAutoUpdater(mainWindow)
+  initAutoUpdater(mainWindow, () => { isQuitting = true })
 
   // Hidden flush-on-close: intercept the close, ask the renderer to write
   // any unsaved work to its current file, then complete the close once the

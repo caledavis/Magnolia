@@ -29,13 +29,18 @@ import { autoUpdater } from 'electron-updater'
 
 let mainWindowRef: BrowserWindow | null = null
 let manualCheckInProgress = false
+// Called right before quitAndInstall() so the main process can mark itself as
+// intentionally quitting (otherwise the window's `closed` handler re-opens the
+// Welcome screen and the macOS update can't install — see below).
+let onQuitForUpdateRef: (() => void) | null = null
 
 /** Initialise the updater and schedule a startup check. Must be
  *  called after app.whenReady() resolves. The reference to the main
  *  window lets us route dialogs through it (so they sit above the
  *  app rather than alone in the dock). */
-export function initAutoUpdater(mainWindow: BrowserWindow): void {
+export function initAutoUpdater(mainWindow: BrowserWindow, onQuitForUpdate: () => void): void {
   mainWindowRef = mainWindow
+  onQuitForUpdateRef = onQuitForUpdate
 
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = true
@@ -93,6 +98,12 @@ export function initAutoUpdater(mainWindow: BrowserWindow): void {
       cancelId: 1
     })
     if (response === 0) {
+      // Mark the app as intentionally quitting BEFORE quitAndInstall. On macOS,
+      // electron-updater's quitAndInstall closes the main window but does not
+      // reliably fire before-quit / before-quit-for-update, so without this the
+      // main window's `closed` handler re-opens the Welcome screen, the app
+      // keeps running, and Squirrel can never install the staged update.
+      onQuitForUpdateRef?.()
       autoUpdater.quitAndInstall()
     }
   })
