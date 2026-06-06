@@ -8,7 +8,7 @@
 
 - [macOS — Apple Silicon](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-mac-arm64.dmg)
 - [macOS — Intel](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-mac-x64.dmg)
-- [Windows](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-win-x64.exe) (Coming Soon)
+- [Windows](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-win-x64.exe)
 - [Linux — AppImage](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-linux-x64.AppImage) (Coming Soon)
 - [Linux — .deb](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-linux-x64.deb) (Coming Soon)
 
