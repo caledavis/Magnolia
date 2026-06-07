@@ -9,8 +9,8 @@
 - [macOS — Apple Silicon](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-mac-arm64.dmg)
 - [macOS — Intel](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-mac-x64.dmg)
 - [Windows](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-win-x64.exe)
-- [Linux — AppImage](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-linux-x64.AppImage)
-- [Linux — .deb](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-linux-x64.deb)
+- [Linux — AppImage](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-linux-x86_64.AppImage)
+- [Linux — .deb](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-linux-amd64.deb)
 
 Magnolia is free and open-source qualitative data analysis software released under the European Union Public Licence (EUPL).
 

@@ -115,11 +115,13 @@ Produces `dist\Magnolia-win-x64.exe` (an NSIS installer).
 ```sh
 npm run package:linux
 ```
-Produces `dist/Magnolia-linux-x64.AppImage` and `dist/Magnolia-linux-x64.deb`.
+Produces `dist/Magnolia-linux-x86_64.AppImage` and `dist/Magnolia-linux-amd64.deb`
+(electron-builder names Linux artifacts by architecture convention — `x86_64`
+for AppImage, `amd64` for `.deb` — **not** `x64`).
 
 **Notes:**
 - The **AppImage** is portable — `chmod +x` it and run; no install needed.
-- The **.deb** is for Debian/Ubuntu (`sudo apt install ./Magnolia-linux-x64.deb`).
+- The **.deb** is for Debian/Ubuntu (`sudo apt install ./Magnolia-linux-amd64.deb`).
 - On a minimal Linux you may need a couple of packaging tools for the `.deb`
   (e.g. `fakeroot`, `dpkg`); electron-builder fetches most of what it needs.
 - Linux builds are **unsigned** (Linux has no Gatekeeper-style requirement).
@@ -194,7 +196,7 @@ README's `…/releases/latest/download/…` links stay valid across versions.
 | `latest-mac.yml` | macOS | Update manifest the app polls — **must** be present |
 | `Magnolia-win-x64.exe` | Windows | NSIS installer |
 | `latest.yml` | Windows | Windows update manifest |
-| `Magnolia-linux-x64.AppImage` / `.deb` | Linux | Installers |
+| `Magnolia-linux-x86_64.AppImage` / `Magnolia-linux-amd64.deb` | Linux | Installers |
 | `latest-linux.yml` | Linux | Linux update manifest |
 | `*.blockmap` | all | Differential-update metadata |
 
