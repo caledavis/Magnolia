@@ -56,6 +56,12 @@ let manualCheckInProgress = false
 // intentionally quitting (otherwise the window's `closed` handler re-opens the
 // Welcome screen and the macOS update can't install — see below).
 let onQuitForUpdateRef: (() => void) | null = null
+// Set once an update has been downloaded + staged. Lets the app-quit handlers
+// kick ShipIt for the "Later → install on quit" path, which on macOS goes
+// through the native Squirrel.Mac auto-install and hits the same
+// submitted-but-never-started ShipIt bug as quitAndInstall.
+let updateDownloaded = false
+let quitHandlersAdded = false
 
 /** Initialise the updater and schedule a startup check. Must be
  *  called after app.whenReady() resolves. The reference to the main
@@ -64,6 +70,21 @@ let onQuitForUpdateRef: (() => void) | null = null
 export function initAutoUpdater(mainWindow: BrowserWindow, onQuitForUpdate: () => void): void {
   mainWindowRef = mainWindow
   onQuitForUpdateRef = onQuitForUpdate
+
+  // "Later → install on quit": when the app quits with a staged update,
+  // Squirrel.Mac is meant to install it on quit, but it hits the same
+  // submitted-but-never-started ShipIt bug as quitAndInstall. Kick the job
+  // ourselves as the app shuts down. Guarded by updateDownloaded so a normal
+  // quit (nothing staged) does nothing; idempotent so it's harmless if the
+  // Restart-now path already kicked, or if both will-quit and quit fire.
+  if (!quitHandlersAdded) {
+    quitHandlersAdded = true
+    const kickShipItOnQuit = (): void => {
+      if (updateDownloaded) startShipItJob()
+    }
+    app.on('will-quit', kickShipItOnQuit)
+    app.on('quit', kickShipItOnQuit)
+  }
 
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = true
@@ -104,6 +125,7 @@ export function initAutoUpdater(mainWindow: BrowserWindow, onQuitForUpdate: () =
 
   autoUpdater.on('update-downloaded', async (info) => {
     manualCheckInProgress = false
+    updateDownloaded = true
     // Subtle OS notification first — non-blocking, won't pull focus
     // mid-coding-session.
     if (Notification.isSupported()) {
