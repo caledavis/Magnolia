@@ -45,7 +45,7 @@ function describeCondition(cond: CodeCondition, codes: { guid: string; name: str
     return c?.name || 'Code'
   }
   switch (cond.type) {
-    case 'code': return findName(cond.codeGuid)
+    case 'code': return findName(cond.codeGuid) + (cond.includeSubcodes ? ' (incl. subcodes)' : '')
     case 'text': return `"${cond.searchText}"`
     case 'and': return cond.conditions.map((c) => describeCondition(c, codes)).join(' AND ')
     case 'or': return cond.conditions.map((c) => describeCondition(c, codes)).join(' OR ')

@@ -79,7 +79,7 @@ function describeCondition(cond: CodeCondition, findCode: (guid: string) => Code
   const codeName = (guid: string) => findCode(guid)?.name ?? 'Code'
   switch (cond.type) {
     case 'code':
-      return codeName(cond.codeGuid)
+      return codeName(cond.codeGuid) + (cond.includeSubcodes ? ' (incl. subcodes)' : '')
     case 'text':
       return cond.searchText ? `"${cond.searchText}"` : 'Text'
     case 'and':

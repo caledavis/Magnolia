@@ -357,7 +357,7 @@ export interface Note {
 
 // Query types
 export type CodeCondition =
-  | { type: 'code'; codeGuid: string }
+  | { type: 'code'; codeGuid: string; includeSubcodes?: boolean }
   | { type: 'any' }
   | { type: 'text'; searchText: string; caseSensitive?: boolean; wholeWord?: boolean }
   | { type: 'and'; conditions: CodeCondition[] }

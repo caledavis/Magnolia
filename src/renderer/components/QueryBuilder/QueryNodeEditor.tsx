@@ -292,23 +292,14 @@ function walkNode(
 
   if (n.kind === 'code') {
     if (!n.codeGuid) return null
-    if (n.includeSubcodes && codes) {
-      const allGuids: string[] = [n.codeGuid]
-      const collectDescendants = (parentGuid: string) => {
-        for (const c of codes) {
-          if (c.parentGuid === parentGuid) {
-            allGuids.push(c.guid)
-            collectDescendants(c.guid)
-          }
-        }
-      }
-      collectDescendants(n.codeGuid)
-      result = allGuids.length === 1
-        ? { type: 'code', codeGuid: n.codeGuid }
-        : { type: 'or', conditions: allGuids.map((g) => ({ type: 'code' as const, codeGuid: g })) }
-    } else {
-      result = { type: 'code', codeGuid: n.codeGuid }
-    }
+    // Store the compact intent: a single code condition carrying the
+    // includeSubcodes flag. The query engine expands it to the code + its
+    // descendants at run time, so the saved condition (and the name derived
+    // from it) stays readable as "<code> (incl. subcodes)" instead of a long
+    // OR of every subcode.
+    result = n.includeSubcodes
+      ? { type: 'code', codeGuid: n.codeGuid, includeSubcodes: true }
+      : { type: 'code', codeGuid: n.codeGuid }
   } else if (n.kind === 'any') {
     result = { type: 'any' }
   } else if (n.kind === 'text') {
@@ -427,7 +418,11 @@ function conditionToGraph(
         y,
         codeGuid: c.codeGuid,
         codeName: code?.name || 'Code',
-        codeColor: code?.color
+        codeColor: code?.color,
+        // Restore the "And subcodes" checkbox straight from the condition
+        // (new compact form). Legacy OR-expanded queries are handled by the
+        // detectSubcodeExpansion collapse in the and/or/xor branch below.
+        ...(c.includeSubcodes ? { includeSubcodes: true } : {})
       })
       yCursor += CODE_H + ROW_GAP
       return { id, yMin: y, yMax: y + CODE_H }

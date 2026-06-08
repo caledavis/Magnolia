@@ -38,6 +38,56 @@ function surveyCellText(source: TextSource, respondentId: string, questionId: st
   return buildCellText(respondent.answers[questionId])
 }
 
+/** A code guid plus all of its descendant guids, from the code tree. */
+function codeWithDescendants(codeGuid: string, codeMap: Map<string, Code>): string[] {
+  const out: string[] = [codeGuid]
+  const code = codeMap.get(codeGuid)
+  if (code) {
+    const walk = (children: Code[]) => {
+      for (const c of children) {
+        out.push(c.guid)
+        walk(c.children)
+      }
+    }
+    walk(code.children)
+  }
+  return out
+}
+
+/** Replace every "include subcodes" code condition with an OR of the code +
+ *  its descendants, recursing through compound and spatial conditions. Used
+ *  at execution time only — the stored condition keeps the compact
+ *  includeSubcodes form so the graph and the auto-generated name preserve
+ *  intent. A parent with no subcodes degrades to a plain code condition. */
+function expandSubcodeConditions(cond: CodeCondition, codeMap: Map<string, Code>): CodeCondition {
+  switch (cond.type) {
+    case 'code': {
+      if (!cond.includeSubcodes) return cond
+      const guids = codeWithDescendants(cond.codeGuid, codeMap)
+      if (guids.length <= 1) return { type: 'code', codeGuid: cond.codeGuid }
+      return { type: 'or', conditions: guids.map((g) => ({ type: 'code' as const, codeGuid: g })) }
+    }
+    case 'and':
+    case 'or':
+    case 'xor':
+      return { ...cond, conditions: cond.conditions.map((c) => expandSubcodeConditions(c, codeMap)) }
+    case 'not':
+      return { type: 'not', condition: expandSubcodeConditions(cond.condition, codeMap) }
+    case 'overlap':
+    case 'inside':
+    case 'outside':
+    case 'before':
+    case 'followedBy':
+      return {
+        ...cond,
+        condition1: expandSubcodeConditions(cond.condition1, codeMap),
+        condition2: expandSubcodeConditions(cond.condition2, codeMap)
+      }
+    default:
+      return cond
+  }
+}
+
 export function executeQuery(
   query: Query,
   sources: TextSource[],
@@ -99,6 +149,13 @@ export function executeQuery(
     codeMap.set(c.guid, c)
   }
 
+  // Expand any "include subcodes" code conditions into an OR of the code +
+  // all its descendants, for evaluation only. The condition is STORED compact
+  // (a single code node carrying `includeSubcodes`) so the graph and the
+  // query name keep the user's intent; the run-time expansion here keeps
+  // matching behaviour identical to the old pre-expanded form.
+  const codeCondition = expandSubcodeConditions(query.codeCondition, codeMap)
+
   // Evaluate each source
   for (const source of filteredSources) {
     const content = sourceContents[source.guid] ?? source.plainTextContent ?? ''
@@ -114,18 +171,18 @@ export function executeQuery(
         )
       : source.selections
 
-    const condType = query.codeCondition.type
+    const condType = codeCondition.type
 
     // Standalone text search: find all occurrences in the full document text
     if (condType === 'text') {
-      results.push(...textSearchDocument(query.codeCondition as { type: 'text'; searchText: string; caseSensitive?: boolean }, source, content, cellScope))
+      results.push(...textSearchDocument(codeCondition as { type: 'text'; searchText: string; caseSensitive?: boolean }, source, content, cellScope))
       continue
     }
 
     // OR conditions containing text children need document-wide text search
     // (per-selection evaluation would miss text occurrences outside coded selections)
-    if (condType === 'or' && containsTextCondition(query.codeCondition)) {
-      const flatChildren = flattenOr(query.codeCondition)
+    if (condType === 'or' && containsTextCondition(codeCondition)) {
+      const flatChildren = flattenOr(codeCondition)
       const seen = new Set<string>()
       for (const child of flatChildren) {
         if (child.type === 'text') {
@@ -157,29 +214,29 @@ export function executeQuery(
       const codeGuidsOnSelection = new Set(selection.codings.map((c) => c.codeGuid))
 
       if (condType === 'overlap') {
-        const cond = query.codeCondition as { type: 'overlap'; condition1: CodeCondition; condition2: CodeCondition }
+        const cond = codeCondition as { type: 'overlap'; condition1: CodeCondition; condition2: CodeCondition }
         const overlapResults = findOverlapIntersections(cond, selection, scopedSelections, source, content, codeMap)
         results.push(...overlapResults)
       } else if (condType === 'inside') {
-        const cond = query.codeCondition as { type: 'inside'; condition1: CodeCondition; condition2: CodeCondition }
+        const cond = codeCondition as { type: 'inside'; condition1: CodeCondition; condition2: CodeCondition }
         const insideResults = findInsideSelections(cond, selection, scopedSelections, source, content, codeMap)
         results.push(...insideResults)
       } else if (condType === 'outside') {
-        const cond = query.codeCondition as { type: 'outside'; condition1: CodeCondition; condition2: CodeCondition }
+        const cond = codeCondition as { type: 'outside'; condition1: CodeCondition; condition2: CodeCondition }
         const outsideResults = findOutsideSelections(cond, selection, scopedSelections, source, content, codeMap)
         results.push(...outsideResults)
       } else if (condType === 'before') {
-        const cond = query.codeCondition as { type: 'before'; condition1: CodeCondition; condition2: CodeCondition }
+        const cond = codeCondition as { type: 'before'; condition1: CodeCondition; condition2: CodeCondition }
         const beforeResults = findBeforeSelections(cond, selection, scopedSelections, source, content, codeMap)
         results.push(...beforeResults)
       } else if (condType === 'followedBy') {
-        const cond = query.codeCondition as { type: 'followedBy'; condition1: CodeCondition; condition2: CodeCondition }
+        const cond = codeCondition as { type: 'followedBy'; condition1: CodeCondition; condition2: CodeCondition }
         const followedByResults = findFollowedBySelections(cond, selection, scopedSelections, source, content, codeMap)
         results.push(...followedByResults)
       } else {
         const selSource = textForSelection(source, selection, content)
         const selText = codepointSlice(selSource, selection.startPosition, selection.endPosition)
-        if (evaluateCondition(query.codeCondition, codeGuidsOnSelection, selText, selection, scopedSelections, content)) {
+        if (evaluateCondition(codeCondition, codeGuidsOnSelection, selText, selection, scopedSelections, content)) {
           results.push(
             buildResult(source, selection, content, codeGuidsOnSelection, codeMap)
           )
