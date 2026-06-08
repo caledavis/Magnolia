@@ -601,10 +601,32 @@ export function CodedTextView({
 
   // Programmatically select the text corresponding to the active margin range
   useEffect(() => {
+    // A margin HOVER is a transient preview; a lockedRange (click) or an
+    // externalHighlightRange (programmatic navigation) is deliberate. The
+    // distinction matters because this effect borrows the single native
+    // selection to paint its highlight — and must not trample the user's
+    // own in-progress text selection while doing so.
+    const isHoverOnly = !externalHighlightRange && !lockedRange
+    const liveSel = window.getSelection()
+    const userHasManualSelection = !!liveSel && !liveSel.isCollapsed && liveSel.rangeCount > 0
+
     if (!containerRef.current || !activeRange) {
-      window.getSelection()?.removeAllRanges()
+      // Don't wipe a selection the user is actively building (e.g. they
+      // selected text and are now moving the mouse off a margin label on
+      // the way to drag a code onto it). Only clear the preview selection
+      // when there's no user selection to protect.
+      if (!userHasManualSelection) window.getSelection()?.removeAllRanges()
       return
     }
+
+    // Hovering a margin label must never disturb an in-progress manual
+    // selection. Without this guard, sweeping the cursor over an existing
+    // code/memo/quote label en route to dragging a code would hijack the
+    // native selection AND (via the onTextSelected call below) retarget the
+    // coding to the hovered range — so the code lands on the wrong text, or
+    // the selection appears to vanish entirely.
+    if (isHoverOnly && userHasManualSelection) return
+
     const container = containerRef.current
     const { startCp, endCp } = activeRange
 
@@ -653,13 +675,21 @@ export function CodedTextView({
           range.setEnd(endNode, endOffset)
           sel.removeAllRanges()
           sel.addRange(range)
-          onTextSelected(startCp, endCp, [...text].slice(startCp, endCp).join(''))
+          // Only register the working coding selection for a DELIBERATE
+          // range (clicking a coding label = lockedRange, or programmatic
+          // navigation = externalHighlightRange). A mere hover previews
+          // visually but must not become the pending coding target — that
+          // was the source of codes landing on whatever label the cursor
+          // happened to pass over.
+          if (!isHoverOnly) {
+            onTextSelected(startCp, endCp, [...text].slice(startCp, endCp).join(''))
+          }
         }
       } catch {
         // Range might be invalid in edge cases
       }
     }
-  }, [activeRange, text, onTextSelected])
+  }, [activeRange, text, onTextSelected, externalHighlightRange, lockedRange])
 
   // Precompute memo ranges for highlighting
   const memoRanges = useMemo(() => {
