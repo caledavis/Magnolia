@@ -1,23 +1,21 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { Icon, faXmark } from '../Icon'
 import { PaletteGroup, PaletteDivider, PaletteButton } from '../NodePalette'
-import { sourceTypeFromFilename } from '../../utils/format-registry'
-
-type DocCategory = 'video' | 'audio' | 'document' | 'image'
+import {
+  resolveDocGraph,
+  type DocGraphData,
+  type DNode,
+  type DConn,
+  type SetOp,
+  type DNodeKind,
+  type DocCategory
+} from '../../utils/document-graph'
 
 const CATEGORY_LABELS: Record<DocCategory, string> = {
   video: 'Video',
   audio: 'Audio',
   document: 'Document',
   image: 'Image'
-}
-
-function categoryOfSource(name: string): DocCategory {
-  const st = sourceTypeFromFilename(name)
-  if (st === 'video') return 'video'
-  if (st === 'audio') return 'audio'
-  if (st === 'image') return 'image'
-  return 'document'
 }
 
 /* ═══════════════════════════════════════════════════
@@ -75,37 +73,8 @@ export function emptyDocumentFilter(): DocumentFilterState {
    Node graph types
    ═══════════════════════════════════════════════════ */
 
-type DNodeKind = 'docs' | 'tag' | 'type' | 'folder' | 'allDocs' | 'setOp' | 'result'
-type SetOp = 'union' | 'intersect' | 'subtract'
-
-interface DNode {
-  id: string
-  kind: DNodeKind
-  x: number
-  y: number
-  /** docs node: list of source guids */
-  docGuids?: string[]
-  /** tag node */
-  tagCategoryGuid?: string
-  tagGuid?: string
-  tagName?: string
-  /** tag filter mode and range */
-  tagGuid2?: string
-  betweenMode?: 'is' | 'between' | 'not-between'
-  /** type node */
-  typeExt?: string
-  /** folder node: a single folder guid (descendants are included automatically) */
-  folderGuid?: string
-  /** setOp node: operators between consecutive input slots */
-  setOps?: (SetOp | undefined)[]
-}
-
-interface DConn {
-  id: string
-  from: string
-  to: string
-  toPort: number
-}
+// DNodeKind, SetOp, DNode, DConn now live in ../../utils/document-graph
+// (imported above) so the query engine can resolve the same graph.
 
 type DragState =
   | null
@@ -118,11 +87,6 @@ type DragState =
    ═══════════════════════════════════════════════════ */
 let _ctxTags: DocumentSelectorTag[] = []
 let _ctxCategories: DocumentSelectorCategory[] = []
-// Survey tag membership, consulted by walkNode's 'tag' case so a tag
-// node pulls in surveys tagged only via a respondent / question. Set
-// from the component body (same pattern as _ctxTags).
-let _ctxRespondentTagMembers: Record<string, import('../../models/types').SurveyEntityRef[]> = {}
-let _ctxQuestionTagMembers: Record<string, import('../../models/types').SurveyEntityRef[]> = {}
 
 /* ═══════════════════════════════════════════════════
    Constants
@@ -534,153 +498,6 @@ function wouldCycle(fromId: string, toId: string, cc: DConn[]): boolean {
 }
 
 /* ═══════════════════════════════════════════════════
-   Graph → resolved document GUIDs
-   ═══════════════════════════════════════════════════ */
-
-function resolveGraph(
-  nodes: DNode[],
-  conns: DConn[],
-  sources: DocumentSelectorSource[],
-  tags: DocumentSelectorTag[],
-  tagMembers: Record<string, string[]>,
-  folders: DocumentSelectorFolder[],
-  sourceFolder: Record<string, string>
-): string[] {
-  const allGuids = sources.map((s) => s.guid)
-  const allSet = new Set(allGuids)
-
-  const res = nodes.find((n) => n.kind === 'result')
-  if (!res) return []
-  const inp = conns.find((c) => c.to === res.id)
-  if (!inp) return [] // no connection to result = no docs selected
-
-  const result = walkNode(inp.from, nodes, conns, sources, tags, tagMembers, folders, sourceFolder, allSet, new Set())
-  return Array.from(result)
-}
-
-function walkNode(
-  id: string,
-  nodes: DNode[],
-  conns: DConn[],
-  sources: DocumentSelectorSource[],
-  tags: DocumentSelectorTag[],
-  tagMembers: Record<string, string[]>,
-  folders: DocumentSelectorFolder[],
-  sourceFolder: Record<string, string>,
-  allSet: Set<string>,
-  visited: Set<string>
-): Set<string> {
-  if (visited.has(id)) return new Set()
-  visited.add(id)
-  const n = nodes.find((nd) => nd.id === id)
-  if (!n) return new Set()
-
-  if (n.kind === 'docs') {
-    const guids = (n.docGuids || []).filter((g) => allSet.has(g))
-    return new Set(guids)
-  }
-
-  if (n.kind === 'tag') {
-    if (!n.tagGuid) return new Set()
-    // Between / Not Between range filter
-    if (n.tagGuid2 && n.betweenMode && n.tagCategoryGuid) {
-      const tag1 = tags.find((t) => t.guid === n.tagGuid)
-      const tag2 = tags.find((t) => t.guid === n.tagGuid2)
-      if (tag1?.value && tag2?.value) {
-        const catTags = tags.filter((t) => t.categoryGuid === n.tagCategoryGuid && t.value)
-        const isDate = !isNaN(new Date(tag1.value.split('/').reverse().join('-')).getTime())
-        const parse = (v: string) => isDate ? new Date(v.split('/').reverse().join('-')).getTime() : parseFloat(v)
-        const lo = Math.min(parse(tag1.value), parse(tag2.value))
-        const hi = Math.max(parse(tag1.value), parse(tag2.value))
-        const result = new Set<string>()
-        for (const t of catTags) {
-          const v = parse(t.value!)
-          if (isNaN(v)) continue
-          const inRange = v >= lo && v <= hi
-          if ((n.betweenMode === 'between' && inRange) || (n.betweenMode === 'not-between' && !inRange)) {
-            for (const g of (tagMembers[t.guid] || [])) {
-              if (allSet.has(g)) result.add(g)
-            }
-          }
-        }
-        return result
-      }
-    }
-    const result = new Set<string>((tagMembers[n.tagGuid] || []).filter((g) => allSet.has(g)))
-    // Surveys tagged only via a respondent / question still belong in the
-    // document set (their cells get narrowed downstream by cell scope).
-    for (const r of (_ctxRespondentTagMembers[n.tagGuid] || [])) {
-      if (allSet.has(r.sourceGuid)) result.add(r.sourceGuid)
-    }
-    for (const q of (_ctxQuestionTagMembers[n.tagGuid] || [])) {
-      if (allSet.has(q.sourceGuid)) result.add(q.sourceGuid)
-    }
-    return result
-  }
-
-  if (n.kind === 'type') {
-    if (!n.typeExt) return new Set()
-    const cat = n.typeExt as DocCategory
-    return new Set(
-      sources.filter((s) => categoryOfSource(s.name) === cat).map((s) => s.guid)
-    )
-  }
-
-  if (n.kind === 'folder') {
-    if (!n.folderGuid) return new Set()
-    // Include the chosen folder AND every descendant folder so dropping
-    // a parent folder selects everything underneath without needing one
-    // node per sub-folder.
-    const folderSet = new Set<string>([n.folderGuid])
-    let added = true
-    while (added) {
-      added = false
-      for (const f of folders) {
-        if (f.parentGuid && folderSet.has(f.parentGuid) && !folderSet.has(f.guid)) {
-          folderSet.add(f.guid)
-          added = true
-        }
-      }
-    }
-    const result = new Set<string>()
-    for (const guid of allSet) {
-      const fg = sourceFolder[guid]
-      if (fg && folderSet.has(fg)) result.add(guid)
-    }
-    return result
-  }
-
-  if (n.kind === 'allDocs') {
-    return new Set(allSet)
-  }
-
-  if (n.kind === 'setOp') {
-    const ops = n.setOps ?? ['union']
-    const ins = conns
-      .filter((c) => c.to === id)
-      .sort((a, b) => a.toPort - b.toPort)
-    const sets = ins.map((c) => walkNode(c.from, nodes, conns, sources, tags, tagMembers, folders, sourceFolder, allSet, visited))
-    if (sets.length === 0) return new Set()
-
-    let result = sets[0]
-    for (let i = 0; i < ops.length && i + 1 < sets.length; i++) {
-      const op = ops[i] ?? 'union'
-      const next = sets[i + 1]
-      if (op === 'union') {
-        result = new Set([...result, ...next])
-      } else if (op === 'intersect') {
-        result = new Set([...result].filter((g) => next.has(g)))
-      } else if (op === 'subtract') {
-        result = new Set([...result].filter((g) => !next.has(g)))
-      }
-    }
-    return result
-  }
-
-  return new Set()
-}
-
-/* ═══════════════════════════════════════════════════
    Component
    ═══════════════════════════════════════════════════ */
 
@@ -766,8 +583,14 @@ export function DocumentSelector({
   // Update module-level context so nodeH can compute accurate tag node heights
   _ctxTags = tags
   _ctxCategories = categories
-  _ctxRespondentTagMembers = respondentTagMembers
-  _ctxQuestionTagMembers = questionTagMembers
+
+  // Bundle the data the shared resolver needs, rebuilt when any input
+  // changes. Used by both resolve sites below (and the same shape the query
+  // store builds when it re-resolves a saved filter live).
+  const docGraphData = useMemo<DocGraphData>(
+    () => ({ sources, tags, tagMembers, folders, sourceFolder, respondentTagMembers, questionTagMembers }),
+    [sources, tags, tagMembers, folders, sourceFolder, respondentTagMembers, questionTagMembers]
+  )
 
   // Initialize graph from saved filter, synthesize from arrays, or default
   const computedGraph = useRef((() => {
@@ -972,7 +795,7 @@ export function DocumentSelector({
 
   /* --- notify parent --- */
   useEffect(() => {
-    const resolved = resolveGraph(nodes, conns, sources, tags, tagMembers, folders, sourceFolder)
+    const resolved = resolveDocGraph(nodes, conns, docGraphData)
     // Emit the tag guids the graph used (include/exclude) alongside the
     // resolved document set, so downstream can apply cell-precise survey
     // scoping. sourceGuids already includes surveys pulled in by a
@@ -1264,8 +1087,8 @@ export function DocumentSelector({
 
   /* --- resolved count for status --- */
   const resolvedGuids = useMemo(
-    () => resolveGraph(nodes, conns, sources, tags, tagMembers, folders, sourceFolder),
-    [nodes, conns, sources, tags, tagMembers, folders, sourceFolder]
+    () => resolveDocGraph(nodes, conns, docGraphData),
+    [nodes, conns, docGraphData]
   )
 
   // Per survey source, which respondent/question tags are narrowing it —

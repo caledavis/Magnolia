@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import type { Query, QueryResult, SavedQuery } from '../models/types'
 import { executeQuery } from '../utils/query-engine'
+import { resolveDocGraph, type DocGraphData } from '../utils/document-graph'
+import type { SurveyEntityRef } from '../models/types'
 import { useDocumentStore } from './document-store'
 import { useCodeStore } from './code-store'
 import { useTagStore } from './tag-store'
@@ -41,6 +43,72 @@ interface QueryState {
   clearAll: () => void
 }
 
+/** Re-resolve a query's document filter against the CURRENT project data
+ *  when it carries a selector graph, so saved filters are LIVE — they pick up
+ *  newly-tagged documents (etc.) instead of being frozen to the doc set that
+ *  matched at save time, matching how the code side now re-expands subcodes
+ *  at run time. Returns the filter to execute with plus a `noDocs` flag: a
+ *  graph that resolves to zero documents must produce no results, NOT fall
+ *  through executeQuery's "empty sourceGuids = all documents" shortcut.
+ *  Filters with no graph (drilldowns, legacy saves) pass through untouched. */
+function liveResolveFilter(df: Query['documentFilter']): {
+  documentFilter: Query['documentFilter']
+  noDocs: boolean
+} {
+  const graph = df.graph
+  if (!graph || !graph.nodes || graph.nodes.length === 0) return { documentFilter: df, noDocs: false }
+  const docState = useDocumentStore.getState()
+  const tagState = useTagStore.getState()
+  const data: DocGraphData = {
+    sources: docState.sources.map((s) => ({ guid: s.guid, name: s.name })),
+    tags: tagState.tags.map((t) => ({ guid: t.guid, name: t.name, categoryGuid: t.categoryGuid, value: t.value })),
+    tagMembers: tagState.tags.reduce((acc, t) => {
+      acc[t.guid] = t.memberSourceGuids
+      return acc
+    }, {} as Record<string, string[]>),
+    folders: docState.folders.map((f) => ({ guid: f.guid, name: f.name, parentGuid: f.parentGuid ?? null })),
+    sourceFolder: docState.sourceFolder,
+    respondentTagMembers: tagState.tags.reduce((acc, t) => {
+      if (t.memberSurveyRespondents?.length) acc[t.guid] = t.memberSurveyRespondents
+      return acc
+    }, {} as Record<string, SurveyEntityRef[]>),
+    questionTagMembers: tagState.tags.reduce((acc, t) => {
+      if (t.memberSurveyQuestions?.length) acc[t.guid] = t.memberSurveyQuestions
+      return acc
+    }, {} as Record<string, SurveyEntityRef[]>)
+  }
+  const fresh = resolveDocGraph(graph.nodes, graph.conns, data)
+  if (fresh.length === 0) return { documentFilter: { ...df, sourceGuids: [] }, noDocs: true }
+  return { documentFilter: { ...df, sourceGuids: fresh }, noDocs: false }
+}
+
+/** Run a query against current data with the document filter re-resolved
+ *  live (see liveResolveFilter). */
+function runQueryLive(query: Query): { results: QueryResult[]; missingDocuments: string[] } {
+  const docState = useDocumentStore.getState()
+  const { documentFilter, noDocs } = liveResolveFilter(query.documentFilter)
+  // "Missing documents" only applies to frozen (graph-less) filters. A
+  // graph-based filter re-resolves against current docs, so a deleted doc
+  // just drops out — nothing is missing.
+  const missingDocuments: string[] = []
+  if (!query.documentFilter.graph && query.documentFilter.sourceGuids?.length) {
+    const existing = new Set(docState.sources.map((s) => s.guid))
+    for (const sg of query.documentFilter.sourceGuids) if (!existing.has(sg)) missingDocuments.push(sg)
+  }
+  const results = noDocs
+    ? []
+    : executeQuery(
+        { ...query, documentFilter },
+        docState.sources,
+        docState.sourceContents,
+        useCodeStore.getState().flatCodes(),
+        useTagStore.getState().tags,
+        docState.sourceFolder,
+        docState.folders
+      )
+  return { results, missingDocuments }
+}
+
 export const useQueryStore = create<QueryState>((set, get) => ({
   currentQuery: null,
   currentGraphLayout: null,
@@ -50,28 +118,14 @@ export const useQueryStore = create<QueryState>((set, get) => ({
   savedQueries: [],
 
   setComplexQuery: (query, graphLayout) => {
-    const docState = useDocumentStore.getState()
-    // Check for missing documents in the query's document filter
-    const missing: string[] = []
-    if (query.documentFilter.sourceGuids?.length) {
-      const existingGuids = new Set(docState.sources.map((s) => s.guid))
-      for (const sg of query.documentFilter.sourceGuids) {
-        if (!existingGuids.has(sg)) missing.push(sg)
-      }
-    }
-    const results = executeQuery(
-      query,
-      docState.sources,
-      docState.sourceContents,
-      useCodeStore.getState().flatCodes(),
-      useTagStore.getState().tags,
-      docState.sourceFolder,
-      docState.folders
-    )
+    // `currentQuery` keeps the AUTHORED query (graph + the original resolved
+    // snapshot); execution re-resolves the document filter live so results
+    // reflect the current project, not the doc set frozen at save time.
+    const { results, missingDocuments } = runQueryLive(query)
     // Track the authored code graph alongside the query. Pass null when
     // no graph is supplied (drilldowns, Find) so "Edit current query"
     // doesn't restore a stale graph from a previous builder session.
-    set({ currentQuery: query, currentGraphLayout: graphLayout ?? null, isActive: true, results, missingDocuments: missing })
+    set({ currentQuery: query, currentGraphLayout: graphLayout ?? null, isActive: true, results, missingDocuments })
   },
 
   clearQuery: () => set({ currentQuery: null, currentGraphLayout: null, results: [], isActive: false, missingDocuments: [] }),
@@ -82,24 +136,11 @@ export const useQueryStore = create<QueryState>((set, get) => ({
       set({ results: [], missingDocuments: [] })
       return
     }
-    const docState = useDocumentStore.getState()
-    const missing: string[] = []
-    if (currentQuery.documentFilter.sourceGuids?.length) {
-      const existingGuids = new Set(docState.sources.map((s) => s.guid))
-      for (const sg of currentQuery.documentFilter.sourceGuids) {
-        if (!existingGuids.has(sg)) missing.push(sg)
-      }
-    }
-    const results = executeQuery(
-      currentQuery,
-      docState.sources,
-      docState.sourceContents,
-      useCodeStore.getState().flatCodes(),
-      useTagStore.getState().tags,
-      docState.sourceFolder,
-      docState.folders
-    )
-    set({ results, missingDocuments: missing })
+    // Re-resolve the document filter live on every run — this is also what
+    // the auto-rerun (on code/doc/tag changes) calls, so a saved tag-based
+    // query reflects newly-tagged documents without re-opening it.
+    const { results, missingDocuments } = runQueryLive(currentQuery)
+    set({ results, missingDocuments })
   },
 
   saveCurrentQuery: (name, graphLayout, guid) => {
