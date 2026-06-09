@@ -4,6 +4,8 @@
 
 # Magnolia: Free and powerful qualitative data analysis software
 
+**Official website:** [www.caledavis.eu/magnolia.html](https://www.caledavis.eu/magnolia.html)
+
 **Download the latest version:**
 
 - [macOS — Apple Silicon](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-mac-arm64.dmg)
