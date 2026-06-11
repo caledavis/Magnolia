@@ -668,22 +668,21 @@ function OptionListCell({
               color: isChosen ? 'var(--text-primary)' : 'var(--text-secondary)'
             }}
           >
-            {/* Reserved-width check column so every row's text starts
-                at the same x — chosen rows show the tick, unchosen
-                ones leave the same space blank. */}
+            {/* Reserved-width left column so every row's label starts at
+                the same x. Holds the donut-legend colour swatch when
+                showSwatches; otherwise stays blank. The chosen tick now
+                sits next to the option label rather than replacing the
+                swatch here, so the legend stays intact. */}
             <span
               style={{
                 width: 14,
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                flexShrink: 0,
-                color: 'var(--accent)'
+                flexShrink: 0
               }}
             >
-              {isChosen ? (
-                <Icon icon={faCheck} style={{ fontSize: 12 }} />
-              ) : showSwatches ? (
+              {showSwatches && (
                 <span
                   style={{
                     width: 9,
@@ -693,9 +692,14 @@ function OptionListCell({
                     display: 'inline-block'
                   }}
                 />
-              ) : null}
+              )}
             </span>
-            <span style={{ flex: 1 }}>{d.displayOption ?? d.option}</span>
+            <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ minWidth: 0 }}>{d.displayOption ?? d.option}</span>
+              {isChosen && (
+                <Icon icon={faCheck} style={{ fontSize: 12, color: 'var(--accent)', flexShrink: 0 }} />
+              )}
+            </span>
             <span style={{ fontSize: 11, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums', minWidth: 40, textAlign: 'right' }}>
               {formatPct(d.pct)}
             </span>
@@ -1172,7 +1176,16 @@ function RespondentAnswerCell({
       const c = clean(ans)
       if (c) chosen.add(c)
     }
-    return <OptionListCell options={dist} chosen={chosen} />
+    // Donut of the overall distribution, with the list (this respondent's
+    // pick bolded) as its legend — mirrors Survey Overview.
+    return (
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+        <DonutChart options={dist} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <OptionListCell options={dist} chosen={chosen} showSwatches />
+        </div>
+      </div>
+    )
   }
   if (question.type === 'multi-select') {
     const dist = computeMultiSelectDistribution(survey, question)
@@ -1226,7 +1239,14 @@ function QuestionView({
           onChangeType={(t) => rest.onChangeQuestionType(question.id, t)}
         />
         <div style={indentedAnswerStyle}>
-          <OptionListCell options={dist} chosen={new Set()} />
+          {/* Donut on the left, the option list (with matching colour
+              swatches) doubling as its legend — mirrors Survey Overview. */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+            <DonutChart options={dist} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <OptionListCell options={dist} chosen={new Set()} showSwatches />
+            </div>
+          </div>
         </div>
       </article>
     )
