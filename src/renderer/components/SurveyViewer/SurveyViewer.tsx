@@ -1429,7 +1429,7 @@ function pdfDonutHtml(options: OptionTally[], size = 64, thickness = 13): string
     })
     .join('')
   return (
-    `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">` +
+    `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">` +
     `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="#eee" stroke-width="${thickness}"/>` +
     segments +
     `</svg>`
@@ -1495,7 +1495,7 @@ function pdfNumericBoxPlotHtml(stats: NumericStats | null, valueLabels?: Map<num
     .join('')
 
   return (
-    `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">` +
+    `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">` +
     `<line x1="${x(stats.min)}" x2="${x(stats.q1)}" y1="${midY}" y2="${midY}" stroke="#888" stroke-width="1"/>` +
     `<line x1="${x(stats.q3)}" x2="${x(stats.max)}" y1="${midY}" y2="${midY}" stroke="#888" stroke-width="1"/>` +
     `<line x1="${x(stats.min)}" x2="${x(stats.min)}" y1="${midY - whiskerHalf}" y2="${midY + whiskerHalf}" stroke="#888" stroke-width="1"/>` +
@@ -1629,9 +1629,14 @@ function buildSurveySummaryHtml(survey: SurveyData, displayName: string): string
   // provided by buildPdfDocument's base CSS.
   const extraCss = `
   table { table-layout: fixed; }
+  /* Percentage widths so the columns scale with the page. The old fixed
+     pixel widths (88 + 300 + a 28px tick = 416px) overran narrow pages
+     like A5 (~420px printable), starving the unsized Question column to a
+     few pixels so every word wrapped onto its own line. c-num stays a
+     small fixed tick; the Question / Respondent columns take the slack. */
   col.c-num { width: 28px; }
-  col.c-answered { width: 88px; }
-  col.c-distribution { width: 300px; }
+  col.c-answered { width: 22%; }
+  col.c-distribution { width: 38%; }
   col.c-completed { width: 200px; }
   td.num { white-space: nowrap; }
   ul.options { list-style: none; padding: 0; margin: 0; }
@@ -1662,7 +1667,10 @@ function buildSurveySummaryHtml(survey: SurveyData, displayName: string): string
   .resp-bar-fill { height: 100%; background: #888; }
   .resp-num { font-size: 10px; color: #888; white-space: nowrap; }
   .stats-line { font-size: 10px; color: #888; margin-top: 4px; }
-  svg { display: block; }
+  /* Cap the distribution graphics at their intrinsic width but let them
+     shrink to fit a narrower column on small pages (viewBox keeps the
+     aspect ratio when they scale). */
+  svg { display: block; max-width: 100%; height: auto; }
 `
 
   return buildPdfDocument({ title: displayName, subtitle, body, extraCss })
