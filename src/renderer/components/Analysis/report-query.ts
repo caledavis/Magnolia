@@ -9,17 +9,18 @@ import { executeQuery } from '../../utils/query-engine'
 import { groupByDocument } from '../QueryResultViewer/QueryResultsBody'
 import { escHtml } from '../../utils/pdf-export'
 import { useQueryStore } from '../../stores/query-store'
+import { useDocumentStore } from '../../stores/document-store'
 
 export const REPORT_QUERY_CSS = `
   .report-query .report-query-meta { font-size: 10px; color: #888; margin: 0 0 8px 0; }
-  .report-query .doc-group { margin-bottom: 12px; break-inside: avoid; page-break-inside: avoid; }
-  .report-query h3.q-doc { font-size: 12px; margin: 0 0 5px; padding: 3px 8px; background: #f3f4f6; border-radius: 4px; font-weight: 600; }
+  .report-query .doc-group { margin-bottom: 12px; }
+  .report-query h3.q-doc { font-size: 12px; margin: 0 0 5px; padding: 3px 8px; background: #f3f4f6; border-radius: 4px; font-weight: 600; break-after: avoid; page-break-after: avoid; }
   .report-query h3.q-doc .count { font-weight: 400; color: #888; font-size: 10px; }
-  .report-query .q-result { padding: 4px 8px 4px 14px; border-bottom: 1px solid #eee; }
+  .report-query .q-result { padding: 4px 8px 4px 14px; border-bottom: 1px solid #eee; break-inside: avoid; page-break-inside: avoid; }
   .report-query .codes { margin-bottom: 3px; }
   .report-query .code-badge { display: inline-block; font-size: 9px; padding: 1px 6px; margin-right: 4px; background: #f3f4f6; border-radius: 3px; }
   .report-query .context { white-space: pre-wrap; font-size: 10.5px; }
-  .report-query mark { border-radius: 2px; padding: 1px 2px; font-weight: 600; }
+  .report-query .match { color: #222; }
 `
 
 /** Render a saved-query item: re-run it and render the matches, or a
@@ -31,10 +32,16 @@ export function renderQueryItemHtml(refGuid: string, anchor: string): string {
   }
 
   const base = buildAnalysisInitData('reports')
-  const execSources = base.sources.map((s) => ({
+  // Use the full document-store sources so executeQuery can resolve survey
+  // cell text (it reads source.formatData.survey). The trimmed
+  // base.sources omit formatData, which left every survey match's text
+  // blank in the report.
+  const execSources = useDocumentStore.getState().sources.map((s) => ({
     guid: s.guid,
     name: s.name,
-    selections: (base.sourceSelections[s.guid] || []).map((sel: any) => ({ ...sel, codings: sel.codings || [] }))
+    sourceType: (s as any).sourceType,
+    formatData: (s as any).formatData,
+    selections: ((s as any).selections || []).map((sel: any) => ({ ...sel, codings: sel.codings || [] }))
   }))
   const execCodes = base.codes.map((c) => ({ guid: c.guid, name: c.name, color: c.color, isCodable: c.isCodable, children: [] }))
   const execTags = base.tags.map((t) => ({ guid: t.guid, name: t.name, memberSourceGuids: base.tagMembers[t.guid] || [] }))
@@ -61,14 +68,13 @@ export function renderQueryItemHtml(refGuid: string, anchor: string): string {
       const codes = r.matchedCodes
         .map((c) => `<span class="code-badge" style="border-left:3px solid ${c.color || '#888'}">${escHtml(c.name)}</span>`)
         .join(' ')
-      const highlight = r.matchedCodes[0]?.color ? `background:${r.matchedCodes[0].color}40` : 'background:#fef08a'
       body += '<div class="q-result">'
       if (codes) body += `<div class="codes">${codes}</div>`
       const ctxB = r.contextBefore || ''
       const ctxA = r.contextAfter || ''
       body += '<div class="context">'
       body += `<span class="muted">${ctxB ? '…' + escHtml(ctxB) : ''}</span>`
-      body += `<mark style="${highlight}">${escHtml(r.matchedText || '')}</mark>`
+      body += `<span class="match">${escHtml(r.matchedText || '')}</span>`
       body += `<span class="muted">${ctxA ? escHtml(ctxA) + '…' : ''}</span>`
       body += '</div></div>'
     }
