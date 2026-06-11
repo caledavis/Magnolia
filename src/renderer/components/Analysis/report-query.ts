@@ -10,6 +10,7 @@ import { groupByDocument } from '../QueryResultViewer/QueryResultsBody'
 import { escHtml } from '../../utils/pdf-export'
 import { useQueryStore } from '../../stores/query-store'
 import { useDocumentStore } from '../../stores/document-store'
+import { surveyCellCitation } from './report-survey-cite'
 
 export const REPORT_QUERY_CSS = `
   .report-query .report-query-meta { font-size: 10px; color: #888; margin: 0 0 8px 0; }
@@ -17,6 +18,7 @@ export const REPORT_QUERY_CSS = `
   .report-query h3.q-doc { font-size: 12px; margin: 0 0 5px; padding: 3px 8px; background: #f3f4f6; border-radius: 4px; font-weight: 600; break-after: avoid; page-break-after: avoid; }
   .report-query h3.q-doc .count { font-weight: 400; color: #888; font-size: 10px; }
   .report-query .q-result { padding: 4px 8px 4px 14px; border-bottom: 1px solid #eee; break-inside: avoid; page-break-inside: avoid; }
+  .report-query .q-cite { font-size: 9.5px; color: #888; margin-bottom: 3px; }
   .report-query .codes { margin-bottom: 3px; }
   .report-query .code-badge { display: inline-block; font-size: 9px; padding: 1px 6px; margin-right: 4px; background: #f3f4f6; border-radius: 3px; }
   .report-query .context { white-space: pre-wrap; font-size: 10.5px; }
@@ -69,6 +71,13 @@ export function renderQueryItemHtml(refGuid: string, anchor: string): string {
         .map((c) => `<span class="code-badge" style="border-left:3px solid ${c.color || '#888'}">${escHtml(c.name)}</span>`)
         .join(' ')
       body += '<div class="q-result">'
+      if (r.surveyCell) {
+        // Survey matches cite the respondent + question, the same shared
+        // way survey quotes do (the doc-group header already names the
+        // survey, so the leading separator is dropped here).
+        const cite = surveyCellCitation(r.sourceGuid, r.surveyCell)
+        if (cite) body += `<div class="q-cite">${cite.replace(/^ · /, '')}</div>`
+      }
       if (codes) body += `<div class="codes">${codes}</div>`
       const ctxB = r.contextBefore || ''
       const ctxA = r.contextAfter || ''

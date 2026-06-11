@@ -23,7 +23,8 @@ import { usePreferencesStore } from '../../stores/preferences-store'
 import { TOOL_REGISTRY } from '../../utils/tool-registry'
 import { renderAnalysisItemHtml, REPORT_TABLE_CSS } from './report-analysis'
 import { renderQueryItemHtml, REPORT_QUERY_CSS } from './report-query'
-import type { AnalysisToolType, Quote, SurveyFormatData } from '../../models/types'
+import { surveyCellCitation } from './report-survey-cite'
+import type { AnalysisToolType, Quote } from '../../models/types'
 
 /** Per-tool display options chosen for an analysis item, mirroring the
  *  toggles the analysis tool itself exposes. Applied when the table is
@@ -144,23 +145,10 @@ function freshQuoteText(q: Quote): string {
   return q.text
 }
 
-/** For a survey-cell quote, a citation fragment naming the respondent and
- *  the question (number + text). Empty for non-survey quotes or when the
- *  survey can't be resolved. Returns HTML-escaped content. */
+/** For a survey-cell quote, the shared survey citation (respondent +
+ *  question). Empty for non-survey quotes. */
 function surveyCitation(q: Quote): string {
-  if (!q.surveyCell) return ''
-  const src = useDocumentStore.getState().sources.find((s) => s.guid === q.sourceGuid)
-  const survey = (src?.formatData as SurveyFormatData | undefined)?.survey
-  if (!survey) return ''
-  const rIdx = survey.respondents.findIndex((r) => r.id === q.surveyCell!.respondentId)
-  const qIdx = survey.questions.findIndex((qq) => qq.id === q.surveyCell!.questionId)
-  const respLabel = (rIdx >= 0 ? survey.respondents[rIdx]?.displayName : '') || (rIdx >= 0 ? `Respondent ${rIdx + 1}` : 'Respondent')
-  let cite = ` · ${escHtml(respLabel)}`
-  if (qIdx >= 0) {
-    const qText = (survey.questions[qIdx]?.text ?? '').trim()
-    cite += ` · Q${qIdx + 1}${qText ? `: “${escHtml(qText)}”` : ''}`
-  }
-  return cite
+  return q.surveyCell ? surveyCellCitation(q.sourceGuid, q.surveyCell) : ''
 }
 
 const EXPORT_CSS = `
