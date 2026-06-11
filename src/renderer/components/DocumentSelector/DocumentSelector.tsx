@@ -739,7 +739,10 @@ export function DocumentSelector({
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName
-      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
+      // Don't swallow Delete/Backspace from any editable element — incl.
+      // contentEditable (TipTap rich-text editors), or this window-level
+      // handler steals the key from those editors app-wide.
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || (e.target as HTMLElement).isContentEditable) return
       if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); doDelete() }
       if ((e.metaKey || e.ctrlKey) && e.key === 'c') doCopy()
       if ((e.metaKey || e.ctrlKey) && e.key === 'v') doPaste()

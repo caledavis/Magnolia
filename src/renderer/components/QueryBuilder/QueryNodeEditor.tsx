@@ -756,7 +756,9 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName
-      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
+      // Exclude contentEditable too (TipTap editors), else this window
+      // handler steals Delete/Backspace from rich-text editing.
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || (e.target as HTMLElement).isContentEditable) return
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault()
         doDelete()
