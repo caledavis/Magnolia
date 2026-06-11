@@ -69,6 +69,8 @@ export const REPORT_TABLE_CSS = `
   .cw { height: 26px; display: flex; align-items: center; justify-content: center; }
   .report-map { margin: 6px 0 10px; text-align: center; }
   .report-map svg { max-width: 100%; height: auto; display: inline-block; }
+  .report-wf-viz { margin: 8px 0 12px; text-align: center; break-inside: avoid; page-break-inside: avoid; }
+  .report-wf-viz svg.wf-viz { max-width: 100%; height: auto; display: inline-block; }
 `
 
 function pctOf(value: number, total: number): string {
@@ -462,7 +464,123 @@ function countWordsIn(d: AnalysisInitData, sourceGuids: string[], excludeSet: Se
   return freq
 }
 
-function wordFrequenciesHtml(config: any, _options: AnalysisItemOptions): string {
+// ── Word Frequencies visualisations (bar chart + word cloud) ───────
+// Faithful headless SVG versions of the on-screen Word Frequencies
+// charts, so a report can include them as well as the table.
+
+const WF_ACCENT_HSL = { h: 222, s: 65, l: 50 }
+const WF_SERIES_COLORS = ['#4f6bed', '#e8703a', '#2ba84a', '#9b59b6', '#e4b400', '#16a2b8']
+const WF_BORDER = '#cfd6df'
+const WF_TEXT = '#333'
+
+function hslToRgb(h: number, s: number, l: number): string {
+  s /= 100; l /= 100
+  const k = (n: number) => (n + h / 30) % 12
+  const a = s * Math.min(l, 1 - l)
+  const f = (n: number) => Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1))))
+  return `rgb(${f(0)},${f(8)},${f(4)})`
+}
+
+/** Archimedean-spiral word-cloud layout, ported from the tool so the
+ *  placement matches. */
+function wordCloudSvg(words: [string, number][], maxFreq: number): string {
+  if (words.length === 0) return ''
+  const cloudW = 600, cloudH = 380
+  const cx = cloudW / 2, cy = cloudH / 2
+  const minSize = 11, maxSize = 48, padding = 1
+  const placed: { x: number; y: number; w: number; h: number }[] = []
+  const palette = words.map((_, i) => {
+    const t = words.length > 1 ? 1 - i / (words.length - 1) : 1
+    const sat = Math.round(WF_ACCENT_HSL.s * t)
+    const light = Math.round(WF_ACCENT_HSL.l + (1 - t) * (60 - WF_ACCENT_HSL.l))
+    return hslToRgb(WF_ACCENT_HSL.h, sat, light)
+  })
+  const texts: string[] = []
+  for (let i = 0; i < words.length; i++) {
+    const [word, count] = words[i]
+    const size = minSize + Math.pow(count / maxFreq, 0.6) * (maxSize - minSize)
+    const estW = word.length * size * 0.55 + padding * 2
+    const estH = size * 0.95 + padding * 2
+    let px = cx, py = cy, found = false
+    for (let step = 0; step < 1600; step++) {
+      px = cx + Math.cos(step * 0.18) * (step * 0.22)
+      py = cy + Math.sin(step * 0.18) * (step * 0.22) * 0.65
+      const rect = { x: px - estW / 2, y: py - estH / 2, w: estW, h: estH }
+      if (rect.x < 2 || rect.y < 2 || rect.x + rect.w > cloudW - 2 || rect.y + rect.h > cloudH - 2) continue
+      if (!placed.some((p) => rect.x < p.x + p.w && rect.x + rect.w > p.x && rect.y < p.y + p.h && rect.y + rect.h > p.y)) {
+        placed.push(rect); found = true; break
+      }
+    }
+    if (found) {
+      const weight = size > 30 ? 700 : size > 20 ? 600 : 500
+      texts.push(`<text x="${px.toFixed(1)}" y="${py.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="${size.toFixed(1)}" font-weight="${weight}" fill="${palette[i]}" opacity="0.9">${escHtml(word)}</text>`)
+    }
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${cloudW} ${cloudH}" class="wf-viz">${texts.join('')}</svg>`
+}
+
+/** Grouped vertical bar chart, ported from the tool. */
+function wordBarChartSvg(words: [string, number][], series: AnalysisColumn[], seriesFreqs: Map<string, number>[], maxFreq: number): string {
+  if (words.length === 0) return ''
+  const barW = 600, barH = 380, barMaxH = 200, marginB = 160
+  const nSeries = series.length
+  const yAxisW = 38, plotPad = 4
+  const maxPlotW = barW - yAxisW * 2
+  let groupW: number, subBarW: number, groupGap: number
+  if (nSeries <= 1) {
+    const gap = Math.max(1, Math.min(4, (maxPlotW / words.length) * 0.15))
+    subBarW = Math.max(2, (maxPlotW - gap * words.length) / words.length)
+    groupW = subBarW; groupGap = gap
+  } else {
+    subBarW = Math.max(2, Math.min(14, (maxPlotW / words.length - 4) / nSeries))
+    groupW = subBarW * nSeries
+    groupGap = Math.max(2, Math.min(8, subBarW * 0.4))
+  }
+  const step = groupW + groupGap
+  const plotContentW = words.length * step
+  const labelFontSize = Math.round(Math.min(17, Math.max(7, 24 - words.length * 0.45)))
+  const charW = labelFontSize * 0.6
+  const firstWord = words[0]?.[0] || ''
+  const requiredLeftPad = (firstWord.length * charW) / Math.SQRT2 - plotPad - groupW / 2 + 4
+  const plotLeft = Math.max(Math.max(yAxisW, (barW - plotContentW) / 2), requiredLeftPad)
+  const plotRight = plotLeft + plotContentW + plotPad
+  const effectiveBarW = Math.max(barW, plotRight + 10)
+  const tickCount = 5
+  const rawInterval = maxFreq / tickCount
+  const mag = Math.pow(10, Math.floor(Math.log10(Math.max(rawInterval, 1))))
+  const niceInterval = Math.ceil(rawInterval / mag) * mag
+  const yMax = niceInterval * tickCount
+  const xAxisY = barH - marginB
+  const xAxisLabelOffsetY = Math.round(7 + labelFontSize * 0.6)
+
+  const parts: string[] = []
+  parts.push(`<line x1="${plotLeft}" y1="${xAxisY - barMaxH - 5}" x2="${plotLeft}" y2="${xAxisY}" stroke="${WF_BORDER}"/>`)
+  parts.push(`<line x1="${plotLeft}" y1="${xAxisY}" x2="${plotRight}" y2="${xAxisY}" stroke="${WF_BORDER}"/>`)
+  for (let t = 0; t <= tickCount; t++) {
+    const value = niceInterval * t
+    const y = xAxisY - (value / yMax) * barMaxH
+    parts.push(`<line x1="${plotLeft - 4}" y1="${y}" x2="${plotLeft}" y2="${y}" stroke="${WF_BORDER}"/>`)
+    parts.push(`<line x1="${plotLeft}" y1="${y}" x2="${plotRight}" y2="${y}" stroke="${WF_BORDER}" opacity="0.15"/>`)
+    parts.push(`<text x="${plotLeft - 7}" y="${(y + labelFontSize * 0.35).toFixed(1)}" text-anchor="end" font-size="${labelFontSize}" fill="${WF_TEXT}">${value}</text>`)
+  }
+  words.forEach(([word], wi) => {
+    const groupX = plotLeft + plotPad + wi * step
+    const tickX = groupX + groupW / 2
+    series.forEach((_s, si) => {
+      const count = seriesFreqs[si].get(word) || 0
+      const bH = count > 0 ? (count / yMax) * barMaxH : 0
+      const bX = groupX + (nSeries > 1 ? si * subBarW : 0)
+      const color = WF_SERIES_COLORS[si % WF_SERIES_COLORS.length]
+      parts.push(`<rect x="${bX.toFixed(1)}" y="${(xAxisY - bH).toFixed(1)}" width="${subBarW.toFixed(1)}" height="${bH.toFixed(1)}" fill="${color}" opacity="0.85" rx="${Math.min(2, subBarW / 4).toFixed(1)}"/>`)
+    })
+    parts.push(`<line x1="${tickX.toFixed(1)}" y1="${xAxisY}" x2="${tickX.toFixed(1)}" y2="${xAxisY + 4}" stroke="${WF_BORDER}"/>`)
+    const ly = xAxisY + xAxisLabelOffsetY
+    parts.push(`<text x="${tickX.toFixed(1)}" y="${ly}" text-anchor="end" font-size="${labelFontSize}" fill="${WF_TEXT}" transform="rotate(-45, ${tickX.toFixed(1)}, ${ly})">${escHtml(word)}</text>`)
+  })
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${effectiveBarW} ${barH}" class="wf-viz">${parts.join('')}</svg>`
+}
+
+function wordFrequenciesHtml(config: any, options: AnalysisItemOptions): string {
   const { data, docFilter } = scopedData('word-frequencies', config)
   const filtered = resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids ?? [], docFilter.typeInclude ?? [], docFilter.typeExclude ?? [])
   const sourceMap = new Map<string, string>(data.sources.map((s) => [s.guid, s.name]))
@@ -494,7 +612,15 @@ function wordFrequenciesHtml(config: any, _options: AnalysisItemOptions): string
       return `<tr><td class="rowhead">${escHtml(w)}</td>${cells}<td>${tot}</td></tr>`
     })
     .join('')
-  return wrapTable(`<thead>${thead}</thead><tbody>${body}</tbody>`, single ? 1 : series.length)
+  const table = wrapTable(`<thead>${thead}</thead><tbody>${body}</tbody>`, single ? 1 : series.length)
+
+  // Optional visualisations, matching the entry count of the table.
+  let maxFreq = 1
+  for (const [w] of ranked) for (const fm of seriesFreqs) maxFreq = Math.max(maxFreq, fm.get(w) || 0)
+  let viz = ''
+  if (options.barChart) viz += `<div class="report-wf-viz">${wordBarChartSvg(ranked, series, seriesFreqs, maxFreq)}</div>`
+  if (options.wordCloud) viz += `<div class="report-wf-viz">${wordCloudSvg(ranked, maxFreq)}</div>`
+  return table + viz
 }
 
 /** Render one analysis item: regenerate its table fresh, or a short

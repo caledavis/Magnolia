@@ -61,13 +61,13 @@ const REORDER_MIME = 'application/x-magnolia-report-reorder'
 
 /** Which display options each analysis tool exposes (the toggles the
  *  tool itself shows). Drives the per-item options row. */
-const ANALYSIS_CAPS: Record<string, { totalsOnly?: boolean; binary?: boolean; visual?: boolean }> = {
+const ANALYSIS_CAPS: Record<string, { totalsOnly?: boolean; binary?: boolean; visual?: boolean; barChart?: boolean; wordCloud?: boolean }> = {
   'codes-in-documents': { totalsOnly: true, binary: true, visual: true },
   'results-in-documents': { totalsOnly: true, binary: true, visual: true },
   'code-cooccurrences': { totalsOnly: true, binary: true, visual: true },
   'code-frequencies': {},
   'code-orders': {},
-  'word-frequencies': {},
+  'word-frequencies': { barChart: true, wordCloud: true },
   'relationship-map': {}
 }
 
@@ -562,7 +562,7 @@ function ReportRow({
       )}
 
       {/* Analysis: display options. */}
-      {item.kind === 'analysis' && (caps.totalsOnly || caps.binary || caps.visual) && (
+      {item.kind === 'analysis' && (caps.totalsOnly || caps.binary || caps.visual || caps.barChart || caps.wordCloud) && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 8, paddingLeft: 28, flexWrap: 'wrap' }}>
           {caps.totalsOnly && (
             <OptionToggle label="Totals only" checked={!!item.options.totalsOnly} onChange={(v) => onSetOption('totalsOnly', v)} />
@@ -572,6 +572,12 @@ function ReportRow({
           )}
           {caps.visual && (
             <OptionToggle label="Visual" checked={!!item.options.visual} onChange={(v) => onSetOption('visual', v)} />
+          )}
+          {caps.barChart && (
+            <OptionToggle label="Bar chart" checked={!!item.options.barChart} onChange={(v) => onSetOption('barChart', v)} />
+          )}
+          {caps.wordCloud && (
+            <OptionToggle label="Word cloud" checked={!!item.options.wordCloud} onChange={(v) => onSetOption('wordCloud', v)} />
           )}
         </div>
       )}

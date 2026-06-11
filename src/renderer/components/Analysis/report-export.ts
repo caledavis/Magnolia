@@ -35,8 +35,10 @@ export interface AnalysisItemOptions {
   binary?: boolean
   /** Visual (heatmap / boxes) instead of numeric cells. */
   visual?: boolean
-  /** Word Frequencies visualisation choice. */
-  vizMode?: string
+  /** Word Frequencies: also include a bar chart below the table. */
+  barChart?: boolean
+  /** Word Frequencies: also include a word cloud below the table. */
+  wordCloud?: boolean
 }
 
 export type ReportItem =
