@@ -19,9 +19,12 @@ export type GroupByEntry =
   | { kind: 'tag'; tagGuid: string; name?: string }
   | { kind: 'category'; categoryGuid: string; name?: string }
   | { kind: 'folder'; folderGuid: string; name?: string }
-  // Each in-scope survey becomes a band of its respondents (one slot
-  // per respondent + a whole-survey subtotal). A single entry covers
-  // every survey in scope; non-survey documents are unaffected.
+  // Inverted grouping: when present, each in-scope survey COLLAPSES to a
+  // single whole-survey total column; when absent, the survey EXPANDS
+  // into a band of its respondents (one slot per respondent + a
+  // whole-survey subtotal). Auto-added when a survey enters scope, so
+  // the collapsed total is the default. A single entry covers every
+  // survey in scope; non-survey documents are unaffected.
   | { kind: 'respondents' }
 
 export interface GroupedSlot {

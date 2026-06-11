@@ -92,9 +92,15 @@ function descendantFolderGuids(folders: AnalysisInitData['folders'], rootGuid: s
 /** The single, survey-aware column builder shared by every grid tool.
  *  Expands the group-by list into columns + spanning header bands:
  *    - tag → one column; category/folder → a band of columns (+ optional
- *      subtotal); respondents → per-survey bands of respondent columns
- *      (+ optional whole-survey subtotal), with non-survey docs handled
- *      by the remaining grouping (or as individual columns).
+ *      subtotal).
+ *    - respondents is INVERTED: when the entry is PRESENT each in-scope
+ *      survey collapses to a single whole-survey total column; when it's
+ *      ABSENT the survey expands into per-respondent bands (+ optional
+ *      whole-survey subtotal). The entry is auto-added when a survey
+ *      enters scope, so the default view is the collapsed total and
+ *      removing it reveals the individual respondents. Non-survey docs
+ *      are unaffected and handled by the remaining grouping (or as
+ *      individual columns).
  *  Each tool maps these columns into its own cell computation. */
 export function buildSurveyAwareColumns(
   groupBy: GroupByEntry[],
@@ -106,19 +112,18 @@ export function buildSurveyAwareColumns(
   const includeSubtotals = opts?.includeSubtotals !== false
   const columns: AnalysisColumn[] = []
   const groups: GroupedHeader[] = []
-  if (groupBy.length === 0) {
-    for (const g of candidateSourceGuids) {
-      columns.push({ id: g, label: sourceMap.get(g) || 'Document', sourceGuids: [g] })
-    }
-    return { columns, headerGroups: groups, hasGroupedHeader: false }
-  }
-  const respondentsActive = groupBy.some((e) => e.kind === 'respondents')
-  const surveyGuids = respondentsActive ? surveyGuidsAmong(candidateSourceGuids, data) : []
+  // Inverted Respondents semantics: the entry COLLAPSES each in-scope
+  // survey into a single total column; its absence EXPANDS the survey
+  // into per-respondent bands (the detailed view). It's auto-added when
+  // a survey enters scope, so the collapsed total is the default.
+  const respondentsGrouped = groupBy.some((e) => e.kind === 'respondents')
+  const expandSurveys = !respondentsGrouped
+  const surveyGuids = expandSurveys ? surveyGuidsAmong(candidateSourceGuids, data) : []
   const surveySet = new Set(surveyGuids)
   const docCandidates = candidateSourceGuids.filter((g) => !surveySet.has(g))
   const otherEntries = groupBy.filter((e) => e.kind !== 'respondents')
 
-  if (respondentsActive) {
+  if (expandSurveys && surveyGuids.length > 0) {
     const { slots, headers } = expandRespondentSlots(surveyGuids, data, includeSubtotals)
     for (const s of slots) {
       columns.push({
@@ -181,8 +186,11 @@ export function buildSurveyAwareColumns(
       columns.push({ id: '__other', label: 'Other', sourceGuids: otherGuids })
       groups.push({ id: '__other', label: null, span: 1 })
     }
-  } else if (respondentsActive) {
-    // Respondents-only grouping: non-survey docs stay individual columns.
+  } else {
+    // No tag/category/folder grouping: each remaining candidate becomes
+    // its own column. With surveys collapsed (Respondents grouped) this
+    // yields one survey-total column per survey; with surveys expanded
+    // only the non-survey docs remain here.
     for (const g of docCandidates) {
       columns.push({ id: g, label: sourceMap.get(g) || 'Document', sourceGuids: [g] })
       groups.push({ id: g, label: null, span: 1 })
