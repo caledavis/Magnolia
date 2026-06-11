@@ -47,7 +47,9 @@ export function buildMenu(mainWindow: BrowserWindow, openWindows?: WindowListEnt
               { role: 'hideOthers' as const },
               { role: 'unhide' as const },
               { type: 'separator' as const },
-              { role: 'quit' as const }
+              // Explicit label so it reads "Quit Magnolia" rather than the
+              // lowercase package name app.name resolves to in dev.
+              { role: 'quit' as const, label: 'Quit Magnolia' }
             ]
           }
         ]
@@ -120,7 +122,7 @@ export function buildMenu(mainWindow: BrowserWindow, openWindows?: WindowListEnt
                 }
               }
             }
-          : { role: 'quit' }
+          : { role: 'quit', label: 'Quit Magnolia' }
       ]
     },
     {
