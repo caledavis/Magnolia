@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { AnalysisInitData, SurveyEntityRef } from '../../models/types'
 import type { GroupByEntry, GroupedHeader } from './group-by'
-import { Icon, faXmark, faQuestion } from '../Icon'
+import { Icon, faXmark, faQuestion, faUser } from '../Icon'
 import { truncate, tagColumnSources } from './analysis-helpers'
 
 /** One slot produced by the "Respondents" grouping: a single respondent
@@ -285,6 +285,94 @@ export function QuestionScopeBox({
               <span key={questionScopeKey(r)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
                 <Icon icon={faQuestion} style={{ fontSize: 10, color: 'var(--text-muted)' }} />
                 {truncate(live || r.label || 'Question', 40)}
+                <span onClick={() => remove(r)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
+              </span>
+            )
+          })}
+        </div>
+      )}
+      {over && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'color-mix(in srgb, var(--accent) 8%, transparent)',
+          border: '2px dashed var(--accent)',
+          borderRadius: 'var(--radius-md)',
+          pointerEvents: 'none'
+        }} />
+      )}
+    </div>
+  )
+}
+
+/** Read a drag event and return the survey-respondent(s) it carries. The
+ *  Document Browser emits `{ kind: 'survey-respondent', entityGuid,
+ *  surveyGuid, label }` as application/json (same envelope as a
+ *  question, distinguished by `kind`). */
+export function parseRespondentDrop(e: React.DragEvent): QuestionScopeRef[] {
+  const raw = e.dataTransfer.getData('application/json')
+  if (!raw) return []
+  try {
+    const p = JSON.parse(raw) as { kind?: string; entityGuid?: string; surveyGuid?: string; label?: string }
+    if (p.kind === 'survey-respondent' && p.surveyGuid && p.entityGuid) {
+      return [{ sourceGuid: p.surveyGuid, id: p.entityGuid, label: p.label }]
+    }
+  } catch { /* ignore */ }
+  return []
+}
+
+/** Drop zone for scoping a query to specific survey respondents. Empty =
+ *  all respondents. Drag respondent nodes from the Document Browser in.
+ *  Mirrors QuestionScopeBox; reuses QuestionScopeRef (a labelled
+ *  SurveyEntityRef) and the shared scope-key/drag helpers. */
+export function RespondentScopeBox({
+  value,
+  onChange,
+  data
+}: {
+  value: QuestionScopeRef[]
+  onChange: (next: QuestionScopeRef[]) => void
+  data: Pick<AnalysisInitData, 'surveyEntityLabels'>
+}) {
+  const [over, setOver] = useState(false)
+  const remove = (r: SurveyEntityRef) =>
+    onChange(value.filter((v) => questionScopeKey(v) !== questionScopeKey(r)))
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setOver(false)
+    const fresh = parseRespondentDrop(e)
+    if (fresh.length === 0) return
+    const seen = new Set(value.map(questionScopeKey))
+    const additions = fresh.filter((f) => !seen.has(questionScopeKey(f)))
+    if (additions.length > 0) onChange([...value, ...additions])
+  }
+  return (
+    <div
+      className="analysis-section"
+      style={{ marginBottom: 14, position: 'relative' }}
+      onDragOver={(e) => {
+        if (isQuestionDrag(e)) {
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'copy'
+          setOver(true)
+        }
+      }}
+      onDragLeave={() => setOver(false)}
+      onDrop={onDrop}
+    >
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: value.length > 0 ? 8 : 0, position: 'relative', zIndex: 1 }}>
+        <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Respondents</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+          {value.length > 0 ? 'Limited to these respondents' : 'Drag survey respondents here to scope (default: all)'}
+        </span>
+      </div>
+      {value.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
+          {value.map((r) => {
+            const live = data.surveyEntityLabels?.[r.sourceGuid]?.respondents?.[r.id]
+            return (
+              <span key={questionScopeKey(r)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
+                <Icon icon={faUser} style={{ fontSize: 10, color: 'var(--text-muted)' }} />
+                {truncate(live || r.label || 'Respondent', 40)}
                 <span onClick={() => remove(r)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
               </span>
             )

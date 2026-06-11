@@ -73,7 +73,25 @@ import { QuotesPane } from './components/Quotes/QuotesPane'
 import { AnalysisPopover } from './components/Toolbar/AnalysisPopover'
 import { StudioPopover } from './components/Toolbar/StudioPopover'
 import { WindowControls } from './components/Toolbar/WindowControls'
-import type { Project, Query, CodeCondition, Code, TextSource, QDASet, LogbookInitData, AnalysisInitData, AnalysisToolType, PlainTextSelection, Memo, MemoEditInitData } from './models/types'
+import type { Project, Query, CodeCondition, Code, TextSource, QDASet, LogbookInitData, AnalysisInitData, AnalysisToolType, PlainTextSelection, Memo, MemoEditInitData, SurveyCellScopeArgs } from './models/types'
+
+/** Fold the survey-cell scope carried by an analysis cell-click into the
+ *  documentFilter of the Query being generated, so it re-runs against the
+ *  same subset the cell represented. Tag scope unions with any existing
+ *  tagGuids; question/respondent scope is set directly. */
+function applySurveyScopeToFilter(
+  df: Query['documentFilter'],
+  scope?: SurveyCellScopeArgs
+): Query['documentFilter'] {
+  if (!scope) return df
+  const next: Query['documentFilter'] = { ...df }
+  if (scope.tagGuids?.length) {
+    next.tagGuids = Array.from(new Set([...(df.tagGuids ?? []), ...scope.tagGuids]))
+  }
+  if (scope.questionScope?.length) next.questionScope = scope.questionScope
+  if (scope.respondentScope?.length) next.respondentScope = scope.respondentScope
+  return next
+}
 
 function describeCondition(cond: CodeCondition, findCode: (guid: string) => Code | undefined, depth?: number): string {
   const d = depth ?? 0
@@ -1370,27 +1388,27 @@ function App() {
         useQueryStore.getState().setComplexQuery(query)
       } else if (action === 'run-code-in-doc-query') {
         // Build a query for a code in specific documents
-        const [codeGuid, sourceGuids, filteredGuids] = args as [string, string[], string[] | undefined]
+        const [codeGuid, sourceGuids, filteredGuids, scope] = args as [string, string[], string[] | undefined, SurveyCellScopeArgs | undefined]
         const docGuids = filteredGuids && filteredGuids.length > 0 ? sourceGuids.filter((g) => filteredGuids.includes(g)) : sourceGuids
         const query: Query = {
-          documentFilter: { sourceGuids: docGuids },
+          documentFilter: applySurveyScopeToFilter({ sourceGuids: docGuids }, scope),
           codeCondition: { type: 'code', codeGuid }
         }
         useQueryStore.getState().setComplexQuery(query)
       } else if (action === 'run-codes-in-doc-query') {
         // Build an OR query for multiple codes in specific documents (for totals)
-        const [codeGuids, sourceGuids] = args as [string[], string[]]
+        const [codeGuids, sourceGuids, scope] = args as [string[], string[], SurveyCellScopeArgs | undefined]
         const codeCondition = codeGuids.length === 1
           ? { type: 'code' as const, codeGuid: codeGuids[0] }
           : { type: 'or' as const, conditions: codeGuids.map((g) => ({ type: 'code' as const, codeGuid: g })) }
         const query: Query = {
-          documentFilter: { sourceGuids },
+          documentFilter: applySurveyScopeToFilter({ sourceGuids }, scope),
           codeCondition
         }
         useQueryStore.getState().setComplexQuery(query)
       } else if (action === 'run-code-in-tag-query') {
         // Build a query for a code filtered by tag (include or exclude)
-        const [codeGuid, tagGuid, excludeTagGuids] = args as [string, string | null, string[] | undefined]
+        const [codeGuid, tagGuid, excludeTagGuids, scope] = args as [string, string | null, string[] | undefined, SurveyCellScopeArgs | undefined]
         const filter: Query['documentFilter'] = {}
         if (tagGuid) {
           filter.tagGuids = [tagGuid]
@@ -1399,23 +1417,23 @@ function App() {
           filter.tagExcludeGuids = excludeTagGuids
         }
         const query: Query = {
-          documentFilter: filter,
+          documentFilter: applySurveyScopeToFilter(filter, scope),
           codeCondition: { type: 'code', codeGuid }
         }
         useQueryStore.getState().setComplexQuery(query)
       } else if (action === 'run-query-in-docs') {
         // Run a saved query scoped to specific documents
-        const [query, sourceGuids] = args as [Query, string[]]
+        const [query, sourceGuids, scope] = args as [Query, string[], SurveyCellScopeArgs | undefined]
         const scopedQuery: Query = {
-          documentFilter: { sourceGuids },
+          documentFilter: applySurveyScopeToFilter({ sourceGuids }, scope),
           codeCondition: query.codeCondition
         }
         useQueryStore.getState().setComplexQuery(scopedQuery)
       } else if (action === 'run-word-query') {
         // Build a text search query for a word in specific documents
-        const [word, filteredGuids] = args as [string, string[] | undefined]
+        const [word, filteredGuids, scope] = args as [string, string[] | undefined, SurveyCellScopeArgs | undefined]
         const query: Query = {
-          documentFilter: filteredGuids && filteredGuids.length > 0 ? { sourceGuids: filteredGuids } : {},
+          documentFilter: applySurveyScopeToFilter(filteredGuids && filteredGuids.length > 0 ? { sourceGuids: filteredGuids } : {}, scope),
           codeCondition: { type: 'text', searchText: word, caseSensitive: false, wholeWord: true }
         }
         useQueryStore.getState().setComplexQuery(query)

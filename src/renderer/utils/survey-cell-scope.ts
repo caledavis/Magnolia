@@ -30,6 +30,38 @@ export interface TagCellScopeFilter {
   tagGuids?: string[]
   /** Exclude tags (documentFilter.tagExcludeGuids). */
   tagExcludeGuids?: string[]
+  /** Direct survey question scope (Query.documentFilter.questionScope /
+   *  the analysis Questions box): a listed survey is restricted to these
+   *  questions; a survey NOT listed keeps all of its cells. ANDed with
+   *  the tag scope. Unlike tags, this does NOT narrow the source set. */
+  questionScope?: SurveyEntityRef[]
+  /** Direct survey respondent scope (one ref per respondent column),
+   *  same cell-level AND semantics as questionScope. */
+  respondentScope?: SurveyEntityRef[]
+}
+
+/** Predicate for a direct entity scope (respondent or question refs): a
+ *  survey that appears in the list is restricted to its listed entity
+ *  ids; a survey NOT in the list passes all of its entities. Returns
+ *  null when there's no constraint. Mirrors entityScopePredicate in
+ *  analysis-helpers so the engine and the analysis tools agree. */
+function entityScopePredicate(
+  refs: SurveyEntityRef[] | undefined
+): ((sourceGuid: string, entityId: string) => boolean) | null {
+  if (!refs || refs.length === 0) return null
+  const bySurvey = new Map<string, Set<string>>()
+  for (const r of refs) {
+    let set = bySurvey.get(r.sourceGuid)
+    if (!set) {
+      set = new Set()
+      bySurvey.set(r.sourceGuid, set)
+    }
+    set.add(r.id)
+  }
+  return (sourceGuid, entityId) => {
+    const set = bySurvey.get(sourceGuid)
+    return set ? set.has(entityId) : true
+  }
 }
 
 export interface TagMembership {
@@ -101,19 +133,28 @@ export function resolveTagCellScope(
   const hasIncludeConstraint = (filter.tagGuids?.length ?? 0) > 0
   const hasExcludeConstraint = (filter.tagExcludeGuids?.length ?? 0) > 0
 
+  // Direct (non-tag) scope. These narrow CELLS only — never the source
+  // set — so they're folded into cellInScope / hasConstraint but left
+  // out of hasIncludeConstraint / includedSourceGuids.
+  const respondentPred = entityScopePredicate(filter.respondentScope)
+  const questionPred = entityScopePredicate(filter.questionScope)
+
   const matches = (sets: MembershipSets, sg: string, rid: string, qid: string): boolean =>
     sets.src.has(sg) || sets.resp.has(sg + SEP + rid) || sets.quest.has(sg + SEP + qid)
 
   const cellInScope = (sourceGuid: string, respondentId: string, questionId: string): boolean => {
     if (hasIncludeConstraint && !matches(inc, sourceGuid, respondentId, questionId)) return false
     if (hasExcludeConstraint && matches(exc, sourceGuid, respondentId, questionId)) return false
+    if (respondentPred && !respondentPred(sourceGuid, respondentId)) return false
+    if (questionPred && !questionPred(sourceGuid, questionId)) return false
     return true
   }
 
   return {
     hasIncludeConstraint,
     hasExcludeConstraint,
-    hasConstraint: hasIncludeConstraint || hasExcludeConstraint,
+    hasConstraint:
+      hasIncludeConstraint || hasExcludeConstraint || !!respondentPred || !!questionPred,
     includedSourceGuids: inc.allSources,
     excludedSourceGuids: exc.src,
     cellInScope

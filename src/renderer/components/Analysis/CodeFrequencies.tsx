@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import type { AnalysisInitData } from '../../models/types'
+import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
 import { Icon, faChartBar, faChevronDown, faChevronRight, faCircleInfo } from '../Icon'
 import { toolColors } from '../../utils/tool-colors'
 import {
@@ -106,6 +106,17 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
     () => resolveFilteredSources(data, docFilter.sourceGuids, docFilter.tagGuids, docFilter.tagExcludeGuids, docFilter.typeInclude, docFilter.typeExclude),
     [data, docFilter]
   )
+
+  // Survey-cell scope carried into a generated query so it re-runs
+  // against the same subset: the tool-level Questions scope plus, for a
+  // respondent / tagged column, that column's narrowing.
+  const surveyScope = useCallback((col?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): SurveyCellScopeArgs | undefined => {
+    const s: SurveyCellScopeArgs = {}
+    if (questionScope.length > 0) s.questionScope = questionScope.map((q) => ({ sourceGuid: q.sourceGuid, id: q.id }))
+    if (col?.respondentRef) s.respondentScope = [col.respondentRef]
+    if (col?.tagScopeGuids?.length) s.tagGuids = col.tagScopeGuids
+    return s.questionScope || s.respondentScope || s.tagGuids ? s : undefined
+  }, [questionScope])
 
   // Auto-add "Respondents" grouping when a survey first enters scope on a
   // fresh, never-saved analysis. Removing the chip sets the dismissed
@@ -610,7 +621,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                             }}
                             onClick={() => {
                               if (val > 0) {
-                                window.api.sendAnalysisAction('run-code-in-doc-query', codeGuid, col.sourceGuids, filteredSourceGuids)
+                                window.api.sendAnalysisAction('run-code-in-doc-query', codeGuid, col.sourceGuids, filteredSourceGuids, surveyScope(col))
                               }
                             }}
                           >
@@ -697,12 +708,12 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                                 if (groupBy.length > 0) {
                                   if (col.id === '__other') {
                                     const tagGuids = groupBy.flatMap((g) => g.kind === 'tag' ? [g.tagGuid] : [])
-                                    window.api.sendAnalysisAction('run-code-in-tag-query', codeGuid, null, tagGuids)
+                                    window.api.sendAnalysisAction('run-code-in-tag-query', codeGuid, null, tagGuids, surveyScope())
                                   } else {
-                                    window.api.sendAnalysisAction('run-code-in-tag-query', codeGuid, col.id)
+                                    window.api.sendAnalysisAction('run-code-in-tag-query', codeGuid, col.id, undefined, surveyScope())
                                   }
                                 } else {
-                                  window.api.sendAnalysisAction('run-code-in-doc-query', codeGuid, col.sourceGuids, filteredSourceGuids)
+                                  window.api.sendAnalysisAction('run-code-in-doc-query', codeGuid, col.sourceGuids, filteredSourceGuids, surveyScope(col))
                                 }
                               }
                             }}

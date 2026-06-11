@@ -379,6 +379,14 @@ export interface Query {
     tagGuids?: string[]
     tagExcludeGuids?: string[]
     folderGuids?: string[]
+    /** Survey question scope: restrict the listed surveys to these
+     *  questions (a survey not named here keeps all of its questions).
+     *  Like tagGuids, this scopes survey CELLS, not the document set —
+     *  the surveys stay in scope, only their off-question cells drop. */
+    questionScope?: SurveyEntityRef[]
+    /** Survey respondent scope: restrict the listed surveys to these
+     *  respondents (same cell-level semantics as questionScope). */
+    respondentScope?: SurveyEntityRef[]
     /** The Document Selector node graph the user authored. This — not the
      *  flat arrays above — is the source of truth: the arrays are merely
      *  the graph's *resolved output*. Persisting it lets a reopened query
@@ -390,6 +398,16 @@ export interface Query {
     graph?: { nodes: any[]; conns: any[] }
   }
   codeCondition: CodeCondition
+}
+
+/** Survey-cell scope carried from an analysis result cell-click into the
+ *  Query it generates, so the query re-runs against the same subset the
+ *  cell represented (a chosen question, a single respondent, a tag
+ *  column). Folded into Query.documentFilter by the action handlers. */
+export interface SurveyCellScopeArgs {
+  questionScope?: SurveyEntityRef[]
+  respondentScope?: SurveyEntityRef[]
+  tagGuids?: string[]
 }
 
 export interface SavedQuery {

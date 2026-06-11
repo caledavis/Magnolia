@@ -1,5 +1,5 @@
 import { Fragment, useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import type { AnalysisInitData } from '../../models/types'
+import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
 import { Icon, faFileCodeCorner, faChevronDown, faChevronRight } from '../Icon'
 import { toolColors } from '../../utils/tool-colors'
 import {
@@ -274,6 +274,19 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
     if (guids.length > 0) addCodes(guids)
   }, [addCodes])
 
+  // Survey-cell scope carried into a generated query so it re-runs
+  // against the same subset the clicked cell/column represented: the
+  // tool-level Questions scope plus, for a respondent or tagged column,
+  // that column's respondent / tag narrowing. Returns undefined when
+  // there's nothing to scope (the common non-survey case).
+  const surveyScope = useCallback((col?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): SurveyCellScopeArgs | undefined => {
+    const s: SurveyCellScopeArgs = {}
+    if (questionScope.length > 0) s.questionScope = questionScope.map((q) => ({ sourceGuid: q.sourceGuid, id: q.id }))
+    if (col?.respondentRef) s.respondentScope = [col.respondentRef]
+    if (col?.tagScopeGuids?.length) s.tagGuids = col.tagScopeGuids
+    return s.questionScope || s.respondentScope || s.tagGuids ? s : undefined
+  }, [questionScope])
+
   const handleDoubleClick = useCallback((rowIdx: number, colIdx: number) => {
     const val = grid[rowIdx][colIdx]
     if (val === 0) return
@@ -283,25 +296,25 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
     // folder docs, folder subtotals, and the catch-all "Other"). The
     // legacy run-code-in-tag-query path was specific to the old flat-
     // tag world and didn't generalise; the doc-scoped query does.
-    window.api.sendAnalysisAction('run-code-in-doc-query', codeGuids[rowIdx], col.sourceGuids, filteredSourceGuids)
-  }, [grid, codeGuids, columns, filteredSourceGuids])
+    window.api.sendAnalysisAction('run-code-in-doc-query', codeGuids[rowIdx], col.sourceGuids, filteredSourceGuids, surveyScope(col))
+  }, [grid, codeGuids, columns, filteredSourceGuids, surveyScope])
 
   const handleRowTotalClick = useCallback((rowIdx: number) => {
     if (rowTotals[rowIdx] === 0) return
-    window.api.sendAnalysisAction('run-code-in-doc-query', codeGuids[rowIdx], filteredSourceGuids, filteredSourceGuids)
-  }, [rowTotals, codeGuids, filteredSourceGuids])
+    window.api.sendAnalysisAction('run-code-in-doc-query', codeGuids[rowIdx], filteredSourceGuids, filteredSourceGuids, surveyScope())
+  }, [rowTotals, codeGuids, filteredSourceGuids, surveyScope])
 
   const handleColTotalClick = useCallback((colIdx: number) => {
     if (colTotals[colIdx] === 0) return
     const col = columns[colIdx]
     // Run an OR query for all codes in this column's documents
-    window.api.sendAnalysisAction('run-codes-in-doc-query', codeGuids, col.sourceGuids)
-  }, [colTotals, columns, codeGuids])
+    window.api.sendAnalysisAction('run-codes-in-doc-query', codeGuids, col.sourceGuids, surveyScope(col))
+  }, [colTotals, columns, codeGuids, surveyScope])
 
   const handleGrandTotalClick = useCallback(() => {
     if (grandTotal === 0) return
-    window.api.sendAnalysisAction('run-codes-in-doc-query', codeGuids, filteredSourceGuids)
-  }, [grandTotal, codeGuids, filteredSourceGuids])
+    window.api.sendAnalysisAction('run-codes-in-doc-query', codeGuids, filteredSourceGuids, surveyScope())
+  }, [grandTotal, codeGuids, filteredSourceGuids, surveyScope])
 
   const handleExportCsv = useCallback(() => {
     // Header: each subtotal column gains a "% of Row Total" column, and

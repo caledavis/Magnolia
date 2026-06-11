@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import type { AnalysisInitData } from '../../models/types'
+import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
 import { Icon, faBarsStaggered, faChevronDown, faChevronRight } from '../Icon'
 import { toolColors } from '../../utils/tool-colors'
 import {
@@ -202,6 +202,17 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
     () => resolveFilteredSources(data, docFilter.sourceGuids, docFilter.tagGuids, docFilter.tagExcludeGuids, docFilter.typeInclude, docFilter.typeExclude),
     [data, docFilter]
   )
+
+  // Survey-cell scope carried into a generated query so it re-runs
+  // against the same subset: the tool-level Questions scope plus, for a
+  // respondent / tagged row, that row's narrowing.
+  const surveyScope = useCallback((row?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): SurveyCellScopeArgs | undefined => {
+    const s: SurveyCellScopeArgs = {}
+    if (questionScope.length > 0) s.questionScope = questionScope.map((q) => ({ sourceGuid: q.sourceGuid, id: q.id }))
+    if (row?.respondentRef) s.respondentScope = [row.respondentRef]
+    if (row?.tagScopeGuids?.length) s.tagGuids = row.tagScopeGuids
+    return s.questionScope || s.respondentScope || s.tagGuids ? s : undefined
+  }, [questionScope])
 
   // Auto-add "Respondents" grouping when a survey first enters scope on a
   // fresh, never-saved analysis; removing the chip prevents re-adding.
@@ -699,7 +710,7 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
                               // Always run the query against the row's
                               // actual sourceGuids; works for tags,
                               // category/folder children, and "Other".
-                              window.api.sendAnalysisAction('run-code-in-doc-query', seg.codeGuid, row.sourceGuids, filteredSourceGuids)
+                              window.api.sendAnalysisAction('run-code-in-doc-query', seg.codeGuid, row.sourceGuids, filteredSourceGuids, surveyScope(row))
                             }}
                           >
                             <title>{`${seg.codeName} (${(seg.start * 100).toFixed(0)}%–${(seg.end * 100).toFixed(0)}%)`}</title>

@@ -13,6 +13,7 @@ import type {
   QueryBuilderInitData
 } from '../../models/types'
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
+import { QuestionScopeBox, RespondentScopeBox, type QuestionScopeRef } from '../Analysis/survey-grouping'
 import { useQueryStore } from '../../stores/query-store'
 import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
@@ -143,6 +144,15 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
   const [currentGraph, setCurrentGraph] = useState<{ nodes: any[]; conns: any[] } | null>(null)
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [saveQueryName, setSaveQueryName] = useState('')
+  // Survey-cell scope (Question / Respondent). Held separately from the
+  // DocumentSelector's filter; folded into documentFilter on build. Both
+  // seed from the edited query (refs without labels resolve live).
+  const [questionScope, setQuestionScope] = useState<QuestionScopeRef[]>(
+    initData?.editQuery?.documentFilter.questionScope ?? []
+  )
+  const [respondentScope, setRespondentScope] = useState<QuestionScopeRef[]>(
+    initData?.editQuery?.documentFilter.respondentScope ?? []
+  )
 
   // Saved-query name shown after the title in tab mode. Subscribed via
   // useQueryStore so that renaming (from this header or from the Saved
@@ -186,8 +196,12 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
     sourceGuids: docFilter.sourceGuids,
     tagGuids: docFilter.tagGuids,
     tagExcludeGuids: docFilter.tagExcludeGuids,
-    folderGuids: docFilter.folderGuids
-  }), [docFilter])
+    folderGuids: docFilter.folderGuids,
+    // Bare refs (no labels) so dirty-compare is stable and Discard can
+    // restore them; labels re-resolve from the live survey.
+    questionScope: questionScope.map((r) => ({ sourceGuid: r.sourceGuid, id: r.id })),
+    respondentScope: respondentScope.map((r) => ({ sourceGuid: r.sourceGuid, id: r.id }))
+  }), [docFilter, questionScope, respondentScope])
   const currentConfig = useMemo(
     () => ({ docFilter: docFilterForCompare, codeCondition }),
     [docFilterForCompare, codeCondition]
@@ -198,9 +212,11 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
           sourceGuids: initData.editQuery.documentFilter.sourceGuids ?? [],
           tagGuids: initData.editQuery.documentFilter.tagGuids ?? [],
           tagExcludeGuids: initData.editQuery.documentFilter.tagExcludeGuids ?? [],
-          folderGuids: initData.editQuery.documentFilter.folderGuids ?? []
+          folderGuids: initData.editQuery.documentFilter.folderGuids ?? [],
+          questionScope: (initData.editQuery.documentFilter.questionScope ?? []).map((r) => ({ sourceGuid: r.sourceGuid, id: r.id })),
+          respondentScope: (initData.editQuery.documentFilter.respondentScope ?? []).map((r) => ({ sourceGuid: r.sourceGuid, id: r.id }))
         }
-      : { sourceGuids: [], tagGuids: [], tagExcludeGuids: [], folderGuids: [] },
+      : { sourceGuids: [], tagGuids: [], tagExcludeGuids: [], folderGuids: [], questionScope: [], respondentScope: [] },
     codeCondition: (initData?.editQuery?.codeCondition ?? null) as CodeCondition | null
   }), [])
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
@@ -218,6 +234,8 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
       // DocumentSelector re-synthesise a lossy union from the flat arrays.
       graph: discardDocGraphRef.current
     })
+    setQuestionScope(baseline.docFilter.questionScope ?? [])
+    setRespondentScope(baseline.docFilter.respondentScope ?? [])
     setDocFilterKey((k) => k + 1)
     setInitialCondition(baseline.codeCondition ?? undefined)
     setEditorRemountKey((k) => k + 1)
@@ -251,6 +269,8 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
         typeExclude: [],
         graph: df.graph
       })
+      setQuestionScope(df.questionScope ?? [])
+      setRespondentScope(df.respondentScope ?? [])
       if (df.sourceGuids?.length || df.tagGuids?.length || df.tagExcludeGuids?.length || df.folderGuids?.length) setDocSectionOpen(true)
       setDocFilterKey((k) => k + 1)
       // Re-seat the dirty baseline from the freshly-arrived data.
@@ -262,16 +282,20 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
           sourceGuids: df.sourceGuids ?? [],
           tagGuids: df.tagGuids ?? [],
           tagExcludeGuids: df.tagExcludeGuids ?? [],
-          folderGuids: df.folderGuids ?? []
+          folderGuids: df.folderGuids ?? [],
+          questionScope: (df.questionScope ?? []).map((r) => ({ sourceGuid: r.sourceGuid, id: r.id })),
+          respondentScope: (df.respondentScope ?? []).map((r) => ({ sourceGuid: r.sourceGuid, id: r.id }))
         },
         codeCondition: initData.editQuery.codeCondition ?? null
       })
     } else {
       setEditGuid(undefined)
       setInitialCondition(undefined)
+      setQuestionScope([])
+      setRespondentScope([])
       setDocFilterKey((k) => k + 1)
       setBaseline({
-        docFilter: { sourceGuids: [], tagGuids: [], tagExcludeGuids: [], folderGuids: [] },
+        docFilter: { sourceGuids: [], tagGuids: [], tagExcludeGuids: [], folderGuids: [], questionScope: [], respondentScope: [] },
         codeCondition: null
       })
     }
@@ -308,12 +332,16 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
     tagGuids: docFilter.tagGuids.length > 0 ? docFilter.tagGuids : undefined,
     tagExcludeGuids: docFilter.tagExcludeGuids.length > 0 ? docFilter.tagExcludeGuids : undefined,
     folderGuids: docFilter.folderGuids.length > 0 ? docFilter.folderGuids : undefined,
+    // Survey-cell scope, stored as bare refs (labels are a display-time
+    // lookup). Undefined when empty so non-survey queries stay clean.
+    questionScope: questionScope.length > 0 ? questionScope.map((r) => ({ sourceGuid: r.sourceGuid, id: r.id })) : undefined,
+    respondentScope: respondentScope.length > 0 ? respondentScope.map((r) => ({ sourceGuid: r.sourceGuid, id: r.id })) : undefined,
     // Persist the authored selector graph so reopening rebuilds the exact
     // node structure (operators included) rather than re-synthesising a
     // lossy union from the resolved arrays above. The flat arrays remain
     // for the query engine and for legacy queries with no graph.
     graph: docFilter.graph
-  }), [docFilter])
+  }), [docFilter, questionScope, respondentScope])
 
   // Send live preview to main window whenever query changes. The code
   // graph rides alongside so the main store's currentGraphLayout stays in
@@ -566,6 +594,16 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
                 </div>
               )}
             </div>
+
+            {/* ── Survey scope: limit the listed surveys to specific
+                questions / respondents. Only shown when the project has
+                surveys. Empty = all questions / all respondents. ── */}
+            {data.surveyEntityLabels && Object.keys(data.surveyEntityLabels).length > 0 && (
+              <>
+                <QuestionScopeBox value={questionScope} onChange={setQuestionScope} data={data} />
+                <RespondentScopeBox value={respondentScope} onChange={setRespondentScope} data={data} />
+              </>
+            )}
 
             {/* ── Part 2: For this content (node editor) ── */}
             <div className="analysis-section" style={{ marginBottom: 14 }}>

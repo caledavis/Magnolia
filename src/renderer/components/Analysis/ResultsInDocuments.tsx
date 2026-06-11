@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import type { AnalysisInitData, Query, QueryResult, SurveyEntityRef } from '../../models/types'
+import type { AnalysisInitData, Query, QueryResult, SurveyEntityRef, SurveyCellScopeArgs } from '../../models/types'
 import { Icon, faFileSearchCorner, faChevronDown, faChevronRight, faXmark } from '../Icon'
 import { toolColors } from '../../utils/tool-colors'
 import { executeQuery } from '../../utils/query-engine'
@@ -330,6 +330,18 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     if (items.length > 0) addQueries(items)
   }, [addQueries])
 
+  // Survey-cell scope carried into a generated query: the tool-level
+  // Questions scope plus, for a respondent / tagged item column, that
+  // column's narrowing. Items are the table's columns here (the layout
+  // is transposed), so `col` is an item column.
+  const surveyScope = useCallback((col?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): SurveyCellScopeArgs | undefined => {
+    const s: SurveyCellScopeArgs = {}
+    if (questionScope.length > 0) s.questionScope = questionScope.map((q) => ({ sourceGuid: q.sourceGuid, id: q.id }))
+    if (col?.respondentRef) s.respondentScope = [col.respondentRef]
+    if (col?.tagScopeGuids?.length) s.tagGuids = col.tagScopeGuids
+    return s.questionScope || s.respondentScope || s.tagGuids ? s : undefined
+  }, [questionScope])
+
   const handleCellClick = useCallback((rowIdx: number, colIdx: number) => {
     const val = grid[rowIdx][colIdx]
     if (val === 0) return
@@ -338,8 +350,8 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     if (!sq?.query) return
     const col = columns[colIdx]
     // Send the original query + the column's source GUIDs to the main window
-    window.api.sendAnalysisAction('run-query-in-docs', sq.query, col.sourceGuids)
-  }, [grid, queryGuids, queryMap, columns])
+    window.api.sendAnalysisAction('run-query-in-docs', sq.query, col.sourceGuids, surveyScope(col))
+  }, [grid, queryGuids, queryMap, columns, surveyScope])
 
   const handleRowTotalClick = useCallback((rowIdx: number) => {
     if (rowTotals[rowIdx] === 0) return
@@ -347,8 +359,8 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     const sq = queryMap.get(qGuid)
     if (!sq?.query) return
     // Run query across all result documents
-    window.api.sendAnalysisAction('run-query-in-docs', sq.query, resultSourceGuids)
-  }, [rowTotals, queryGuids, queryMap, resultSourceGuids])
+    window.api.sendAnalysisAction('run-query-in-docs', sq.query, resultSourceGuids, surveyScope())
+  }, [rowTotals, queryGuids, queryMap, resultSourceGuids, surveyScope])
 
   const handleColTotalClick = useCallback((colIdx: number) => {
     if (colTotals[colIdx] === 0) return
@@ -356,24 +368,24 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     // Run all queries scoped to this column's documents, combined as OR
     const allQueries = queryGuids.map((g) => queryMap.get(g)?.query).filter(Boolean) as any[]
     if (allQueries.length === 1) {
-      window.api.sendAnalysisAction('run-query-in-docs', allQueries[0], col.sourceGuids)
+      window.api.sendAnalysisAction('run-query-in-docs', allQueries[0], col.sourceGuids, surveyScope(col))
     } else if (allQueries.length > 1) {
       // Combine code conditions with OR
       const combined = { type: 'or', conditions: allQueries.map((q: any) => q.codeCondition) }
-      window.api.sendAnalysisAction('run-query-in-docs', { documentFilter: {}, codeCondition: combined }, col.sourceGuids)
+      window.api.sendAnalysisAction('run-query-in-docs', { documentFilter: {}, codeCondition: combined }, col.sourceGuids, surveyScope(col))
     }
-  }, [colTotals, columns, queryGuids, queryMap])
+  }, [colTotals, columns, queryGuids, queryMap, surveyScope])
 
   const handleGrandTotalClick = useCallback(() => {
     if (grandTotal === 0) return
     const allQueries = queryGuids.map((g) => queryMap.get(g)?.query).filter(Boolean) as any[]
     if (allQueries.length === 1) {
-      window.api.sendAnalysisAction('run-query-in-docs', allQueries[0], resultSourceGuids)
+      window.api.sendAnalysisAction('run-query-in-docs', allQueries[0], resultSourceGuids, surveyScope())
     } else if (allQueries.length > 1) {
       const combined = { type: 'or', conditions: allQueries.map((q: any) => q.codeCondition) }
-      window.api.sendAnalysisAction('run-query-in-docs', { documentFilter: {}, codeCondition: combined }, resultSourceGuids)
+      window.api.sendAnalysisAction('run-query-in-docs', { documentFilter: {}, codeCondition: combined }, resultSourceGuids, surveyScope())
     }
-  }, [grandTotal, queryGuids, queryMap, resultSourceGuids])
+  }, [grandTotal, queryGuids, queryMap, resultSourceGuids, surveyScope])
 
   const handleExportCsv = useCallback(() => {
     // CSV mirrors the on-screen orientation: items down the rows,

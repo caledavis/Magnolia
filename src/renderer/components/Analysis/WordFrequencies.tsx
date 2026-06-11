@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import type { AnalysisInitData } from '../../models/types'
+import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
 import { stripFormatting } from '../../utils/strip-formatting'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
 import { Icon, faFont, faChevronDown, faChevronRight } from '../Icon'
@@ -194,6 +194,17 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     [data, docFilter]
   )
 
+  // Survey-cell scope carried into a generated word query: the tool-level
+  // Questions scope plus, for a respondent / tagged series, that series'
+  // narrowing.
+  const surveyScope = useCallback((series?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): SurveyCellScopeArgs | undefined => {
+    const s: SurveyCellScopeArgs = {}
+    if (questionScope.length > 0) s.questionScope = questionScope.map((q) => ({ sourceGuid: q.sourceGuid, id: q.id }))
+    if (series?.respondentRef) s.respondentScope = [series.respondentRef]
+    if (series?.tagScopeGuids?.length) s.tagGuids = series.tagScopeGuids
+    return s.questionScope || s.respondentScope || s.tagGuids ? s : undefined
+  }, [questionScope])
+
   // Auto-add "Respondents" grouping when a survey first enters scope on a
   // fresh, never-saved analysis; removing the chip prevents re-adding.
   useEffect(() => {
@@ -344,8 +355,8 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
   }, [vizMode])
 
   const handleWordClick = useCallback((word: string) => {
-    window.api.sendAnalysisAction('run-word-query', word, filteredSourceGuids)
-  }, [filteredSourceGuids])
+    window.api.sendAnalysisAction('run-word-query', word, filteredSourceGuids, surveyScope())
+  }, [filteredSourceGuids, surveyScope])
 
   // Bar chart — fixed width, bars shrink to fit
   const barW = 600
@@ -814,10 +825,10 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
                                     if (nSeries > 1 && s.id !== '__all') {
                                       // Filter query by this series' tag
                                       if (s.id === '__other') {
-                                        window.api.sendAnalysisAction('run-word-query', word, filteredSourceGuids)
+                                        window.api.sendAnalysisAction('run-word-query', word, filteredSourceGuids, surveyScope())
                                       } else {
                                         // Run query scoped to this tag's documents
-                                        window.api.sendAnalysisAction('run-word-query', word, s.sourceGuids)
+                                        window.api.sendAnalysisAction('run-word-query', word, s.sourceGuids, surveyScope(s))
                                       }
                                     } else {
                                       handleWordClick(word)
