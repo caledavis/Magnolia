@@ -181,6 +181,29 @@ const EXPORT_CSS = `
   .report-wide { overflow: hidden; }
 ` + REPORT_TABLE_CSS + REPORT_QUERY_CSS
 
+/** Runs in the export window (before printToPDF) to shrink any analysis
+ *  table that's wider than the page to fit, preserving aspect ratio, so
+ *  wide grids (many documents / respondents) don't clip off the page. */
+const FIT_WIDE_TABLES_SCRIPT = `<script>
+(function () {
+  var wraps = document.querySelectorAll('.report-wide');
+  for (var i = 0; i < wraps.length; i++) {
+    var wrap = wraps[i];
+    var table = wrap.querySelector('table');
+    if (!table) continue;
+    var avail = wrap.clientWidth;
+    var w = table.scrollWidth;
+    if (avail > 0 && w > avail) {
+      var scale = avail / w;
+      table.style.transformOrigin = 'top left';
+      table.style.transform = 'scale(' + scale + ')';
+      wrap.style.height = Math.ceil(table.scrollHeight * scale) + 'px';
+      wrap.style.overflow = 'hidden';
+    }
+  }
+})();
+</script>`
+
 /** Build the report body (TOC + items). Each item gets an anchor the TOC
  *  links to. */
 function buildReportBody(items: ReportItem[]): string {
@@ -195,7 +218,7 @@ function buildReportBody(items: ReportItem[]): string {
     : ''
 
   const body = items.map((it) => renderItem(it)).join('')
-  return tocHtml + body
+  return tocHtml + body + FIT_WIDE_TABLES_SCRIPT
 }
 
 function renderItem(item: ReportItem): string {
