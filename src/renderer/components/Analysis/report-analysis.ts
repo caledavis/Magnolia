@@ -21,6 +21,7 @@ import {
 import { buildSurveyAwareColumns, type AnalysisColumn } from './survey-grouping'
 import { emptyDocumentFilter } from '../DocumentSelector/DocumentSelector'
 import { executeQuery } from '../../utils/query-engine'
+import { stripFormatting } from '../../utils/strip-formatting'
 import { escHtml } from '../../utils/pdf-export'
 import { TOOL_REGISTRY } from '../../utils/tool-registry'
 import { useProjectStore } from '../../stores/project-store'
@@ -38,6 +39,10 @@ export const REPORT_TABLE_CSS = `
   table.report-table td.pct { background: #f6f7f9; font-style: italic; color: #666; }
   table.report-table tr.total td { border-top: 2px solid #bbb; font-weight: 700; }
   table.report-table td.zero { color: #bbb; }
+  table.report-co td.co-seq { text-align: left; white-space: normal; line-height: 1.8; }
+  .co-chip { display: inline-block; white-space: nowrap; }
+  .co-chip .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 3px; vertical-align: middle; }
+  .co-arrow { color: #aaa; margin: 0 5px; }
 `
 
 function pctOf(value: number, total: number): string {
@@ -303,6 +308,123 @@ function codeCoOccurrencesHtml(config: any, options: AnalysisItemOptions): strin
   return wrapTable(`<thead>${thead}</thead><tbody>${body}${totalRow}</tbody>`, totalsOnly ? 0 : colCodeGuids.length)
 }
 
+// ── Code Orders (ordered code sequence per document) ───────────────
+
+function orderedCodeChips(
+  d: AnalysisInitData,
+  sourceGuids: string[],
+  codeGuids: string[],
+  codeMap: Map<string, { name: string; color?: string }>
+): string {
+  const seq: { name: string; color: string }[] = []
+  for (const sg of sourceGuids) {
+    const sels = d.sourceSelections[sg] || []
+    const local: { start: number; name: string; color: string }[] = []
+    for (const sel of sels) {
+      for (const coding of sel.codings) {
+        if (!codeGuids.includes(coding.codeGuid)) continue
+        const info = codeMap.get(coding.codeGuid)
+        local.push({ start: sel.startPosition, name: info?.name || 'Code', color: info?.color || '#888' })
+      }
+    }
+    local.sort((a, b) => a.start - b.start)
+    for (const l of local) seq.push({ name: l.name, color: l.color })
+  }
+  if (seq.length === 0) return '<span class="empty">(no codes)</span>'
+  return seq
+    .map((s) => `<span class="co-chip"><span class="dot" style="background:${s.color}"></span>${escHtml(s.name)}</span>`)
+    .join('<span class="co-arrow">→</span>')
+}
+
+function codeOrdersHtml(config: any, _options: AnalysisItemOptions): string {
+  const codeGuids: string[] = config?.codeGuids ?? []
+  if (codeGuids.length === 0) return '<div class="empty">(no codes in this analysis)</div>'
+  const { data, docFilter } = scopedData('code-orders', config)
+  const filtered = resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids ?? [], docFilter.typeInclude ?? [], docFilter.typeExclude ?? [])
+  const sourceMap = new Map<string, string>(data.sources.map((s) => [s.guid, s.name]))
+  const codeMap = new Map(data.codes.map((c) => [c.guid, { name: c.name, color: c.color }]))
+  const { columns: rows } = buildSurveyAwareColumns(config?.groupBy ?? [], data, filtered, sourceMap, { includeSubtotals: false })
+  if (rows.length === 0) return '<div class="empty">(no documents in scope)</div>'
+  const body = rows
+    .map((row) => {
+      const rd = row.respondentRef
+        ? applySurveyCellScope(data, { respondentScope: [row.respondentRef] })
+        : row.tagScopeGuids
+          ? applySurveyCellScope(data, { tagGuids: row.tagScopeGuids })
+          : data
+      return `<tr><td class="rowhead">${escHtml(row.label)}</td><td class="co-seq">${orderedCodeChips(rd, row.sourceGuids, codeGuids, codeMap)}</td></tr>`
+    })
+    .join('')
+  return `<div class="report-wide"><table class="report-table report-co"><thead><tr><th class="rowhead">Document</th><th class="rowhead">Order of codes</th></tr></thead><tbody>${body}</tbody></table></div>`
+}
+
+// ── Word Frequencies (top words × series) ──────────────────────────
+
+function parseWordSet(s: string): Set<string> {
+  return new Set((s || '').split(/[,\n]+/).map((w) => w.trim().toLowerCase()).filter(Boolean))
+}
+
+function countWordsIn(d: AnalysisInitData, sourceGuids: string[], excludeSet: Set<string>, includeSet: Set<string> | null): Map<string, number> {
+  const freq = new Map<string, number>()
+  for (const sg of sourceGuids) {
+    const src = d.sources.find((s) => s.guid === sg)
+    const st = (src as { sourceType?: string } | undefined)?.sourceType
+    let text: string | undefined
+    if (st === 'survey') {
+      text = (d.surveyCodableCells?.[sg] || []).map((c) => c.text).join('\n')
+    } else {
+      text = d.sourceContents[sg]
+      if (text && st && st !== 'text') {
+        try { text = stripFormatting(text, st as any) } catch { /* keep raw */ }
+      }
+    }
+    if (!text) continue
+    const words = text.toLowerCase().match(/\b[a-zA-ZÀ-ɏ']+\b/g) || []
+    for (const w of words) {
+      if (w.length < 2) continue
+      if (excludeSet.has(w)) continue
+      if (includeSet && !includeSet.has(w)) continue
+      freq.set(w, (freq.get(w) || 0) + 1)
+    }
+  }
+  return freq
+}
+
+function wordFrequenciesHtml(config: any, _options: AnalysisItemOptions): string {
+  const { data, docFilter } = scopedData('word-frequencies', config)
+  const filtered = resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids ?? [], docFilter.typeInclude ?? [], docFilter.typeExclude ?? [])
+  const sourceMap = new Map<string, string>(data.sources.map((s) => [s.guid, s.name]))
+  const excludeSet = parseWordSet(config?.excludeWords ?? '')
+  const incl = parseWordSet(config?.includeWords ?? '')
+  const includeSet = incl.size > 0 ? incl : null
+  const wordCount: number = config?.wordCount ?? 30
+  const groupBy = config?.groupBy ?? []
+  const series: AnalysisColumn[] =
+    groupBy.length === 0
+      ? [{ id: '__all', label: 'All', sourceGuids: filtered }]
+      : buildSurveyAwareColumns(groupBy, data, filtered, sourceMap, { includeSubtotals: true }).columns
+  const seriesFreqs = series.map((s) =>
+    countWordsIn(s.respondentRef ? applySurveyCellScope(data, { respondentScope: [s.respondentRef] }) : data, s.sourceGuids, excludeSet, includeSet)
+  )
+  const total = new Map<string, number>()
+  for (const fm of seriesFreqs) for (const [w, c] of fm) total.set(w, (total.get(w) || 0) + c)
+  const ranked = Array.from(total.entries()).sort((a, b) => b[1] - a[1]).slice(0, wordCount)
+  if (ranked.length === 0) return '<div class="empty">(no words)</div>'
+
+  const single = series.length === 1
+  const thead = single
+    ? `<tr><th class="rowhead">Word</th><th>Frequency</th></tr>`
+    : `<tr><th class="rowhead">Word</th>${series.map((s) => `<th>${escHtml(s.label)}</th>`).join('')}<th>Total</th></tr>`
+  const body = ranked
+    .map(([w, tot]) => {
+      if (single) return `<tr><td class="rowhead">${escHtml(w)}</td><td>${tot}</td></tr>`
+      const cells = series.map((_, j) => { const c = seriesFreqs[j].get(w) || 0; return `<td class="${c === 0 ? 'zero' : ''}">${c}</td>` }).join('')
+      return `<tr><td class="rowhead">${escHtml(w)}</td>${cells}<td>${tot}</td></tr>`
+    })
+    .join('')
+  return wrapTable(`<thead>${thead}</thead><tbody>${body}</tbody>`, single ? 1 : series.length)
+}
+
 /** Render one analysis item: regenerate its table fresh, or a short
  *  placeholder for tools not yet implemented / deleted analyses. */
 export function renderAnalysisItemHtml(
@@ -329,6 +451,12 @@ export function renderAnalysisItemHtml(
         break
       case 'code-cooccurrences':
         inner = codeCoOccurrencesHtml(sa.config, item.options)
+        break
+      case 'code-orders':
+        inner = codeOrdersHtml(sa.config, item.options)
+        break
+      case 'word-frequencies':
+        inner = wordFrequenciesHtml(sa.config, item.options)
         break
       default:
         inner = `<div class="empty">${escHtml(sa.name)} — table generation for ${escHtml(toolLabel)} is coming soon.</div>`
