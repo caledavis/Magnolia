@@ -153,9 +153,11 @@ function surveyCitation(q: Quote): string {
 
 const EXPORT_CSS = `
   .report-toc { margin: 8px 0 24px 0; page-break-after: always; break-after: page; }
-  .report-toc ol { margin: 6px 0 0 0; padding-left: 22px; }
-  .report-toc li { margin: 3px 0; font-size: 11px; }
-  .report-toc a { color: #1155cc; text-decoration: none; display: flex; align-items: baseline; }
+  .report-toc .toc-list { margin-top: 6px; }
+  .report-toc .toc-entry { display: flex; align-items: baseline; text-decoration: none; color: #1155cc; font-size: 11px; margin: 2px 0; }
+  .report-toc .toc-l0 { font-weight: 600; margin-top: 7px; }
+  .report-toc .toc-l1 { padding-left: 18px; }
+  .report-toc .toc-l2 { padding-left: 36px; font-size: 10.5px; }
   .report-toc .toc-label { flex-shrink: 1; }
   .report-toc .toc-dots { flex: 1 1 auto; min-width: 14px; border-bottom: 1px dotted #bbb; margin: 0 5px; position: relative; top: -3px; }
   .report-toc .toc-page { flex-shrink: 0; color: #555; }
@@ -249,14 +251,26 @@ function buildExportScript(pageH: number, pageW: number): string {
 /** Build the report body (TOC + items). Each item gets an anchor the TOC
  *  links to. */
 function buildReportBody(items: ReportItem[]): string {
+  // Indent each TOC entry by its level: a Section sits at the left, a
+  // Subsection one step in, and content items under whichever heading
+  // currently applies (one step deeper than that heading).
+  let headingDepth = -1
   const toc = items
     .map((it) => {
       const id = reportAnchorId(it)
-      return `<li><a href="#${id}"><span class="toc-label">${escHtml(resolveItemLabel(it))}</span><span class="toc-dots"></span><span class="toc-page" data-toc="${id}"></span></a></li>`
+      let depth: number
+      if (it.kind === 'section') {
+        depth = it.level === 2 ? 1 : 0
+        headingDepth = depth
+      } else {
+        depth = Math.max(0, headingDepth + 1)
+      }
+      depth = Math.min(depth, 2)
+      return `<a class="toc-entry toc-l${depth}" href="#${id}"><span class="toc-label">${escHtml(resolveItemLabel(it))}</span><span class="toc-dots"></span><span class="toc-page" data-toc="${id}"></span></a>`
     })
     .join('')
   const tocHtml = items.length
-    ? `<div class="report-toc"><div class="section-heading">Contents</div><ol>${toc}</ol></div>`
+    ? `<div class="report-toc"><div class="section-heading">Contents</div><div class="toc-list">${toc}</div></div>`
     : ''
 
   const body = items.map((it) => renderItem(it)).join('')
