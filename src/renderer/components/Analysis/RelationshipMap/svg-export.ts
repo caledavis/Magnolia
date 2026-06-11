@@ -1,6 +1,6 @@
 import type { MapElement, MapConnection, FreeTextElement, MapElementKind } from './types'
 import { ELEMENT_COLORS, ANALYSIS_TOOL_COLORS } from './types'
-import { arcMidpoint, parseArcPath } from './bezier-utils'
+import { parseBezPath, bezierPoint } from './bezier-utils'
 import { computeConnectionPath } from './MapConnection'
 
 function escapeXml(str: string): string {
@@ -75,7 +75,7 @@ function getIconKey(el: MapElement): string | null {
 }
 
 const STROKE_COLOR = '#3f3f46'
-const CHEV_SIZE = 5
+const CHEV_SIZE = 6
 
 function connectionSvg(
   conn: MapConnection,
@@ -96,44 +96,43 @@ function connectionSvg(
   // Overlay: arrowheads + label (in front of boxes)
   const overlayParts: string[] = []
 
-  // Chevrons using midpoint for direction (matches canvas visually)
-  const parsed = parseArcPath(path)
-  const mid = parsed
-    ? arcMidpoint(parsed.from, parsed.to, parsed.r, parsed.sweepFlag)
+  // The path is a cubic bezier; use its true geometry for the label
+  // midpoint and the arrowhead tangents, exactly like the live canvas
+  // (a straight-line midpoint sat the label off the curve).
+  const bez = parseBezPath(path)
+  const mid = bez
+    ? bezierPoint(bez.p0, bez.p1, bez.p2, bez.p3, 0.5)
     : { x: (fromEdge.x + toEdge.x) / 2, y: (fromEdge.y + toEdge.y) / 2 }
 
-  // Chevron helper: tip at `tip`, tangent is direction of travel at that point.
-  // Arms extend backward (opposite to tangent). This matches the canvas rendering.
-  function makeChev(tip: { x: number; y: number }, tangent: { x: number; y: number }): string {
-    const bx = -tangent.x, by = -tangent.y // backward from travel
-    const px = -by, py = bx // perpendicular
-    const ax = tip.x + bx * CHEV_SIZE + px * CHEV_SIZE
-    const ay = tip.y + by * CHEV_SIZE + py * CHEV_SIZE
-    const cx = tip.x + bx * CHEV_SIZE - px * CHEV_SIZE
-    const cy = tip.y + by * CHEV_SIZE - py * CHEV_SIZE
-    return `${ax},${ay} ${tip.x},${tip.y} ${cx},${cy}`
+  const norm = (dx: number, dy: number) => {
+    const d = Math.hypot(dx, dy)
+    return d > 0.01 ? { x: dx / d, y: dy / d } : { x: 1, y: 0 }
+  }
+  // Direction the curve leaves the from-box (start handle) and arrives at
+  // the to-box (end handle).
+  const fromTang = bez ? norm(bez.p1.x - bez.p0.x, bez.p1.y - bez.p0.y) : norm(toEdge.x - fromEdge.x, toEdge.y - fromEdge.y)
+  const toTang = bez ? norm(bez.p3.x - bez.p2.x, bez.p3.y - bez.p2.y) : norm(toEdge.x - fromEdge.x, toEdge.y - fromEdge.y)
+
+  // Chevron: tip at `tip`, arms swept back opposite the travel direction.
+  function makeChev(tip: { x: number; y: number }, tang: { x: number; y: number }): string {
+    const bx = -tang.x, by = -tang.y
+    const px = -by, py = bx
+    const spread = CHEV_SIZE * 0.55
+    return [
+      `${tip.x + bx * CHEV_SIZE + px * spread},${tip.y + by * CHEV_SIZE + py * spread}`,
+      `${tip.x},${tip.y}`,
+      `${tip.x + bx * CHEV_SIZE - px * spread},${tip.y + by * CHEV_SIZE - py * spread}`
+    ].join(' ')
   }
 
   if (conn.arrowFrom) {
-    // Tangent at from-edge: direction from fromEdge toward midpoint (= line leaves from-box)
-    const dx = mid.x - fromEdge.x, dy = mid.y - fromEdge.y
-    const len = Math.hypot(dx, dy)
-    if (len > 0.1) {
-      // Flip tangent so chevron points INTO from-box
-      const tangent = { x: -dx / len, y: -dy / len }
-      overlayParts.push(`<polyline points="${makeChev(fromEdge, tangent)}" fill="none" stroke="${STROKE_COLOR}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`)
-    }
+    // Arrow at the from-end points INTO the from-box → flip the leaving tangent.
+    overlayParts.push(`<polyline points="${makeChev(fromEdge, { x: -fromTang.x, y: -fromTang.y })}" fill="none" stroke="${STROKE_COLOR}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`)
   }
 
   if (conn.arrowTo) {
-    // Tangent at to-edge: direction from midpoint toward toEdge (= line arrives at to-box)
-    const dx = toEdge.x - mid.x, dy = toEdge.y - mid.y
-    const len = Math.hypot(dx, dy)
-    if (len > 0.1) {
-      // Use tangent as-is: chevron points INTO to-box
-      const tangent = { x: dx / len, y: dy / len }
-      overlayParts.push(`<polyline points="${makeChev(toEdge, tangent)}" fill="none" stroke="${STROKE_COLOR}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`)
-    }
+    // Arrow at the to-end points INTO the to-box → use the arriving tangent.
+    overlayParts.push(`<polyline points="${makeChev(toEdge, toTang)}" fill="none" stroke="${STROKE_COLOR}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`)
   }
 
   // Label
