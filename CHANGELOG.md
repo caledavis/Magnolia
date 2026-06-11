@@ -2,6 +2,17 @@
 
 All notable changes to Magnolia are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project follows [Semantic Versioning](https://semver.org/).
 
+## [1.4.0]
+
+### Added
+- **Reports** — a new analysis tool for compiling your work into a single, shareable PDF. Drag saved queries, analyses, quotes, and memos onto the canvas, add your own headings (sections and subsections) and free-text notes, and reorder everything by dragging. Everything is regenerated from your current data at export time, so a report never carries stale numbers: analysis tables, saved-query results, and Relationship Maps all render fresh, and survey responses are cited by respondent and question. The exported PDF opens with a numbered, indented table of contents with page numbers. Each analysis can be shown as totals-only, binary, or visual, and a Word Frequencies item can add a bar chart and/or a word cloud beneath its table. Reports save with your project like any other analysis.
+
+### Changed
+- **Cleaner quotes in the Quotes panel.** Quote previews now read upright and without the surrounding quotation marks.
+
+### Fixed
+- **Delete works while editing rich text.** Pressing Delete or Backspace in a memo, a Relationship-Map note, or a report text block is no longer intercepted when an analysis tool or the Query Builder is open in another tab.
+
 ## [1.3.0]
 
 ### Added
