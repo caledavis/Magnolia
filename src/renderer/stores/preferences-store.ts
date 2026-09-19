@@ -29,6 +29,8 @@ export interface Preferences {
   paperSize: PaperSize
   /** Interface scale, applied as a native page zoom factor (1 = 100%). */
   interfaceScale: number
+  /** Shown to teammates when this user checks out a shared project. */
+  userName: string
 }
 
 const DEFAULT_PREFERENCES: Preferences = {
@@ -42,7 +44,8 @@ const DEFAULT_PREFERENCES: Preferences = {
   defaultPlaybackSpeed: 1.0,
   theme: 'magnolia',
   paperSize: 'A4',
-  interfaceScale: 1
+  interfaceScale: 1,
+  userName: ''
 }
 
 interface PreferencesState extends Preferences {
@@ -53,6 +56,7 @@ interface PreferencesState extends Preferences {
   setDefaultPlaybackSpeed: (speed: number) => void
   setTheme: (theme: ThemeId) => void
   setInterfaceScale: (scale: number) => void
+  setUserName: (userName: string) => void
 }
 
 export const usePreferencesStore = create<PreferencesState>((set, get) => ({
@@ -69,6 +73,7 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
           theme: (prefs.theme ?? DEFAULT_PREFERENCES.theme) as ThemeId,
           paperSize: (prefs.paperSize ?? DEFAULT_PREFERENCES.paperSize) as PaperSize,
           interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
+          userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
           loaded: true
         })
       } else {
@@ -80,9 +85,9 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   },
 
   save: async () => {
-    const { footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale } = get()
+    const { footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName } = get()
     try {
-      await window.api.savePreferences({ footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale })
+      await window.api.savePreferences({ footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName })
     } catch { /* ignore */ }
   },
 
@@ -106,6 +111,11 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
 
   setInterfaceScale: (interfaceScale) => {
     set({ interfaceScale })
+    setTimeout(() => get().save(), 0)
+  },
+
+  setUserName: (userName) => {
+    set({ userName })
     setTimeout(() => get().save(), 0)
   }
 }))
@@ -132,6 +142,7 @@ if (typeof window !== 'undefined' && window.api?.onPreferencesUpdate) {
       theme: (prefs.theme ?? DEFAULT_PREFERENCES.theme) as ThemeId,
       paperSize: (prefs.paperSize ?? DEFAULT_PREFERENCES.paperSize) as PaperSize,
       interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
+      userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
       loaded: true
     })
   })

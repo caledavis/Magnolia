@@ -32,6 +32,8 @@ interface Preferences {
   paperSize: PaperSize
   /** Interface scale, applied as a native page zoom factor (1 = 100%). */
   interfaceScale: number
+  /** Shown to teammates when this user checks out a shared project. */
+  userName: string
 }
 
 const DEFAULT_PREFS: Preferences = {
@@ -49,7 +51,8 @@ const DEFAULT_PREFS: Preferences = {
   // theme (including the legacy '' for Clean) override this.
   theme: 'magnolia',
   paperSize: 'A4',
-  interfaceScale: 1
+  interfaceScale: 1,
+  userName: ''
 }
 
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2]
@@ -75,7 +78,7 @@ const THEME_OPTIONS: ThemeOption[] = [
   { id: 'high-contrast', label: 'High Contrast', swatch: { bg: '#000000', surface: '#ffffff', accent: '#ffff00' } }
 ]
 
-type CategoryId = 'appearance' | 'media-playback' | 'paper-size' | 'updates' | 'support'
+type CategoryId = 'appearance' | 'general' | 'media-playback' | 'paper-size' | 'updates' | 'support'
 
 interface Category {
   id: CategoryId
@@ -83,6 +86,7 @@ interface Category {
 }
 
 const CATEGORIES: Category[] = [
+  { id: 'general',        label: 'General' },
   { id: 'appearance',     label: 'Appearance' },
   { id: 'media-playback', label: 'Media Playback' },
   { id: 'paper-size',     label: 'Paper Size' },
@@ -254,6 +258,34 @@ function AppearanceSettings({
           <option key={s} value={s}>{Math.round(s * 100)}%</option>
         ))}
       </select>
+    </div>
+  )
+}
+
+function GeneralSettings({
+  prefs,
+  save
+}: {
+  prefs: Preferences
+  save: (updated: Preferences) => void
+}) {
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>Your Name</h3>
+      <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.5 }}>
+        Shown to teammates when you check out a shared project, so they know who has it and can follow up.
+      </p>
+      <input
+        type="text"
+        value={prefs.userName}
+        placeholder="Enter your name"
+        onChange={(e) => save({ ...prefs, userName: e.target.value })}
+        style={{
+          width: 240, padding: '4px 8px', fontSize: 12,
+          border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)',
+          background: 'var(--bg-input)', color: 'var(--text-primary)'
+        }}
+      />
     </div>
   )
 }
@@ -722,6 +754,9 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
 
         {/* Selected category's settings */}
         <div style={{ flex: 1, padding: '14px 20px', overflow: 'auto' }}>
+          {selected.id === 'general' && (
+            <GeneralSettings prefs={prefs} save={save} />
+          )}
           {selected.id === 'appearance' && (
             <AppearanceSettings
               value={prefs.theme}

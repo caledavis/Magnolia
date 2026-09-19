@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { User, SavedAnalysis } from '../models/types'
+import type { User, SavedAnalysis, CheckoutMarker } from '../models/types'
 import { generateGuid } from '../utils/guid'
 import { makeHmrSafe } from './hmr-preserve'
 
@@ -22,6 +22,11 @@ interface ProjectState {
   filePath: string | null
   isDirty: boolean
   savedAnalyses?: SavedAnalysis[]
+  /** Check-out lock state read from the currently-open .qdpx, or set
+   *  locally after a check-out/check-in action. Lives outside the
+   *  persisted Project fields — set separately by the loader, mirroring
+   *  how missingBinaries is handled. */
+  checkoutMarker: CheckoutMarker | null
 
   createNewProject: () => void
   loadProject: (data: {
@@ -42,6 +47,7 @@ interface ProjectState {
   setName: (name: string) => void
   setDescription: (description: string) => void
   setSavedAnalyses: (analyses: SavedAnalysis[]) => void
+  setCheckoutMarker: (marker: CheckoutMarker | null) => void
 }
 
 const defaultUserGuid = generateGuid()
@@ -56,6 +62,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
   filePath: null,
   isDirty: false,
   savedAnalyses: [],
+  checkoutMarker: null,
 
   createNewProject: () => {
     const userGuid = generateGuid()
@@ -70,7 +77,8 @@ export const useProjectStore = create<ProjectState>((set) => ({
       modifiedDateTime: undefined,
       filePath: null,
       isDirty: false,
-      savedAnalyses: []
+      savedAnalyses: [],
+      checkoutMarker: null
     })
   },
 
@@ -98,7 +106,8 @@ export const useProjectStore = create<ProjectState>((set) => ({
   markClean: () => set({ isDirty: false }),
   setName: (name) => set({ name, isDirty: true }),
   setDescription: (description) => set({ description, isDirty: true }),
-  setSavedAnalyses: (analyses) => set({ savedAnalyses: analyses, isDirty: true })
+  setSavedAnalyses: (analyses) => set({ savedAnalyses: analyses, isDirty: true }),
+  setCheckoutMarker: (marker) => set({ checkoutMarker: marker })
 }))
 
 makeHmrSafe('projectStore', useProjectStore)

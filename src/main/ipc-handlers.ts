@@ -4,6 +4,7 @@ import { existsSync, mkdirSync } from 'fs'
 import { basename, dirname, join } from 'path'
 import { readQdpx } from './qdpx/reader'
 import { writeQdpx, EmptyProjectGuardError, createEmptyProjectFile } from './qdpx/writer'
+import { readCheckoutMarker, writeCheckoutMarker } from './qdpx/checkout-marker'
 import { serializeCodebook } from './qdpx/codebook-serializer'
 import { deserializeCodebook } from './qdpx/codebook-deserializer'
 import {
@@ -109,7 +110,8 @@ export function registerIpcHandlers(): void {
     // Make this the live archive immediately so viewers can resolve
     // magnolia-bin:// handles before the renderer's own path effect fires.
     setActiveProjectPath(filePath)
-    return { ...data, filePath }
+    const checkoutInfo = await readCheckoutMarker(filePath)
+    return { ...data, filePath, checkoutInfo }
   })
 
   // Show the file picker and return the chosen path without doing any
@@ -222,7 +224,20 @@ export function registerIpcHandlers(): void {
       event.sender.send('project-load-progress', { stage, current, total })
     })
     setActiveProjectPath(filePath)
-    return { ...data, filePath }
+    const checkoutInfo = await readCheckoutMarker(filePath)
+    return { ...data, filePath, checkoutInfo }
+  })
+
+  ipcMain.handle('read-checkout-marker', async (_event, filePath: string) => {
+    return readCheckoutMarker(filePath)
+  })
+
+  ipcMain.handle('check-out-project', async (_event, filePath: string, userName: string) => {
+    return writeCheckoutMarker(filePath, { userName })
+  })
+
+  ipcMain.handle('check-in-project', async (_event, filePath: string) => {
+    return writeCheckoutMarker(filePath, null)
   })
 
   // Supported document extensions — add new formats here

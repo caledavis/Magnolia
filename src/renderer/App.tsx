@@ -52,6 +52,7 @@ function flattenCodesWithParent(
   return result
 }
 import { useProjectStore } from './stores/project-store'
+import { usePreferencesStore } from './stores/preferences-store'
 import { useDocumentStore, surveyEntityKey } from './stores/document-store'
 import { useCodeStore } from './stores/code-store'
 import { useTagStore } from './stores/tag-store'
@@ -65,8 +66,10 @@ import { useSurveyViewStore } from './stores/survey-view-store'
 import { useAnalysisTabsStore } from './stores/analysis-tabs-store'
 import { isAnalysisTab, isMapTab, isQueryBuilderTab, makeAnalysisTabId, makeMapTabId, makeQueryBuilderTabId, mapGuidFromTabId, parseAnalysisTabId, PREFERENCES_TAB_ID } from './utils/tab-ids'
 import { requestPreferencesCategory } from './components/Preferences/PreferencesWindow'
-import type { PersistedTab, PersistedTabState, MissingBinary } from './models/types'
+import type { PersistedTab, PersistedTabState, MissingBinary, CheckoutMarker } from './models/types'
 import { MissingBinariesBanner } from './components/MissingBinariesBanner'
+import { CheckoutConflictDialog } from './components/CheckoutConflictDialog'
+import { CheckOutButton } from './components/Toolbar/CheckOutButton'
 // ES import so Vite bundles + hashes the Magnolia toolbar icon for production.
 import magnoliaIconUrl from './assets/magnoliaicononly.svg'
 import { usePendingSelectionStore } from './stores/pending-selection-store'
@@ -240,6 +243,9 @@ function App() {
   // drives the re-import banner so the user can repair the project.
   const [missingBinaries, setMissingBinaries] = useState<MissingBinary[]>([])
   const [updateInfo, setUpdateInfo] = useState<UpdateAvailableInfo | null>(null)
+  // Someone else's checkout marker found on a just-opened project — shown as
+  // an informational warning; read/edit access is never blocked by it.
+  const [checkoutConflict, setCheckoutConflict] = useState<CheckoutMarker | null>(null)
 
   useEffect(() => {
     return window.api.onProjectLoadProgress((p) => setLoadProgress(p))
@@ -646,6 +652,16 @@ function App() {
     window.api.trackRecentProject(projectName, filePath)
   }, [projectStore, documentStore, codeStore, tagStore, queryStore, logbookStore, memoStore, collectProject, cancelPendingAutoSave])
 
+  // Apply the checkout marker an open just returned, and surface the
+  // informational conflict dialog if someone else currently holds it.
+  // Read/edit access is never blocked — this is purely a heads-up.
+  const applyCheckoutInfo = useCallback((data: any) => {
+    const marker: CheckoutMarker | null = data?.checkoutInfo ?? null
+    useProjectStore.getState().setCheckoutMarker(marker)
+    const myName = usePreferencesStore.getState().userName.trim()
+    if (marker && marker.userName !== myName) setCheckoutConflict(marker)
+  }, [])
+
   const handleOpenProject = useCallback(async () => {
     // Show the native file picker FIRST, before flipping any loading
     // state, so the picker appears immediately on click. Previously
@@ -730,6 +746,7 @@ function App() {
       // edits after this re-dirty it normally.
       useProjectStore.getState().markClean()
       setMissingBinaries((data as any).missingBinaries ?? [])
+      applyCheckoutInfo(data)
       if ((data as any).filePath) {
         window.api.trackRecentProject(project.name, (data as any).filePath)
       }
@@ -737,7 +754,7 @@ function App() {
       setLoadProgress(null)
       liftLoadSuppression()
     }
-  }, [projectStore, documentStore, codeStore, tagStore, queryStore, logbookStore, memoStore, cancelPendingAutoSave, liftLoadSuppression, restoreTabState])
+  }, [projectStore, documentStore, codeStore, tagStore, queryStore, logbookStore, memoStore, cancelPendingAutoSave, liftLoadSuppression, restoreTabState, applyCheckoutInfo])
 
   // Returns true if the project payload has no user-authored content at
   // all. Used by the save guard to refuse overwriting a real project file
@@ -1652,6 +1669,7 @@ function App() {
         // matching note in the file-picker open path above.
         useProjectStore.getState().markClean()
         setMissingBinaries((data as any).missingBinaries ?? [])
+        applyCheckoutInfo(data)
         window.api.trackRecentProject(project.name, filePath)
       } catch (err) {
         console.error('Failed to open recent project:', err)
@@ -1661,7 +1679,7 @@ function App() {
       }
     })
     return unsub
-  }, [cancelPendingAutoSave, liftLoadSuppression])
+  }, [cancelPendingAutoSave, liftLoadSuppression, applyCheckoutInfo])
 
   // Hidden flush-on-close: when the main process intercepts the window
   // close, write the current project to disk before letting the window go.
@@ -1688,6 +1706,28 @@ function App() {
           console.error('Pre-close flush failed:', err)
         } finally {
           clearInterval(heartbeat)
+        }
+      }
+      // Auto-check-in if this project is checked out under the current
+      // user's own name, so a forgotten checkout doesn't strand
+      // collaborators. Shown as a brief in-app overlay (reusing the same
+      // loadProgress UI as project-open progress) rather than an OS
+      // notification — the window is already being kept open for the
+      // flush above, so this is guaranteed to be visible, unlike a
+      // notification racing against the process quitting right after it
+      // fires (which is what happened when this was tried main-process-
+      // side with Notification).
+      const marker = useProjectStore.getState().checkoutMarker
+      const myName = usePreferencesStore.getState().userName.trim()
+      if (marker && myName && marker.userName === myName && ps.filePath) {
+        setLoadProgress({ stage: 'Checking in…', current: 0, total: 0 })
+        try {
+          await Promise.all([
+            window.api.checkInProject(ps.filePath),
+            new Promise((r) => setTimeout(r, 600))
+          ])
+        } catch (err) {
+          console.error('Pre-close check-in failed:', err)
         }
       }
       window.api.notifyFlushComplete()
@@ -2147,7 +2187,7 @@ function App() {
               overflow-x takes over, so this never fights the #15 fix
               above by clipping content out the left edge on narrow
               windows. */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 2, margin: '0 auto' }}>
+          <div className="app-toolbar-scroll-inner" style={{ display: 'flex', alignItems: 'center', gap: 2, margin: '0 auto' }}>
           {[
             { icon: faSquareArrowRightEnter, label: 'Import', action: () => handleImportDocument() },
             { icon: faBook, label: 'Codebook', action: () => openCodebook() },
@@ -2381,12 +2421,14 @@ function App() {
           </div>
         </div>
 
-        {/* Right: window controls (minimise/maximise/close) on Windows
-            and Linux — native traffic lights on macOS, where this
-            renders nothing. Pinned — flexShrink: 0 keeps these reachable
-            at any window size, since they're the only way to move,
-            resize, or close the frameless window (GitHub issue #15). */}
+        {/* Far right, pinned: Check Out / Check In, then window controls
+            (minimise/maximise/close) on Windows and Linux — native traffic
+            lights on macOS, where WindowControls renders nothing. Pinned —
+            flexShrink: 0 keeps these reachable at any window size, since
+            window controls are the only way to move, resize, or close the
+            frameless window (GitHub issue #15). */}
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', height: '100%' }}>
+          <CheckOutButton />
           <WindowControls />
         </div>
       </div>
@@ -2662,6 +2704,9 @@ function App() {
       <ProjectDetailsDialog open={showProjectDetails} onClose={() => setShowProjectDetails(false)} />
       <LicenceDialog open={showLicenceDialog} onClose={() => setShowLicenceDialog(false)} />
       <UpdateDialog info={updateInfo} onDismiss={() => setUpdateInfo(null)} />
+      {checkoutConflict && (
+        <CheckoutConflictDialog marker={checkoutConflict} onDismiss={() => setCheckoutConflict(null)} />
+      )}
 
       {(() => {
         const source = documentStore.sources.find((s) => s.guid === documentStore.viewedDocumentGuid)

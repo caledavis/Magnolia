@@ -92,6 +92,8 @@ import {
   CircleQuestionMark,
   Scale,
   AppWindow,
+  ClockArrowRight,
+  ClockArrowLeft,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -181,3 +183,7 @@ export const faScale = Scale
  *  closed workspace panels. No Font Awesome forebear, so the alias
  *  reads as the Lucide name. */
 export const faAppWindow = AppWindow
+/** Check Out / Check In toolbar toggle — a clock with an outgoing arrow
+ *  (checked out) vs. an incoming arrow (checked back in). */
+export const faClockArrowRight = ClockArrowRight
+export const faClockArrowLeft = ClockArrowLeft

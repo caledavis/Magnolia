@@ -484,14 +484,28 @@ export interface MissingBinary {
   sourceType: string
 }
 
+/** Check-out lock state for a .qdpx project. Lives only in the project's
+ *  own magnolia-lock.json/magnolia-project-id.json zip entries — never in
+ *  the REFI-QDA-standard .qde XML — so it's deliberately absent from the
+ *  `Project` model itself (it must never enter collectProject()'s output
+ *  or a save payload). */
+export interface CheckoutMarker {
+  projectId: string
+  userName: string
+  checkedOutAt: string
+}
+
 // IPC API exposed to renderer
 export interface ElectronAPI {
   getFileSize: (filePath: string) => Promise<number | null>
   readPdfFile: (filePath: string) => Promise<Uint8Array>
   onProjectLoadProgress: (callback: (p: { stage: string; current: number; total: number }) => void) => () => void
-  openProject: () => Promise<Project & { sourceContents: Record<string, string>; missingBinaries?: MissingBinary[] } | null>
+  openProject: () => Promise<Project & { sourceContents: Record<string, string>; missingBinaries?: MissingBinary[]; checkoutInfo?: CheckoutMarker | null } | null>
   pickProjectFile: () => Promise<string | null>
-  openProjectPath: (filePath: string) => Promise<Project & { sourceContents: Record<string, string>; missingBinaries?: MissingBinary[] } | null>
+  openProjectPath: (filePath: string) => Promise<Project & { sourceContents: Record<string, string>; missingBinaries?: MissingBinary[]; checkoutInfo?: CheckoutMarker | null } | null>
+  readCheckoutMarker: (filePath: string) => Promise<CheckoutMarker | null>
+  checkOutProject: (filePath: string, userName: string) => Promise<CheckoutMarker | null>
+  checkInProject: (filePath: string) => Promise<CheckoutMarker | null>
   saveProject: (data: {
     project: Project
     sourceContents: Record<string, string>

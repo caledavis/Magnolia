@@ -923,6 +923,11 @@ ipcMain.on('track-recent-project', (_event, name: string, filePath: string) => {
 // above prevents the initial close, dispatches 'flush-and-close', and
 // awaits this signal — which re-issues the close. flushPending in the
 // 'close' handler ensures that re-entry falls through to the real close.
+// (Auto-check-in on quit, if the project is checked out under the current
+// user's name, happens renderer-side in App.tsx's onFlushAndClose handler
+// — the window is already being kept open for the flush, so an in-app
+// "Checking in…" overlay is simpler and more reliable than an OS
+// notification racing against the process exiting right after it fires.)
 ipcMain.on('flush-and-close-complete', (event) => {
   clearFlushWatchdog()
   const win = BrowserWindow.fromWebContents(event.sender)

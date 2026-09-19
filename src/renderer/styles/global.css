@@ -428,7 +428,7 @@ html:not([data-theme]) .app-toolbar-btn svg {
  * popover is rendered inside .analysis-popover-anchor (inside the
  * toolbar), so without the exclusion this rule matches the popover
  * tile buttons too, defeating their own theme-scoped hover styling. */
-:root[data-theme="magnolia"] .app-toolbar button:not(.analysis-popover-tile):not(.studio-popover-row):hover {
+:root[data-theme="magnolia"] .app-toolbar button:not(.analysis-popover-tile):not(.studio-popover-row):not(.checkout-btn):hover {
   background: rgba(255, 255, 255, 0.22) !important;
 }
 :root[data-theme="magnolia"] .app-toolbar-btn .toolbar-label {
@@ -573,7 +573,7 @@ html:not([data-theme]) .app-toolbar-btn svg {
  * own theme-scoped hover styling lands instead (otherwise the
  * toolbar rule's higher specificity wins because the popover is
  * rendered inside .app-toolbar via the anchor). */
-:root[data-theme="magnolia-dark"] .app-toolbar button:not(.analysis-popover-tile):not(.studio-popover-row):hover {
+:root[data-theme="magnolia-dark"] .app-toolbar button:not(.analysis-popover-tile):not(.studio-popover-row):not(.checkout-btn):hover {
   background: rgba(255, 255, 255, 0.08) !important;
 }
 
@@ -1126,16 +1126,23 @@ textarea:focus {
  * pinned project name (left) and window controls (right) around it
  * never get scrolled out of view themselves (GitHub issue #15).
  *
- * It also opts out of the toolbar's drag region entirely, not just on
- * its buttons: .app-toolbar marks its whole area draggable so the
- * frameless window can be moved, but a drag region under the cursor
- * swallows scroll gestures in Electron. Without this override, the gaps
- * between buttons stayed draggable and killed horizontal scrolling the
- * moment the cursor drifted off a button. */
+ * The actual button track (.app-toolbar-scroll-inner, the centered
+ * child holding every button) opts out of the toolbar's drag region
+ * entirely, not just on its buttons: .app-toolbar marks its whole area
+ * draggable so the frameless window can be moved, but a drag region
+ * under the cursor swallows scroll gestures in Electron. Without that
+ * override, the gaps between buttons stayed draggable and killed
+ * horizontal scrolling the moment the cursor drifted off a button. This
+ * outer .app-toolbar-scroll element deliberately stays plain — it's the
+ * flex item that grows to fill leftover toolbar width, and any empty
+ * margin beyond the (centered) button track should stay draggable, the
+ * same as the rest of the toolbar. */
 .app-toolbar-scroll {
+  scrollbar-width: thin;
+}
+.app-toolbar-scroll-inner {
   -webkit-app-region: no-drag;
   app-region: no-drag;
-  scrollbar-width: thin;
 }
 .app-toolbar-scroll::-webkit-scrollbar {
   height: 6px;
@@ -1298,6 +1305,35 @@ html:not([data-theme]) .app-toolbar {
 .app-toolbar-btn svg {
   font-size: 13px !important;
   color: var(--text-secondary) !important;
+}
+
+/* Check Out / Check In toggle (components/Toolbar/CheckOutButton.tsx) —
+ * unlike every other toolbar button, this one's background switches to a
+ * solid accent/danger fill to show who has the project checked out, so
+ * its icon opts out of the universal neutral-grey rule above and instead
+ * inherits the button's own (status-driven) color, same as its label. */
+.checkout-btn svg {
+  color: inherit !important;
+}
+/* Rest-state background comes from an inline style (per-status, computed
+ * in CheckOutButton.tsx). Hover uses real CSS :hover rather than JS-driven
+ * onMouseEnter/onMouseLeave (unlike the Preferences button elsewhere in
+ * App.tsx) because this button's inline background is itself dynamic
+ * (status-dependent) — a real :hover rule is immune to a React re-render
+ * discarding a JS-mutated inline style, which a plain generic
+ * button:hover can't be, hence !important, scoped per status. */
+.checkout-btn.checkout-btn--none:hover {
+  background: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+}
+.checkout-btn.checkout-btn--mine:hover {
+  background: var(--accent-hover) !important;
+}
+.checkout-btn.checkout-btn--other:hover {
+  background: var(--danger) !important;
+}
+.checkout-btn:disabled:hover {
+  background: transparent !important;
 }
 
 /* ============================================================
