@@ -273,7 +273,7 @@ function GeneralSettings({
     <div style={{ marginBottom: 24 }}>
       <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>Your Name</h3>
       <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.5 }}>
-        Shown to teammates when you check out a shared project, so they know who has it and can follow up.
+        Your name allows colleagues to identify your changes to a project when merging different versions.
       </p>
       <input
         type="text"
