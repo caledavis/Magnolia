@@ -15,6 +15,34 @@ export interface CheckoutMarker {
 
 const LOCK_ENTRY = 'magnolia-lock.json'
 const PROJECT_ID_ENTRY = 'magnolia-project-id.json'
+export const EDITOR_ENTRY = 'magnolia-editor.json'
+
+/** Who last saved a .qdpx, and when — written unconditionally on every
+ *  save (writer.ts), unlike the checkout lock which only exists while
+ *  checked out. Lets features like merge attribute a file's differences
+ *  to a person even if the user never used check-out/check-in. Lives in
+ *  the same kind of Magnolia-only zip entry as the checkout marker. */
+export interface EditorInfo {
+  lastEditedBy: string
+  lastEditedAt: string
+}
+
+/** Lightweight peek at a .qdpx's last-editor stamp, independent of the
+ *  full readQdpx pipeline. Tolerant of any missing/unreadable/malformed
+ *  case (returns null). */
+export async function readEditorInfo(filePath: string): Promise<EditorInfo | null> {
+  try {
+    const zip = await JSZip.loadAsync(await readFile(filePath))
+    const entry = zip.file(EDITOR_ENTRY)
+    if (!entry) return null
+    const info = JSON.parse(await entry.async('string'))
+    return typeof info?.lastEditedBy === 'string' && typeof info?.lastEditedAt === 'string'
+      ? (info as EditorInfo)
+      : null
+  } catch {
+    return null
+  }
+}
 
 /** Lightweight peek at a .qdpx's checkout marker, independent of the full
  *  readQdpx pipeline. Tolerant of any missing/unreadable/malformed case

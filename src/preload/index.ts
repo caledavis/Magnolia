@@ -28,6 +28,7 @@ const api: ElectronAPI = {
   readCheckoutMarker: (filePath: string) => ipcRenderer.invoke('read-checkout-marker', filePath),
   checkOutProject: (filePath: string, userName: string) => ipcRenderer.invoke('check-out-project', filePath, userName),
   checkInProject: (filePath: string) => ipcRenderer.invoke('check-in-project', filePath),
+  readQdpxForCompare: (filePath: string) => ipcRenderer.invoke('read-qdpx-for-compare', filePath),
   saveProject: (data) => ipcRenderer.invoke('save-project', data),
   saveProjectAs: (data) => ipcRenderer.invoke('save-project-as', data),
   createNewProjectFile: () => ipcRenderer.invoke('create-new-project-file'),

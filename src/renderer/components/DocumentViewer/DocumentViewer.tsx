@@ -13,9 +13,10 @@ import { SurveyViewer } from '../SurveyViewer/SurveyViewer'
 import { TabBar } from './TabBar'
 import type { Code, MemoEditInitData } from '../../models/types'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
-import { isAnalysisTab, isMapTab, isPreferencesTab, isQueryBuilderTab, isToolTab, mapGuidFromTabId } from '../../utils/tab-ids'
+import { isAnalysisTab, isMapTab, isPreferencesTab, isMergeTab, isQueryBuilderTab, isToolTab, mapGuidFromTabId } from '../../utils/tab-ids'
 import { InlineAnalysisTab } from '../Analysis/InlineAnalysisTab'
 import { PreferencesWindow } from '../Preferences/PreferencesWindow'
+import { MergeReviewWindow } from '../Merge/MergeReviewWindow'
 import { useAnalysisTabsStore } from '../../stores/analysis-tabs-store'
 import { usePendingSelectionStore } from '../../stores/pending-selection-store'
 import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
@@ -41,6 +42,14 @@ function renderToolTab(tabId: string): React.ReactNode {
   if (isPreferencesTab(tabId)) {
     return (
       <PreferencesWindow
+        key={tabId}
+        onClose={() => useDocumentStore.getState().closeTab(tabId)}
+      />
+    )
+  }
+  if (isMergeTab(tabId)) {
+    return (
+      <MergeReviewWindow
         key={tabId}
         onClose={() => useDocumentStore.getState().closeTab(tabId)}
       />
@@ -79,6 +88,11 @@ function flattenCodes(codes: Code[], depth = 0): { code: Code; depth: number }[]
 export function DocumentViewer() {
   const selectedGuid = useDocumentStore((s) => s.viewedDocumentGuid)
   const openTabs = useDocumentStore((s) => s.openTabs)
+  // Display-only: while Merge is the active tab, hide every other tab from
+  // the tab bar so it reads as the only thing open — the underlying
+  // openTabs list in the store is untouched, so closing Merge brings
+  // everything back exactly as it was.
+  const visibleTabs = isMergeTab(selectedGuid) ? openTabs.filter((id) => isMergeTab(id)) : openTabs
   const viewDocument = useDocumentStore((s) => s.viewDocument)
   const closeTabRaw = useDocumentStore((s) => s.closeTab)
   // Wrap closeTab so analysis / query-builder tabs also clean up their
@@ -387,7 +401,7 @@ export function DocumentViewer() {
     >
       {openTabs.length > 0 ? (
         <TabBar
-          openTabs={openTabs}
+          openTabs={visibleTabs}
           activeTab={selectedGuid}
           sources={sources}
           onSelectTab={(guid) => {

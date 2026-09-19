@@ -113,7 +113,7 @@ export function buildHighlightedSpans(
   return spans
 }
 
-function formatClipTime(seconds: number): string {
+export function formatClipTime(seconds: number): string {
   if (!isFinite(seconds) || seconds < 0) seconds = 0
   const h = Math.floor(seconds / 3600)
   const m = Math.floor((seconds % 3600) / 60)

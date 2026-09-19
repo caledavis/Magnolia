@@ -48,6 +48,10 @@ interface ProjectState {
   setDescription: (description: string) => void
   setSavedAnalyses: (analyses: SavedAnalysis[]) => void
   setCheckoutMarker: (marker: CheckoutMarker | null) => void
+  /** Bulk-replace the users list — additive-only in practice (there's no
+   *  per-field user editor), added for the merge feature to bring in
+   *  users from a second project. */
+  setUsers: (users: User[]) => void
 }
 
 const defaultUserGuid = generateGuid()
@@ -107,7 +111,8 @@ export const useProjectStore = create<ProjectState>((set) => ({
   setName: (name) => set({ name, isDirty: true }),
   setDescription: (description) => set({ description, isDirty: true }),
   setSavedAnalyses: (analyses) => set({ savedAnalyses: analyses, isDirty: true }),
-  setCheckoutMarker: (marker) => set({ checkoutMarker: marker })
+  setCheckoutMarker: (marker) => set({ checkoutMarker: marker }),
+  setUsers: (users) => set({ users, isDirty: true })
 }))
 
 makeHmrSafe('projectStore', useProjectStore)

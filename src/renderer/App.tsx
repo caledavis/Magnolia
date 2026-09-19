@@ -13,6 +13,7 @@ import {
   faNotebookPen,
   faTags,
   faSquareArrowRightEnter,
+  faGitMerge,
   faCircleQuestion,
   faScale,
   faGear
@@ -53,6 +54,7 @@ function flattenCodesWithParent(
 }
 import { useProjectStore } from './stores/project-store'
 import { usePreferencesStore } from './stores/preferences-store'
+import { useMergeReviewStore } from './stores/merge-review-store'
 import { useDocumentStore, surveyEntityKey } from './stores/document-store'
 import { useCodeStore } from './stores/code-store'
 import { useTagStore } from './stores/tag-store'
@@ -64,11 +66,12 @@ import { useQuoteStore } from './stores/quote-store'
 import { useRelationshipMapStore } from './stores/relationship-map-store'
 import { useSurveyViewStore } from './stores/survey-view-store'
 import { useAnalysisTabsStore } from './stores/analysis-tabs-store'
-import { isAnalysisTab, isMapTab, isQueryBuilderTab, makeAnalysisTabId, makeMapTabId, makeQueryBuilderTabId, mapGuidFromTabId, parseAnalysisTabId, PREFERENCES_TAB_ID } from './utils/tab-ids'
+import { isAnalysisTab, isMapTab, isQueryBuilderTab, isMergeTab, makeAnalysisTabId, makeMapTabId, makeQueryBuilderTabId, mapGuidFromTabId, parseAnalysisTabId, PREFERENCES_TAB_ID, MERGE_TAB_ID } from './utils/tab-ids'
 import { requestPreferencesCategory } from './components/Preferences/PreferencesWindow'
 import type { PersistedTab, PersistedTabState, MissingBinary, CheckoutMarker } from './models/types'
 import { MissingBinariesBanner } from './components/MissingBinariesBanner'
 import { CheckoutConflictDialog } from './components/CheckoutConflictDialog'
+import { NameGateOverlay } from './components/NameGateOverlay'
 import { CheckOutButton } from './components/Toolbar/CheckOutButton'
 // ES import so Vite bundles + hashes the Magnolia toolbar icon for production.
 import magnoliaIconUrl from './assets/magnoliaicononly.svg'
@@ -251,6 +254,18 @@ function App() {
     return window.api.onProjectLoadProgress((p) => setLoadProgress(p))
   }, [])
 
+  // Preferences are normally loaded lazily, on first demand, by whichever
+  // component needs them (see CheckOutButton/AudioDocumentViewer) — loaded
+  // eagerly here too so the mandatory name gate below can actually detect
+  // an empty name immediately on launch, rather than waiting for some
+  // unrelated component to trigger the load first.
+  const prefsLoaded = usePreferencesStore((s) => s.loaded)
+  const userName = usePreferencesStore((s) => s.userName)
+  const loadPrefs = usePreferencesStore((s) => s.load)
+  useEffect(() => {
+    if (!prefsLoaded) loadPrefs()
+  }, [prefsLoaded, loadPrefs])
+
   useEffect(() => {
     return window.api.onUpdateAvailable(setUpdateInfo)
   }, [])
@@ -305,6 +320,10 @@ function App() {
   // Dim those panels while it's the active tab so the unavailable drag
   // sources read as unavailable (same treatment as Reports above).
   const queryBuilderActive = isQueryBuilderTab(documentStore.viewedDocumentGuid)
+  // Merging shouldn't be done alongside other edits — every other panel is
+  // dimmed AND made non-interactive (not just visually hinted, like the
+  // two cases above) while the Merge tab is open.
+  const mergeActive = isMergeTab(documentStore.viewedDocumentGuid)
   const logbookStore = useLogbookStore()
   const memoStore = useMemoStore()
 
@@ -922,6 +941,18 @@ function App() {
     }
     flushImportSave(addedDirect)
   }, [documentStore, queueSurveyImport, flushImportSave])
+
+  const handleMergeProject = useCallback(async () => {
+    const filePath = await window.api.pickProjectFile()
+    if (!filePath) return
+    // Open the tab FIRST, before awaiting the diff — this is what makes
+    // mergeActive flip true (dimming every other panel) its own visible
+    // moment, and lets MergeReviewWindow's existing `loading` state
+    // actually be seen while openCompare computes the diff, instead of
+    // both the dim and the fully-loaded tab landing in the same instant.
+    useDocumentStore.getState().openToolTab(MERGE_TAB_ID)
+    await useMergeReviewStore.getState().openCompare(filePath)
+  }, [])
 
   const handleImportDocument = useCallback(async () => {
     const files = await window.api.importTextFile()
@@ -2192,7 +2223,11 @@ function App() {
             { icon: faSquareArrowRightEnter, label: 'Import', action: () => handleImportDocument() },
             { icon: faBook, label: 'Codebook', action: () => openCodebook() },
             { icon: faNotebookPen, label: 'Logbook', action: () => openLogbook() },
-            { icon: faTags, label: 'Tags', action: () => setShowManageDocTags(true) }
+            { icon: faTags, label: 'Tags', action: () => setShowManageDocTags(true) },
+            // git-merge flipped both ways (180°) — Magnolia's projects
+            // "merge" toward the currently-open project, the reverse
+            // direction of a git merge arrow, hence the flip.
+            { icon: faGitMerge, label: 'Merge', action: () => handleMergeProject(), iconStyle: { transform: 'scale(-1, -1)' } }
           ].map((item) => (
             <button
               key={item.label}
@@ -2222,7 +2257,7 @@ function App() {
                 e.currentTarget.style.color = 'var(--text-secondary)'
               }}
             >
-              <Icon icon={item.icon} style={{ fontSize: 20 }} />
+              <Icon icon={item.icon} style={{ fontSize: 20, ...(item as { iconStyle?: React.CSSProperties }).iconStyle }} />
               <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>{item.label}</span>
             </button>
           ))}
@@ -2458,7 +2493,7 @@ function App() {
                     if (panels.length > 0) panels.push(<PanelResizeHandle key="rh-d" style={rh} />)
                     panels.push(
                       <Panel key="documents" defaultSize={35} minSize={15}>
-                        <div style={{ height: '100%' }} onMouseDown={() => setActivePanel('documents')}>
+                        <div style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? 'Finish or cancel the merge to use other panels' : undefined} onMouseDown={() => setActivePanel('documents')}>
                           <DocumentBrowser
                             onImport={handleImportDocument}
                             onSurveyImport={queueSurveyImport}
@@ -2475,7 +2510,7 @@ function App() {
                     if (panels.length > 0) panels.push(<PanelResizeHandle key="rh-c" style={rh} />)
                     panels.push(
                       <Panel key="codes" defaultSize={35} minSize={15}>
-                        <div style={{ height: '100%', opacity: reportsToolActive ? 0.62 : 1, transition: 'opacity 0.15s' }} title={reportsToolActive ? 'Codes can’t be added to a report' : undefined} onMouseDown={() => setActivePanel('codes')}>
+                        <div style={{ height: '100%', opacity: (reportsToolActive || mergeActive) ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? 'Finish or cancel the merge to use other panels' : reportsToolActive ? 'Codes can’t be added to a report' : undefined} onMouseDown={() => setActivePanel('codes')}>
                           <CodeBrowser onNewCode={handleNewCode} onClose={() => closePanel('codes')} />
                         </div>
                       </Panel>
@@ -2518,7 +2553,9 @@ function App() {
                     if (panels.length > 0) panels.push(<PanelResizeHandle key="rh-m" style={rh} />)
                     panels.push(
                       <Panel key="memos" defaultSize={33} minSize={15}>
-                        <MemosPane onClose={() => closePanel('memos')} />
+                        <div style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? 'Finish or cancel the merge to use other panels' : undefined}>
+                          <MemosPane onClose={() => closePanel('memos')} />
+                        </div>
                       </Panel>
                     )
                   }
@@ -2526,7 +2563,7 @@ function App() {
                     if (panels.length > 0) panels.push(<PanelResizeHandle key="rh-qt" style={rh} />)
                     panels.push(
                       <Panel key="quotes" defaultSize={33} minSize={15}>
-                        <div style={{ height: '100%', opacity: queryBuilderActive ? 0.62 : 1, transition: 'opacity 0.15s' }} title={queryBuilderActive ? 'Quotes can’t be added to a query' : undefined}>
+                        <div style={{ height: '100%', opacity: (queryBuilderActive || mergeActive) ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? 'Finish or cancel the merge to use other panels' : queryBuilderActive ? 'Quotes can’t be added to a query' : undefined}>
                           <QuotesPane onClose={() => closePanel('quotes')} />
                         </div>
                       </Panel>
@@ -2536,7 +2573,7 @@ function App() {
                     if (panels.length > 0) panels.push(<PanelResizeHandle key="rh-a" style={rh} />)
                     panels.push(
                       <Panel key="analyses" defaultSize={34} minSize={15}>
-                        <div style={{ height: '100%', opacity: queryBuilderActive ? 0.62 : 1, transition: 'opacity 0.15s' }} title={queryBuilderActive ? 'Analyses can’t be added to a query' : undefined}>
+                        <div style={{ height: '100%', opacity: (queryBuilderActive || mergeActive) ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? 'Finish or cancel the merge to use other panels' : queryBuilderActive ? 'Analyses can’t be added to a query' : undefined}>
                           <SavedAnalyses
                             onOpen={openSavedAnalysis}
                             onClose={() => closePanel('analyses')}
@@ -2564,6 +2601,7 @@ function App() {
         )}
         {!queryResultsHidden && (
           <Panel defaultSize={30} minSize={10} collapsible>
+          <div style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? 'Finish or cancel the merge to use other panels' : undefined}>
           <QueryResultViewer
             sidebar={
               <SavedQueries
@@ -2639,6 +2677,7 @@ function App() {
               }
             }}
           />
+          </div>
         </Panel>
         )}
       </PanelGroup>
@@ -2706,6 +2745,9 @@ function App() {
       <UpdateDialog info={updateInfo} onDismiss={() => setUpdateInfo(null)} />
       {checkoutConflict && (
         <CheckoutConflictDialog marker={checkoutConflict} onDismiss={() => setCheckoutConflict(null)} />
+      )}
+      {prefsLoaded && !userName.trim() && (
+        <NameGateOverlay onSubmit={(name) => usePreferencesStore.getState().setUserName(name)} />
       )}
 
       {(() => {

@@ -43,6 +43,8 @@
     "@tiptap/pm": "^3.22.1",
     "@tiptap/react": "^3.22.1",
     "@tiptap/starter-kit": "^3.22.1",
+    "@types/diff": "^7.0.2",
+    "diff": "^9.0.0",
     "electron-updater": "^6.8.3",
     "fast-xml-parser": "^4.5.3",
     "heic-decode": "^2.1.0",

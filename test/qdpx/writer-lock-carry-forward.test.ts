@@ -5,17 +5,23 @@ import { tmpdir } from 'os'
 import { join } from 'path'
 import JSZip from 'jszip'
 
+const userDataDir = mkdtempSync(join(tmpdir(), 'magnolia-userdata-'))
+
 // writeQdpx pulls the app version from electron for the .qde `origin`
-// attribute — stub it so this runs in plain Node (no Electron runtime),
-// matching the convention in test/qdpx/refi-schema.test.ts.
-vi.mock('electron', () => ({ app: { getVersion: () => '0.0.0-test' } }))
+// attribute, and (for the editor-stamp tests below) the user's saved name
+// via app.getPath('userData') — stub both so this runs in plain Node (no
+// Electron runtime), matching the convention in test/qdpx/refi-schema.test.ts.
+vi.mock('electron', () => ({ app: { getVersion: () => '0.0.0-test', getPath: () => userDataDir } }))
 
 import { writeQdpx } from '../../src/main/qdpx/writer'
 import type { Project } from '../../src/renderer/models/types'
 
 const dir = mkdtempSync(join(tmpdir(), 'magnolia-lock-carry-'))
 
-afterAll(() => rmSync(dir, { recursive: true, force: true }))
+afterAll(() => {
+  rmSync(dir, { recursive: true, force: true })
+  rmSync(userDataDir, { recursive: true, force: true })
+})
 
 function emptyProject(): Project {
   return { name: 'Test', origin: 'test', users: [], codes: [], sources: [], sets: [], notes: [] }
@@ -61,5 +67,57 @@ describe('writeQdpx carries the checkout lock forward', () => {
     const after = await JSZip.loadAsync(await readFile(path))
     expect(after.file('magnolia-lock.json')).toBeNull()
     expect(after.file('magnolia-project-id.json')).toBeNull()
+  })
+})
+
+describe('writeQdpx stamps magnolia-editor.json on every save', () => {
+  it('writes the currently-saved userName and a fresh timestamp, regardless of checkout state', async () => {
+    writeFileSync(join(userDataDir, 'magnolia-preferences.json'), JSON.stringify({ userName: 'Carol' }))
+
+    const zip = new JSZip()
+    zip.file('project.qde', '<Project name="Test"></Project>')
+    const path = join(dir, 'stamped.qdpx')
+    writeFileSync(path, await zip.generateAsync({ type: 'nodebuffer' }))
+
+    const before = new Date().toISOString()
+    await writeQdpx(path, emptyProject(), {})
+    const after = new Date().toISOString()
+
+    const result = await JSZip.loadAsync(await readFile(path))
+    const editorEntry = result.file('magnolia-editor.json')
+    expect(editorEntry).not.toBeNull()
+    const editorInfo = JSON.parse(await editorEntry!.async('string'))
+    expect(editorInfo.lastEditedBy).toBe('Carol')
+    expect(editorInfo.lastEditedAt >= before && editorInfo.lastEditedAt <= after).toBe(true)
+  })
+
+  it('overwrites the stamp with the latest name on every subsequent save', async () => {
+    writeFileSync(join(userDataDir, 'magnolia-preferences.json'), JSON.stringify({ userName: 'Dave' }))
+    const zip = new JSZip()
+    zip.file('project.qde', '<Project name="Test"></Project>')
+    zip.file('magnolia-editor.json', JSON.stringify({ lastEditedBy: 'Carol', lastEditedAt: '2020-01-01T00:00:00.000Z' }))
+    const path = join(dir, 'restamped.qdpx')
+    writeFileSync(path, await zip.generateAsync({ type: 'nodebuffer' }))
+
+    await writeQdpx(path, emptyProject(), {})
+
+    const result = await JSZip.loadAsync(await readFile(path))
+    const editorInfo = JSON.parse(await result.file('magnolia-editor.json')!.async('string'))
+    expect(editorInfo.lastEditedBy).toBe('Dave')
+    expect(editorInfo.lastEditedAt).not.toBe('2020-01-01T00:00:00.000Z')
+  })
+
+  it('falls back to an empty name when no preferences file exists', async () => {
+    rmSync(join(userDataDir, 'magnolia-preferences.json'), { force: true })
+    const zip = new JSZip()
+    zip.file('project.qde', '<Project name="Test"></Project>')
+    const path = join(dir, 'no-prefs.qdpx')
+    writeFileSync(path, await zip.generateAsync({ type: 'nodebuffer' }))
+
+    await writeQdpx(path, emptyProject(), {})
+
+    const result = await JSZip.loadAsync(await readFile(path))
+    const editorInfo = JSON.parse(await result.file('magnolia-editor.json')!.async('string'))
+    expect(editorInfo.lastEditedBy).toBe('')
   })
 })

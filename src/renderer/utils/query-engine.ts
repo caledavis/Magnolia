@@ -19,7 +19,7 @@ import { resolveTagCellScope, tagMembershipFromTags, type TagCellScope } from '.
  *  raw CSV, but the selection's startPosition/endPosition index into
  *  the CLEANED text of one cell. Apply the same cleaning the viewer
  *  applied at coding time so the offsets land on the right bytes. */
-function textForSelection(
+export function textForSelection(
   source: TextSource,
   selection: PlainTextSelection,
   documentContent: string

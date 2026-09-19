@@ -94,6 +94,7 @@ import {
   AppWindow,
   ClockArrowRight,
   ClockArrowLeft,
+  GitMerge,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -187,3 +188,4 @@ export const faAppWindow = AppWindow
  *  (checked out) vs. an incoming arrow (checked back in). */
 export const faClockArrowRight = ClockArrowRight
 export const faClockArrowLeft = ClockArrowLeft
+export const faGitMerge = GitMerge

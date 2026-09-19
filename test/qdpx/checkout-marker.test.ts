@@ -4,7 +4,7 @@ import { readFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import JSZip from 'jszip'
-import { readCheckoutMarker, writeCheckoutMarker } from '../../src/main/qdpx/checkout-marker'
+import { readCheckoutMarker, writeCheckoutMarker, readEditorInfo } from '../../src/main/qdpx/checkout-marker'
 
 const dir = mkdtempSync(join(tmpdir(), 'magnolia-checkout-'))
 
@@ -83,5 +83,36 @@ describe('writeCheckoutMarker', () => {
     const after = await JSZip.loadAsync(await readFile(path))
     expect(await after.file('project.qde')!.async('string')).toBe(beforeQde)
     expect(await after.file('sources/x.txt')!.async('string')).toBe(beforeSource)
+  })
+})
+
+describe('readEditorInfo', () => {
+  it('returns null when there is no editor entry', async () => {
+    const path = await makeQdpx('no-editor.qdpx')
+    expect(await readEditorInfo(path)).toBeNull()
+  })
+
+  it('returns null for a nonexistent file', async () => {
+    expect(await readEditorInfo(join(dir, 'does-not-exist-2.qdpx'))).toBeNull()
+  })
+
+  it('returns null for a corrupt editor entry', async () => {
+    const zip = new JSZip()
+    zip.file('project.qde', '<Project name="Test"></Project>')
+    zip.file('magnolia-editor.json', '{not valid json')
+    const buf = await zip.generateAsync({ type: 'nodebuffer' })
+    const path = join(dir, 'corrupt-editor.qdpx')
+    writeFileSync(path, buf)
+    expect(await readEditorInfo(path)).toBeNull()
+  })
+
+  it('reads a well-formed editor entry', async () => {
+    const zip = new JSZip()
+    zip.file('project.qde', '<Project name="Test"></Project>')
+    zip.file('magnolia-editor.json', JSON.stringify({ lastEditedBy: 'Alice', lastEditedAt: '2024-01-01T00:00:00.000Z' }))
+    const buf = await zip.generateAsync({ type: 'nodebuffer' })
+    const path = join(dir, 'well-formed-editor.qdpx')
+    writeFileSync(path, buf)
+    expect(await readEditorInfo(path)).toEqual({ lastEditedBy: 'Alice', lastEditedAt: '2024-01-01T00:00:00.000Z' })
   })
 })

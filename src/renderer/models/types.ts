@@ -495,6 +495,14 @@ export interface CheckoutMarker {
   checkedOutAt: string
 }
 
+/** Who last saved a .qdpx, and when — stamped on every save regardless of
+ *  checkout state (writer.ts's magnolia-editor.json), so merge can always
+ *  attribute a file's differences to a person. */
+export interface EditorInfo {
+  lastEditedBy: string
+  lastEditedAt: string
+}
+
 // IPC API exposed to renderer
 export interface ElectronAPI {
   getFileSize: (filePath: string) => Promise<number | null>
@@ -506,6 +514,11 @@ export interface ElectronAPI {
   readCheckoutMarker: (filePath: string) => Promise<CheckoutMarker | null>
   checkOutProject: (filePath: string, userName: string) => Promise<CheckoutMarker | null>
   checkInProject: (filePath: string) => Promise<CheckoutMarker | null>
+  /** Load a second .qdpx's full contents for merge comparison, WITHOUT
+   *  touching the currently-open project's active-archive/binary state —
+   *  see the handler in ipc-handlers.ts for why this is safe. No binary
+   *  (PDF/audio/video/image) content can be resolved from the result. */
+  readQdpxForCompare: (filePath: string) => Promise<Project & { sourceContents: Record<string, string>; filePath: string; editorInfo: EditorInfo | null }>
   saveProject: (data: {
     project: Project
     sourceContents: Record<string, string>

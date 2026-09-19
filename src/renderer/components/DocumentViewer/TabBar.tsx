@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import type { TextSource } from '../../models/types'
-import { Icon, faXmark, faFile, faHeadphones, faVideo, faImage, faGear, SURVEY_ICON, type IconComponent } from '../Icon'
-import { isAnalysisTab, isMapTab, isPreferencesTab, isQueryBuilderTab, mapGuidFromTabId } from '../../utils/tab-ids'
+import { Icon, faXmark, faFile, faHeadphones, faVideo, faImage, faGear, faGitMerge, SURVEY_ICON, type IconComponent } from '../Icon'
+import { isAnalysisTab, isMapTab, isPreferencesTab, isMergeTab, isQueryBuilderTab, mapGuidFromTabId } from '../../utils/tab-ids'
 import { useRelationshipMapStore } from '../../stores/relationship-map-store'
 import { useAnalysisTabsStore } from '../../stores/analysis-tabs-store'
 import { useToolSaveRegistry } from '../../stores/tool-save-registry'
@@ -88,6 +88,7 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
       return inst?.title?.trim() || (isQueryBuilderTab(tabId) ? 'Query Builder' : 'Analysis')
     }
     if (isPreferencesTab(tabId)) return 'Preferences'
+    if (isMergeTab(tabId)) return 'Merge Projects'
     return sourceMap.get(tabId)?.name || 'Document'
   }
 
@@ -104,6 +105,7 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
       return toolType ? TOOL_REGISTRY[toolType]?.icon ?? null : null
     }
     if (isPreferencesTab(tabId)) return faGear
+    if (isMergeTab(tabId)) return faGitMerge
     const source = sourceMap.get(tabId)
     if (!source) return null
     if (source.sourceType === 'survey') return SURVEY_ICON
@@ -115,6 +117,15 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
     if (st === 'video') return faVideo
     if (st === 'image') return faImage
     return faFile
+  }
+
+  // Per-tab icon style override, layered onto the shared muted-icon style
+  // below. The merge toolbar button flips git-merge 180° (Magnolia merges
+  // *into* the current project, the reverse of git's arrow) — the tab
+  // icon matches it for the same reason.
+  const iconStyleFor = (tabId: string): React.CSSProperties => {
+    if (isMergeTab(tabId)) return { transform: 'scale(-1, -1)' }
+    return {}
   }
 
   // Whether a tool tab has unsaved changes — drives the asterisk before
@@ -209,7 +220,8 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
                 style={{
                   fontSize: 13,
                   color: 'var(--text-muted)',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  ...iconStyleFor(guid)
                 }}
               />
             )}

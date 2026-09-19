@@ -20,6 +20,9 @@ const QUERY_BUILDER_TAB_PREFIX = 'query-builder:'
 /** Singleton id for the Preferences tab — there's only ever one
  *  open at a time, so a fixed id is enough (no per-instance suffix). */
 export const PREFERENCES_TAB_ID = 'preferences'
+/** Singleton id for the merge-review tab — only one comparison can be
+ *  in progress at a time. */
+export const MERGE_TAB_ID = 'merge'
 
 export function makeMapTabId(guid: string): string {
   return `${MAP_TAB_PREFIX}${guid}`
@@ -71,7 +74,11 @@ export function isPreferencesTab(id: string | null | undefined): boolean {
   return id === PREFERENCES_TAB_ID
 }
 
-/** True for any non-document tab id (map, analysis, query-builder, preferences). */
+export function isMergeTab(id: string | null | undefined): boolean {
+  return id === MERGE_TAB_ID
+}
+
+/** True for any non-document tab id (map, analysis, query-builder, preferences, merge). */
 export function isToolTab(id: string | null | undefined): boolean {
-  return isMapTab(id) || isAnalysisTab(id) || isQueryBuilderTab(id) || isPreferencesTab(id)
+  return isMapTab(id) || isAnalysisTab(id) || isQueryBuilderTab(id) || isPreferencesTab(id) || isMergeTab(id)
 }

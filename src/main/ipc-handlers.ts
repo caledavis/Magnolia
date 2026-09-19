@@ -4,7 +4,7 @@ import { existsSync, mkdirSync } from 'fs'
 import { basename, dirname, join } from 'path'
 import { readQdpx } from './qdpx/reader'
 import { writeQdpx, EmptyProjectGuardError, createEmptyProjectFile } from './qdpx/writer'
-import { readCheckoutMarker, writeCheckoutMarker } from './qdpx/checkout-marker'
+import { readCheckoutMarker, writeCheckoutMarker, readEditorInfo } from './qdpx/checkout-marker'
 import { serializeCodebook } from './qdpx/codebook-serializer'
 import { deserializeCodebook } from './qdpx/codebook-deserializer'
 import {
@@ -238,6 +238,22 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('check-in-project', async (_event, filePath: string) => {
     return writeCheckoutMarker(filePath, null)
+  })
+
+  // Merge: load a SECOND .qdpx's full contents for comparison against the
+  // currently-open project, without disturbing it. Deliberately does NOT
+  // call setActiveProjectPath/noteActiveProjectPath — readQdpx itself is a
+  // pure function of filePath (confirmed by reading it: it never touches
+  // binary-store.ts's module-level activeProjectPath), so this is safe to
+  // call while a different project is live. This means any magnolia-bin://
+  // handles inside the returned data can't be resolved to actual bytes via
+  // the normal read-pdf-file/read-audio-file/etc. IPCs (those always read
+  // from the single active archive) — fine for the merge feature, which
+  // only diffs structured/text data, not binary preview.
+  ipcMain.handle('read-qdpx-for-compare', async (_event, filePath: string) => {
+    const data = await readQdpx(filePath)
+    const editorInfo = await readEditorInfo(filePath)
+    return { ...data, filePath, editorInfo }
   })
 
   // Supported document extensions — add new formats here
