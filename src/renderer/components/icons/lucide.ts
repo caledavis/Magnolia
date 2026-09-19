@@ -25,6 +25,8 @@ import {
   Bookmark,
   ChevronDown,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   TriangleAlert,
   Circle,
   Grid3x3,
@@ -113,6 +115,8 @@ export const faNoteSticky = StickyNote
 export const faBookmark = Bookmark
 export const faChevronDown = ChevronDown
 export const faChevronRight = ChevronRight
+export const faChevronsLeft = ChevronsLeft
+export const faChevronsRight = ChevronsRight
 export const faExclamationTriangle = TriangleAlert
 export const faCircle = Circle
 export const faTableCells = Grid3x3

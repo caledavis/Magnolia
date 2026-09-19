@@ -1138,14 +1138,18 @@ textarea:focus {
  * margin beyond the (centered) button track should stay draggable, the
  * same as the rest of the toolbar. */
 .app-toolbar-scroll {
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 .app-toolbar-scroll-inner {
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
 .app-toolbar-scroll::-webkit-scrollbar {
-  height: 6px;
+  display: none;
+}
+.app-toolbar-scroll-hint {
+  color: var(--text-secondary);
 }
 /* macOS keeps the traffic lights (titleBarStyle: 'hiddenInset') —
  * indent the toolbar's left edge so the wordmark sits clear of

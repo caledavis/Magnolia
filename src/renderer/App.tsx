@@ -16,7 +16,9 @@ import {
   faGitMerge,
   faCircleQuestion,
   faScale,
-  faGear
+  faGear,
+  faChevronsLeft,
+  faChevronsRight
 } from './components/Icon'
 import { LicenceDialog } from './components/Licence/LicenceDialog'
 import { UpdateDialog, type UpdateAvailableInfo } from './components/Update/UpdateDialog'
@@ -306,6 +308,32 @@ function App() {
   const [activePanel, setActivePanel] = useState<'documents' | 'codes' | 'viewer' | 'queries' | null>(null)
   const activePanelRef = useRef(activePanel)
   activePanelRef.current = activePanel
+
+  // Tracks whether the scrollable toolbar (GitHub issue #15, see the
+  // .app-toolbar-scroll comment further down) has more content hidden
+  // off the left/right edge, so the chevron hints can fade in/out to
+  // match — no chevron once you've scrolled all the way to that side.
+  const toolbarScrollRef = useRef<HTMLDivElement>(null)
+  const [toolbarCanScrollLeft, setToolbarCanScrollLeft] = useState(false)
+  const [toolbarCanScrollRight, setToolbarCanScrollRight] = useState(false)
+  const updateToolbarScrollFade = useCallback(() => {
+    const el = toolbarScrollRef.current
+    if (!el) return
+    setToolbarCanScrollLeft(el.scrollLeft > 1)
+    setToolbarCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1)
+  }, [])
+  useEffect(() => {
+    const el = toolbarScrollRef.current
+    if (!el) return
+    updateToolbarScrollFade()
+    el.addEventListener('scroll', updateToolbarScrollFade, { passive: true })
+    const resizeObserver = new ResizeObserver(updateToolbarScrollFade)
+    resizeObserver.observe(el)
+    return () => {
+      el.removeEventListener('scroll', updateToolbarScrollFade)
+      resizeObserver.disconnect()
+    }
+  }, [updateToolbarScrollFade])
 
   const projectStore = useProjectStore()
   const documentStore = useDocumentStore()
@@ -2200,17 +2228,39 @@ function App() {
             (right). Scrolls horizontally instead of overflowing and
             clipping/overlapping when the window is too narrow to fit
             everything — e.g. tiled or resized small (GitHub issue #15). */}
-        <div
-          className="app-toolbar-scroll"
-          style={{
-            display: 'flex',
-            flex: '1 1 auto',
-            minWidth: 0,
-            height: '100%',
-            overflowX: 'auto',
-            overflowY: 'hidden'
-          }}
-        >
+        <div style={{ display: 'flex', alignItems: 'center', flex: '1 1 auto', minWidth: 0, height: '100%' }}>
+          {/* Scroll hint gutters: fixed-width slots flanking the scroll
+              track (siblings, not overlays) so the chevron never sits on
+              top of a button's icon — it fades in/out in its own reserved
+              space instead. Each is a flex sibling of .app-toolbar-scroll,
+              not a child, so it can't be swept along by that div's own
+              horizontal scrolling. */}
+          <div
+            style={{
+              flexShrink: 0,
+              width: 36,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              pointerEvents: 'none',
+              opacity: toolbarCanScrollLeft ? 1 : 0,
+              transition: 'opacity 0.15s ease'
+            }}
+          >
+            <Icon icon={faChevronsLeft} style={{ fontSize: 16 }} className="app-toolbar-scroll-hint" />
+          </div>
+          <div
+            ref={toolbarScrollRef}
+            className="app-toolbar-scroll"
+            style={{
+              display: 'flex',
+              flex: '1 1 auto',
+              minWidth: 0,
+              height: '100%',
+              overflowX: 'auto',
+              overflowY: 'hidden'
+            }}
+          >
           {/* Inner wrapper: margin: 0 auto centers this group within the
               scroll track whenever it's narrower than the available
               space (the common case). If it's wider, auto margins
@@ -2453,6 +2503,21 @@ function App() {
             <Icon icon={faCircleQuestion} style={{ fontSize: 20 }} />
             <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>Manual</span>
           </button>
+          </div>
+          </div>
+          <div
+            style={{
+              flexShrink: 0,
+              width: 36,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              pointerEvents: 'none',
+              opacity: toolbarCanScrollRight ? 1 : 0,
+              transition: 'opacity 0.15s ease'
+            }}
+          >
+            <Icon icon={faChevronsRight} style={{ fontSize: 16 }} className="app-toolbar-scroll-hint" />
           </div>
         </div>
 
