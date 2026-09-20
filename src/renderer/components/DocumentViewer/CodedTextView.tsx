@@ -860,6 +860,9 @@ export function CodedTextView({
 
   const MARGIN_COL_W = 10
   const MARGIN_LABEL_W = 80
+  // Breathing room kept clear between a fully-expanded label and the
+  // true right edge of the pane.
+  const LABEL_EDGE_PAD = 8
   const LABEL_LINE_H = 14 // height per label row
   const { perLine, maxCol } = marginAnnotations
   // Always reserve margin space so adding the first code doesn't cause a reflow.
@@ -885,6 +888,10 @@ export function CodedTextView({
     selectionGuid: string
     codingGuid: string
     codeGuid: string
+    /** How much room the label has before the edge of the pane — grows
+     *  past MARGIN_LABEL_W when there's extra space instead of always
+     *  ellipsing at a fixed width. */
+    maxWidth: number
   }
   const [bracketLabels, setBracketLabels] = useState<BracketLabel[]>([])
 
@@ -931,18 +938,22 @@ export function CodedTextView({
       const containerRect = container.getBoundingClientRect()
       const allSpans = container.querySelectorAll<HTMLSpanElement>('[data-cpoffset]')
 
-      // Find the margin column div position (same as plain text viewer)
-      // The margin column is a flex child positioned after the line content
+      // Ceiling for the margin column position: where the flex placeholder
+      // div actually sits (or the equivalent fallback formula before it's
+      // mounted). Text can never render past this, since it's bounded by
+      // the same flex box.
       const firstMarginDiv = container.querySelector<HTMLDivElement>('[data-margin-col]')
-      let marginLeftPx = containerRect.width - (MARGIN_LABEL_W + bracketZoneW + 14)
+      let marginCeilingPx = containerRect.width - (MARGIN_LABEL_W + bracketZoneW + 14)
       if (firstMarginDiv) {
         const rect = firstMarginDiv.getBoundingClientRect()
-        marginLeftPx = rect.left - containerRect.left + container.scrollLeft
+        marginCeilingPx = rect.left - containerRect.left + container.scrollLeft
       }
 
-      // Build span data once
+      // Build span data once, tracking the furthest-right extent of any
+      // rendered text along the way.
       interface SpanPos { cpStart: number; cpEnd: number; rects: DOMRect[] }
       const spanPositions: SpanPos[] = []
+      let maxContentRight = 0
       for (const span of allSpans) {
         if (span.style.display === 'none' || !span.textContent) continue
         const cpStart = parseInt(span.dataset.cpoffset!, 10)
@@ -950,10 +961,27 @@ export function CodedTextView({
         const rects: DOMRect[] = []
         const clientRects = span.getClientRects()
         for (let i = 0; i < clientRects.length; i++) {
-          if (clientRects[i].height > 0 && clientRects[i].width > 0) rects.push(clientRects[i])
+          const r = clientRects[i]
+          if (r.height > 0 && r.width > 0) {
+            rects.push(r)
+            maxContentRight = Math.max(maxContentRight, r.right - containerRect.left)
+          }
         }
         if (rects.length > 0) spanPositions.push({ cpStart, cpEnd, rects })
       }
+
+      // The margin column sits flush against the widest rendered line
+      // rather than at a fixed distance from the pane's edge — ragged-
+      // right content (short verse lines, etc.) shouldn't leave a dead
+      // gap before the brackets start. One value for the whole document
+      // (not recomputed per line), floored so it doesn't hug the gutter
+      // on a near-empty document, and capped at marginCeilingPx so it
+      // never exceeds what wide, wrapped-to-fill prose already gets today.
+      const CONTENT_GAP = 24
+      const MIN_MARGIN_LEFT = 150
+      const marginLeftPx = maxContentRight > 0
+        ? Math.min(marginCeilingPx, Math.max(MIN_MARGIN_LEFT, maxContentRight + CONTENT_GAP))
+        : marginCeilingPx
 
       // Build one entry per (selection, coding) and measure each entry's
       // visual bounds from the already-collected spanPositions. Each coding
@@ -1010,6 +1038,16 @@ export function CodedTextView({
       // render brackets identically.
       const placed = layoutBrackets(entries)
 
+      // How much horizontal room a label starting at bracket-layout offset
+      // `labelLeft` actually has before the pane's measured right edge.
+      // Never less than MARGIN_LABEL_W, so deeply nested bracket columns
+      // don't regress below today's minimum. The margin column's own
+      // reserved width (marginW, above) is untouched by this — only the
+      // label's own CSS max-width grows, painting into otherwise-unused
+      // space via the overlay's overflow: visible.
+      const labelMaxWidthFor = (labelLeft: number): number =>
+        Math.max(MARGIN_LABEL_W, containerRect.width - (marginLeftPx + labelLeft) - LABEL_EDGE_PAD)
+
       // Render. Caps and bars are drawn imperatively into the overlay.
       // Labels are collected into React state (see setBracketLabels below).
       const labels: BracketLabel[] = []
@@ -1045,7 +1083,8 @@ export function CodedTextView({
           selEndCp: p.selEndCp,
           selectionGuid: p.selectionGuid,
           codingGuid: p.codingGuid,
-          codeGuid: p.codeGuid
+          codeGuid: p.codeGuid,
+          maxWidth: labelMaxWidthFor(p.labelLeft)
         })
       }
       setBracketLabels(labels)
@@ -1133,7 +1172,7 @@ export function CodedTextView({
           const labelBot = p.labelTop + LABEL_H
           const labelOverlaps = p.labelTop < iconBot && labelBot > iconTop
           if (labelOverlaps) {
-            const rendered = Math.min(MARGIN_LABEL_W, measureLabelWidth(p.codeName))
+            const rendered = Math.min(labelMaxWidthFor(p.labelLeft), measureLabelWidth(p.codeName))
             x = Math.max(x, marginLeftPx + p.labelLeft + rendered + LABEL_TO_ICON_GAP)
             continue
           }
@@ -1198,7 +1237,7 @@ export function CodedTextView({
               left={lb.left}
               top={lb.top}
               color={lb.color}
-              maxWidth={MARGIN_LABEL_W}
+              maxWidth={lb.maxWidth}
               text={lb.codeName}
               onMouseEnter={() => setHoveredRange(range)}
               onMouseLeave={() => { if (!lockedRange) setHoveredRange(null) }}
