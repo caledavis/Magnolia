@@ -97,6 +97,7 @@ import {
   ClockArrowRight,
   ClockArrowLeft,
   GitMerge,
+  Heart,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -193,3 +194,5 @@ export const faAppWindow = AppWindow
 export const faClockArrowRight = ClockArrowRight
 export const faClockArrowLeft = ClockArrowLeft
 export const faGitMerge = GitMerge
+/** Donate / sponsor — Help popover's "Donate" row. */
+export const faHeart = Heart

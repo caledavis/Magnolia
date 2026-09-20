@@ -14,8 +14,6 @@ import {
   faTags,
   faSquareArrowRightEnter,
   faGitMerge,
-  faCircleQuestion,
-  faScale,
   faGear,
   faChevronsLeft,
   faChevronsRight
@@ -86,6 +84,7 @@ import { MemosPane } from './components/Memos/MemosPane'
 import { QuotesPane } from './components/Quotes/QuotesPane'
 import { AnalysisPopover } from './components/Toolbar/AnalysisPopover'
 import { StudioPopover } from './components/Toolbar/StudioPopover'
+import { HelpPopover } from './components/Toolbar/HelpPopover'
 import { WindowControls } from './components/Toolbar/WindowControls'
 import type { Project, Query, CodeCondition, Code, TextSource, QDASet, LogbookInitData, AnalysisInitData, AnalysisToolType, PlainTextSelection, Memo, MemoEditInitData, SurveyCellScopeArgs } from './models/types'
 import { buildSurveyEntityLabels } from './utils/survey/survey-labels'
@@ -2298,13 +2297,13 @@ function App() {
             // git-merge flipped both ways (180°) — Magnolia's projects
             // "merge" toward the currently-open project, the reverse
             // direction of a git merge arrow, hence the flip.
-            { icon: faGitMerge, label: 'Merge', action: () => handleMergeProject(), iconStyle: { transform: 'scale(-1, -1)' } }
+            { icon: faGitMerge, label: 'Merge', title: 'Merge a project into this one', action: () => handleMergeProject(), iconStyle: { transform: 'scale(-1, -1)' } }
           ].map((item, idx) => [
             idx > 0 ? <ToolbarDivider key={`${item.label}-divider`} /> : null,
             <button
               key={item.label}
               className="app-toolbar-btn"
-              title={item.label}
+              title={(item as { title?: string }).title ?? item.label}
               onClick={item.action}
               style={{
                 display: 'flex',
@@ -2457,77 +2456,10 @@ function App() {
             )}
           </button>
           <ToolbarDivider />
-          {/* Licence button. Opens a dialog explaining that Magnolia is
-              FOSS (EUPL-1.2) and listing the main bundled libraries with
-              their licences. Lives in the scrollable middle rather than
-              being pinned — it's a reference link, not something that
-              needs to stay reachable at every window size. */}
-          <button
-            className="app-toolbar-btn"
-            title="Licence & attributions"
-            aria-label="Show licence and attributions"
-            onClick={() => setShowLicenceDialog(true)}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 3,
-              padding: '4px 12px',
-              border: 'none',
-              borderRadius: 'var(--radius-sm)',
-              background: 'transparent',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              lineHeight: 1,
-              transition: 'background 0.12s, color 0.12s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--bg-tertiary)'
-              e.currentTarget.style.color = 'var(--text-primary)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.color = 'var(--text-secondary)'
-            }}
-          >
-            <Icon icon={faScale} style={{ fontSize: 20 }} />
-            <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>EUPL</span>
-          </button>
-          <ToolbarDivider />
-          {/* Help: opens Magnolia's online manual (GitHub Pages) in the
-              default browser. The main window's window-open handler routes
-              window.open through shell.openExternal. */}
-          <button
-            className="app-toolbar-btn"
-            title="Open the Magnolia user manual"
-            aria-label="Open the Magnolia user manual"
-            onClick={() => window.open('https://caledavis.github.io/Magnolia/', '_blank')}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 3,
-              padding: '4px 12px',
-              border: 'none',
-              borderRadius: 'var(--radius-sm)',
-              background: 'transparent',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              lineHeight: 1,
-              transition: 'background 0.12s, color 0.12s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--bg-tertiary)'
-              e.currentTarget.style.color = 'var(--text-primary)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.color = 'var(--text-secondary)'
-            }}
-          >
-            <Icon icon={faCircleQuestion} style={{ fontSize: 20 }} />
-            <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>Manual</span>
-          </button>
+          {/* Help: bundles the Licence & Attributions dialog, the online
+              user manual, and a Donate link into one popover — see
+              HelpPopover for the popover UI. */}
+          <HelpPopover onShowLicence={() => setShowLicenceDialog(true)} />
           </div>
           </div>
           </div>

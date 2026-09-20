@@ -1575,6 +1575,20 @@ html:not([data-theme]) .app-toolbar {
   line-height: 1.2;
 }
 
+/* Help popover — reuses the .analysis-popover container chrome AND its
+ * .analysis-popover-tile cells (icon/name/description), laid out as a
+ * 3-column grid exactly like .analysis-popover-grid — just 3 columns
+ * instead of 4, since Help only has three actions (Licence &
+ * Attributions / Manual / Donate). See components/Toolbar/HelpPopover.tsx. */
+.help-popover {
+  width: 480px;
+}
+.help-popover-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
 /* Themed range slider — used by the audio/video volume control. The
  * filled portion of the track is drawn with a CSS gradient driven by
  * the `--filled` custom property (set inline as a percentage by the
