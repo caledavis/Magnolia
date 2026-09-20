@@ -2349,11 +2349,7 @@ function App() {
             { icon: faSquareArrowRightEnter, label: 'Import', action: () => handleImportDocument() },
             { icon: faBook, label: 'Codebook', action: () => openCodebook() },
             { icon: faNotebookPen, label: 'Logbook', action: () => openLogbook() },
-            { icon: faTags, label: 'Tags', action: () => setShowManageDocTags(true) },
-            // git-merge flipped both ways (180°) — Magnolia's projects
-            // "merge" toward the currently-open project, the reverse
-            // direction of a git merge arrow, hence the flip.
-            { icon: faGitMerge, label: 'Merge', title: 'Merge a project into this one', action: () => handleMergeProject(), iconStyle: { transform: 'scale(-1, -1)' } }
+            { icon: faTags, label: 'Tags', action: () => setShowManageDocTags(true) }
           ].map((item, idx) => [
             idx > 0 ? <ToolbarDivider key={`${item.label}-divider`} /> : null,
             <button
@@ -2388,6 +2384,47 @@ function App() {
               <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>{item.label}</span>
             </button>
           ])}
+          </div>
+
+          {/* Merge gets its own pill, separate from the document-management
+              group above — it acts on the whole project (reconciling two
+              divergent copies), not a single document, so grouping it with
+              Import/Codebook/Logbook/Tags overstated how related it is to
+              them. */}
+          <div className="app-toolbar-pill" style={TOOLBAR_PILL_STYLE}>
+            <button
+              className="app-toolbar-btn"
+              title="Merge a project into this one"
+              onClick={() => handleMergeProject()}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 3,
+                padding: '4px 12px',
+                border: 'none',
+                borderRadius: 'var(--radius-sm)',
+                background: 'transparent',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                lineHeight: 1,
+                transition: 'background 0.12s, color 0.12s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--bg-tertiary)'
+                e.currentTarget.style.color = 'var(--text-primary)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent'
+                e.currentTarget.style.color = 'var(--text-secondary)'
+              }}
+            >
+              {/* git-merge flipped both ways (180°) — Magnolia's projects
+                  "merge" toward the currently-open project, the reverse
+                  direction of a git merge arrow, hence the flip. */}
+              <Icon icon={faGitMerge} style={{ fontSize: 20, transform: 'scale(-1, -1)' }} />
+              <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>Merge</span>
+            </button>
           </div>
 
           <div className="app-toolbar-pill" style={TOOLBAR_PILL_STYLE}>
