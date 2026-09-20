@@ -586,6 +586,7 @@ export function ImageDocumentViewer({ source }: Props) {
               quotes={quoteRanges}
               rendered={imageLoaded}
               alignRight
+              viewportRef={scrollContainerRef}
               lockedRange={lockedRange}
               onHoverRange={setHoveredRange}
               onHoverSelectionGuid={setHoveredSelGuid}

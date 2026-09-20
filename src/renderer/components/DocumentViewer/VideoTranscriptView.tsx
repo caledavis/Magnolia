@@ -27,7 +27,7 @@ import { layoutBrackets, capGeometry, COL_W } from './bracketLayout'
 import { TranscriptGutter, TRANSCRIPT_ROW_STYLE } from './TranscriptGutter'
 import { CodeLabel } from './CodeLabel'
 import { MemoQuoteIcons } from './MemoQuoteIcons'
-import { buildIconItems, layoutIcons } from './iconLayout'
+import { buildIconItems, layoutIcons, ICON_COL_W } from './iconLayout'
 import { Icon, MEMO_RANGED_ICON, MEMO_POINT_ICON, QUOTE_ICON } from '../Icon'
 import type { Code, Memo, MemoEditInitData, PlainTextSelection } from '../../models/types'
 import { usePendingSelectionStore } from '../../stores/pending-selection-store'
@@ -83,6 +83,13 @@ const MEMO_WAVE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/
 const LINE_PADDING_X = 12
 const MARGIN_LABEL_W = 150
 const BRACKET_OVERLAY_LEFT_PAD = 6
+/** Breathing room kept clear between a fully-expanded label and the true
+ *  right edge of the pane. */
+const LABEL_EDGE_PAD = 8
+/** The memo/quote icon column is right-pinned (see MemoQuoteIcons'
+ *  legacy layout) rather than packed away from labels like the other
+ *  viewers, so a growing label must stay clear of it explicitly. */
+const ICON_RESERVE_W = ICON_COL_W * 2
 
 interface BracketEntry {
   top: number
@@ -171,6 +178,38 @@ export function VideoTranscriptView({
   }, [codes])
 
   const containerRef = useRef<HTMLDivElement>(null)
+  // Measured pane width — lets code-name labels use whatever room is
+  // actually available before the pane's right edge instead of always
+  // ellipsing at the fixed MARGIN_LABEL_W budget. maxContentRight tracks
+  // the furthest-right extent of any rendered transcript line, so the
+  // margin column itself sits flush against the content instead of
+  // always being anchored to the pane's true right edge.
+  const [containerWidth, setContainerWidth] = useState(0)
+  const [maxContentRight, setMaxContentRight] = useState(0)
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const measure = () => {
+      const containerRect = el.getBoundingClientRect()
+      setContainerWidth(containerRect.width)
+      let maxRight = 0
+      el.querySelectorAll<HTMLElement>('[data-body="1"]').forEach((body) => {
+        const rects = body.getClientRects()
+        for (let i = 0; i < rects.length; i++) {
+          const r = rects[i]
+          if (r.width > 0 && r.height > 0) maxRight = Math.max(maxRight, r.right - containerRect.left)
+        }
+      })
+      setMaxContentRight(maxRight)
+    }
+    const rafId = requestAnimationFrame(measure)
+    const observer = new ResizeObserver(() => requestAnimationFrame(measure))
+    observer.observe(el)
+    return () => {
+      cancelAnimationFrame(rafId)
+      observer.disconnect()
+    }
+  }, [lines])
   const [pendingLineRange, setPendingLineRange] = useState<{ startLine: number; endLine: number } | null>(null)
   /** Codepoint range of the most recent text selection, captured on
    *  mouseup so a subsequent right-click that clears the live selection
@@ -923,6 +962,31 @@ export function VideoTranscriptView({
 
   const columnOriginX = BRACKET_OVERLAY_LEFT_PAD
 
+  // The margin column (brackets + labels + icons) sits flush against the
+  // widest rendered transcript line rather than always being anchored to
+  // the pane's true right edge — ragged-right content (short exchanges,
+  // one-word lines, etc.) shouldn't leave a dead gap before it starts.
+  // One value for the whole transcript, capped at the old right-anchored
+  // position so wide, wrapped-to-fill dialogue looks the same as before.
+  const MARGIN_CONTENT_GAP = 24
+  const MIN_MARGIN_LEFT = 150
+  const marginCeilingPx = containerWidth - bracketZoneW
+  const marginLeftPx = containerWidth <= 0
+    ? 0
+    : maxContentRight > 0
+      ? Math.min(marginCeilingPx, Math.max(MIN_MARGIN_LEFT, maxContentRight + MARGIN_CONTENT_GAP))
+      : marginCeilingPx
+
+  // How much room a label starting at bracket-layout offset `labelLeft`
+  // actually has before the pane's measured right edge, keeping clear of
+  // the right-pinned icon column. Falls back to MARGIN_LABEL_W before the
+  // container has been measured.
+  const labelMaxWidthFor = (labelLeft: number): number => {
+    if (containerWidth <= 0) return MARGIN_LABEL_W
+    const available = containerWidth - (marginLeftPx + columnOriginX + labelLeft) - ICON_RESERVE_W - LABEL_EDGE_PAD
+    return Math.max(MARGIN_LABEL_W, available)
+  }
+
   return (
     <div
       ref={containerRef}
@@ -1111,14 +1175,15 @@ export function VideoTranscriptView({
           )
         })}
 
-        {/* Bracket overlay: positioned in the right-hand margin reserved
-            above via `paddingRight`. Uses the same column / cap algorithm
-            as the other viewers. */}
+        {/* Bracket overlay: positioned flush against the widest rendered
+            line (marginLeftPx) rather than right-anchored to the pane
+            edge, so ragged-right transcripts don't get a dead gap before
+            it. Uses the same column / cap algorithm as the other viewers. */}
         <div
           style={{
             position: 'absolute',
             top: 0,
-            right: 0,
+            left: marginLeftPx,
             width: bracketZoneW,
             height: totalContentHeight,
             pointerEvents: 'none'
@@ -1235,7 +1300,7 @@ export function VideoTranscriptView({
                 left={columnOriginX + p.labelLeft}
                 top={p.labelTop}
                 color={p.color}
-                maxWidth={MARGIN_LABEL_W}
+                maxWidth={labelMaxWidthFor(p.labelLeft)}
                 text={p.codeName}
                 locked={isLocked}
                 title={`${code?.name ?? 'Code'} — click to lock highlight, double-click to seek, right-click for options`}

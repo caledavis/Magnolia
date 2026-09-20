@@ -859,6 +859,7 @@ export function PdfDocumentViewer({ source, content }: Props) {
           quotes={quoteRanges}
           rendered={allPagesRendered}
           alignRight
+          viewportRef={scrollContainerRef}
           lockedRange={lockedRange}
           onHoverRange={setHoveredRange}
           onHoverSelectionGuid={setHoveredSelGuid}

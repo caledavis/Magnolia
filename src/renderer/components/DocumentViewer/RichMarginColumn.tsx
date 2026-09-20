@@ -8,7 +8,7 @@
  * - Quote icon column (18px) with badge count
  * - Memo icon column (18px) with badge count
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { PlainTextSelection, Code, Memo } from '../../models/types'
 import { layoutBrackets, capGeometry, COL_W, LABEL_H, LABEL_GAP } from './bracketLayout'
 import { CodeLabel } from './CodeLabel'
@@ -43,6 +43,12 @@ interface Props {
   }) => void
   onQuoteClick?: (e: React.MouseEvent, quotes: { guid: string; startCp: number; endCp: number }[], showDelete?: boolean) => void
   alignRight?: boolean
+  /** The true scroll viewport (not the pages/image content box, which
+   *  only spans its own natural size). Used solely to let code-name
+   *  labels paint into whatever blank space sits between the content
+   *  and the pane's real right edge — the column's own reserved layout
+   *  width (preferredW, below) is untouched by this. */
+  viewportRef?: React.RefObject<HTMLDivElement>
 }
 
 interface CodeBracket {
@@ -70,11 +76,15 @@ interface CodeBracket {
 }
 
 // Bracket column geometry is shared via bracketLayout.ts. Icon geometry
-// is shared via iconLayout.ts. Only LABEL_W remains local.
+// is shared via iconLayout.ts.
+/** Historical default / minimum for the label column. */
 const LABEL_W = 80
 /** Small horizontal breathing room between a code label and the icon(s)
  *  that follow it on the same row. */
 const LABEL_TO_ICON_GAP = 4
+/** Breathing room kept clear between a fully-expanded label and the true
+ *  right edge of the pane. */
+const LABEL_EDGE_PAD = 8
 
 /**
  * For each icon group, compute the X offset at which it should render so
@@ -85,11 +95,12 @@ const LABEL_TO_ICON_GAP = 4
  */
 function computeIconLefts(
   groups: IconGroup[],
-  brackets: { top: number; height: number; column: number; labelTop: number; labelLeft: number; codeName: string }[]
+  brackets: { top: number; height: number; column: number; labelTop: number; labelLeft: number; codeName: string }[],
+  labelMaxWidthFor: (labelLeft: number) => number
 ): IconGroup[] {
   if (groups.length === 0) return groups
   // Pre-measure each bracket's label width once (canvas measurement is cheap).
-  const labelRights = brackets.map((b) => b.labelLeft + Math.min(LABEL_W, measureLabelWidth(b.codeName)))
+  const labelRights = brackets.map((b) => b.labelLeft + Math.min(labelMaxWidthFor(b.labelLeft), measureLabelWidth(b.codeName)))
 
   const baseLeftFor = (iconTop: number): number => {
     let x = 0
@@ -224,8 +235,43 @@ function getPdfRegionYBounds(
   return { top: top - PAD, bottom: bottom + PAD }
 }
 
-export function RichMarginColumn({ contentRef, containerRef, selections, codes, contentMemos, quotes, rendered, onMemoClick, onMemoPopup, onHoverRange, onHoverSelectionGuid, onHoverRegion, onLockRange, lockedRange, onContextMenu, onQuoteClick, alignRight }: Props) {
+export function RichMarginColumn({ contentRef, containerRef, selections, codes, contentMemos, quotes, rendered, onMemoClick, onMemoPopup, onHoverRange, onHoverSelectionGuid, onHoverRegion, onLockRange, lockedRange, onContextMenu, onQuoteClick, alignRight, viewportRef }: Props) {
   const [brackets, setBrackets] = useState<CodeBracket[]>([])
+  // This column's own root div — measured against viewportRef so labels
+  // know how far they can paint into blank space beyond the column's own
+  // reserved width, without that reserved width itself changing.
+  const columnRef = useRef<HTMLDivElement>(null)
+  const [measureTick, setMeasureTick] = useState(0)
+  useEffect(() => {
+    const viewportEl = viewportRef?.current
+    const contentEl = contentRef.current
+    if (!viewportEl && !contentEl) return
+    const observer = new ResizeObserver(() => setMeasureTick((t) => t + 1))
+    if (viewportEl) observer.observe(viewportEl)
+    // Also watch the actual image/PDF content box — when the viewer
+    // centers it in extra space (e.g. ImageDocumentViewer at a small
+    // zoom in a wide pane), the viewport itself doesn't resize on zoom,
+    // but the content box does, and that's what flushShiftPx depends on.
+    if (contentEl) observer.observe(contentEl)
+    return () => observer.disconnect()
+  }, [viewportRef, contentRef])
+  // How far the column's own box sits to the right of the actual content
+  // (image / PDF pages) it's supposed to be flush against. Non-zero only
+  // when a centering wrapper (like ImageDocumentViewer's) leaves blank
+  // space between the content and this column's nominal position.
+  const flushShiftPx = (() => {
+    const columnRect = columnRef.current?.getBoundingClientRect()
+    const contentRect = contentRef.current?.getBoundingClientRect()
+    if (!columnRect || !contentRect) return 0
+    return Math.max(0, columnRect.left - (contentRect.right + 8))
+  })()
+  const labelMaxWidthFor = (labelLeft: number): number => {
+    const columnRect = columnRef.current?.getBoundingClientRect()
+    const viewportRect = viewportRef?.current?.getBoundingClientRect()
+    if (!columnRect || !viewportRect) return LABEL_W
+    const available = viewportRect.right - (columnRect.left - flushShiftPx + labelLeft) - LABEL_EDGE_PAD
+    return Math.max(LABEL_W, available)
+  }
   const [iconGroups, setIconGroups] = useState<IconGroup[]>([])
   const codeMap = buildCodeMap(codes)
 
@@ -308,13 +354,13 @@ export function RichMarginColumn({ contentRef, containerRef, selections, codes, 
         )
       })
       const baseGroups = layoutIcons(items)
-      const packedGroups = computeIconLefts(baseGroups, newBrackets)
+      const packedGroups = computeIconLefts(baseGroups, newBrackets, labelMaxWidthFor)
       setBrackets(newBrackets)
       setIconGroups(packedGroups)
     }, 150)
 
     return () => clearTimeout(timer)
-  }, [rendered, selections, contentMemos, quotes, codes])
+  }, [rendered, selections, contentMemos, quotes, codes, measureTick])
 
   const maxCol = brackets.length > 0 ? Math.max(...brackets.map((b) => b.column)) : 0
   const bracketZoneW = (maxCol + 1) * COL_W + 6
@@ -325,7 +371,7 @@ export function RichMarginColumn({ contentRef, containerRef, selections, codes, 
   const useFlexWidth = alignRight
 
   return (
-    <div style={{
+    <div ref={columnRef} style={{
       position: useFlexWidth ? 'relative' : 'absolute',
       ...(useFlexWidth ? {} : { left: 0, width: preferredW }),
       top: 0,
@@ -334,6 +380,12 @@ export function RichMarginColumn({ contentRef, containerRef, selections, codes, 
       pointerEvents: 'none',
       overflow: 'visible'
     }}>
+    {/* Shifts everything left by flushShiftPx so brackets/labels/icons sit
+        flush against the actual content edge instead of this column's own
+        (possibly further-right) box — see flushShiftPx above. The box
+        itself keeps its normal reserved width; only what's painted inside
+        it moves. */}
+    <div style={{ position: 'absolute', inset: 0, transform: `translateX(${-flushShiftPx}px)`, pointerEvents: 'none' }}>
       {/* Code bracket lines */}
       {brackets.map((b, i) => {
         const barX = b.column * COL_W + 4
@@ -369,13 +421,13 @@ export function RichMarginColumn({ contentRef, containerRef, selections, codes, 
               background: b.color
             }} />
             {/* Code name label — sits just to the right of the rightmost
-                bracket column at this label's Y, and truncates if it would
-                run into the icon column on the far right. */}
+                bracket column at this label's Y, and truncates only once
+                it runs out of room before the pane's right edge. */}
             <CodeLabel
               left={b.labelLeft}
               top={b.labelTop}
               color={b.color}
-              maxWidth={LABEL_W}
+              maxWidth={labelMaxWidthFor(b.labelLeft)}
               text={b.codeName}
               onMouseEnter={() => {
                 if (b.isRegion) {
@@ -444,6 +496,7 @@ export function RichMarginColumn({ contentRef, containerRef, selections, codes, 
         lockedRange={lockedRange}
         onQuoteClick={onQuoteClick}
       />
+    </div>
     </div>
   )
 }
