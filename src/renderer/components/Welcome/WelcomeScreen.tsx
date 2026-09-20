@@ -201,7 +201,9 @@ export function WelcomeScreen() {
             Sponsor Magnolia's development
           </span>
           <span style={{ fontSize: 11.5, color: 'var(--text-secondary)', textAlign: 'center' }}>
-            Magnolia is experimental. It was coded by Claude and may break unexpectedly. Use at your own risk.
+            Use Magnolia at your own risk.
+            <br />
+            Coded by Claude.
           </span>
         </div>
       </div>

@@ -4,7 +4,7 @@
 
 # Magnolia: Free and powerful qualitative data analysis software
 
-Magnolia is **experimental.** It was coded by Claude over several months. It may break unexpectedly and you should use it at your own risk.
+Magnolia is **experimental.** Use it at your own risk. It was coded by Claude over several months and may break unexpectedly.
 
 **Official website:** [www.caledavis.eu/magnolia.html](https://www.caledavis.eu/magnolia.html)
 
