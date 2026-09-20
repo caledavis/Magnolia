@@ -107,13 +107,22 @@ export function CheckOutButton(): JSX.Element {
           wrapper's — which is what stops the scrollable-middle button
           group (centered via margin: 0 auto) from recentering/jumping
           when this button's label changes. The real button is absolutely
-          positioned within it, right-aligned, so it can still shrink to
-          its own natural width. Chromium excludes <button> from an
-          ancestor's drag region automatically, but the ghost is a plain
-          <span> — not a button — so it stays part of the toolbar's
-          draggable background, and so does any space the ghost reserves
-          that the (narrower) real button doesn't currently fill. */}
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', height: '100%' }}>
+          positioned within it, centered on both axes so it isn't thrown
+          off by the wrapper's own .app-toolbar-pill padding (Icons mode).
+          Chromium excludes <button> from an ancestor's drag region
+          automatically, but the ghost is a plain <span> — not a button —
+          so it stays part of the toolbar's draggable background, and so
+          does any space the ghost reserves that the (narrower) real
+          button doesn't currently fill.
+          Also carries app-toolbar-pill + checkout-pill--<status>: in
+          Icons mode (global.css) the pill itself — not the button —
+          takes the status background, so Check Out reads as one
+          consistent pill like every other toolbar group rather than a
+          small colored square floating inside a plain pill; Icons and
+          Text mode leaves .app-toolbar-pill transparent (see that
+          block's own comment) and the button keeps its own coloring, as
+          before. */}
+      <div className={`app-toolbar-pill checkout-pill checkout-pill--${status}`} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
         <span aria-hidden="true" className="app-toolbar-btn" style={{ visibility: 'hidden', pointerEvents: 'none', display: 'flex' }}>
           <Icon icon={faClockArrowRight} />
           <span className="toolbar-label" style={{ whiteSpace: 'nowrap' }}>Check Out</span>
@@ -126,16 +135,10 @@ export function CheckOutButton(): JSX.Element {
           onClick={handleClick}
           style={{
             ...checkoutBtnStyle(status),
-            // top: 0 would pin this to the wrapper's top edge, not center
-            // it — .app-toolbar-btn's height: 28px !important overrides
-            // any height set here, so the wrapper (sized by the ghost,
-            // itself also 28px but laid out via normal flow + align-items:
-            // center) ends up taller than this absolutely-positioned
-            // button. Center it explicitly instead.
             position: 'absolute',
             top: '50%',
-            right: 0,
-            transform: 'translateY(-50%)',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
             cursor: disabled ? 'default' : 'pointer',
             opacity: disabled ? 0.4 : 1
           }}

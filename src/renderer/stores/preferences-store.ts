@@ -22,6 +22,11 @@ export type ThemeId = '' | 'dark' | 'granola' | 'granola-dark' | 'high-contrast'
  *  printToPDF `pageSize` strings. */
 export type PaperSize = 'A4' | 'A3' | 'A5' | 'Letter' | 'Legal' | 'Tabloid'
 
+/** Toolbar button display: 'icons' is the compact macOS Mail-style
+ *  icon-only row (grouped in pills); 'icons-and-text' shows the label
+ *  under/beside each icon, as the toolbar looked before that redesign. */
+export type ToolbarStyle = 'icons' | 'icons-and-text'
+
 export interface Preferences {
   footPedalMappings: FootPedalMappings
   defaultPlaybackSpeed: number
@@ -31,6 +36,7 @@ export interface Preferences {
   interfaceScale: number
   /** Shown to teammates when this user checks out a shared project. */
   userName: string
+  toolbarStyle: ToolbarStyle
 }
 
 const DEFAULT_PREFERENCES: Preferences = {
@@ -45,7 +51,8 @@ const DEFAULT_PREFERENCES: Preferences = {
   theme: 'magnolia',
   paperSize: 'A4',
   interfaceScale: 1,
-  userName: ''
+  userName: '',
+  toolbarStyle: 'icons'
 }
 
 interface PreferencesState extends Preferences {
@@ -57,6 +64,7 @@ interface PreferencesState extends Preferences {
   setTheme: (theme: ThemeId) => void
   setInterfaceScale: (scale: number) => void
   setUserName: (userName: string) => void
+  setToolbarStyle: (toolbarStyle: ToolbarStyle) => void
 }
 
 export const usePreferencesStore = create<PreferencesState>((set, get) => ({
@@ -74,6 +82,7 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
           paperSize: (prefs.paperSize ?? DEFAULT_PREFERENCES.paperSize) as PaperSize,
           interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
           userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
+          toolbarStyle: prefs.toolbarStyle === 'icons-and-text' ? 'icons-and-text' : DEFAULT_PREFERENCES.toolbarStyle,
           loaded: true
         })
       } else {
@@ -85,9 +94,9 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   },
 
   save: async () => {
-    const { footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName } = get()
+    const { footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle } = get()
     try {
-      await window.api.savePreferences({ footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName })
+      await window.api.savePreferences({ footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle })
     } catch { /* ignore */ }
   },
 
@@ -117,6 +126,11 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   setUserName: (userName) => {
     set({ userName })
     setTimeout(() => get().save(), 0)
+  },
+
+  setToolbarStyle: (toolbarStyle) => {
+    set({ toolbarStyle })
+    setTimeout(() => get().save(), 0)
   }
 }))
 
@@ -143,6 +157,7 @@ if (typeof window !== 'undefined' && window.api?.onPreferencesUpdate) {
       paperSize: (prefs.paperSize ?? DEFAULT_PREFERENCES.paperSize) as PaperSize,
       interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
       userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
+      toolbarStyle: prefs.toolbarStyle === 'icons-and-text' ? 'icons-and-text' : DEFAULT_PREFERENCES.toolbarStyle,
       loaded: true
     })
   })

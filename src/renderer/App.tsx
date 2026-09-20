@@ -192,6 +192,24 @@ function describeQuery(
   return name
 }
 
+/** Toolbar pill layout: groups a set of related buttons in a row. The
+ *  rounded chip background/padding itself (macOS Mail-style) is CSS,
+ *  scoped to Icons mode only via .app-toolbar-pill in global.css —
+ *  Icons and Text mode reverts to a plain, unfilled row (see
+ *  Preferences → Appearance → Toolbar Style). */
+const TOOLBAR_PILL_STYLE: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center'
+}
+
+/** Thin divider between two buttons that share a toolbar pill — not
+ *  between pills themselves, which are already visually separated by
+ *  their own chip background (same convention macOS Mail's toolbar
+ *  uses: dividers inside a group, plain gaps between groups). */
+function ToolbarDivider(): JSX.Element {
+  return <div style={{ width: 1, height: 16, background: 'var(--border-color)', margin: '0 4px', flexShrink: 0 }} />
+}
+
 function App() {
   const [showNewCodeDialog, setShowNewCodeDialog] = useState(false)
   const [pendingCodeAllNewCode, setPendingCodeAllNewCode] = useState(false)
@@ -263,6 +281,7 @@ function App() {
   // unrelated component to trigger the load first.
   const prefsLoaded = usePreferencesStore((s) => s.loaded)
   const userName = usePreferencesStore((s) => s.userName)
+  const toolbarStyle = usePreferencesStore((s) => s.toolbarStyle)
   const loadPrefs = usePreferencesStore((s) => s.load)
   useEffect(() => {
     if (!prefsLoaded) loadPrefs()
@@ -2140,6 +2159,7 @@ function App() {
       {/* ── Toolbar ── */}
       <div
         className="app-toolbar"
+        data-toolbar-style={toolbarStyle}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -2268,7 +2288,8 @@ function App() {
               overflow-x takes over, so this never fights the #15 fix
               above by clipping content out the left edge on narrow
               windows. */}
-          <div className="app-toolbar-scroll-inner" style={{ display: 'flex', alignItems: 'center', gap: 2, margin: '0 auto' }}>
+          <div className="app-toolbar-scroll-inner" style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 auto' }}>
+          <div className="app-toolbar-pill" style={TOOLBAR_PILL_STYLE}>
           {[
             { icon: faSquareArrowRightEnter, label: 'Import', action: () => handleImportDocument() },
             { icon: faBook, label: 'Codebook', action: () => openCodebook() },
@@ -2278,7 +2299,8 @@ function App() {
             // "merge" toward the currently-open project, the reverse
             // direction of a git merge arrow, hence the flip.
             { icon: faGitMerge, label: 'Merge', action: () => handleMergeProject(), iconStyle: { transform: 'scale(-1, -1)' } }
-          ].map((item) => (
+          ].map((item, idx) => [
+            idx > 0 ? <ToolbarDivider key={`${item.label}-divider`} /> : null,
             <button
               key={item.label}
               className="app-toolbar-btn"
@@ -2310,11 +2332,10 @@ function App() {
               <Icon icon={item.icon} style={{ fontSize: 20, ...(item as { iconStyle?: React.CSSProperties }).iconStyle }} />
               <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>{item.label}</span>
             </button>
-          ))}
+          ])}
+          </div>
 
-          {/* Separator */}
-          <div style={{ width: 1, height: 34, background: 'var(--border-color)', margin: '0 8px' }} />
-
+          <div className="app-toolbar-pill" style={TOOLBAR_PILL_STYLE}>
           {/* Query Builder stays as its own top-level button — it's
               the primary way users move between document inspection
               and analysis, distinct enough from the seven analysis
@@ -2350,16 +2371,17 @@ function App() {
             <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400, color: 'var(--text-secondary)', transition: 'color 0.12s' }}>Query</span>
           </button>
 
+          <ToolbarDivider />
+
           {/* Seven analysis tools (Codes in Docs / Results in Docs /
               Co-Occurrences / Code Frequencies / Code Orders / Word
               Frequencies / Relationships) collapse behind one
               "Analysis ▾" button that opens a tile-grid popover.
               See AnalysisPopover for the popover UI. */}
           <AnalysisPopover onSelect={(toolType) => openAnalysis(toolType)} />
+          </div>
 
-          {/* Separator */}
-          <div style={{ width: 1, height: 34, background: 'var(--border-color)', margin: '0 8px' }} />
-
+          <div className="app-toolbar-pill" style={TOOLBAR_PILL_STYLE}>
           {/* Studio: show/hide the workspace panels. The cross-platform
               home for the native View menu's panel toggles — on
               Windows/Linux the frameless window hides the menu bar, so
@@ -2378,6 +2400,7 @@ function App() {
               else togglePanel(id as PanelId)
             }}
           />
+          <ToolbarDivider />
           {/* Settings: opens the Preferences tab — the entry point the
               Magnolia wordmark used to provide. Carries the update-available
               nudge dot (jumps straight to Settings → Updates when set). */}
@@ -2433,6 +2456,7 @@ function App() {
               />
             )}
           </button>
+          <ToolbarDivider />
           {/* Licence button. Opens a dialog explaining that Magnolia is
               FOSS (EUPL-1.2) and listing the main bundled libraries with
               their licences. Lives in the scrollable middle rather than
@@ -2469,6 +2493,7 @@ function App() {
             <Icon icon={faScale} style={{ fontSize: 20 }} />
             <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>EUPL</span>
           </button>
+          <ToolbarDivider />
           {/* Help: opens Magnolia's online manual (GitHub Pages) in the
               default browser. The main window's window-open handler routes
               window.open through shell.openExternal. */}
@@ -2503,6 +2528,7 @@ function App() {
             <Icon icon={faCircleQuestion} style={{ fontSize: 20 }} />
             <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>Manual</span>
           </button>
+          </div>
           </div>
           </div>
           <div

@@ -25,6 +25,12 @@ type ThemeId = '' | 'dark' | 'granola' | 'granola-dark' | 'high-contrast' | 'mag
 /** Paper size for exported PDFs — Electron printToPDF `pageSize` values. */
 type PaperSize = 'A4' | 'A3' | 'A5' | 'Letter' | 'Legal' | 'Tabloid'
 
+/** Toolbar button display: 'icons' is the compact macOS Mail-style
+ *  icon-only row (grouped in pills); 'icons-and-text' shows each
+ *  tool's label alongside its icon, as the toolbar looked before that
+ *  redesign. */
+type ToolbarStyle = 'icons' | 'icons-and-text'
+
 interface Preferences {
   footPedalMappings: FootPedalMappings
   defaultPlaybackSpeed: number
@@ -34,6 +40,7 @@ interface Preferences {
   interfaceScale: number
   /** Shown to teammates when this user checks out a shared project. */
   userName: string
+  toolbarStyle: ToolbarStyle
 }
 
 const DEFAULT_PREFS: Preferences = {
@@ -52,8 +59,14 @@ const DEFAULT_PREFS: Preferences = {
   theme: 'magnolia',
   paperSize: 'A4',
   interfaceScale: 1,
-  userName: ''
+  userName: '',
+  toolbarStyle: 'icons'
 }
+
+const TOOLBAR_STYLE_OPTIONS: { id: ToolbarStyle; label: string }[] = [
+  { id: 'icons', label: 'Icons' },
+  { id: 'icons-and-text', label: 'Icons and Text' }
+]
 
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2]
 
@@ -185,12 +198,16 @@ function AppearanceSettings({
   value,
   onChange,
   scale,
-  onScaleChange
+  onScaleChange,
+  toolbarStyle,
+  onToolbarStyleChange
 }: {
   value: ThemeId
   onChange: (v: ThemeId) => void
   scale: number
   onScaleChange: (v: number) => void
+  toolbarStyle: ToolbarStyle
+  onToolbarStyleChange: (v: ToolbarStyle) => void
 }) {
   return (
     <div style={{ marginBottom: 24 }}>
@@ -256,6 +273,21 @@ function AppearanceSettings({
       >
         {INTERFACE_SCALE_OPTIONS.map((s) => (
           <option key={s} value={s}>{Math.round(s * 100)}%</option>
+        ))}
+      </select>
+
+      <h3 style={{ fontSize: 13, fontWeight: 600, marginTop: 24, marginBottom: 10, color: 'var(--text-secondary)' }}>Toolbar Style</h3>
+      <select
+        value={toolbarStyle}
+        onChange={(e) => onToolbarStyleChange(e.target.value as ToolbarStyle)}
+        style={{
+          padding: '4px 8px', fontSize: 12,
+          border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)',
+          background: 'var(--bg-input)', color: 'var(--text-primary)', cursor: 'pointer'
+        }}
+      >
+        {TOOLBAR_STYLE_OPTIONS.map((opt) => (
+          <option key={opt.id} value={opt.id}>{opt.label}</option>
         ))}
       </select>
     </div>
@@ -645,6 +677,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
           ...data,
           theme: (data.theme ?? DEFAULT_PREFS.theme) as ThemeId,
           interfaceScale: typeof data.interfaceScale === 'number' ? data.interfaceScale : DEFAULT_PREFS.interfaceScale,
+          toolbarStyle: data.toolbarStyle === 'icons-and-text' ? 'icons-and-text' : DEFAULT_PREFS.toolbarStyle,
           footPedalMappings: { ...DEFAULT_PREFS.footPedalMappings, ...(data.footPedalMappings || {}) }
         })
       }
@@ -681,6 +714,10 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
     // Apply locally and broadcast so every other open window rezooms too.
     window.api.setZoomFactor(interfaceScale)
     window.api.broadcastZoomFactor(interfaceScale)
+  }, [prefs, save])
+
+  const setToolbarStyle = useCallback((toolbarStyle: ToolbarStyle) => {
+    save({ ...prefs, toolbarStyle })
   }, [prefs, save])
 
   if (!loaded) return <div style={{ padding: 20, color: 'var(--text-muted)' }}>Loading...</div>
@@ -763,6 +800,8 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
               onChange={setTheme}
               scale={prefs.interfaceScale}
               onScaleChange={setInterfaceScale}
+              toolbarStyle={prefs.toolbarStyle}
+              onToolbarStyleChange={setToolbarStyle}
             />
           )}
           {selected.id === 'media-playback' && (

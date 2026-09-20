@@ -1282,33 +1282,86 @@ html:not([data-theme]) .app-toolbar {
  * override is no longer needed — keeping it would defeat the inline
  * value and leave the icon as dark text-primary. */
 
-/* Toolbar buttons: lay icon and label horizontally so the toolbar reads
- * like the mockup's compact button row instead of the default vertical
- * icon/label stack. The inline styles set on each button take precedence
- * over plain CSS, so these overrides need !important. Applied universally
- * — every theme gets the same compact button row. */
+/* Toolbar buttons: layout/color shared by both display modes below.
+ * Applied universally via !important since the inline styles set on
+ * each button (see App.tsx) otherwise take precedence — every theme
+ * gets the same row. NOTE: the project-name button (left, "Project
+ * info") and the Check Out toggle both also carry .app-toolbar-btn,
+ * so nothing here can assume every instance has an icon+label pair —
+ * no fixed width here, just let content (icon, icon+label, or the
+ * project name text) size the button naturally. */
 .app-toolbar-btn {
   flex-direction: row !important;
   align-items: center !important;
-  gap: 6px !important;
-  padding: 4px 10px !important;
   height: 28px !important;
 }
-.app-toolbar-btn .toolbar-label {
+.app-toolbar-btn svg {
+  color: var(--text-secondary) !important;
+}
+
+/* Preferences → Appearance → "Toolbar Style" ('icons', the default, vs
+ * 'icons-and-text') toggles the two blocks below via the data attribute
+ * App.tsx sets on .app-toolbar. Scoped by that attribute rather than a
+ * class per button so switching the preference needs no re-render of
+ * the toolbar's own JSX — only the CSS selector changes. */
+
+/* Icons: macOS Mail-style — the visible label is hidden and the
+ * button shrinks to fit just the icon; the tool's name still reaches
+ * the user via the button's `title` attribute (native OS tooltip on
+ * hover) rather than an on-toolbar caption. Buttons within a group sit
+ * in a rounded pill chip (distinct from a button's own hover fill,
+ * var(--bg-tertiary), so hovering a button inside still reads as a
+ * visible highlight) — Icons and Text below deliberately skips this,
+ * see that block's own comment. */
+.app-toolbar[data-toolbar-style="icons"] .app-toolbar-pill {
+  background: var(--bg-secondary);
+  border-radius: 999px;
+  padding: 3px;
+}
+.app-toolbar[data-toolbar-style="icons"] .app-toolbar-btn {
+  gap: 0 !important;
+  padding: 6px 10px !important;
+}
+.app-toolbar[data-toolbar-style="icons"] .app-toolbar-btn .toolbar-label {
+  display: none !important;
+}
+/* FontAwesome free-solid icons render heavy at any size; 16 px reads
+ * as a confident toolbar glyph now that it's the button's only
+ * content (icon-only, no label alongside it to balance against). */
+.app-toolbar[data-toolbar-style="icons"] .app-toolbar-btn svg {
+  font-size: 16px !important;
+}
+
+/* Icons and Text: the toolbar's look before the icon-only redesign —
+ * label visible beside a smaller icon (13 px keeps FontAwesome
+ * free-solid icons from feeling heavy next to body-sized text). No
+ * pill chip here by design — the rounded background reads right
+ * around a bare icon but crowds a full icon+label row, so this mode
+ * stays a plain, unfilled group (background/radius/padding all
+ * reset — .app-toolbar-pill only gets them in Icons mode, above). */
+.app-toolbar[data-toolbar-style="icons-and-text"] .app-toolbar-pill {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+/* Restores the original (pre-pill) spacing: a tighter gap between the
+ * three button groups — they read as separated by the group itself
+ * (dividers + the wider icon+label buttons) rather than by a pill's
+ * own outer gap — and the original icon-to-label gap/button padding. */
+.app-toolbar[data-toolbar-style="icons-and-text"] .app-toolbar-scroll-inner {
+  gap: 2px !important;
+}
+.app-toolbar[data-toolbar-style="icons-and-text"] .app-toolbar-btn {
+  gap: 6px !important;
+  padding: 4px 10px !important;
+}
+.app-toolbar[data-toolbar-style="icons-and-text"] .app-toolbar-btn .toolbar-label {
+  display: inline !important;
   font-size: 11.5px !important;
   font-weight: 400 !important;
 }
-/* FontAwesome free-solid icons render heavy at any size; the smaller
- * 13 px keeps them feeling like a toolbar glyph rather than body
- * text. The !important on color defeats the per-tool inline accent
- * so every analysis icon reads as neutral secondary text rather
- * than its tool tint. (Earlier we also applied opacity: 0.85 here
- * for "mockup feel" — that turned out to make the toolbar look
- * washed-out compared to native macOS toolbars where icons render
- * at full opacity in their secondary-label colour.) */
-.app-toolbar-btn svg {
+.app-toolbar[data-toolbar-style="icons-and-text"] .app-toolbar-btn svg {
   font-size: 13px !important;
-  color: var(--text-secondary) !important;
 }
 
 /* Check Out / Check In toggle (components/Toolbar/CheckOutButton.tsx) —
@@ -1338,6 +1391,48 @@ html:not([data-theme]) .app-toolbar {
 }
 .checkout-btn:disabled:hover {
   background: transparent !important;
+}
+/* The var(--bg-tertiary) hover above is invisible in the Magnolia
+ * themes specifically: that theme sets the WHOLE toolbar's own
+ * background to var(--bg-tertiary) too (see :root[data-theme="magnolia"]
+ * .app-toolbar, elsewhere in this file), so hovering a neutral-status
+ * Check Out visually does nothing there — every other toolbar button
+ * avoids this because .checkout-btn is deliberately excluded from
+ * their translucent-white hover rule (it needs its own accent/danger
+ * hover for the 'mine'/'other' statuses) — give the neutral 'none'
+ * status that same translucent-white treatment explicitly, so it
+ * reads as hoverable/consistent like every other button when nothing
+ * is checked out. Icons mode overrides this again to no highlight at
+ * all (further down) — that wins there via a more specific selector
+ * regardless of source order. */
+:root[data-theme="magnolia"] .checkout-btn.checkout-btn--none:hover {
+  background: rgba(255, 255, 255, 0.22) !important;
+}
+:root[data-theme="magnolia-dark"] .checkout-btn.checkout-btn--none:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Icons mode only: move the status background from the button to its
+ * wrapping .checkout-pill (see CheckOutButton.tsx), so Check Out reads
+ * as one pill turning blue/red — matching every other toolbar group's
+ * pill treatment — instead of a small, sharper-cornered colored square
+ * sitting inside an otherwise plain pill. The button itself is forced
+ * transparent (rest AND hover) so its own background (still set inline,
+ * still driving Icons and Text mode below) doesn't paint over the
+ * pill's color. No :hover rule on the pill itself, by design — every
+ * other Icons-mode pill's own background is static (only the
+ * individual button inside gets a hover highlight), so Check Out's
+ * single-button pill stays static on hover too instead of standing out
+ * as the one pill whose background shifts under the cursor. */
+.app-toolbar[data-toolbar-style="icons"] .checkout-pill .checkout-btn,
+.app-toolbar[data-toolbar-style="icons"] .checkout-pill .checkout-btn:hover {
+  background: transparent !important;
+}
+.app-toolbar[data-toolbar-style="icons"] .checkout-pill.checkout-pill--mine {
+  background: var(--accent) !important;
+}
+.app-toolbar[data-toolbar-style="icons"] .checkout-pill.checkout-pill--other {
+  background: var(--danger) !important;
 }
 
 /* ============================================================
