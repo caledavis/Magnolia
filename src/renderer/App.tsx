@@ -904,6 +904,62 @@ function App() {
     }
   }, [collectProject, documentStore, projectStore])
 
+  // "Check Out Anyway" from the checkout-conflict dialog shown right after
+  // opening a project someone else already holds (see applyCheckoutInfo).
+  // Mirrors CheckOutButton's doCheckOut/promptForName, since that button's
+  // own conflict dialog only reaches this same choice one click later.
+  const handleCheckOutFromConflict = useCallback(async () => {
+    const filePath = projectStore.filePath
+    if (!filePath) return
+    const myName = usePreferencesStore.getState().userName.trim()
+    if (!myName) {
+      setCheckoutConflict(null)
+      requestPreferencesCategory('general')
+      useDocumentStore.getState().openToolTab(PREFERENCES_TAB_ID)
+      return
+    }
+    try {
+      const result = await window.api.checkOutProject(filePath, myName)
+      useProjectStore.getState().setCheckoutMarker(result)
+    } catch (err) {
+      console.error('[check-out] failed:', err)
+    }
+    setCheckoutConflict(null)
+  }, [projectStore.filePath])
+
+  // "Create a Copy" from the checkout-conflict dialog: an unattended
+  // duplicate of the just-opened project, written next to the original and
+  // switched to as the active project — the user can keep working
+  // immediately, then reconcile the two copies later with the Merge tool.
+  const handleWorkOnCopy = useCallback(async () => {
+    const filePath = projectStore.filePath
+    if (!filePath) return
+    const project = collectProject()
+    const result = await window.api.createProjectCopy({
+      project,
+      sourceContents: documentStore.sourceContents,
+      currentFilePath: filePath,
+      userName: usePreferencesStore.getState().userName.trim()
+    })
+    if (result && typeof result === 'object' && (result as any).guardBlocked) {
+      console.warn('[create-project-copy guard]', (result as any).message)
+      setCheckoutConflict(null)
+      return
+    }
+    if (typeof result === 'string') {
+      projectStore.setFilePath(result)
+      // create-project-copy writes the copy with dropLock — it's never
+      // stamped with a lock, unlike a normal Save As — but the marker on
+      // projectStore still reflects the original file's checkout by
+      // someone else, now stale for what's on screen.
+      projectStore.setCheckoutMarker(null)
+      projectStore.markClean()
+      documentStore.promoteImportedBinariesToArchive()
+      window.api.trackRecentProject(projectStore.name, result)
+    }
+    setCheckoutConflict(null)
+  }, [collectProject, documentStore, projectStore])
+
   // Suppress the post-load auto-save burst: while a project open is in
   // progress, or for a short grace period after it completes, skip the
   // 2-second auto-save. Prevents any transient isDirty flicker during
@@ -2767,7 +2823,12 @@ function App() {
       <LicenceDialog open={showLicenceDialog} onClose={() => setShowLicenceDialog(false)} />
       <UpdateDialog info={updateInfo} onDismiss={() => setUpdateInfo(null)} />
       {checkoutConflict && (
-        <CheckoutConflictDialog marker={checkoutConflict} onDismiss={() => setCheckoutConflict(null)} />
+        <CheckoutConflictDialog
+          marker={checkoutConflict}
+          onDismiss={() => setCheckoutConflict(null)}
+          onOverride={handleCheckOutFromConflict}
+          onWorkOnCopy={handleWorkOnCopy}
+        />
       )}
       {prefsLoaded && !userName.trim() && (
         <NameGateOverlay onSubmit={(name) => usePreferencesStore.getState().setUserName(name)} />

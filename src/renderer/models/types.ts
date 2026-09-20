@@ -532,6 +532,19 @@ export interface ElectronAPI {
      *  working copies have been reaped. */
     currentFilePath?: string
   }) => Promise<string | null>
+  /** "Create a Copy" from the checkout-conflict dialog: writes an
+   *  unattended duplicate (no Save dialog) next to `currentFilePath`,
+   *  named "YYMMDD<userName> <original filename>.qdpx" (incrementing with
+   *  " (2)", " (3)", etc. on collision) and never carrying the source
+   *  file's checkout lock forward — the copy starts completely unlocked. */
+  createProjectCopy: (data: {
+    project: Project
+    sourceContents: Record<string, string>
+    currentFilePath: string
+    /** Current user's name (Preferences), stamped into the copy's
+     *  filename. Omit or pass '' to skip the name portion. */
+    userName?: string
+  }) => Promise<string | null>
   /** Tell main which .qdpx is currently open, so reaped media temp files
    *  can be regenerated from it on demand. Pass null when no project is
    *  open. */

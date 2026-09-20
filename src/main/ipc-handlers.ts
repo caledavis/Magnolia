@@ -219,6 +219,56 @@ export function registerIpcHandlers(): void {
     return result.filePath
   })
 
+  // "Create a Copy" from the checkout-conflict dialog: an unattended
+  // duplicate (no Save dialog) so a user who's blocked by someone else's
+  // checkout can start working immediately, then merge the two copies back
+  // together later via the Merge tool. Named "YYMMDD<name> <original
+  // filename>.qdpx" — the date and who made it are what actually matters
+  // once there are two copies of a project floating around waiting to be
+  // merged, unlike a bare "<name> copy.qdpx" which says nothing about
+  // either. Collisions (e.g. two copies made the same day) get " (2)",
+  // " (3)", etc. Unlike save-project-as, this passes dropLock: true —
+  // writeQdpx otherwise carries the source file's checkout lock
+  // (magnolia-lock.json) and project id forward by design (so a normal
+  // Save/Save As while checked out doesn't erase your own lock), which
+  // here would just relabel someone ELSE's lock onto the new file. The
+  // copy starts unlocked.
+  ipcMain.handle('create-project-copy', async (_event, data: { project: Project; sourceContents: Record<string, string>; currentFilePath: string; userName?: string }) => {
+    const dir = dirname(data.currentFilePath)
+    const base = basename(data.currentFilePath, '.qdpx')
+    const now = new Date()
+    const datePrefix =
+      String(now.getFullYear() % 100).padStart(2, '0') +
+      String(now.getMonth() + 1).padStart(2, '0') +
+      String(now.getDate()).padStart(2, '0')
+    // Strip characters that are illegal (or awkward) in a filename on any
+    // of the three platforms Magnolia ships for.
+    const safeName = (data.userName ?? '').trim().replace(/[\\/:*?"<>|]/g, '')
+    const prefix = safeName ? `${datePrefix}${safeName}` : datePrefix
+    let candidate = join(dir, `${prefix} ${base}.qdpx`)
+    let n = 2
+    while (existsSync(candidate)) {
+      candidate = join(dir, `${prefix} ${base} (${n}).qdpx`)
+      n++
+    }
+    try {
+      await writeQdpx(candidate, data.project, data.sourceContents, {
+        carryForwardFrom: data.currentFilePath,
+        resolveOverlay: getOverlayByHandle,
+        markPersisted,
+        dropLock: true
+      })
+    } catch (e) {
+      if (e instanceof EmptyProjectGuardError) {
+        console.warn('[create-project-copy guard]', e.message)
+        return { guardBlocked: true, message: e.message }
+      }
+      throw e
+    }
+    noteActiveProjectPath(candidate)
+    return candidate
+  })
+
   ipcMain.handle('open-project-path', async (event, filePath: string) => {
     const data = await readQdpx(filePath, (stage, current, total) => {
       event.sender.send('project-load-progress', { stage, current, total })

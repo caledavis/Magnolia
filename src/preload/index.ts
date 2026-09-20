@@ -31,6 +31,7 @@ const api: ElectronAPI = {
   readQdpxForCompare: (filePath: string) => ipcRenderer.invoke('read-qdpx-for-compare', filePath),
   saveProject: (data) => ipcRenderer.invoke('save-project', data),
   saveProjectAs: (data) => ipcRenderer.invoke('save-project-as', data),
+  createProjectCopy: (data) => ipcRenderer.invoke('create-project-copy', data),
   createNewProjectFile: () => ipcRenderer.invoke('create-new-project-file'),
   importTextFile: () => ipcRenderer.invoke('import-text-file'),
   readTextFiles: (filePaths: string[]) => ipcRenderer.invoke('read-text-files', filePaths),
