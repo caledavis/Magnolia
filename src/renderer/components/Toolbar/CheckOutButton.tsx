@@ -1,164 +1,48 @@
-import { useEffect, useState } from 'react'
-import { Icon, faClockArrowRight, faClockArrowLeft } from '../Icon'
+import { Icon, faExclamationTriangle } from '../Icon'
 import { useProjectStore } from '../../stores/project-store'
 import { usePreferencesStore } from '../../stores/preferences-store'
-import { useDocumentStore } from '../../stores/document-store'
-import { requestPreferencesCategory } from '../Preferences/PreferencesWindow'
-import { PREFERENCES_TAB_ID } from '../../utils/tab-ids'
-import { CheckoutConflictDialog } from '../CheckoutConflictDialog'
 
-type Status = 'none' | 'mine' | 'other'
-
-/** Rest-state background/color per status. `display: 'flex'` must stay set
- *  here even though .app-toolbar-btn's !important block overrides
- *  flex-direction/align-items/gap/padding/height ("compact button row",
- *  global.css) — that block never sets `display` itself, so without this
- *  the button isn't a flex container at all and those overrides become
- *  inert (every other toolbar button sets this inline for the same
- *  reason). Hover is a real CSS :hover rule scoped by the
- *  checkout-btn--<status> class (see global.css) rather than the
- *  onMouseEnter/onMouseLeave pattern used elsewhere in App.tsx, since
- *  this button's rest background is itself dynamic. */
-function checkoutBtnStyle(status: Status): React.CSSProperties {
-  const background = status === 'mine' ? 'var(--accent)' : status === 'other' ? 'var(--danger)' : 'transparent'
-  const color = status === 'none' ? 'var(--text-secondary)' : '#fff'
-  return {
-    display: 'flex',
-    border: 'none',
-    borderRadius: 'var(--radius-sm)',
-    background,
-    color,
-    lineHeight: 1,
-    transition: 'background 0.12s, color 0.12s'
-  }
-}
-
-/** Toolbar Check Out / Check In toggle. Icon direction encodes lock state
- *  (clock-arrow-right = available/checked out by someone, clock-arrow-left
- *  = checked out by you — click to check back in), color encodes who
- *  (accent = you, danger = someone else). Disabled until the project has
- *  been saved to a real file, since there's nothing to lock before then. */
-export function CheckOutButton(): JSX.Element {
-  const filePath = useProjectStore((s) => s.filePath)
+/** Toolbar checkout-lock alert. Checkout itself is now automatic (first
+ *  edit auto-claims the lock — see App.tsx's dirty-transition effect) and
+ *  enforced at the point of each mutating control (see
+ *  useCheckoutLockedBy in project-store.ts), so there's no manual Check
+ *  Out/Check In toggle anymore. This renders nothing unless someone ELSE
+ *  currently holds the lock — i.e. the local user does not have control,
+ *  whether because they opened onto an already-locked project or because
+ *  it was taken from them mid-edit. Click reopens the same Take Over /
+ *  Create a Copy / Cancel choice as App.tsx's shared CheckoutConflictDialog
+ *  (triggered via promptCheckoutConflict, same as every other locked
+ *  control) rather than owning a separate dialog instance here. */
+export function CheckOutButton(): JSX.Element | null {
   const marker = useProjectStore((s) => s.checkoutMarker)
-  const setCheckoutMarker = useProjectStore((s) => s.setCheckoutMarker)
+  const promptCheckoutConflict = useProjectStore((s) => s.promptCheckoutConflict)
   const userName = usePreferencesStore((s) => s.userName)
-  const prefsLoaded = usePreferencesStore((s) => s.loaded)
-  const loadPrefs = usePreferencesStore((s) => s.load)
-  const [confirming, setConfirming] = useState(false)
 
-  // Preferences are loaded lazily, on-demand, by whichever component needs
-  // them first (see AudioDocumentViewer/VideoDocumentViewer) — without this,
-  // userName would stay at its empty default all session unless Preferences
-  // or a media viewer happened to load it first.
-  useEffect(() => {
-    if (!prefsLoaded) loadPrefs()
-  }, [prefsLoaded, loadPrefs])
+  const lockedByOther = !!marker && marker.userName !== userName.trim()
+  if (!lockedByOther) return null
 
-  const myName = userName.trim()
-  const status: Status = !marker ? 'none' : marker.userName === myName ? 'mine' : 'other'
-  const disabled = !filePath
-
-  const promptForName = (): void => {
-    requestPreferencesCategory('general')
-    useDocumentStore.getState().openToolTab(PREFERENCES_TAB_ID)
-  }
-
-  const doCheckOut = async (): Promise<void> => {
-    if (!filePath || !myName) return
-    try {
-      const result = await window.api.checkOutProject(filePath, myName)
-      setCheckoutMarker(result)
-    } catch (err) {
-      console.error('[check-out] failed:', err)
-    }
-  }
-
-  const handleClick = (): void => {
-    if (disabled || !filePath) return
-    if (status === 'mine') {
-      window.api.checkInProject(filePath).catch((err) => console.error('[check-in] failed:', err))
-      setCheckoutMarker(null)
-      return
-    }
-    if (status === 'other') {
-      setConfirming(true)
-      return
-    }
-    if (!myName) {
-      promptForName()
-      return
-    }
-    doCheckOut()
-  }
-
-  const title =
-    status === 'mine'
-      ? 'Check in to allow others to now work on this project'
-      : status === 'other'
-        ? `Checked out by ${marker!.userName} since ${new Date(marker!.checkedOutAt).toLocaleString()} — click to check out anyway`
-        : 'Check out to prevent others from working on this project'
+  const title = `${marker!.userName} is working on this file since ${new Date(marker!.checkedOutAt).toLocaleString()} — you don't have control. Click to take over.`
 
   return (
-    <>
-      {/* Wrapper reserves layout width for the WIDER of the two labels
-          ("Check Out") via an invisible ghost, so toggling to the shorter
-          "Check In" changes only the real button's own width — never this
-          wrapper's — which is what stops the scrollable-middle button
-          group (centered via margin: 0 auto) from recentering/jumping
-          when this button's label changes. The real button is absolutely
-          positioned within it, centered on both axes so it isn't thrown
-          off by the wrapper's own .app-toolbar-pill padding (Icons mode).
-          Chromium excludes <button> from an ancestor's drag region
-          automatically, but the ghost is a plain <span> — not a button —
-          so it stays part of the toolbar's draggable background, and so
-          does any space the ghost reserves that the (narrower) real
-          button doesn't currently fill.
-          Also carries app-toolbar-pill + checkout-pill--<status>: in
-          Icons mode (global.css) the pill itself — not the button —
-          takes the status background, so Check Out reads as one
-          consistent pill like every other toolbar group rather than a
-          small colored square floating inside a plain pill; Icons and
-          Text mode leaves .app-toolbar-pill transparent (see that
-          block's own comment) and the button keeps its own coloring, as
-          before. */}
-      <div className={`app-toolbar-pill checkout-pill checkout-pill--${status}`} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-        <span aria-hidden="true" className="app-toolbar-btn" style={{ visibility: 'hidden', pointerEvents: 'none', display: 'flex' }}>
-          <Icon icon={faClockArrowRight} />
-          <span className="toolbar-label" style={{ whiteSpace: 'nowrap' }}>Check Out</span>
-        </span>
-        <button
-          className={`app-toolbar-btn checkout-btn checkout-btn--${status}`}
-          title={title}
-          aria-label={title}
-          disabled={disabled}
-          onClick={handleClick}
-          style={{
-            ...checkoutBtnStyle(status),
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            cursor: disabled ? 'default' : 'pointer',
-            opacity: disabled ? 0.4 : 1
-          }}
-        >
-          <Icon icon={status === 'mine' ? faClockArrowLeft : faClockArrowRight} />
-          <span className="toolbar-label" style={{ whiteSpace: 'nowrap' }}>
-            {status === 'mine' ? 'Check In' : 'Check Out'}
-          </span>
-        </button>
-      </div>
-      {confirming && marker && (
-        <CheckoutConflictDialog
-          marker={marker}
-          onDismiss={() => setConfirming(false)}
-          onOverride={async () => {
-            setConfirming(false)
-            await doCheckOut()
-          }}
-        />
-      )}
-    </>
+    <div className="app-toolbar-pill checkout-pill checkout-pill--other" style={{ display: 'flex', alignItems: 'center' }}>
+      <button
+        className="app-toolbar-btn checkout-btn checkout-btn--other"
+        title={title}
+        aria-label={title}
+        onClick={() => promptCheckoutConflict()}
+        style={{
+          display: 'flex',
+          border: 'none',
+          borderRadius: 'var(--radius-sm)',
+          background: 'var(--danger)',
+          color: '#fff',
+          lineHeight: 1,
+          transition: 'background 0.12s, color 0.12s'
+        }}
+      >
+        <Icon icon={faExclamationTriangle} />
+        <span className="toolbar-label" style={{ whiteSpace: 'nowrap' }}>Locked</span>
+      </button>
+    </div>
   )
 }

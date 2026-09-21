@@ -70,8 +70,20 @@ interface MergeReviewState {
   error: string | null
   approved: Record<FlatCategory, Set<string>>
   codingsApproved: Set<string>
+  /** True when this compare came from Steal Back (App.tsx's
+   *  handleStealBack) rather than the ordinary "Compare with a second
+   *  file" merge (handleMergeProject). Both diff the same two projects the
+   *  same way, but what "mine" MEANS differs: in a steal-back reconcile,
+   *  "mine" is this window's own not-yet-saved edits against the SAME
+   *  file's latest saved revision, not an independent parallel file — an
+   *  "onlyMine" item is uncommitted work-in-progress that belongs in the
+   *  outcome by default, not a symmetric "keep or discard?" choice the
+   *  way it is in a normal compare. MergeReviewWindow reads this to swap
+   *  the "onlyMine" bucket's label/framing accordingly — see
+   *  bucketLabel(). */
+  reconciling: boolean
 
-  openCompare: (filePath: string) => Promise<void>
+  openCompare: (filePath: string, opts?: { reconciling?: boolean }) => Promise<void>
   toggle: (category: FlatCategory, guid: string) => void
   toggleCoding: (key: string) => void
   /** Marks every given guid as approved for one category — used by the
@@ -99,8 +111,9 @@ export const useMergeReviewStore = create<MergeReviewState>((set, get) => ({
   error: null,
   approved: emptyApproved(),
   codingsApproved: new Set(),
+  reconciling: false,
 
-  openCompare: async (filePath: string) => {
+  openCompare: async (filePath, opts) => {
     set({ loading: true, error: null })
     try {
       const data = await window.api.readQdpxForCompare(filePath)
@@ -118,7 +131,8 @@ export const useMergeReviewStore = create<MergeReviewState>((set, get) => ({
         diff,
         loading: false,
         approved: emptyApproved(),
-        codingsApproved: new Set()
+        codingsApproved: new Set(),
+        reconciling: !!opts?.reconciling
       })
     } catch (err) {
       set({ loading: false, error: err instanceof Error ? err.message : String(err) })
@@ -159,6 +173,7 @@ export const useMergeReviewStore = create<MergeReviewState>((set, get) => ({
     loading: false,
     error: null,
     approved: emptyApproved(),
-    codingsApproved: new Set()
+    codingsApproved: new Set(),
+    reconciling: false
   })
 }))

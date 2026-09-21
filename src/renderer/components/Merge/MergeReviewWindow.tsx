@@ -3,6 +3,7 @@ import { useMergeReviewStore, collectCurrentProject, type FlatCategory } from '.
 import { applyMerge, emptyApplyPlan, type ApplyPlan } from '../../utils/project-diff-apply'
 import type { DiffItem, MergeDiff, CodeDiffItem, SavedAnalysisDiffItem, CodingInstance } from '../../utils/project-diff'
 import { useProjectStore } from '../../stores/project-store'
+import { usePreferencesStore } from '../../stores/preferences-store'
 import { useDocumentStore } from '../../stores/document-store'
 import { useCodeStore } from '../../stores/code-store'
 import { getContext, codepointSlice } from '../../utils/unicode'
@@ -45,10 +46,37 @@ function theirsPossessive(comparisonEditedBy: string | null): string {
   return name ? `${name}’s` : 'theirs'
 }
 
-function bucketLabel(bucket: DiffItem<unknown>['bucket'], comparisonEditedBy: string | null): string {
+/** `reconciling` (Steal Back's compare — see merge-review-store.ts's own
+ *  doc on the field) reframes the "onlyMine" bucket: those items are this
+ *  window's own not-yet-saved edits against the SAME file's latest saved
+ *  revision, already destined to be part of the outcome by default —
+ *  not, as in an ordinary two-file compare, an arbitrary "keep or
+ *  discard?" choice. The underlying mechanics are identical either way
+ *  (unchecked onlyMine items are always kept, checking one still removes
+ *  it — see applyCodeChanges/spliceByGuid), only the label changes, so
+ *  there's no risk of a reconciling user reading "check to remove" as
+ *  "check to keep" and deleting the very edit they're trying to save. */
+function bucketLabel(bucket: DiffItem<unknown>['bucket'], comparisonEditedBy: string | null, reconciling: boolean): string {
   const theirs = theirsPossessive(comparisonEditedBy)
-  if (bucket === 'onlyMine') return 'Only in mine — check to remove'
-  if (bucket === 'onlyTheirs') return `Only in ${theirs} — check to add`
+  if (bucket === 'onlyMine') {
+    // Checked always means "this will be in the result" — same rule as
+    // onlyTheirs below, not the opposite of it. onlyMine items are kept
+    // by default (checked, matching what actually happens if you leave
+    // them alone), and UNCHECKING is the action that discards one — see
+    // FlatCategoryPane/CodingsPane's isKept() for the display-only
+    // inversion this label describes (the underlying approved-set/apply
+    // logic is unchanged: checking the box still adds the item's own
+    // guid to that category's approved set, same mechanism as always —
+    // only the checkbox's checked/unchecked meaning was inverted).
+    return reconciling
+      ? 'Your unsaved change — kept; uncheck to discard it instead'
+      : 'Only in mine — kept; uncheck to remove'
+  }
+  if (bucket === 'onlyTheirs') {
+    return reconciling
+      ? `${theirs} change since you lost control — check to add`
+      : `Only in ${theirs} — check to add`
+  }
   return `Differs — check to take ${theirs} version`
 }
 
@@ -143,24 +171,34 @@ function FlatCategoryPane({ category, diff }: { category: FlatCategory; diff: Me
   const approved = useMergeReviewStore((s) => s.approved[category])
   const toggle = useMergeReviewStore((s) => s.toggle)
   const comparisonEditedBy = useMergeReviewStore((s) => s.comparisonEditedBy)
+  const reconciling = useMergeReviewStore((s) => s.reconciling)
   const theirs = theirsPossessive(comparisonEditedBy)
   const items = (diff as any)[category] as DiffItem<any>[]
   const onlyMine = items.filter((i) => i.bucket === 'onlyMine')
   const onlyTheirs = items.filter((i) => i.bucket === 'onlyTheirs')
   const bothDiffer = items.filter((i) => i.bucket === 'bothDiffer')
-  const isChecked = (item: DiffItem<any>) => approved.has(item.guid)
+  // Checked always means "this will be in the final result" — for
+  // onlyTheirs/bothDiffer that's raw set membership (checking adds the
+  // guid, which IS the approve-to-include action), but for onlyMine the
+  // set instead tracks approve-to-REMOVE, so checked/kept is the
+  // ABSENCE of the guid from that set. onToggle still just flips set
+  // membership either way — buildApplyPlan/applyMerge (project-diff-
+  // apply.ts) read that same set exactly as before, so what an approved
+  // onlyMine guid actually does (remove it) is unchanged; only which
+  // checkbox state displays as "checked" is inverted here.
+  const isChecked = (item: DiffItem<any>) => item.bucket === 'onlyMine' ? !approved.has(item.guid) : approved.has(item.guid)
   const onToggle = (item: DiffItem<any>) => toggle(category, item.guid)
   const describe = (item: DiffItem<any>): React.ReactNode => (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
       {describeItem(category, item)}
-      <span style={{ color: 'var(--text-muted)' }}>— {bucketLabel(item.bucket, comparisonEditedBy)}</span>
+      <span style={{ color: 'var(--text-muted)' }}>— {bucketLabel(item.bucket, comparisonEditedBy, reconciling)}</span>
     </span>
   )
   return (
     <div>
       <BucketSection title={`Only in ${theirs}`} items={onlyTheirs} isChecked={isChecked} onToggle={onToggle} describe={describe} />
       <BucketSection title="Differs" items={bothDiffer} isChecked={isChecked} onToggle={onToggle} describe={describe} />
-      <BucketSection title="Only in mine" items={onlyMine} isChecked={isChecked} onToggle={onToggle} describe={describe} />
+      <BucketSection title={reconciling ? 'Your unsaved changes' : 'Only in mine'} items={onlyMine} isChecked={isChecked} onToggle={onToggle} describe={describe} />
     </div>
   )
 }
@@ -331,6 +369,7 @@ function CodingsPane({ diff }: { diff: MergeDiff }): JSX.Element {
   const approved = useMergeReviewStore((s) => s.codingsApproved)
   const toggleCoding = useMergeReviewStore((s) => s.toggleCoding)
   const comparisonEditedBy = useMergeReviewStore((s) => s.comparisonEditedBy)
+  const reconciling = useMergeReviewStore((s) => s.reconciling)
   const theirs = theirsPossessive(comparisonEditedBy)
   const findCode = useFindCode()
   if (diff.codings.length === 0) return <p style={{ color: 'var(--text-muted)', fontSize: 12.5 }}>No coding differences.</p>
@@ -359,7 +398,7 @@ function CodingsPane({ diff }: { diff: MergeDiff }): JSX.Element {
                   <CheckboxRow
                     checked={approved.has(key)}
                     onChange={() => toggleCoding(key)}
-                    label={<CodingLabel code={code} suffix={`only in ${theirs}, check to add`} />}
+                    label={<CodingLabel code={code} suffix={reconciling ? `${theirs} coding since you lost control, check to add` : `only in ${theirs}, check to add`} />}
                   />
                   <div style={{ marginLeft: 22 }}>
                     <CodingPreview sourceGuid={c.sourceGuid} instance={inst} findCode={findCode} />
@@ -373,9 +412,13 @@ function CodingsPane({ diff }: { diff: MergeDiff }): JSX.Element {
               return (
                 <div key={key} style={{ padding: '4px 0', borderBottom: '1px solid var(--border-color)' }}>
                   <CheckboxRow
-                    checked={approved.has(key)}
+                    // Inverted display, same as FlatCategoryPane's onlyMine
+                    // bucket — checked means "kept" everywhere in this tool
+                    // now, and this key still tracks approve-to-REMOVE
+                    // underneath (buildApplyPlan reads it unchanged).
+                    checked={!approved.has(key)}
                     onChange={() => toggleCoding(key)}
-                    label={<CodingLabel code={code} suffix="only in mine, check to remove" />}
+                    label={<CodingLabel code={code} suffix={reconciling ? 'your unsaved coding, kept — uncheck to discard it instead' : 'only in mine, kept — uncheck to remove'} />}
                   />
                   <div style={{ marginLeft: 22 }}>
                     <CodingPreview sourceGuid={c.sourceGuid} instance={inst} findCode={findCode} />
@@ -427,10 +470,17 @@ function totalApprovedCount(approved: Record<FlatCategory, Set<string>>, codings
   return Object.values(approved).reduce((sum, s) => sum + s.size, 0) + codingsApproved.size
 }
 
-/** Every selectable guid/key for one category, in the exact same shape
- *  its approved-set uses — for "Select All". Mirrors categoryCount's
- *  counting logic so the two always agree on what "all" means. */
-function allKeysForCategory(id: FlatCategory | 'codings', diff: MergeDiff): string[] {
+/** Keys that display every item in one category/codings pane as CHECKED
+ *  ("everything kept") — for "Select All". onlyMine's checkbox is shown
+ *  inverted (checked = its guid is ABSENT from the approved set — see
+ *  isChecked in FlatCategoryPane and the checked prop in CodingsPane), so
+ *  unlike onlyTheirs/bothDiffer this deliberately EXCLUDES onlyMine
+ *  guids/keys rather than including them — including them would mark
+ *  them for removal, displaying as unchecked, the opposite of what
+ *  "Select All" should show. documentText and coarse-coding items were
+ *  never inverted (each is a single "take theirs" toggle, no separate
+ *  mine/theirs buckets), so they're included exactly as before. */
+function keysForSelectAll(id: FlatCategory | 'codings' | 'documentText', diff: MergeDiff): string[] {
   if (id === 'codings') {
     const keys: string[] = []
     for (const c of diff.codings) {
@@ -438,17 +488,37 @@ function allKeysForCategory(id: FlatCategory | 'codings', diff: MergeDiff): stri
         keys.push(`coarse::${c.sourceGuid}`)
       } else {
         ;(c.onlyTheirs ?? []).forEach((_, i) => keys.push(`add::${c.sourceGuid}::${i}`))
-        ;(c.onlyMine ?? []).forEach((_, i) => keys.push(`remove::${c.sourceGuid}::${i}`))
       }
     }
     return keys
   }
   if (id === 'documentText') return diff.documentText.map((d) => d.sourceGuid)
-  return ((diff as any)[id] as DiffItem<any>[]).map((i) => i.guid)
+  const items = (diff as any)[id] as DiffItem<any>[]
+  return items.filter((i) => i.bucket !== 'onlyMine').map((i) => i.guid)
+}
+
+/** The mirror image of keysForSelectAll, for "Deselect All" — displays
+ *  every item as UNCHECKED. onlyMine guids/keys are the ones INCLUDED
+ *  here (marking them for removal is what shows as unchecked under the
+ *  inverted display), while onlyTheirs/bothDiffer/documentText/coarse are
+ *  excluded (absent = not added = unchecked, same as before). */
+function keysForDeselectAll(id: FlatCategory | 'codings' | 'documentText', diff: MergeDiff): string[] {
+  if (id === 'codings') {
+    const keys: string[] = []
+    for (const c of diff.codings) {
+      if (!c.coarse) {
+        ;(c.onlyMine ?? []).forEach((_, i) => keys.push(`remove::${c.sourceGuid}::${i}`))
+      }
+    }
+    return keys
+  }
+  if (id === 'documentText') return []
+  const items = (diff as any)[id] as DiffItem<any>[]
+  return items.filter((i) => i.bucket === 'onlyMine').map((i) => i.guid)
 }
 
 export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Element {
-  const { diff, loading, error, comparisonFilePath, comparisonEditedBy, approved, codingsApproved } = useMergeReviewStore()
+  const { diff, loading, error, comparisonFilePath, comparisonEditedBy, approved, codingsApproved, reconciling } = useMergeReviewStore()
   const reset = useMergeReviewStore((s) => s.reset)
   const [selected, setSelected] = useState<'codings' | 'documentText' | FlatCategory>('codes')
   const [applied, setApplied] = useState<number | null>(null)
@@ -468,20 +538,21 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
   }
 
   // Scoped to whichever category is currently active in the sidebar —
-  // selecting all in "Codes" never touches "Memos", etc. Deselect reuses
-  // the same actions with an empty list rather than needing its own.
+  // selecting all in "Codes" never touches "Memos", etc.
   const handleSelectAll = (): void => {
     if (!diff) return
     const store = useMergeReviewStore.getState()
-    const keys = allKeysForCategory(selected, diff)
+    const keys = keysForSelectAll(selected, diff)
     if (selected === 'codings') store.selectAllCodings(keys)
     else store.selectAll(selected as FlatCategory, keys)
   }
 
   const handleDeselectAll = (): void => {
+    if (!diff) return
     const store = useMergeReviewStore.getState()
-    if (selected === 'codings') store.selectAllCodings([])
-    else store.selectAll(selected as FlatCategory, [])
+    const keys = keysForDeselectAll(selected, diff)
+    if (selected === 'codings') store.selectAllCodings(keys)
+    else store.selectAll(selected as FlatCategory, keys)
   }
 
   // Mirrors App.tsx's handleSaveProject (main-process save + dirty-flag
@@ -496,13 +567,38 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
     try {
       const ps = useProjectStore.getState()
       const ds = useDocumentStore.getState()
+      const myName = usePreferencesStore.getState().userName.trim()
+      // Re-take the lock before saving, unconditionally: reconciling a
+      // merge IS the deliberate override, whether this tab was reached via
+      // Steal Back (which already re-stole once, before merge review
+      // began — this just re-confirms it's still held) or the manual
+      // Merge button. Without this, the save-time staleness check below
+      // could reject a save whose whole purpose was to resolve exactly
+      // that conflict.
+      if (ps.filePath && myName) {
+        try {
+          const stolen = await window.api.checkOutProject(ps.filePath, myName, true)
+          ps.setCheckoutMarker(stolen.marker)
+        } catch (err) {
+          console.error('[merge save] re-checkout failed:', err)
+        }
+      }
       const result = await window.api.saveProject({
         project: collectCurrentProject(),
         sourceContents: ds.sourceContents,
-        filePath: ps.filePath ?? undefined
+        filePath: ps.filePath ?? undefined,
+        userName: myName || undefined
       })
       if (result && typeof result === 'object' && 'guardBlocked' in result) {
         setSaveError((result as { message: string }).message)
+        setSaving(false)
+        return
+      }
+      if (result && typeof result === 'object' && 'conflict' in result) {
+        // Should be unreachable given the unconditional re-steal above —
+        // kept as a hard backstop against ever silently overwriting
+        // someone else's saved changes if that assumption ever breaks.
+        setSaveError(`${(result as { marker: { userName: string } }).marker.userName} has checked this file out — try Save & Close again to retake it.`)
         setSaving(false)
         return
       }
@@ -561,7 +657,9 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
       <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 12, height: '100%' }}>
         <h2 style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>Merge applied</h2>
         <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-          {applied} change{applied === 1 ? '' : 's'} applied to this project. Save to write them to disk.
+          {applied === 0 && reconciling
+            ? 'Nothing else to reconcile — your unsaved changes are kept as-is. Save to write them to disk.'
+            : `${applied} change${applied === 1 ? '' : 's'} applied to this project. Save to write them to disk.`}
         </p>
         {saveError && (
           <p style={{ fontSize: 12.5, color: 'var(--danger)' }}>Couldn’t save: {saveError}</p>
@@ -579,11 +677,25 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
     return FLAT_CATEGORIES.find((c) => c.id === id)!.count(diff)
   }
 
-  // "Reviewed" = checked/approved so far — the only review state this
-  // screen tracks (there's no separate "seen but left unchecked" marker).
+  // "Reviewed" = checked/kept so far — the only review state this screen
+  // tracks (there's no separate "seen but left unchecked" marker). Must
+  // count what's actually displayed as checked, same as isChecked in
+  // FlatCategoryPane/the checked prop in CodingsPane — raw approved-set
+  // size undercounts once onlyMine's checkbox is inverted (a kept
+  // onlyMine item is CHECKED but deliberately absent from the set).
   const approvedCount = (id: FlatCategory | 'codings' | 'documentText'): number => {
-    if (id === 'codings') return codingsApproved.size
-    return approved[id as FlatCategory].size
+    if (id === 'codings') {
+      return diff.codings.reduce((n, c) => {
+        if (c.coarse) return n + (codingsApproved.has(`coarse::${c.sourceGuid}`) ? 1 : 0)
+        const addChecked = (c.onlyTheirs ?? []).filter((_, i) => codingsApproved.has(`add::${c.sourceGuid}::${i}`)).length
+        const removeChecked = (c.onlyMine ?? []).filter((_, i) => !codingsApproved.has(`remove::${c.sourceGuid}::${i}`)).length
+        return n + addChecked + removeChecked
+      }, 0)
+    }
+    if (id === 'documentText') return approved.documentText.size
+    const items = (diff as any)[id] as DiffItem<any>[]
+    const approvedSet = approved[id as FlatCategory]
+    return items.filter((i) => i.bucket === 'onlyMine' ? !approvedSet.has(i.guid) : approvedSet.has(i.guid)).length
   }
 
   const allCategories: { id: FlatCategory | 'codings' | 'documentText'; label: string }[] = [
@@ -649,9 +761,33 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
 
       <div className="modal-actions" style={{ padding: '12px 20px', borderTop: '1px solid var(--border-color)', margin: 0 }}>
         <button className="secondary" onClick={handleClose}>Cancel</button>
-        <button onClick={handleApply} disabled={totalApproved === 0}>
-          Apply {totalApproved > 0 ? `${totalApproved} ` : ''}Approved Change{totalApproved === 1 ? '' : 's'}
-        </button>
+        {/* Reconciling (Steal Back's compare): 0 approved is a normal,
+            often-correct outcome — everything unique to mine is kept by
+            default, so there may genuinely be nothing to check. Disabling
+            the only forward button at 0, like the ordinary compare-two-
+            files flow does, would leave the user with no way to reach the
+            Save screen at all. "Continue" (not "Apply") because this step
+            still only applies the plan to in-memory stores — the actual
+            disk write happens from the next screen's Save button, same as
+            every other path through here.
+            No count on this button, unlike the non-reconciling one below:
+            totalApproved is raw approved-set size, which only counts real
+            mutations (an onlyTheirs item added, an onlyMine item removed)
+            — a kept onlyMine item is CHECKED but deliberately excluded
+            from that set (see isChecked), so it never contributes. That's
+            correct for what will actually be written, but it can't ever
+            be reconciled with the sidebar's "reviewed" badges, which count
+            checked items — showing a number here that disagrees with what
+            the checkboxes plainly show reads as broken. Simpler to just
+            not assert a number that two different (both individually
+            correct) ways of counting will routinely disagree on. */}
+        {reconciling ? (
+          <button onClick={handleApply}>Continue</button>
+        ) : (
+          <button onClick={handleApply} disabled={totalApproved === 0}>
+            Apply {totalApproved > 0 ? `${totalApproved} ` : ''}Approved Change{totalApproved === 1 ? '' : 's'}
+          </button>
+        )}
       </div>
     </div>
   )

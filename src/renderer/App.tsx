@@ -52,7 +52,7 @@ function flattenCodesWithParent(
   }
   return result
 }
-import { useProjectStore } from './stores/project-store'
+import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from './stores/project-store'
 import { usePreferencesStore } from './stores/preferences-store'
 import { useMergeReviewStore } from './stores/merge-review-store'
 import { useDocumentStore, surveyEntityKey } from './stores/document-store'
@@ -71,6 +71,7 @@ import { requestPreferencesCategory } from './components/Preferences/Preferences
 import type { PersistedTab, PersistedTabState, MissingBinary, CheckoutMarker } from './models/types'
 import { MissingBinariesBanner } from './components/MissingBinariesBanner'
 import { CheckoutConflictDialog } from './components/CheckoutConflictDialog'
+import { StealBackDialog } from './components/StealBackDialog'
 import { NameGateOverlay } from './components/NameGateOverlay'
 import { CheckOutButton } from './components/Toolbar/CheckOutButton'
 // ES import so Vite bundles + hashes the Magnolia toolbar icon for production.
@@ -265,9 +266,21 @@ function App() {
   // drives the re-import banner so the user can repair the project.
   const [missingBinaries, setMissingBinaries] = useState<MissingBinary[]>([])
   const [updateInfo, setUpdateInfo] = useState<UpdateAvailableInfo | null>(null)
-  // Someone else's checkout marker found on a just-opened project — shown as
-  // an informational warning; read/edit access is never blocked by it.
-  const [checkoutConflict, setCheckoutConflict] = useState<CheckoutMarker | null>(null)
+  // Someone else's checkout marker found on a just-opened project, hit by a
+  // first-edit auto-checkout attempt that lost the race, or clicked into
+  // from any mutating control app-wide — see project-store.ts's
+  // promptCheckoutConflict, which every panel calls directly rather than
+  // this being threaded through props. Reading/browsing is unaffected
+  // either way; only mutation is gated on resolving this dialog.
+  const checkoutConflict = useProjectStore((s) => s.checkoutConflictMarker)
+  const setCheckoutConflict = useProjectStore((s) => s.promptCheckoutConflict)
+  const dismissCheckoutConflict = useProjectStore((s) => s.dismissCheckoutConflict)
+  // A save was refused because someone else now holds the lock (they stole
+  // it, or won a check-out race, since this window last synced with the
+  // lock). Distinct from checkoutConflict: this always has real unsaved
+  // local edits behind it, so its resolution path (Merge, not reload) is
+  // different — see StealBackDialog.
+  const [stealBackConflict, setStealBackConflict] = useState<CheckoutMarker | null>(null)
 
   useEffect(() => {
     return window.api.onProjectLoadProgress((p) => setLoadProgress(p))
@@ -370,6 +383,19 @@ function App() {
   // dimmed and made non-interactive while the Merge tab is open (same
   // dim-and-disable treatment as the two cases above).
   const mergeActive = isMergeTab(documentStore.viewedDocumentGuid)
+  // Enforced checkout lock: someone else's marker is on the project, so
+  // mutating actions are blocked (not just warned about) until the user
+  // takes over or works on a copy via the conflict dialog. Unlike
+  // mergeActive/reportsToolActive/queryBuilderActive above, this does NOT
+  // blanket-dim whole panels — reading/browsing must stay available no
+  // matter who holds the lock (that's the entire point of triggering the
+  // lock on first EDIT rather than on open). Instead, individual mutating
+  // controls (Import, New Code, New Memo, delete/rename, drag-to-code,
+  // etc.) check this directly — see useCheckoutLockedBy, which every
+  // component below reads independently rather than threading this value
+  // through props.
+  const checkoutLockedBy = useCheckoutLockedBy()
+  const checkoutLocked = !!checkoutLockedBy
   const logbookStore = useLogbookStore()
   const memoStore = useMemoStore()
 
@@ -685,11 +711,15 @@ function App() {
     const outgoingPath = projectStore.filePath
     if (projectStore.isDirty && outgoingPath && outgoingPath !== filePath) {
       try {
-        await window.api.saveProject({
+        const result = await window.api.saveProject({
           project: collectProject(),
           sourceContents: documentStore.sourceContents,
-          filePath: outgoingPath
+          filePath: outgoingPath,
+          userName: usePreferencesStore.getState().userName.trim() || undefined
         })
+        if (result && typeof result === 'object' && (result as any).conflict) {
+          console.warn('[pre-new-project flush] save refused — locked by', (result as any).marker?.userName)
+        }
       } catch (err) {
         console.error('Pre-new-project flush failed:', err)
       }
@@ -718,8 +748,10 @@ function App() {
   }, [projectStore, documentStore, codeStore, tagStore, queryStore, logbookStore, memoStore, collectProject, cancelPendingAutoSave])
 
   // Apply the checkout marker an open just returned, and surface the
-  // informational conflict dialog if someone else currently holds it.
-  // Read/edit access is never blocked — this is purely a heads-up.
+  // conflict dialog if someone else currently holds it. Reading/browsing
+  // is never blocked, but this dialog is the first chance to Take Over,
+  // Work on a Copy, or just continue read-only — mutating controls stay
+  // gated (see useCheckoutLockedBy) until one of those is resolved.
   const applyCheckoutInfo = useCallback((data: any) => {
     const marker: CheckoutMarker | null = data?.checkoutInfo ?? null
     useProjectStore.getState().setCheckoutMarker(marker)
@@ -844,7 +876,32 @@ function App() {
     if (!isProjectPayloadEmpty(collectProject())) everHadDataRef.current = true
   }, [collectProject, isProjectPayloadEmpty])
 
+  // Set by the auto-checkout-on-first-edit effect (further down) for the
+  // duration of its own checkOutProject call, cleared when it resolves.
+  // handleSaveProject awaits this before doing anything else — see its
+  // own comment on why. Declared here (rather than next to the effect
+  // that sets it) so it's in scope above handleSaveProject's definition.
+  const pendingAutoCheckOutRef = useRef<Promise<void> | null>(null)
+
   const handleSaveProject = useCallback(async () => {
+    // A save can fire from multiple independent triggers for the exact
+    // same edit — the debounced autosave timer, or a manual Cmd+S the
+    // user happens to hit right after editing — and neither one waits on
+    // the other. If the auto-checkout-on-first-edit effect (below) is
+    // still mid-flight for this same edit, its own writeCheckoutMarker
+    // call and THIS save's writeQdpx call are both read-modify-write
+    // operations on the same file; if the save's read happens to land
+    // before the checkout's write commits, the save carries forward a
+    // lock-less snapshot and overwrites the file with it moments later —
+    // silently erasing the checkout the user just successfully claimed,
+    // even though writeQdpx now re-reads as late as possible (writer.ts).
+    // That narrowed the race window but didn't close it: on fast
+    // hardware, a lock-only write and a full content save can complete
+    // within a similar few-tens-of-milliseconds window of each other, so
+    // narrowing isn't enough — waiting for the specific in-flight claim
+    // this same edit triggered is. Once claimed (or the claim fails),
+    // this proceeds exactly as before.
+    if (pendingAutoCheckOutRef.current) await pendingAutoCheckOutRef.current
     // Skip saves while a project open is in progress. A 2-second autosave
     // timer scheduled before the user clicked Open Recent can otherwise
     // fire mid-load, when one store has been reset for the incoming
@@ -854,6 +911,17 @@ function App() {
       console.warn('[save-project guard] skipping save during project load')
       return
     }
+    // Captured before the save, not read again after: a brand-new
+    // project has no filePath yet, so auto-checkout's clean→dirty trigger
+    // (App.tsx's own effect, further down) fires as a no-op while editing
+    // it — there's nothing to lock before it's saved anywhere. By the
+    // time THIS save gives it a filePath, the project is clean again (see
+    // markClean below), and nothing re-fires that trigger — so without
+    // the claim-checkout call after a first save, the project's creator
+    // would never actually hold the lock, leaving it wide open for
+    // whoever edits it next (even a different user) to claim silently,
+    // with no conflict prompt to either side.
+    const hadFilePath = !!projectStore.filePath
     const project = collectProject()
     // Renderer-side safety guard: refuse to overwrite an existing file on
     // disk with an all-empty payload when we've previously seen data in
@@ -868,8 +936,25 @@ function App() {
     const result = await window.api.saveProject({
       project,
       sourceContents: documentStore.sourceContents,
-      filePath: projectStore.filePath ?? undefined
+      filePath: projectStore.filePath ?? undefined,
+      userName: usePreferencesStore.getState().userName.trim() || undefined
     })
+    if (result && typeof result === 'object' && (result as any).conflict) {
+      // Someone else now holds the lock — refused rather than blindly
+      // overwriting their already-saved changes. Route to Steal Back
+      // (Merge) or Work on a Copy instead of losing either side's edits.
+      // Also update checkoutMarker itself (not just the dialog's own
+      // stealBackConflict state) to the actual new holder — this is what
+      // drives the toolbar's "you don't have control" alert
+      // (CheckOutButton reads checkoutMarker directly), so the alert
+      // appears the instant the conflict is detected, and stays up if the
+      // user dismisses the dialog without resolving it (dismissing only
+      // clears stealBackConflict, same as CheckoutConflictDialog's Cancel
+      // — the lock itself, and thus the alert, is unaffected either way).
+      useProjectStore.getState().setCheckoutMarker((result as any).marker)
+      setStealBackConflict((result as any).marker)
+      return
+    }
     if (result && typeof result === 'object' && (result as any).guardBlocked) {
       console.warn('[save-project guard]', (result as any).message)
       return
@@ -882,6 +967,17 @@ function App() {
       // longer depends on the in-memory import overlay surviving.
       documentStore.promoteImportedBinariesToArchive()
       window.api.trackRecentProject(projectStore.name, result)
+      if (!hadFilePath) {
+        const myName = usePreferencesStore.getState().userName.trim()
+        if (myName) {
+          try {
+            const checkout = await window.api.checkOutProject(result, myName)
+            useProjectStore.getState().setCheckoutMarker(checkout.marker)
+          } catch (err) {
+            console.error('[first-save check-out] failed:', err)
+          }
+        }
+      }
     }
   }, [collectProject, documentStore, projectStore, isProjectPayloadEmpty])
 
@@ -901,6 +997,26 @@ function App() {
       projectStore.markClean()
       documentStore.promoteImportedBinariesToArchive()
       window.api.trackRecentProject(projectStore.name, result)
+      // Save As always targets a fresh destination path, so — same
+      // reasoning as handleSaveProject's first-save claim — there's no
+      // "clean→dirty while a filePath already existed" moment for
+      // auto-checkout to have fired against THIS path. Unconditional
+      // (not gated on the old filePath being unset): even Save-As-ing an
+      // existing project writes a new file at a new path that's never
+      // been locked. Plain checkOutProject (no steal) is still safe to
+      // call unconditionally — it's the same atomic check-and-set used
+      // everywhere else, so it simply gets rejected rather than
+      // clobbering anything in the unlikely case this path already has
+      // someone else's marker on it.
+      const myName = usePreferencesStore.getState().userName.trim()
+      if (myName) {
+        try {
+          const checkout = await window.api.checkOutProject(result, myName)
+          useProjectStore.getState().setCheckoutMarker(checkout.marker)
+        } catch (err) {
+          console.error('[save-as check-out] failed:', err)
+        }
+      }
     }
   }, [collectProject, documentStore, projectStore])
 
@@ -913,19 +1029,44 @@ function App() {
     if (!filePath) return
     const myName = usePreferencesStore.getState().userName.trim()
     if (!myName) {
-      setCheckoutConflict(null)
+      dismissCheckoutConflict()
+      setStealBackConflict(null)
       requestPreferencesCategory('general')
       useDocumentStore.getState().openToolTab(PREFERENCES_TAB_ID)
       return
     }
     try {
-      const result = await window.api.checkOutProject(filePath, myName)
-      useProjectStore.getState().setCheckoutMarker(result)
+      // Explicit override from the conflict dialog — steal through.
+      const result = await window.api.checkOutProject(filePath, myName, true)
+      useProjectStore.getState().setCheckoutMarker(result.marker)
     } catch (err) {
       console.error('[check-out] failed:', err)
     }
-    setCheckoutConflict(null)
-  }, [projectStore.filePath])
+    // Clear both conflict-dialog states, not just this one's own — see
+    // handleStealBack's comment on why "only one is ever set" doesn't hold.
+    dismissCheckoutConflict()
+    setStealBackConflict(null)
+    // This dialog covers two different situations that share the same
+    // "someone else holds it" shape but NOT the same risk: opening onto an
+    // already-locked project (nothing edited yet — mine and theirs are
+    // identical, so stealing is a no-op reconciliation-wise) vs. an edit
+    // attempt that lost the race or got blocked by markDirty's backstop
+    // (isDirty true — this window's in-memory state has genuinely
+    // diverged from whatever's on disk, which may include the other
+    // person's own saved changes). Silently stealing and returning to the
+    // editor in the second case is exactly the bug this whole feature
+    // exists to prevent: the NEXT save would now pass the lock-ownership
+    // check (we hold it again) and blindly overwrite their saved work,
+    // since nothing here ever compared the two. So when there's real
+    // unsaved work at stake, route through Merge instead — same as
+    // handleStealBack — so the user reconciles before anything gets
+    // written to disk. Only skip it when isDirty is false: a fresh-open
+    // steal has nothing to reconcile.
+    if (useProjectStore.getState().isDirty) {
+      useDocumentStore.getState().openToolTab(MERGE_TAB_ID)
+      await useMergeReviewStore.getState().openCompare(filePath, { reconciling: true })
+    }
+  }, [projectStore.filePath, dismissCheckoutConflict])
 
   // "Create a Copy" from the checkout-conflict dialog: an unattended
   // duplicate of the just-opened project, written next to the original and
@@ -943,7 +1084,8 @@ function App() {
     })
     if (result && typeof result === 'object' && (result as any).guardBlocked) {
       console.warn('[create-project-copy guard]', (result as any).message)
-      setCheckoutConflict(null)
+      dismissCheckoutConflict()
+      setStealBackConflict(null)
       return
     }
     if (typeof result === 'string') {
@@ -957,8 +1099,47 @@ function App() {
       documentStore.promoteImportedBinariesToArchive()
       window.api.trackRecentProject(projectStore.name, result)
     }
-    setCheckoutConflict(null)
-  }, [collectProject, documentStore, projectStore])
+    // Clear both conflict-dialog states unconditionally — reused by both
+    // CheckoutConflictDialog (open-time) and StealBackDialog (save-time).
+    // They're NOT mutually exclusive: e.g. losing control, then attempting
+    // an edit (opens CheckoutConflictDialog) without dismissing it before
+    // an autosave independently hits the same lock and gets refused (opens
+    // StealBackDialog) leaves both set at once. Clearing only "the one that
+    // led here" would leave the other dialog rendered on top of whatever
+    // comes next (e.g. Merge, from handleStealBack) with no way to dismiss it.
+    dismissCheckoutConflict()
+    setStealBackConflict(null)
+  }, [collectProject, documentStore, projectStore, dismissCheckoutConflict])
+
+  // "Steal Back" from StealBackDialog: a save was refused because someone
+  // else now holds the lock. Re-take it (steal — this IS the deliberate
+  // override path) so no third party can grab it mid-reconciliation, then
+  // open Merge comparing the current on-disk version (their now-saved
+  // changes) against this window's still-unsaved in-memory edits.
+  // Deliberately does NOT reload/replace project state here — that would
+  // discard the very edits the user is trying to save, recreating the
+  // silent-loss bug this whole flow exists to prevent. The user reconciles
+  // in the Merge tab and saves from there when ready.
+  const handleStealBack = useCallback(async () => {
+    const filePath = projectStore.filePath
+    const myName = usePreferencesStore.getState().userName.trim()
+    // Clear both conflict-dialog states, not just this one's own — see
+    // handleWorkOnCopy's comment on why "only one is ever set" doesn't hold.
+    // Without this, a still-open CheckoutConflictDialog from an earlier
+    // blocked edit would keep rendering on top of the Merge tool this opens
+    // below, blocking interaction with it.
+    setStealBackConflict(null)
+    dismissCheckoutConflict()
+    if (!filePath || !myName) return
+    try {
+      const result = await window.api.checkOutProject(filePath, myName, true)
+      useProjectStore.getState().setCheckoutMarker(result.marker)
+    } catch (err) {
+      console.error('[steal-back] failed:', err)
+    }
+    useDocumentStore.getState().openToolTab(MERGE_TAB_ID)
+    await useMergeReviewStore.getState().openCompare(filePath, { reconciling: true })
+  }, [projectStore.filePath, dismissCheckoutConflict])
 
   // Suppress the post-load auto-save burst: while a project open is in
   // progress, or for a short grace period after it completes, skip the
@@ -966,12 +1147,37 @@ function App() {
   // load from writing mid-populated state back to disk. The autoSaveTimer
   // ref is declared above (next to cancelPendingAutoSave) so load handlers
   // can null in-flight timers the moment a load starts.
+  //
+  // Also skipped entirely while checkoutLockedBy is set: isDirty can stay
+  // true across losing control (it was already true from before, or the
+  // markDirty backstop lets an approved merge-apply flip it) — retrying a
+  // save every 2 seconds against a lock we know we don't hold would just
+  // fail the same way every time and reopen StealBackDialog on a timer,
+  // regardless of the user having just dismissed it (this is what made
+  // Cancel feel like it "did nothing" — a new autosave tick reopened the
+  // dialog moments later). checkoutLockedBy is in the dependency array so
+  // the moment it changes — lock taken, or regained via Take Over — this
+  // effect's cleanup cancels any stale timer and, if now unlocked,
+  // schedules a fresh one.
   useEffect(() => {
     if (loadInProgressRef.current) return
+    if (checkoutLockedBy) return
     if (projectStore.isDirty && projectStore.filePath) {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
       autoSaveTimer.current = setTimeout(() => {
         autoSaveTimer.current = null
+        // Re-check with FRESH state right before firing, not the
+        // checkoutLockedBy this closure captured when the timer was
+        // scheduled: the lock can be taken between scheduling and firing,
+        // and relying solely on the effect re-running (cleanup cancelling
+        // the stale timer) leaves a real gap — the effect only re-runs
+        // once React has re-rendered with the new checkoutMarker, which
+        // isn't guaranteed to land before this callback does. Without
+        // this, that gap is exactly what let autosave slip through once
+        // and reopen StealBackDialog right after the user dismissed it.
+        const ps = useProjectStore.getState()
+        const myName = usePreferencesStore.getState().userName.trim()
+        if (ps.checkoutMarker && ps.checkoutMarker.userName !== myName) return
         handleSaveProject()
       }, 2000)
     }
@@ -981,7 +1187,54 @@ function App() {
         autoSaveTimer.current = null
       }
     }
-  }, [projectStore.isDirty, projectStore.filePath, handleSaveProject])
+  }, [projectStore.isDirty, projectStore.filePath, handleSaveProject, checkoutLockedBy])
+
+  // Auto-checkout on first edit: the moment the project goes from clean to
+  // dirty, claim the lock if we don't already hold it — turns "forgot to
+  // click Check Out" into a non-issue while still letting anyone open a
+  // project read-only (browsing never dirties it) without locking
+  // everyone else out. Only fires once per clean→dirty transition (the
+  // ref resets when isDirty drops back to false, e.g. after a save) so it
+  // doesn't refire on every keystroke. Skipped with no name set — checkout
+  // was never possible for an unnamed user anyway (see CheckOutButton).
+  // If someone else already holds the lock, isDirty can't even become
+  // true in the first place (project-store.ts's markDirty no-ops while
+  // locked), so this effect naturally won't fire — no redundant check
+  // needed here for that case. If the atomic check-and-set itself loses a
+  // race (someone grabbed it in the moment between this edit starting and
+  // the IPC call landing), the rejection's marker flows into
+  // checkoutConflict, which turns on the same read-only dimming for
+  // anything edited after this point; handleSaveProject's own staleness
+  // check is what catches the edit that already happened before that.
+  const autoCheckOutAttempted = useRef(false)
+  useEffect(() => {
+    if (!projectStore.isDirty) {
+      autoCheckOutAttempted.current = false
+      return
+    }
+    if (autoCheckOutAttempted.current) return
+    const filePath = projectStore.filePath
+    const myName = usePreferencesStore.getState().userName.trim()
+    if (!filePath || !myName) return
+    const marker = projectStore.checkoutMarker
+    if (marker && marker.userName === myName) return
+    autoCheckOutAttempted.current = true
+    // Published for handleSaveProject to await — see its own comment.
+    // Resolves (never rejects) once the claim attempt is fully settled,
+    // success or failure, so a save that was waiting on it always
+    // proceeds rather than hanging if the claim itself errors.
+    const claim = window.api
+      .checkOutProject(filePath, myName)
+      .then((result) => {
+        useProjectStore.getState().setCheckoutMarker(result.marker)
+        if (!result.ok && result.marker) setCheckoutConflict(result.marker)
+      })
+      .catch((err) => console.error('[auto-check-out] failed:', err))
+      .finally(() => {
+        if (pendingAutoCheckOutRef.current === claim) pendingAutoCheckOutRef.current = null
+      })
+    pendingAutoCheckOutRef.current = claim
+  }, [projectStore.isDirty, projectStore.filePath, projectStore.checkoutMarker])
 
   // Keep the main process told which .qdpx is open, so it can regenerate
   // any media temp file the OS reaps mid-session straight from the archive
@@ -1018,6 +1271,7 @@ function App() {
   // through the survey-import preview dialog and all other formats
   // through documentStore.addSource.
   const handleOSFileDrop = useCallback(async (filePaths: string[]) => {
+    if (checkoutLockedBy) { setCheckoutConflict(); return }
     const files = await window.api.readTextFiles(filePaths)
     if (!files) return
     const errors: string[] = []
@@ -1042,7 +1296,7 @@ function App() {
       window.alert(`Could not import ${errors.length} file${errors.length > 1 ? 's' : ''}:\n\n${errors.join('\n')}`)
     }
     flushImportSave(addedDirect)
-  }, [documentStore, queueSurveyImport, flushImportSave])
+  }, [documentStore, queueSurveyImport, flushImportSave, checkoutLockedBy, setCheckoutConflict])
 
   const handleMergeProject = useCallback(async () => {
     const filePath = await window.api.pickProjectFile()
@@ -1057,6 +1311,12 @@ function App() {
   }, [])
 
   const handleImportDocument = useCallback(async () => {
+    // Enforced lock: importing adds documents, a mutation — refuse it
+    // outright and surface the conflict dialog rather than let the file
+    // picker run for nothing. The Import button itself intercepts its own
+    // click the same way, so this is a backstop against other entry
+    // points (menu/shortcut).
+    if (checkoutLockedBy) { setCheckoutConflict(); return }
     const files = await window.api.importTextFile()
     if (!files) return
     const fileArray = Array.isArray(files) ? files : [files]
@@ -1086,7 +1346,7 @@ function App() {
       window.alert(`Could not import ${errors.length} file${errors.length > 1 ? 's' : ''}:\n\n${errors.join('\n')}`)
     }
     flushImportSave(addedDirect)
-  }, [documentStore, queueSurveyImport, flushImportSave])
+  }, [documentStore, queueSurveyImport, flushImportSave, checkoutLockedBy, setCheckoutConflict])
 
   const openQueryBuilder = useCallback((editSavedQueryGuid?: string, editCurrentQuery?: boolean) => {
     // Editing a saved query enforces one tab per saved query (and
@@ -1137,8 +1397,9 @@ function App() {
   }, [queryStore])
 
   const handleNewCode = useCallback(() => {
+    if (checkoutLockedBy) { setCheckoutConflict(); return }
     setShowNewCodeDialog(true)
-  }, [])
+  }, [checkoutLockedBy, setCheckoutConflict])
 
   // ── Memos for saved queries / saved analyses ──
   // One memo per saved query (type='saved-query', queryGuid points to
@@ -1212,8 +1473,10 @@ function App() {
   // pop the dialog on app start.
   const newCodeTriggerCount = useNewCodeTriggerStore((s) => s.count)
   useEffect(() => {
-    if (newCodeTriggerCount > 0) setShowNewCodeDialog(true)
-  }, [newCodeTriggerCount])
+    if (newCodeTriggerCount === 0) return
+    if (checkoutLockedBy) { setCheckoutConflict(); return }
+    setShowNewCodeDialog(true)
+  }, [newCodeTriggerCount, checkoutLockedBy, setCheckoutConflict])
 
   const handleCreateCode = useCallback((name: string, color: string, description: string, hotkey: number | undefined) => {
     const guid = codeStore.addCode(name, color)
@@ -1830,33 +2093,53 @@ function App() {
         // first interval tick (which is a full second away).
         window.api.sendFlushHeartbeat()
         try {
-          await window.api.saveProject({
+          const result = await window.api.saveProject({
             project: collectProject(),
             sourceContents: useDocumentStore.getState().sourceContents,
-            filePath: ps.filePath
+            filePath: ps.filePath,
+            userName: usePreferencesStore.getState().userName.trim() || undefined
           })
+          // Someone else now holds the lock — same staleness check as the
+          // normal save path. There's no room for a Merge-reconciliation
+          // dialog in the middle of closing the window, so this window's
+          // last few seconds of unsaved edits are dropped rather than
+          // risking a blind overwrite of the other person's already-saved
+          // changes; the far worse outcome. The next open will show the
+          // normal checkout-conflict dialog naming who holds it now.
+          if (result && typeof result === 'object' && (result as any).conflict) {
+            console.warn('[flush-and-close] save refused — locked by', (result as any).marker?.userName)
+          }
         } catch (err) {
           console.error('Pre-close flush failed:', err)
         } finally {
           clearInterval(heartbeat)
         }
       }
-      // Auto-check-in if this project is checked out under the current
-      // user's own name, so a forgotten checkout doesn't strand
-      // collaborators. Shown as a brief in-app overlay (reusing the same
+      // Auto-check-in if this project is STILL checked out under the
+      // current user's own name, so a forgotten checkout doesn't strand
+      // collaborators. The local checkoutMarker can be stale — there's no
+      // live push, so if someone else stole the lock while this window
+      // sat open, this window has no idea — so this re-reads the actual
+      // on-disk marker first rather than trusting local state, and only
+      // shows the popup / attempts check-in when the local user still
+      // genuinely holds it. checkInProject itself is also check-and-set
+      // (won't remove someone else's lock even if asked), but checking
+      // here too means a user who's already lost control never sees a
+      // "Releasing control" popup for a lock that isn't theirs to
+      // release. Shown as a brief in-app overlay (reusing the same
       // loadProgress UI as project-open progress) rather than an OS
       // notification — the window is already being kept open for the
       // flush above, so this is guaranteed to be visible, unlike a
       // notification racing against the process quitting right after it
       // fires (which is what happened when this was tried main-process-
       // side with Notification).
-      const marker = useProjectStore.getState().checkoutMarker
       const myName = usePreferencesStore.getState().userName.trim()
-      if (marker && myName && marker.userName === myName && ps.filePath) {
-        setLoadProgress({ stage: 'Checking in…', current: 0, total: 0 })
+      const currentMarker = ps.filePath ? await window.api.readCheckoutMarker(ps.filePath) : null
+      if (currentMarker && myName && currentMarker.userName === myName && ps.filePath) {
+        setLoadProgress({ stage: 'Releasing control…', current: 0, total: 0 })
         try {
           await Promise.all([
-            window.api.checkInProject(ps.filePath),
+            window.api.checkInProject(ps.filePath, myName),
             new Promise((r) => setTimeout(r, 600))
           ])
         } catch (err) {
@@ -2346,16 +2629,18 @@ function App() {
           <div className="app-toolbar-scroll-inner" style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 auto' }}>
           <div className="app-toolbar-pill" style={TOOLBAR_PILL_STYLE}>
           {[
-            { icon: faSquareArrowRightEnter, label: 'Import', action: () => handleImportDocument() },
+            { icon: faSquareArrowRightEnter, label: 'Import', action: () => handleImportDocument(), locks: true },
             { icon: faBook, label: 'Codebook', action: () => openCodebook() },
             { icon: faNotebookPen, label: 'Logbook', action: () => openLogbook() },
             { icon: faTags, label: 'Tags', action: () => setShowManageDocTags(true) }
-          ].map((item, idx) => [
+          ].map((item, idx) => {
+            const itemLocked = !!(item as { locks?: boolean }).locks && !!checkoutLockedBy
+            return [
             idx > 0 ? <ToolbarDivider key={`${item.label}-divider`} /> : null,
             <button
               key={item.label}
               className="app-toolbar-btn"
-              title={(item as { title?: string }).title ?? item.label}
+              title={itemLocked ? checkoutLockedTitle(checkoutLockedBy!) : (item as { title?: string }).title ?? item.label}
               onClick={item.action}
               style={{
                 display: 'flex',
@@ -2368,6 +2653,7 @@ function App() {
                 background: 'transparent',
                 color: 'var(--text-secondary)',
                 cursor: 'pointer',
+                opacity: itemLocked ? 0.4 : 1,
                 lineHeight: 1,
                 transition: 'background 0.12s, color 0.12s'
               }}
@@ -2383,7 +2669,8 @@ function App() {
               <Icon icon={item.icon} style={{ fontSize: 20, ...(item as { iconStyle?: React.CSSProperties }).iconStyle }} />
               <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>{item.label}</span>
             </button>
-          ])}
+            ]
+          })}
           </div>
 
           {/* Merge gets its own pill, separate from the document-management
@@ -2859,11 +3146,40 @@ function App() {
       <ProjectDetailsDialog open={showProjectDetails} onClose={() => setShowProjectDetails(false)} />
       <LicenceDialog open={showLicenceDialog} onClose={() => setShowLicenceDialog(false)} />
       <UpdateDialog info={updateInfo} onDismiss={() => setUpdateInfo(null)} />
-      {checkoutConflict && (
+      {/* !stealBackConflict guards against both rendering at once: they're
+          set independently (markDirty's edit-time block calls
+          promptCheckoutConflict; a save's own conflict check sets
+          stealBackConflict), so an autosave hitting a stolen lock and a
+          fresh edit attempt hitting the same lock can both fire around the
+          same moment. StealBackDialog wins when that happens — it's
+          strictly more specific (names the actual save that failed) and
+          already offers the same Take Over / Create a Copy / Cancel
+          choices, so nothing is lost by suppressing the generic one. */}
+      {checkoutConflict && !stealBackConflict && (
         <CheckoutConflictDialog
           marker={checkoutConflict}
-          onDismiss={() => setCheckoutConflict(null)}
+          // Clears both states, not just this dialog's own — same reason
+          // as every other resolution handler (handleCheckOutFromConflict
+          // etc.): the two aren't mutually exclusive at the state level,
+          // only at render time via the !stealBackConflict guard above.
+          // Dismissing one without clearing the other left the second
+          // dialog revealed right behind it the moment this one closed.
+          onDismiss={() => {
+            dismissCheckoutConflict()
+            setStealBackConflict(null)
+          }}
           onOverride={handleCheckOutFromConflict}
+          onWorkOnCopy={handleWorkOnCopy}
+        />
+      )}
+      {stealBackConflict && (
+        <StealBackDialog
+          marker={stealBackConflict}
+          onDismiss={() => {
+            setStealBackConflict(null)
+            dismissCheckoutConflict()
+          }}
+          onStealBack={handleStealBack}
           onWorkOnCopy={handleWorkOnCopy}
         />
       )}

@@ -789,6 +789,15 @@ button:active {
   opacity: 0.9;
 }
 
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+button:disabled:hover {
+  background: var(--accent);
+}
+
 /* Single source of truth for every secondary button (Cancel, Close,
  * and the lower-emphasis action pairs in the analysis tools, query
  * builder, dialogs, etc.). Matches the Document Viewer's body

@@ -19,6 +19,7 @@ import { usePendingSelectionStore } from '../../stores/pending-selection-store'
 import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
 import { usePdfViewStore } from '../../stores/pdf-view-store'
 import { modKey } from '../../utils/platform'
+import { roundRegionToWholePixels } from '../../utils/region-rounding'
 
 function flattenCodes(codes: Code[], depth = 0): { code: Code; depth: number }[] {
   const result: { code: Code; depth: number }[] = []
@@ -751,7 +752,9 @@ export function PdfDocumentViewer({ source, content }: Props) {
               const height = Math.abs(coords.y - boxDrag.startY)
               // Min 5pt in each dimension to avoid accidental clicks
               if (width >= 5 && height >= 5) {
-                setPendingBoxSelection({ pdfRegion: { page: boxDrag.page, x, y, width, height } })
+                // Round to the same whole-pixel corners the writer will
+                // round to on save — see region-rounding.ts.
+                setPendingBoxSelection({ pdfRegion: { page: boxDrag.page, ...roundRegionToWholePixels(x, y, width, height) } })
               }
             }
             setBoxDrag(null)

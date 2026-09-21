@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useMemoStore } from '../../stores/memo-store'
 import { useDocumentStore } from '../../stores/document-store'
-import { useProjectStore } from '../../stores/project-store'
+import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 import { useSurveyViewStore } from '../../stores/survey-view-store'
 import { Icon, MEMO_ICON, faChevronDown, faChevronRight, faXmark, faUpRightFromSquare, faDownLeftAndUpRightToCenter, faPlus, faMagnifyingGlass } from '../Icon'
 import { generateGuid } from '../../utils/guid'
@@ -319,6 +319,13 @@ interface Props {
 }
 
 export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
+  // Enforced checkout lock: reading existing memos stays live; the
+  // controls for creating, editing, and deleting stay clickable but
+  // intercept and prompt (Take Over / Create a Copy / Cancel) while
+  // someone else holds the lock, rather than performing the mutation or
+  // silently doing nothing.
+  const lockedBy = useCheckoutLockedBy()
+  const promptCheckoutLocked = () => useProjectStore.getState().promptCheckoutConflict()
   const memos = useMemoStore((s) => s.memos)
   const addMemo = useMemoStore((s) => s.addMemo)
   const removeMemo = useMemoStore((s) => s.removeMemo)
@@ -457,9 +464,10 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
 
   const handleNewMemoClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
+    if (lockedBy) { promptCheckoutLocked(); return }
     const rect = (e.target as HTMLElement).getBoundingClientRect()
     setNewMemoMenu({ x: rect.right, y: rect.bottom + 2 })
-  }, [])
+  }, [lockedBy])
 
   const handleCreateMemo = useCallback((type: MemoType) => {
     // Build a draft memo without persisting it to the store.
@@ -641,8 +649,9 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
         <button
           className="panel-header-add"
           onClick={handleNewMemoClick}
-          title="Add memo"
+          title={lockedBy ? checkoutLockedTitle(lockedBy) : 'Add memo'}
           aria-label="Add memo"
+          style={lockedBy ? { opacity: 0.4 } : undefined}
         >
           <Icon icon={faPlus} />
         </button>
@@ -794,9 +803,11 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
             {selectedGuids.size <= 1 && (
               <div
                 className="context-menu-item"
+                title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
                 onClick={() => {
-                  openMemoEdit(memoContextMenu.target.guid)
                   setMemoContextMenu(null)
+                  if (lockedBy) { promptCheckoutLocked(); return }
+                  openMemoEdit(memoContextMenu.target.guid)
                 }}
               >
                 Edit Memo
@@ -806,7 +817,11 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
             <div
               className="context-menu-item"
               style={{ color: 'var(--menu-fg-danger)' }}
-              onClick={bulkDelete}
+              title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
+              onClick={() => {
+                if (lockedBy) { promptCheckoutLocked(); return }
+                bulkDelete()
+              }}
             >
               {selectedGuids.size > 1 ? `Delete ${selectedGuids.size} memos` : 'Delete Memo'}
             </div>

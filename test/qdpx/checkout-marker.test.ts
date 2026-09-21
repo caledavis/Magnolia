@@ -44,24 +44,53 @@ describe('readCheckoutMarker', () => {
 })
 
 describe('writeCheckoutMarker', () => {
-  it('mints a projectId on first checkout and reuses it on the next', async () => {
+  it('mints a projectId on first checkout and reuses it on the next check-out by the SAME user', async () => {
     const path = await makeQdpx('mint.qdpx')
     const first = await writeCheckoutMarker(path, { userName: 'Alice' })
-    expect(first?.userName).toBe('Alice')
-    expect(first?.projectId).toBeTruthy()
+    expect(first.ok).toBe(true)
+    expect(first.marker?.userName).toBe('Alice')
+    expect(first.marker?.projectId).toBeTruthy()
+
+    // Same user re-checking-out (e.g. after their own check-in) isn't a
+    // conflict — the projectId carries forward regardless.
+    const second = await writeCheckoutMarker(path, { userName: 'Alice' })
+    expect(second.ok).toBe(true)
+    expect(second.marker?.userName).toBe('Alice')
+    expect(second.marker?.projectId).toBe(first.marker?.projectId)
+  })
+
+  it('rejects a check-out by someone else without touching the existing lock', async () => {
+    const path = await makeQdpx('conflict.qdpx')
+    const first = await writeCheckoutMarker(path, { userName: 'Alice' })
+    expect(first.ok).toBe(true)
 
     const second = await writeCheckoutMarker(path, { userName: 'Bob' })
-    expect(second?.userName).toBe('Bob')
-    expect(second?.projectId).toBe(first?.projectId)
+    expect(second.ok).toBe(false)
+    expect(second.marker?.userName).toBe('Alice')
+
+    // The lock on disk is untouched — still Alice's, same checkedOutAt.
+    const onDisk = await readCheckoutMarker(path)
+    expect(onDisk?.userName).toBe('Alice')
+    expect(onDisk?.checkedOutAt).toBe(first.marker?.checkedOutAt)
+  })
+
+  it('steal writes through unconditionally over someone else\'s lock', async () => {
+    const path = await makeQdpx('steal.qdpx')
+    await writeCheckoutMarker(path, { userName: 'Alice' })
+
+    const stolen = await writeCheckoutMarker(path, { userName: 'Bob', steal: true })
+    expect(stolen.ok).toBe(true)
+    expect(stolen.marker?.userName).toBe('Bob')
+    expect((await readCheckoutMarker(path))?.userName).toBe('Bob')
   })
 
   it('checking in removes the lock but keeps the project id', async () => {
     const path = await makeQdpx('checkin.qdpx')
-    const marker = await writeCheckoutMarker(path, { userName: 'Alice' })
+    const { marker } = await writeCheckoutMarker(path, { userName: 'Alice' })
     expect(await readCheckoutMarker(path)).not.toBeNull()
 
-    const result = await writeCheckoutMarker(path, null)
-    expect(result).toBeNull()
+    const result = await writeCheckoutMarker(path, { userName: 'Alice', checkIn: true })
+    expect(result).toEqual({ ok: true, marker: null })
     expect(await readCheckoutMarker(path)).toBeNull()
 
     // The project id itself survives check-in.
@@ -70,6 +99,19 @@ describe('writeCheckoutMarker', () => {
     expect(idEntry).not.toBeNull()
     const { projectId } = JSON.parse(await idEntry!.async('string'))
     expect(projectId).toBe(marker?.projectId)
+  })
+
+  it('rejects checking in someone else\'s lock without touching it', async () => {
+    const path = await makeQdpx('checkin-conflict.qdpx')
+    await writeCheckoutMarker(path, { userName: 'Alice' })
+
+    // Bob's window still believes it holds the lock (stale local state —
+    // there's no live push) and issues a check-in on that belief. It
+    // must not rip out Alice's actual lock.
+    const result = await writeCheckoutMarker(path, { userName: 'Bob', checkIn: true })
+    expect(result.ok).toBe(false)
+    expect(result.marker?.userName).toBe('Alice')
+    expect((await readCheckoutMarker(path))?.userName).toBe('Alice')
   })
 
   it('leaves every other zip entry byte-identical', async () => {

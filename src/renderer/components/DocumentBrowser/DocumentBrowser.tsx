@@ -11,6 +11,7 @@ import { sortTagsForCategory, sortListOptions } from '../../utils/sort-tags'
 import { useSurveyViewStore } from '../../stores/survey-view-store'
 import { buildCellText } from '../../utils/survey/cell-text'
 import { RESPONDENTS_GROUP_MIME } from '../Analysis/group-by'
+import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 
 function iconForSource(source: { name: string; sourceType?: string }) {
   // Prefer the source's declared type (set on import for audio/video/image/
@@ -1979,6 +1980,15 @@ function ManageDocumentTagsDialog({
 }
 
 export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, onCloseManageDocTags, onClose, onPopOut, isPoppedOut }: Props) {
+  // Enforced checkout lock: reading/browsing documents stays live no
+  // matter who holds the lock. The mutating controls below (new folder,
+  // drop-to-import, rename/delete/move via context menu) stay clickable —
+  // clicking one while locked intercepts the action and opens the same
+  // Take Over / Create a Copy / Cancel dialog CheckoutConflictDialog
+  // already shows at open time, rather than performing the mutation or
+  // silently doing nothing.
+  const lockedBy = useCheckoutLockedBy()
+  const promptCheckoutLocked = () => useProjectStore.getState().promptCheckoutConflict()
   const sources = useDocumentStore((s) => s.sources)
   const selectedGuids = useDocumentStore((s) => s.selectedDocumentGuids)
   const selectedSurveyEntities = useDocumentStore((s) => s.selectedSurveyEntities)
@@ -2464,13 +2474,15 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
         <button
           className="panel-header-add"
           onClick={() => {
+            if (lockedBy) { promptCheckoutLocked(); return }
             setIsNewFolder(true)
             setNewFolderParentGuid(null)
             setEditingFolder('__new__')
             setEditFolderName('New Folder')
           }}
-          title="Create new folder"
+          title={lockedBy ? checkoutLockedTitle(lockedBy) : 'Create new folder'}
           aria-label="Create new folder"
+          style={lockedBy ? { opacity: 0.4 } : undefined}
         >
           <Icon icon={faFolderPlus} />
         </button>
@@ -2483,6 +2495,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
         className="panel-content"
         style={{ height: '100%' }}
         onDragEnter={(e) => {
+          if (lockedBy) return
           if (
             e.dataTransfer.types.includes('application/x-magnolia-doc-reorder') ||
             e.dataTransfer.types.includes('application/x-magnolia-folder') ||
@@ -2494,6 +2507,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
           }
         }}
         onDragOver={(e) => {
+          if (lockedBy) return
           if (
             e.dataTransfer.types.includes('application/x-magnolia-doc-reorder') ||
             e.dataTransfer.types.includes('application/x-magnolia-folder') ||
@@ -2515,6 +2529,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
           e.stopPropagation()
           dragCounterRef.current = 0
           setIsDragOverRoot(false)
+          if (lockedBy) { promptCheckoutLocked(); return }
 
           // Handle file drops from OS
           if (e.dataTransfer.files.length > 0) {
@@ -2905,18 +2920,22 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
           </div>
           <div
             className="context-menu-item"
+            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
             onClick={() => {
-              setEditingDocGuid(contextMenu.sourceGuid!)
               closeContextMenu()
+              if (lockedBy) { promptCheckoutLocked(); return }
+              setEditingDocGuid(contextMenu.sourceGuid!)
             }}
           >
             Rename
           </div>
           <div
             className="context-menu-item"
+            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
             onClick={() => {
-              setShowTagDialog({ kind: 'document', sourceGuid: contextMenu.sourceGuid! })
               closeContextMenu()
+              if (lockedBy) { promptCheckoutLocked(); return }
+              setShowTagDialog({ kind: 'document', sourceGuid: contextMenu.sourceGuid! })
             }}
           >
             Edit Tags...
@@ -2938,9 +2957,11 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
               {sourceFolder[contextMenu.sourceGuid!] && (
                 <div
                   className="context-menu-item"
+                  title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
                   onClick={() => {
-                    moveSourceToFolder(contextMenu.sourceGuid!, null)
                     closeContextMenu()
+                    if (lockedBy) { promptCheckoutLocked(); return }
+                    moveSourceToFolder(contextMenu.sourceGuid!, null)
                   }}
                 >
                   (Root)
@@ -2950,9 +2971,11 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
                 <div
                   key={f.guid}
                   className="context-menu-item"
+                  title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
                   onClick={() => {
-                    moveSourceToFolder(contextMenu.sourceGuid!, f.guid)
                     closeContextMenu()
+                    if (lockedBy) { promptCheckoutLocked(); return }
+                    moveSourceToFolder(contextMenu.sourceGuid!, f.guid)
                   }}
                 >
                   <Icon icon={faFolder} style={{ fontSize: 10, opacity: 0.7, marginRight: 4 }} />{f.name}
@@ -2972,9 +2995,11 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
               <div
                 className="context-menu-item"
                 style={{ color: 'var(--menu-fg-danger)' }}
+                title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
                 onClick={() => {
-                  for (const g of guidsToRemove) removeSource(g)
                   closeContextMenu()
+                  if (lockedBy) { promptCheckoutLocked(); return }
+                  for (const g of guidsToRemove) removeSource(g)
                 }}
               >
                 {guidsToRemove.length > 1 ? `Remove ${guidsToRemove.length} Documents` : 'Remove Document'}
@@ -3015,25 +3040,29 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
         >
           <div
             className="context-menu-item"
+            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
             onClick={() => {
+              closeContextMenu()
+              if (lockedBy) { promptCheckoutLocked(); return }
               const f = folders.find((f) => f.guid === contextMenu.folderGuid)
               if (f) {
                 setEditingFolder(f.guid)
                 setEditFolderName(f.name)
               }
-              closeContextMenu()
             }}
           >
             Rename
           </div>
           <div
             className="context-menu-item"
+            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
             onClick={() => {
+              closeContextMenu()
+              if (lockedBy) { promptCheckoutLocked(); return }
               setIsNewFolder(true)
               setNewFolderParentGuid(contextMenu.folderGuid!)
               setEditingFolder('__new__')
               setEditFolderName('New Folder')
-              closeContextMenu()
             }}
           >
             New Subfolder
@@ -3041,9 +3070,11 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
           {folders.find((f) => f.guid === contextMenu.folderGuid)?.parentGuid && (
             <div
               className="context-menu-item"
+              title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
               onClick={() => {
-                moveFolderToFolder(contextMenu.folderGuid!, null)
                 closeContextMenu()
+                if (lockedBy) { promptCheckoutLocked(); return }
+                moveFolderToFolder(contextMenu.folderGuid!, null)
               }}
             >
               Move to Root
@@ -3053,9 +3084,11 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
           <div
             className="context-menu-item"
             style={{ color: 'var(--menu-fg-danger)' }}
+            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
             onClick={() => {
-              removeFolder(contextMenu.folderGuid!)
               closeContextMenu()
+              if (lockedBy) { promptCheckoutLocked(); return }
+              removeFolder(contextMenu.folderGuid!)
             }}
           >
             Delete Folder

@@ -512,8 +512,15 @@ export interface ElectronAPI {
   pickProjectFile: () => Promise<string | null>
   openProjectPath: (filePath: string) => Promise<Project & { sourceContents: Record<string, string>; missingBinaries?: MissingBinary[]; checkoutInfo?: CheckoutMarker | null } | null>
   readCheckoutMarker: (filePath: string) => Promise<CheckoutMarker | null>
-  checkOutProject: (filePath: string, userName: string) => Promise<CheckoutMarker | null>
-  checkInProject: (filePath: string) => Promise<CheckoutMarker | null>
+  /** Atomic check-and-set: rejects (`ok: false`, `marker` = the current
+   *  holder) if someone else already holds the lock, unless `steal` is
+   *  passed, which writes through unconditionally. See
+   *  checkout-marker.ts's writeCheckoutMarker for exactly how atomic. */
+  checkOutProject: (filePath: string, userName: string, steal?: boolean) => Promise<{ ok: boolean; marker: CheckoutMarker | null }>
+  /** Also check-and-set: rejects (does NOT remove the lock) if it no
+   *  longer names `userName` as holder — the caller's belief that it
+   *  still holds the lock may be stale, since there's no live push. */
+  checkInProject: (filePath: string, userName: string) => Promise<{ ok: boolean; marker: CheckoutMarker | null }>
   /** Load a second .qdpx's full contents for merge comparison, WITHOUT
    *  touching the currently-open project's active-archive/binary state —
    *  see the handler in ipc-handlers.ts for why this is safe. No binary
@@ -523,7 +530,13 @@ export interface ElectronAPI {
     project: Project
     sourceContents: Record<string, string>
     filePath?: string
-  }) => Promise<string | null>
+    /** Current user's name (Preferences). Enables the save-time staleness
+     *  check: if the on-disk checkout lock now names someone else, the
+     *  save is refused (`{ conflict: true, marker }`) instead of blindly
+     *  overwriting their already-saved changes. Omit only when the user
+     *  has no name set — checkout was never possible for them either. */
+    userName?: string
+  }) => Promise<string | { guardBlocked: true; message: string } | { conflict: true; marker: CheckoutMarker } | null>
   saveProjectAs: (data: {
     project: Project
     sourceContents: Record<string, string>

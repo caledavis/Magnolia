@@ -21,6 +21,7 @@ import { useAnalysisTabsStore } from '../../stores/analysis-tabs-store'
 import { usePendingSelectionStore } from '../../stores/pending-selection-store'
 import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
 import { modKey } from '../../utils/platform'
+import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 
 /** Single dispatch point for "what to render for a tool tab id". Lives
  *  here (not in tab-ids) so JSX-bearing modules don't pull tab-ids into
@@ -86,6 +87,14 @@ function flattenCodes(codes: Code[], depth = 0): { code: Code; depth: number }[]
 }
 
 export function DocumentViewer() {
+  // Enforced checkout lock: reading/scrolling/searching documents stays
+  // live; the right-click menu's mutations (New Code, apply/remove a
+  // code, add a quote, add/delete a selection memo), the drag-a-code-here
+  // drop, and the Cmd+0-9 hotkey-apply shortcut all stay clickable but
+  // intercept and prompt (Take Over / Create a Copy / Cancel) instead of
+  // performing the mutation while someone else holds the lock.
+  const lockedBy = useCheckoutLockedBy()
+  const promptCheckoutLocked = () => useProjectStore.getState().promptCheckoutConflict()
   const selectedGuid = useDocumentStore((s) => s.viewedDocumentGuid)
   const openTabs = useDocumentStore((s) => s.openTabs)
   // Display-only: while Merge is the active tab, hide every other tab from
@@ -370,12 +379,13 @@ export function DocumentViewer() {
       const code = hotkeyMap.get(digit)
       if (!code || !pendingSelection || !selectedGuid) return
       e.preventDefault()
+      if (lockedBy) { useProjectStore.getState().promptCheckoutConflict(); return }
       const { startCp, endCp, selectedText } = pendingSelection
       applyCodingToRange(code.guid, startCp, endCp, selectedText)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [hotkeyMap, pendingSelection, selectedGuid, applyCodingToRange])
+  }, [hotkeyMap, pendingSelection, selectedGuid, applyCodingToRange, lockedBy])
 
   // Tool tabs (relationship maps, analysis tools, query builder) share
   // the same chrome as documents. We keep every open tool tab mounted
@@ -531,6 +541,7 @@ export function DocumentViewer() {
           e.preventDefault()
           dragCounterRef.current = 0
           setIsDragOver(false)
+          if (lockedBy) { promptCheckoutLocked(); return }
           // Check for multi-code drop first
           const multiData = e.dataTransfer.getData('application/x-magnolia-codes')
           if (multiData) {
@@ -640,10 +651,15 @@ export function DocumentViewer() {
         >
           {/* New Code — always at the top. Auto-applies the new code to
               the current pending selection via handleCreateCode. */}
-          <div className="context-menu-item" onClick={() => {
-            useNewCodeTriggerStore.getState().request()
-            setContextMenu(null); setMenuHighlight(null)
-          }}>
+          <div
+            className="context-menu-item"
+            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
+            onClick={() => {
+              setContextMenu(null); setMenuHighlight(null)
+              if (lockedBy) { promptCheckoutLocked(); return }
+              useNewCodeTriggerStore.getState().request()
+            }}
+          >
             New Code
           </div>
           <div className="context-menu-separator" />
@@ -677,7 +693,11 @@ export function DocumentViewer() {
                 <div
                   key={code.guid}
                   className="context-menu-item"
-                  onClick={() => handleApplyCodeFromMenu(code.guid)}
+                  title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
+                  onClick={() => {
+                    if (lockedBy) { promptCheckoutLocked(); return }
+                    handleApplyCodeFromMenu(code.guid)
+                  }}
                 >
                   <span
                     className="color-pip"
@@ -727,7 +747,11 @@ export function DocumentViewer() {
                     key={ec.codingGuid}
                     className="context-menu-item"
                     style={{ color: 'var(--menu-fg-danger)' }}
-                    onClick={() => handleRemoveCoding(ec.selectionGuid, ec.codingGuid)}
+                    title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
+                    onClick={() => {
+                      if (lockedBy) { promptCheckoutLocked(); return }
+                      handleRemoveCoding(ec.selectionGuid, ec.codingGuid)
+                    }}
                     onMouseEnter={() => setMenuHighlight({ startCp: ec.startCp, endCp: ec.endCp })}
                     onMouseLeave={() => setMenuHighlight(null)}
                   >
@@ -748,10 +772,12 @@ export function DocumentViewer() {
               <div className="context-menu-separator" />
               <div
                 className="context-menu-item"
+                title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
                 onClick={() => {
+                  setContextMenu(null)
+                  if (lockedBy) { promptCheckoutLocked(); return }
                   const ps = contextMenu.context.pendingSelection!
                   useQuoteStore.getState().addQuote(source.guid, source.name, ps.startCp, ps.endCp, ps.selectedText)
-                  setContextMenu(null)
                 }}
               >
                 Add as Quote
@@ -768,7 +794,9 @@ export function DocumentViewer() {
               <div className="context-menu-separator" />
               <div
                 className="context-menu-item"
+                title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
                 onClick={() => {
+                  if (lockedBy) { promptCheckoutLocked(); return }
                   handleCreateContentMemo(
                     contextMenu.context.pendingSelection!.startCp,
                     contextMenu.context.pendingSelection!.endCp
@@ -800,9 +828,11 @@ export function DocumentViewer() {
                   key={m.guid}
                   className="context-menu-item"
                   style={{ color: 'var(--menu-fg-danger)' }}
+                  title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
                   onClick={() => {
-                    removeMemo(m.guid)
                     setContextMenu(null); setMenuHighlight(null)
+                    if (lockedBy) { promptCheckoutLocked(); return }
+                    removeMemo(m.guid)
                   }}
                   onMouseEnter={() => setMenuHighlight({ startCp: m.startCp, endCp: m.endCp })}
                   onMouseLeave={() => setMenuHighlight(null)}

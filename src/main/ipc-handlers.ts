@@ -137,6 +137,7 @@ export function registerIpcHandlers(): void {
         project: Project
         sourceContents: Record<string, string>
         filePath?: string
+        userName?: string
       }
     ) => {
       let filePath = data.filePath
@@ -148,6 +149,23 @@ export function registerIpcHandlers(): void {
         })
         if (result.canceled || !result.filePath) return null
         filePath = result.filePath
+      }
+      // Staleness/lock check: writeQdpx is a full overwrite of the file
+      // from whatever's in the renderer's memory, with no awareness of
+      // what's changed on disk since this window loaded it. If someone
+      // else now holds the checkout lock — they stole it (or won a
+      // check-out race) while this window was mid-edit on a now-stale
+      // copy — refuse the blind overwrite here rather than silently
+      // destroying their already-saved changes. The renderer routes a
+      // `conflict` result into the Steal Back flow (Merge or Work on a
+      // Copy) instead. Only enforced when the caller has a name to check
+      // against — an unnamed user was never able to check anything out
+      // in the first place, so there's nothing to compare.
+      if (data.userName) {
+        const currentMarker = await readCheckoutMarker(filePath)
+        if (currentMarker && currentMarker.userName !== data.userName) {
+          return { conflict: true, marker: currentMarker }
+        }
       }
       try {
         await writeQdpx(filePath, data.project, data.sourceContents, {
@@ -282,12 +300,12 @@ export function registerIpcHandlers(): void {
     return readCheckoutMarker(filePath)
   })
 
-  ipcMain.handle('check-out-project', async (_event, filePath: string, userName: string) => {
-    return writeCheckoutMarker(filePath, { userName })
+  ipcMain.handle('check-out-project', async (_event, filePath: string, userName: string, steal?: boolean) => {
+    return writeCheckoutMarker(filePath, { userName, steal })
   })
 
-  ipcMain.handle('check-in-project', async (_event, filePath: string) => {
-    return writeCheckoutMarker(filePath, null)
+  ipcMain.handle('check-in-project', async (_event, filePath: string, userName: string) => {
+    return writeCheckoutMarker(filePath, { userName, checkIn: true })
   })
 
   // Merge: load a SECOND .qdpx's full contents for comparison against the

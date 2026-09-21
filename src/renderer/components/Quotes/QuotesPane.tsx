@@ -8,6 +8,7 @@ import { PdfRegionThumbnail } from '../DocumentViewer/PdfRegionThumbnail'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { renderPdfRegionThumbnail } from '../../utils/pdf-thumbnail'
 import { renderImageRegionThumbnail } from '../../utils/image-thumbnail'
+import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 
 interface Props {
   onClose?: () => void
@@ -16,6 +17,9 @@ interface Props {
 }
 
 export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
+  // Enforced checkout lock: browsing/opening quotes stays live; removing
+  // one is disabled while someone else holds the lock.
+  const lockedBy = useCheckoutLockedBy()
   const quotes = useQuoteStore((s) => s.quotes)
   const removeQuote = useQuoteStore((s) => s.removeQuote)
   const sources = useDocumentStore((s) => s.sources)
@@ -336,9 +340,11 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
           <div
             className="context-menu-item"
             style={{ color: 'var(--menu-fg-danger)' }}
+            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
             onClick={() => {
-              removeQuote(contextMenu.guid)
               setContextMenu(null)
+              if (lockedBy) { useProjectStore.getState().promptCheckoutConflict(); return }
+              removeQuote(contextMenu.guid)
             }}
           >
             Delete Quote

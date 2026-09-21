@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
-import { useProjectStore } from '../../stores/project-store'
+import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 import { useDocumentStore } from '../../stores/document-store'
 import { useRelationshipMapStore } from '../../stores/relationship-map-store'
 import { useMemoStore } from '../../stores/memo-store'
@@ -38,6 +38,12 @@ const TOOL_ORDER: AnalysisToolType[] = [
 ]
 
 export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemoGuidForAnalysis, onOpenAnalysisMemo }: Props) {
+  // Enforced checkout lock: opening/browsing saved analyses stays live;
+  // rename/delete/memo controls stay clickable but intercept and prompt
+  // (Take Over / Create a Copy / Cancel) while someone else holds the
+  // lock, rather than performing the mutation or silently doing nothing.
+  const lockedBy = useCheckoutLockedBy()
+  const promptCheckoutLocked = () => useProjectStore.getState().promptCheckoutConflict()
   const savedAnalyses = useProjectStore((s) => s.savedAnalyses) ?? []
   const setSavedAnalyses = useProjectStore((s) => s.setSavedAnalyses)
 
@@ -208,6 +214,7 @@ export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemo
   }
 
   const requestBulkDelete = (): void => {
+    if (lockedBy) { promptCheckoutLocked(); return }
     const targets = savedAnalyses.filter((a) => selectedGuids.has(a.guid))
     if (targets.length === 0) return
     setDeleteConfirm(targets)
@@ -422,13 +429,15 @@ export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemo
               </div>
               <div
                 className="context-menu-item"
+                title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
                 onClick={() => {
+                  setContextMenu(null)
+                  if (lockedBy) { promptCheckoutLocked(); return }
                   const sa = savedAnalyses.find((a) => a.guid === contextMenu.guid)
                   if (sa) {
                     setEditing(sa.guid)
                     setEditName(sa.name)
                   }
-                  setContextMenu(null)
                 }}
               >
                 Rename
@@ -436,9 +445,11 @@ export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemo
               {onOpenAnalysisMemo && (
                 <div
                   className="context-menu-item"
+                  title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
                   onClick={() => {
-                    onOpenAnalysisMemo(contextMenu.guid)
                     setContextMenu(null)
+                    if (lockedBy) { promptCheckoutLocked(); return }
+                    onOpenAnalysisMemo(contextMenu.guid)
                   }}
                 >
                   {findMemoGuidForAnalysis?.(contextMenu.guid) ? 'View Memo' : 'Add Memo'}
@@ -450,6 +461,7 @@ export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemo
           <div
             className="context-menu-item"
             style={{ color: 'var(--menu-fg-danger)' }}
+            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
             onClick={requestBulkDelete}
           >
             {selectedGuids.size > 1 ? `Delete ${selectedGuids.size} analyses` : 'Delete'}

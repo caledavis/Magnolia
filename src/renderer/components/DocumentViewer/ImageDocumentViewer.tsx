@@ -25,6 +25,7 @@ import type { Code, Memo, MemoEditInitData, TextSource, PdfRegionSelection } fro
 import { usePendingSelectionStore } from '../../stores/pending-selection-store'
 import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
 import { modKey } from '../../utils/platform'
+import { roundRegionToWholePixels } from '../../utils/region-rounding'
 
 // Horizontal space the right-hand RichMarginColumn + its 8-px gap actually
 // occupy in the flex row. The margin column has flex-basis 260 plus an 8-px
@@ -482,7 +483,9 @@ export function ImageDocumentViewer({ source }: Props) {
               const width = Math.abs(coords.x - boxDrag.startX)
               const height = Math.abs(coords.y - boxDrag.startY)
               if (width >= 5 && height >= 5) {
-                setPendingBoxSelection({ pdfRegion: { page: 1, x, y, width, height } })
+                // Round to the same whole-pixel corners the writer will
+                // round to on save — see region-rounding.ts.
+                setPendingBoxSelection({ pdfRegion: { page: 1, ...roundRegionToWholePixels(x, y, width, height) } })
               }
             }
             setBoxDrag(null)

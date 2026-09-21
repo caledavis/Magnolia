@@ -7,6 +7,7 @@ import { Icon, faChevronDown, faChevronRight, faXmark, faUpRightFromSquare, faDo
 import type { Code } from '../../models/types'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { isMac, modKey } from '../../utils/platform'
+import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 
 interface Props {
   onNewCode: () => void
@@ -119,6 +120,15 @@ function CodeTreeItem({
    *  matches nested under a manually-collapsed parent stay visible. */
   searchQuery: string
 }) {
+  // Enforced checkout lock: dragging a code onto text (to apply it),
+  // reordering/merging via drag-and-drop, and this row's own
+  // rename/delete/recolor/merge context menu are mutations. Dragging
+  // itself stays live (see draggable below) so the drop target — this
+  // row's own reorder/merge drop zones, or DocumentViewer's apply-code
+  // drop — is what intercepts and prompts if locked; reading/expanding
+  // the tree is unaffected either way.
+  const lockedBy = useCheckoutLockedBy()
+  const promptCheckoutLocked = () => useProjectStore.getState().promptCheckoutConflict()
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const menuPos = useClampedMenuPosition(contextMenu)
   const isEditingFromParent = editingGuid === code.guid
@@ -257,6 +267,7 @@ function CodeTreeItem({
           dragCounterRef.current = 0
           setIsDragOver(false)
           setShowMergeDroplet(false)
+          if (lockedBy) { promptCheckoutLocked(); return }
 
           // Read multi-selection data, fall back to single guid
           const multiData = e.dataTransfer.getData('application/x-magnolia-codes')
@@ -428,6 +439,7 @@ function CodeTreeItem({
                   dragCounterRef.current = 0
                   setIsDragOver(false)
                   setShowMergeDroplet(false)
+                  if (lockedBy) { promptCheckoutLocked(); return }
                   const draggedGuid = e.dataTransfer.getData('application/x-magnolia-code-reorder')
                   if (draggedGuid && draggedGuid !== code.guid) {
                     onMergeInto(draggedGuid, code.guid)
@@ -494,28 +506,34 @@ function CodeTreeItem({
         >
           <div
             className="context-menu-item"
+            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
             onClick={() => {
+              setContextMenu(null)
+              if (lockedBy) { promptCheckoutLocked(); return }
               setEditName(code.name)
               setEditingLocal(true)
-              setContextMenu(null)
             }}
           >
             Rename
           </div>
           <div
             className="context-menu-item"
+            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
             onClick={() => {
-              setShowColorPicker(true)
               setContextMenu(null)
+              if (lockedBy) { promptCheckoutLocked(); return }
+              setShowColorPicker(true)
             }}
           >
             Change Color
           </div>
           <div
             className="context-menu-item"
+            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
             onClick={() => {
-              onEditMemo(code.guid)
               setContextMenu(null)
+              if (lockedBy) { promptCheckoutLocked(); return }
+              onEditMemo(code.guid)
             }}
           >
             Edit Code
@@ -542,18 +560,22 @@ function CodeTreeItem({
           <div className="context-menu-separator" />
           <div
             className="context-menu-item"
+            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
             onClick={() => {
-              onAddChild(code.guid)
               setContextMenu(null)
+              if (lockedBy) { promptCheckoutLocked(); return }
+              onAddChild(code.guid)
             }}
           >
             Add Child Code
           </div>
           <div
             className="context-menu-item"
+            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
             onClick={() => {
-              onMoveCode(code.guid, null)
               setContextMenu(null)
+              if (lockedBy) { promptCheckoutLocked(); return }
+              onMoveCode(code.guid, null)
             }}
           >
             Move to Top Level
@@ -562,9 +584,11 @@ function CodeTreeItem({
           <div
             className="context-menu-item"
             style={{ color: 'var(--menu-fg-danger)' }}
+            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
             onClick={() => {
-              onDelete(code.guid)
               setContextMenu(null)
+              if (lockedBy) { promptCheckoutLocked(); return }
+              onDelete(code.guid)
             }}
           >
             Delete
@@ -782,6 +806,10 @@ export function CodeEditDialog({
 }
 
 export function CodeBrowser({ onNewCode, onClose, onPopOut, isPoppedOut }: Props) {
+  // Enforced checkout lock: browsing the code tree stays live, but
+  // add/delete/rename/reorder/merge and dragging a code onto text are
+  // disabled while someone else holds the lock.
+  const lockedBy = useCheckoutLockedBy()
   const codes = useCodeStore((s) => s.codes)
   const renameCode = useCodeStore((s) => s.renameCode)
   const removeCode = useCodeStore((s) => s.removeCode)
@@ -915,6 +943,7 @@ export function CodeBrowser({ onNewCode, onClose, onPopOut, isPoppedOut }: Props
       onDrop={(e) => {
         // Drop on empty space = move to top level
         if (e.dataTransfer.types.includes('application/x-magnolia-code-reorder')) {
+          if (lockedBy) { useProjectStore.getState().promptCheckoutConflict(); return }
           const multiData = e.dataTransfer.getData('application/x-magnolia-codes')
           const singleGuid = e.dataTransfer.getData('application/x-magnolia-code-reorder')
           const guids: string[] = multiData
@@ -965,8 +994,9 @@ export function CodeBrowser({ onNewCode, onClose, onPopOut, isPoppedOut }: Props
         <button
           className="panel-header-add"
           onClick={onNewCode}
-          title="Create new code"
+          title={lockedBy ? checkoutLockedTitle(lockedBy) : 'Create new code'}
           aria-label="Create new code"
+          style={lockedBy ? { opacity: 0.4 } : undefined}
         >
           <Icon icon={faPlus} />
         </button>
