@@ -2,6 +2,19 @@
 
 All notable changes to Magnolia are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project follows [Semantic Versioning](https://semver.org/).
 
+## [1.8.0]
+
+### Added
+- **Multi-user support.** One of the most requested features is finally here! Now, different people can work on a project. This does not allow simultaneous editing (that would require infrastructure beyond the scope of this project!) but it does allow you to compare your work on a project with others, review the changes, and merge projects together. Magnolia does this by 'locking' the file when you are editing it to indicate you are in control of it. If you walk away from your desk or your computer crashes, other people can take control from you to continue working from where you left off. You are also warned if you lose control through a little indicator in the Toolbar.
+- **Merge tool.** You will see a new button in the toolbar: that's the Merge tool. It allows you to see how different versions of a project compare (perhaps your colleague worked on one copy while you were working on another copy), review the differences, and selectively merge them together.
+- **Icon-only toolbar.** It saves space and looks better. If you want to switch it back to icons and text, do that through Preferences > Appearance.
+
+### Fixed
+- **More of a code's name is visible in the Viewer.** In case your codes have long names, you can see more of them now. 
+- **Toolbar scrolling indicators.** If your screen is too small to show the whole toolbar, there are now indicators to show you that it is scrollable.
+- **The EUPL and licences notices are moved.** To under the Help button.
+- **Various other small things.**
+
 ## [1.7.1]
 
 ### Added
