@@ -202,6 +202,20 @@ function convertPdfSelection(
 /** Progress reporter: (stage, current, total). `total` may be 0 for indeterminate stages. */
 export type QdpxProgress = (stage: string, current: number, total: number) => void
 
+/** Extract one binary's raw bytes from an arbitrary .qdpx on disk, by the
+ *  in-archive filename encoded in a `magnolia-bin://archive/<name>` handle
+ *  (see binary-store.ts's archiveFileNameFromHandle). Unlike
+ *  binary-store's own resolveHandle — which only ever reads from whichever
+ *  single .qdpx is "active" in the open project — this reads from ANY
+ *  .qdpx path, so Merge can pull a pdf/audio/video/image source's bytes
+ *  out of the comparison file to bring the document into the active one. */
+export async function readArchiveFile(filePath: string, internalName: string): Promise<Buffer | null> {
+  const zip = await JSZip.loadAsync(await readFile(filePath))
+  const sourcesDir = detectSourcesDir(zip)
+  const entry = zip.file(`${sourcesDir}/${internalName}`)
+  return entry ? entry.async('nodebuffer') : null
+}
+
 export async function readQdpx(
   filePath: string,
   onProgress?: QdpxProgress

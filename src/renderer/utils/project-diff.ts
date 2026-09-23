@@ -9,7 +9,6 @@ import type {
   LogbookEntry,
   SavedQuery,
   DocumentFolder,
-  User,
   TextSource,
   PlainTextSelection,
   Coding,
@@ -107,6 +106,32 @@ export interface SavedAnalysisDiffItem extends DiffItem<SavedAnalysis> {
   relationshipMapSummary?: RelationshipMapSummary
 }
 
+/** Whole-document presence/rename diff — a "Documents" category alongside
+ *  the existing per-document text/codings diffs below. A brand-new
+ *  document (onlyMine/onlyTheirs) never shows up in documentText/codings
+ *  at all (those require the guid to already exist on both sides), so
+ *  without this a document added on either side was invisible to Merge
+ *  entirely — the original gap this category closes. */
+export interface SourceDiffItem extends DiffItem<TextSource> {
+  /** onlyTheirs only: theirs' sourceContents entry to bring in alongside
+   *  the source itself — plain text, a PDF's extracted text, an audio/
+   *  video transcript, or a survey's raw-CSV backup (empty for image,
+   *  which has none). Independent of `binary` below: every source type
+   *  has a sourceContents entry, whether or not it also needs its bytes
+   *  resolved. */
+  theirsContent?: string
+  /** True for onlyTheirs items whose sourceType is pdf/audio/video/image
+   *  — their real bytes live in the comparison .qdpx's archive, addressed
+   *  by a `magnolia-bin://` handle scoped to whichever project is
+   *  currently open. Before such an item can be added to the active
+   *  project, applying the merge must first re-resolve its handle against
+   *  the comparison file and register the bytes as an overlay in the
+   *  active one — see resolveBinarySources in project-diff-apply.ts. This
+   *  flag only affects what Apply does internally; the review UI treats
+   *  it like any other addable document. */
+  binary?: boolean
+}
+
 export interface MergeDiff {
   codes: CodeDiffItem[]
   tags: TagDiffItem[]
@@ -116,7 +141,7 @@ export interface MergeDiff {
   logbookEntries: DiffItem<LogbookEntry>[]
   savedQueries: DiffItem<SavedQuery>[]
   folders: DiffItem<DocumentFolder>[]
-  users: DiffItem<User>[]
+  sources: SourceDiffItem[]
   documentText: DocumentTextDiffItem[]
   codings: CodingsDiffItem[]
   savedAnalyses: SavedAnalysisDiffItem[]
@@ -264,9 +289,63 @@ function diffTags(mine: QDASet[], theirs: QDASet[]): TagDiffItem[] {
   return items
 }
 
+// ─── Sources (whole documents) — presence/rename only. Content itself
+//     (text, codings, a survey's respondents/answers) is handled by the
+//     document-text/codings diff below for guids present on both sides ──
+
+function isBinaryBackedSourceType(sourceType: string | undefined): boolean {
+  return sourceType === 'pdf' || sourceType === 'audio' || sourceType === 'video' || sourceType === 'image'
+}
+
+function diffSources(
+  mine: TextSource[],
+  theirs: TextSource[],
+  theirsContents: Record<string, string>
+): SourceDiffItem[] {
+  const { onlyMine, onlyTheirs, bothPairs } = bucketByKey(mine, theirs, (x) => x.guid)
+  const items: SourceDiffItem[] = []
+  for (const m of onlyMine) items.push({ guid: m.guid, bucket: 'onlyMine', mine: m })
+  for (const t of onlyTheirs) {
+    items.push({
+      guid: t.guid,
+      bucket: 'onlyTheirs',
+      theirs: t,
+      binary: isBinaryBackedSourceType(t.sourceType),
+      theirsContent: theirsContents[t.guid] ?? ''
+    })
+  }
+  for (const [m, t] of bothPairs) {
+    if (!fieldsDiffer(m.name, t.name)) continue
+    items.push({ guid: m.guid, bucket: 'bothDiffer', mine: m, theirs: t, changedFields: ['name'] })
+  }
+  return items
+}
+
 // ─── Document text + codings — a document's text diff is always
 //     itemized; its codings are only itemized when the text matches
 //     exactly, since character offsets aren't comparable otherwise ──────
+
+/** Whether a source's substantive content is the same on both sides. A
+ *  survey's real content is the parsed formatData.survey (respondents,
+ *  questions, columns) — sourceContents only holds a raw-CSV provenance
+ *  backup (also duplicated at formatData.rawCsv) that a user can change
+ *  indirectly (e.g. reclassifying a column's type in the survey editor)
+ *  WITHOUT the CSV bytes changing at all. Comparing sourceContents alone
+ *  for surveys therefore both misses real edits and can flag false ones
+ *  from incidental CSV re-serialization — compare the parsed structure
+ *  instead. Every other source type still compares its text as before. */
+function sourceContentIdentical(
+  mineSource: TextSource, mineText: string,
+  theirsSource: TextSource, theirsText: string
+): boolean {
+  if (mineSource.sourceType === 'survey' && theirsSource.sourceType === 'survey') {
+    return !fieldsDiffer(
+      (mineSource.formatData as { survey?: unknown } | undefined)?.survey,
+      (theirsSource.formatData as { survey?: unknown } | undefined)?.survey
+    )
+  }
+  return mineText === theirsText
+}
 
 /** Stable key for a selection's anchor, independent of its own guid
  *  (which won't survive independent edits to the same source) — text
@@ -317,9 +396,12 @@ function diffDocumentTextAndCodings(
 
     const mineText = mineContents[mineSource.guid] ?? ''
     const theirsText = theirsContents[theirsSource.guid] ?? ''
-    const textIdentical = mineText === theirsText
+    const textIdentical = sourceContentIdentical(mineSource, mineText, theirsSource, theirsText)
 
-    if (!textIdentical) {
+    // A survey's raw-CSV text is a provenance backup, not reviewable
+    // content — its real diff is the coarse coding item below, which
+    // carries theirsSource (and so its whole formatData.survey) instead.
+    if (!textIdentical && mineSource.sourceType !== 'survey') {
       documentText.push({
         sourceGuid: mineSource.guid,
         sourceName: mineSource.name,
@@ -403,7 +485,7 @@ export function diffProjects(mine: ProjectSide, theirs: ProjectSide): MergeDiff 
     logbookEntries: diffByGuid(mine.project.logbookEntries ?? [], theirs.project.logbookEntries ?? [], ['title', 'content']),
     savedQueries: diffByGuid(mine.project.savedQueries ?? [], theirs.project.savedQueries ?? [], ['name', 'query']),
     folders: diffByGuid(mine.project.folders ?? [], theirs.project.folders ?? [], ['name', 'parentGuid']),
-    users: diffByGuid(mine.project.users, theirs.project.users, ['name']),
+    sources: diffSources(mine.project.sources, theirs.project.sources, theirs.sourceContents),
     documentText,
     codings,
     savedAnalyses: diffSavedAnalyses(mine.project.savedAnalyses ?? [], theirs.project.savedAnalyses ?? [])

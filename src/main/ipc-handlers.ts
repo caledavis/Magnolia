@@ -2,7 +2,7 @@ import { ipcMain, dialog, BrowserWindow, app } from 'electron'
 import { readFile, writeFile, stat, unlink } from 'fs/promises'
 import { existsSync, mkdirSync } from 'fs'
 import { basename, dirname, join } from 'path'
-import { readQdpx } from './qdpx/reader'
+import { readQdpx, readArchiveFile } from './qdpx/reader'
 import { writeQdpx, EmptyProjectGuardError, createEmptyProjectFile } from './qdpx/writer'
 import { readCheckoutMarker, writeCheckoutMarker, readEditorInfo } from './qdpx/checkout-marker'
 import { serializeCodebook } from './qdpx/codebook-serializer'
@@ -14,6 +14,7 @@ import {
   isBinaryHandle,
   resolveHandle,
   readArchiveByName,
+  archiveFileNameFromHandle,
   getOverlayByHandle,
   markPersisted,
   putOverlay
@@ -316,12 +317,44 @@ export function registerIpcHandlers(): void {
   // call while a different project is live. This means any magnolia-bin://
   // handles inside the returned data can't be resolved to actual bytes via
   // the normal read-pdf-file/read-audio-file/etc. IPCs (those always read
-  // from the single active archive) — fine for the merge feature, which
-  // only diffs structured/text data, not binary preview.
+  // from the single active archive) — that's what import-merge-binary
+  // below is for, used when the user actually approves bringing one of
+  // those documents into the active project.
   ipcMain.handle('read-qdpx-for-compare', async (_event, filePath: string) => {
     const data = await readQdpx(filePath)
     const editorInfo = await readEditorInfo(filePath)
     return { ...data, filePath, editorInfo }
+  })
+
+  // Merge: pull one pdf/audio/video/image source's bytes out of the
+  // comparison .qdpx (still on disk — comparisonFilePath, not the active
+  // project) and register them as an overlay in the ACTIVE project, so the
+  // document can be added there with a handle that actually resolves.
+  // handle is the source's existing magnolia-bin://archive/<name> handle
+  // as read from the comparison file — archiveFileNameFromHandle recovers
+  // the in-archive filename it was built from. Returns the new handle, or
+  // null if the handle wasn't an archive handle or the bytes are missing.
+  ipcMain.handle('import-merge-binary', async (_event, comparisonFilePath: string, handle: string) => {
+    const internalName = archiveFileNameFromHandle(handle)
+    if (!internalName) return null
+    const buffer = await readArchiveFile(comparisonFilePath, internalName)
+    if (!buffer) return null
+    const ext = internalName.includes('.') ? internalName.slice(internalName.lastIndexOf('.') + 1) : ''
+    return putOverlay(buffer, ext)
+  })
+
+  // Merge: read a source's raw bytes from the comparison .qdpx WITHOUT
+  // registering an overlay — unlike import-merge-binary above, this is
+  // only for comparing against the active project's own copy of a
+  // same-named document (see dedupeIdenticalSources in
+  // project-diff-apply.ts), to tell whether it's genuinely the same file
+  // (independently imported into each project, so each got its own guid)
+  // before the user ever sees it listed as an add/remove pair.
+  ipcMain.handle('read-compare-binary', async (_event, comparisonFilePath: string, handle: string) => {
+    const internalName = archiveFileNameFromHandle(handle)
+    if (!internalName) return null
+    const buffer = await readArchiveFile(comparisonFilePath, internalName)
+    return buffer ? new Uint8Array(buffer) : null
   })
 
   // Supported document extensions — add new formats here

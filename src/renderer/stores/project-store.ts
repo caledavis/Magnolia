@@ -66,10 +66,6 @@ interface ProjectState {
    *  caller read it, but the implicit form always reflects this instant). */
   promptCheckoutConflict: (marker?: CheckoutMarker | null) => void
   dismissCheckoutConflict: () => void
-  /** Bulk-replace the users list — additive-only in practice (there's no
-   *  per-field user editor), added for the merge feature to bring in
-   *  users from a second project. */
-  setUsers: (users: User[]) => void
 }
 
 const defaultUserGuid = generateGuid()
@@ -174,8 +170,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       const target = marker !== undefined ? marker : state.checkoutMarker
       return target ? { checkoutConflictMarker: target } : state
     }),
-  dismissCheckoutConflict: () => set({ checkoutConflictMarker: null }),
-  setUsers: (users) => set({ users, isDirty: true })
+  dismissCheckoutConflict: () => set({ checkoutConflictMarker: null })
 }))
 
 makeHmrSafe('projectStore', useProjectStore)

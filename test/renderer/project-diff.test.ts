@@ -144,6 +144,88 @@ describe('diffProjects — document text and codings', () => {
   })
 })
 
+describe('diffProjects — sources (whole documents)', () => {
+  const source = (guid: string, overrides: Partial<TextSource> = {}): TextSource => ({
+    guid, name: `${guid}.txt`, sourceType: 'text', selections: [], ...overrides
+  })
+
+  it('surfaces a document added only in theirs, with its content attached', () => {
+    const theirsSource = source('new-doc')
+    const diff = diffProjects(
+      side(emptyProject({ sources: [] })),
+      side(emptyProject({ sources: [theirsSource] }), { 'new-doc': 'brand new content' })
+    )
+    expect(diff.sources).toEqual([
+      { guid: 'new-doc', bucket: 'onlyTheirs', theirs: theirsSource, binary: false, theirsContent: 'brand new content' }
+    ])
+  })
+
+  it('surfaces a document added only in mine, with no theirsContent to bring in', () => {
+    const mineSource = source('mine-only')
+    const diff = diffProjects(
+      side(emptyProject({ sources: [mineSource] })),
+      side(emptyProject({ sources: [] }))
+    )
+    expect(diff.sources).toEqual([{ guid: 'mine-only', bucket: 'onlyMine', mine: mineSource }])
+  })
+
+  it('flags a binary-backed source (pdf/audio/video/image) added only in theirs as needing binary resolution, but still attaches its text content', () => {
+    const theirsPdf = source('pdf1', { sourceType: 'pdf' })
+    const diff = diffProjects(
+      side(emptyProject({ sources: [] })),
+      side(emptyProject({ sources: [theirsPdf] }), { pdf1: 'extracted pdf text' })
+    )
+    expect(diff.sources).toEqual([
+      { guid: 'pdf1', bucket: 'onlyTheirs', theirs: theirsPdf, binary: true, theirsContent: 'extracted pdf text' }
+    ])
+  })
+
+  it('flags a renamed shared document and ignores an identical one', () => {
+    const same = source('same')
+    const mineRenamed = source('r1', { name: 'old.txt' })
+    const theirsRenamed = source('r1', { name: 'new.txt' })
+    const diff = diffProjects(
+      side(emptyProject({ sources: [same, mineRenamed] })),
+      side(emptyProject({ sources: [{ ...same }, theirsRenamed] }))
+    )
+    expect(diff.sources).toEqual([
+      { guid: 'r1', bucket: 'bothDiffer', mine: mineRenamed, theirs: theirsRenamed, changedFields: ['name'] }
+    ])
+  })
+})
+
+describe('diffProjects — survey content (formatData-aware, not raw-CSV text)', () => {
+  const surveySource = (guid: string, survey: unknown, rawCsv = 'csv,here'): TextSource => ({
+    guid, name: `${guid}`, sourceType: 'survey', selections: [], formatData: { survey, rawCsv }
+  })
+
+  it('treats a survey as unchanged when formatData.survey matches even if the raw-CSV backup text differs', () => {
+    const survey = { name: 'S', columns: [], questions: [], metadataColumnIds: [], respondents: [] }
+    const mineSource = surveySource('sv1', survey, 'csv,v1')
+    const theirsSource = surveySource('sv1', { ...survey }, 'csv,v2 (re-serialized)')
+    const diff = diffProjects(
+      side(emptyProject({ sources: [mineSource] }), { sv1: 'csv,v1' }),
+      side(emptyProject({ sources: [theirsSource] }), { sv1: 'csv,v2 (re-serialized)' })
+    )
+    expect(diff.documentText).toEqual([])
+    expect(diff.codings).toEqual([])
+  })
+
+  it('flags a survey as coarse-differing when formatData.survey differs even though the raw CSV is byte-identical', () => {
+    const mineSurvey = { name: 'S', columns: [{ id: 'c1', type: 'open-ended' }], questions: [], metadataColumnIds: [], respondents: [] }
+    const theirsSurvey = { name: 'S', columns: [{ id: 'c1', type: 'skip' }], questions: [], metadataColumnIds: [], respondents: [] }
+    const mineSource = surveySource('sv1', mineSurvey, 'same,csv')
+    const theirsSource = surveySource('sv1', theirsSurvey, 'same,csv')
+    const diff = diffProjects(
+      side(emptyProject({ sources: [mineSource] }), { sv1: 'same,csv' }),
+      side(emptyProject({ sources: [theirsSource] }), { sv1: 'same,csv' })
+    )
+    // No raw-CSV documentText item — that comparison is meaningless for surveys.
+    expect(diff.documentText).toEqual([])
+    expect(diff.codings).toEqual([{ sourceGuid: 'sv1', sourceName: 'sv1', coarse: true, theirsSource }])
+  })
+})
+
 describe('diffProjects — saved analyses', () => {
   it('treats a non-relationship-map config as an opaque changed/unchanged blob', () => {
     const mine: SavedAnalysis = { guid: 'sa1', toolType: 'code-frequencies', name: 'Freq', config: { sort: 'asc' }, createdDateTime: '2024-01-01' }

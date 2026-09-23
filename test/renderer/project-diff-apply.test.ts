@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { applyMerge, emptyApplyPlan, type ApplyPlan } from '../../src/renderer/utils/project-diff-apply'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { applyMerge, emptyApplyPlan, resolveBinarySources, dedupeIdenticalSources, type ApplyPlan } from '../../src/renderer/utils/project-diff-apply'
 import { useCodeStore } from '../../src/renderer/stores/code-store'
 import { useTagStore } from '../../src/renderer/stores/tag-store'
 import { useMemoStore } from '../../src/renderer/stores/memo-store'
@@ -8,7 +8,7 @@ import { useLogbookStore } from '../../src/renderer/stores/logbook-store'
 import { useDocumentStore } from '../../src/renderer/stores/document-store'
 import { useProjectStore } from '../../src/renderer/stores/project-store'
 import type { Code, TextSource } from '../../src/renderer/models/types'
-import type { CodeDiffItem } from '../../src/renderer/utils/project-diff'
+import type { CodeDiffItem, SourceDiffItem } from '../../src/renderer/utils/project-diff'
 
 beforeEach(() => {
   useCodeStore.setState({ codes: [] })
@@ -113,13 +113,6 @@ describe('applyMerge — flat guid-keyed categories', () => {
     expect(useQuoteStore.getState().quotes).toEqual([{ guid: 'q1', sourceGuid: 's1', sourceName: 'Doc', startPosition: 0, endPosition: 5, text: 'howdy', createdDateTime: '2024-01-01' }])
   })
 
-  it('adds a user via the new setUsers action', () => {
-    const plan: ApplyPlan = emptyApplyPlan()
-    plan.users = [{ guid: 'u1', bucket: 'onlyTheirs', theirs: { guid: 'u1', name: 'Bob' } }]
-    applyMerge(plan)
-    expect(useProjectStore.getState().users).toEqual([{ guid: 'u1', name: 'Bob' }])
-  })
-
   it('marks the project dirty after applying any change', () => {
     const plan: ApplyPlan = emptyApplyPlan()
     plan.logbookEntries = [{ guid: 'l1', bucket: 'onlyTheirs', theirs: { guid: 'l1', title: 'T', content: 'C', createdDateTime: '2024-01-01' } }]
@@ -130,6 +123,151 @@ describe('applyMerge — flat guid-keyed categories', () => {
   it('does nothing and stays clean when the plan is empty', () => {
     applyMerge(emptyApplyPlan())
     expect(useProjectStore.getState().isDirty).toBe(false)
+  })
+})
+
+describe('applyMerge — sources (whole documents)', () => {
+  const baseSource = (guid: string, overrides: Partial<TextSource> = {}): TextSource => ({
+    guid, name: `${guid}.txt`, sourceType: 'text', selections: [], ...overrides
+  })
+
+  it('adds a new document from theirs, including its content', () => {
+    const plan: ApplyPlan = emptyApplyPlan()
+    const theirsSource = baseSource('new-doc')
+    plan.sources = [{ guid: 'new-doc', bucket: 'onlyTheirs', theirs: theirsSource, theirsContent: 'hello world' }]
+    applyMerge(plan)
+    expect(useDocumentStore.getState().sources).toEqual([theirsSource])
+    expect(useDocumentStore.getState().sourceContents['new-doc']).toBe('hello world')
+  })
+
+  it('skips adding a still-unresolved binary onlyTheirs document (resolveBinarySources should have run first)', () => {
+    const plan: ApplyPlan = emptyApplyPlan()
+    const theirsPdf = baseSource('pdf1', { sourceType: 'pdf' })
+    plan.sources = [{ guid: 'pdf1', bucket: 'onlyTheirs', theirs: theirsPdf, binary: true }]
+    applyMerge(plan)
+    expect(useDocumentStore.getState().sources).toEqual([])
+  })
+
+  it('adds a binary-backed document once its handle has been resolved (binary: false)', () => {
+    const plan: ApplyPlan = emptyApplyPlan()
+    const resolvedPdf = baseSource('pdf1', { sourceType: 'pdf', formatData: { pdfFilePath: 'magnolia-bin://overlay/tok1.pdf' } })
+    plan.sources = [{ guid: 'pdf1', bucket: 'onlyTheirs', theirs: resolvedPdf, binary: false, theirsContent: 'extracted text' }]
+    applyMerge(plan)
+    expect(useDocumentStore.getState().sources).toEqual([resolvedPdf])
+    expect(useDocumentStore.getState().sourceContents['pdf1']).toBe('extracted text')
+  })
+
+  it('removes a document approved as onlyMine, dropping its content too', () => {
+    const mineSource = baseSource('mine-only')
+    useDocumentStore.setState({ sources: [mineSource], sourceContents: { 'mine-only': 'text' } })
+    const plan: ApplyPlan = emptyApplyPlan()
+    plan.sources = [{ guid: 'mine-only', bucket: 'onlyMine', mine: mineSource }]
+    applyMerge(plan)
+    expect(useDocumentStore.getState().sources).toEqual([])
+    expect(useDocumentStore.getState().sourceContents).toEqual({})
+  })
+
+  it('renames a document for an approved bothDiffer item', () => {
+    const mineSource = baseSource('r1', { name: 'old.txt' })
+    useDocumentStore.setState({ sources: [mineSource], sourceContents: { r1: 'text' } })
+    const plan: ApplyPlan = emptyApplyPlan()
+    plan.sources = [{ guid: 'r1', bucket: 'bothDiffer', mine: mineSource, theirs: baseSource('r1', { name: 'new.txt' }), changedFields: ['name'] }]
+    applyMerge(plan)
+    expect(useDocumentStore.getState().sources[0].name).toBe('new.txt')
+  })
+})
+
+describe('resolveBinarySources', () => {
+  const pdfItem = (): SourceDiffItem => ({
+    guid: 'pdf1',
+    bucket: 'onlyTheirs',
+    binary: true,
+    theirs: { guid: 'pdf1', name: 'pdf1.pdf', sourceType: 'pdf', selections: [], formatData: { pdfFilePath: 'magnolia-bin://archive/pdf1.pdf' } },
+    theirsContent: 'extracted text'
+  })
+
+  it('replaces the handle with the one importBinary returns, and clears binary', async () => {
+    const importBinary = vi.fn().mockResolvedValue('magnolia-bin://overlay/tok1.pdf')
+    const [resolved] = await resolveBinarySources([pdfItem()], '/path/to/compare.qdpx', importBinary)
+    expect(importBinary).toHaveBeenCalledWith('/path/to/compare.qdpx', 'magnolia-bin://archive/pdf1.pdf')
+    expect(resolved.binary).toBe(false)
+    expect((resolved.theirs!.formatData as any).pdfFilePath).toBe('magnolia-bin://overlay/tok1.pdf')
+  })
+
+  it('drops an item whose binary could not be recovered, rather than passing through a broken handle', async () => {
+    const importBinary = vi.fn().mockResolvedValue(null)
+    const resolved = await resolveBinarySources([pdfItem()], '/path/to/compare.qdpx', importBinary)
+    expect(resolved).toEqual([])
+  })
+
+  it('passes non-binary and non-onlyTheirs items through untouched, without calling importBinary', async () => {
+    const importBinary = vi.fn()
+    const textAdd: SourceDiffItem = { guid: 't1', bucket: 'onlyTheirs', binary: false, theirs: { guid: 't1', name: 't1.txt', sourceType: 'text', selections: [] }, theirsContent: 'hi' }
+    const removal: SourceDiffItem = { guid: 'r1', bucket: 'onlyMine', mine: { guid: 'r1', name: 'r1.txt', sourceType: 'text', selections: [] } }
+    const resolved = await resolveBinarySources([textAdd, removal], '/path/to/compare.qdpx', importBinary)
+    expect(resolved).toEqual([textAdd, removal])
+    expect(importBinary).not.toHaveBeenCalled()
+  })
+})
+
+describe('dedupeIdenticalSources', () => {
+  // The reported scenario: the SAME image independently imported into
+  // both projects (so each has its own guid), surfacing as a spurious
+  // onlyMine + onlyTheirs pair even though it's one file, not two.
+  const mineImage: SourceDiffItem = {
+    guid: 'mine-guid',
+    bucket: 'onlyMine',
+    mine: { guid: 'mine-guid', name: 'SG200991.jpeg', sourceType: 'image', selections: [], formatData: { imageFilePath: 'magnolia-bin://archive/mine-guid.jpeg' } }
+  }
+  const theirsImage: SourceDiffItem = {
+    guid: 'theirs-guid',
+    bucket: 'onlyTheirs',
+    binary: true,
+    theirs: { guid: 'theirs-guid', name: 'SG200991.jpeg', sourceType: 'image', selections: [], formatData: { imageFilePath: 'magnolia-bin://archive/theirs-guid.jpeg' } }
+  }
+  const otherOnlyMine: SourceDiffItem = { guid: 'unrelated', bucket: 'onlyMine', mine: { guid: 'unrelated', name: 'file.txt', sourceType: 'text', selections: [] } }
+
+  it('drops a same-name, same-type onlyMine/onlyTheirs pair once their actual bytes are confirmed identical', async () => {
+    const bytes = new Uint8Array([1, 2, 3, 4])
+    const readMineBinary = vi.fn().mockResolvedValue(bytes)
+    const readTheirsBinary = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4]))
+    const result = await dedupeIdenticalSources([mineImage, theirsImage, otherOnlyMine], {}, {}, '/compare.qdpx', readMineBinary, readTheirsBinary)
+    expect(result).toEqual([otherOnlyMine])
+    expect(readMineBinary).toHaveBeenCalledWith('magnolia-bin://archive/mine-guid.jpeg', 'image')
+    expect(readTheirsBinary).toHaveBeenCalledWith('/compare.qdpx', 'magnolia-bin://archive/theirs-guid.jpeg')
+  })
+
+  it('keeps a same-name, same-type pair whose bytes actually differ (different photos, same filename)', async () => {
+    const readMineBinary = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3]))
+    const readTheirsBinary = vi.fn().mockResolvedValue(new Uint8Array([9, 9, 9]))
+    const result = await dedupeIdenticalSources([mineImage, theirsImage], {}, {}, '/compare.qdpx', readMineBinary, readTheirsBinary)
+    expect(result).toEqual([mineImage, theirsImage])
+  })
+
+  it('never collapses documents with different names, even with identical content, without fetching bytes', async () => {
+    const differentName: SourceDiffItem = {
+      guid: 'other-guid',
+      bucket: 'onlyTheirs',
+      binary: true,
+      theirs: { guid: 'other-guid', name: 'different-name.jpeg', sourceType: 'image', selections: [], formatData: { imageFilePath: 'magnolia-bin://archive/other-guid.jpeg' } }
+    }
+    const readMineBinary = vi.fn()
+    const readTheirsBinary = vi.fn()
+    const result = await dedupeIdenticalSources([mineImage, differentName], {}, {}, '/compare.qdpx', readMineBinary, readTheirsBinary)
+    expect(result).toEqual([mineImage, differentName])
+    expect(readMineBinary).not.toHaveBeenCalled()
+  })
+
+  it('dedupes text documents by sourceContents alone, with no binary fetch at all', async () => {
+    const mineText: SourceDiffItem = { guid: 'mt', bucket: 'onlyMine', mine: { guid: 'mt', name: 'notes.txt', sourceType: 'text', selections: [] } }
+    const theirsText: SourceDiffItem = { guid: 'tt', bucket: 'onlyTheirs', binary: false, theirs: { guid: 'tt', name: 'notes.txt', sourceType: 'text', selections: [] } }
+    const readMineBinary = vi.fn()
+    const readTheirsBinary = vi.fn()
+    const result = await dedupeIdenticalSources(
+      [mineText, theirsText], { mt: 'identical content' }, { tt: 'identical content' }, '/compare.qdpx', readMineBinary, readTheirsBinary
+    )
+    expect(result).toEqual([])
+    expect(readMineBinary).not.toHaveBeenCalled()
   })
 })
 
@@ -153,6 +291,22 @@ describe('applyMerge — document text, coarse codings, and itemized codings', (
 
     expect(useDocumentStore.getState().sourceContents.s1).toBe('new text')
     expect(useDocumentStore.getState().sources[0].selections).toEqual(theirsSelections)
+  })
+
+  it('carries over formatData.survey (not just selections/text) when taking a coarse item for a changed survey', () => {
+    const mineSurvey = { name: 'S', columns: [], questions: [], metadataColumnIds: [], respondents: [{ id: 'r1', displayName: 'Respondent 1', metadata: {}, answers: {} }] }
+    const theirsSurvey = { name: 'S', columns: [], questions: [], metadataColumnIds: [], respondents: [{ id: 'r1', displayName: 'Respondent 1', metadata: {}, answers: {} }, { id: 'r2', displayName: 'Respondent 2', metadata: {}, answers: {} }] }
+    const mineSource: TextSource = { ...baseSource('sv1'), sourceType: 'survey', formatData: { survey: mineSurvey, rawCsv: 'old,csv' } }
+    const theirsSource: TextSource = { ...baseSource('sv1'), sourceType: 'survey', formatData: { survey: theirsSurvey, rawCsv: 'new,csv' } }
+    useDocumentStore.setState({ sources: [mineSource], sourceContents: { sv1: 'old,csv' } })
+
+    const plan: ApplyPlan = emptyApplyPlan()
+    plan.codingsCoarse = [{ sourceGuid: 'sv1', sourceName: 'sv1.txt', coarse: true, theirsSource }]
+    applyMerge(plan)
+
+    const merged = useDocumentStore.getState().sources[0]
+    expect((merged.formatData as { survey: typeof theirsSurvey }).survey.respondents).toHaveLength(2)
+    expect(useDocumentStore.getState().sourceContents.sv1).toBe('new,csv')
   })
 
   it('itemizes an add by reusing an existing selection at the same anchor, and an add creating a new selection', () => {

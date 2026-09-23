@@ -123,6 +123,16 @@ interface ParsedHandle {
   name: string
 }
 
+/** The in-archive filename encoded in an archive-kind handle (e.g.
+ *  "magnolia-bin://archive/ABC123.pdf" → "ABC123.pdf") — null for an
+ *  overlay handle or any non-handle string. Used by Merge to know which
+ *  file to pull out of the comparison .qdpx for a binary-backed source
+ *  it doesn't have (see qdpx/reader.ts's readArchiveFile). */
+export function archiveFileNameFromHandle(handle: string): string | null {
+  const parsed = parseHandle(handle)
+  return parsed?.kind === 'archive' ? parsed.name : null
+}
+
 function parseHandle(handle: string): ParsedHandle | null {
   if (!handle.startsWith(HANDLE_PREFIX)) return null
   const rest = handle.slice(HANDLE_PREFIX.length)

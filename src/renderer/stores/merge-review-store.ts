@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { diffProjects, type MergeDiff } from '../utils/project-diff'
+import { dedupeIdenticalSources, type ReadMineBinaryFn } from '../utils/project-diff-apply'
 import { useDocumentStore } from './document-store'
 import { useProjectStore } from './project-store'
 import { useCodeStore } from './code-store'
@@ -9,6 +10,21 @@ import { useLogbookStore } from './logbook-store'
 import { useMemoStore } from './memo-store'
 import { useQuoteStore } from './quote-store'
 import type { Project } from '../models/types'
+
+/** Dispatches to whichever of the app's existing per-type read IPCs
+ *  matches a source's sourceType — they're all thin wrappers around the
+ *  same active-project handle resolver, so any one works; dispatching
+ *  just keeps this self-documenting. Used only to fetch bytes for the
+ *  identical-document check below, never to display anything. */
+const readMineBinary: ReadMineBinaryFn = async (handle, sourceType) => {
+  switch (sourceType) {
+    case 'pdf': return window.api.readPdfFile(handle)
+    case 'audio': return window.api.readAudioFile(handle)
+    case 'image': return window.api.readImageFile(handle)
+    case 'video': return window.api.readVideoFile(handle)
+    default: return null
+  }
+}
 
 /** Assembles the currently-open project from every store that owns a
  *  piece of it, for the merge diff — a standalone equivalent of App.tsx's
@@ -55,7 +71,7 @@ export function collectCurrentProject(): Project {
  *  MergeReviewWindow.tsx's buildApplyPlan(). */
 export type FlatCategory =
   | 'codes' | 'tags' | 'tagCategories' | 'memos' | 'quotes' | 'logbookEntries'
-  | 'savedQueries' | 'folders' | 'users' | 'savedAnalyses' | 'documentText'
+  | 'savedQueries' | 'folders' | 'savedAnalyses' | 'documentText' | 'sources'
 
 interface MergeReviewState {
   comparisonFilePath: string | null
@@ -98,7 +114,8 @@ function emptyApproved(): Record<FlatCategory, Set<string>> {
   return {
     codes: new Set(), tags: new Set(), tagCategories: new Set(), memos: new Set(),
     quotes: new Set(), logbookEntries: new Set(), savedQueries: new Set(),
-    folders: new Set(), users: new Set(), savedAnalyses: new Set(), documentText: new Set()
+    folders: new Set(), savedAnalyses: new Set(), documentText: new Set(),
+    sources: new Set()
   }
 }
 
@@ -123,6 +140,14 @@ export const useMergeReviewStore = create<MergeReviewState>((set, get) => ({
       const diff = diffProjects(
         { project: mine, sourceContents: mineSourceContents },
         { project, sourceContents, editedBy: editorInfo?.lastEditedBy }
+      )
+      // A document independently imported into both projects gets a
+      // different guid each time, so diffProjects' guid-keyed bucketing
+      // sees it as two unrelated adds (onlyMine AND onlyTheirs) even
+      // though it's the same file — drop those pairs before the user
+      // ever sees them listed as something to review.
+      diff.sources = await dedupeIdenticalSources(
+        diff.sources, mineSourceContents, sourceContents, filePath, readMineBinary, window.api.readCompareBinary
       )
       set({
         comparisonFilePath: filePath,

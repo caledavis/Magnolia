@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMergeReviewStore, collectCurrentProject, type FlatCategory } from '../../stores/merge-review-store'
-import { applyMerge, emptyApplyPlan, type ApplyPlan } from '../../utils/project-diff-apply'
-import type { DiffItem, MergeDiff, CodeDiffItem, SavedAnalysisDiffItem, CodingInstance } from '../../utils/project-diff'
+import { applyMerge, emptyApplyPlan, resolveBinarySources, type ApplyPlan } from '../../utils/project-diff-apply'
+import type { DiffItem, MergeDiff, CodeDiffItem, SavedAnalysisDiffItem, CodingInstance, SourceDiffItem } from '../../utils/project-diff'
 import { useProjectStore } from '../../stores/project-store'
 import { usePreferencesStore } from '../../stores/preferences-store'
 import { useDocumentStore } from '../../stores/document-store'
@@ -32,7 +32,6 @@ const FLAT_CATEGORIES: CategoryMeta[] = [
   { id: 'logbookEntries', label: 'Logbook', count: (d) => d.logbookEntries.length },
   { id: 'savedQueries', label: 'Saved Queries', count: (d) => d.savedQueries.length },
   { id: 'folders', label: 'Folders', count: (d) => d.folders.length },
-  { id: 'users', label: 'Users', count: (d) => d.users.length },
   { id: 'savedAnalyses', label: 'Saved Analyses', count: (d) => d.savedAnalyses.length }
 ]
 
@@ -116,8 +115,6 @@ function describeItem(category: FlatCategory, item: DiffItem<any>): React.ReactN
     case 'savedQueries':
       return obj?.name ?? item.guid
     case 'folders':
-      return obj?.name ?? item.guid
-    case 'users':
       return obj?.name ?? item.guid
     case 'savedAnalyses': {
       const sa = item as SavedAnalysisDiffItem
@@ -219,6 +216,88 @@ function DocumentTextPane({ diff }: { diff: MergeDiff }): JSX.Element {
           label={`${d.sourceName} — text differs, check to take ${theirs} version`}
         />
       ))}
+    </div>
+  )
+}
+
+function sourceTypeLabel(sourceType?: string): string {
+  switch (sourceType) {
+    case 'survey': return 'Survey'
+    case 'pdf': return 'PDF'
+    case 'audio': return 'Audio'
+    case 'video': return 'Video'
+    case 'image': return 'Image'
+    case 'markdown': return 'Markdown'
+    default: return 'Text document'
+  }
+}
+
+/** Whole-document add/remove/rename — see SourceDiffItem. A binary-backed
+ *  add (pdf/audio/video/image) gets a normal checkbox like any other item;
+ *  Apply resolves its bytes out of the comparison file before adding it
+ *  (see resolveBinarySources) — the review UI doesn't need to know the
+ *  difference. */
+function SourcesPane({ diff }: { diff: MergeDiff }): JSX.Element {
+  const approved = useMergeReviewStore((s) => s.approved.sources)
+  const toggle = useMergeReviewStore((s) => s.toggle)
+  const comparisonEditedBy = useMergeReviewStore((s) => s.comparisonEditedBy)
+  const reconciling = useMergeReviewStore((s) => s.reconciling)
+  const theirs = theirsPossessive(comparisonEditedBy)
+  if (diff.sources.length === 0) return <p style={{ color: 'var(--text-muted)', fontSize: 12.5 }}>No document differences.</p>
+
+  const renderRow = (item: SourceDiffItem): React.ReactNode => {
+    if (item.bucket === 'bothDiffer') {
+      return (
+        <CheckboxRow
+          key={item.guid}
+          checked={approved.has(item.guid)}
+          onChange={() => toggle('sources', item.guid)}
+          label={<span>Renamed <strong>{item.mine?.name}</strong> → <strong>{item.theirs?.name}</strong> <span style={{ color: 'var(--text-muted)' }}>— check to take the new name</span></span>}
+        />
+      )
+    }
+    const obj = item.theirs ?? item.mine
+    const checked = item.bucket === 'onlyMine' ? !approved.has(item.guid) : approved.has(item.guid)
+    return (
+      <CheckboxRow
+        key={item.guid}
+        checked={checked}
+        onChange={() => toggle('sources', item.guid)}
+        label={
+          <span>
+            <strong>{obj?.name}</strong>{' '}
+            <span style={{ color: 'var(--text-muted)' }}>— {sourceTypeLabel(obj?.sourceType)}, {bucketLabel(item.bucket, comparisonEditedBy, reconciling)}</span>
+          </span>
+        }
+      />
+    )
+  }
+
+  const onlyTheirs = diff.sources.filter((i) => i.bucket === 'onlyTheirs')
+  const bothDiffer = diff.sources.filter((i) => i.bucket === 'bothDiffer')
+  const onlyMine = diff.sources.filter((i) => i.bucket === 'onlyMine')
+  const sectionHeaderStyle: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: 0.02 }
+
+  return (
+    <div>
+      {onlyTheirs.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <h4 style={sectionHeaderStyle}>Only in {theirs} ({onlyTheirs.length})</h4>
+          {onlyTheirs.map(renderRow)}
+        </div>
+      )}
+      {bothDiffer.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <h4 style={sectionHeaderStyle}>Renamed ({bothDiffer.length})</h4>
+          {bothDiffer.map(renderRow)}
+        </div>
+      )}
+      {onlyMine.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <h4 style={sectionHeaderStyle}>{reconciling ? 'Your unsaved changes' : 'Only in mine'} ({onlyMine.length})</h4>
+          {onlyMine.map(renderRow)}
+        </div>
+      )}
     </div>
   )
 }
@@ -383,7 +462,7 @@ function CodingsPane({ diff }: { diff: MergeDiff }): JSX.Element {
               key={key}
               checked={approved.has(key)}
               onChange={() => toggleCoding(key)}
-              label={`${c.sourceName} — text differs, codings can't be itemized. Check to take ${theirs} text AND codings for this document.`}
+              label={`${c.sourceName} — content differs, codings can't be itemized. Check to take ${theirs} content AND codings for this document.`}
             />
           )
         }
@@ -441,6 +520,7 @@ function buildApplyPlan(diff: MergeDiff, approved: Record<FlatCategory, Set<stri
     const items = (diff as any)[meta.id] as DiffItem<any>[]
     ;(plan as any)[meta.id] = items.filter((i) => approved[meta.id].has(i.guid))
   }
+  plan.sources = diff.sources.filter((i) => approved.sources.has(i.guid))
   plan.documentText = diff.documentText.filter((d) => approved.documentText.has(d.sourceGuid))
 
   for (const key of codingsApproved) {
@@ -522,6 +602,8 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
   const reset = useMergeReviewStore((s) => s.reset)
   const [selected, setSelected] = useState<'codings' | 'documentText' | FlatCategory>('codes')
   const [applied, setApplied] = useState<number | null>(null)
+  const [applying, setApplying] = useState(false)
+  const [applyWarning, setApplyWarning] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
@@ -530,11 +612,28 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
     onClose()
   }
 
-  const handleApply = (): void => {
+  // A binary-backed (pdf/audio/video/image) onlyTheirs source needs its
+  // bytes pulled out of the comparison .qdpx and re-registered in the
+  // active project before it can be added — see resolveBinarySources.
+  // That's the only async step in the whole merge-apply path, so this
+  // handler awaits it and then hands off to applyMerge, which stays a
+  // plain synchronous store mutation like every other category.
+  const handleApply = async (): Promise<void> => {
     if (!diff) return
+    setApplying(true)
+    setApplyWarning(null)
     const plan = buildApplyPlan(diff, approved, codingsApproved)
+    const approvedSourceCount = plan.sources.length
+    if (comparisonFilePath) {
+      plan.sources = await resolveBinarySources(plan.sources, comparisonFilePath, window.api.importMergeBinary)
+    }
+    const droppedCount = approvedSourceCount - plan.sources.length
     applyMerge(plan)
-    setApplied(totalApprovedCount(approved, codingsApproved))
+    setApplying(false)
+    if (droppedCount > 0) {
+      setApplyWarning(`${droppedCount} document${droppedCount === 1 ? '' : 's'} couldn't be brought in — ${droppedCount === 1 ? 'its file' : 'their files'} may be missing from the comparison project, or it may have moved since you opened Compare.`)
+    }
+    setApplied(totalApprovedCount(approved, codingsApproved) - droppedCount)
   }
 
   // Scoped to whichever category is currently active in the sidebar —
@@ -661,6 +760,9 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
             ? 'Nothing else to reconcile — your unsaved changes are kept as-is. Save to write them to disk.'
             : `${applied} change${applied === 1 ? '' : 's'} applied to this project. Save to write them to disk.`}
         </p>
+        {applyWarning && (
+          <p style={{ fontSize: 12.5, color: 'var(--danger)' }}>{applyWarning}</p>
+        )}
         {saveError && (
           <p style={{ fontSize: 12.5, color: 'var(--danger)' }}>Couldn’t save: {saveError}</p>
         )}
@@ -674,6 +776,7 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
   const categoryCount = (id: FlatCategory | 'codings' | 'documentText'): number => {
     if (id === 'codings') return diff.codings.reduce((n, c) => n + (c.coarse ? 1 : (c.onlyMine?.length ?? 0) + (c.onlyTheirs?.length ?? 0)), 0)
     if (id === 'documentText') return diff.documentText.length
+    if (id === 'sources') return diff.sources.length
     return FLAT_CATEGORIES.find((c) => c.id === id)!.count(diff)
   }
 
@@ -699,6 +802,7 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
   }
 
   const allCategories: { id: FlatCategory | 'codings' | 'documentText'; label: string }[] = [
+    { id: 'sources', label: 'Documents' },
     ...FLAT_CATEGORIES.filter((c) => c.id !== 'savedAnalyses').map((c) => ({ id: c.id, label: c.label })),
     { id: 'documentText', label: 'Document Text' },
     { id: 'codings', label: 'Codings' },
@@ -755,7 +859,8 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
           )}
           {selected === 'codings' && <CodingsPane diff={diff} />}
           {selected === 'documentText' && <DocumentTextPane diff={diff} />}
-          {selected !== 'codings' && selected !== 'documentText' && <FlatCategoryPane category={selected as FlatCategory} diff={diff} />}
+          {selected === 'sources' && <SourcesPane diff={diff} />}
+          {selected !== 'codings' && selected !== 'documentText' && selected !== 'sources' && <FlatCategoryPane category={selected as FlatCategory} diff={diff} />}
         </div>
       </div>
 
@@ -782,10 +887,10 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
             not assert a number that two different (both individually
             correct) ways of counting will routinely disagree on. */}
         {reconciling ? (
-          <button onClick={handleApply}>Continue</button>
+          <button onClick={handleApply} disabled={applying}>{applying ? 'Applying…' : 'Continue'}</button>
         ) : (
-          <button onClick={handleApply} disabled={totalApproved === 0}>
-            Apply {totalApproved > 0 ? `${totalApproved} ` : ''}Approved Change{totalApproved === 1 ? '' : 's'}
+          <button onClick={handleApply} disabled={totalApproved === 0 || applying}>
+            {applying ? 'Applying…' : `Apply ${totalApproved > 0 ? `${totalApproved} ` : ''}Approved Change${totalApproved === 1 ? '' : 's'}`}
           </button>
         )}
       </div>

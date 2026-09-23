@@ -526,6 +526,18 @@ export interface ElectronAPI {
    *  see the handler in ipc-handlers.ts for why this is safe. No binary
    *  (PDF/audio/video/image) content can be resolved from the result. */
   readQdpxForCompare: (filePath: string) => Promise<Project & { sourceContents: Record<string, string>; filePath: string; editorInfo: EditorInfo | null }>
+  /** Merge: pull one pdf/audio/video/image source's bytes out of
+   *  comparisonFilePath (a second .qdpx, not the active project) and
+   *  register them as an overlay in the ACTIVE project, returning a fresh
+   *  magnolia-bin:// handle that actually resolves there. handle is the
+   *  source's existing handle as read via readQdpxForCompare. Resolves to
+   *  null if handle isn't an archive handle or the bytes can't be found. */
+  importMergeBinary: (comparisonFilePath: string, handle: string) => Promise<string | null>
+  /** Merge: read a source's raw bytes from comparisonFilePath WITHOUT
+   *  registering an overlay — used only to compare against the active
+   *  project's own copy of a same-named document (see
+   *  dedupeIdenticalSources), not to bring anything in. */
+  readCompareBinary: (comparisonFilePath: string, handle: string) => Promise<Uint8Array | null>
   saveProject: (data: {
     project: Project
     sourceContents: Record<string, string>

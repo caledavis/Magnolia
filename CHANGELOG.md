@@ -2,6 +2,15 @@
 
 All notable changes to Magnolia are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project follows [Semantic Versioning](https://semver.org/).
 
+## [1.8.1]
+
+### Changed
+- **Removed the "Users" category from the Merge tool.** User records exist in a project only for REFI-QDA attribution metadata (who created/modified a code, coding, or document) — they're never shown anywhere in Magnolia's own interface, and checkout locking uses a separate mechanism entirely, so there was nothing meaningful to review or merge there.
+
+### Fixed
+- **Merge now actually merges every document type, including surveys.** Previously, a document added on one side of a merge never showed up to review at all — Merge only compared documents that already existed on both sides, so a brand-new survey, PDF, audio/video recording, image, or text document was silently invisible. There's now a "Documents" category in the Merge tool listing documents only found on one side (or renamed), so you can bring any of them in — including pulling a PDF/audio/video/image's actual file across from the other project — or leave them out. Changes to an *existing* shared survey's data — respondents, answers, question/column types — are also now correctly detected and merged; before, Merge compared surveys by their raw imported CSV text, which doesn't reflect edits made in Magnolia and, worse, meant an approved survey change didn't actually update what you'd see in the Survey Viewer after merging.
+- **Merge no longer lists the same document twice when it was imported independently into both projects.** If you and a collaborator each dragged in the same photo, PDF, or recording separately (rather than one of you adding it and merging it across), Magnolia previously listed it as "only in mine" AND "only in theirs" — two different adds — because each import gets its own internal ID. The Documents category now checks whether a same-named document on each side is actually identical (comparing its real content, not just its name) before showing anything, so a genuinely shared file no longer shows up as something to review.
+
 ## [1.8.0]
 
 ### Added
