@@ -414,6 +414,14 @@ export async function writeQdpx(
   // embedded, so the metadata pass and the completeness guard below stay
   // in sync with what's really in the archive.
   const writtenBinaries = new Set<string>()
+  // Overlay binaries embedded by this save. Their in-memory buffers are
+  // only released (markPersisted) once the archive is actually on disk —
+  // see the end of this function. Releasing them here, mid-save, let an
+  // overlapping save (e.g. autosave racing Merge's Save & Close) find the
+  // buffer already gone and the bytes not yet in the on-disk .qdpx, so it
+  // tripped the completeness guard; and if THIS save then failed (guard,
+  // write error), the bytes were lost for good.
+  const persistedOverlays: { handle: string; guid: string }[] = []
 
   // Best-effort handle on the archive we're about to overwrite (or, for
   // Save As, the project currently open). Loaded once; used only to carry
@@ -518,7 +526,7 @@ export async function writeQdpx(
     if (buf) {
       sourcesFolder.file(internalName, buf)
       writtenBinaries.add(s.guid)
-      if (isOverlay) opts?.markPersisted?.(pathOrHandle as string, s.guid)
+      if (isOverlay) persistedOverlays.push({ handle: pathOrHandle as string, guid: s.guid })
     }
   }
 
@@ -731,6 +739,10 @@ export async function writeQdpx(
     await unlink(tmpPath).catch(() => { /* temp may not exist */ })
     throw err
   }
+
+  // The archive now durably holds every embedded overlay binary, so it's
+  // safe to free the buffers — later reads resolve via token→guid.
+  for (const { handle, guid } of persistedOverlays) opts?.markPersisted?.(handle, guid)
 }
 
 /** Materialize an empty .qdpx at filePath. Used by the welcome-screen
