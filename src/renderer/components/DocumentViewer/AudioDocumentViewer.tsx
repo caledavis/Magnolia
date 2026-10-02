@@ -5,9 +5,11 @@
  */
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { TranscriptEditor } from './TranscriptEditor'
+import { WaveformSeekBar } from './WaveformSeekBar'
 import { usePreferencesStore } from '../../stores/preferences-store'
 import { useDocumentStore } from '../../stores/document-store'
 import { Icon, faPlay, faPause, faBackward, faForward, faVolumeHigh, faVolumeLow, faVolumeXmark } from '../Icon'
+import { decodePeaks } from '../../utils/waveform-peaks'
 import type { TextSource } from '../../models/types'
 
 interface Props {
@@ -87,18 +89,30 @@ export function AudioDocumentViewer({ source, content }: Props) {
   } | undefined
   const hasAudio = !!(audioData?.audioFilePath)
 
-  // Load audio file via IPC → create blob URL (avoids file:// and protocol issues)
+  // Load audio file via IPC → create blob URL (avoids file:// and protocol issues).
+  // The same bytes feed the seek bar's waveform; until decoding finishes
+  // (or if it fails) the seek bar shows the plain progress bar.
   const [audioUrl, setAudioUrl] = useState('')
+  const [peaks, setPeaks] = useState<Float32Array | null>(null)
   useEffect(() => {
     if (!hasAudio) return
     let revoke: string | null = null
+    const abort = new AbortController()
+    setPeaks(null)
     window.api.readAudioFile(audioData!.audioFilePath!).then((buffer: ArrayBuffer) => {
+      if (abort.signal.aborted) return
       const blob = new Blob([buffer], { type: audioData!.mimeType || 'audio/mpeg' })
       const url = URL.createObjectURL(blob)
       revoke = url
       setAudioUrl(url)
+      decodePeaks(buffer, { signal: abort.signal, onProgress: setPeaks })
+        .then((p) => { if (!abort.signal.aborted) setPeaks(p) })
+        .catch((err: any) => { if (!abort.signal.aborted) console.warn('Waveform unavailable:', err) })
     }).catch((err: any) => console.error('Failed to load audio:', err))
-    return () => { if (revoke) URL.revokeObjectURL(revoke) }
+    return () => {
+      abort.abort()
+      if (revoke) URL.revokeObjectURL(revoke)
+    }
   }, [hasAudio, audioData?.audioFilePath]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Audio event handlers
@@ -111,7 +125,12 @@ export function AudioDocumentViewer({ source, content }: Props) {
   }, [])
 
   const handlePlay = useCallback(() => setIsPlaying(true), [])
-  const handlePause = useCallback(() => setIsPlaying(false), [])
+  const handlePause = useCallback(() => {
+    setIsPlaying(false)
+    // Sync to the exact paused position so the seek bar (frame-accurate
+    // while playing) doesn't step back to the last timeupdate.
+    if (audioRef.current) setCurrentTime(audioRef.current.currentTime)
+  }, [])
 
   const getAudio = () => audioRef.current
 
@@ -277,27 +296,17 @@ export function AudioDocumentViewer({ source, content }: Props) {
         </button>
 
         {/* Seek bar (click + drag to scrub) */}
-        <div
+        <WaveformSeekBar
           ref={seekBarRef}
-          style={{
-            flex: 1,
-            height: 6,
-            background: 'var(--bg-tertiary)',
-            borderRadius: 3,
-            cursor: 'pointer',
-            position: 'relative',
-            minWidth: 60
+          peaks={peaks}
+          progress={duration > 0 ? currentTime / duration : 0}
+          playing={isPlaying}
+          getProgress={() => {
+            const a = audioRef.current
+            return a && isFinite(a.duration) && a.duration > 0 ? a.currentTime / a.duration : 0
           }}
           onMouseDown={handleSeekBarMouseDown}
-        >
-          <div style={{
-            height: '100%',
-            width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%',
-            background: 'var(--accent)',
-            borderRadius: 3,
-            pointerEvents: 'none'
-          }} />
-        </div>
+        />
 
         {/* Time display */}
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-secondary)', minWidth: 80, textAlign: 'center', flexShrink: 0 }}>
