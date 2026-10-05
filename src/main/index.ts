@@ -10,6 +10,7 @@ import { readQdpx } from './qdpx/reader'
 import { createEmptyProjectFile } from './qdpx/writer'
 import { initAutoUpdater, checkForUpdatesManually, getUpdateBadgeState } from './auto-updater'
 import { openBundledLicenceFile } from './licence-files'
+import { showOpenDialog, showSaveDialog } from './dialogs'
 
 // Register custom protocol scheme BEFORE app.ready (required by Electron)
 protocol.registerSchemesAsPrivileged([
@@ -774,9 +775,8 @@ ipcMain.on('analysis-action', (_event, action: string, ...args: any[]) => {
 })
 
 // CSV and SVG export handlers
-ipcMain.handle('export-csv', async (_event, content: string, defaultName: string) => {
-  const { dialog } = await import('electron')
-  const result = await dialog.showSaveDialog({
+ipcMain.handle('export-csv', async (event, content: string, defaultName: string) => {
+  const result = await showSaveDialog(event.sender, {
     defaultPath: defaultName,
     filters: [{ name: 'CSV', extensions: ['csv'] }]
   })
@@ -786,9 +786,8 @@ ipcMain.handle('export-csv', async (_event, content: string, defaultName: string
   return result.filePath
 })
 
-ipcMain.handle('export-svg', async (_event, content: string, defaultName: string) => {
-  const { dialog } = await import('electron')
-  const result = await dialog.showSaveDialog({
+ipcMain.handle('export-svg', async (event, content: string, defaultName: string) => {
+  const result = await showSaveDialog(event.sender, {
     defaultPath: defaultName,
     filters: [{ name: 'SVG', extensions: ['svg'] }]
   })
@@ -805,7 +804,7 @@ ipcMain.handle('get-recent-projects', () => {
   return pruneRecentProjects()
 })
 
-ipcMain.on('welcome-action', async (_event, action: string) => {
+ipcMain.on('welcome-action', async (event, action: string) => {
   if (action === 'quit') {
     if (welcomeWindow && !welcomeWindow.isDestroyed()) {
       welcomeWindow.close()
@@ -826,7 +825,7 @@ ipcMain.on('welcome-action', async (_event, action: string) => {
     // Prompt for the file location up-front so the user knows what their
     // project is named and where it lives on disk. Mirrors the Open flow:
     // cancelling the dialog leaves them on the welcome screen.
-    const result = await dialog.showSaveDialog({
+    const result = await showSaveDialog(event.sender, {
       title: 'Create New Project',
       defaultPath: 'Untitled.qdpx',
       filters: [{ name: 'QDPX Projects', extensions: ['qdpx'] }]
@@ -854,7 +853,7 @@ ipcMain.on('welcome-action', async (_event, action: string) => {
 
   if (action === 'open-project') {
     // Show file dialog BEFORE creating the main window
-    const result = await dialog.showOpenDialog({
+    const result = await showOpenDialog(event.sender, {
       title: 'Open QDPX Project',
       filters: [{ name: 'QDPX Projects', extensions: ['qdpx'] }],
       properties: ['openFile']

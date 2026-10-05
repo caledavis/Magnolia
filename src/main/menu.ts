@@ -1,6 +1,7 @@
-import { app, Menu, BrowserWindow, dialog } from 'electron'
+import { app, Menu, BrowserWindow } from 'electron'
 import { checkForUpdatesManually } from './auto-updater'
 import { openBundledLicenceFile } from './licence-files'
+import { showOpenDialog } from './dialogs'
 
 export interface WindowListEntry {
   label: string
@@ -72,7 +73,7 @@ export function buildMenu(mainWindow: BrowserWindow, openWindows?: WindowListEnt
           // project' channel, which already does the full load + state
           // reset.
           click: async () => {
-            const result = await dialog.showOpenDialog({
+            const result = await showOpenDialog(mainWindow, {
               title: 'Open QDPX Project',
               filters: [{ name: 'QDPX Projects', extensions: ['qdpx'] }],
               properties: ['openFile']

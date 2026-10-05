@@ -20,6 +20,7 @@ import {
   putOverlay
 } from './binary-store'
 import { getLastImportDir, setLastImportDir } from './import-dirs'
+import { showOpenDialog, showSaveDialog } from './dialogs'
 import type { Project, Code } from '../renderer/models/types'
 
 /**
@@ -98,7 +99,7 @@ export function registerIpcHandlers(): void {
   })
 
   ipcMain.handle('open-project', async (event) => {
-    const result = await dialog.showOpenDialog({
+    const result = await showOpenDialog(event.sender, {
       title: 'Open QDPX Project',
       filters: [{ name: 'QDPX Projects', extensions: ['qdpx'] }],
       properties: ['openFile']
@@ -120,8 +121,8 @@ export function registerIpcHandlers(): void {
   // "loading begins" — important because the loading overlay used to
   // appear before the picker, making it look like Magnolia stalled
   // before the picker even opened.
-  ipcMain.handle('pick-project-file', async () => {
-    const result = await dialog.showOpenDialog({
+  ipcMain.handle('pick-project-file', async (event) => {
+    const result = await showOpenDialog(event.sender, {
       title: 'Open QDPX Project',
       filters: [{ name: 'QDPX Projects', extensions: ['qdpx'] }],
       properties: ['openFile']
@@ -133,7 +134,7 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(
     'save-project',
     async (
-      _event,
+      event,
       data: {
         project: Project
         sourceContents: Record<string, string>
@@ -143,7 +144,7 @@ export function registerIpcHandlers(): void {
     ) => {
       let filePath = data.filePath
       if (!filePath) {
-        const result = await dialog.showSaveDialog({
+        const result = await showSaveDialog(event.sender, {
           title: 'Save QDPX Project',
           defaultPath: `${data.project.name}.qdpx`,
           filters: [{ name: 'QDPX Projects', extensions: ['qdpx'] }]
@@ -190,8 +191,8 @@ export function registerIpcHandlers(): void {
     }
   )
 
-  ipcMain.handle('create-new-project-file', async () => {
-    const result = await dialog.showSaveDialog({
+  ipcMain.handle('create-new-project-file', async (event) => {
+    const result = await showSaveDialog(event.sender, {
       title: 'Create New Project',
       defaultPath: 'Untitled.qdpx',
       filters: [{ name: 'QDPX Projects', extensions: ['qdpx'] }]
@@ -207,8 +208,8 @@ export function registerIpcHandlers(): void {
     }
   })
 
-  ipcMain.handle('save-project-as', async (_event, data: { project: Project; sourceContents: Record<string, string>; currentFilePath?: string }) => {
-    const result = await dialog.showSaveDialog({
+  ipcMain.handle('save-project-as', async (event, data: { project: Project; sourceContents: Record<string, string>; currentFilePath?: string }) => {
+    const result = await showSaveDialog(event.sender, {
       title: 'Save QDPX Project As',
       defaultPath: `${data.project.name}.qdpx`,
       filters: [{ name: 'QDPX Projects', extensions: ['qdpx'] }]
@@ -521,8 +522,8 @@ export function registerIpcHandlers(): void {
     )
   }
 
-  ipcMain.handle('import-text-file', async () => {
-    const result = await dialog.showOpenDialog({
+  ipcMain.handle('import-text-file', async (event) => {
+    const result = await showOpenDialog(event.sender, {
       title: 'Import Document',
       defaultPath: await getLastImportDir(getActiveProjectPath()),
       filters: [{ name: 'Supported Documents', extensions: SUPPORTED_EXTENSIONS }],
@@ -545,7 +546,7 @@ export function registerIpcHandlers(): void {
   // returns the same { name, content, extension, formatting } shape as a
   // normal import so the renderer can re-attach it to the existing source
   // (preserving its guid + codes). Returns null if the user cancels.
-  ipcMain.handle('reimport-document', async (_event, sourceType: string) => {
+  ipcMain.handle('reimport-document', async (event, sourceType: string) => {
     const extsFor = (t: string): string[] => {
       if (t === 'pdf') return ['pdf', 'docx', 'rtf', 'odt']
       if (t === 'image') return [...IMAGE_EXTENSIONS, ...DECODED_IMAGE_EXTENSIONS]
@@ -556,7 +557,7 @@ export function registerIpcHandlers(): void {
       if (t === 'audio' || t === 'video') return [...new Set([...AUDIO_EXTENSIONS, ...VIDEO_EXTENSIONS])]
       return SUPPORTED_EXTENSIONS
     }
-    const result = await dialog.showOpenDialog({
+    const result = await showOpenDialog(event.sender, {
       title: 'Re-import Document',
       defaultPath: await getLastImportDir(getActiveProjectPath()),
       filters: [{ name: 'Supported Documents', extensions: extsFor(sourceType) }],
@@ -613,8 +614,8 @@ export function registerIpcHandlers(): void {
     return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
   })
 
-  ipcMain.handle('import-transcript', async () => {
-    const result = await dialog.showOpenDialog({
+  ipcMain.handle('import-transcript', async (event) => {
+    const result = await showOpenDialog(event.sender, {
       title: 'Import Transcript',
       defaultPath: await getLastImportDir(getActiveProjectPath()),
       filters: [
@@ -632,14 +633,14 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(
     'export-pdf',
     async (
-      _event,
+      event,
       html: string,
       defaultName: string,
       dialogTitle?: string,
       headerTemplate?: string,
       footerTemplate?: string
     ) => {
-      const result = await dialog.showSaveDialog({
+      const result = await showSaveDialog(event.sender, {
         title: dialogTitle || 'Export as PDF',
         defaultPath: `${defaultName}.pdf`,
         filters: [{ name: 'PDF Documents', extensions: ['pdf'] }]
@@ -705,8 +706,8 @@ export function registerIpcHandlers(): void {
     }
   )
 
-  ipcMain.handle('export-codebook', async (_event, codes: Code[]) => {
-    const result = await dialog.showSaveDialog({
+  ipcMain.handle('export-codebook', async (event, codes: Code[]) => {
+    const result = await showSaveDialog(event.sender, {
       title: 'Export Codebook',
       defaultPath: 'Codebook.qdc',
       filters: [{ name: 'REFI-QDA Codebook', extensions: ['qdc'] }]
@@ -717,8 +718,8 @@ export function registerIpcHandlers(): void {
     return result.filePath
   })
 
-  ipcMain.handle('import-codebook', async () => {
-    const result = await dialog.showOpenDialog({
+  ipcMain.handle('import-codebook', async (event) => {
+    const result = await showOpenDialog(event.sender, {
       title: 'Import Codebook',
       filters: [{ name: 'REFI-QDA Codebook', extensions: ['qdc'] }],
       properties: ['openFile']
