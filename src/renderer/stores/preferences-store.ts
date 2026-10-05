@@ -37,6 +37,9 @@ export interface Preferences {
   /** Shown to teammates when this user checks out a shared project. */
   userName: string
   toolbarStyle: ToolbarStyle
+  /** Experimental: dark toolbar plus colour-coded icons (see the
+   *  [data-colourful] rules in global.css). */
+  colourfulInterface: boolean
 }
 
 const DEFAULT_PREFERENCES: Preferences = {
@@ -52,7 +55,8 @@ const DEFAULT_PREFERENCES: Preferences = {
   paperSize: 'A4',
   interfaceScale: 1,
   userName: '',
-  toolbarStyle: 'icons'
+  toolbarStyle: 'icons',
+  colourfulInterface: false
 }
 
 interface PreferencesState extends Preferences {
@@ -65,6 +69,7 @@ interface PreferencesState extends Preferences {
   setInterfaceScale: (scale: number) => void
   setUserName: (userName: string) => void
   setToolbarStyle: (toolbarStyle: ToolbarStyle) => void
+  setColourfulInterface: (colourfulInterface: boolean) => void
 }
 
 export const usePreferencesStore = create<PreferencesState>((set, get) => ({
@@ -83,6 +88,7 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
           interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
           userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
           toolbarStyle: prefs.toolbarStyle === 'icons-and-text' ? 'icons-and-text' : DEFAULT_PREFERENCES.toolbarStyle,
+          colourfulInterface: prefs.colourfulInterface === true,
           loaded: true
         })
       } else {
@@ -94,9 +100,9 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   },
 
   save: async () => {
-    const { footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle } = get()
+    const { footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle, colourfulInterface } = get()
     try {
-      await window.api.savePreferences({ footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle })
+      await window.api.savePreferences({ footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle, colourfulInterface })
     } catch { /* ignore */ }
   },
 
@@ -131,6 +137,11 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   setToolbarStyle: (toolbarStyle) => {
     set({ toolbarStyle })
     setTimeout(() => get().save(), 0)
+  },
+
+  setColourfulInterface: (colourfulInterface) => {
+    set({ colourfulInterface })
+    setTimeout(() => get().save(), 0)
   }
 }))
 
@@ -158,6 +169,7 @@ if (typeof window !== 'undefined' && window.api?.onPreferencesUpdate) {
       interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
       userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
       toolbarStyle: prefs.toolbarStyle === 'icons-and-text' ? 'icons-and-text' : DEFAULT_PREFERENCES.toolbarStyle,
+      colourfulInterface: prefs.colourfulInterface === true,
       loaded: true
     })
   })

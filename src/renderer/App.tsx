@@ -2477,6 +2477,7 @@ function App() {
 
   return (
     <div
+      className="app-shell"
       style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column' }}
       onDragEnter={(e) => {
         if (e.dataTransfer.types.includes('Files')) e.preventDefault()
