@@ -1,11 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Icon, faPlay, faPause } from '../Icon'
 import type { DetectedSpeaker } from '../../utils/transcript-speakers'
-
-const PRESET_COLORS = [
-  '#e05050', '#e08050', '#e0c050', '#50c050', '#50c0c0',
-  '#5080e0', '#8050e0', '#e050a0', '#c07030', '#7070e0'
-]
+import { useCodeColourPresets } from '../../utils/code-colours'
 
 /** Seconds of audio the play button previews. */
 const CLIP_SECONDS = 5
@@ -56,6 +52,7 @@ export function SpeakerCodingDialog({ open, speakers, source, onApply, onClose }
   const [dragOver, setDragOver] = useState<string | null>(null)
   const [editingNew, setEditingNew] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
+  const colourPresets = useCodeColourPresets()
   const [playingId, setPlayingId] = useState<string | null>(null)
 
   // Reset when the dialog (re)opens for a fresh import.
@@ -174,7 +171,7 @@ export function SpeakerCodingDialog({ open, speakers, source, onApply, onClose }
   const confirmNewCode = (speakerId: string, index: number) => {
     const name = newName.trim()
     if (!name) { setEditingNew(null); return }
-    setAssignments((a) => ({ ...a, [speakerId]: { kind: 'new', name, color: PRESET_COLORS[index % PRESET_COLORS.length] } }))
+    setAssignments((a) => ({ ...a, [speakerId]: { kind: 'new', name, color: colourPresets[index % colourPresets.length] } }))
     setEditingNew(null)
   }
   const clearAssignment = (speakerId: string) =>

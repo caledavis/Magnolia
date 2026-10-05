@@ -8,6 +8,8 @@ import type { Code } from '../../models/types'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { isMac, modKey } from '../../utils/platform'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
+import { usePreferencesStore } from '../../stores/preferences-store'
+import { codeColourPresets, useCodeColourPresets } from '../../utils/code-colours'
 
 interface Props {
   onNewCode: () => void
@@ -47,12 +49,6 @@ function filterCodeTree(codes: Code[], query: string, alwaysIncludeGuid: string 
   }
   return result
 }
-
-const PRESET_COLORS = [
-  '#e05050', '#e08050', '#e0c050', '#50c050', '#50c0c0',
-  '#5080e0', '#8050e0', '#e050a0', '#c07030', '#7070e0',
-  '#a0a040', '#40a0a0', '#a040a0', '#e07070', '#70b070'
-]
 
 function isDescendant(codes: Code[], parentGuid: string, childGuid: string): boolean {
   const find = (list: Code[]): boolean => {
@@ -130,6 +126,7 @@ function CodeTreeItem({
   const lockedBy = useCheckoutLockedBy()
   const promptCheckoutLocked = () => useProjectStore.getState().promptCheckoutConflict()
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
+  const colourPresets = useCodeColourPresets()
   const menuPos = useClampedMenuPosition(contextMenu)
   const isEditingFromParent = editingGuid === code.guid
   const [editingLocal, setEditingLocal] = useState(false)
@@ -604,7 +601,7 @@ function CodeTreeItem({
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ minWidth: 250 }}>
             <h2>Choose Color</h2>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-              {PRESET_COLORS.map((c) => (
+              {colourPresets.map((c) => (
                 <div
                   key={c}
                   onClick={() => {
@@ -653,11 +650,7 @@ export function CodeEditDialog({
   onClose: () => void
   initialColor?: string
 }) {
-  const defaultColors = [
-    '#e05050', '#e08050', '#e0c050', '#50c050', '#5080e0',
-    '#8050e0', '#e050a0', '#50c0c0', '#c07030', '#7070e0',
-    '#a0a040', '#40a0a0', '#a040a0', '#e07070', '#70b070'
-  ]
+  const defaultColors = useCodeColourPresets()
   const [name, setName] = useState(code?.name || '')
   const [color, setColor] = useState(code?.color || initialColor || defaultColors[0])
   const [description, setDescription] = useState(code?.description || '')
@@ -904,7 +897,7 @@ export function CodeBrowser({ onNewCode, onClose, onPopOut, isPoppedOut }: Props
   const handleAddChild = useCallback(
     (parentGuid: string) => {
       const parent = findCode(parentGuid)
-      const color = parent?.color || PRESET_COLORS[0]
+      const color = parent?.color || codeColourPresets(usePreferencesStore.getState().colourfulInterface)[0]
       const guid = addCode('New Code', color, parentGuid)
       setEditingCodeGuid(guid)
     },

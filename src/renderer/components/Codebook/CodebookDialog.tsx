@@ -6,16 +6,11 @@ import { MarkdownEditor } from '../MarkdownEditor'
 import type { Code } from '../../models/types'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { modKey } from '../../utils/platform'
+import { useCodeColourPresets } from '../../utils/code-colours'
 
 interface Props {
   onClose: () => void
 }
-
-const PRESET_COLORS = [
-  '#e05050', '#e08050', '#e0c050', '#50c050', '#50c0c0',
-  '#5080e0', '#8050e0', '#e050a0', '#c07030', '#7070e0',
-  '#a0a040', '#40a0a0', '#a040a0', '#e07070', '#70b070'
-]
 
 function CodebookEntry({
   code,
@@ -97,6 +92,7 @@ function EditCodeDialog({
   const [memo, setMemo] = useState(code.description || '')
   const [hotkeyStr, setHotkeyStr] = useState(code.hotkey !== undefined ? String(code.hotkey) : '')
   const [showColorPicker, setShowColorPicker] = useState(false)
+  const colourPresets = useCodeColourPresets()
 
   return (
     <div className="modal-overlay" onClick={onClose} style={{ position: 'fixed' }}>
@@ -140,7 +136,7 @@ function EditCodeDialog({
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                {PRESET_COLORS.map((c) => (
+                {colourPresets.map((c) => (
                   <div
                     key={c}
                     onClick={() => {
