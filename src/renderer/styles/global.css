@@ -1331,6 +1331,14 @@ html:not([data-theme]) .app-toolbar {
   gap: 0 !important;
   padding: 6px 10px !important;
 }
+/* Buttons inside a pill hover as capsules, so the hover fill follows the
+ * pill's own rounded ends (concentric inside its 3px padding) instead of
+ * showing a square-cornered block within them. Overrides the inline
+ * --radius-sm each button sets; Check Out and the project name sit
+ * outside the pills and keep theirs. */
+.app-toolbar[data-toolbar-style="icons"] .app-toolbar-pill .app-toolbar-btn {
+  border-radius: 999px !important;
+}
 .app-toolbar[data-toolbar-style="icons"] .app-toolbar-btn .toolbar-label {
   display: none !important;
 }
