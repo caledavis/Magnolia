@@ -1,4 +1,5 @@
 import { usePreferencesStore } from '../stores/preferences-store'
+import { themeTakesColour } from './icon-tint'
 
 /** The preset colours offered for codes (colour pickers, the colour a new
  *  code starts with, speaker codes). Order matters: new codes walk the list,
@@ -34,9 +35,15 @@ export function codeColourPresets(colourful: boolean): readonly string[] {
   return colourful ? COLOURFUL_CODE_COLOURS : CLASSIC_CODE_COLOURS
 }
 
+/** Code colour presets for the given preferences: Colourful when the
+ *  preference is on and the theme takes it (never Granola), classic otherwise. */
+export function codeColourPresetsFor(prefs: { colourfulInterface: boolean; theme: string }): readonly string[] {
+  return codeColourPresets(prefs.colourfulInterface && themeTakesColour(prefs.theme))
+}
+
 /** The code colour presets for the current Colourful interface setting. */
 export function useCodeColourPresets(): readonly string[] {
-  return codeColourPresets(usePreferencesStore((s) => s.colourfulInterface))
+  return usePreferencesStore(codeColourPresetsFor)
 }
 
 /** The preset after `lastColour`, so consecutive new codes get distinct

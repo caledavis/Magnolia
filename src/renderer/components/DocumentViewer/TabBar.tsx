@@ -7,8 +7,7 @@ import { useAnalysisTabsStore } from '../../stores/analysis-tabs-store'
 import { useToolSaveRegistry } from '../../stores/tool-save-registry'
 import { TOOL_REGISTRY } from '../../utils/tool-registry'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
-import { usePreferencesStore } from '../../stores/preferences-store'
-import { useIconTint, iconTintKindForSourceType } from '../../utils/icon-tint'
+import { useIconTint, useColourfulActive, iconTintKindForSourceType } from '../../utils/icon-tint'
 
 interface TabBarProps {
   openTabs: string[]
@@ -134,7 +133,7 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
   // Colourful interface: tool tabs take their tool's registry colour and
   // document tabs their source type's palette colour, matching the
   // Document Browser. Empty (muted icon) when the preference is off.
-  const colourful = usePreferencesStore((s) => s.colourfulInterface)
+  const colourful = useColourfulActive()
   const tint = useIconTint()
   const tintFor = (tabId: string): React.CSSProperties => {
     if (!colourful) return {}

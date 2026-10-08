@@ -15,7 +15,7 @@ export async function applyStoredAppearance(): Promise<void> {
   let theme = 'magnolia'
   let hadSavedTheme = false
   let interfaceScale = 1
-  let colourful = false
+  let colourful = true
   try {
     const prefs = await window.api.loadPreferences()
     if (prefs && typeof prefs === 'object') {
@@ -26,7 +26,7 @@ export async function applyStoredAppearance(): Promise<void> {
       if ('interfaceScale' in prefs && typeof (prefs as { interfaceScale: unknown }).interfaceScale === 'number') {
         interfaceScale = (prefs as { interfaceScale: number }).interfaceScale
       }
-      colourful = (prefs as { colourfulInterface?: unknown }).colourfulInterface === true
+      colourful = (prefs as { colourfulInterface?: unknown }).colourfulInterface !== false
     }
   } catch {
     /* fall through to defaults */

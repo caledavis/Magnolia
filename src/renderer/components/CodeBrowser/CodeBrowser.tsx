@@ -9,7 +9,7 @@ import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { isMac, modKey } from '../../utils/platform'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 import { usePreferencesStore } from '../../stores/preferences-store'
-import { codeColourPresets, useCodeColourPresets } from '../../utils/code-colours'
+import { codeColourPresetsFor, useCodeColourPresets } from '../../utils/code-colours'
 
 interface Props {
   onNewCode: () => void
@@ -897,7 +897,7 @@ export function CodeBrowser({ onNewCode, onClose, onPopOut, isPoppedOut }: Props
   const handleAddChild = useCallback(
     (parentGuid: string) => {
       const parent = findCode(parentGuid)
-      const color = parent?.color || codeColourPresets(usePreferencesStore.getState().colourfulInterface)[0]
+      const color = parent?.color || codeColourPresetsFor(usePreferencesStore.getState())[0]
       const guid = addCode('New Code', color, parentGuid)
       setEditingCodeGuid(guid)
     },

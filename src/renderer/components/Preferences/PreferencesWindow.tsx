@@ -41,7 +41,7 @@ interface Preferences {
   /** Shown to teammates when this user checks out a shared project. */
   userName: string
   toolbarStyle: ToolbarStyle
-  /** Experimental: dark toolbar plus colour-coded icons. */
+  /** Dark toolbar plus colour-coded icons. */
   colourfulInterface: boolean
 }
 
@@ -63,7 +63,7 @@ const DEFAULT_PREFS: Preferences = {
   interfaceScale: 1,
   userName: '',
   toolbarStyle: 'icons',
-  colourfulInterface: false
+  colourfulInterface: true
 }
 
 const TOOLBAR_STYLE_OPTIONS: { id: ToolbarStyle; label: string }[] = [
@@ -302,7 +302,6 @@ function AppearanceSettings({
       <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-primary)', cursor: 'pointer' }}>
         <input type="checkbox" checked={colourful} onChange={(e) => onColourfulChange(e.target.checked)} />
         Colourful interface
-        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>(experimental)</span>
       </label>
     </div>
   )
@@ -692,7 +691,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
           theme: (data.theme ?? DEFAULT_PREFS.theme) as ThemeId,
           interfaceScale: typeof data.interfaceScale === 'number' ? data.interfaceScale : DEFAULT_PREFS.interfaceScale,
           toolbarStyle: data.toolbarStyle === 'icons-and-text' ? 'icons-and-text' : DEFAULT_PREFS.toolbarStyle,
-          colourfulInterface: data.colourfulInterface === true,
+          colourfulInterface: data.colourfulInterface !== false,
           footPedalMappings: { ...DEFAULT_PREFS.footPedalMappings, ...(data.footPedalMappings || {}) }
         })
       }

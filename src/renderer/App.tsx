@@ -55,6 +55,7 @@ function flattenCodesWithParent(
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from './stores/project-store'
 import { usePreferencesStore } from './stores/preferences-store'
 import { useCodeColourPresets, nextCodeColour } from './utils/code-colours'
+import { useWindowCornerPanels } from './utils/window-corner-panels'
 import { useMergeReviewStore } from './stores/merge-review-store'
 import { useDocumentStore, surveyEntityKey } from './stores/document-store'
 import { useCodeStore } from './stores/code-store'
@@ -296,6 +297,7 @@ function App() {
   const userName = usePreferencesStore((s) => s.userName)
   const toolbarStyle = usePreferencesStore((s) => s.toolbarStyle)
   const codeColourPresets = useCodeColourPresets()
+  useWindowCornerPanels()
   const loadPrefs = usePreferencesStore((s) => s.load)
   useEffect(() => {
     if (!prefsLoaded) loadPrefs()

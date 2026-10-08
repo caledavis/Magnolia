@@ -37,7 +37,7 @@ export interface Preferences {
   /** Shown to teammates when this user checks out a shared project. */
   userName: string
   toolbarStyle: ToolbarStyle
-  /** Experimental: dark toolbar plus colour-coded icons (see the
+  /** Dark toolbar plus colour-coded icons (see the
    *  [data-colourful] rules in global.css). */
   colourfulInterface: boolean
 }
@@ -56,7 +56,7 @@ const DEFAULT_PREFERENCES: Preferences = {
   interfaceScale: 1,
   userName: '',
   toolbarStyle: 'icons',
-  colourfulInterface: false
+  colourfulInterface: true
 }
 
 interface PreferencesState extends Preferences {
@@ -88,7 +88,7 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
           interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
           userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
           toolbarStyle: prefs.toolbarStyle === 'icons-and-text' ? 'icons-and-text' : DEFAULT_PREFERENCES.toolbarStyle,
-          colourfulInterface: prefs.colourfulInterface === true,
+          colourfulInterface: prefs.colourfulInterface !== false,
           loaded: true
         })
       } else {
@@ -169,7 +169,7 @@ if (typeof window !== 'undefined' && window.api?.onPreferencesUpdate) {
       interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
       userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
       toolbarStyle: prefs.toolbarStyle === 'icons-and-text' ? 'icons-and-text' : DEFAULT_PREFERENCES.toolbarStyle,
-      colourfulInterface: prefs.colourfulInterface === true,
+      colourfulInterface: prefs.colourfulInterface !== false,
       loaded: true
     })
   })
