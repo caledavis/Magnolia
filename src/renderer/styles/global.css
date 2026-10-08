@@ -371,12 +371,12 @@ html:not([data-theme]) .app-toolbar-btn svg {
 }
 
 /* Main-window padding around the panel area. Each .panel below carries
- * margin: 4px, so adjacent panes show an 8 px canvas gap between them
- * but only 4 px against the window edge. Adding 4 px padding on left,
+ * margin: 2px, so adjacent panes show a 4 px canvas gap between them
+ * but only 2 px against the window edge. Adding 2 px padding on left,
  * right, and bottom matches the inter-pane gap on the outer edges too;
  * the top stays flush with the toolbar. */
 :root[data-theme="magnolia"] .app-main-panels {
-  padding: 0 4px 4px 4px;
+  padding: 0 2px 2px 2px;
   box-sizing: border-box;
 }
 
@@ -386,13 +386,30 @@ html:not([data-theme]) .app-toolbar-btn svg {
   background: var(--bg-panel);
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  margin: 4px;
-  height: calc(100% - 8px);
-  width: calc(100% - 8px);
+  margin: 2px;
+  height: calc(100% - 4px);
+  width: calc(100% - 4px);
   box-sizing: border-box;
   box-shadow: 0 2px 8px rgba(20, 40, 70, 0.18), 0 1px 3px rgba(20, 40, 70, 0.12);
 }
-:root[data-theme="magnolia"] #root > .panel { height: calc(100% - 8px); }
+:root[data-theme="magnolia"] #root > .panel { height: calc(100% - 4px); }
+
+/* macOS rounds the window's corners, and a 4 px panel corner sitting just
+ * inside that curve looks pinched. The panels in the window's bottom
+ * corners (marked by useWindowCornerPanels in utils/window-corner-panels.ts)
+ * take a radius concentric with the window's: its radius less the 4 px
+ * inset (2 px padding + 2 px margin). The window radius is in screen
+ * points, so it's divided by the interface zoom. Applies to Magnolia and
+ * Magnolia Dark. */
+:root[data-platform="darwin"] {
+  --mac-window-radius: 16px;
+}
+:root[data-platform="darwin"][data-theme^="magnolia"] .panel[data-window-corner~="bl"] {
+  border-bottom-left-radius: max(4px, calc(var(--mac-window-radius) / var(--window-zoom, 1) - 4px));
+}
+:root[data-platform="darwin"][data-theme^="magnolia"] .panel[data-window-corner~="br"] {
+  border-bottom-right-radius: max(4px, calc(var(--mac-window-radius) / var(--window-zoom, 1) - 4px));
+}
 
 :root[data-theme="magnolia"] .modal {
   background: var(--bg-panel);
@@ -518,7 +535,7 @@ html:not([data-theme]) .app-toolbar-btn svg {
 /* Match the light-Magnolia edge padding — see the comment on the
  * light-theme rule above. */
 :root[data-theme="magnolia-dark"] .app-main-panels {
-  padding: 0 4px 4px 4px;
+  padding: 0 2px 2px 2px;
   box-sizing: border-box;
 }
 
@@ -526,15 +543,15 @@ html:not([data-theme]) .app-toolbar-btn svg {
   background: var(--bg-panel);
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  margin: 4px;
-  height: calc(100% - 8px);
-  width: calc(100% - 8px);
+  margin: 2px;
+  height: calc(100% - 4px);
+  width: calc(100% - 4px);
   box-sizing: border-box;
   /* Black-tinted two-layer shadow — cool tints read pale on dark
    * canvases; black at higher opacity gives the cards real lift. */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.4);
 }
-:root[data-theme="magnolia-dark"] #root > .panel { height: calc(100% - 8px); }
+:root[data-theme="magnolia-dark"] #root > .panel { height: calc(100% - 4px); }
 
 :root[data-theme="magnolia-dark"] .modal {
   background: var(--bg-panel);
@@ -2050,3 +2067,91 @@ html:not([data-theme]) .app-toolbar {
   -webkit-user-select: none !important;
   user-select: none !important;
 }
+
+/* ── Colourful interface (Preferences → Appearance → Colour) ──────────
+ * On by default. apply-theme.ts / Preferences set [data-colourful] on
+ * <html>. Two parts:
+ *
+ *  1. An icon palette (--icon-*) that the Document Browser and tab bar
+ *     read when the preference is on, so each source type and folder
+ *     carries its own colour. Light values first; the [data-theme$="dark"]
+ *     block (dark, magnolia-dark, granola-dark) lifts them for dark
+ *     chrome. Memo icons join in via --memo-icon-color.
+ *
+ *  2. On the light themes, a dark slate toolbar that frames the window,
+ *     with each tool's icon in its own colour. The dark themes already
+ *     have a dark toolbar and just get the coloured icons.
+ *
+ * High Contrast is left alone throughout — its palette is deliberate —
+ * and so are Granola and Granola Dark, which don't suit the colours. */
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) {
+  --icon-folder: #3478e0;
+  --icon-text: #5468d4;
+  --icon-pdf: #d93f3f;
+  --icon-audio: #e07b00;
+  --icon-video: #c8336c;
+  --icon-image: #2b9a48;
+  --icon-survey: #7a4ee0;
+  --icon-respondent: #0e93a8;
+  --icon-question: #7a4ee0;
+  --memo-icon-color: #e39b00;
+}
+:root[data-colourful][data-theme$="dark"]:not([data-theme^="granola"]) {
+  --icon-folder: #6aa5ff;
+  --icon-text: #8e9cff;
+  --icon-pdf: #ff7a7a;
+  --icon-audio: #ffad42;
+  --icon-video: #ff6fa3;
+  --icon-image: #5cd17e;
+  --icon-survey: #b18cff;
+  --icon-respondent: #4fd0e0;
+  --icon-question: #b18cff;
+  --memo-icon-color: #ffc340;
+}
+
+/* Folders get a soft tinted fill, like a filled folder glyph. */
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .lucide-folder {
+  fill: currentColor;
+  fill-opacity: 0.22;
+}
+
+/* Dark toolbar on the light themes. Rebinding the text / surface tokens
+ * inside .app-toolbar recolours everything that reads them — project
+ * name, Magnolia mark, labels, pills, dividers, hover fills, Check Out,
+ * window controls. The popovers are portalled to <body>, so they keep
+ * the theme's own light tokens. */
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]):not([data-theme$="dark"]) .app-toolbar {
+  background: #2b3343 !important;
+  border-bottom: none !important;
+  --text-primary: #ffffff;
+  --text-secondary: #dfe4ee;
+  --text-muted: #a3acbe;
+  --bg-secondary: rgba(255, 255, 255, 0.08);
+  --bg-tertiary: rgba(255, 255, 255, 0.14);
+  --border-color: rgba(255, 255, 255, 0.2);
+}
+/* The main window's chrome (the gaps around the panel cards) takes the
+ * toolbar's slate too, so the dark band and the light chrome don't meet
+ * in a hard edge — the white panels float on one continuous dark frame.
+ * Scoped to .app-shell (the main window's root) rather than rebinding
+ * --bg-primary, which also feeds canvases, inputs and popped-out windows. */
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]):not([data-theme$="dark"]) .app-shell {
+  background: #2b3343;
+}
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]):not([data-theme$="dark"]) .app-toolbar button:not(.checkout-btn):hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* One colour per toolbar tool. Bright values, since the toolbar is dark
+ * on every theme this applies to. Query takes the Query Builder's
+ * registry colour family (tool-registry.ts) so its tab matches. */
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-square-arrow-right-enter { color: #4fd17f !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-book { color: #ff9f4a !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-notebook-pen { color: #c792ff !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-tags { color: #3fd6c6 !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-git-merge { color: #ff7eb6 !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-search { color: #ff8a4c !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-lightbulb { color: #ffd23f !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-app-window { color: #5cc4ff !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-settings { color: #a9b6ff !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-circle-question-mark { color: #7fb2ff !important; }

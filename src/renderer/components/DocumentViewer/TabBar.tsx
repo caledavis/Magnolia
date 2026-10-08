@@ -7,6 +7,7 @@ import { useAnalysisTabsStore } from '../../stores/analysis-tabs-store'
 import { useToolSaveRegistry } from '../../stores/tool-save-registry'
 import { TOOL_REGISTRY } from '../../utils/tool-registry'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
+import { useIconTint, useColourfulActive, iconTintKindForSourceType } from '../../utils/icon-tint'
 
 interface TabBarProps {
   openTabs: string[]
@@ -95,8 +96,9 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
   // Per-tab leading icon. Tool tabs reuse the glyph their toolbar
   // button uses (via TOOL_REGISTRY); document tabs pick an icon
   // based on the source's file kind, mirroring the DocumentBrowser's
-  // iconForSource. All icons render in the muted text colour — no
-  // per-tool tinting on the tabs. Returns null when no icon fits.
+  // iconForSource. Icons render in the muted text colour unless the
+  // Colourful interface preference is on (see tintFor below). Returns
+  // null when no icon fits.
   const iconFor = (tabId: string): IconComponent | null => {
     if (isMapTab(tabId)) return TOOL_REGISTRY['relationship-map'].icon
     if (isQueryBuilderTab(tabId)) return TOOL_REGISTRY.queryBuilder.icon
@@ -126,6 +128,27 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
   const iconStyleFor = (tabId: string): React.CSSProperties => {
     if (isMergeTab(tabId)) return { transform: 'scale(-1, -1)' }
     return {}
+  }
+
+  // Colourful interface: tool tabs take their tool's registry colour and
+  // document tabs their source type's palette colour, matching the
+  // Document Browser. Empty (muted icon) when the preference is off.
+  const colourful = useColourfulActive()
+  const tint = useIconTint()
+  const tintFor = (tabId: string): React.CSSProperties => {
+    if (!colourful) return {}
+    if (isMapTab(tabId)) return { color: TOOL_REGISTRY['relationship-map'].color }
+    if (isQueryBuilderTab(tabId)) return { color: TOOL_REGISTRY.queryBuilder.color }
+    if (isAnalysisTab(tabId)) {
+      const toolType = analysisTabs[tabId]?.toolType
+      const color = toolType ? TOOL_REGISTRY[toolType]?.color : undefined
+      return color ? { color } : {}
+    }
+    if (isPreferencesTab(tabId) || isMergeTab(tabId)) return {}
+    const source = sourceMap.get(tabId)
+    if (!source) return {}
+    const st = ((source as { sourceType?: string }).sourceType || sourceTypeFromFilename(source.name)) as string
+    return tint(iconTintKindForSourceType(st))
   }
 
   // Whether a tool tab has unsaved changes — drives the asterisk before
@@ -221,7 +244,8 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
                   fontSize: 13,
                   color: 'var(--text-muted)',
                   flexShrink: 0,
-                  ...iconStyleFor(guid)
+                  ...iconStyleFor(guid),
+                  ...tintFor(guid)
                 }}
               />
             )}

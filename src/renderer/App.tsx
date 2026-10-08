@@ -54,6 +54,8 @@ function flattenCodesWithParent(
 }
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from './stores/project-store'
 import { usePreferencesStore } from './stores/preferences-store'
+import { useCodeColourPresets, nextCodeColour } from './utils/code-colours'
+import { useWindowCornerPanels } from './utils/window-corner-panels'
 import { useMergeReviewStore } from './stores/merge-review-store'
 import { useDocumentStore, surveyEntityKey } from './stores/document-store'
 import { useCodeStore } from './stores/code-store'
@@ -294,6 +296,8 @@ function App() {
   const prefsLoaded = usePreferencesStore((s) => s.loaded)
   const userName = usePreferencesStore((s) => s.userName)
   const toolbarStyle = usePreferencesStore((s) => s.toolbarStyle)
+  const codeColourPresets = useCodeColourPresets()
+  useWindowCornerPanels()
   const loadPrefs = usePreferencesStore((s) => s.load)
   useEffect(() => {
     if (!prefsLoaded) loadPrefs()
@@ -2477,6 +2481,7 @@ function App() {
 
   return (
     <div
+      className="app-shell"
       style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column' }}
       onDragEnter={(e) => {
         if (e.dataTransfer.types.includes('Files')) e.preventDefault()
@@ -3090,16 +3095,8 @@ function App() {
           onSave={handleCreateCode}
           onClose={() => { setShowNewCodeDialog(false); setPendingCodeAllNewCode(false) }}
           initialColor={(() => {
-            const presets = [
-              '#e05050', '#e08050', '#e0c050', '#50c050', '#5080e0',
-              '#8050e0', '#e050a0', '#50c0c0', '#c07030', '#7070e0',
-              '#a0a040', '#40a0a0', '#a040a0', '#e07070', '#70b070'
-            ]
             const allCodes = codeStore.flatCodes()
-            if (allCodes.length === 0) return presets[0]
-            const lastColor = allCodes[allCodes.length - 1]?.color
-            const idx = lastColor ? presets.indexOf(lastColor) : -1
-            return presets[(idx + 1) % presets.length]
+            return nextCodeColour(codeColourPresets, allCodes[allCodes.length - 1]?.color)
           })()}
         />
       )}

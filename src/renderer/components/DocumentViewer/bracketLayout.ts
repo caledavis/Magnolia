@@ -218,3 +218,64 @@ export function capGeometry(
   const targetBarX = columnOriginX + targetCol * COL_W
   return { left: targetBarX, width: barX - targetBarX + 2 }
 }
+
+/** Outer radius of a bracket's rounded corners, in px. */
+export const BRACKET_CORNER_RADIUS = 4
+
+/** Absolute-positioning styles for one piece of a drawn bracket. Values
+ *  are px strings so they can go straight into a React `style` or be
+ *  assigned onto an element's `style` imperatively. */
+export interface BracketPieceStyle {
+  position: 'absolute'
+  boxSizing: 'border-box'
+  left: string
+  top: string
+  width: string
+  height: string
+  borderStyle: 'solid'
+  borderColor: string
+  borderWidth: string
+  borderRadius: string
+}
+
+/**
+ * The pieces that draw one "]" bracket with rounded corners: a top corner
+ * (top cap curving into the bar), the straight bar between, and a bottom
+ * corner. `top` / `height` span the whole bracket; `barLeft` is the bar's
+ * left edge; the caps come from capGeometry. Line thickness is 2 px, as
+ * before. Short brackets get smaller corners so the two never overlap.
+ */
+export function bracketPieces(
+  barLeft: number,
+  top: number,
+  height: number,
+  topCap: { left: number; width: number },
+  bottomCap: { left: number; width: number },
+  color: string
+): BracketPieceStyle[] {
+  const px = (n: number): string => `${n}px`
+  const right = barLeft + 2
+  const cornerH = Math.max(2, Math.min(BRACKET_CORNER_RADIUS + 2, Math.floor(height / 2)))
+  const piece = (left: number, y: number, w: number, h: number, borderWidth: string, borderRadius: string): BracketPieceStyle => ({
+    position: 'absolute',
+    boxSizing: 'border-box',
+    left: px(left),
+    top: px(y),
+    width: px(w),
+    height: px(h),
+    borderStyle: 'solid',
+    borderColor: color,
+    borderWidth,
+    borderRadius
+  })
+  const radius = (capWidth: number): number => Math.min(BRACKET_CORNER_RADIUS, cornerH, capWidth)
+  const topW = Math.max(2, right - topCap.left)
+  const botW = Math.max(2, right - bottomCap.left)
+  const pieces = [
+    piece(right - topW, top, topW, cornerH, '2px 2px 0 0', `0 ${px(radius(topW))} 0 0`),
+    piece(right - botW, top + height - cornerH, botW, cornerH, '0 2px 2px 0', `0 0 ${px(radius(botW))} 0`)
+  ]
+  const barH = height - 2 * cornerH
+  if (barH > 0) pieces.push(piece(barLeft, top + cornerH, 2, barH, '0 2px 0 0', '0'))
+  return pieces
+}

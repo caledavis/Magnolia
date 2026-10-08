@@ -41,6 +41,8 @@ interface Preferences {
   /** Shown to teammates when this user checks out a shared project. */
   userName: string
   toolbarStyle: ToolbarStyle
+  /** Dark toolbar plus colour-coded icons. */
+  colourfulInterface: boolean
 }
 
 const DEFAULT_PREFS: Preferences = {
@@ -60,7 +62,8 @@ const DEFAULT_PREFS: Preferences = {
   paperSize: 'A4',
   interfaceScale: 1,
   userName: '',
-  toolbarStyle: 'icons'
+  toolbarStyle: 'icons',
+  colourfulInterface: true
 }
 
 const TOOLBAR_STYLE_OPTIONS: { id: ToolbarStyle; label: string }[] = [
@@ -200,7 +203,9 @@ function AppearanceSettings({
   scale,
   onScaleChange,
   toolbarStyle,
-  onToolbarStyleChange
+  onToolbarStyleChange,
+  colourful,
+  onColourfulChange
 }: {
   value: ThemeId
   onChange: (v: ThemeId) => void
@@ -208,6 +213,8 @@ function AppearanceSettings({
   onScaleChange: (v: number) => void
   toolbarStyle: ToolbarStyle
   onToolbarStyleChange: (v: ToolbarStyle) => void
+  colourful: boolean
+  onColourfulChange: (v: boolean) => void
 }) {
   return (
     <div style={{ marginBottom: 24 }}>
@@ -290,6 +297,12 @@ function AppearanceSettings({
           <option key={opt.id} value={opt.id}>{opt.label}</option>
         ))}
       </select>
+
+      <h3 style={{ fontSize: 13, fontWeight: 600, marginTop: 24, marginBottom: 10, color: 'var(--text-secondary)' }}>Colour</h3>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-primary)', cursor: 'pointer' }}>
+        <input type="checkbox" checked={colourful} onChange={(e) => onColourfulChange(e.target.checked)} />
+        Colourful interface
+      </label>
     </div>
   )
 }
@@ -678,6 +691,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
           theme: (data.theme ?? DEFAULT_PREFS.theme) as ThemeId,
           interfaceScale: typeof data.interfaceScale === 'number' ? data.interfaceScale : DEFAULT_PREFS.interfaceScale,
           toolbarStyle: data.toolbarStyle === 'icons-and-text' ? 'icons-and-text' : DEFAULT_PREFS.toolbarStyle,
+          colourfulInterface: data.colourfulInterface !== false,
           footPedalMappings: { ...DEFAULT_PREFS.footPedalMappings, ...(data.footPedalMappings || {}) }
         })
       }
@@ -718,6 +732,13 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
 
   const setToolbarStyle = useCallback((toolbarStyle: ToolbarStyle) => {
     save({ ...prefs, toolbarStyle })
+  }, [prefs, save])
+
+  const setColourfulInterface = useCallback((colourfulInterface: boolean) => {
+    save({ ...prefs, colourfulInterface })
+    // Preferences is a main-window tab, so this applies it to the main
+    // window at once; popped-out windows pick it up when next opened.
+    document.documentElement.toggleAttribute('data-colourful', colourfulInterface)
   }, [prefs, save])
 
   if (!loaded) return <div style={{ padding: 20, color: 'var(--text-muted)' }}>Loading...</div>
@@ -802,6 +823,8 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
               onScaleChange={setInterfaceScale}
               toolbarStyle={prefs.toolbarStyle}
               onToolbarStyleChange={setToolbarStyle}
+              colourful={prefs.colourfulInterface}
+              onColourfulChange={setColourfulInterface}
             />
           )}
           {selected.id === 'media-playback' && (

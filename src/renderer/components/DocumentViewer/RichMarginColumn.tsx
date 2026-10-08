@@ -10,7 +10,7 @@
  */
 import { useEffect, useRef, useState } from 'react'
 import type { PlainTextSelection, Code, Memo } from '../../models/types'
-import { layoutBrackets, capGeometry, COL_W, LABEL_H, LABEL_GAP } from './bracketLayout'
+import { layoutBrackets, capGeometry, bracketPieces, COL_W, LABEL_H, LABEL_GAP } from './bracketLayout'
 import { CodeLabel } from './CodeLabel'
 import { layoutIcons, buildIconItems, ICON_COL_W, LINE_GROUP_TOLERANCE, type IconGroup } from './iconLayout'
 import { MemoQuoteIcons } from './MemoQuoteIcons'
@@ -393,33 +393,9 @@ export function RichMarginColumn({ contentRef, containerRef, selections, codes, 
         const botCap = capGeometry(b.column, b.bottomCapTargetCol, 4)
         return (
           <div key={`bracket-${i}`} style={{ pointerEvents: 'auto' }}>
-            {/* Vertical bar */}
-            <div style={{
-              position: 'absolute',
-              left: barX,
-              top: b.top + 4,
-              height: b.height - 8,
-              width: 2,
-              background: b.color
-            }} />
-            {/* Top cap */}
-            <div style={{
-              position: 'absolute',
-              left: topCap.left,
-              top: b.top + 4,
-              width: topCap.width,
-              height: 2,
-              background: b.color
-            }} />
-            {/* Bottom cap */}
-            <div style={{
-              position: 'absolute',
-              left: botCap.left,
-              top: b.top + b.height - 6,
-              width: botCap.width,
-              height: 2,
-              background: b.color
-            }} />
+            {bracketPieces(barX, b.top + 4, b.height - 8, topCap, botCap, b.color).map((pieceStyle, j) => (
+              <div key={j} style={pieceStyle} />
+            ))}
             {/* Code name label — sits just to the right of the rightmost
                 bracket column at this label's Y, and truncates only once
                 it runs out of room before the pane's right edge. */}

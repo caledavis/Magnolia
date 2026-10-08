@@ -7,20 +7,25 @@ import type { TextSource, TagCategory, TagCategoryType, SurveyFormatData } from 
 import { toolColors } from '../../utils/tool-colors'
 import { sourceTypeFromExtension, sourceTypeFromFilename } from '../../utils/format-registry'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
+import { useIconTint, iconTintKindForSourceType } from '../../utils/icon-tint'
 import { sortTagsForCategory, sortListOptions } from '../../utils/sort-tags'
 import { useSurveyViewStore } from '../../stores/survey-view-store'
 import { buildCellText } from '../../utils/survey/cell-text'
 import { RESPONDENTS_GROUP_MIME } from '../Analysis/group-by'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 
+// Prefer the source's declared type (set on import for audio/video/image/
+// pdf). Only fall back to sniffing the filename for sources whose type is
+// unset or whose name carries a telling extension. Foreign QDPX imports
+// (e.g. MAXQDA) name sources WITHOUT extensions — "New Recording 11",
+// "magnoliasolid" — so a filename-only sniff mis-icons every media file as
+// a generic document; trusting sourceType fixes that.
+function resolvedSourceType(source: { name: string; sourceType?: string }): string {
+  return (source.sourceType as string) || sourceTypeFromFilename(source.name)
+}
+
 function iconForSource(source: { name: string; sourceType?: string }) {
-  // Prefer the source's declared type (set on import for audio/video/image/
-  // pdf). Only fall back to sniffing the filename for sources whose type is
-  // unset or whose name carries a telling extension. Foreign QDPX imports
-  // (e.g. MAXQDA) name sources WITHOUT extensions — "New Recording 11",
-  // "magnoliasolid" — so a filename-only sniff mis-icons every media file as
-  // a generic document; trusting sourceType fixes that.
-  const st: string = (source.sourceType as string) || sourceTypeFromFilename(source.name)
+  const st = resolvedSourceType(source)
   if (st === 'audio') return faHeadphones
   if (st === 'video') return faVideo
   if (st === 'image') return faImage
@@ -151,6 +156,7 @@ function FolderItem({
   searchQuery: string
 
 }) {
+  const tint = useIconTint()
   const [expanded, setExpanded] = useState(true)
   const [isDragOver, setIsDragOver] = useState(false)
   const searchActive = searchQuery.length > 0
@@ -269,7 +275,7 @@ function FolderItem({
         onContextMenu={(e) => onContextMenuFolder(e, folder.guid)}
       >
         <Icon icon={effectiveExpanded ? faChevronDown : faChevronRight} style={{ fontSize: 9, flexShrink: 0, width: 10, textAlign: 'center', opacity: 0.6 }} />
-        <Icon icon={faFolder} style={{ fontSize: 11, flexShrink: 0, width: 14, textAlign: 'center', opacity: 0.75, color: 'var(--text-muted)' }} />
+        <Icon icon={faFolder} style={{ fontSize: 11, flexShrink: 0, width: 14, textAlign: 'center', opacity: 0.75, color: 'var(--text-muted)', ...tint('folder') }} />
         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {folder.name}
         </span>
@@ -379,6 +385,7 @@ function DocItem({
   onReorder: (draggedGuids: string[], siblingGuid: string, position: 'before' | 'after') => void
 
 }) {
+  const tint = useIconTint()
   const docTags = getTagsForDocument(source.guid)
   const isSelected = selectedGuids.has(source.guid)
   const isViewed = viewedGuid === source.guid
@@ -548,7 +555,7 @@ function DocItem({
           }}
         />
       )}
-      <Icon icon={iconForSource(source)} style={{ fontSize: 11, opacity: 0.75, flexShrink: 0, width: 14, textAlign: 'center', color: 'var(--text-muted)' }} />
+      <Icon icon={iconForSource(source)} style={{ fontSize: 11, opacity: 0.75, flexShrink: 0, width: 14, textAlign: 'center', color: 'var(--text-muted)', ...tint(iconTintKindForSourceType(resolvedSourceType(source))) }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         {editing ? (
           <input
@@ -662,6 +669,7 @@ function SurveyItem({
   selectedSurveyEntities: Set<string>
   onToggleSurveyEntity: (sourceGuid: string, kind: 'respondent' | 'question', id: string) => void
 }) {
+  const tint = useIconTint()
   const [respondentsOpen, setRespondentsOpen] = useState(false)
   const [questionsOpen, setQuestionsOpen] = useState(false)
   // Inline rename state for the survey root row, mirroring DocItem so
@@ -847,7 +855,7 @@ function SurveyItem({
         {/* No chevron on the survey root — surveys are always
             expanded, so the survey icon aligns with peer DocItems
             at the same depth. */}
-        <Icon icon={SURVEY_ICON} style={{ fontSize: 12, opacity: 0.85, flexShrink: 0, width: 14, color: 'var(--text-muted)' }} />
+        <Icon icon={SURVEY_ICON} style={{ fontSize: 12, opacity: 0.85, flexShrink: 0, width: 14, color: 'var(--text-muted)', ...tint('survey') }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           {editing ? (
             <input
@@ -970,7 +978,7 @@ function SurveyItem({
                   ) : (
                     <span style={{ width: 12, flexShrink: 0 }} />
                   )}
-                  <Icon icon={SURVEY_RESPONDENT_ICON} style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0, width: 12 }} />
+                  <Icon icon={SURVEY_RESPONDENT_ICON} style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0, width: 12, ...tint('respondent') }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>
                       {r.displayName}
@@ -1082,7 +1090,7 @@ function SurveyItem({
                 title={q.text}
               >
                 <span style={{ width: 12, flexShrink: 0 }} />
-                <Icon icon={SURVEY_QUESTION_ICON} style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0, width: 12 }} />
+                <Icon icon={SURVEY_QUESTION_ICON} style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0, width: 12, ...tint('question') }} />
                 <span style={{ flexShrink: 0, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums', marginRight: 2, minWidth: 14 }}>
                   {i + 1}
                 </span>
