@@ -4,7 +4,7 @@ import { codepointToCharIndex } from '../../utils/unicode'
 import { Icon, QUOTE_ICON, MEMO_POINT_ICON, MEMO_RANGED_ICON } from '../Icon'
 import { useQuoteStore } from '../../stores/quote-store'
 import { getFormat, type LineAnnotation, type InlineRange } from '../../utils/format-registry'
-import { layoutBrackets, capGeometry, COL_W, LABEL_H, LABEL_GAP } from './bracketLayout'
+import { layoutBrackets, capGeometry, bracketPieces, COL_W, LABEL_H, LABEL_GAP } from './bracketLayout'
 import { layoutIcons, buildIconItems, ICON_COL_W, LINE_GROUP_TOLERANCE, type IconGroup } from './iconLayout'
 import { measureLabelWidth } from '../../utils/measure-text'
 import { MemoQuoteIcons } from './MemoQuoteIcons'
@@ -1059,17 +1059,11 @@ export function CodedTextView({
         const topCap = capGeometry(p.column, p.topCapTargetCol, columnOriginX)
         const botCap = capGeometry(p.column, p.bottomCapTargetCol, columnOriginX)
 
-        const capT = document.createElement('div')
-        capT.style.cssText = `position:absolute; left:${topCap.left}px; top:${top}px; width:${topCap.width}px; height:2px; background:${p.color}`
-        overlay.appendChild(capT)
-
-        const bar = document.createElement('div')
-        bar.style.cssText = `position:absolute; left:${barLeft}px; top:${top}px; height:${height}px; width:2px; background:${p.color}`
-        overlay.appendChild(bar)
-
-        const capB = document.createElement('div')
-        capB.style.cssText = `position:absolute; left:${botCap.left}px; top:${top + height - 2}px; width:${botCap.width}px; height:2px; background:${p.color}`
-        overlay.appendChild(capB)
+        for (const pieceStyle of bracketPieces(barLeft, top, height, topCap, botCap, p.color)) {
+          const piece = document.createElement('div')
+          Object.assign(piece.style, pieceStyle)
+          overlay.appendChild(piece)
+        }
 
         // Labels are rendered via React (see bracketLabels state) so their
         // event listeners survive every overlay rebuild.

@@ -23,7 +23,7 @@ import { useMemoStore } from '../../stores/memo-store'
 import { useQuoteStore } from '../../stores/quote-store'
 import { formatTimestamp } from '../../utils/timestamp-parser'
 import { snapTimeToSecond } from './video-time-utils'
-import { layoutBrackets, capGeometry, COL_W } from './bracketLayout'
+import { layoutBrackets, capGeometry, bracketPieces, COL_W } from './bracketLayout'
 import { TranscriptGutter, TRANSCRIPT_ROW_STYLE } from './TranscriptGutter'
 import { CodeLabel } from './CodeLabel'
 import { MemoQuoteIcons } from './MemoQuoteIcons'
@@ -1198,21 +1198,9 @@ export function VideoTranscriptView({
             const botCap = capGeometry(p.column, p.bottomCapTargetCol, columnOriginX)
             return (
               <div key={`shape-${p.selGuid}:${p.codingGuid}`}>
-                <div style={{
-                  position: 'absolute',
-                  left: topCap.left, top, width: topCap.width, height: 2,
-                  background: p.color
-                }} />
-                <div style={{
-                  position: 'absolute',
-                  left: barLeft, top, width: 2, height,
-                  background: p.color
-                }} />
-                <div style={{
-                  position: 'absolute',
-                  left: botCap.left, top: top + height - 2, width: botCap.width, height: 2,
-                  background: p.color
-                }} />
+                {bracketPieces(barLeft, top, height, topCap, botCap, p.color).map((pieceStyle, j) => (
+                  <div key={j} style={pieceStyle} />
+                ))}
                 {/* Small drag handles for rebinding line anchors.
                     Centred on the top and bottom corners of the
                     vertical bar so the handle sits exactly on the
