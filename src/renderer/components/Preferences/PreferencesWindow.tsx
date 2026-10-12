@@ -11,6 +11,7 @@
  */
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Icon, faGear } from '../Icon'
+import { COLOURFUL_INTERFACE_ENABLED, colourfulInterfaceFromSaved } from '../../utils/colourful-interface'
 
 interface FootPedalMappings {
   playPause: string
@@ -63,7 +64,7 @@ const DEFAULT_PREFS: Preferences = {
   interfaceScale: 1,
   userName: '',
   toolbarStyle: 'icons',
-  colourfulInterface: true
+  colourfulInterface: COLOURFUL_INTERFACE_ENABLED
 }
 
 const TOOLBAR_STYLE_OPTIONS: { id: ToolbarStyle; label: string }[] = [
@@ -298,11 +299,17 @@ function AppearanceSettings({
         ))}
       </select>
 
-      <h3 style={{ fontSize: 13, fontWeight: 600, marginTop: 24, marginBottom: 10, color: 'var(--text-secondary)' }}>Colour</h3>
-      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-primary)', cursor: 'pointer' }}>
-        <input type="checkbox" checked={colourful} onChange={(e) => onColourfulChange(e.target.checked)} />
-        Colourful interface
-      </label>
+      {/* Hidden while the Colourful interface is switched off — see
+          COLOURFUL_INTERFACE_ENABLED in utils/colourful-interface.ts. */}
+      {COLOURFUL_INTERFACE_ENABLED && (
+        <>
+          <h3 style={{ fontSize: 13, fontWeight: 600, marginTop: 24, marginBottom: 10, color: 'var(--text-secondary)' }}>Colour</h3>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-primary)', cursor: 'pointer' }}>
+            <input type="checkbox" checked={colourful} onChange={(e) => onColourfulChange(e.target.checked)} />
+            Colourful interface
+          </label>
+        </>
+      )}
     </div>
   )
 }
@@ -691,7 +698,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
           theme: (data.theme ?? DEFAULT_PREFS.theme) as ThemeId,
           interfaceScale: typeof data.interfaceScale === 'number' ? data.interfaceScale : DEFAULT_PREFS.interfaceScale,
           toolbarStyle: data.toolbarStyle === 'icons-and-text' ? 'icons-and-text' : DEFAULT_PREFS.toolbarStyle,
-          colourfulInterface: data.colourfulInterface !== false,
+          colourfulInterface: colourfulInterfaceFromSaved(data.colourfulInterface),
           footPedalMappings: { ...DEFAULT_PREFS.footPedalMappings, ...(data.footPedalMappings || {}) }
         })
       }

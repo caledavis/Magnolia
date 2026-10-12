@@ -11,11 +11,13 @@
  * These only apply when no theme has been saved yet; any saved value
  * wins.
  */
+import { colourfulInterfaceFromSaved } from './colourful-interface'
+
 export async function applyStoredAppearance(): Promise<void> {
   let theme = 'magnolia'
   let hadSavedTheme = false
   let interfaceScale = 1
-  let colourful = true
+  let colourful = colourfulInterfaceFromSaved(undefined)
   try {
     const prefs = await window.api.loadPreferences()
     if (prefs && typeof prefs === 'object') {
@@ -26,7 +28,7 @@ export async function applyStoredAppearance(): Promise<void> {
       if ('interfaceScale' in prefs && typeof (prefs as { interfaceScale: unknown }).interfaceScale === 'number') {
         interfaceScale = (prefs as { interfaceScale: number }).interfaceScale
       }
-      colourful = (prefs as { colourfulInterface?: unknown }).colourfulInterface !== false
+      colourful = colourfulInterfaceFromSaved((prefs as { colourfulInterface?: unknown }).colourfulInterface)
     }
   } catch {
     /* fall through to defaults */

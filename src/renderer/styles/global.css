@@ -2068,23 +2068,25 @@ html:not([data-theme]) .app-toolbar {
   user-select: none !important;
 }
 
-/* ── Colourful interface (Preferences → Appearance → Colour) ──────────
- * On by default. apply-theme.ts / Preferences set [data-colourful] on
- * <html>. Two parts:
+/* ── Coloured icons and Colourful interface ────────────────────────────
+ * Two parts:
  *
  *  1. An icon palette (--icon-*) that the Document Browser and tab bar
- *     read when the preference is on, so each source type and folder
- *     carries its own colour. Light values first; the [data-theme$="dark"]
- *     block (dark, magnolia-dark, granola-dark) lifts them for dark
- *     chrome. Memo icons join in via --memo-icon-color.
+ *     read, so each source type and folder carries its own colour. This
+ *     is always on, whatever the Colourful interface preference says.
+ *     Light values first; the [data-theme$="dark"] block (dark,
+ *     magnolia-dark) lifts them for dark chrome. Memo icons join in via
+ *     --memo-icon-color.
  *
- *  2. On the light themes, a dark slate toolbar that frames the window,
- *     with each tool's icon in its own colour. The dark themes already
- *     have a dark toolbar and just get the coloured icons.
+ *  2. Colourful interface (Preferences → Appearance → Colour, on by
+ *     default; apply-theme.ts / Preferences set [data-colourful] on
+ *     <html>): on the light themes, a dark slate toolbar that frames the
+ *     window, with each tool's icon in its own colour. The dark themes
+ *     already have a dark toolbar and just get the coloured icons.
  *
  * High Contrast is left alone throughout — its palette is deliberate —
  * and so are Granola and Granola Dark, which don't suit the colours. */
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) {
+:root:not([data-theme="high-contrast"]):not([data-theme^="granola"]) {
   --icon-folder: #3478e0;
   --icon-text: #5468d4;
   --icon-pdf: #d93f3f;
@@ -2096,7 +2098,7 @@ html:not([data-theme]) .app-toolbar {
   --icon-question: #7a4ee0;
   --memo-icon-color: #e39b00;
 }
-:root[data-colourful][data-theme$="dark"]:not([data-theme^="granola"]) {
+:root[data-theme$="dark"]:not([data-theme^="granola"]) {
   --icon-folder: #6aa5ff;
   --icon-text: #8e9cff;
   --icon-pdf: #ff7a7a;
@@ -2110,7 +2112,7 @@ html:not([data-theme]) .app-toolbar {
 }
 
 /* Folders get a soft tinted fill, like a filled folder glyph. */
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .lucide-folder {
+:root:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .lucide-folder {
   fill: currentColor;
   fill-opacity: 0.22;
 }

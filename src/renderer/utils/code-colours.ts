@@ -10,9 +10,9 @@ export const CLASSIC_CODE_COLOURS: readonly string[] = [
   '#a0a040', '#40a0a0', '#a040a0', '#e07070', '#70b070'
 ]
 
-/** Presets used with the Colourful interface: drawn from the same family as
- *  its toolbar and --icon-* colours, so coded text sits comfortably next to
- *  the coloured icons and buttons. */
+/** The standard presets: drawn from the same family as the --icon-*
+ *  colours, so coded text sits comfortably next to the coloured icons.
+ *  (Originally made for the Colourful interface, hence the name.) */
 export const COLOURFUL_CODE_COLOURS: readonly string[] = [
   '#3b82f6', // blue
   '#e8833a', // orange
@@ -35,13 +35,14 @@ export function codeColourPresets(colourful: boolean): readonly string[] {
   return colourful ? COLOURFUL_CODE_COLOURS : CLASSIC_CODE_COLOURS
 }
 
-/** Code colour presets for the given preferences: Colourful when the
- *  preference is on and the theme takes it (never Granola), classic otherwise. */
-export function codeColourPresetsFor(prefs: { colourfulInterface: boolean; theme: string }): readonly string[] {
-  return codeColourPresets(prefs.colourfulInterface && themeTakesColour(prefs.theme))
+/** Code colour presets for the given preferences: the Colourful set, or
+ *  classic on the themes that don't take colour (Granola, High Contrast).
+ *  Independent of the Colourful interface preference. */
+export function codeColourPresetsFor(prefs: { theme: string }): readonly string[] {
+  return codeColourPresets(themeTakesColour(prefs.theme))
 }
 
-/** The code colour presets for the current Colourful interface setting. */
+/** The code colour presets for the current theme. */
 export function useCodeColourPresets(): readonly string[] {
   return usePreferencesStore(codeColourPresetsFor)
 }

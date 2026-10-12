@@ -3,6 +3,7 @@
  * Stores foot pedal key mappings and audio defaults.
  */
 import { create } from 'zustand'
+import { COLOURFUL_INTERFACE_ENABLED, colourfulInterfaceFromSaved } from '../utils/colourful-interface'
 
 export interface FootPedalMappings {
   playPause: string       // e.g. "F5", "Ctrl+Space"
@@ -56,7 +57,7 @@ const DEFAULT_PREFERENCES: Preferences = {
   interfaceScale: 1,
   userName: '',
   toolbarStyle: 'icons',
-  colourfulInterface: true
+  colourfulInterface: COLOURFUL_INTERFACE_ENABLED
 }
 
 interface PreferencesState extends Preferences {
@@ -88,7 +89,7 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
           interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
           userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
           toolbarStyle: prefs.toolbarStyle === 'icons-and-text' ? 'icons-and-text' : DEFAULT_PREFERENCES.toolbarStyle,
-          colourfulInterface: prefs.colourfulInterface !== false,
+          colourfulInterface: colourfulInterfaceFromSaved(prefs.colourfulInterface),
           loaded: true
         })
       } else {
@@ -169,7 +170,7 @@ if (typeof window !== 'undefined' && window.api?.onPreferencesUpdate) {
       interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
       userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
       toolbarStyle: prefs.toolbarStyle === 'icons-and-text' ? 'icons-and-text' : DEFAULT_PREFERENCES.toolbarStyle,
-      colourfulInterface: prefs.colourfulInterface !== false,
+      colourfulInterface: colourfulInterfaceFromSaved(prefs.colourfulInterface),
       loaded: true
     })
   })

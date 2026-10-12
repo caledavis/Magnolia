@@ -12,7 +12,7 @@ document.addEventListener('drop', (e) => e.preventDefault())
 // Apply the stored theme on first paint, then listen for live changes.
 applyStoredAppearance()
 installAppearanceListeners()
-// Load preferences so the code colour presets follow the Colourful interface setting.
+// Load preferences so the code colour presets follow the theme.
 usePreferencesStore.getState().load()
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
