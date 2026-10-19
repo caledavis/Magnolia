@@ -7,6 +7,7 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 ### Added
 - **Waveform seek bar for audio and video.** The plain progress bar in the Audio and Video viewers is now a waveform of the recording, so you can see where speech and silences fall and jump straight to them. The played portion is highlighted and moves smoothly as the recording plays.
 - **Loading bar in the Query Results pane.** When a query is running, a thin bar now slides along under the Query Results header so you know Magnolia is working. The previous results stay visible (dimmed) until the new ones arrive, and Select Documents, Code All and Export PDF wait until they do.
+- **Sankey view for analysis tables.** Codes in Documents, Results in Documents, and Code Co-Occurrences now have a "Sankey" button next to "Visual" and "Binary" that redraws the grid as a flow diagram: codes (or queries) on the left, documents (or the other codes) on the right, with each band as wide as the count in that cell. Hover over a code, document, or band to highlight its flows and see the number; click to open the matching results, just like clicking a cell or total in the table. Binary works here too, and you can keep dragging codes and queries in while the diagram is showing.
 - **Document count in Results in Documents.** The Total row now also shows how many documents your results come from, e.g. "Total (159 documents)". This is included in the CSV export too.
 
 ### Changed

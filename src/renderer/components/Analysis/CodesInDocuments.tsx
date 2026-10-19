@@ -25,6 +25,7 @@ import {
   type QuestionScopeRef
 } from './survey-grouping'
 import { useLiveAnalysisData } from './use-live-analysis-data'
+import { SankeyView } from './SankeyView'
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
 import { renameSavedAnalysis } from '../../utils/rename-saved-analysis'
 import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
@@ -91,6 +92,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
   }, [propData, live, docFilter, questionScope])
   const [visualMode, setVisualMode] = useState(false)
   const [binaryMode, setBinaryMode] = useState(false)
+  const [sankeyMode, setSankeyMode] = useState(false)
   const [docSectionOpen, setDocSectionOpen] = useState(false)
   const [dropOver, setDropOver] = useState(false)
   const [tagDropOver, setTagDropOver] = useState(false)
@@ -347,6 +349,18 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
     window.api.exportCsv(toCsv(rows), 'codes-in-documents.csv')
   }, [columns, codeGuids, showGrid, codeMap, showRowTotals, showColTotals, showGrandTotal, binaryMode])
 
+  // Sankey view: codes flow into document columns. Subtotal columns are
+  // left out — they would double-count their child columns' flows.
+  const sankeyLeft = useMemo(
+    () => codeGuids.map((g) => ({ id: g, label: codeMap.get(g)?.name || '', color: codeMap.get(g)?.color })),
+    [codeGuids, codeMap]
+  )
+  const sankeyRight = useMemo(() => columns.map((c) => ({ id: c.id, label: c.label })), [columns])
+  const sankeyExclude = useMemo(
+    () => new Set(columns.map((c, j) => (c.isSubtotal ? j : -1)).filter((j) => j >= 0)),
+    [columns]
+  )
+
   const handleTagDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setTagDropOver(false)
@@ -525,11 +539,14 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, position: 'relative', zIndex: 1 }}>
             <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Results</span>
             <div style={{ display: 'flex', gap: 6 }}>
-              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setVisualMode(!visualMode)}>
+              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setVisualMode(!visualMode)} disabled={sankeyMode}>
                 {visualMode ? 'Numeric' : 'Visual'}
               </button>
               <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setBinaryMode(!binaryMode)} title="Show each cell as 1 (code present) or 0 (absent); totals count the cells.">
                 {binaryMode ? 'Counts' : 'Binary'}
+              </button>
+              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setSankeyMode(!sankeyMode)} title="Show the grid as a Sankey diagram of codes flowing into documents.">
+                {sankeyMode ? 'Table' : 'Sankey'}
               </button>
               <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportCsv} disabled={codeGuids.length === 0}>
                 Export CSV
@@ -540,6 +557,20 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
           {codeGuids.length === 0 ? (
             <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)', position: 'relative', zIndex: 1 }}>
               Drag codes from the Code Browser to build the grid
+            </div>
+          ) : sankeyMode ? (
+            <div style={{ overflowX: 'auto' }}>
+              <SankeyView
+                left={sankeyLeft}
+                right={sankeyRight}
+                values={showGrid}
+                leftTitle="Codes"
+                rightTitle="Documents"
+                excludeRight={sankeyExclude}
+                onLinkClick={handleDoubleClick}
+                onLeftClick={handleRowTotalClick}
+                onRightClick={handleColTotalClick}
+              />
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>

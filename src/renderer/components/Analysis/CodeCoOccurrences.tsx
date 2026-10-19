@@ -11,6 +11,7 @@ import { truncate, countCoOccurrences, toCsv, pctOfTotal, resolveFilteredSources
 import { QuestionScopeBox, hasSurveyInScope, type QuestionScopeRef } from './survey-grouping'
 import { generateGuid } from '../../utils/guid'
 import { useLiveAnalysisData } from './use-live-analysis-data'
+import { SankeyView } from './SankeyView'
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
 import { renameSavedAnalysis } from '../../utils/rename-saved-analysis'
 import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
@@ -105,6 +106,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
   }, [propData, live, docFilter, questionScope])
   const [visualMode, setVisualMode] = useState(false)
   const [binaryMode, setBinaryMode] = useState(false)
+  const [sankeyMode, setSankeyMode] = useState(false)
   const [docSectionOpen, setDocSectionOpen] = useState(false)
   const [analysisGuid] = useState(savedConfig?.guid ?? generateGuid())
   const [analysisName, setAnalysisName] = useState(savedConfig?.name ?? '')
@@ -229,6 +231,17 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
     const allGuids = Array.from(new Set([...rowCodeGuids, ...colCodeGuids]))
     window.api.sendAnalysisAction('run-codes-in-doc-query', allGuids, filteredSourceGuids, surveyScope())
   }, [grandTotal, rowCodeGuids, colCodeGuids, filteredSourceGuids, surveyScope])
+
+  // Sankey view: row codes on the left, column codes on the right; a
+  // band's width is how often the pair co-occurs.
+  const sankeyLeft = useMemo(
+    () => rowCodeGuids.map((g) => ({ id: g, label: codeMap.get(g)?.name || '', color: codeMap.get(g)?.color })),
+    [rowCodeGuids, codeMap]
+  )
+  const sankeyRight = useMemo(
+    () => colCodeGuids.map((g) => ({ id: g, label: codeMap.get(g)?.name || '', color: codeMap.get(g)?.color })),
+    [colCodeGuids, codeMap]
+  )
 
   const handleExportCsv = useCallback(() => {
     const colNames = colCodeGuids.map((g) => codeMap.get(g)?.name || 'Code')
@@ -378,11 +391,14 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Co-Occurrence Grid</span>
             <div style={{ display: 'flex', gap: 6 }}>
-              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setVisualMode(!visualMode)}>
+              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setVisualMode(!visualMode)} disabled={sankeyMode}>
                 {visualMode ? 'Numeric' : 'Visual'}
               </button>
               <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setBinaryMode(!binaryMode)} title="Show each cell as 1 (codes co-occur) or 0 (they don't); totals count the cells.">
                 {binaryMode ? 'Counts' : 'Binary'}
+              </button>
+              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setSankeyMode(!sankeyMode)} title="Show the grid as a Sankey diagram linking row codes to the column codes they co-occur with.">
+                {sankeyMode ? 'Table' : 'Sankey'}
               </button>
               <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportCsv} disabled={!hasAnyCodes}>
                 Export CSV
@@ -407,6 +423,19 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
           {!hasAnyCodes ? (
             <div style={{ padding: 30, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)', border: '2px dashed var(--border-color)', borderRadius: 'var(--radius-md)' }}>
               Drag codes from the Code Browser into the row or column drop zones above, or drop anywhere here to add to both
+            </div>
+          ) : sankeyMode ? (
+            <div style={{ overflowX: 'auto' }}>
+              <SankeyView
+                left={sankeyLeft}
+                right={sankeyRight}
+                values={showMatrix}
+                leftTitle="Row codes"
+                rightTitle="Column codes"
+                onLinkClick={handleDoubleClick}
+                onLeftClick={handleRowTotalClick}
+                onRightClick={handleColTotalClick}
+              />
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
