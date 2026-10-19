@@ -129,6 +129,20 @@ function spanKey(sel: Pick<PlainTextSelection, 'startPosition' | 'endPosition' |
   return `${c ? `${c.respondentId}:${c.questionId}:` : ''}${sel.startPosition}:${sel.endPosition}`
 }
 
+/** The text a selection covers, for evaluating `condition` against it — or
+ *  undefined when the condition has no text term and never reads it.
+ *  codepointSlice splits the whole document, so skipping it for code-only
+ *  conditions is what keeps large documents fast. */
+function conditionSelectionText(
+  condition: CodeCondition,
+  source: TextSource,
+  selection: PlainTextSelection,
+  content: string
+): string | undefined {
+  if (!containsTextCondition(condition)) return undefined
+  return codepointSlice(textForSelection(source, selection, content), selection.startPosition, selection.endPosition)
+}
+
 function surveyCellText(source: TextSource, respondentId: string, questionId: string): string {
   const survey = (source.formatData as SurveyFormatData | undefined)?.survey
   if (!survey) return ''
@@ -294,8 +308,7 @@ export function executeQuery(
           // Selection-based evaluation for non-text branches
           for (const selection of scopedSelections) {
             const codeGuids = new Set(selection.codings.map((c) => c.codeGuid))
-            const selSource = textForSelection(source, selection, content)
-            const selText = codepointSlice(selSource, selection.startPosition, selection.endPosition)
+            const selText = conditionSelectionText(child, source, selection, content)
             if (evaluateCondition(child, codeGuids, selText, selection, scopedSelections, content)) {
               const key = spanKey(selection)
               if (!seen.has(key)) {
@@ -344,8 +357,7 @@ export function executeQuery(
         const followedByResults = findFollowedBySelections(cond, selection, evalSelections, source, content, codeMap)
         results.push(...followedByResults)
       } else {
-        const selSource = textForSelection(source, selection, content)
-        const selText = codepointSlice(selSource, selection.startPosition, selection.endPosition)
+        const selText = conditionSelectionText(codeCondition, source, selection, content)
         if (evaluateCondition(codeCondition, codeGuidsOnSelection, selText, selection, evalSelections, content)) {
           results.push(
             buildResult(source, selection, content, codeGuidsOnSelection, codeMap)
@@ -798,8 +810,12 @@ function selectionMatchesCondition(
   // the source's raw CSV `content` — so prefer `_text` when present. This is
   // what makes text operands in spatial queries resolve correctly inside
   // surveys (mirrors textForSelection, which buildResult also uses).
+  //
+  // Only text conditions read the slice, and slicing splits the whole
+  // document into codepoints — inside the O(n²) spatial loops that cost
+  // seconds on large PDFs — so skip it for code-only conditions.
   const sliceBase = (selection as { _text?: string })._text ?? content
-  const selText = sliceBase
+  const selText = sliceBase && containsTextCondition(condition)
     ? codepointSlice(sliceBase, selection.startPosition, selection.endPosition)
     : undefined
   return evaluateCondition(condition, codeGuids, selText, selection, allSelections, content)
