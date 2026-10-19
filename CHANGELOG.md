@@ -2,6 +2,28 @@
 
 All notable changes to Magnolia are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project follows [Semantic Versioning](https://semver.org/).
 
+## [1.8.2]
+
+### Added
+- **Waveform seek bar for audio and video.** The plain progress bar in the Audio and Video viewers is now a waveform of the recording, so you can see where speech and silences fall and jump straight to them. The played portion is highlighted and moves smoothly as the recording plays.
+- **Loading bar in the Query Results pane.** When a query is running, a thin bar now slides along under the Query Results header so you know Magnolia is working. The previous results stay visible (dimmed) until the new ones arrive, and Select Documents, Code All and Export PDF wait until they do.
+- **Document count in Results in Documents.** The Total row now also shows how many documents your results come from, e.g. "Total (159 documents)". This is included in the CSV export too.
+
+### Changed
+- **Coloured icons.** Documents, tabs and memos now have colour-coded icons by type (text, PDF, audio, video, image, survey…), and new codes get a matching set of preset colours. Granola and High Contrast keep their plain look.
+- **Rounded code brackets.** The brackets showing coded passages in the document viewers now have rounded corners.
+- **Tidier layout in the Magnolia themes.** Panes sit closer together, and on macOS the panes in the bottom corners follow the rounded corners of the window.
+
+### Fixed
+- **Queries now work with box codings on PDFs and images.** Overlapping, Inside, Outside, Before and Followed by previously only looked at text codings. Codings drawn as boxes on a PDF or image were silently left out of Overlapping (so results were far lower than they should have been) and wrongly matched by the others. Boxes are now compared by page and position. If your project codes PDFs or images with boxes, saved queries and Results in Documents analyses using these operators may now show different (correct) numbers.
+- **Large projects are much faster.** Several slowdowns that grew with project size have been fixed:
+  - Magnolia could freeze for minutes while showing PDF results in the Query Results pane, because it re-read the whole project file for every PDF. It now reads just the file it needs, and previews only load as you scroll to them.
+  - Queries using Overlapping, Inside, Outside, Before or Followed by run many times faster.
+  - Every edit (coding, tagging, renaming…) no longer copies the whole project behind the scenes for undo, so editing in big projects is noticeably snappier.
+  - Dragging nodes in the Query Builder is smooth again, and moving nodes or typing in ones that aren't connected to Result no longer re-runs the query.
+- **No more "0–0" on box results.** Query results for PDF and image boxes no longer show a meaningless position label; their page number is shown under the preview instead.
+- **File dialogs no longer open behind Magnolia on Linux.** Open and save dialogs are now attached to the Magnolia window on every platform.
+
 ## [1.8.1]
 
 ### Changed
