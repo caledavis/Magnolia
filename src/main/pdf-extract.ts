@@ -3,6 +3,13 @@
  * Runs in the main process (Node.js) — no canvas needed for text-only extraction.
  */
 
+// pdfjs-dist loads Node built-ins (fs for fonts/CMaps, module for
+// createRequire) via process.getBuiltinModule, which only arrived in
+// Node 20.16 / 22.3. Electron 28 ships Node 18, so shim it with require.
+if (typeof (process as any).getBuiltinModule !== 'function') {
+  ;(process as any).getBuiltinModule = (name: string) => require(name)
+}
+
 // pdfjs-dist v5 expects DOM globals even for text-only work.
 // Provide minimal stubs so it loads in Node without errors.
 if (typeof globalThis.DOMMatrix === 'undefined') {
@@ -35,18 +42,18 @@ if (typeof globalThis.ImageData === 'undefined') {
   }
 }
 
-/** Resolve the pdfjs-dist standard_fonts directory and return a file:// URL
- *  terminated with a slash — the format pdfjs expects for loading standard
- *  fonts. Silences "Ensure that the standardFontDataUrl API parameter is
- *  provided" warnings during text extraction. */
+/** Resolve the pdfjs-dist standard_fonts directory as a plain filesystem
+ *  path terminated with a separator. Under Node, pdfjs reads these with
+ *  fs.readFile(baseUrl + filename), so a file:// URL string fails with
+ *  "Unable to load font data". Silences "Ensure that the
+ *  standardFontDataUrl API parameter is provided" warnings too. */
 function getStandardFontDataUrl(): string {
   try {
     const { createRequire } = require('module')
-    const { pathToFileURL } = require('url')
-    const { join, dirname } = require('path')
+    const { join, dirname, sep } = require('path')
     const req = createRequire(__filename)
     const pkg = req.resolve('pdfjs-dist/package.json')
-    return pathToFileURL(join(dirname(pkg), 'standard_fonts') + '/').toString()
+    return join(dirname(pkg), 'standard_fonts') + sep
   } catch {
     return ''
   }
@@ -57,11 +64,10 @@ function getStandardFontDataUrl(): string {
 function getCmapUrl(): string {
   try {
     const { createRequire } = require('module')
-    const { pathToFileURL } = require('url')
-    const { join, dirname } = require('path')
+    const { join, dirname, sep } = require('path')
     const req = createRequire(__filename)
     const pkg = req.resolve('pdfjs-dist/package.json')
-    return pathToFileURL(join(dirname(pkg), 'cmaps') + '/').toString()
+    return join(dirname(pkg), 'cmaps') + sep
   } catch {
     return ''
   }
