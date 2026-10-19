@@ -215,6 +215,12 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     return Array.from(guids)
   }, [queryResults])
 
+  // Distinct documents with at least one result in any query — shown in
+  // the Total row. Counts documents, not rows: grouping by tags can list a
+  // document under several rows, and survey respondents share one source.
+  const resultDocCount = resultSourceGuids.length
+  const resultDocLabel = `${resultDocCount} ${resultDocCount === 1 ? 'document' : 'documents'}`
+
   // Column build via the shared, survey-aware builder. Candidate sources
   // are the documents that appear in any query's results; surveys among
   // them expand into per-respondent bands when "Respondents" is active.
@@ -409,10 +415,10 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     }
     const totalRow: string[] = []
     if (hasGroupedHeader) totalRow.push('')
-    totalRow.push('Total', ...showRowTotals.map(String), String(showGrandTotal), pctOfTotal(showGrandTotal, showGrandTotal))
+    totalRow.push(`Total (${resultDocLabel})`, ...showRowTotals.map(String), String(showGrandTotal), pctOfTotal(showGrandTotal, showGrandTotal))
     rows.push(totalRow)
     window.api.exportCsv(toCsv(rows), 'results-in-documents.csv')
-  }, [columns, rowLayout, queryGuids, showGrid, queryMap, showRowTotals, showColTotals, showGrandTotal, hasGroupedHeader])
+  }, [columns, rowLayout, queryGuids, showGrid, queryMap, showRowTotals, showColTotals, showGrandTotal, hasGroupedHeader, resultDocLabel])
 
   const handleTagDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -836,6 +842,9 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                       style={{ padding: '4px 6px', borderTop: '2px solid var(--border-color)', fontWeight: 700 }}
                     >
                       Total
+                      <span style={{ marginLeft: 6, fontWeight: 400, fontSize: 11, color: 'var(--text-secondary)' }}>
+                        ({resultDocLabel})
+                      </span>
                     </td>
                     {showRowTotals.map((rt, i) => (
                       <td key={queryGuids[i]} onClick={() => handleRowTotalClick(i)} style={{
