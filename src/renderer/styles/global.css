@@ -2139,28 +2139,54 @@ html:not([data-theme]) .app-toolbar {
  * High Contrast is left alone throughout — its palette is deliberate —
  * and so are Granola and Granola Dark, which don't suit the colours. */
 :root:not([data-theme="high-contrast"]):not([data-theme^="granola"]) {
-  --icon-folder: #3478e0;
-  --icon-text: #5468d4;
-  --icon-pdf: #d93f3f;
-  --icon-audio: #e07b00;
-  --icon-video: #c8336c;
-  --icon-image: #2b9a48;
-  --icon-survey: #7a4ee0;
-  --icon-respondent: #0e93a8;
-  --icon-question: #7a4ee0;
+  --icon-folder: #2f7bf5;
+  --icon-text: #5b5cf0;
+  --icon-pdf: #f0453a;
+  --icon-audio: #f08c00;
+  --icon-video: #e8407f;
+  --icon-image: #1fa855;
+  --icon-survey: #a346e8;
+  --icon-respondent: #0aa5b8;
+  --icon-question: #a346e8;
   --memo-icon-color: #e39b00;
+  /* Gradient partners: each icon's fill blends from its partner (top
+   * left) into its own colour (bottom right) — see icon-tint.ts. */
+  --icon-folder-2: #3cc3f5;
+  --icon-text-2: #7aa6ff;
+  --icon-pdf-2: #ff9a3c;
+  --icon-audio-2: #ffc61a;
+  --icon-video-2: #ff7ab8;
+  --icon-image-2: #7fd63a;
+  --icon-survey-2: #e45fd6;
+  --icon-respondent-2: #2fd19c;
+  --icon-question-2: #e45fd6;
+  /* Gradient strength (start → end opacity): airy on light grounds. */
+  --icon-fill-from: 0.25;
+  --icon-fill-to: 0.55;
 }
 :root[data-theme$="dark"]:not([data-theme^="granola"]) {
-  --icon-folder: #6aa5ff;
-  --icon-text: #8e9cff;
-  --icon-pdf: #ff7a7a;
-  --icon-audio: #ffad42;
-  --icon-video: #ff6fa3;
-  --icon-image: #5cd17e;
-  --icon-survey: #b18cff;
-  --icon-respondent: #4fd0e0;
-  --icon-question: #b18cff;
+  --icon-folder: #5c9dff;
+  --icon-text: #8f8fff;
+  --icon-pdf: #ff6b61;
+  --icon-audio: #ffad33;
+  --icon-video: #ff6aa6;
+  --icon-image: #45d97f;
+  --icon-survey: #c77dff;
+  --icon-respondent: #3fd7e6;
+  --icon-question: #c77dff;
   --memo-icon-color: #ffc340;
+  --icon-folder-2: #5fd8ff;
+  --icon-text-2: #a8c6ff;
+  --icon-pdf-2: #ffb066;
+  --icon-audio-2: #ffdc5c;
+  --icon-video-2: #ffa0cf;
+  --icon-image-2: #b0f060;
+  --icon-survey-2: #f59aee;
+  --icon-respondent-2: #62ebbf;
+  --icon-question-2: #f59aee;
+  /* Stronger on dark grounds, where a faint fill turns muddy. */
+  --icon-fill-from: 0.45;
+  --icon-fill-to: 0.9;
 }
 
 /* Folders get a soft tinted fill, like a filled folder glyph. */
