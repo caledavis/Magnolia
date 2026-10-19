@@ -7,6 +7,7 @@ import { stripFormatting } from '../../utils/strip-formatting'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
 import { SavedQueries } from '../SavedQueries/SavedQueries'
 import { QueryResultsBody, groupByDocument } from './QueryResultsBody'
+import { QueryLoadingBar } from './QueryLoadingBar'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
 
@@ -341,6 +342,7 @@ export function QueryResultsWindow() {
               className="secondary"
               style={{ fontSize: 11, padding: '2px 8px', marginRight: 4 }}
               onClick={handleSelectDocuments}
+              disabled={data.isLoading}
               title="Select all documents and respondents in these results in the Document Browser — then drag a tag onto them to tag all at once"
             >
               Select Documents
@@ -353,6 +355,7 @@ export function QueryResultsWindow() {
                 className="secondary"
                 style={{ fontSize: 11, padding: '2px 8px' }}
                 onClick={() => setCodeAllMenu(codeAllMenu ? null : 'context')}
+                disabled={data.isLoading}
                 title={`Apply a code to all ${data.results.length} results`}
               >
                 Code All ({data.results.length})
@@ -456,6 +459,7 @@ export function QueryResultsWindow() {
             style={{ fontSize: 11, padding: '2px 8px', marginRight: 4 }}
             className="secondary"
             onClick={handleExportPdf}
+            disabled={data.isLoading}
             title="Export results as PDF"
           >
             Export PDF
@@ -533,7 +537,8 @@ export function QueryResultsWindow() {
               present. */}
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             {header}
-            <div className="panel-content">
+            <QueryLoadingBar active={!!data.isLoading} />
+            <div className="panel-content" aria-busy={!!data.isLoading} style={data.isLoading ? { opacity: 0.5, pointerEvents: 'none' } : undefined}>
               <QueryResultsBody
                 results={data.results}
                 isActive={data.isActive}

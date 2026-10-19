@@ -22,6 +22,10 @@ interface QueryState {
   currentGraphLayout: { nodes: any[]; conns: any[] } | null
   results: QueryResult[]
   isActive: boolean
+  /** True while a run is scheduled or executing — drives the Query
+   *  Results loading bar. `results` keeps the previous run's rows until
+   *  the new ones land. */
+  isLoading: boolean
   /** Names of documents referenced by the current query that no longer exist */
   missingDocuments: string[]
   savedQueries: SavedQuery[]
@@ -109,11 +113,42 @@ function runQueryLive(query: Query): { results: QueryResult[]; missingDocuments:
   return { results, missingDocuments }
 }
 
+/** Bumped by every run request and by clears. A deferred run only applies
+ *  its results if it is still the latest, so rapid re-runs (e.g. several
+ *  codings in a row) coalesce into one execution. */
+let runToken = 0
+
+/** Resolve after the next frame has been painted. Queries execute
+ *  synchronously on the UI thread, so the loading bar must be on screen
+ *  BEFORE the run starts or it would never appear. */
+function afterNextPaint(): Promise<void> {
+  if (typeof requestAnimationFrame === 'undefined') return Promise.resolve()
+  return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)))
+}
+
+/** Show the loading bar, let it paint, then run `query` and publish its
+ *  results — unless a newer run or a clear superseded it meanwhile. */
+function scheduleRun(query: Query): void {
+  const token = ++runToken
+  useQueryStore.setState({ isLoading: true })
+  void afterNextPaint().then(() => {
+    if (token !== runToken) return
+    try {
+      const { results, missingDocuments } = runQueryLive(query)
+      if (token === runToken) useQueryStore.setState({ results, missingDocuments, isLoading: false })
+    } catch (err) {
+      if (token === runToken) useQueryStore.setState({ isLoading: false })
+      throw err
+    }
+  })
+}
+
 export const useQueryStore = create<QueryState>((set, get) => ({
   currentQuery: null,
   currentGraphLayout: null,
   results: [],
   isActive: false,
+  isLoading: false,
   missingDocuments: [],
   savedQueries: [],
 
@@ -121,26 +156,29 @@ export const useQueryStore = create<QueryState>((set, get) => ({
     // `currentQuery` keeps the AUTHORED query (graph + the original resolved
     // snapshot); execution re-resolves the document filter live so results
     // reflect the current project, not the doc set frozen at save time.
-    const { results, missingDocuments } = runQueryLive(query)
     // Track the authored code graph alongside the query. Pass null when
     // no graph is supplied (drilldowns, Find) so "Edit current query"
     // doesn't restore a stale graph from a previous builder session.
-    set({ currentQuery: query, currentGraphLayout: graphLayout ?? null, isActive: true, results, missingDocuments })
+    set({ currentQuery: query, currentGraphLayout: graphLayout ?? null, isActive: true })
+    scheduleRun(query)
   },
 
-  clearQuery: () => set({ currentQuery: null, currentGraphLayout: null, results: [], isActive: false, missingDocuments: [] }),
+  clearQuery: () => {
+    runToken++
+    set({ currentQuery: null, currentGraphLayout: null, results: [], isActive: false, isLoading: false, missingDocuments: [] })
+  },
 
   runQuery: () => {
     const { currentQuery } = get()
     if (!currentQuery) {
-      set({ results: [], missingDocuments: [] })
+      runToken++
+      set({ results: [], missingDocuments: [], isLoading: false })
       return
     }
     // Re-resolve the document filter live on every run — this is also what
     // the auto-rerun (on code/doc/tag changes) calls, so a saved tag-based
     // query reflects newly-tagged documents without re-opening it.
-    const { results, missingDocuments } = runQueryLive(currentQuery)
-    set({ results, missingDocuments })
+    scheduleRun(currentQuery)
   },
 
   saveCurrentQuery: (name, graphLayout, guid) => {
@@ -206,7 +244,10 @@ export const useQueryStore = create<QueryState>((set, get) => ({
 
   setSavedQueries: (queries) => set({ savedQueries: queries }),
 
-  clearAll: () => set({ currentQuery: null, currentGraphLayout: null, results: [], isActive: false, savedQueries: [] })
+  clearAll: () => {
+    runToken++
+    set({ currentQuery: null, currentGraphLayout: null, results: [], isActive: false, isLoading: false, savedQueries: [] })
+  }
 }))
 
 makeHmrSafe('queryStore', useQueryStore)

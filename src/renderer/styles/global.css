@@ -2040,6 +2040,58 @@ html:not([data-theme]) .app-toolbar {
   color: transparent;
 }
 
+/* Indeterminate loading bar under the Query Results header while a query
+ * runs. The track has zero height so showing it never shifts the results.
+ * Animates transform/opacity only: the compositor keeps those moving while
+ * the query itself blocks the main thread. Fades in after a short delay so
+ * quick automatic re-runs (e.g. after each coding) don't flash it. */
+.query-loading-track {
+  position: relative;
+  height: 0;
+  flex-shrink: 0;
+  z-index: 2;
+}
+.query-loading-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  opacity: 0;
+  animation: query-loading-in 0.15s ease-out 0.12s forwards;
+}
+.query-loading-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 35%;
+  border-radius: 3px;
+  background: var(--accent);
+  transform: translateX(-100%);
+  animation: query-loading-slide 1.2s ease-in-out infinite;
+}
+@keyframes query-loading-in {
+  to { opacity: 1; }
+}
+@keyframes query-loading-slide {
+  /* translateX % is of the 35%-wide segment: -100% → 286% sweeps it from
+   * just off the left edge to just off the right edge of the track. */
+  from { transform: translateX(-100%); }
+  to { transform: translateX(286%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .query-loading-bar::after {
+    width: 100%;
+    transform: none;
+    opacity: 0.6;
+    animation: none;
+  }
+}
+
 /* Pulse animation for renamed saved queries */
 @keyframes query-pulse {
   0% { background-color: var(--accent); color: #fff; }

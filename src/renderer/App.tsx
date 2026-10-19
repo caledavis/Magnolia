@@ -541,6 +541,7 @@ function App() {
       results: qs.results,
       queryName: qName,
       isActive: qs.isActive,
+      isLoading: qs.isLoading,
       isUnsaved,
       theme,
       sourceSelections,
@@ -2421,6 +2422,7 @@ function App() {
       results: qs.results,
       queryName: qName,
       isActive: qs.isActive,
+      isLoading: qs.isLoading,
       isUnsaved,
       theme,
       sourceSelections,
@@ -2433,7 +2435,7 @@ function App() {
       currentQuery: qs.currentQuery ?? undefined
     }
     window.api.updateQueryResultsWindow(initData)
-  }, [queryResultsPoppedOut, queryStore.results, queryStore.currentQuery, queryStore.isActive, queryStore.savedQueries, codeStore.findCode, documentStore.sources, tagStore.tags])
+  }, [queryResultsPoppedOut, queryStore.results, queryStore.currentQuery, queryStore.isActive, queryStore.isLoading, queryStore.savedQueries, codeStore.findCode, documentStore.sources, tagStore.tags])
 
 
   // Listen for logbook updates from the logbook window

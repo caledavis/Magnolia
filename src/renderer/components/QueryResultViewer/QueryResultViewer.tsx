@@ -11,6 +11,7 @@ import { stripFormatting } from '../../utils/strip-formatting'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
 import { QueryResultsBody, groupByDocument } from './QueryResultsBody'
+import { QueryLoadingBar } from './QueryLoadingBar'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 
 interface Props {
@@ -38,6 +39,7 @@ interface Props {
 export function QueryResultViewer({ onSaveQuery, onEditQuery, queryName, onCodeAllNewCode, onApplyCodeToResults, onPopOut, onClose, sidebar, sidebarDefaultSize = 18, sidebarMinSize = 10, sidebarMaxSize = 40 }: Props) {
   const results = useQueryStore((s) => s.results)
   const isActive = useQueryStore((s) => s.isActive)
+  const isLoading = useQueryStore((s) => s.isLoading)
   const missingDocuments = useQueryStore((s) => s.missingDocuments)
   const currentQuery = useQueryStore((s) => s.currentQuery)
   const savedQueries = useQueryStore((s) => s.savedQueries)
@@ -320,6 +322,7 @@ export function QueryResultViewer({ onSaveQuery, onEditQuery, queryName, onCodeA
                 className="secondary"
                 style={{ fontSize: 11, padding: '2px 8px', marginRight: 4 }}
                 onClick={handleSelectDocuments}
+                disabled={isLoading}
                 title="Select all documents and respondents in these results in the Document Browser — then drag a tag onto them to tag all at once"
               >
                 Select Documents
@@ -332,6 +335,7 @@ export function QueryResultViewer({ onSaveQuery, onEditQuery, queryName, onCodeA
                   className="secondary"
                   style={{ fontSize: 11, padding: '2px 8px' }}
                   onClick={() => setCodeAllMenu(codeAllMenu ? null : 'context')}
+                  disabled={isLoading}
                   title={`Apply a code to all ${results.length} results`}
                 >
                   Code All ({results.length})
@@ -437,6 +441,7 @@ export function QueryResultViewer({ onSaveQuery, onEditQuery, queryName, onCodeA
               style={{ fontSize: 11, padding: '2px 8px', marginRight: 4 }}
               className="secondary"
               onClick={handleExportPdf}
+              disabled={isLoading}
               title="Export results as PDF"
             >
               Export PDF
@@ -479,7 +484,12 @@ export function QueryResultViewer({ onSaveQuery, onEditQuery, queryName, onCodeA
         </div>
       )
         const body = (
-          <div className="panel-content">
+          <>
+          <QueryLoadingBar active={isLoading} />
+          {/* While a run is pending the previous results stay visible but
+              dimmed and inert, so a click or a dropped code can't act on
+              rows that are about to be replaced. */}
+          <div className="panel-content" aria-busy={isLoading} style={isLoading ? { opacity: 0.5, pointerEvents: 'none' } : undefined}>
             <QueryResultsBody
               results={results}
               isActive={isActive}
@@ -526,6 +536,7 @@ export function QueryResultViewer({ onSaveQuery, onEditQuery, queryName, onCodeA
               missingDocuments={missingDocuments}
             />
           </div>
+          </>
         )
         return sidebar ? (
           <PanelGroup direction="horizontal" style={{ flex: 1, overflow: 'hidden' }}>

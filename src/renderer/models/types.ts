@@ -821,6 +821,8 @@ export interface QueryResultsInitData {
   results: QueryResult[]
   queryName: string
   isActive: boolean
+  /** A run is in progress in the main window — show the loading bar. */
+  isLoading?: boolean
   isUnsaved: boolean
   theme: string
   /** Source selections for showing other codes in result text (keyed by sourceGuid) */
