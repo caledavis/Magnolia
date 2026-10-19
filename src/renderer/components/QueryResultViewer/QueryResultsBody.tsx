@@ -238,12 +238,16 @@ export function ResultItem({
             </span>
           ))}
         </div>
-        <span
-          style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}
-          title={`Codepoints ${result.startPosition}–${result.endPosition}`}
-        >
-          {result.startPosition}–{result.endPosition}
-        </span>
+        {/* Box results have no character range (always 0–0); their
+            location is the "Page N" caption under the thumbnail. */}
+        {!pdfRegion && (
+          <span
+            style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}
+            title={`Codepoints ${result.startPosition}–${result.endPosition}`}
+          >
+            {result.startPosition}–{result.endPosition}
+          </span>
+        )}
       </div>
 
       {pdfRegion ? (
