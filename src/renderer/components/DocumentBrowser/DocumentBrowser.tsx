@@ -1151,10 +1151,23 @@ function TagItem({
           }))
         }
         e.dataTransfer.effectAllowed = 'copy'
+
+        // Custom drag ghost for multi-drag
+        if (guids.length > 1) {
+          const ghost = document.createElement('div')
+          ghost.textContent = `${guids.length} tags`
+          ghost.style.cssText = 'position:fixed;left:-9999px;top:0;padding:4px 10px;border-radius:4px;background:var(--accent,#4a9eff);color:#fff;font-size:12px;font-weight:600;white-space:nowrap;'
+          document.body.appendChild(ghost)
+          e.dataTransfer.setDragImage(ghost, 0, 0)
+          requestAnimationFrame(() => document.body.removeChild(ghost))
+        }
       }}
       style={{
         padding: '3px 8px',
         paddingLeft: 8 + depth * 16,
+        // Shift-click range select would otherwise also extend a text
+        // selection across the rows.
+        userSelect: 'none',
         fontSize: 'var(--font-size-sm)',
         cursor: 'pointer',
         borderRadius: 'var(--radius-sm)',
@@ -2257,9 +2270,13 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
   }, [categories, filteredCategoryTags, visibleUncategorisedTags])
 
   const handleTagClick = useCallback((tagGuid: string, e: React.MouseEvent) => {
-    if (e.shiftKey && lastClickedTagRef.current) {
+    // A shift-click with no usable anchor (nothing clicked yet, or the
+    // anchor has since been filtered out / deleted) falls through to a
+    // plain single select, which then becomes the anchor.
+    const anchor = lastClickedTagRef.current
+    if (e.shiftKey && anchor && flatTagGuids.includes(anchor)) {
       // Range select from last clicked to this one
-      const from = flatTagGuids.indexOf(lastClickedTagRef.current)
+      const from = flatTagGuids.indexOf(anchor)
       const to = flatTagGuids.indexOf(tagGuid)
       if (from !== -1 && to !== -1) {
         const lo = Math.min(from, to)
@@ -2288,7 +2305,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
       })
       lastClickedTagRef.current = tagGuid
     }
-  }, [])
+  }, [flatTagGuids])
 
   const handleTagSelectDocs = useCallback((tagGuid: string) => {
     const tag = tags.find((t) => t.guid === tagGuid)
