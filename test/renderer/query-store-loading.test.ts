@@ -91,9 +91,26 @@ describe('query store loading state', () => {
     // Same executed query; only node positions differ in both graphs.
     useQueryStore.getState().setComplexQuery(withDocGraph(50), graphAt(50))
     expect(useQueryStore.getState().isLoading).toBe(false)
+    // Held back while the canvas is moving, applied once it settles.
+    expect(useQueryStore.getState().currentGraphLayout).toEqual(graphAt(0))
+    await new Promise((r) => setTimeout(r, 300))
     expect(useQueryStore.getState().currentGraphLayout).toEqual(graphAt(50))
-    await settle()
+    expect(useQueryStore.getState().currentQuery).toEqual(withDocGraph(50))
     expect(useQueryStore.getState().results).toBe(before)
+  })
+
+  it('applies a held-back layout before saving or re-running', async () => {
+    const graphAt = (x: number) => ({ nodes: [{ id: 'n', kind: 'code', x, y: 0 }], conns: [] })
+    useQueryStore.getState().setComplexQuery(codeQuery('a'), graphAt(0))
+    await settle()
+    useQueryStore.getState().setComplexQuery(codeQuery('a'), graphAt(10))
+    useQueryStore.getState().saveCurrentQuery('Q', graphAt(10), 'G')
+    expect(useQueryStore.getState().currentGraphLayout).toEqual(graphAt(10))
+
+    useQueryStore.getState().setComplexQuery(codeQuery('a'), graphAt(20))
+    useQueryStore.getState().runQuery()
+    expect(useQueryStore.getState().currentGraphLayout).toEqual(graphAt(20))
+    await settle()
   })
 
   it('re-runs when the executed query changes', async () => {

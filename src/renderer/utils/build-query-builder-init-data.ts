@@ -12,7 +12,7 @@ import { buildSurveyEntityLabels } from './survey/survey-labels'
 import { useDocumentStore } from '../stores/document-store'
 import { useCodeStore } from '../stores/code-store'
 import { useTagStore } from '../stores/tag-store'
-import { useQueryStore } from '../stores/query-store'
+import { useQueryStore, flushPendingQueryLayout } from '../stores/query-store'
 
 function flattenCodesWithParent(
   codes: Code[],
@@ -33,6 +33,9 @@ export function buildQueryBuilderInitData(opts?: {
   const docStore = useDocumentStore.getState()
   const cdStore = useCodeStore.getState()
   const tgStore = useTagStore.getState()
+  // Reopening the builder reads the current query's layout; apply any
+  // node move still being held back from the store first.
+  flushPendingQueryLayout()
   const qStore = useQueryStore.getState()
 
   const initData: QueryBuilderInitData = {

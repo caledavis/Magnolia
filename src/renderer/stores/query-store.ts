@@ -126,6 +126,29 @@ function executionKey(query: Query): string {
 /** executionKey of the latest scheduled run; null once cleared. */
 let lastRunKey: string | null = null
 
+/** A layout-only builder change (node dragged, unwired node edited) held
+ *  back from the store — see setComplexQuery. Applied once the canvas has
+ *  been still for LAYOUT_COMMIT_MS, or immediately via
+ *  flushPendingQueryLayout. */
+const LAYOUT_COMMIT_MS = 250
+let pendingLayout: { query: Query; graphLayout: { nodes: any[]; conns: any[] } | null } | null = null
+let layoutTimer: ReturnType<typeof setTimeout> | null = null
+
+function dropPendingLayout(): void {
+  if (layoutTimer) clearTimeout(layoutTimer)
+  layoutTimer = null
+  pendingLayout = null
+}
+
+/** Apply a held-back layout change now. Call before reading currentQuery /
+ *  currentGraphLayout in a path that can follow a builder edit directly
+ *  (saving, reopening the builder). */
+export function flushPendingQueryLayout(): void {
+  const p = pendingLayout
+  dropPendingLayout()
+  if (p) useQueryStore.setState({ currentQuery: p.query, currentGraphLayout: p.graphLayout })
+}
+
 /** Bumped by every run request and by clears. A deferred run only applies
  *  its results if it is still the latest, so rapid re-runs (e.g. several
  *  codings in a row) coalesce into one execution. */
@@ -178,19 +201,31 @@ export const useQueryStore = create<QueryState>((set, get) => ({
     // typing in one that isn't wired to Result — so only re-run (and show
     // the loading bar) when what would execute actually changed. Data
     // changes still re-run through runQuery / rerunIfActive.
+    //
+    // A layout-only change arrives on every frame of a node drag, and
+    // every store update re-renders the main window (App reads
+    // currentQuery) — so hold it back and apply it once the canvas settles.
     const key = executionKey(query)
-    const unchanged = get().isActive && key === lastRunKey
+    if (get().isActive && key === lastRunKey) {
+      pendingLayout = { query, graphLayout: graphLayout ?? null }
+      if (layoutTimer) clearTimeout(layoutTimer)
+      layoutTimer = setTimeout(flushPendingQueryLayout, LAYOUT_COMMIT_MS)
+      return
+    }
+    dropPendingLayout() // superseded by this query
     set({ currentQuery: query, currentGraphLayout: graphLayout ?? null, isActive: true })
-    if (!unchanged) scheduleRun(query, key)
+    scheduleRun(query, key)
   },
 
   clearQuery: () => {
     runToken++
     lastRunKey = null
+    dropPendingLayout()
     set({ currentQuery: null, currentGraphLayout: null, results: [], isActive: false, isLoading: false, missingDocuments: [] })
   },
 
   runQuery: () => {
+    flushPendingQueryLayout()
     const { currentQuery } = get()
     if (!currentQuery) {
       runToken++
@@ -205,6 +240,7 @@ export const useQueryStore = create<QueryState>((set, get) => ({
   },
 
   saveCurrentQuery: (name, graphLayout, guid) => {
+    flushPendingQueryLayout()
     const { currentQuery } = get()
     if (!currentQuery) return null
     const finalGuid = guid ?? generateGuid()
@@ -270,6 +306,7 @@ export const useQueryStore = create<QueryState>((set, get) => ({
   clearAll: () => {
     runToken++
     lastRunKey = null
+    dropPendingLayout()
     set({ currentQuery: null, currentGraphLayout: null, results: [], isActive: false, isLoading: false, savedQueries: [] })
   }
 }))
