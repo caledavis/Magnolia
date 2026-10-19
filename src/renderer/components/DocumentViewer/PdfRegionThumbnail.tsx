@@ -8,7 +8,7 @@
  * sourceType: image regions are cropped from the image bitmap, PDF
  * regions are rasterised from the page.
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDocumentStore } from '../../stores/document-store'
 import { renderPdfRegionThumbnail } from '../../utils/pdf-thumbnail'
 import { renderImageRegionThumbnail } from '../../utils/image-thumbnail'
@@ -56,7 +56,34 @@ export function PdfRegionThumbnail({ sourceGuid, filePath: filePathProp, page, x
   const [dataUrl, setDataUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Only rasterise once the thumbnail is near the viewport. A query over a
+  // large PDF project can list hundreds of box results; rendering them all
+  // up front loads every PDF they touch at once. Latches true — once seen,
+  // a thumbnail keeps its image when scrolled away.
+  const placeholderRef = useRef<HTMLDivElement>(null)
+  const [nearViewport, setNearViewport] = useState(false)
   useEffect(() => {
+    if (nearViewport) return
+    const el = placeholderRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setNearViewport(true)
+      return
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setNearViewport(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '300px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [nearViewport])
+
+  useEffect(() => {
+    if (!nearViewport) return
     if (!filePath && !pdfBase64) {
       setError(isImage ? 'Image file not available' : 'PDF file not available')
       return
@@ -81,7 +108,7 @@ export function PdfRegionThumbnail({ sourceGuid, filePath: filePathProp, page, x
     return () => {
       cancelled = true
     }
-  }, [filePath, pdfBase64, sourceGuid, isImage, page, x, y, width, height])
+  }, [nearViewport, filePath, pdfBase64, sourceGuid, isImage, page, x, y, width, height])
 
   // Keep aspect ratio while fitting inside maxW × maxH.
   const aspect = width > 0 && height > 0 ? width / height : 1
@@ -114,7 +141,7 @@ export function PdfRegionThumbnail({ sourceGuid, filePath: filePathProp, page, x
   }
   if (!dataUrl) {
     return (
-      <div style={containerStyle}>
+      <div ref={placeholderRef} style={containerStyle}>
         <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Rendering…</div>
       </div>
     )
