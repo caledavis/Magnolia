@@ -882,6 +882,9 @@ function App() {
   // data in this session, treat empty-stores-at-save as a bug.
   const everHadDataRef = useRef(false)
   useEffect(() => {
+    // Latches: once true it never resets, so stop rebuilding the whole
+    // project payload (collectProject changes on every store update).
+    if (everHadDataRef.current) return
     if (!isProjectPayloadEmpty(collectProject())) everHadDataRef.current = true
   }, [collectProject, isProjectPayloadEmpty])
 
