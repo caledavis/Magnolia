@@ -12,6 +12,7 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 
 ### Changed
 - **Coloured icons.** Documents, tabs and memos now have colour-coded icons by type (text, PDF, audio, video, image, survey…), and new codes get a matching set of preset colours. Granola and High Contrast keep their plain look.
+- **Cleaner Memos pane.** The memo icon at the end of each memo row has been removed; double-click a memo to open it.
 - **Rounded code brackets.** The brackets showing coded passages in the document viewers now have rounded corners.
 - **Tidier layout in the Magnolia themes.** Panes sit closer together, and on macOS the panes in the bottom corners follow the rounded corners of the window.
 

@@ -4,7 +4,7 @@ import { useMemoStore } from '../../stores/memo-store'
 import { useDocumentStore } from '../../stores/document-store'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 import { useSurveyViewStore } from '../../stores/survey-view-store'
-import { Icon, MEMO_ICON, faChevronDown, faChevronRight, faXmark, faUpRightFromSquare, faDownLeftAndUpRightToCenter, faPlus, faMagnifyingGlass } from '../Icon'
+import { Icon, faChevronDown, faChevronRight, faXmark, faUpRightFromSquare, faDownLeftAndUpRightToCenter, faPlus, faMagnifyingGlass } from '../Icon'
 import { generateGuid } from '../../utils/guid'
 import { isToolTab } from '../../utils/tab-ids'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
@@ -79,16 +79,6 @@ function MemoItem({
           whiteSpace: 'nowrap'
         }}>
           {memo.title || 'Untitled Memo'}
-        </span>
-        <span
-          style={{ fontSize: 11, flexShrink: 0, color: 'var(--memo-icon-color)', cursor: 'pointer' }}
-          title="Open memo"
-          onClick={(e) => {
-            e.stopPropagation()
-            onDoubleClick()
-          }}
-        >
-          <Icon icon={MEMO_ICON} />
         </span>
       </div>
       <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
@@ -302,7 +292,7 @@ function AnalysisMemoMapGroup({
           onRightClick={onRightClick}
           draggable
           onDragStart={(e) => onDragStart(e, memo)}
-          // Align the memo row's icon with the map sub-group's text:
+          // Align the memo row's title with the map sub-group's text:
           // map header has 22 px left padding + 12 px chevron + 6 px
           // gap = 40 px to where the map name begins.
           indent={40}
