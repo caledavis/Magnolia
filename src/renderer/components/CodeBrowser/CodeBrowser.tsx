@@ -305,7 +305,7 @@ function CodeTreeItem({
           display: 'flex',
           alignItems: 'center',
           gap: 6,
-          padding: '4px 8px',
+          padding: '3px 8px',
           paddingLeft: 8 + depth * 16,
           cursor: 'grab',
           borderRadius: 'var(--radius-sm)',
