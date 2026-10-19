@@ -340,9 +340,13 @@ function App() {
   }, [])
   const leftHasVisiblePanels = panelVisibility.documents || panelVisibility.codes
   const rightHasVisiblePanels = panelVisibility.memos || panelVisibility.quotes || panelVisibility.analyses
-  const [activePanel, setActivePanel] = useState<'documents' | 'codes' | 'viewer' | 'queries' | null>(null)
-  const activePanelRef = useRef(activePanel)
-  activePanelRef.current = activePanel
+  // Which pane last took a mousedown — read only by the keyboard handler
+  // below, never during render. A ref, not state: as state, every click
+  // into a different pane re-rendered the whole App (and every open tool).
+  const activePanelRef = useRef<'documents' | 'codes' | 'viewer' | 'queries' | null>(null)
+  const setActivePanel = (panel: 'documents' | 'codes' | 'viewer' | 'queries'): void => {
+    activePanelRef.current = panel
+  }
 
   // Tracks whether the scrollable toolbar (GitHub issue #15, see the
   // .app-toolbar-scroll comment further down) has more content hidden

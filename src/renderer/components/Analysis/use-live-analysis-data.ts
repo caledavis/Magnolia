@@ -126,19 +126,28 @@ export function useLiveAnalysisData(): LiveAnalysisData {
   }, [docSources])
   const surveyEntityLabels = useMemo(() => buildSurveyEntityLabels(docSources), [docSources])
 
-  return {
-    codes,
-    tags: slimTags,
-    categories: slimCategories,
-    folders,
-    tagMembers,
-    respondentTagMembers,
-    questionTagMembers,
-    sourceFolder,
-    sources,
-    sourceContents,
-    sourceSelections,
-    surveyCodableCells,
-    surveyEntityLabels
-  }
+  // Memoised so the object keeps its identity until a store actually
+  // changes: tools spread it into a memoised `data`, and a fresh object on
+  // every render rebuilt their columns, grids and totals on any re-render.
+  return useMemo(
+    () => ({
+      codes,
+      tags: slimTags,
+      categories: slimCategories,
+      folders,
+      tagMembers,
+      respondentTagMembers,
+      questionTagMembers,
+      sourceFolder,
+      sources,
+      sourceContents,
+      sourceSelections,
+      surveyCodableCells,
+      surveyEntityLabels
+    }),
+    [
+      codes, slimTags, slimCategories, folders, tagMembers, respondentTagMembers, questionTagMembers,
+      sourceFolder, sources, sourceContents, sourceSelections, surveyCodableCells, surveyEntityLabels
+    ]
+  )
 }
