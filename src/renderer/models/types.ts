@@ -577,6 +577,8 @@ export interface ElectronAPI {
   createNewProjectFile: () => Promise<{ filePath: string; projectName: string } | null>
   importTextFile: () => Promise<{ name: string; content: string } | null>
   readTextFiles: (filePaths: string[]) => Promise<{ name: string; content: string }[] | null>
+  /** Filesystem path of a dropped / picked File ('' if it has none). */
+  getPathForFile: (file: File) => string
   /** Re-import the file for an existing document of the given type whose
    *  bytes are missing from the .qdpx. Returns the read file (to be
    *  re-attached to the existing source), an error, or null if cancelled. */

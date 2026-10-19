@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, shell, ipcMain, dialog, screen, protocol, net } from 'electron'
+import { app, autoUpdater as nativeAutoUpdater, BrowserWindow, Menu, shell, ipcMain, dialog, screen, protocol, net } from 'electron'
 import { join } from 'path'
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { pathToFileURL } from 'url'
@@ -956,7 +956,9 @@ app.on('before-quit', () => {
 // main window's `closed` handler re-opens the Welcome screen instead of
 // letting the app exit, so the macOS update never installs (the app keeps
 // running on the old version). Treat it as a quit, same as `before-quit`.
-app.on('before-quit-for-update', () => {
+// The event is on Electron's native autoUpdater, not `app`. This backs up
+// the quit callback passed to initAutoUpdater (onQuitForUpdateRef).
+nativeAutoUpdater.on('before-quit-for-update', () => {
   isQuitting = true
 })
 
