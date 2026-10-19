@@ -2,17 +2,23 @@
 
 All notable changes to Magnolia are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project follows [Semantic Versioning](https://semver.org/).
 
+## [1.8.3]
+
+### Added
+- **Sankey view for analysis tables.** Codes in Documents, Results in Documents, and Code Co-Occurrences now have a "Sankey" button next to "Visual" and "Binary" that redraws the grid as a flow diagram: codes (or queries) on the left, documents (or the other codes) on the right, with each band as wide as the count in that cell. Hover over a code, document, or band to highlight its flows and see the number; click to open the matching results, just like clicking a cell or total in the table. Binary works here too, and you can keep dragging codes and queries in while the diagram is showing.
+
+### Changed
+- **Cleaner Memos pane.** The memo icon at the end of each memo row has been removed; double-click a memo to open it.
+
 ## [1.8.2]
 
 ### Added
 - **Waveform seek bar for audio and video.** The plain progress bar in the Audio and Video viewers is now a waveform of the recording, so you can see where speech and silences fall and jump straight to them. The played portion is highlighted and moves smoothly as the recording plays.
 - **Loading bar in the Query Results pane.** When a query is running, a thin bar now slides along under the Query Results header so you know Magnolia is working. The previous results stay visible (dimmed) until the new ones arrive, and Select Documents, Code All and Export PDF wait until they do.
-- **Sankey view for analysis tables.** Codes in Documents, Results in Documents, and Code Co-Occurrences now have a "Sankey" button next to "Visual" and "Binary" that redraws the grid as a flow diagram: codes (or queries) on the left, documents (or the other codes) on the right, with each band as wide as the count in that cell. Hover over a code, document, or band to highlight its flows and see the number; click to open the matching results, just like clicking a cell or total in the table. Binary works here too, and you can keep dragging codes and queries in while the diagram is showing.
 - **Document count in Results in Documents.** The Total row now also shows how many documents your results come from, e.g. "Total (159 documents)". This is included in the CSV export too.
 
 ### Changed
 - **Coloured icons.** Documents, tabs and memos now have colour-coded icons by type (text, PDF, audio, video, image, survey…), and new codes get a matching set of preset colours. Granola and High Contrast keep their plain look.
-- **Cleaner Memos pane.** The memo icon at the end of each memo row has been removed; double-click a memo to open it.
 - **Rounded code brackets.** The brackets showing coded passages in the document viewers now have rounded corners.
 - **Tidier layout in the Magnolia themes.** Panes sit closer together, and on macOS the panes in the bottom corners follow the rounded corners of the window.
 
