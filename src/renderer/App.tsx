@@ -2504,7 +2504,7 @@ function App() {
       onDrop={(e) => {
         if (e.dataTransfer.files.length === 0) return
         e.preventDefault()
-        const paths = Array.from(e.dataTransfer.files).map((f) => f.path).filter(Boolean)
+        const paths = Array.from(e.dataTransfer.files).map((f) => window.api.getPathForFile(f)).filter(Boolean)
         if (paths.length > 0) handleOSFileDrop(paths)
       }}
     >

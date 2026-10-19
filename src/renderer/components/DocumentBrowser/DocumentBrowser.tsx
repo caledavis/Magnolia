@@ -251,7 +251,7 @@ function FolderItem({
 
           // Handle file drops from OS
           if (e.dataTransfer.files.length > 0) {
-            const paths = Array.from(e.dataTransfer.files).map((f) => f.path).filter(Boolean)
+            const paths = Array.from(e.dataTransfer.files).map((f) => window.api.getPathForFile(f)).filter(Boolean)
             if (paths.length > 0) {
               onFileDrop(paths, folder.guid)
               setExpanded(true)
@@ -2657,7 +2657,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
 
           // Handle file drops from OS
           if (e.dataTransfer.files.length > 0) {
-            const paths = Array.from(e.dataTransfer.files).map((f) => f.path).filter(Boolean)
+            const paths = Array.from(e.dataTransfer.files).map((f) => window.api.getPathForFile(f)).filter(Boolean)
             if (paths.length > 0) {
               handleFileDrop(paths)
               return

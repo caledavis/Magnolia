@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, webFrame } from 'electron'
+import { contextBridge, ipcRenderer, webFrame, webUtils } from 'electron'
 import type { ElectronAPI } from '../renderer/models/types'
 
 // The open project's .qdpx path, cached renderer-side. The renderer sets it
@@ -37,6 +37,8 @@ const api: ElectronAPI = {
   createNewProjectFile: () => ipcRenderer.invoke('create-new-project-file'),
   importTextFile: () => ipcRenderer.invoke('import-text-file'),
   readTextFiles: (filePaths: string[]) => ipcRenderer.invoke('read-text-files', filePaths),
+  // Electron 32 removed the nonstandard File.path; this is its replacement.
+  getPathForFile: (file: File) => webUtils.getPathForFile(file),
   reimportDocument: (sourceType: string) => ipcRenderer.invoke('reimport-document', sourceType),
   openLicence: () => ipcRenderer.invoke('open-licence'),
   openAcknowledgements: () => ipcRenderer.invoke('open-acknowledgements'),
