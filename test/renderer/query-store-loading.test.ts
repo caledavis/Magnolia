@@ -66,6 +66,55 @@ describe('query store loading state', () => {
     expect(s.results.map((r) => r.selectionGuid)).toEqual(['s2', 's3'])
   })
 
+  it('does not re-run when only the builder layout changes', async () => {
+    const graphAt = (x: number) => ({ nodes: [{ id: 'n', kind: 'code', x, y: 0 }], conns: [] })
+    // A real document graph (docs node wired to Result) whose node
+    // positions travel inside the query's documentFilter.
+    const withDocGraph = (x: number): Query =>
+      ({
+        ...codeQuery('a'),
+        documentFilter: {
+          sourceGuids: ['doc'],
+          graph: {
+            nodes: [
+              { id: 'd', kind: 'docs', docGuids: ['doc'], x, y: 0 },
+              { id: 'r', kind: 'result', x: 300, y: 0 }
+            ],
+            conns: [{ id: 'c', from: 'd', to: 'r', toPort: 0 }]
+          }
+        }
+      }) as Query
+    useQueryStore.getState().setComplexQuery(withDocGraph(0), graphAt(0))
+    await settle()
+    const before = useQueryStore.getState().results
+    expect(before).toHaveLength(1)
+    // Same executed query; only node positions differ in both graphs.
+    useQueryStore.getState().setComplexQuery(withDocGraph(50), graphAt(50))
+    expect(useQueryStore.getState().isLoading).toBe(false)
+    expect(useQueryStore.getState().currentGraphLayout).toEqual(graphAt(50))
+    await settle()
+    expect(useQueryStore.getState().results).toBe(before)
+  })
+
+  it('re-runs when the executed query changes', async () => {
+    useQueryStore.getState().setComplexQuery(codeQuery('a'))
+    await settle()
+    useQueryStore.getState().setComplexQuery(codeQuery('b'))
+    expect(useQueryStore.getState().isLoading).toBe(true)
+    await settle()
+    expect(useQueryStore.getState().results.map((r) => r.selectionGuid)).toEqual(['s2', 's3'])
+  })
+
+  it('re-runs an unchanged query after it was cleared', async () => {
+    useQueryStore.getState().setComplexQuery(codeQuery('a'))
+    await settle()
+    useQueryStore.getState().clearQuery()
+    useQueryStore.getState().setComplexQuery(codeQuery('a'))
+    expect(useQueryStore.getState().isLoading).toBe(true)
+    await settle()
+    expect(useQueryStore.getState().results).toHaveLength(1)
+  })
+
   it('a clear cancels a pending run', async () => {
     useQueryStore.getState().setComplexQuery(codeQuery('a'))
     useQueryStore.getState().clearQuery()

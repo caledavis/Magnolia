@@ -113,6 +113,19 @@ function runQueryLive(query: Query): { results: QueryResult[]; missingDocuments:
   return { results, missingDocuments }
 }
 
+/** What a query actually executes on: the code condition plus the
+ *  live-resolved document filter, minus the document graph itself — its
+ *  node positions change whenever the user lays out the builder canvas,
+ *  which doesn't change the query. */
+function executionKey(query: Query): string {
+  const { documentFilter, noDocs } = liveResolveFilter(query.documentFilter)
+  const { graph: _graph, ...filter } = documentFilter
+  return JSON.stringify({ codeCondition: query.codeCondition, filter, noDocs })
+}
+
+/** executionKey of the latest scheduled run; null once cleared. */
+let lastRunKey: string | null = null
+
 /** Bumped by every run request and by clears. A deferred run only applies
  *  its results if it is still the latest, so rapid re-runs (e.g. several
  *  codings in a row) coalesce into one execution. */
@@ -128,8 +141,9 @@ function afterNextPaint(): Promise<void> {
 
 /** Show the loading bar, let it paint, then run `query` and publish its
  *  results — unless a newer run or a clear superseded it meanwhile. */
-function scheduleRun(query: Query): void {
+function scheduleRun(query: Query, key: string = executionKey(query)): void {
   const token = ++runToken
+  lastRunKey = key
   useQueryStore.setState({ isLoading: true })
   void afterNextPaint().then(() => {
     if (token !== runToken) return
@@ -159,12 +173,20 @@ export const useQueryStore = create<QueryState>((set, get) => ({
     // Track the authored code graph alongside the query. Pass null when
     // no graph is supplied (drilldowns, Find) so "Edit current query"
     // doesn't restore a stale graph from a previous builder session.
+    //
+    // The Query Builder previews on every canvas change — dragging a node,
+    // typing in one that isn't wired to Result — so only re-run (and show
+    // the loading bar) when what would execute actually changed. Data
+    // changes still re-run through runQuery / rerunIfActive.
+    const key = executionKey(query)
+    const unchanged = get().isActive && key === lastRunKey
     set({ currentQuery: query, currentGraphLayout: graphLayout ?? null, isActive: true })
-    scheduleRun(query)
+    if (!unchanged) scheduleRun(query, key)
   },
 
   clearQuery: () => {
     runToken++
+    lastRunKey = null
     set({ currentQuery: null, currentGraphLayout: null, results: [], isActive: false, isLoading: false, missingDocuments: [] })
   },
 
@@ -172,6 +194,7 @@ export const useQueryStore = create<QueryState>((set, get) => ({
     const { currentQuery } = get()
     if (!currentQuery) {
       runToken++
+      lastRunKey = null
       set({ results: [], missingDocuments: [], isLoading: false })
       return
     }
@@ -246,6 +269,7 @@ export const useQueryStore = create<QueryState>((set, get) => ({
 
   clearAll: () => {
     runToken++
+    lastRunKey = null
     set({ currentQuery: null, currentGraphLayout: null, results: [], isActive: false, isLoading: false, savedQueries: [] })
   }
 }))
