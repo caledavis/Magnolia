@@ -84,7 +84,7 @@ export const useUndoStore = create<UndoState>((set, get) => ({
     })
     restoreSnapshot(prev)
     // Update the saved "previous" snapshot to the restored state
-    lastSnapshotKey = JSON.stringify(prev)
+    lastSnapshot = prev
     set({ _restoring: false })
   },
 
@@ -99,7 +99,7 @@ export const useUndoStore = create<UndoState>((set, get) => ({
       _restoring: true
     })
     restoreSnapshot(next)
-    lastSnapshotKey = JSON.stringify(next)
+    lastSnapshot = next
     set({ _restoring: false })
   },
 
@@ -111,34 +111,58 @@ export const useUndoStore = create<UndoState>((set, get) => ({
 
 // Auto-capture: detect store changes and push the *previous* state onto the undo stack.
 // A debounce batches rapid sequential changes (e.g. typing a code name) into one undo step.
+//
+// Snapshots hold references, not copies. Every store updates immutably (a
+// changed slice gets a new object; an unchanged one keeps its reference),
+// so comparing references detects exactly the slices that changed — and a
+// held snapshot can't be altered by later edits. This used to JSON-stringify
+// the whole project (all document text included) on EVERY store change,
+// costing hundreds of ms per edit on a large project and making anything
+// that updates a store per frame — e.g. dragging a Query Builder node —
+// stutter.
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
-let lastSnapshotKey: string | null = null
+let lastSnapshot: Snapshot | null = null
 let pendingPreviousSnapshot: Snapshot | null = null
+
+/** The values a snapshot captures, in a fixed order. */
+function snapshotValues(s: Snapshot): unknown[] {
+  return [
+    s.document.sources, s.document.sourceContents, s.document.folders, s.document.sourceFolder,
+    s.code.codes,
+    s.tag.tags, s.tag.categories,
+    s.query.savedQueries, s.query.currentQuery, s.query.results, s.query.isActive,
+    s.quote.quotes
+  ]
+}
+
+function sameSnapshot(a: Snapshot, b: Snapshot): boolean {
+  const av = snapshotValues(a)
+  const bv = snapshotValues(b)
+  return av.every((v, i) => v === bv[i])
+}
 
 function onStoreChange() {
   const store = useUndoStore.getState()
   if (store._restoring) return
 
   const currentSnap = takeSnapshot()
-  const currentKey = JSON.stringify(currentSnap)
 
-  if (lastSnapshotKey === null) {
+  if (lastSnapshot === null) {
     // First time: just record the initial state
-    lastSnapshotKey = currentKey
+    lastSnapshot = currentSnap
     return
   }
 
-  if (currentKey === lastSnapshotKey) return
+  // Unrelated state (selection, loading flags, …) changed — nothing to undo.
+  if (sameSnapshot(currentSnap, lastSnapshot)) return
 
   // State changed — save the previous snapshot as the undo point.
   // Use debounce: if changes keep coming within 300ms, keep updating the "current"
   // but only push the "previous" once.
   if (pendingPreviousSnapshot === null) {
-    // Parse the last snapshot key back into an object for the undo stack
-    pendingPreviousSnapshot = JSON.parse(lastSnapshotKey)
+    pendingPreviousSnapshot = lastSnapshot
   }
-
-  lastSnapshotKey = currentKey
+  lastSnapshot = currentSnap
 
   if (debounceTimer) clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => {
