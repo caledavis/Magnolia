@@ -534,11 +534,30 @@ export function registerIpcHandlers(): void {
     return readDocumentBatch(result.filePaths)
   })
 
+  // Files dropped from the OS. Unlike the Import dialog (which only offers
+  // supported types), a drop can carry anything, so each rejected item
+  // comes back as an { name, error } entry — the renderer lists those in
+  // its "Could not import" alert instead of dropping them silently.
   ipcMain.handle('read-text-files', async (_event, filePaths: string[]) => {
-    const acceptedExts = SUPPORTED_EXTENSIONS.map((e) => '.' + e)
-    const validPaths = filePaths.filter((fp) => acceptedExts.some((ext) => fp.toLowerCase().endsWith(ext)))
-    if (validPaths.length === 0) return null
-    return readDocumentBatch(validPaths)
+    const rejectReason = async (fp: string): Promise<string | null> => {
+      try {
+        if ((await stat(fp)).isDirectory()) return "Folders can't be imported. Drop the files inside it instead."
+      } catch { /* unreadable: let readDocumentFile report it */ }
+      const name = basename(fp)
+      const dot = name.lastIndexOf('.')
+      const ext = dot > 0 ? name.slice(dot + 1).toLowerCase() : ''
+      if (!ext) return "Files without an extension can't be imported."
+      if (!SUPPORTED_EXTENSIONS.includes(ext)) return `Magnolia can't import .${ext} files.`
+      return null
+    }
+    const reasons = await Promise.all(filePaths.map(rejectReason))
+    const validPaths = filePaths.filter((_, i) => reasons[i] === null)
+    const read = validPaths.length > 0 ? await readDocumentBatch(validPaths) : []
+    let next = 0
+    return filePaths.map((fp, i) => {
+      const reason = reasons[i]
+      return reason === null ? read[next++] : { name: basename(fp), error: reason }
+    })
   })
 
   // Re-import the file for an existing document whose bytes are missing
