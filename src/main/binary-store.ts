@@ -1,6 +1,5 @@
-import { readFile } from 'fs/promises'
 import { randomUUID } from 'crypto'
-import JSZip from 'jszip'
+import { readZipEntry } from './qdpx/zip-entry'
 
 /**
  * Main-process source of truth for imported media bytes (PDF / image /
@@ -152,16 +151,13 @@ async function readFromArchive(guidName: string): Promise<Buffer | null> {
   if (!activeProjectPath) return null
   const guid = guidName.includes('.') ? guidName.slice(0, guidName.lastIndexOf('.')) : guidName
   try {
-    const zip = await JSZip.loadAsync(await readFile(activeProjectPath))
-    let entry = zip.file(`sources/${guidName}`)
-    if (!entry) {
+    // Reads just this entry — never the whole archive, which for a large
+    // project is ~1 GB per call (see zip-entry.ts).
+    return await readZipEntry(activeProjectPath, (names) => {
+      if (names.includes(`sources/${guidName}`)) return `sources/${guidName}`
       const prefix = `sources/${guid}.`
-      const altName = Object.keys(zip.files).find(
-        (n) => n.startsWith(prefix) && !zip.files[n].dir && !n.toLowerCase().endsWith('.txt')
-      )
-      if (altName) entry = zip.file(altName)
-    }
-    return entry ? await entry.async('nodebuffer') : null
+      return names.find((n) => n.startsWith(prefix) && !n.toLowerCase().endsWith('.txt'))
+    })
   } catch {
     return null
   }

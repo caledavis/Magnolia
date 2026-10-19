@@ -15,7 +15,13 @@ import type JSZip from 'jszip'
  * behaviour exactly — existing lowercase archives are unaffected.
  */
 export function detectSourcesDir(zip: JSZip): string {
-  for (const path of Object.keys(zip.files)) {
+  return detectSourcesDirFromNames(Object.keys(zip.files))
+}
+
+/** detectSourcesDir over a plain list of entry names — for readers that
+ *  don't hold a JSZip (see zip-entry.ts). */
+export function detectSourcesDirFromNames(names: string[]): string {
+  for (const path of names) {
     const slash = path.indexOf('/')
     if (slash > 0 && path.slice(0, slash).toLowerCase() === 'sources') {
       return path.slice(0, slash)

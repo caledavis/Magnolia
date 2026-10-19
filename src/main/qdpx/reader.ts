@@ -10,7 +10,8 @@ import type { Project, PlainTextSelection, Memo } from '../../renderer/models/ty
 import { extractPdfTextWithPositions } from '../pdf-extract'
 import { archiveHandle, archiveHandleForFile } from '../binary-store'
 import { decodeMaybeWindows1252 } from './text-encoding'
-import { detectSourcesDir } from './zip-sources-dir'
+import { detectSourcesDir, detectSourcesDirFromNames } from './zip-sources-dir'
+import { readZipEntry } from './zip-entry'
 
 /**
  * Read a text file from the archive, tolerating non-UTF-8 transcripts.
@@ -210,10 +211,10 @@ export type QdpxProgress = (stage: string, current: number, total: number) => vo
  *  .qdpx path, so Merge can pull a pdf/audio/video/image source's bytes
  *  out of the comparison file to bring the document into the active one. */
 export async function readArchiveFile(filePath: string, internalName: string): Promise<Buffer | null> {
-  const zip = await JSZip.loadAsync(await readFile(filePath))
-  const sourcesDir = detectSourcesDir(zip)
-  const entry = zip.file(`${sourcesDir}/${internalName}`)
-  return entry ? entry.async('nodebuffer') : null
+  return readZipEntry(filePath, (names) => {
+    const name = `${detectSourcesDirFromNames(names)}/${internalName}`
+    return names.includes(name) ? name : undefined
+  })
 }
 
 export async function readQdpx(

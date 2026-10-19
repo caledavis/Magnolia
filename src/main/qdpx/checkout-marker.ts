@@ -1,6 +1,7 @@
 import JSZip from 'jszip'
 import { readFile, open, rename, unlink } from 'fs/promises'
 import { randomUUID } from 'crypto'
+import { readZipEntry, exactEntry } from './zip-entry'
 
 /** Check-out lock state for a .qdpx project. Lives entirely in the
  *  project's own `magnolia-lock.json`/`magnolia-project-id.json` zip
@@ -32,10 +33,9 @@ export interface EditorInfo {
  *  case (returns null). */
 export async function readEditorInfo(filePath: string): Promise<EditorInfo | null> {
   try {
-    const zip = await JSZip.loadAsync(await readFile(filePath))
-    const entry = zip.file(EDITOR_ENTRY)
-    if (!entry) return null
-    const info = JSON.parse(await entry.async('string'))
+    const bytes = await readZipEntry(filePath, exactEntry(EDITOR_ENTRY))
+    if (!bytes) return null
+    const info = JSON.parse(bytes.toString('utf8'))
     return typeof info?.lastEditedBy === 'string' && typeof info?.lastEditedAt === 'string'
       ? (info as EditorInfo)
       : null
@@ -49,10 +49,9 @@ export async function readEditorInfo(filePath: string): Promise<EditorInfo | nul
  *  (returns null), matching every other magnolia-*.json reader. */
 export async function readCheckoutMarker(filePath: string): Promise<CheckoutMarker | null> {
   try {
-    const zip = await JSZip.loadAsync(await readFile(filePath))
-    const entry = zip.file(LOCK_ENTRY)
-    if (!entry) return null
-    const marker = JSON.parse(await entry.async('string'))
+    const bytes = await readZipEntry(filePath, exactEntry(LOCK_ENTRY))
+    if (!bytes) return null
+    const marker = JSON.parse(bytes.toString('utf8'))
     return typeof marker?.userName === 'string' &&
       typeof marker?.checkedOutAt === 'string' &&
       typeof marker?.projectId === 'string'
