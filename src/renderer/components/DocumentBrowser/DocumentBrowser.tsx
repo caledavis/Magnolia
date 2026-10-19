@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { useDocumentStore, surveyEntityKey, parseSurveyEntityKey, type DocumentFolder } from '../../stores/document-store'
 import { useTagStore } from '../../stores/tag-store'
-import { Icon, faFolder, faFolderPlus, faFile, faFileAlt, faTags, faChevronDown, faChevronRight, faXmark, faUpRightFromSquare, faDownLeftAndUpRightToCenter, faHeadphones, faVideo, faImage, faPlus, faMagnifyingGlass, SURVEY_ICON, SURVEY_RESPONDENT_ICON, SURVEY_QUESTION_ICON } from '../Icon'
+import { Icon, faFolder, faFolderPlus, faFile, faFileAlt, faTag, faTags, faChevronDown, faChevronRight, faXmark, faUpRightFromSquare, faDownLeftAndUpRightToCenter, faHeadphones, faVideo, faImage, faPlus, faMagnifyingGlass, SURVEY_ICON, SURVEY_RESPONDENT_ICON, SURVEY_QUESTION_ICON } from '../Icon'
 import type { TextSource, TagCategory, TagCategoryType, SurveyFormatData } from '../../models/types'
 import { toolColors } from '../../utils/tool-colors'
 import { sourceTypeFromExtension, sourceTypeFromFilename } from '../../utils/format-registry'
@@ -106,6 +106,7 @@ function FolderItem({
   onStopEditingDoc,
   getTagsForDocument,
   onTagDrop,
+  onTagCountClick,
   onReorderDoc,
   onViewSurveyChild,
   onContextMenuSurveyChild,
@@ -132,6 +133,7 @@ function FolderItem({
   onStopEditingDoc: () => void
   getTagsForDocument: (guid: string) => { guid: string; name: string }[]
   onTagDrop: (tagGuids: string[], sourceGuid: string) => void
+  onTagCountClick: (sourceGuid: string, anchor: DOMRect) => void
   onReorderDoc: (draggedGuids: string[], siblingGuid: string, position: 'before' | 'after') => void
   onViewSurveyChild: (
     surveyGuid: string,
@@ -176,7 +178,7 @@ function FolderItem({
           display: 'flex',
           alignItems: 'center',
           gap: 6,
-          padding: '4px 8px',
+          padding: '3px 8px',
           paddingLeft: 8 + depth * 16,
           cursor: 'pointer',
           borderRadius: 'var(--radius-sm)',
@@ -303,6 +305,7 @@ function FolderItem({
               onStopEditingDoc={onStopEditingDoc}
               getTagsForDocument={getTagsForDocument}
               onTagDrop={onTagDrop}
+              onTagCountClick={onTagCountClick}
               onReorderDoc={onReorderDoc}
               onViewSurveyChild={onViewSurveyChild}
               onContextMenuSurveyChild={onContextMenuSurveyChild}
@@ -344,6 +347,7 @@ function FolderItem({
                 onStopEditing={onStopEditingDoc}
                 getTagsForDocument={getTagsForDocument}
                 onTagDrop={onTagDrop}
+                onTagCountClick={onTagCountClick}
                 onReorder={onReorderDoc}
               />
             )
@@ -367,6 +371,7 @@ function DocItem({
   onStopEditing,
   getTagsForDocument,
   onTagDrop,
+  onTagCountClick,
   onReorder,
 
 }: {
@@ -382,6 +387,7 @@ function DocItem({
   onStopEditing: () => void
   getTagsForDocument: (guid: string) => { guid: string; name: string }[]
   onTagDrop: (tagGuids: string[], sourceGuid: string) => void
+  onTagCountClick: (sourceGuid: string, anchor: DOMRect) => void
   onReorder: (draggedGuids: string[], siblingGuid: string, position: 'before' | 'after') => void
 
 }) {
@@ -514,7 +520,7 @@ function DocItem({
         }
       }}
       style={{
-        padding: '5px 8px',
+        padding: '3px 8px',
         // When a document is inside a folder (depth > 0) bump the indent
         // by an extra 16 px so the doc icon sits under the folder name,
         // not aligned with the folder's chevron/icon column.
@@ -579,40 +585,105 @@ function DocItem({
             style={{ width: '100%', padding: '1px 4px', fontSize: 'var(--font-size-sm)' }}
           />
         ) : (
-          <>
-            <div
-              style={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                fontSize: 'var(--font-size-sm)'
-              }}
-            >
-              {source.name}
-            </div>
-            {docTags.length > 0 && (
-              <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', marginTop: 2 }}>
-                {docTags.map((tag) => (
-                  <span
-                    key={tag.guid}
-                    style={{
-                      fontSize: 10,
-                      background: 'var(--bg-tertiary)',
-                      borderRadius: 3,
-                      padding: '1px 5px',
-                      color: 'var(--text-secondary)'
-                    }}
-                  >
-                    {tag.name}
-                  </span>
-                ))}
-              </div>
-            )}
-          </>
+          <NameWithTags
+            name={source.name}
+            tags={docTags}
+            onTagCountClick={(anchor) => onTagCountClick(source.guid, anchor)}
+          />
         )}
       </div>
     </div>
   )
+}
+
+/** A document's name with a tag-count chip on the same line, so a
+ *  tagged row is no taller than an untagged one. The tag names are in
+ *  the chip's tooltip; clicking it opens the document's tag menu. */
+function NameWithTags({
+  name,
+  tags,
+  onTagCountClick
+}: {
+  name: string
+  tags: { guid: string; name: string }[]
+  onTagCountClick: (anchor: DOMRect) => void
+}) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          fontSize: 'var(--font-size-sm)'
+        }}
+      >
+        {name}
+      </div>
+      {tags.length > 0 && (
+        <span
+          className="tag-count-chip"
+          role="button"
+          title={tags.map((t) => t.name).join(', ')}
+          // Don't let the row treat the click as select / open / drag.
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation()
+            onTagCountClick(e.currentTarget.getBoundingClientRect())
+          }}
+          onDoubleClick={(e) => e.stopPropagation()}
+          style={{
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 3,
+            flexShrink: 0,
+            fontSize: 10,
+            fontWeight: 400,
+            background: 'var(--bg-tertiary)',
+            borderRadius: 3,
+            padding: '1px 5px',
+            color: 'var(--text-secondary)'
+          }}
+        >
+          <Icon icon={faTag} style={{ fontSize: 9 }} />
+          {tags.length}
+        </span>
+      )}
+    </div>
+  )
+}
+
+/** The Documents / Tags split. With Tags collapsed the split goes away:
+ *  Documents fills the pane and Tags shrinks to its header. Expanded,
+ *  it's a resizable PanelGroup whose divider position is remembered
+ *  (autoSaveId, per machine). Defined at module level so React keeps
+ *  the subtree mounted across DocumentBrowser renders. */
+function DocumentsTagsSplit({ collapsed, children }: { collapsed: boolean; children: React.ReactNode }) {
+  return collapsed ? (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>{children}</div>
+  ) : (
+    <PanelGroup direction="vertical" autoSaveId="magnolia-documents-tags" style={{ flex: 1, overflow: 'hidden' }}>
+      {children}
+    </PanelGroup>
+  )
+}
+
+function DocumentsTagsSection({ collapsed, which, children }: { collapsed: boolean; which: 'documents' | 'tags'; children: React.ReactNode }) {
+  if (collapsed) {
+    return <div style={which === 'documents' ? { flex: 1, minHeight: 0 } : { flexShrink: 0 }}>{children}</div>
+  }
+  return which === 'documents'
+    ? <Panel id="documents" order={1} defaultSize={60} minSize={20}>{children}</Panel>
+    : <Panel id="tags" order={2} defaultSize={40} minSize={15}>{children}</Panel>
+}
+
+const TAGS_COLLAPSED_KEY = 'magnolia.documentBrowser.tagsCollapsed'
+
+function readTagsCollapsed(): boolean {
+  try { return localStorage.getItem(TAGS_COLLAPSED_KEY) === '1' } catch { return false }
 }
 
 /**
@@ -764,7 +835,7 @@ function SurveyItem({
   const baseIndent = 8 + depth * 16 + (depth > 0 ? 16 : 0)
 
   const rowStyle = (extraIndent: number, viewed: boolean): React.CSSProperties => ({
-    padding: '4px 8px',
+    padding: '3px 8px',
     paddingLeft: baseIndent + extraIndent,
     cursor: 'pointer',
     borderRadius: 'var(--radius-sm)',
@@ -2192,6 +2263,9 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
     surveyChild?: { sourceGuid: string; kind: 'respondent' | 'question'; id: string; label: string }
   } | null>(null)
   const menuPos = useClampedMenuPosition(contextMenu)
+  // The tag-count chip's menu: the document's tags, each removable.
+  const [tagChipMenu, setTagChipMenu] = useState<{ x: number; y: number; sourceGuid: string } | null>(null)
+  const tagChipMenuPos = useClampedMenuPosition(tagChipMenu)
   // What the Apply-Tags dialog is targeting: a whole document/survey
   // (sourceGuid), or a survey respondent / question sub-entity.
   const [showTagDialog, setShowTagDialog] = useState<TagDialogTarget | null>(null)
@@ -2201,7 +2275,14 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
   const [isNewFolder, setIsNewFolder] = useState(false)
   const [newFolderParentGuid, setNewFolderParentGuid] = useState<string | null>(null)
   const [editingDocGuid, setEditingDocGuid] = useState<string | null>(null)
-  const [tagsExpanded, setTagsExpanded] = useState(true)
+  const [tagsCollapsed, setTagsCollapsed] = useState(readTagsCollapsed)
+  const toggleTagsCollapsed = useCallback(() => {
+    setTagsCollapsed((prev) => {
+      const next = !prev
+      try { localStorage.setItem(TAGS_COLLAPSED_KEY, next ? '1' : '0') } catch { /* per-viewer convenience only */ }
+      return next
+    })
+  }, [])
   const [selectedTagGuids, setSelectedTagGuids] = useState<Set<string>>(new Set())
   const [tagSearchOpen, setTagSearchOpen] = useState(false)
   const [tagSearchQuery, setTagSearchQuery] = useState('')
@@ -2399,22 +2480,40 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
 
   const closeContextMenu = useCallback(() => setContextMenu(null), [])
 
+  // Clicking the chip of the document whose menu is open closes it.
+  const handleTagCountClick = useCallback((sourceGuid: string, anchor: DOMRect) => {
+    setContextMenu(null)
+    setTagChipMenu((cur) =>
+      cur?.sourceGuid === sourceGuid ? null : { x: anchor.left, y: anchor.bottom + 2, sourceGuid }
+    )
+  }, [])
+
   // Dismiss either context menu on any outside click. The previous
   // panel-level onMouseDown only caught clicks inside the Documents
   // panel, so clicking another panel or the toolbar left a stale menu
   // floating on screen. A document-level listener (registered only
   // while a menu is open) closes it from anywhere outside the menu DOM.
   useEffect(() => {
-    if (!contextMenu && !tagContextMenu) return
+    if (!contextMenu && !tagContextMenu && !tagChipMenu) return
     const handleDown = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       if (target.closest('.context-menu')) return
       setContextMenu(null)
       setTagContextMenu(null)
+      // The chip's own click toggles its menu, so leave that to it.
+      if (!target.closest('.tag-count-chip')) setTagChipMenu(null)
     }
     document.addEventListener('mousedown', handleDown)
     return () => document.removeEventListener('mousedown', handleDown)
-  }, [contextMenu, tagContextMenu])
+  }, [contextMenu, tagContextMenu, tagChipMenu])
+
+  // Close the chip menu once its document has no tags left.
+  const tagChipMenuTags = tagChipMenu
+    ? tags.filter((t) => t.memberSourceGuids.includes(tagChipMenu.sourceGuid))
+    : []
+  useEffect(() => {
+    if (tagChipMenu && tagChipMenuTags.length === 0) setTagChipMenu(null)
+  }, [tagChipMenu, tagChipMenuTags.length])
 
   const handleFileDrop = useCallback(async (filePaths: string[], folderGuid?: string) => {
     const files = await window.api.readTextFiles(filePaths)
@@ -2514,8 +2613,8 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
         {onPopOut && <button className="panel-header-popout" onClick={onPopOut} title={isPoppedOut ? "Pop back in" : "Pop out"} aria-label={isPoppedOut ? "Pop pane back into main window" : "Pop pane out into its own window"}><Icon icon={isPoppedOut ? faDownLeftAndUpRightToCenter : faUpRightFromSquare} /></button>}
         {onClose && <button className="panel-header-close" onClick={onClose} title="Close panel" aria-label="Close panel"><Icon icon={faXmark} /></button>}
       </div>
-      <PanelGroup direction="vertical" style={{ flex: 1, overflow: 'hidden' }}>
-        <Panel defaultSize={60} minSize={20}>
+      <DocumentsTagsSplit collapsed={tagsCollapsed}>
+        <DocumentsTagsSection collapsed={tagsCollapsed} which="documents">
       <div
         className="panel-content"
         style={{ height: '100%' }}
@@ -2627,6 +2726,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
             onStopEditingDoc={() => setEditingDocGuid(null)}
             getTagsForDocument={getTagsForDocument}
             onTagDrop={handleTagDrop}
+            onTagCountClick={handleTagCountClick}
             onReorderDoc={handleReorderDoc}
             onViewSurveyChild={handleViewSurveyChild}
             onContextMenuSurveyChild={handleContextMenuSurveyChild}
@@ -2668,12 +2768,13 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
               onStopEditing={() => setEditingDocGuid(null)}
               getTagsForDocument={getTagsForDocument}
               onTagDrop={handleTagDrop}
+              onTagCountClick={handleTagCountClick}
               onReorder={handleReorderDoc}
             />
           )
         )}
       </div>
-        </Panel>
+        </DocumentsTagsSection>
         {/* Internal divider between the Documents tree and the Tags
             tree. Mirrors the queries-sidebar-divider pattern: a
             visible 1 px line that survives in every theme, including
@@ -2681,15 +2782,19 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
             "hide all resize handles" rule would otherwise blank it.
             The className opts the handle into the per-theme exception
             list further down in global.css. */}
-        <PanelResizeHandle
-          className="documents-tags-divider"
-          style={{
-            height: 1,
-            background: 'var(--border-color)',
-            cursor: 'row-resize'
-          }}
-        />
-        <Panel defaultSize={40} minSize={15}>
+        {tagsCollapsed ? (
+          <div style={{ height: 1, background: 'var(--border-color)', flexShrink: 0 }} />
+        ) : (
+          <PanelResizeHandle
+            className="documents-tags-divider"
+            style={{
+              height: 1,
+              background: 'var(--border-color)',
+              cursor: 'row-resize'
+            }}
+          />
+        )}
+        <DocumentsTagsSection collapsed={tagsCollapsed} which="tags">
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* Tags section header — uses the shared .panel-header
                 className so it inherits the small-caps section-label
@@ -2720,12 +2825,24 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
                   }}
                 />
               ) : (
-                <span style={{ flex: 1 }}>Tags</span>
+                <span
+                  onClick={toggleTagsCollapsed}
+                  title={tagsCollapsed ? 'Show tags' : 'Hide tags'}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', userSelect: 'none' }}
+                >
+                  <Icon icon={tagsCollapsed ? faChevronRight : faChevronDown} style={{ fontSize: 9, opacity: 0.6 }} />
+                  Tags
+                </span>
               )}
               {(tags.length > 0 || categories.length > 0) && (
                 <button
                   className="panel-header-search"
-                  onClick={() => (tagSearchOpen ? closeTagSearch() : setTagSearchOpen(true))}
+                  onClick={() => {
+                    if (tagSearchOpen) { closeTagSearch(); return }
+                    // Filtering a collapsed list would show nothing; open it.
+                    if (tagsCollapsed) toggleTagsCollapsed()
+                    setTagSearchOpen(true)
+                  }}
                   title={tagSearchOpen ? 'Close search' : 'Filter tags'}
                   aria-label={tagSearchOpen ? 'Close search' : 'Filter tags'}
                 >
@@ -2741,7 +2858,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
                 <Icon icon={faPlus} />
               </button>
             </div>
-            <div className="panel-content" style={{ height: '100%' }}>
+            <div className="panel-content" style={{ height: '100%', display: tagsCollapsed ? 'none' : undefined }}>
               {tags.length === 0 && categories.length === 0 && (
                 <div
                   className="empty-state"
@@ -2820,8 +2937,8 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
               })()}
             </div>
           </div>
-        </Panel>
-      </PanelGroup>
+        </DocumentsTagsSection>
+      </DocumentsTagsSplit>
 
       {/* Tag context menu */}
       {tagContextMenu && (() => {
@@ -2925,6 +3042,55 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
           </div>
         )
       })()}
+
+      {/* Tag-count chip menu: the document's tags, each with a remove
+          button, plus a way into the full Edit Tags dialog. */}
+      {tagChipMenu && tagChipMenuTags.length > 0 && (
+        <div
+          ref={tagChipMenuPos.ref}
+          className="context-menu"
+          style={{ left: tagChipMenuPos.x, top: tagChipMenuPos.y }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {tagChipMenuTags.map((tag) => {
+            const cat = tag.categoryGuid ? categories.find((c) => c.guid === tag.categoryGuid) : null
+            return (
+              <div key={tag.guid} className="context-menu-item" style={{ cursor: 'default' }}>
+                <Icon icon={faTag} style={{ fontSize: 11, color: 'var(--menu-fg-muted)', flexShrink: 0 }} />
+                <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {cat && tag.value
+                    ? <><span style={{ color: 'var(--menu-fg-muted)' }}>{cat.name}: </span>{tag.value}</>
+                    : tag.name}
+                </span>
+                <button
+                  className="tag-chip-menu-remove"
+                  title={lockedBy ? checkoutLockedTitle(lockedBy) : 'Remove from this document'}
+                  aria-label={`Remove ${tag.value || tag.name} from this document`}
+                  onClick={() => {
+                    if (lockedBy) { setTagChipMenu(null); promptCheckoutLocked(); return }
+                    removeTagFromDocument(tag.guid, tagChipMenu.sourceGuid)
+                  }}
+                >
+                  <Icon icon={faXmark} />
+                </button>
+              </div>
+            )
+          })}
+          <div className="context-menu-separator" />
+          <div
+            className="context-menu-item"
+            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
+            onClick={() => {
+              const sourceGuid = tagChipMenu.sourceGuid
+              setTagChipMenu(null)
+              if (lockedBy) { promptCheckoutLocked(); return }
+              setShowTagDialog({ kind: 'document', sourceGuid })
+            }}
+          >
+            Edit Tags...
+          </div>
+        </div>
+      )}
 
       {/* Context menu for documents */}
       {contextMenu && contextMenu.sourceGuid && (

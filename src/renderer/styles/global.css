@@ -1827,6 +1827,28 @@ html:not([data-theme]) .app-toolbar {
   margin: 4px 0;
 }
 
+/* Remove button on each row of the Document Browser's tag-count menu. */
+.tag-chip-menu-remove {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin-right: -6px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--menu-fg-muted);
+  font-size: 10px;
+  cursor: pointer;
+}
+.tag-chip-menu-remove:hover {
+  background: var(--bg-tertiary);
+  color: var(--menu-fg-danger);
+}
+
 .codebook-entry:hover {
   background: var(--selection-bg);
 }
