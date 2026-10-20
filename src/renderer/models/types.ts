@@ -855,6 +855,7 @@ export interface QueryResultsInitData {
 export type AnalysisToolType =
   | 'code-cooccurrences'
   | 'codes-in-documents'
+  | 'summary-matrix'
   | 'results-in-documents'
   | 'code-frequencies'
   | 'code-orders'

@@ -30,6 +30,7 @@ import { makeHmrSafe } from './hmr-preserve'
 export type ToolKind =
   | 'code-cooccurrences'
   | 'codes-in-documents'
+  | 'summary-matrix'
   | 'results-in-documents'
   | 'code-frequencies'
   | 'code-orders'

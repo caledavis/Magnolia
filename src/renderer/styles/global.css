@@ -1518,7 +1518,7 @@ html:not([data-theme]) .app-toolbar {
 }
 .analysis-popover-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
 }
 .analysis-popover-tile {

@@ -31,6 +31,7 @@ import { TOOL_REGISTRY } from '../../utils/tool-registry'
  *  top toolbar as a primary action. */
 const ANALYSIS_TOOL_ORDER: AnalysisToolType[] = [
   'codes-in-documents',
+  'summary-matrix',
   'results-in-documents',
   'code-cooccurrences',
   'code-orders',

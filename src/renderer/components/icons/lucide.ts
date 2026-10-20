@@ -77,6 +77,7 @@ import {
   Heading2,
   Baseline,
   FileCodeCorner,
+  Frame,
   FileSearchCorner,
   SquaresIntersect,
   Book,
@@ -199,6 +200,7 @@ export const faHeading1 = Heading1
 export const faHeading2 = Heading2
 export const faFontColor = Baseline
 export const faFileCodeCorner = FileCodeCorner
+export const faFrame = Frame
 export const faFileSearchCorner = FileSearchCorner
 export const faSquaresIntersect = SquaresIntersect
 export const faBook = Book
