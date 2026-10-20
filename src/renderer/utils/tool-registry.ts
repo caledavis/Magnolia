@@ -5,6 +5,7 @@
 import {
   faMagnifyingGlass,
   faFileCodeCorner,
+  faFrame,
   faFileSearchCorner,
   faSquaresIntersect,
   faChartColumn,
@@ -26,7 +27,8 @@ export interface ToolDef {
 }
 
 /**
- * 8 tools spread evenly across the warm→cool hue wheel.
+ * Tools spread across the warm→cool hue wheel; Summary Matrix takes the
+ * otherwise-unused rose hue.
  * Order matches the toolbar layout (left to right).
  *
  * Labels are full-name versions ("Code Frequencies", "Word Frequencies"
@@ -39,6 +41,7 @@ export interface ToolDef {
 export const TOOL_REGISTRY: Record<string, ToolDef> = {
   queryBuilder:            { icon: faMagnifyingGlass,  label: 'Query Builder',        color: '#D06828', description: 'Build a code / text query' },                              // burnt orange
   'codes-in-documents':    { icon: faFileCodeCorner,   label: 'Codes in Documents',   color: '#C0A010', description: 'See which documents contain which codes' },                // golden
+  'summary-matrix':        { icon: faFrame,            label: 'Summary Matrix',       color: '#C8407A', description: 'Summarise each code in each document' },                   // rose
   'results-in-documents':  { icon: faFileSearchCorner, label: 'Results in Documents', color: '#78B020', description: 'See which documents contain which query results' },        // yellow-green
   'code-cooccurrences':    { icon: faSquaresIntersect, label: 'Code Co-Occurrences',  color: '#20A848', description: 'See which codes overlap with each other' },                // green
   'code-frequencies':      { icon: faChartColumn,      label: 'Code Frequencies',     color: '#10A0A0', description: 'See how much of each document is covered by each code' }, // teal

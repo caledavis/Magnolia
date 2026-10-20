@@ -19,6 +19,7 @@ import {
   binarizeGrid
 } from './analysis-helpers'
 import { buildSurveyAwareColumns, type AnalysisColumn } from './survey-grouping'
+import { buildDisplayRows, fullLabel, summaryKey } from './summary-matrix-model'
 import { buildExportSvg } from './RelationshipMap/svg-export'
 import { emptyDocumentFilter } from '../DocumentSelector/DocumentSelector'
 import { executeQuery } from '../../utils/query-engine'
@@ -67,6 +68,15 @@ export const REPORT_TABLE_CSS = `
   table.report-grid td.pctcell { min-width: 42px; height: 26px; padding: 0 6px; text-align: center; vertical-align: middle; font-style: italic; font-size: 9px; color: #6a7b90; background: #f7f9fb; }
   table.report-grid tr.total td { border-top: 2px solid #aab4c0; font-weight: 700; background: #eef1f5; }
   .cw { height: 26px; display: flex; align-items: center; justify-content: center; }
+  /* Summary Matrix: wrapped free-text cells across the page width. */
+  table.report-summary { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5px; margin: 4px 0 12px 0; }
+  table.report-summary th, table.report-summary td { border: 1px solid #dde2e8; padding: 4px 6px; text-align: left; vertical-align: top; white-space: pre-wrap; overflow-wrap: anywhere; }
+  table.report-summary th { background: #f4f6f8; color: #444; font-weight: 700; }
+  table.report-summary th .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+  table.report-summary td.rowname { font-weight: 600; color: #222; }
+  table.report-summary tr.group td { background: #f3f5f8; }
+  table.report-summary tr.group td.rowname { font-weight: 700; }
+  table.report-summary td.orphan { font-style: italic; color: #889; }
   .report-map { margin: 6px 0 10px; text-align: center; }
   .report-map svg { max-width: 100%; height: auto; display: inline-block; }
   .report-wf-viz { margin: 8px 0 12px; text-align: center; break-inside: avoid; page-break-inside: avoid; }
@@ -654,6 +664,34 @@ function wordFrequenciesHtml(config: any, options: AnalysisItemOptions): string 
   return table + viz
 }
 
+// ── Summary Matrix (rows × codes of free-text summaries) ───────────
+
+function summaryMatrixHtml(config: any): string {
+  const codeGuids: string[] = config?.codeGuids ?? []
+  const rowEntries = config?.rows ?? []
+  if (codeGuids.length === 0 || rowEntries.length === 0) return '<div class="empty">(no rows or codes in this analysis)</div>'
+  const data = buildAnalysisInitData('summary-matrix')
+  const summaries: Record<string, string> = config?.summaries ?? {}
+  // Expand every group: the exported report should carry every summary,
+  // whatever happens to be collapsed on screen.
+  const rows = buildDisplayRows(data, { rows: rowEntries, codeGuids, summaries, collapsed: [] }, { expandAll: true })
+  const codeMap = new Map(data.codes.map((c) => [c.guid, c]))
+  const head = `<tr><th style="width:22%"></th>${codeGuids
+    .map((cg) => {
+      const c = codeMap.get(cg)
+      return `<th><span class="dot" style="background:${escHtml(c?.color || '#888')}"></span>${escHtml(c?.name ?? 'Deleted code')}</th>`
+    })
+    .join('')}</tr>`
+  const body = rows
+    .map((r) => {
+      const cells = codeGuids.map((cg) => `<td>${escHtml(summaries[summaryKey(r.key, cg)] ?? '')}</td>`).join('')
+      // Indent with padding (not a spacer) so wrapped labels stay indented.
+      return `<tr${r.isGroup ? ' class="group"' : ''}><td class="rowname${r.orphanOf ? ' orphan' : ''}" style="padding-left:${6 + r.depth * 14}px">${escHtml(fullLabel(r))}</td>${cells}</tr>`
+    })
+    .join('')
+  return `<table class="report-summary"><thead>${head}</thead><tbody>${body}</tbody></table>`
+}
+
 /** Render one analysis item: regenerate its table fresh, or a short
  *  placeholder for tools not yet implemented / deleted analyses. */
 // ── Relationship Map (static SVG snapshot) ─────────────────────────
@@ -681,6 +719,9 @@ export function renderAnalysisItemHtml(
     switch (sa.toolType) {
       case 'codes-in-documents':
         inner = codesInDocumentsHtml(sa.config, item.options)
+        break
+      case 'summary-matrix':
+        inner = summaryMatrixHtml(sa.config)
         break
       case 'results-in-documents':
         inner = resultsInDocumentsHtml(sa.config, item.options)
