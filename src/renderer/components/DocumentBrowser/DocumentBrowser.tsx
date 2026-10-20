@@ -634,19 +634,6 @@ function NameWithTags({
             onTagCountClick(e.currentTarget.getBoundingClientRect())
           }}
           onDoubleClick={(e) => e.stopPropagation()}
-          style={{
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 3,
-            flexShrink: 0,
-            fontSize: 10,
-            fontWeight: 400,
-            background: 'var(--bg-tertiary)',
-            borderRadius: 3,
-            padding: '1px 5px',
-            color: 'var(--text-secondary)'
-          }}
         >
           <Icon icon={faTag} style={{ fontSize: 9 }} />
           {tags.length}
