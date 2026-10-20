@@ -114,7 +114,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       modifiedDateTime: data.modifiedDateTime,
       filePath: data.filePath ?? null,
       isDirty: false,
-      savedAnalyses: data.savedAnalyses ?? []
+      // Framework Matrix was briefly called Summary Matrix during
+      // development; carry any analyses saved under the old id across.
+      savedAnalyses: (data.savedAnalyses ?? []).map((a) =>
+        (a.toolType as string) === 'summary-matrix' ? { ...a, toolType: 'framework-matrix' } : a
+      )
     }),
 
   setFilePath: (path) =>

@@ -506,7 +506,7 @@ function renderMemo(guid: string, anchor: string, prefix = ''): string {
   if (!m) return `<div class="report-block" id="${anchor}"><div class="empty">(deleted memo)</div></div>`
   return (
     `<div class="report-block report-memo" id="${anchor}">` +
-    `<div class="report-item-head">${prefix}Memo</div>` +
+    `<div class="report-item-head">${prefix}${escHtml(m.title || 'Memo')}</div>` +
     `<div class="memo-content">${markdownToHtml(m.content || '')}</div>` +
     `</div>`
   )
