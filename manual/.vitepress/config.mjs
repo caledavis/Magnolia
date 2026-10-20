@@ -142,15 +142,15 @@ export default defineConfig({
           page('Querying your data', '/guide/querying'),  // DONE
           page('Selecting Documents', '/guide/documentselector'),  // DONE
           page('Grouping Results', '/guide/grouping'), // DONE
+          page('Codes in Documents', '/guide/codesindocuments'), // DONE
           page('Framework Matrix', '/guide/frameworkmatrix'), // DONE
-//          page('Codes in Documents', '/guide/codesindocuments'),
-//          page('Results in Documents', '/guide/resultsindocuments'),
-//          page('Code Co-Occurrences', '/guide/codecooccurrences'),
-//          page('Code Orders', '/guide/codeorders'),
-//          page('Code Frequencies', '/guide/codefrequencies'),
-//         page('Word Frequencies', '/guide/wordfrequencies'),
-//          page('Relationships', '/guide/relationships'),
-//          page('Reports', '/guide/reports'),
+          page('Results in Documents', '/guide/resultsindocuments'), // DONE
+          page('Code Co-Occurrences', '/guide/codecooccurrences'), // DONE
+          page('Code Orders', '/guide/codeorders'), // DONE
+          page('Code Frequencies', '/guide/codefrequencies'), // DONE
+          page('Word Frequencies', '/guide/wordfrequencies'), // DONE
+          page('Relationships', '/guide/relationships'), // DONE
+          page('Reports', '/guide/reports'), // DONE
         ]
       },
       {

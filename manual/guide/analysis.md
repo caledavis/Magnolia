@@ -8,14 +8,14 @@ underlying data.
 
 ## Available analyses
 
-- **Relationships** — map relationships between different things.
-- **Codes in Documents** — see which documents contain which codes.
+- **[Relationships](/guide/relationships)** — map relationships between different things.
+- **[Codes in Documents](/guide/codesindocuments)** — see which documents contain which codes.
 - **[Framework Matrix](/guide/frameworkmatrix)** — summarise each code in each document.
-- **Results in Documents** — see which documents contain which query results.
-- **Code Co-Occurrences** — see which codes overlap with each other.
-- **Code Orders** — see the order in which codes appear in each document.
-- **Code Frequencies** — see how much of each document is covered by each code.
-- **Word Frequencies** — see which words appear often.
+- **[Results in Documents](/guide/resultsindocuments)** — see which documents contain which query results.
+- **[Code Co-Occurrences](/guide/codecooccurrences)** — see which codes overlap with each other.
+- **[Code Orders](/guide/codeorders)** — see the order in which codes appear in each document.
+- **[Code Frequencies](/guide/codefrequencies)** — see how much of each document is covered by each code.
+- **[Word Frequencies](/guide/wordfrequencies)** — see which words appear often.
 
 ## Grouping and saving
 
