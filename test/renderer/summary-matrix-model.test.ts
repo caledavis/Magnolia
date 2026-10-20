@@ -43,7 +43,7 @@ function makeData(overrides: Partial<SummaryData> = {}): SummaryData {
     sourceFolder: { d1: 'f1', d3: 'f2' },
     tagMembers: { t1: ['d1', 'd2'], t2: ['d2'] },
     respondentTagMembers: { t2: [{ sourceGuid: 's1', id: 'r1' }] },
-    surveyEntityLabels: { s1: { respondents: { r1: 'Alice', r2: 'Bob' }, questions: {} } },
+    surveyEntityLabels: { s1: { respondents: { r1: 'Alice', r2: 'Bob' }, questions: { q1: 'How was it?' } } },
     sourceSelections: {
       d1: [sel('a', CODE), sel('b', CODE), sel('c', 'other')],
       d2: [sel('d', CODE)],
@@ -122,12 +122,20 @@ describe('summary matrix rows', () => {
   })
 })
 
+const scope = (docs: string[], respondents: { sourceGuid: string; id: string }[] = [], questions: { sourceGuid: string; id: string }[] = []) =>
+  ({ docs, respondents, questions })
+
 describe('summary matrix counts and queries', () => {
-  it('counts the code within documents and single respondents', () => {
+  it('counts the code within documents, respondents and questions', () => {
     const data = makeData()
-    expect(countInScope(data, { docs: ['d1'], respondents: [] }, CODE)).toBe(2)
-    expect(countInScope(data, { docs: [], respondents: [{ sourceGuid: 's1', id: 'r1' }] }, CODE)).toBe(1)
-    expect(countInScope(data, { docs: ['d3'], respondents: [] }, CODE)).toBe(0)
+    expect(countInScope(data, scope(['d1']), CODE)).toBe(2)
+    expect(countInScope(data, scope([], [{ sourceGuid: 's1', id: 'r1' }]), CODE)).toBe(1)
+    expect(countInScope(data, scope([], [], [{ sourceGuid: 's1', id: 'q1' }]), CODE)).toBe(2)
+    expect(countInScope(data, scope(['d3']), CODE)).toBe(0)
+  })
+
+  it('counts a survey cell once when both its respondent and question are in scope', () => {
+    expect(countInScope(makeData(), scope([], [{ sourceGuid: 's1', id: 'r1' }], [{ sourceGuid: 's1', id: 'q1' }]), CODE)).toBe(2)
   })
 
   it('a group’s count covers all its members', () => {
@@ -135,13 +143,41 @@ describe('summary matrix counts and queries', () => {
     expect(countInScope(makeData(), group.scope, CODE)).toBe(2)
   })
 
-  it('scopes partially-included surveys to their respondents', () => {
-    expect(queryArgsForScope({ docs: ['d1'], respondents: [{ sourceGuid: 's1', id: 'r1' }] })).toEqual({
-      sourceGuids: ['d1', 's1'],
-      respondentScope: [{ sourceGuid: 's1', id: 'r1' }]
+  it('scopes single respondent and question rows to that entity', () => {
+    expect(queryArgsForScope(scope(['d1']))).toEqual({ sourceGuids: ['d1'] })
+    expect(queryArgsForScope(scope([], [{ sourceGuid: 's1', id: 'r1' }]))).toEqual({
+      sourceGuids: ['s1'],
+      cellScope: { respondentScope: [{ sourceGuid: 's1', id: 'r1' }] }
     })
-    expect(queryArgsForScope({ docs: ['d1'], respondents: [] })).toEqual({ sourceGuids: ['d1'], respondentScope: undefined })
-    expect(queryArgsForScope({ docs: [], respondents: [] })).toBeNull()
+    expect(queryArgsForScope(scope([], [], [{ sourceGuid: 's1', id: 'q1' }]))).toEqual({
+      sourceGuids: ['s1'],
+      cellScope: { questionScope: [{ sourceGuid: 's1', id: 'q1' }] }
+    })
+    expect(queryArgsForScope(scope([]))).toBeNull()
+  })
+
+  it('scopes tag groups by their tag, so tagged respondents and questions union', () => {
+    const data = makeData({ questionTagMembers: { t2: [{ sourceGuid: 's1', id: 'q2' }] } })
+    const [group] = buildDisplayRows(data, config([{ kind: 'tag', tagGuid: 't2' }]))
+    expect(queryArgsForScope(group.scope)).toEqual({ sourceGuids: ['d2', 's1'], cellScope: { tagGuids: ['t2'] } })
+  })
+})
+
+describe('summary matrix question rows', () => {
+  it('nests a tag’s questions under it, after its respondents', () => {
+    const data = makeData({ questionTagMembers: { t2: [{ sourceGuid: 's1', id: 'q1' }] } })
+    const rows = buildDisplayRows(data, config([{ kind: 'tag', tagGuid: 't2' }]))
+    expect(rows.map((r) => [r.key, r.label, r.detail])).toEqual([
+      ['tag:t2', 'Students', undefined],
+      ['doc:d2', 'Interview 2', undefined],
+      ['resp:s1:r1', 'Alice', 'Survey'],
+      ['quest:s1:q1', 'How was it?', 'Survey']
+    ])
+  })
+
+  it('shows a dropped question with its survey as detail', () => {
+    const [row] = buildDisplayRows(makeData(), config([{ kind: 'question', sourceGuid: 's1', questionId: 'q1' }]))
+    expect([row.key, row.label, row.detail, row.icon]).toEqual(['quest:s1:q1', 'How was it?', 'Survey', 'question'])
   })
 })
 

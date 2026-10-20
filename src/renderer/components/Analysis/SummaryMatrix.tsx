@@ -32,13 +32,14 @@ import {
   faBars,
   SURVEY_ICON,
   SURVEY_RESPONDENT_ICON,
+  SURVEY_QUESTION_ICON,
   type IconComponent
 } from '../Icon'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
 import { useIconTint, iconTintKindForSourceType, type IconTintKind } from '../../utils/icon-tint'
 import { toCsv } from './analysis-helpers'
 import { parseGroupByDrop } from './group-by'
-import { parseRespondentDrop } from './survey-grouping'
+import { parseQuestionDrop, parseRespondentDrop } from './survey-grouping'
 import {
   type SummaryRowEntry,
   type SummaryMatrixConfig,
@@ -76,6 +77,7 @@ interface Props {
 
 const ROW_ICONS: Record<Exclude<RowIcon, 'doc'>, IconComponent> = {
   respondent: SURVEY_RESPONDENT_ICON,
+  question: SURVEY_QUESTION_ICON,
   tag: faTag,
   category: faTags,
   folder: faFolder
@@ -85,6 +87,7 @@ const ROW_ICONS: Record<Exclude<RowIcon, 'doc'>, IconComponent> = {
  *  Tags and categories carry no colour there, so they stay muted. */
 const ROW_TINTS: Partial<Record<RowIcon, IconTintKind>> = {
   respondent: 'respondent',
+  question: 'question',
   folder: 'folder'
 }
 
@@ -179,7 +182,12 @@ function parseRowDrop(e: React.DragEvent, data: AnalysisInitData): SummaryRowEnt
       return guids.map((g) => ({ kind: 'doc', sourceGuid: g, name: data.sources.find((s) => s.guid === g)?.name }))
     } catch { return [] }
   }
-  return parseRespondentDrop(e).map((r) => ({ kind: 'respondent', sourceGuid: r.sourceGuid, respondentId: r.id, name: r.label }))
+  // Survey respondents and questions share one JSON envelope, told apart
+  // by `kind`; each parser returns [] for the other.
+  return [
+    ...parseRespondentDrop(e).map((r): SummaryRowEntry => ({ kind: 'respondent', sourceGuid: r.sourceGuid, respondentId: r.id, name: r.label })),
+    ...parseQuestionDrop(e).map((q): SummaryRowEntry => ({ kind: 'question', sourceGuid: q.sourceGuid, questionId: q.id, name: q.label }))
+  ]
 }
 
 export function SummaryMatrix({ data: propData, savedConfig, inTab }: Props) {
@@ -340,13 +348,7 @@ export function SummaryMatrix({ data: propData, savedConfig, inTab }: Props) {
   const runCellQuery = useCallback((row: DisplayRow, codeGuid: string) => {
     const args = queryArgsForScope(row.scope)
     if (!args) return
-    window.api.sendAnalysisAction(
-      'run-code-in-doc-query',
-      codeGuid,
-      args.sourceGuids,
-      undefined,
-      args.respondentScope ? { respondentScope: args.respondentScope } : undefined
-    )
+    window.api.sendAnalysisAction('run-code-in-doc-query', codeGuid, args.sourceGuids, undefined, args.cellScope)
   }, [])
 
   const handleCellFocus = useCallback((row: DisplayRow, codeGuid: string) => {
@@ -568,7 +570,7 @@ export function SummaryMatrix({ data: propData, savedConfig, inTab }: Props) {
       )}
 
       <div style={{ padding: '4px 20px 8px', fontSize: 11, color: 'var(--text-muted)', flexShrink: 0 }}>
-        Drag documents, tags, categories, folders or survey respondents in to add rows, and codes to add columns. Click a cell to see its coded segments in Query Results and write a summary.
+        Drag documents, tags, categories, folders, or survey respondents and questions in to add rows, and codes to add columns. Click a cell to see its coded segments in Query Results and write a summary.
       </div>
 
       {/* The whole matrix area is the drop target and the scroll

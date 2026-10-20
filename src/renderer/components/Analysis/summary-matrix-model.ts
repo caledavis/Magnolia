@@ -1,11 +1,12 @@
 /**
  * Summary Matrix — pure model shared by the on-screen tool and the
- * report renderer. Rows are documents / survey respondents, either
+ * report renderer. Rows are documents / survey respondents / survey
+ * questions, either
  * dropped individually or nested under a dropped tag, tag category or
  * folder; columns are codes. Each cell holds the user's free-text
  * summary of what that code looks like in that row.
  *
- * Summaries are keyed by ROW IDENTITY (a document, respondent, or
+ * Summaries are keyed by ROW IDENTITY (a document, respondent, question, or
  * group), not by where the row appears, so a document listed under two
  * tags shares one set of cells.
  *
@@ -15,12 +16,13 @@
  * it later leaves the group while its summaries still have text, it
  * stays in the group as an orphaned row instead of silently vanishing.
  */
-import type { AnalysisInitData, SurveyEntityRef } from '../../models/types'
+import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
 
 /** One thing the user dropped into the rows area. */
 export type SummaryRowEntry =
   | { kind: 'doc'; sourceGuid: string; name?: string }
   | { kind: 'respondent'; sourceGuid: string; respondentId: string; name?: string }
+  | { kind: 'question'; sourceGuid: string; questionId: string; name?: string }
   | { kind: 'tag'; tagGuid: string; name?: string; kept?: string[] }
   | { kind: 'category'; categoryGuid: string; name?: string; kept?: string[] }
   | { kind: 'folder'; folderGuid: string; name?: string; kept?: string[] }
@@ -34,16 +36,25 @@ export interface SummaryMatrixConfig {
   collapsed: string[]
 }
 
-export type RowIcon = 'doc' | 'respondent' | 'tag' | 'category' | 'folder'
+export type RowIcon = 'doc' | 'respondent' | 'question' | 'tag' | 'category' | 'folder'
 
 export type GroupKind = 'tag' | 'category' | 'folder'
 
-/** The documents and survey respondents a row covers. A survey listed in
- *  `docs` is covered whole; `respondents` only ever names respondents of
- *  surveys NOT in `docs`. */
+/** The documents and survey cells a row covers. A survey listed in
+ *  `docs` is covered whole; `respondents` and `questions` only ever name
+ *  entities of surveys NOT in `docs`, and a survey cell is covered when
+ *  its respondent OR its question is listed. Group rows built from tags
+ *  also carry `tagGuids`, which express that same union as a query
+ *  filter. */
 export interface RowScope {
   docs: string[]
   respondents: SurveyEntityRef[]
+  questions: SurveyEntityRef[]
+  tagGuids?: string[]
+}
+
+function docScope(sourceGuid: string): RowScope {
+  return { docs: [sourceGuid], respondents: [], questions: [] }
 }
 
 export interface DisplayRow {
@@ -53,7 +64,8 @@ export interface DisplayRow {
   key: string
   depth: number
   label: string
-  /** Secondary text shown after the label — a respondent's survey. */
+  /** Secondary text shown under the label — a respondent's or
+   *  question's survey. */
   detail?: string
   icon: RowIcon
   isGroup: boolean
@@ -64,7 +76,7 @@ export interface DisplayRow {
   /** Set on a member that has left its group but still has summaries:
    *  the kind of group it left. */
   orphanOf?: GroupKind
-  /** Document / respondent / tag no longer exists in the project. */
+  /** Document / survey entity / tag no longer exists in the project. */
   missing?: boolean
   scope: RowScope
 }
@@ -72,7 +84,7 @@ export interface DisplayRow {
 export type SummaryData = Pick<
   AnalysisInitData,
   'sources' | 'tags' | 'categories' | 'folders' | 'sourceFolder' | 'tagMembers'
-  | 'respondentTagMembers' | 'surveyEntityLabels' | 'sourceSelections'
+  | 'respondentTagMembers' | 'questionTagMembers' | 'surveyEntityLabels' | 'sourceSelections'
 >
 
 /** Shown on orphaned rows, worded for the kind of group they left. */
@@ -102,12 +114,17 @@ export function respondentKey(sourceGuid: string, respondentId: string): string 
   return `resp:${sourceGuid}:${respondentId}`
 }
 
+export function questionKey(sourceGuid: string, questionId: string): string {
+  return `quest:${sourceGuid}:${questionId}`
+}
+
 /** Identity of a top-level entry — used for dedup on drop and as the
  *  summary key of group header rows. */
 export function entryKey(e: SummaryRowEntry): string {
   switch (e.kind) {
     case 'doc': return docKey(e.sourceGuid)
     case 'respondent': return respondentKey(e.sourceGuid, e.respondentId)
+    case 'question': return questionKey(e.sourceGuid, e.questionId)
     case 'tag': return `tag:${e.tagGuid}`
     case 'category': return `category:${e.categoryGuid}`
     case 'folder': return `folder:${e.folderGuid}`
@@ -155,44 +172,63 @@ function respondentLabel(data: SummaryData, sourceGuid: string, respondentId: st
   return data.surveyEntityLabels?.[sourceGuid]?.respondents?.[respondentId] || fallback || 'Respondent'
 }
 
+function questionLabel(data: SummaryData, sourceGuid: string, questionId: string, fallback?: string): string {
+  return data.surveyEntityLabels?.[sourceGuid]?.questions?.[questionId] || fallback || 'Question'
+}
+
+function respondentLeaf(data: SummaryData, sourceNames: Map<string, string>, sourceGuid: string, respondentId: string, fallback?: string): Leaf {
+  const surveyName = sourceNames.get(sourceGuid)
+  return {
+    key: respondentKey(sourceGuid, respondentId),
+    label: respondentLabel(data, sourceGuid, respondentId, fallback),
+    detail: surveyName,
+    icon: 'respondent',
+    scope: { docs: [], respondents: [{ sourceGuid, id: respondentId }], questions: [] },
+    missing: surveyName === undefined
+  }
+}
+
+function questionLeaf(data: SummaryData, sourceNames: Map<string, string>, sourceGuid: string, questionId: string, fallback?: string): Leaf {
+  const surveyName = sourceNames.get(sourceGuid)
+  return {
+    key: questionKey(sourceGuid, questionId),
+    label: questionLabel(data, sourceGuid, questionId, fallback),
+    detail: surveyName,
+    icon: 'question',
+    scope: { docs: [], respondents: [], questions: [{ sourceGuid, id: questionId }] },
+    missing: surveyName === undefined
+  }
+}
+
 /** Rebuild a leaf from its key alone (orphans carry nothing else). */
 function leafFromKey(data: SummaryData, sourceNames: Map<string, string>, key: string): Leaf {
-  if (key.startsWith('resp:')) {
-    const [, sourceGuid, ...rest] = key.split(':')
-    const respondentId = rest.join(':')
-    const surveyName = sourceNames.get(sourceGuid)
-    return {
-      key,
-      label: respondentLabel(data, sourceGuid, respondentId),
-      detail: surveyName,
-      icon: 'respondent',
-      scope: { docs: [], respondents: [{ sourceGuid, id: respondentId }] },
-      missing: !surveyName
-    }
+  if (key.startsWith('resp:') || key.startsWith('quest:')) {
+    const [kind, sourceGuid, ...rest] = key.split(':')
+    const id = rest.join(':')
+    return kind === 'resp'
+      ? respondentLeaf(data, sourceNames, sourceGuid, id)
+      : questionLeaf(data, sourceNames, sourceGuid, id)
   }
   const sourceGuid = key.slice('doc:'.length)
   const name = sourceNames.get(sourceGuid)
-  return { key, label: name ?? 'Deleted document', icon: 'doc', scope: { docs: [sourceGuid], respondents: [] }, missing: name === undefined }
+  return { key, label: name ?? 'Deleted document', icon: 'doc', scope: docScope(sourceGuid), missing: name === undefined }
 }
 
 /** A tag's members as leaves, in Document Browser order: whole
- *  documents first, then respondents of surveys tagged per respondent
- *  (skipping surveys already tagged whole). */
+ *  documents first, then the respondents and questions of surveys tagged
+ *  per entity (skipping surveys already tagged whole). */
 function tagLeaves(data: SummaryData, sourceNames: Map<string, string>, tagGuid: string): Leaf[] {
   const members = new Set(data.tagMembers[tagGuid] || [])
   const leaves: Leaf[] = []
   for (const s of data.sources) {
-    if (members.has(s.guid)) leaves.push({ key: docKey(s.guid), label: s.name, icon: 'doc', scope: { docs: [s.guid], respondents: [] } })
+    if (members.has(s.guid)) leaves.push({ key: docKey(s.guid), label: s.name, icon: 'doc', scope: docScope(s.guid) })
   }
-  for (const r of data.respondentTagMembers?.[tagGuid] || []) {
-    if (members.has(r.sourceGuid) || !sourceNames.has(r.sourceGuid)) continue
-    leaves.push({
-      key: respondentKey(r.sourceGuid, r.id),
-      label: respondentLabel(data, r.sourceGuid, r.id),
-      detail: sourceNames.get(r.sourceGuid),
-      icon: 'respondent',
-      scope: { docs: [], respondents: [r] }
-    })
+  const partial = (r: SurveyEntityRef) => !members.has(r.sourceGuid) && sourceNames.has(r.sourceGuid)
+  for (const r of (data.respondentTagMembers?.[tagGuid] || []).filter(partial)) {
+    leaves.push(respondentLeaf(data, sourceNames, r.sourceGuid, r.id))
+  }
+  for (const q of (data.questionTagMembers?.[tagGuid] || []).filter(partial)) {
+    leaves.push(questionLeaf(data, sourceNames, q.sourceGuid, q.id))
   }
   return leaves
 }
@@ -214,25 +250,28 @@ function folderLeaves(data: SummaryData, folderGuid: string): Leaf[] {
       const fg = data.sourceFolder?.[s.guid]
       return fg ? set.has(fg) : false
     })
-    .map((s) => ({ key: docKey(s.guid), label: s.name, icon: 'doc' as const, scope: { docs: [s.guid], respondents: [] } }))
+    .map((s) => ({ key: docKey(s.guid), label: s.name, icon: 'doc' as const, scope: docScope(s.guid) }))
 }
 
 /** Union several scopes, keeping the invariant that a survey covered
- *  whole never also lists individual respondents. */
-export function unionScopes(scopes: RowScope[]): RowScope {
+ *  whole never also lists individual respondents or questions. */
+export function unionScopes(scopes: RowScope[], tagGuids?: string[]): RowScope {
   const docs = new Set<string>()
   for (const s of scopes) for (const d of s.docs) docs.add(d)
-  const seen = new Set<string>()
-  const respondents: SurveyEntityRef[] = []
-  for (const s of scopes) {
-    for (const r of s.respondents) {
-      const k = `${r.sourceGuid}:${r.id}`
-      if (docs.has(r.sourceGuid) || seen.has(k)) continue
-      seen.add(k)
-      respondents.push(r)
+  const entities = (pick: (s: RowScope) => SurveyEntityRef[]): SurveyEntityRef[] => {
+    const seen = new Set<string>()
+    const out: SurveyEntityRef[] = []
+    for (const s of scopes) {
+      for (const r of pick(s)) {
+        const k = `${r.sourceGuid}:${r.id}`
+        if (docs.has(r.sourceGuid) || seen.has(k)) continue
+        seen.add(k)
+        out.push(r)
+      }
     }
+    return out
   }
-  return { docs: [...docs], respondents }
+  return { docs: [...docs], respondents: entities((s) => s.respondents), questions: entities((s) => s.questions), tagGuids }
 }
 
 /** Every leaf key a top-level group entry currently resolves to. */
@@ -289,19 +328,16 @@ export function buildDisplayRows(
           path, key, depth: 0, entryIndex,
           label: name ?? entry.name ?? 'Deleted document',
           icon: 'doc', isGroup: false, missing: name === undefined,
-          scope: { docs: [entry.sourceGuid], respondents: [] }
+          scope: docScope(entry.sourceGuid)
         })
         return
       }
-      case 'respondent': {
-        const surveyName = sourceNames.get(entry.sourceGuid)
-        out.push({
-          path, key, depth: 0, entryIndex,
-          label: respondentLabel(data, entry.sourceGuid, entry.respondentId, entry.name),
-          detail: surveyName,
-          icon: 'respondent', isGroup: false, missing: surveyName === undefined,
-          scope: { docs: [], respondents: [{ sourceGuid: entry.sourceGuid, id: entry.respondentId }] }
-        })
+      case 'respondent':
+      case 'question': {
+        const leaf = entry.kind === 'respondent'
+          ? respondentLeaf(data, sourceNames, entry.sourceGuid, entry.respondentId, entry.name)
+          : questionLeaf(data, sourceNames, entry.sourceGuid, entry.questionId, entry.name)
+        out.push({ ...leaf, path, depth: 0, entryIndex, isGroup: false })
         return
       }
       case 'tag': {
@@ -312,7 +348,7 @@ export function buildDisplayRows(
           path, key, depth: 0, entryIndex,
           label: tag ? (tag.value || tag.name) : (entry.name ?? 'Deleted tag'),
           icon: 'tag', isGroup: true, memberCount: leaves.length, missing: !tag,
-          scope: unionScopes(leaves.map((l) => l.scope))
+          scope: unionScopes(leaves.map((l) => l.scope), [entry.tagGuid])
         })
         if (collapsed.has(path)) return
         pushLeaves(path, 1, leaves)
@@ -329,7 +365,7 @@ export function buildDisplayRows(
           path, key, depth: 0, entryIndex,
           label: cat?.name ?? entry.name ?? 'Deleted category',
           icon: 'category', isGroup: true, memberCount: new Set(allLeaves.map((l) => l.key)).size, missing: !cat,
-          scope: unionScopes(allLeaves.map((l) => l.scope))
+          scope: unionScopes(allLeaves.map((l) => l.scope), childTags.map((t) => t.guid))
         })
         if (collapsed.has(path)) return
         for (const { tag, leaves } of perTag) {
@@ -337,7 +373,7 @@ export function buildDisplayRows(
           out.push({
             path: tagPath, key: `tag:${tag.guid}`, depth: 1,
             label: tag.value || tag.name, icon: 'tag', isGroup: true, memberCount: leaves.length,
-            scope: unionScopes(leaves.map((l) => l.scope))
+            scope: unionScopes(leaves.map((l) => l.scope), [tag.guid])
           })
           if (!collapsed.has(tagPath)) pushLeaves(tagPath, 2, leaves)
         }
@@ -366,27 +402,46 @@ export function buildDisplayRows(
 
 /** Number of segments coded with `codeGuid` within a row's scope.
  *  Counts the code itself only (not its subcodes), matching the plain
- *  code query the cell runs. */
+ *  code query the cell runs. A survey cell counts once even when both
+ *  its respondent and its question are in scope. */
 export function countInScope(data: Pick<SummaryData, 'sourceSelections'>, scope: RowScope, codeGuid: string): number {
+  const coded = (sel: { codings: { codeGuid: string }[] }) => sel.codings.some((c) => c.codeGuid === codeGuid)
   let n = 0
   for (const sg of scope.docs) {
-    for (const sel of data.sourceSelections[sg] || []) {
-      if (sel.codings.some((c) => c.codeGuid === codeGuid)) n++
-    }
+    for (const sel of data.sourceSelections[sg] || []) if (coded(sel)) n++
   }
-  for (const r of scope.respondents) {
-    for (const sel of data.sourceSelections[r.sourceGuid] || []) {
-      if (sel.surveyCell?.respondentId === r.id && sel.codings.some((c) => c.codeGuid === codeGuid)) n++
+  const partial = new Map<string, { resp: Set<string>; quest: Set<string> }>()
+  const entry = (sg: string) => {
+    let e = partial.get(sg)
+    if (!e) { e = { resp: new Set(), quest: new Set() }; partial.set(sg, e) }
+    return e
+  }
+  for (const r of scope.respondents) entry(r.sourceGuid).resp.add(r.id)
+  for (const q of scope.questions) entry(q.sourceGuid).quest.add(q.id)
+  for (const [sg, { resp, quest }] of partial) {
+    for (const sel of data.sourceSelections[sg] || []) {
+      const cell = sel.surveyCell
+      if (cell && (resp.has(cell.respondentId) || quest.has(cell.questionId)) && coded(sel)) n++
     }
   }
   return n
 }
 
 /** Arguments for the 'run-code-in-doc-query' analysis action: the
- *  documents to search, plus a respondent scope for surveys covered
- *  only by some of their respondents. */
-export function queryArgsForScope(scope: RowScope): { sourceGuids: string[]; respondentScope?: SurveyEntityRef[] } | null {
-  const sourceGuids = [...new Set([...scope.docs, ...scope.respondents.map((r) => r.sourceGuid)])]
+ *  documents to search plus the survey-cell scope. Tag groups scope by
+ *  their tags (which unions tagged respondents and questions, exactly
+ *  like the count); a single respondent or question row scopes to it. */
+export function queryArgsForScope(scope: RowScope): { sourceGuids: string[]; cellScope?: SurveyCellScopeArgs } | null {
+  const sourceGuids = [...new Set([
+    ...scope.docs,
+    ...scope.respondents.map((r) => r.sourceGuid),
+    ...scope.questions.map((q) => q.sourceGuid)
+  ])]
   if (sourceGuids.length === 0) return null
-  return { sourceGuids, respondentScope: scope.respondents.length > 0 ? scope.respondents : undefined }
+  if (scope.respondents.length === 0 && scope.questions.length === 0) return { sourceGuids }
+  if (scope.tagGuids?.length) return { sourceGuids, cellScope: { tagGuids: scope.tagGuids } }
+  const cellScope: SurveyCellScopeArgs = {}
+  if (scope.respondents.length > 0) cellScope.respondentScope = scope.respondents
+  if (scope.questions.length > 0) cellScope.questionScope = scope.questions
+  return { sourceGuids, cellScope }
 }
