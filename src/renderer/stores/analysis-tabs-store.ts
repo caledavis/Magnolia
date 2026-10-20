@@ -147,11 +147,7 @@ export const useAnalysisTabsStore = create<AnalysisTabsState>((set, get) => ({
   },
 
   hydrate: (instances, counters) => {
-    // Tabs saved while Framework Matrix was called Summary Matrix.
-    const migrated = Object.fromEntries(Object.entries(instances).map(([id, inst]) =>
-      [id, (inst.toolType as string) === 'summary-matrix' ? { ...inst, toolType: 'framework-matrix' as const } : inst]
-    ))
-    set({ instances: migrated, perToolCounters: { ...counters } })
+    set({ instances: { ...instances }, perToolCounters: { ...counters } })
   },
 
   clearAll: () => set({ instances: {}, perToolCounters: {} })
