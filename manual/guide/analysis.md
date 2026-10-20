@@ -10,6 +10,7 @@ underlying data.
 
 - **Relationships** — map relationships between different things.
 - **Codes in Documents** — see which documents contain which codes.
+- **[Framework Matrix](/guide/frameworkmatrix)** — summarise each code in each document.
 - **Results in Documents** — see which documents contain which query results.
 - **Code Co-Occurrences** — see which codes overlap with each other.
 - **Code Orders** — see the order in which codes appear in each document.

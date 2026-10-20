@@ -1,5 +1,5 @@
 /**
- * Summary Matrix — a documents × codes grid of free-text summaries.
+ * Framework Matrix — a documents × codes grid of free-text summaries.
  *
  * Rows come from documents, survey respondents, tags, tag categories and
  * folders dragged in from the Document Browser (groups nest their
@@ -7,7 +7,7 @@
  * Browser. Clicking a cell runs that row × code query in Query Results
  * and puts the cursor in the cell so the user can summarise what they
  * see. Row building, counting and query scoping live in
- * summary-matrix-model.ts so the report renderer shares them.
+ * framework-matrix-model.ts so the report renderer shares them.
  *
  * Persistence follows Reports: the working state is mirrored into the
  * tab config (so unsaved work survives a reload), and once saved, edits
@@ -42,7 +42,7 @@ import { parseGroupByDrop } from './group-by'
 import { parseQuestionDrop, parseRespondentDrop } from './survey-grouping'
 import {
   type SummaryRowEntry,
-  type SummaryMatrixConfig,
+  type FrameworkMatrixConfig,
   type DisplayRow,
   type RowIcon,
   buildDisplayRows,
@@ -55,7 +55,7 @@ import {
   fullLabel,
   queryArgsForScope,
   summaryKey
-} from './summary-matrix-model'
+} from './framework-matrix-model'
 import { useLiveAnalysisData } from './use-live-analysis-data'
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
 import { renameSavedAnalysis } from '../../utils/rename-saved-analysis'
@@ -66,7 +66,7 @@ import { useAnalysisTabsStore } from '../../stores/analysis-tabs-store'
 
 interface Props {
   data: AnalysisInitData
-  savedConfig?: Partial<SummaryMatrixConfig> & { guid?: string; name?: string }
+  savedConfig?: Partial<FrameworkMatrixConfig> & { guid?: string; name?: string }
   inTab?: {
     onClose: () => void
     onSaved: (savedGuid: string, name: string) => void
@@ -109,7 +109,7 @@ function docIcon(source: { name: string; sourceType?: string } | undefined): { i
 /** Internal drag of a row or column handle (reordering within the
  *  matrix). Distinct from every Browser drag MIME so it never reads as
  *  adding something. */
-const REORDER_MIME = 'application/x-magnolia-summary-reorder'
+const REORDER_MIME = 'application/x-magnolia-framework-reorder'
 
 type ReorderKind = 'row' | 'col'
 
@@ -190,7 +190,7 @@ function parseRowDrop(e: React.DragEvent, data: AnalysisInitData): SummaryRowEnt
   ]
 }
 
-export function SummaryMatrix({ data: propData, savedConfig, inTab }: Props) {
+export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
   const live = useLiveAnalysisData()
   const data = useMemo(() => ({ ...propData, ...live }), [propData, live])
 
@@ -266,7 +266,7 @@ export function SummaryMatrix({ data: propData, savedConfig, inTab }: Props) {
   const persistSaved = useCallback((name: string) => {
     window.api.sendAnalysisAction('save-analysis', {
       guid: analysisGuid,
-      toolType: 'summary-matrix',
+      toolType: 'framework-matrix',
       name,
       config: { rows, codeGuids, summaries, collapsed }
     })
@@ -503,7 +503,7 @@ export function SummaryMatrix({ data: propData, savedConfig, inTab }: Props) {
         ...codeGuids.map((cg) => summaries[summaryKey(r.key, cg)] ?? '')
       ])
     }
-    window.api.exportCsv(toCsv(out), 'summary-matrix.csv')
+    window.api.exportCsv(toCsv(out), 'framework-matrix.csv')
   }, [data, rows, codeGuids, summaries, collapsed, codeMap])
 
   // ── Render ────────────────────────────────────────────────────────
@@ -515,7 +515,7 @@ export function SummaryMatrix({ data: propData, savedConfig, inTab }: Props) {
       <div style={{ padding: '14px 20px 6px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
         <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
           <Icon icon={faFrame} className="analysis-header-icon" style={{ fontSize: 16 }} />
-          Summary Matrix{isExisting || savedRef.current ? ':' : ''}
+          Framework Matrix{isExisting || savedRef.current ? ':' : ''}
           {(isExisting || savedRef.current) && <EditableTitleSuffix name={analysisName} onRename={handleRename} />}
         </h2>
         <div style={{ flex: 1 }} />

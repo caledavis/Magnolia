@@ -29,7 +29,7 @@ interface Props {
 // the bottom.
 const TOOL_ORDER: AnalysisToolType[] = [
   'codes-in-documents',
-  'summary-matrix',
+  'framework-matrix',
   'results-in-documents',
   'code-cooccurrences',
   'code-frequencies',

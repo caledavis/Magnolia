@@ -61,7 +61,7 @@ const KIND_ICON_MAP: Record<MapElementKind, string | null> = {
 
 const ANALYSIS_ICON_MAP: Record<string, string> = {
   'codes-in-documents': 'file-code-corner',
-  'summary-matrix': 'frame',
+  'framework-matrix': 'frame',
   'code-cooccurrences': 'squares-intersect',
   'code-frequencies': 'chart-column',
   'code-orders': 'list-ordered',

@@ -9,7 +9,7 @@ import {
   summaryKey,
   type SummaryData,
   type SummaryRowEntry
-} from '../../src/renderer/components/Analysis/summary-matrix-model'
+} from '../../src/renderer/components/Analysis/framework-matrix-model'
 
 const CODE = 'code-a'
 
@@ -61,7 +61,7 @@ const config = (rows: SummaryRowEntry[], extra: { summaries?: Record<string, str
   collapsed: extra.collapsed ?? []
 })
 
-describe('summary matrix rows', () => {
+describe('framework matrix rows', () => {
   it('nests a tag’s documents and respondents under it', () => {
     const rows = buildDisplayRows(makeData(), config([{ kind: 'tag', tagGuid: 't2' }]))
     expect(rows.map((r) => [r.depth, r.key, r.label])).toEqual([
@@ -125,7 +125,7 @@ describe('summary matrix rows', () => {
 const scope = (docs: string[], respondents: { sourceGuid: string; id: string }[] = [], questions: { sourceGuid: string; id: string }[] = []) =>
   ({ docs, respondents, questions })
 
-describe('summary matrix counts and queries', () => {
+describe('framework matrix counts and queries', () => {
   it('counts the code within documents, respondents and questions', () => {
     const data = makeData()
     expect(countInScope(data, scope(['d1']), CODE)).toBe(2)
@@ -163,7 +163,7 @@ describe('summary matrix counts and queries', () => {
   })
 })
 
-describe('summary matrix question rows', () => {
+describe('framework matrix question rows', () => {
   it('nests a tag’s questions under it, after its respondents', () => {
     const data = makeData({ questionTagMembers: { t2: [{ sourceGuid: 's1', id: 'q1' }] } })
     const rows = buildDisplayRows(data, config([{ kind: 'tag', tagGuid: 't2' }]))

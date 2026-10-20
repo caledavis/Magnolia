@@ -68,7 +68,7 @@ const REORDER_MIME = 'application/x-magnolia-report-reorder'
  *  tool itself shows). Drives the per-item options row. */
 const ANALYSIS_CAPS: Record<string, { totalsOnly?: boolean; binary?: boolean; visual?: boolean; barChart?: boolean; wordCloud?: boolean }> = {
   'codes-in-documents': { totalsOnly: true, binary: true, visual: true },
-  'summary-matrix': {},
+  'framework-matrix': {},
   'results-in-documents': { totalsOnly: true, binary: true, visual: true },
   'code-cooccurrences': { totalsOnly: true, binary: true, visual: true },
   'code-frequencies': {},

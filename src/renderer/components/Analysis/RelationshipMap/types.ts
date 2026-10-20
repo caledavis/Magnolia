@@ -141,7 +141,7 @@ export const ELEMENT_COLORS: Record<MapElementKind, string> = {
 /** Map analysis tool type to its colour from the main toolbar */
 export const ANALYSIS_TOOL_COLORS: Record<string, string> = {
   'codes-in-documents': '#B89818',
-  'summary-matrix': '#C8407A',
+  'framework-matrix': '#C8407A',
   'code-cooccurrences': '#30A830',
   'code-frequencies': '#10A8A0',
   'code-orders': '#1880D8',

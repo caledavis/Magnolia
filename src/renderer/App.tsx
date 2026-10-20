@@ -33,7 +33,7 @@ import type { CodebookInitData, QueryResultsInitData } from './models/types'
 const ANALYSIS_TOOL_TITLES: Record<string, string> = {
   'code-cooccurrences': 'Code Co-Occurrences',
   'codes-in-documents': 'Codes in Documents',
-  'summary-matrix': 'Summary Matrix',
+  'framework-matrix': 'Framework Matrix',
   'results-in-documents': 'Results in Documents',
   'code-frequencies': 'Code Frequencies',
   'code-orders': 'Code Orders',

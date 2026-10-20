@@ -27,7 +27,7 @@ import { buildAnalysisInitData } from '../../utils/build-analysis-init-data'
 import { buildQueryBuilderInitData } from '../../utils/build-query-builder-init-data'
 import { CodeCoOccurrences } from './CodeCoOccurrences'
 import { CodesInDocuments } from './CodesInDocuments'
-import { SummaryMatrix } from './SummaryMatrix'
+import { FrameworkMatrix } from './FrameworkMatrix'
 import { CodeFrequencies } from './CodeFrequencies'
 import { CodeOrders } from './CodeOrders'
 import { WordFrequencies } from './WordFrequencies'
@@ -188,8 +188,8 @@ function dispatch(
       return <CodeCoOccurrences data={data} savedConfig={savedConfig} inTab={inTab} />
     case 'codes-in-documents':
       return <CodesInDocuments data={data} savedConfig={savedConfig} inTab={inTab} />
-    case 'summary-matrix':
-      return <SummaryMatrix data={data} savedConfig={savedConfig} inTab={inTab} />
+    case 'framework-matrix':
+      return <FrameworkMatrix data={data} savedConfig={savedConfig} inTab={inTab} />
     case 'results-in-documents':
       return <ResultsInDocuments data={data} savedConfig={savedConfig} inTab={inTab} />
     case 'code-frequencies':

@@ -142,6 +142,7 @@ export default defineConfig({
           page('Querying your data', '/guide/querying'),  // DONE
           page('Selecting Documents', '/guide/documentselector'),  // DONE
           page('Grouping Results', '/guide/grouping'), // DONE
+          page('Framework Matrix', '/guide/frameworkmatrix'), // DONE
 //          page('Codes in Documents', '/guide/codesindocuments'),
 //          page('Results in Documents', '/guide/resultsindocuments'),
 //          page('Code Co-Occurrences', '/guide/codecooccurrences'),

@@ -1,5 +1,5 @@
 /**
- * Summary Matrix — pure model shared by the on-screen tool and the
+ * Framework Matrix — pure model shared by the on-screen tool and the
  * report renderer. Rows are documents / survey respondents / survey
  * questions, either
  * dropped individually or nested under a dropped tag, tag category or
@@ -27,7 +27,7 @@ export type SummaryRowEntry =
   | { kind: 'category'; categoryGuid: string; name?: string; kept?: string[] }
   | { kind: 'folder'; folderGuid: string; name?: string; kept?: string[] }
 
-export interface SummaryMatrixConfig {
+export interface FrameworkMatrixConfig {
   rows: SummaryRowEntry[]
   codeGuids: string[]
   /** Cell text keyed by summaryKey(rowKey, codeGuid). */
@@ -298,7 +298,7 @@ export function liveLeafKeys(data: SummaryData, entry: SummaryRowEntry): string[
  */
 export function buildDisplayRows(
   data: SummaryData,
-  config: Pick<SummaryMatrixConfig, 'rows' | 'codeGuids' | 'summaries' | 'collapsed'>,
+  config: Pick<FrameworkMatrixConfig, 'rows' | 'codeGuids' | 'summaries' | 'collapsed'>,
   opts?: { expandAll?: boolean }
 ): DisplayRow[] {
   const sourceNames = new Map(data.sources.map((s) => [s.guid, s.name]))
