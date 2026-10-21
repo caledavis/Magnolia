@@ -318,16 +318,15 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     })
   }, [series, data, countWordsIn])
 
-  // Overall word frequencies (sum across all series) for ranking + table
-  const wordFreqs = useMemo(() => {
-    const total = new Map<string, number>()
-    for (const fm of seriesFreqs) {
-      for (const [w, c] of fm) {
-        total.set(w, (total.get(w) || 0) + c)
-      }
-    }
-    return Array.from(total.entries()).sort((a, b) => b[1] - a[1])
-  }, [seriesFreqs])
+  // Overall word frequencies for ranking + table, counted once over the
+  // filtered sources. Summing the series instead would count words twice
+  // when grouped: subtotal series repeat their parts, a document tagged
+  // into two columns appears in both, and an expanded survey has a
+  // whole-survey subtotal beside its respondents.
+  const wordFreqs = useMemo(
+    () => Array.from(countWordsIn(data, filteredSourceGuids).entries()).sort((a, b) => b[1] - a[1]),
+    [data, filteredSourceGuids, countWordsIn]
+  )
 
   const displayWords = useMemo(() => wordFreqs.slice(0, wordCount), [wordFreqs, wordCount])
   const maxFreq = useMemo(() => {
