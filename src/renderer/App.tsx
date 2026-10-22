@@ -519,6 +519,7 @@ function App() {
     const cdStore = useCodeStore.getState()
     const sourceSelections: Record<string, any[]> = {}
     const pdfFilePaths: Record<string, string> = {}
+    const pdfPageOffsets: Record<string, number[]> = {}
     const videoFilePaths: Record<string, string> = {}
     const videoMimeTypes: Record<string, string> = {}
     const surveysByGuid: Record<string, SurveyData> = {}
@@ -526,6 +527,8 @@ function App() {
       if (src.selections.length > 0) sourceSelections[src.guid] = src.selections
       const fp = (src as any).formatData?.pdfFilePath ?? (src as any).formatData?.imageFilePath
       if (fp) pdfFilePaths[src.guid] = fp
+      const po = (src as any).formatData?.pdfPageOffsets
+      if (po?.length) pdfPageOffsets[src.guid] = po
       const vp = (src as any).formatData?.videoFilePath
       if (vp) {
         videoFilePaths[src.guid] = vp
@@ -548,6 +551,7 @@ function App() {
       sourceSelections,
       surveysByGuid,
       pdfFilePaths,
+      pdfPageOffsets,
       videoFilePaths,
       videoMimeTypes,
       codes,
@@ -2403,6 +2407,7 @@ function App() {
     const cdStore = useCodeStore.getState()
     const sourceSelections: Record<string, any[]> = {}
     const pdfFilePaths: Record<string, string> = {}
+    const pdfPageOffsets: Record<string, number[]> = {}
     const videoFilePaths: Record<string, string> = {}
     const videoMimeTypes: Record<string, string> = {}
     const surveysByGuid: Record<string, SurveyData> = {}
@@ -2410,6 +2415,8 @@ function App() {
       if (src.selections.length > 0) sourceSelections[src.guid] = src.selections
       const fp = (src as any).formatData?.pdfFilePath ?? (src as any).formatData?.imageFilePath
       if (fp) pdfFilePaths[src.guid] = fp
+      const po = (src as any).formatData?.pdfPageOffsets
+      if (po?.length) pdfPageOffsets[src.guid] = po
       const vp = (src as any).formatData?.videoFilePath
       if (vp) {
         videoFilePaths[src.guid] = vp
@@ -2432,6 +2439,7 @@ function App() {
       sourceSelections,
       surveysByGuid,
       pdfFilePaths,
+      pdfPageOffsets,
       videoFilePaths,
       videoMimeTypes,
       codes,

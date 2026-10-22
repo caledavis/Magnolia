@@ -19,7 +19,7 @@
  * `groupByDocument` and `buildHighlightedSpans` are exported here too so
  * both viewers consume them from the same module.
  */
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Icon,
   faChevronDown,
@@ -37,6 +37,10 @@ import { stripFormatting } from '../../utils/strip-formatting'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
 import { PdfRegionThumbnail } from '../DocumentViewer/PdfRegionThumbnail'
 import { blendColors, multiColorUnderline } from '../../utils/code-highlight'
+import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
+import { renderPdfRegionThumbnail } from '../../utils/pdf-thumbnail'
+import { renderImageRegionThumbnail } from '../../utils/image-thumbnail'
+import { useDocumentStore } from '../../stores/document-store'
 
 /** Group results by sourceGuid, preserving order of first appearance. */
 export function groupByDocument(
@@ -113,6 +117,55 @@ export function buildHighlightedSpans(
   return spans
 }
 
+/** 1-based page of a PDF that contains codepoint `cp`, given the
+ *  codepoint offset where each page's text starts. */
+export function pdfPageAt(pageOffsets: number[], cp: number): number {
+  let lo = 0
+  let hi = pageOffsets.length - 1
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1
+    if (pageOffsets[mid] <= cp) lo = mid
+    else hi = mid - 1
+  }
+  return lo + 1
+}
+
+/** Copy a query result to the clipboard. Text results copy the matched
+ *  text with format markers stripped. Box results (PDF / image regions)
+ *  carry no text, so the region is rendered and copied as a PNG — the
+ *  same treatment as Copy Quote in the Quotes pane. `pdfFilePath` is
+ *  passed explicitly in the popout, where the document store is empty. */
+async function copyQueryResult(
+  result: QueryResult,
+  pdfRegion: PdfRegionSelection | undefined,
+  sourceType: SourceType | undefined,
+  pdfFilePath: string | undefined
+): Promise<void> {
+  try {
+    if (!pdfRegion) {
+      await navigator.clipboard.writeText(stripFormatting(result.matchedText, sourceType))
+      return
+    }
+    const src = useDocumentStore.getState().sources.find((s) => s.guid === result.sourceGuid)
+    const fd = (src as any)?.formatData
+    const filePath = pdfFilePath ?? (fd?.imageFilePath as string | undefined) ?? (fd?.pdfFilePath as string | undefined)
+    const pdfBase64 = fd?.pdfBase64 as string | undefined
+    const isImage = sourceType === 'image' || (!!filePath && sourceTypeFromFilename(filePath) === 'image')
+    const { page, x, y, width, height } = pdfRegion
+    const dataUrl = isImage
+      ? await renderImageRegionThumbnail({ filePath: filePath as string, x, y, width, height })
+      : await renderPdfRegionThumbnail(
+          filePath
+            ? { filePath, page, x, y, width, height }
+            : { pdfBase64: pdfBase64 as string, docKey: result.sourceGuid, page, x, y, width, height }
+        )
+    const blob = await (await fetch(dataUrl)).blob()
+    await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })])
+  } catch (err) {
+    console.error('Copy query result to clipboard failed:', err)
+  }
+}
+
 export function formatClipTime(seconds: number): string {
   if (!isFinite(seconds) || seconds < 0) seconds = 0
   const h = Math.floor(seconds / 3600)
@@ -136,10 +189,16 @@ interface ResultItemProps {
    *  is correct for the inline viewer (stores populated) but absent
    *  for the popout (no project loaded). */
   pdfFilePath?: string
+  /** Codepoint offset where each page's text starts, when the source
+   *  is a PDF. Lets text results show their page instead of a raw
+   *  character range. */
+  pdfPageOffsets?: number[]
   /** Parsed survey data for this result's source, when the source is
    *  a survey. Used to render the "Respondent N · Question N" badge
    *  on survey-cell results. */
   survey?: SurveyData
+  /** Right-click: asks the list to open its context menu for this result. */
+  onContextMenu?: (e: React.MouseEvent, copy: () => void) => void
 }
 
 export function ResultItem({
@@ -151,7 +210,9 @@ export function ResultItem({
   findCode,
   sourceType,
   pdfFilePath,
-  survey
+  pdfPageOffsets,
+  survey,
+  onContextMenu
 }: ResultItemProps) {
   const beforeCpLen = result.contextBefore ? Array.from(result.contextBefore).length : 0
   const matchCpLen = Array.from(result.matchedText).length
@@ -171,6 +232,14 @@ export function ResultItem({
     if (rIdx >= 0 && qIdx >= 0) {
       surveyCellLabel = `Respondent ${rIdx + 1} · Question ${qIdx + 1}`
     }
+  }
+
+  // PDF text results show their page; other results show no position.
+  let positionLabel: string | null = null
+  if (pdfPageOffsets && pdfPageOffsets.length > 0) {
+    const first = pdfPageAt(pdfPageOffsets, result.startPosition)
+    const last = pdfPageAt(pdfPageOffsets, Math.max(result.startPosition, result.endPosition - 1))
+    positionLabel = first === last ? `Page ${first}` : `Pages ${first}–${last}`
   }
 
   return (
@@ -193,6 +262,11 @@ export function ResultItem({
         e.dataTransfer.effectAllowed = 'copy'
       }}
       onDoubleClick={() => onOpenResult(result, selection)}
+      onContextMenu={onContextMenu && ((e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        onContextMenu(e, () => { void copyQueryResult(result, pdfRegion, effectiveSourceType, pdfFilePath) })
+      })}
       style={{
         padding: '6px 10px 6px 18px',
         cursor: 'pointer',
@@ -238,14 +312,10 @@ export function ResultItem({
             </span>
           ))}
         </div>
-        {/* Box results have no character range (always 0–0); their
-            location is the "Page N" caption under the thumbnail. */}
-        {!pdfRegion && (
-          <span
-            style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}
-            title={`Codepoints ${result.startPosition}–${result.endPosition}`}
-          >
-            {result.startPosition}–{result.endPosition}
+        {/* Box results show their page in the caption under the thumbnail. */}
+        {!pdfRegion && positionLabel && (
+          <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>
+            {positionLabel}
           </span>
         )}
       </div>
@@ -373,6 +443,9 @@ interface QueryResultsBodyProps {
    *  falls back to filename detection inside ResultItem. */
   sourceTypeForGuid?: (sourceGuid: string) => SourceType | undefined
   pdfFilePathForGuid?: (sourceGuid: string) => string | undefined
+  /** Optional resolver from sourceGuid to a PDF's page start offsets,
+   *  so PDF text results can show their page number. */
+  pdfPageOffsetsForGuid?: (sourceGuid: string) => number[] | undefined
   /** Optional resolver from sourceGuid to parsed survey data. Lets
    *  result rows render "Respondent N · Question N" for survey-cell
    *  matches. Inline mode pulls from the document store; popout mode
@@ -396,10 +469,24 @@ export function QueryResultsBody({
   onOpenSource,
   sourceTypeForGuid,
   pdfFilePathForGuid,
+  pdfPageOffsetsForGuid,
   surveyForGuid,
   missingDocuments
 }: QueryResultsBodyProps) {
   const groups = useMemo(() => groupByDocument(results), [results])
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; copy: () => void } | null>(null)
+  const menuPos = useClampedMenuPosition(contextMenu)
+
+  // Dismiss the context menu on any mousedown outside it.
+  useEffect(() => {
+    if (!contextMenu) return
+    const handleDown = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest('.context-menu')) setContextMenu(null)
+    }
+    document.addEventListener('mousedown', handleDown)
+    return () => document.removeEventListener('mousedown', handleDown)
+  }, [contextMenu])
+
   return (
     <>
       {!isActive && (
@@ -490,13 +577,35 @@ export function QueryResultsBody({
                   findCode={findCode}
                   sourceType={sourceTypeForGuid?.(result.sourceGuid)}
                   pdfFilePath={pdfFilePathForGuid?.(result.sourceGuid)}
+                  pdfPageOffsets={pdfPageOffsetsForGuid?.(result.sourceGuid)}
                   survey={surveyForGuid?.(result.sourceGuid)}
+                  onContextMenu={(e, copy) => setContextMenu({ x: e.clientX, y: e.clientY, copy })}
                 />
               )
             })}
           </div>
         )
       })}
+
+      {contextMenu && (
+        <div
+          ref={menuPos.ref}
+          className="context-menu"
+          style={{ left: menuPos.x, top: menuPos.y }}
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <div
+            className="context-menu-item"
+            onClick={() => {
+              contextMenu.copy()
+              setContextMenu(null)
+            }}
+          >
+            Copy Result
+          </div>
+        </div>
+      )}
     </>
   )
 }

@@ -837,6 +837,9 @@ export interface QueryResultsInitData {
   /** PDF file paths by sourceGuid — needed for rendering region thumbnails
    *  in the popped-out window. */
   pdfFilePaths?: Record<string, string>
+  /** Codepoint offset where each page's text starts, per PDF
+   *  sourceGuid — lets PDF text results show their page number. */
+  pdfPageOffsets?: Record<string, number[]>
   /** Video file paths + MIME types by sourceGuid — needed for the
    *  inline player that appears next to video query results. */
   videoFilePaths?: Record<string, string>

@@ -550,6 +550,7 @@ export function QueryResultsWindow() {
                 findCode={findCode}
                 onOpenResult={handleOpenResult}
                 pdfFilePathForGuid={(guid) => pdfFilePaths[guid]}
+                pdfPageOffsetsForGuid={(guid) => data.pdfPageOffsets?.[guid]}
                 surveyForGuid={(guid) => data.surveysByGuid?.[guid]}
               />
             </div>

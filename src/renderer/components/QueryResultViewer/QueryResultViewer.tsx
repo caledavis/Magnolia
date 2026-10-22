@@ -528,6 +528,7 @@ export function QueryResultViewer({ onSaveQuery, onEditQuery, queryName, onCodeA
                 const src = sources.find((s) => s.guid === guid)
                 return src?.sourceType ?? sourceTypeFromFilename(src?.name ?? '')
               }}
+              pdfPageOffsetsForGuid={(guid) => sources.find((s) => s.guid === guid)?.formatData?.pdfPageOffsets}
               surveyForGuid={(guid) => {
                 const src = sources.find((s) => s.guid === guid)
                 if (src?.sourceType !== 'survey') return undefined
