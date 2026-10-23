@@ -200,7 +200,11 @@ export function DocumentViewer() {
   useEffect(() => {
     if (!scrollTarget || !textContainerRef.current) return
     setMenuHighlight(scrollTarget)
-    requestAnimationFrame(() => {
+    // A long document builds the block holding the target only once it
+    // re-renders with the highlight, so keep looking for a few frames.
+    let frame = 0
+    let rafId = 0
+    const tryScroll = () => {
       if (!textContainerRef.current) return
       const container = textContainerRef.current
       const allSpans = container.querySelectorAll<HTMLSpanElement>('[data-cpoffset]')
@@ -208,11 +212,17 @@ export function DocumentViewer() {
         const cpOff = parseInt(span.dataset.cpoffset!, 10)
         const spanCpLen = [...(span.textContent || '')].length
         if (scrollTarget.startCp >= cpOff && scrollTarget.startCp < cpOff + spanCpLen) {
-          span.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          break
+          // Smooth-scroll short hops only. Across a long document a smooth
+          // scroll would build every block it passes, and their changing
+          // heights would throw it off target.
+          const distance = Math.abs(span.getBoundingClientRect().top - container.getBoundingClientRect().top)
+          span.scrollIntoView({ behavior: distance < container.clientHeight * 3 ? 'smooth' : 'auto', block: 'center' })
+          return
         }
       }
-    })
+      if (++frame < 10) rafId = requestAnimationFrame(tryScroll)
+    }
+    rafId = requestAnimationFrame(tryScroll)
     clearScrollTarget()
     const timer = setTimeout(() => setMenuHighlight(null), 1500)
     return () => clearTimeout(timer)

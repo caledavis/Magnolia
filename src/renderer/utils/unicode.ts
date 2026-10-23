@@ -29,6 +29,23 @@ export function codepointToCharIndex(text: string, codepointPos: number): number
 }
 
 /**
+ * Number of codepoints in text.slice(from, to), without copying it —
+ * each surrogate pair counts once.
+ */
+export function codepointCount(text: string, from: number, to: number): number {
+  let n = 0
+  for (let i = from; i < to; i++) {
+    const c = text.charCodeAt(i)
+    if (c >= 0xd800 && c <= 0xdbff && i + 1 < to) {
+      const d = text.charCodeAt(i + 1)
+      if (d >= 0xdc00 && d <= 0xdfff) i++
+    }
+    n++
+  }
+  return n
+}
+
+/**
  * Converts a JavaScript character index to a codepoint position.
  */
 export function charIndexToCodepoint(text: string, charIndex: number): number {

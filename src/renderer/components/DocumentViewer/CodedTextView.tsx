@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useCallback, useState, useEffect } from 'react'
 import type { PlainTextSelection, Code, Memo, SourceType } from '../../models/types'
-import { codepointToCharIndex } from '../../utils/unicode'
+import { codepointCount } from '../../utils/unicode'
 import { Icon, QUOTE_ICON, MEMO_POINT_ICON, MEMO_RANGED_ICON } from '../Icon'
 import { useQuoteStore } from '../../stores/quote-store'
 import { getFormat, type LineAnnotation, type InlineRange } from '../../utils/format-registry'
@@ -69,6 +69,35 @@ interface Span {
   cpEnd: number
   activeCodes: { codeGuid: string; color: string; codingGuid: string; selectionGuid: string }[]
 }
+
+/** The part of a span that falls on one line. */
+type LineSpan = Span & { lineCharStart: number; lineCharEnd: number; lineCpStart: number }
+
+/** Index of the line containing codepoint `cp`, given each line's
+ *  starting codepoint (ascending). */
+function lineAtCp(lineStarts: number[], cp: number): number {
+  let lo = 0
+  let hi = lineStarts.length - 1
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1
+    if (lineStarts[mid] <= cp) lo = mid
+    else hi = mid - 1
+  }
+  return lo
+}
+
+/** Long documents are rendered in blocks of this many lines, and only
+ *  the blocks on or near the screen are built — the rest are empty
+ *  placeholders of about the right height. Building every line up
+ *  front took seconds for a book-length text. A block is kept once
+ *  built, so a text selection or a measured overlay never loses the
+ *  DOM it refers to. */
+const BLOCK_LINES = 100
+/** Documents shorter than this render in full, as they always have. */
+const BLOCK_MIN_LINES = 400
+/** How far beyond the visible area blocks are built ahead of time. */
+const BLOCK_PRELOAD = '1500px 0px'
+const LINE_PX = 22
 
 /** Resolve a DOM boundary (node + offset) to a codepoint in the document.
  *  Walks up to the nearest [data-cpoffset] span; if the boundary landed on
@@ -218,6 +247,20 @@ export function CodedTextView({
       return 0
     })
 
+    // Events are visited in position order, so codepoint → char index
+    // conversion walks forward from the previous position instead of
+    // rescanning the text from the start for every span.
+    let convCp = 0
+    let convChar = 0
+    const toCharIndex = (cp: number): number => {
+      while (convCp < cp && convChar < text.length) {
+        const c = text.charCodeAt(convChar)
+        convChar += c >= 0xd800 && c <= 0xdbff && convChar + 1 < text.length ? 2 : 1
+        convCp++
+      }
+      return convChar
+    }
+
     const result: Span[] = []
     const active: Map<
       string,
@@ -229,8 +272,8 @@ export function CodedTextView({
       if (evt.pos > currentPos && currentPos < len) {
         const spanEnd = Math.min(evt.pos, len)
         result.push({
-          charStart: codepointToCharIndex(text, currentPos),
-          charEnd: codepointToCharIndex(text, spanEnd),
+          charStart: toCharIndex(currentPos),
+          charEnd: toCharIndex(spanEnd),
           cpStart: currentPos,
           cpEnd: spanEnd,
           activeCodes: Array.from(active.values())
@@ -253,7 +296,7 @@ export function CodedTextView({
 
     if (currentPos < len) {
       result.push({
-        charStart: codepointToCharIndex(text, currentPos),
+        charStart: toCharIndex(currentPos),
         charEnd: text.length,
         cpStart: currentPos,
         cpEnd: len,
@@ -269,12 +312,16 @@ export function CodedTextView({
     if (spans.length === 0) return []
 
     // Walk through spans and split by newline characters to build lines,
-    // where each line is an array of sub-spans
-    const result: { spans: (Span & { lineCharStart: number; lineCharEnd: number })[] }[] = []
-    let currentLine: (Span & { lineCharStart: number; lineCharEnd: number })[] = []
+    // where each line is an array of sub-spans. Each piece records the
+    // codepoint it starts at, counted forward as we go — working it out
+    // later from the span's start made rendering quadratic in the length
+    // of an uncoded document (one span covering the whole text).
+    const result: { spans: LineSpan[] }[] = []
+    let currentLine: LineSpan[] = []
 
     for (const span of spans) {
       const content = text.slice(span.charStart, span.charEnd)
+      let lineCpStart = span.cpStart
       // Split this span's content by newlines
       let searchFrom = 0
       while (true) {
@@ -285,7 +332,8 @@ export function CodedTextView({
             currentLine.push({
               ...span,
               lineCharStart: span.charStart + searchFrom,
-              lineCharEnd: span.charStart + content.length
+              lineCharEnd: span.charStart + content.length,
+              lineCpStart
             })
           }
           break
@@ -294,8 +342,10 @@ export function CodedTextView({
           currentLine.push({
             ...span,
             lineCharStart: span.charStart + searchFrom,
-            lineCharEnd: span.charStart + nlIdx + 1
+            lineCharEnd: span.charStart + nlIdx + 1,
+            lineCpStart
           })
+          lineCpStart += codepointCount(text, span.charStart + searchFrom, span.charStart + nlIdx + 1)
           result.push({ spans: currentLine })
           currentLine = []
           searchFrom = nlIdx + 1
@@ -309,6 +359,9 @@ export function CodedTextView({
 
     return result
   }, [spans, text])
+
+  // The codepoint each line starts at, for finding a codepoint's line.
+  const lineStarts = useMemo(() => lines.map((line) => line.spans[0]?.lineCpStart ?? 0), [lines])
 
   // Format-aware annotations per line (block class + inline styles)
   const formatAnnotations = useMemo((): LineAnnotation[] | null => {
@@ -418,28 +471,10 @@ export function CodedTextView({
 
     const entries: MarginEntry[] = []
 
-    // Build a mapping from char position to line index
-    const lineRanges: { charStart: number; charEnd: number }[] = lines.map((line) => {
-      if (line.spans.length === 0) return { charStart: 0, charEnd: 0 }
-      return {
-        charStart: line.spans[0].lineCharStart,
-        charEnd: line.spans[line.spans.length - 1].lineCharEnd
-      }
-    })
-
-    const charToLine = (charIdx: number): number => {
-      for (let i = 0; i < lineRanges.length; i++) {
-        if (charIdx < lineRanges[i].charEnd) return i
-      }
-      return lineRanges.length - 1
-    }
-
     for (const sel of selections) {
-      const selCharStart = codepointToCharIndex(text, sel.startPosition)
-      const selCharEnd = codepointToCharIndex(text, sel.endPosition)
-      if (selCharStart >= selCharEnd) continue
-      const startLine = charToLine(selCharStart)
-      const endLine = charToLine(selCharEnd - 1)
+      if (sel.startPosition >= sel.endPosition) continue
+      const startLine = lineAtCp(lineStarts, sel.startPosition)
+      const endLine = lineAtCp(lineStarts, sel.endPosition - 1)
 
       for (const coding of sel.codings) {
         const code = codeMap.get(coding.codeGuid)
@@ -588,7 +623,7 @@ export function CodedTextView({
 
     const maxCol = columnEnds.length
     return { perLine, maxCol }
-  }, [lines, selections, text, codeMap])
+  }, [lines, lineStarts, selections, codeMap])
 
   // Width for the line-number gutter — sized to fit the widest line
   // number at the shared font-size-sm mono. 24 px of horizontal padding
@@ -707,7 +742,7 @@ export function CodedTextView({
 
   type SpanAtom = { cpStart: number; cpEnd: number; node: React.ReactNode }
 
-  const buildSpanAtoms = (span: Span & { lineCharStart: number; lineCharEnd: number }, key: string): SpanAtom[] => {
+  const buildSpanAtoms = (span: LineSpan, key: string): SpanAtom[] => {
     const hasHighlight = span.activeCodes.length > 0
     const uniqueColors = [...new Set(span.activeCodes.map((ac) => ac.color))]
     const isMultiCode = uniqueColors.length > 1
@@ -719,7 +754,7 @@ export function CodedTextView({
     const underlineStyle = hasHighlight ? multiColorUnderline(uniqueColors) : {}
 
     const spanCps = [...text.slice(span.lineCharStart, span.lineCharEnd)]
-    const cpOffset = span.cpStart + [...text.slice(span.charStart, span.lineCharStart)].length
+    const cpOffset = span.lineCpStart
     const cpEnd = cpOffset + spanCps.length
 
     const overlapping = memoRanges.filter(
@@ -1195,6 +1230,101 @@ export function CodedTextView({
     return () => cancelAnimationFrame(rafId)
   })
 
+  // ── Blocks (long documents) ───────────────────────────────────────
+  const blocked = lines.length >= BLOCK_MIN_LINES
+  const blockCount = blocked ? Math.ceil(lines.length / BLOCK_LINES) : 0
+  const [builtBlocks, setBuiltBlocks] = useState<Set<number>>(() => new Set([0, 1]))
+  const [textWidth, setTextWidth] = useState(800)
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el || !blocked) return
+    const ro = new ResizeObserver(() => setTextWidth(el.clientWidth))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [blocked])
+
+  // Blocks that must exist regardless of scroll position: the ones
+  // holding a range something is about to find in the DOM (a scroll
+  // target, a clicked label, the playing line).
+  const forcedBlocks = useMemo(() => {
+    const out = new Set<number>()
+    if (!blocked) return out
+    const add = (r: { startCp: number; endCp: number } | null | undefined) => {
+      if (!r) return
+      const first = Math.floor(lineAtCp(lineStarts, r.startCp) / BLOCK_LINES)
+      const last = Math.floor(lineAtCp(lineStarts, Math.max(r.startCp, r.endCp - 1)) / BLOCK_LINES)
+      for (let b = first; b <= last; b++) out.add(b)
+    }
+    add(externalHighlightRange)
+    add(lockedRange)
+    add(playbackHighlightRange)
+    if (activeTimestampLine != null) out.add(Math.floor(activeTimestampLine / BLOCK_LINES))
+    return out
+  }, [blocked, lineStarts, externalHighlightRange, lockedRange, playbackHighlightRange, activeTimestampLine])
+
+  const shownBlocks = useMemo(() => {
+    const out = new Set(builtBlocks)
+    for (const b of forcedBlocks) out.add(b)
+    return out
+  }, [builtBlocks, forcedBlocks])
+
+  // Keep forced blocks once they've been built.
+  useEffect(() => {
+    if ([...forcedBlocks].some((b) => !builtBlocks.has(b))) {
+      setBuiltBlocks((prev) => new Set([...prev, ...forcedBlocks]))
+    }
+  }, [forcedBlocks, builtBlocks])
+
+  // Placeholder height for an unbuilt block, from each line's length and
+  // roughly how many characters fit on a row.
+  const blockHeights = useMemo(() => {
+    if (!blocked) return []
+    const charsPerRow = Math.max(20, Math.floor((textWidth - lineNumberGutterWidth - marginW - 60) / 7.5))
+    const heights: number[] = []
+    for (let b = 0; b < blockCount; b++) {
+      let rows = 0
+      const end = Math.min(lines.length, (b + 1) * BLOCK_LINES)
+      for (let i = b * BLOCK_LINES; i < end; i++) {
+        const ls = lines[i].spans
+        const chars = ls.length ? ls[ls.length - 1].lineCharEnd - ls[0].lineCharStart : 0
+        rows += Math.max(1, Math.ceil(chars / charsPerRow))
+      }
+      heights.push(rows * LINE_PX)
+    }
+    return heights
+  }, [blocked, blockCount, lines, textWidth, lineNumberGutterWidth, marginW])
+
+  // Build placeholders as they come within BLOCK_PRELOAD of the visible
+  // part of the scrolling pane.
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || !blocked) return
+    let root: HTMLElement | null = container.parentElement
+    while (root && !/(auto|scroll)/.test(getComputedStyle(root).overflowY)) root = root.parentElement
+    const io = new IntersectionObserver((entries) => {
+      const reached = entries.filter((e) => e.isIntersecting).map((e) => Number((e.target as HTMLElement).dataset.textBlock))
+      if (reached.length > 0) setBuiltBlocks((prev) => new Set([...prev, ...reached]))
+    }, { root, rootMargin: BLOCK_PRELOAD })
+    for (const el of container.querySelectorAll('[data-text-placeholder]')) io.observe(el)
+    return () => io.disconnect()
+  }, [blocked, shownBlocks, blockCount])
+
+  const renderLines = (renderLine: (line: { spans: LineSpan[] }, lineIdx: number) => React.ReactNode): React.ReactNode => {
+    if (!blocked) return lines.map(renderLine)
+    const out: React.ReactNode[] = []
+    for (let b = 0; b < blockCount; b++) {
+      if (!shownBlocks.has(b)) {
+        out.push(<div key={`block-${b}`} data-text-block={b} data-text-placeholder="1" style={{ height: blockHeights[b] }} />)
+        continue
+      }
+      const rows: React.ReactNode[] = []
+      const end = Math.min(lines.length, (b + 1) * BLOCK_LINES)
+      for (let i = b * BLOCK_LINES; i < end; i++) rows.push(renderLine(lines[i], i))
+      out.push(<div key={`block-${b}`} data-text-block={b}>{rows}</div>)
+    }
+    return out
+  }
+
   return (
     <div
       ref={containerRef}
@@ -1301,7 +1431,7 @@ export function CodedTextView({
           }}
         />
       </div>
-      {lines.map((line, lineIdx) => {
+      {renderLines((line, lineIdx) => {
         const lineAnns = perLine[lineIdx]?.annotations ?? []
         const fmtLine = formatAnnotations?.[lineIdx]
         const fmtBlockClass = fmtLine?.blockClass || ''
@@ -1367,7 +1497,7 @@ export function CodedTextView({
                     charStart: 0, charEnd: 0,
                     cpStart: 0, cpEnd: 0,
                     activeCodes: [],
-                    lineCharStart: 0, lineCharEnd: 0
+                    lineCharStart: 0, lineCharEnd: 0, lineCpStart: 0
                   } as any)
                 }
               }}

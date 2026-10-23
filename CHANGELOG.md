@@ -17,6 +17,7 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 - **Under the hood: a much newer Electron** (the framework Magnolia is built on), bringing the latest Chromium security and performance updates. **Magnolia now requires macOS 13 (Ventura) or later.**
 
 ### Fixed
+- **Long text documents open instantly.** Opening a large plain-text document could make Magnolia freeze — a book-length text never finished loading — and scrolling long documents was sluggish. Long documents now open straight away and scroll smoothly, and jumping to a result from Query Results lands on it.
 - **Word Frequencies counts each word once in grouped tables.** Subtotals, documents with several tags, and surveys split into respondents could count the same word more than once.
 - **Shift-click now selects a range of tags** in the Tags pane.
 - **More reliable text from PDFs.** When importing a PDF, Magnolia could fail to load the standard fonts and character maps some PDFs rely on (such as those for Chinese, Japanese and Korean text), which could leave text missing or garbled. These now load correctly.
