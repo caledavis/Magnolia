@@ -187,8 +187,24 @@ publish step.
    **"What's new"** in the release body. **These notes now appear inside the
    app** — Magnolia's update dialog renders the GitHub release body (markdown)
    when it prompts the user to update. So make them user-facing and tidy.
-5. **Publish** the draft. Until you do, auto-updaters can't see it.
-6. **Verify** — see "What gets uploaded" and the auto-update notes below.
+5. **Add the minimum macOS version to `latest-mac.yml`** (macOS releases only).
+   Magnolia needs **macOS 13 (Ventura) or later** — the minimum set by the
+   Electron version it's built on. electron-builder writes that into the app's
+   `Info.plist`, but **not** into `latest-mac.yml`. Without it, users on an
+   older macOS are offered the update, download it, and are left with an app
+   that won't open. With it, their updater skips the update and they stay on
+   their working version. So, before publishing:
+   ```sh
+   gh release download vX.Y.Z -p latest-mac.yml
+   echo "minimumSystemVersion: 13.0" >> latest-mac.yml
+   gh release upload vX.Y.Z latest-mac.yml --clobber
+   rm latest-mac.yml
+   ```
+   If a future Electron upgrade raises the minimum, change `13.0` to match
+   (check `LSMinimumSystemVersion` in
+   `dist/mac-arm64/Magnolia.app/Contents/Info.plist`).
+6. **Publish** the draft. Until you do, auto-updaters can't see it.
+7. **Verify** — see "What gets uploaded" and the auto-update notes below.
 
 ---
 
@@ -201,7 +217,7 @@ README's `…/releases/latest/download/…` links stay valid across versions.
 |---|---|---|
 | `Magnolia-mac-arm64.dmg` / `-x64.dmg` | macOS | Drag-to-Applications installers (Apple Silicon / Intel) |
 | `Magnolia-mac-arm64.zip` / `-x64.zip` | macOS | Auto-update payloads |
-| `latest-mac.yml` | macOS | Update manifest the app polls — **must** be present |
+| `latest-mac.yml` | macOS | Update manifest the app polls — **must** be present, with `minimumSystemVersion` added (step 5) |
 | `Magnolia-win-x64.exe` | Windows | NSIS installer |
 | `latest.yml` | Windows | Windows update manifest |
 | `Magnolia-linux-x86_64.AppImage` / `Magnolia-linux-amd64.deb` / `Magnolia-linux-x86_64.rpm` | Linux | Installers |

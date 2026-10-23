@@ -2,6 +2,26 @@
 
 All notable changes to Magnolia are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project follows [Semantic Versioning](https://semver.org/).
 
+## [1.9.0]
+
+### Added
+- **Framework Matrix.** A new analysis tool for framework analysis: a grid with documents as rows and codes as columns, where you write a summary of each code in each document. Drag in documents, tags, tag categories, folders, or survey respondents and questions to add rows, and codes to add columns. Click a cell to see its coded segments in Query Results and start writing. Tags, categories and folders become groups that keep up with later tagging changes, and if a document leaves a group after you've summarised it, its row stays (marked "No longer has this tag") so no writing is lost. Rows and columns can be reordered by dragging, the matrix exports to CSV, and it can be added to a Report. In Codes in Documents, **Open as Framework Matrix** starts one from the same codes and documents.
+- **Copy Result.** Right-click a result in the Query Results pane to copy it to the clipboard. Text results copy the matched passage; boxes on PDFs and images copy the region as an image.
+- **A manual page for every analysis tool,** with screenshots of each way of showing results.
+
+### Changed
+- **Clearer results toolbars.** In Codes in Documents, Results in Documents and Code Co-Occurrences, the view is now chosen from joined buttons — Table, Visual or Sankey, and Counts or Binary — with the current choice highlighted, set apart from actions like Export CSV. Word Frequencies' Bar Chart and Word Cloud buttons work the same way.
+- **Page numbers in Query Results.** Results from PDFs now show the page they're on instead of a character range, and other results no longer show a range at all.
+- **Fit more documents in the Document Browser.** Each document is now a single line: tags are shown as one small count beside the name, which you can click to see the document's tags, remove one, or edit them. The Tags section can be collapsed, and Magnolia remembers its size.
+- **Refreshed document icons.** The coloured icons now have a soft gradient fill and a fresher palette, and surveys have their own colour so they no longer look like text documents.
+- **Under the hood: a much newer Electron** (the framework Magnolia is built on), bringing the latest Chromium security and performance updates. **Magnolia now requires macOS 13 (Ventura) or later.**
+
+### Fixed
+- **Word Frequencies counts each word once in grouped tables.** Subtotals, documents with several tags, and surveys split into respondents could count the same word more than once.
+- **Shift-click now selects a range of tags** in the Tags pane.
+- **More reliable text from PDFs.** When importing a PDF, Magnolia could fail to load the standard fonts and character maps some PDFs rely on (such as those for Chinese, Japanese and Korean text), which could leave text missing or garbled. These now load correctly.
+- **Dropping files Magnolia can't import now tells you why,** instead of silently doing nothing.
+
 ## [1.8.3]
 
 ### Added
