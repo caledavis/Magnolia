@@ -22,10 +22,13 @@ import {
   buildSurveyAwareColumns,
   hasSurveyInScope,
   QuestionScopeBox,
-  type QuestionScopeRef
+  type QuestionScopeRef,
+  type AnalysisColumn
 } from './survey-grouping'
 import { useLiveAnalysisData } from './use-live-analysis-data'
+import { mergeRowEntries, type SummaryRowEntry, type FrameworkMatrixConfig } from './framework-matrix-model'
 import { SankeyView } from './SankeyView'
+import { SegmentedControl, type GridView } from './SegmentedControl'
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
 import { renameSavedAnalysis } from '../../utils/rename-saved-analysis'
 import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
@@ -73,6 +76,37 @@ function isCodeDrag(e: React.DragEvent): boolean {
     e.dataTransfer.types.includes('application/x-magnolia-codes')
 }
 
+/** Framework Matrix rows matching the grid's columns, in column order:
+ *  a tag, category or folder stays a group (its members nest under it),
+ *  each respondent of an expanded survey is a respondent row, and every
+ *  other document — including those under "Other" — is a document row.
+ *  Subtotal columns have no row of their own. When the document
+ *  selection leaves anything out, groups are limited to the selected
+ *  documents so the matrix covers exactly what the grid did. */
+function frameworkRowsForColumns(columns: AnalysisColumn[], data: AnalysisInitData, selectedSourceGuids: string[]): SummaryRowEntry[] {
+  const sourceName = (g: string) => data.sources.find((s) => s.guid === g)?.name
+  const limit = selectedSourceGuids.length < data.sources.length ? { sourceGuids: selectedSourceGuids } : {}
+  const rows: SummaryRowEntry[] = []
+  for (const col of columns) {
+    const parts = col.id.split(':')
+    if (col.respondentRef) {
+      rows.push({ kind: 'respondent', sourceGuid: col.respondentRef.sourceGuid, respondentId: col.respondentRef.id, name: col.label })
+    } else if (parts[0] === 'tag') {
+      rows.push({ kind: 'tag', tagGuid: parts[1], name: col.label, ...limit })
+    } else if (parts[0] === 'cat') {
+      rows.push({ kind: 'category', categoryGuid: parts[1], name: data.categories.find((c) => c.guid === parts[1])?.name, ...limit })
+    } else if (parts[0] === 'folder') {
+      rows.push({ kind: 'folder', folderGuid: parts[1], name: (data.folders || []).find((f) => f.guid === parts[1])?.name, ...limit })
+    } else if (col.id === '__other') {
+      for (const g of col.sourceGuids) rows.push({ kind: 'doc', sourceGuid: g, name: sourceName(g) })
+    } else if (!col.isSubtotal && col.sourceGuids.length === 1) {
+      rows.push({ kind: 'doc', sourceGuid: col.sourceGuids[0], name: sourceName(col.sourceGuids[0]) })
+    }
+  }
+  // A category or folder spans several columns; keep its first row only.
+  return mergeRowEntries([], rows)
+}
+
 export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) {
   const [docFilter, setDocFilter] = useState<DocumentFilterState>(savedConfig?.docFilter ?? emptyDocumentFilter())
   const [codeGuids, setCodeGuids] = useState<string[]>(savedConfig?.codeGuids ?? [])
@@ -90,9 +124,10 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
     // questions (surveys with no chosen question keep all of theirs).
     return questionScope.length > 0 ? applySurveyCellScope(base, { questionScope }) : base
   }, [propData, live, docFilter, questionScope])
-  const [visualMode, setVisualMode] = useState(false)
+  const [view, setView] = useState<GridView>('table')
+  const visualMode = view === 'visual'
+  const sankeyMode = view === 'sankey'
   const [binaryMode, setBinaryMode] = useState(false)
-  const [sankeyMode, setSankeyMode] = useState(false)
   const [docSectionOpen, setDocSectionOpen] = useState(false)
   const [dropOver, setDropOver] = useState(false)
   const [tagDropOver, setTagDropOver] = useState(false)
@@ -361,6 +396,16 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
     [columns]
   )
 
+  const handleOpenAsFrameworkMatrix = useCallback(() => {
+    const config: FrameworkMatrixConfig = {
+      rows: frameworkRowsForColumns(columns, data, filteredSourceGuids),
+      codeGuids,
+      summaries: {},
+      collapsed: []
+    }
+    window.api.sendAnalysisAction('open-framework-matrix', config)
+  }, [columns, data, codeGuids, filteredSourceGuids])
+
   const handleTagDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setTagDropOver(false)
@@ -537,19 +582,34 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
           onDrop={handleDrop}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, position: 'relative', zIndex: 1 }}>
-            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Results</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)', marginRight: 4 }}>Results</span>
+              <SegmentedControl
+                label="View"
+                value={view}
+                onChange={setView}
+                options={[
+                  { value: 'table', label: 'Table', title: 'Show the grid as numbers.' },
+                  { value: 'visual', label: 'Visual', title: 'Show each cell as a box sized and shaded by its value.' },
+                  { value: 'sankey', label: 'Sankey', title: 'Show the grid as a Sankey diagram of codes flowing into documents.' }
+                ]}
+              />
+              <SegmentedControl
+                label="Values"
+                value={binaryMode ? 'binary' : 'counts'}
+                onChange={(v) => setBinaryMode(v === 'binary')}
+                options={[
+                  { value: 'counts', label: 'Counts', title: 'Show how many coded segments each cell holds.' },
+                  { value: 'binary', label: 'Binary', title: 'Show each cell as 1 (code present) or 0 (absent); totals count the cells.' }
+                ]}
+              />
+            </div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setVisualMode(!visualMode)} disabled={sankeyMode}>
-                {visualMode ? 'Numeric' : 'Visual'}
-              </button>
-              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setBinaryMode(!binaryMode)} title="Show each cell as 1 (code present) or 0 (absent); totals count the cells.">
-                {binaryMode ? 'Counts' : 'Binary'}
-              </button>
-              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setSankeyMode(!sankeyMode)} title="Show the grid as a Sankey diagram of codes flowing into documents.">
-                {sankeyMode ? 'Table' : 'Sankey'}
-              </button>
               <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportCsv} disabled={codeGuids.length === 0}>
                 Export CSV
+              </button>
+              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleOpenAsFrameworkMatrix} disabled={codeGuids.length === 0} title="Open these codes and documents in a new Framework Matrix, to summarise each code in each document.">
+                Open as Framework Matrix
               </button>
             </div>
           </div>
@@ -693,7 +753,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                                 (text vs square). Without this, baseline
                                 alignment of the inline text vs the block
                                 square caused a 1–2 px row-height jump on
-                                Visual ↔ Numeric toggle. */}
+                                Table ↔ Visual switch. */}
                             <div style={{ height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               {visualMode ? (
                                 <div style={{ width: boxSize, height: boxSize, background: boxColor, borderRadius: 2 }} title={String(val)} />

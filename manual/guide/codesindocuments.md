@@ -40,13 +40,15 @@ Each cell shows how many selections in that document (or group of documents) are
      <figcaption>The results table.</figcaption>
 </figure>
 
-You can change how the results are displayed using the buttons above the table:
+You can change how the results are displayed using the buttons above the table. The first set of buttons chooses how the results are shown, and the second chooses what each cell counts. The highlighted buttons show the current choice.
 
 | Button | Output |
 | --- | --- |
-| `Visual` | Shows each cell as a coloured square, sized and shaded by its count. Click `Numeric` to return to numbers. |
-| `Binary` | Shows `1` if the code appears in that document (or group of documents) and `0` if it does not. The totals then count how many documents (or groups) contain the code, rather than how many selections. Click `Counts` to return to counts. |
-| `Sankey` | Shows the table as a Sankey diagram, with codes flowing into documents. Click `Table` to return to the table. |
+| `Table` | Shows the results as numbers. This is the default. |
+| `Visual` | Shows each cell as a coloured square, sized and shaded by its count. |
+| `Sankey` | Shows the table as a Sankey diagram, with codes flowing into documents. |
+| `Counts` | Shows how many selections are coded with that code in each cell. This is the default. |
+| `Binary` | Shows `1` if the code appears in that document (or group of documents) and `0` if it does not. The totals then count how many documents (or groups) contain the code, rather than how many selections. You can use it with `Table`, `Visual` or `Sankey`. |
 
 <figure>
      <img src="./images/CodesInDocumentsVisual.png" alt="The results in Visual view.">
@@ -70,6 +72,16 @@ Binary is useful when one long document would otherwise dominate your results. I
 ## Exploring the results
 
 Click any cell with a count above zero to see its selections in the Query Results pane. Clicking a `Total` shows the selections for that whole row or column.
+
+## Opening as a Framework Matrix
+
+Once you can see where your codes appear, you may want to write a summary of what each code looks like in each document. Click `Open as Framework Matrix` to open a new [Framework Matrix](/guide/frameworkmatrix) with the same codes as columns and the same documents as rows.
+
+- Tags, tag categories and folders you have grouped by become groups in the matrix, with their documents nested beneath them.
+- Documents that are not in any group each get their own row.
+- If you have chosen documents in `Select Documents`, the matrix includes only those documents. Its groups then stay limited to those documents, so a document you tag later is not added to them.
+
+The new matrix is not saved until you click `Save Analysis` in it.
 
 ## Saving and exporting
 

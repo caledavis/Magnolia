@@ -19,6 +19,7 @@ import {
 } from './survey-grouping'
 import { useLiveAnalysisData } from './use-live-analysis-data'
 import { SankeyView } from './SankeyView'
+import { SegmentedControl, type GridView } from './SegmentedControl'
 import { useCodeColourPresets } from '../../utils/code-colours'
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
 import { renameSavedAnalysis } from '../../utils/rename-saved-analysis'
@@ -98,9 +99,10 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     }
     return []
   })
-  const [visualMode, setVisualMode] = useState(false)
+  const [view, setView] = useState<GridView>('table')
+  const visualMode = view === 'visual'
+  const sankeyMode = view === 'sankey'
   const [binaryMode, setBinaryMode] = useState(false)
-  const [sankeyMode, setSankeyMode] = useState(false)
   const [dropOver, setDropOver] = useState(false)
   const [tagDropOver, setTagDropOver] = useState(false)
   const [analysisGuid] = useState(savedConfig?.guid ?? generateGuid())
@@ -617,17 +619,29 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
           onDrop={handleDrop}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, position: 'relative', zIndex: 1 }}>
-            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Results</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)', marginRight: 4 }}>Results</span>
+              <SegmentedControl
+                label="View"
+                value={view}
+                onChange={setView}
+                options={[
+                  { value: 'table', label: 'Table', title: 'Show the grid as numbers.' },
+                  { value: 'visual', label: 'Visual', title: 'Show each cell as a box sized and shaded by its value.' },
+                  { value: 'sankey', label: 'Sankey', title: 'Show the grid as a Sankey diagram of query results flowing into documents.' }
+                ]}
+              />
+              <SegmentedControl
+                label="Values"
+                value={binaryMode ? 'binary' : 'counts'}
+                onChange={(v) => setBinaryMode(v === 'binary')}
+                options={[
+                  { value: 'counts', label: 'Counts', title: 'Show how many coded segments each cell holds.' },
+                  { value: 'binary', label: 'Binary', title: 'Show each cell as 1 (query matched) or 0 (no match); totals count the cells.' }
+                ]}
+              />
+            </div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setVisualMode(!visualMode)} disabled={sankeyMode}>
-                {visualMode ? 'Numeric' : 'Visual'}
-              </button>
-              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setBinaryMode(!binaryMode)} title="Show each cell as 1 (query matched) or 0 (no match); totals count the cells.">
-                {binaryMode ? 'Counts' : 'Binary'}
-              </button>
-              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setSankeyMode(!sankeyMode)} title="Show the grid as a Sankey diagram of query results flowing into documents.">
-                {sankeyMode ? 'Table' : 'Sankey'}
-              </button>
               <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportCsv} disabled={queryGuids.length === 0}>
                 Export CSV
               </button>

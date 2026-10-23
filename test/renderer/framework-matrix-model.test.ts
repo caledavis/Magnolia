@@ -114,6 +114,27 @@ describe('framework matrix rows', () => {
     expect(liveLeafKeys(makeData(), { kind: 'tag', tagGuid: 't2' })).toEqual(['doc:d2', 'resp:s1:r1'])
   })
 
+  it('limits a group to its documents when it has a document limit', () => {
+    const data = makeData()
+    const rows = buildDisplayRows(data, config([
+      { kind: 'tag', tagGuid: 't2', sourceGuids: ['s1'] },
+      { kind: 'category', categoryGuid: 'cat1', sourceGuids: ['d1'] },
+      { kind: 'folder', folderGuid: 'f1', sourceGuids: ['d3'] }
+    ]))
+    expect(rows.map((r) => [r.depth, r.key])).toEqual([
+      [0, 'tag:t2'],
+      [1, 'resp:s1:r1'],
+      [0, 'category:cat1'],
+      [1, 'tag:t1'],
+      [2, 'doc:d1'],
+      [1, 'tag:t2'],
+      [0, 'folder:f1'],
+      [1, 'doc:d3']
+    ])
+    expect(countInScope(data, rows[2].scope, CODE)).toBe(2)
+    expect(liveLeafKeys(data, { kind: 'tag', tagGuid: 't1', sourceGuids: ['d2'] })).toEqual(['doc:d2'])
+  })
+
   it('dedups dropped entries', () => {
     const prev: SummaryRowEntry[] = [{ kind: 'doc', sourceGuid: 'd1' }]
     const next = mergeRowEntries(prev, [{ kind: 'doc', sourceGuid: 'd1' }, { kind: 'tag', tagGuid: 't1' }])

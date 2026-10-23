@@ -37,13 +37,15 @@ Each cell shows how many results that query finds in that document (or group of 
      <figcaption>The results table, with three saved queries and the documents grouped by the Student type tag category.</figcaption>
 </figure>
 
-You can change how the results are displayed using the buttons above the table:
+You can change how the results are displayed using the buttons above the table. The first set of buttons chooses how the results are shown, and the second chooses what each cell counts. The highlighted buttons show the current choice.
 
 | Button | Output |
 | --- | --- |
-| `Visual` | Shows each cell as a coloured square, sized and shaded by its count. Click `Numeric` to return to numbers. |
-| `Binary` | Shows `1` if the query finds anything in that document and `0` if it does not. Click `Counts` to return to counts. |
-| `Sankey` | Shows the table as a Sankey diagram, with query results flowing into documents. Click `Table` to return to the table. |
+| `Table` | Shows the results as numbers. This is the default. |
+| `Visual` | Shows each cell as a coloured square, sized and shaded by its count. |
+| `Sankey` | Shows the table as a Sankey diagram, with query results flowing into documents. |
+| `Counts` | Shows how many results each query finds in each cell. This is the default. |
+| `Binary` | Shows `1` if the query finds anything in that document and `0` if it does not. You can use it with `Table`, `Visual` or `Sankey`. |
 
 <figure>
      <img src="./images/ResultsInDocumentsVisual.png" alt="The results in Visual view.">

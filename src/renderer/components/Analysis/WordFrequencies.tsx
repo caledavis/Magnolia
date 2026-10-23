@@ -33,6 +33,7 @@ import { renameSavedAnalysis } from '../../utils/rename-saved-analysis'
 import { useThemeSvgColors, SVG_FONT_FAMILY } from '../../utils/use-theme-svg-colors'
 import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
+import { SegmentedControl } from './SegmentedControl'
 
 interface Props {
   data: AnalysisInitData
@@ -640,10 +641,15 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
           {/* Visualization */}
           <div className="analysis-section" style={{ flex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, gap: 6 }}>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <button className={vizMode === 'bar' ? '' : 'secondary'} style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setVizMode('bar')}>Bar Chart</button>
-                <button className={vizMode === 'cloud' ? '' : 'secondary'} style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setVizMode('cloud')}>Word Cloud</button>
-              </div>
+              <SegmentedControl
+                label="View"
+                value={vizMode}
+                onChange={setVizMode}
+                options={[
+                  { value: 'bar', label: 'Bar Chart' },
+                  { value: 'cloud', label: 'Word Cloud' }
+                ]}
+              />
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 <label style={{ fontSize: 10, color: 'var(--text-muted)' }}>Show:
                   <input type="number" min={5} max={200} value={wordCount} onChange={(e) => setWordCount(Number(e.target.value))}

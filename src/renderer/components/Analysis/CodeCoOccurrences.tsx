@@ -12,6 +12,7 @@ import { QuestionScopeBox, hasSurveyInScope, type QuestionScopeRef } from './sur
 import { generateGuid } from '../../utils/guid'
 import { useLiveAnalysisData } from './use-live-analysis-data'
 import { SankeyView } from './SankeyView'
+import { SegmentedControl, type GridView } from './SegmentedControl'
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
 import { renameSavedAnalysis } from '../../utils/rename-saved-analysis'
 import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
@@ -104,9 +105,10 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
     const base = applySurveyCellScope({ ...propData, ...live }, docFilter)
     return questionScope.length > 0 ? applySurveyCellScope(base, { questionScope }) : base
   }, [propData, live, docFilter, questionScope])
-  const [visualMode, setVisualMode] = useState(false)
+  const [view, setView] = useState<GridView>('table')
+  const visualMode = view === 'visual'
+  const sankeyMode = view === 'sankey'
   const [binaryMode, setBinaryMode] = useState(false)
-  const [sankeyMode, setSankeyMode] = useState(false)
   const [docSectionOpen, setDocSectionOpen] = useState(false)
   const [analysisGuid] = useState(savedConfig?.guid ?? generateGuid())
   const [analysisName, setAnalysisName] = useState(savedConfig?.name ?? '')
@@ -389,17 +391,29 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
           onDrop={handleGridDrop}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Co-Occurrence Grid</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)', marginRight: 4 }}>Co-Occurrence Grid</span>
+              <SegmentedControl
+                label="View"
+                value={view}
+                onChange={setView}
+                options={[
+                  { value: 'table', label: 'Table', title: 'Show the grid as numbers.' },
+                  { value: 'visual', label: 'Visual', title: 'Show each cell as a box sized and shaded by its value.' },
+                  { value: 'sankey', label: 'Sankey', title: 'Show the grid as a Sankey diagram linking row codes to the column codes they co-occur with.' }
+                ]}
+              />
+              <SegmentedControl
+                label="Values"
+                value={binaryMode ? 'binary' : 'counts'}
+                onChange={(v) => setBinaryMode(v === 'binary')}
+                options={[
+                  { value: 'counts', label: 'Counts', title: 'Show how many coded segments each cell holds.' },
+                  { value: 'binary', label: 'Binary', title: "Show each cell as 1 (codes co-occur) or 0 (they don't); totals count the cells." }
+                ]}
+              />
+            </div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setVisualMode(!visualMode)} disabled={sankeyMode}>
-                {visualMode ? 'Numeric' : 'Visual'}
-              </button>
-              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setBinaryMode(!binaryMode)} title="Show each cell as 1 (codes co-occur) or 0 (they don't); totals count the cells.">
-                {binaryMode ? 'Counts' : 'Binary'}
-              </button>
-              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setSankeyMode(!sankeyMode)} title="Show the grid as a Sankey diagram linking row codes to the column codes they co-occur with.">
-                {sankeyMode ? 'Table' : 'Sankey'}
-              </button>
               <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportCsv} disabled={!hasAnyCodes}>
                 Export CSV
               </button>

@@ -13,6 +13,8 @@ The Framework Matrix allows you to build a table with documents as the rows and 
 
 2. Choose `Framework Matrix`.
 
+You can also start a matrix from the [Codes in Documents](/guide/codesindocuments#opening-as-a-framework-matrix) tool by clicking `Open as Framework Matrix`. The matrix opens with the same codes and documents already added.
+
 ## Adding rows
 
 **To add rows to the matrix:**

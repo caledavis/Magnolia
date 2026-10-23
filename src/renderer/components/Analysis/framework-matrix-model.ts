@@ -18,14 +18,17 @@
  */
 import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
 
-/** One thing the user dropped into the rows area. */
+/** One thing the user dropped into the rows area. A group's
+ *  `sourceGuids`, when set, limits it to those documents — set when the
+ *  matrix is opened from a Codes in Documents grid whose document
+ *  selection left some of the group's members out. */
 export type SummaryRowEntry =
   | { kind: 'doc'; sourceGuid: string; name?: string }
   | { kind: 'respondent'; sourceGuid: string; respondentId: string; name?: string }
   | { kind: 'question'; sourceGuid: string; questionId: string; name?: string }
-  | { kind: 'tag'; tagGuid: string; name?: string; kept?: string[] }
-  | { kind: 'category'; categoryGuid: string; name?: string; kept?: string[] }
-  | { kind: 'folder'; folderGuid: string; name?: string; kept?: string[] }
+  | { kind: 'tag'; tagGuid: string; name?: string; kept?: string[]; sourceGuids?: string[] }
+  | { kind: 'category'; categoryGuid: string; name?: string; kept?: string[]; sourceGuids?: string[] }
+  | { kind: 'folder'; folderGuid: string; name?: string; kept?: string[]; sourceGuids?: string[] }
 
 export interface FrameworkMatrixConfig {
   rows: SummaryRowEntry[]
@@ -253,6 +256,16 @@ function folderLeaves(data: SummaryData, folderGuid: string): Leaf[] {
     .map((s) => ({ key: docKey(s.guid), label: s.name, icon: 'doc' as const, scope: docScope(s.guid) }))
 }
 
+/** A group's leaves, narrowed to its document limit if it has one. */
+function limitLeaves(leaves: Leaf[], sourceGuids: string[] | undefined): Leaf[] {
+  if (!sourceGuids) return leaves
+  const allowed = new Set(sourceGuids)
+  return leaves.filter((l) => {
+    const sg = l.scope.docs[0] ?? l.scope.respondents[0]?.sourceGuid ?? l.scope.questions[0]?.sourceGuid
+    return sg !== undefined && allowed.has(sg)
+  })
+}
+
 /** Union several scopes, keeping the invariant that a survey covered
  *  whole never also lists individual respondents or questions. */
 export function unionScopes(scopes: RowScope[], tagGuids?: string[]): RowScope {
@@ -279,13 +292,13 @@ export function liveLeafKeys(data: SummaryData, entry: SummaryRowEntry): string[
   const sourceNames = new Map(data.sources.map((s) => [s.guid, s.name]))
   switch (entry.kind) {
     case 'tag':
-      return tagLeaves(data, sourceNames, entry.tagGuid).map((l) => l.key)
+      return limitLeaves(tagLeaves(data, sourceNames, entry.tagGuid), entry.sourceGuids).map((l) => l.key)
     case 'category':
       return data.tags
         .filter((t) => t.categoryGuid === entry.categoryGuid)
-        .flatMap((t) => tagLeaves(data, sourceNames, t.guid).map((l) => l.key))
+        .flatMap((t) => limitLeaves(tagLeaves(data, sourceNames, t.guid), entry.sourceGuids).map((l) => l.key))
     case 'folder':
-      return folderLeaves(data, entry.folderGuid).map((l) => l.key)
+      return limitLeaves(folderLeaves(data, entry.folderGuid), entry.sourceGuids).map((l) => l.key)
     default:
       return []
   }
@@ -342,7 +355,7 @@ export function buildDisplayRows(
       }
       case 'tag': {
         const tag = data.tags.find((t) => t.guid === entry.tagGuid)
-        const leaves = tagLeaves(data, sourceNames, entry.tagGuid)
+        const leaves = limitLeaves(tagLeaves(data, sourceNames, entry.tagGuid), entry.sourceGuids)
         const orphans = orphansFor(entry, new Set(leaves.map((l) => l.key)))
         out.push({
           path, key, depth: 0, entryIndex,
@@ -358,7 +371,7 @@ export function buildDisplayRows(
       case 'category': {
         const cat = data.categories.find((c) => c.guid === entry.categoryGuid)
         const childTags = data.tags.filter((t) => t.categoryGuid === entry.categoryGuid)
-        const perTag = childTags.map((t) => ({ tag: t, leaves: tagLeaves(data, sourceNames, t.guid) }))
+        const perTag = childTags.map((t) => ({ tag: t, leaves: limitLeaves(tagLeaves(data, sourceNames, t.guid), entry.sourceGuids) }))
         const allLeaves = perTag.flatMap((p) => p.leaves)
         const orphans = orphansFor(entry, new Set(allLeaves.map((l) => l.key)))
         out.push({
@@ -382,7 +395,7 @@ export function buildDisplayRows(
       }
       case 'folder': {
         const folder = (data.folders || []).find((f) => f.guid === entry.folderGuid)
-        const leaves = folderLeaves(data, entry.folderGuid)
+        const leaves = limitLeaves(folderLeaves(data, entry.folderGuid), entry.sourceGuids)
         const orphans = orphansFor(entry, new Set(leaves.map((l) => l.key)))
         out.push({
           path, key, depth: 0, entryIndex,

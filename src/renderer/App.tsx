@@ -424,7 +424,7 @@ function App() {
     window.api.openLogbookWindow(initData)
   }, [logbookStore.entries])
 
-  const openAnalysis = useCallback((toolType: AnalysisToolType) => {
+  const openAnalysis = useCallback((toolType: AnalysisToolType, config?: any) => {
     // Relationship Maps open as a tab in the Document Viewer instead of a
     // separate window. The user pops it out from there if they want it
     // floating.
@@ -446,7 +446,7 @@ function App() {
     ats.add(tabId, {
       toolType: toolType as any,
       title,
-      config: undefined,
+      config,
       poppedOut: false
     })
     ds.openToolTab(tabId)
@@ -1905,6 +1905,11 @@ function App() {
           codeCondition
         }
         useQueryStore.getState().setComplexQuery(query)
+      } else if (action === 'open-framework-matrix') {
+        // Codes in Documents → "Open as Framework Matrix": a fresh,
+        // unsaved matrix seeded with the grid's codes and documents.
+        const [config] = args as [any]
+        openAnalysis('framework-matrix', config)
       } else if (action === 'run-code-in-tag-query') {
         // Build a query for a code filtered by tag (include or exclude)
         const [codeGuid, tagGuid, excludeTagGuids, scope] = args as [string, string | null, string[] | undefined, SurveyCellScopeArgs | undefined]
@@ -2012,7 +2017,7 @@ function App() {
       }
     })
     return unsub
-  }, [openSavedAnalysis])
+  }, [openSavedAnalysis, openAnalysis])
 
   // Listen for open-recent-project from welcome screen
   useEffect(() => {

@@ -40,13 +40,15 @@ Each cell shows how many times the two codes occur together. The `Total` column 
      <figcaption>The co-occurrence table, with the same five codes as both rows and columns.</figcaption>
 </figure>
 
-You can change how the results are displayed using the buttons above the table:
+You can change how the results are displayed using the buttons above the table. The first set of buttons chooses how the results are shown, and the second chooses what each cell counts. The highlighted buttons show the current choice.
 
 | Button | Output |
 | --- | --- |
-| `Visual` | Shows each cell as a coloured square, sized and shaded by its count. Click `Numeric` to return to numbers. |
-| `Binary` | Shows `1` if the two codes ever occur together and `0` if they do not. Click `Counts` to return to counts. |
-| `Sankey` | Shows the table as a Sankey diagram, linking each row's code to the codes it occurs with. Click `Table` to return to the table. |
+| `Table` | Shows the results as numbers. This is the default. |
+| `Visual` | Shows each cell as a coloured square, sized and shaded by its count. |
+| `Sankey` | Shows the table as a Sankey diagram, linking each row's code to the codes it occurs with. |
+| `Counts` | Shows how many times the two codes occur together. This is the default. |
+| `Binary` | Shows `1` if the two codes ever occur together and `0` if they do not. You can use it with `Table`, `Visual` or `Sankey`. |
 
 <figure>
      <img src="./images/CodeCoOccurrencesVisual.png" alt="The co-occurrences in Visual view.">

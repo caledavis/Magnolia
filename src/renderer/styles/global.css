@@ -1252,6 +1252,35 @@ html:not([data-theme]) .app-toolbar {
   color: var(--btn-text);
 }
 
+/* Segmented view switch in the analysis tools' results toolbars
+ * (Table / Visual / Sankey, Counts / Binary). Same joined look as the
+ * zoom strip, sized to sit beside the toolbars' small action buttons. */
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg-panel);
+  flex-shrink: 0;
+}
+.segmented > button {
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--border-color);
+  border-radius: 0;
+  padding: 3px 9px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.segmented > button:first-child { border-left: none; }
+.segmented > button:hover:not(.active) { background: var(--bg-tertiary); color: var(--text-primary); }
+.segmented > button.active {
+  background: var(--accent);
+  color: var(--btn-text);
+  cursor: default;
+}
+
 /* Each panel is a white, rounded, gently-shadowed card with a small
  * gap on every side so the cream canvas peeks through. The explicit
  * width/height keep the card + its 6px margin within the parent's box
