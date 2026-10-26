@@ -4,8 +4,6 @@
 
 # Magnolia: Free and powerful qualitative data analysis software
 
-Use Magnolia at your own risk. Coded by Claude.
-
 **Official website:** [www.caledavis.eu/magnolia.html](https://www.caledavis.eu/magnolia.html)
 
 **Download the latest version:**
@@ -21,7 +19,7 @@ Use Magnolia at your own risk. Coded by Claude.
 Magnolia is free and open-source qualitative data analysis software released under the European Union Public Licence (EUPL).
 
 <p align="center">
-  <img src="screenshot.png" alt="Magnolia" width="750">
+  <img src="screenshot-interface.webp" alt="Magnolia" width="750">
 </p>
 
 It is designed to be powerful, while also intuitive.
@@ -42,29 +40,29 @@ This ensures that Magnolia remains free for everyone, and disincentivises compan
 
 ## Powerful coding, powerful queries
 
+<p align="center">
+  <img src="screenshot-querybuilder.webp" alt="Magnolia" width="750">
+</p>
+
 Magnolia's intuitive, graphical query builder lets you build powerful queries to explore your data.
 
 You can save your queries for later, and see the results update in real-time—even while coding data.
 
 You can selectively apply queries to specific documents, types of documents, documents in specific folders, and/or documents with specific tags. 
 
-## Memos and quotes
-
-Magnolia allows you to attach memos to practically everything: the project itself, documents, parts of documents, queries, saved analyses, and within relationship maps. So if you have an idea, just note it down!
-
-Magnolia's quote feature also allows you to easily save quotes for later, so you never need to worry about forgetting something interesting. Quotes can be text or even images!
-
 ## A rich suite of analysis tools
 
-Magnolia's rich suite of analytical tools allow you to interrogate your data. You can selectively apply these tools to specific documents, types of documents, documents in specific folders, and/or documents with specific tags.  
-
 <p align="center">
-  <img src="screenshot3.png" alt="Magnolia" width="750">
+  <img src="screenshot-codecooccurrences.webp" alt="Magnolia" width="750">
 </p>
+
+Magnolia's rich suite of analytical tools allow you to interrogate your data. You can selectively apply these tools to specific documents, types of documents, documents in specific folders, and/or documents with specific tags.  
 
 - **Relationships:** Map anything and everything. Just drag it to the canvas! Everything on your canvas is interactive; just double-click and you will be taken there. You can even export your map as an SVG file.
 
 - **Codes in Documents:** Easily see which codes exist in which documents.
+
+- **Framework Matrix:** Summarise coded information in a Framework Matrix, 
 
 - **Results in Documents:** Want to see how different queries produce different results? Easily see how many results different queries produce for each document in your project. 
 
@@ -76,6 +74,8 @@ Magnolia's rich suite of analytical tools allow you to interrogate your data. Yo
 
 - **Word Frequencies:** See which words appear how often. See the data displayed as a chart or a word cloud.
 
+- **Reports:** Combine analysis results, documents, queries, and more into a PDF report.
+
 ## Easily transcribe audio and video
 
 Transcribing audio and video makes it much easier to code.
@@ -83,6 +83,10 @@ Transcribing audio and video makes it much easier to code.
 Magnolia lets you transcribe audio and video. Naturally, you can do this with a foot pedal. Simply map keys to your foot pedal's buttons and then tell Magnolia that those keys are used to play, fast-forward, and rewind. Easy! There's no need for separate software.
 
 Magnolia does not include AI transcription.
+
+<p align="center">
+  <img src="screenshot-transcript.webp" alt="Magnolia" width="750">
+</p>
 
 ## Intuitive video coding
 
@@ -93,7 +97,7 @@ This means that when you code a transcript, your codes also appear in the video 
 ## Support for survey data
 
 <p align="center">
-  <img src="screenshot2.png" alt="Magnolia" width="750">
+  <img src="screenshot-surveys.webp" alt="Magnolia" width="750">
 </p>
 
 Other QDA software breaks your survey responses into individual documents. Magnolia doesn't!
