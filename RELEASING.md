@@ -193,16 +193,23 @@ publish step.
    `Info.plist`, but **not** into `latest-mac.yml`. Without it, users on an
    older macOS are offered the update, download it, and are left with an app
    that won't open. With it, their updater skips the update and they stay on
-   their working version. So, before publishing:
+   their working version.
+
+   **The value is a Darwin (kernel) version, not a macOS version**:
+   electron-updater compares it with `os.release()`, which on a Mac returns
+   the Darwin version (macOS 12 = Darwin 21, macOS 13 = Darwin 22). Quote it
+   so it stays a string — an unquoted number makes the check fail, and the
+   updater then ignores it. So, before publishing:
    ```sh
    gh release download vX.Y.Z -p latest-mac.yml
-   echo "minimumSystemVersion: 13.0" >> latest-mac.yml
+   echo "minimumSystemVersion: '22.0.0'" >> latest-mac.yml
    gh release upload vX.Y.Z latest-mac.yml --clobber
    rm latest-mac.yml
    ```
-   If a future Electron upgrade raises the minimum, change `13.0` to match
-   (check `LSMinimumSystemVersion` in
-   `dist/mac-arm64/Magnolia.app/Contents/Info.plist`).
+   If a future Electron upgrade raises the minimum, change `'22.0.0'` to match:
+   check `LSMinimumSystemVersion` in
+   `dist/mac-arm64/Magnolia.app/Contents/Info.plist` and add 9 to the macOS
+   major version (macOS 14 → `'23.0.0'`).
 6. **Publish** the draft. Until you do, auto-updaters can't see it.
 7. **Verify** — see "What gets uploaded" and the auto-update notes below.
 
