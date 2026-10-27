@@ -427,7 +427,7 @@ export function registerIpcHandlers(): void {
         // embeds the bytes into the .qdpx; the viewer fetches them via the
         // handle either way. For TIFF / HEIC we decode to PNG first so the
         // rest of the pipeline only ever sees natively-renderable formats.
-        let finalBuffer = buffer
+        let finalBuffer: Buffer = buffer
         let finalExt = ext
         let finalMime = IMAGE_MIME[ext] || 'application/octet-stream'
         if (DECODED_IMAGE_EXTENSIONS.has(ext)) {

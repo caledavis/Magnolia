@@ -1522,7 +1522,7 @@ export function VideoTranscriptView({
                     <span className="color-pip" style={{ background: code.color || '#888' }} />
                     <span style={{ flex: 1 }}>{code.name}</span>
                     <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 12 }}>
-                      {modKey(code.hotkey)}
+                      {modKey(code.hotkey!)}
                     </span>
                   </div>
                 ))}

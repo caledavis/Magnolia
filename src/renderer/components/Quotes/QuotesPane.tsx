@@ -56,7 +56,9 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
    *  matches keeps every quote (the name match is the "find"); otherwise
    *  only the individual matching quotes survive, and the group header
    *  renders dimmed since it's shown purely for context. */
-  const filteredGroups = useMemo(() => {
+  // nameMatch is only set while searching (it dims groups shown just
+  // for their matching quotes).
+  const filteredGroups = useMemo((): ((typeof groups)[number] & { nameMatch?: boolean })[] => {
     if (!trimmedSearch) return groups
     const q = trimmedSearch.toLowerCase()
     const result: { sourceName: string; sourceGuid: string; quotes: typeof quotes; nameMatch: boolean }[] = []

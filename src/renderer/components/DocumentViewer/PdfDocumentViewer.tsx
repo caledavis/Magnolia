@@ -928,7 +928,7 @@ export function PdfDocumentViewer({ source, content }: Props) {
                 <div key={code.guid} className="context-menu-item" onClick={() => handleApplyCode(code.guid)}>
                   <span className="color-pip" style={{ background: code.color || '#888' }} />
                   <span style={{ flex: 1 }}>{code.name}</span>
-                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginLeft: 12 }}>{modKey(code.hotkey)}</span>
+                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginLeft: 12 }}>{modKey(code.hotkey!)}</span>
                 </div>
               ))}
               {hotkeyCodes.length === 0 && (
