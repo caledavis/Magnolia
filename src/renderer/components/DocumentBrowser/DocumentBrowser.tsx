@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { useDocumentStore, surveyEntityKey, parseSurveyEntityKey, type DocumentFolder } from '../../stores/document-store'
 import { useTagStore } from '../../stores/tag-store'
-import { Icon, faFolder, faFolderPlus, faFile, faFileAlt, faTag, faTags, faChevronDown, faChevronRight, faXmark, faUpRightFromSquare, faDownLeftAndUpRightToCenter, faHeadphones, faVideo, faImage, faPlus, faMagnifyingGlass, SURVEY_ICON, SURVEY_RESPONDENT_ICON, SURVEY_QUESTION_ICON } from '../Icon'
+import { Icon, faFolder, faFolderPlus, faFile, faFileAlt, faTag, faTags, faChevronDown, faChevronRight, faXmark, faUpRightFromSquare, faDownLeftAndUpRightToCenter, faHeadphones, faVideo, faImage, faPlus, faMagnifyingGlass, faNotebookPen, faStickyNote, SURVEY_ICON, SURVEY_RESPONDENT_ICON, SURVEY_QUESTION_ICON } from '../Icon'
 import type { TextSource, TagCategory, TagCategoryType, SurveyFormatData } from '../../models/types'
 import { toolColors } from '../../utils/tool-colors'
 import { sourceTypeFromExtension, sourceTypeFromFilename } from '../../utils/format-registry'
@@ -13,6 +13,7 @@ import { useSurveyViewStore } from '../../stores/survey-view-store'
 import { buildCellText } from '../../utils/survey/cell-text'
 import { RESPONDENTS_GROUP_MIME } from '../Analysis/group-by'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
+import { isNotebook, noteData, sortNotes } from '../../utils/notes'
 
 // Prefer the source's declared type (set on import for audio/video/image/
 // pdf). Only fall back to sniffing the filename for sources whose type is
@@ -29,6 +30,7 @@ function iconForSource(source: { name: string; sourceType?: string }) {
   if (st === 'audio') return faHeadphones
   if (st === 'video') return faVideo
   if (st === 'image') return faImage
+  if (st === 'note') return faStickyNote
   return faFile
 }
 
@@ -112,7 +114,8 @@ function FolderItem({
   onContextMenuSurveyChild,
   selectedSurveyEntities,
   onToggleSurveyEntity,
-  searchQuery
+  searchQuery,
+  onNewNote
 
 }: {
   folder: DocumentFolder
@@ -156,6 +159,8 @@ function FolderItem({
    *  ancestor context for a match further down (dimmed), and to force
    *  the tree open so nested matches aren't hidden by a manual collapse. */
   searchQuery: string
+  /** Create a note in this notebook. */
+  onNewNote: (notebookGuid: string) => void
 
 }) {
   const tint = useIconTint()
@@ -168,8 +173,17 @@ function FolderItem({
   const moveSourceToFolder = useDocumentStore((s) => s.moveSourceToFolder)
   const moveFolderToFolder = useDocumentStore((s) => s.moveFolderToFolder)
 
+  const notebook = isNotebook(folder)
   const childFolders = allFolders.filter((f) => f.parentGuid === folder.guid)
-  const childSources = sources.filter((s) => sourceFolder[s.guid] === folder.guid)
+  const inFolder = sources.filter((s) => sourceFolder[s.guid] === folder.guid)
+  const childSources = notebook ? sortNotes(inFolder) : inFolder
+  // A notebook takes notes only; a folder takes anything but notes (and
+  // notebooks, which are folders). Drag data can't be read until drop,
+  // so the store has the final say on documents — this only stops
+  // a notebook from lighting up for folders and files.
+  const acceptsDrag = (types: readonly string[]) =>
+    types.includes('application/x-magnolia-doc-reorder') ||
+    (!notebook && (types.includes('application/x-magnolia-folder') || types.includes('Files')))
 
   return (
     <div>
@@ -216,22 +230,14 @@ function FolderItem({
           e.dataTransfer.effectAllowed = 'copyMove'
         }}
         onDragEnter={(e) => {
-          if (
-            e.dataTransfer.types.includes('application/x-magnolia-doc-reorder') ||
-            e.dataTransfer.types.includes('application/x-magnolia-folder') ||
-            e.dataTransfer.types.includes('Files')
-          ) {
+          if (acceptsDrag(e.dataTransfer.types)) {
             e.preventDefault()
             dragCounterRef.current++
             setIsDragOver(true)
           }
         }}
         onDragOver={(e) => {
-          if (
-            e.dataTransfer.types.includes('application/x-magnolia-doc-reorder') ||
-            e.dataTransfer.types.includes('application/x-magnolia-folder') ||
-            e.dataTransfer.types.includes('Files')
-          ) {
+          if (acceptsDrag(e.dataTransfer.types)) {
             e.preventDefault()
             e.dataTransfer.dropEffect = e.dataTransfer.types.includes('Files') ? 'copy' : 'move'
           }
@@ -248,6 +254,7 @@ function FolderItem({
           e.stopPropagation()
           dragCounterRef.current = 0
           setIsDragOver(false)
+          if (!acceptsDrag(e.dataTransfer.types)) return
 
           // Handle file drops from OS
           if (e.dataTransfer.files.length > 0) {
@@ -277,10 +284,24 @@ function FolderItem({
         onContextMenu={(e) => onContextMenuFolder(e, folder.guid)}
       >
         <Icon icon={effectiveExpanded ? faChevronDown : faChevronRight} style={{ fontSize: 9, flexShrink: 0, width: 10, textAlign: 'center', opacity: 0.6 }} />
-        <Icon icon={faFolder} style={{ fontSize: 13, flexShrink: 0, width: 16, textAlign: 'center', opacity: 0.75, color: 'var(--text-muted)', ...tint('folder') }} />
+        <Icon icon={notebook ? faNotebookPen : faFolder} style={{ fontSize: 13, flexShrink: 0, width: 16, textAlign: 'center', opacity: 0.75, color: 'var(--text-muted)', ...tint('folder') }} />
         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {folder.name}
         </span>
+        {notebook && (
+          <button
+            className="folder-row-add"
+            title="New note"
+            aria-label={`New note in ${folder.name}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              setExpanded(true)
+              onNewNote(folder.guid)
+            }}
+          >
+            <Icon icon={faPlus} />
+          </button>
+        )}
       </div>
       {effectiveExpanded && (
         <>
@@ -312,6 +333,7 @@ function FolderItem({
               selectedSurveyEntities={selectedSurveyEntities}
               onToggleSurveyEntity={onToggleSurveyEntity}
               searchQuery={searchQuery}
+              onNewNote={onNewNote}
             />
           ))}
           {childSources.map((source) =>
@@ -395,7 +417,10 @@ function DocItem({
   const docTags = getTagsForDocument(source.guid)
   const isSelected = selectedGuids.has(source.guid)
   const isViewed = viewedGuid === source.guid
-  const [editName, setEditName] = useState(source.name)
+  // Renaming a note edits its title; the timestamp prefix follows the
+  // note's date and time.
+  const editableName = source.sourceType === 'note' ? noteData(source).title : source.name
+  const [editName, setEditName] = useState(editableName)
   const [isTagDragOver, setIsTagDragOver] = useState(false)
   const [dropPosition, setDropPosition] = useState<'before' | 'after' | null>(null)
   const tagDragCounter = useRef(0)
@@ -403,8 +428,8 @@ function DocItem({
   const rowRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (editing) setEditName(source.name)
-  }, [editing, source.name])
+    if (editing) setEditName(editableName)
+  }, [editing, editableName])
 
   return (
     <div
@@ -948,14 +973,14 @@ function SurveyItem({
         <>
           {/* Respondents category. Draggable onto an analysis tool's
               "Group by" box to cluster the survey's results by
-              respondent (the RESPONDENTS_GROUP_MIME marker is all the
-              Group By drop handler needs). */}
+              respondent (the RESPONDENTS_GROUP_MIME payload is the
+              survey's guid). */}
           <div
             style={rowStyle(20, false)}
             draggable
             onDragStart={(e) => {
               e.dataTransfer.effectAllowed = 'copy'
-              e.dataTransfer.setData(RESPONDENTS_GROUP_MIME, '1')
+              e.dataTransfer.setData(RESPONDENTS_GROUP_MIME, source.guid)
               e.dataTransfer.setData('text/plain', 'Respondents')
             }}
             onClick={() => setRespondentsOpen(!respondentsOpen)}
@@ -2086,6 +2111,8 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
   const moveSourceToFolder = useDocumentStore((s) => s.moveSourceToFolder)
   const moveSourceNear = useDocumentStore((s) => s.moveSourceNear)
   const moveFolderToFolder = useDocumentStore((s) => s.moveFolderToFolder)
+  const addNote = useDocumentStore((s) => s.addNote)
+  const updateNote = useDocumentStore((s) => s.updateNote)
   const getTagsForDocument = useTagStore((s) => s.getTagsForDocument)
   const tags = useTagStore((s) => s.tags)
   const categories = useTagStore((s) => s.categories)
@@ -2168,7 +2195,8 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
       const childSources = parentGuid === null
         ? visibleSources.filter((s) => !sourceFolder[s.guid])
         : visibleSources.filter((s) => sourceFolder[s.guid] === parentGuid)
-      for (const s of childSources) order.push(s.guid)
+      const ordered = isNotebook(visibleFolders.find((f) => f.guid === parentGuid)) ? sortNotes(childSources) : childSources
+      for (const s of ordered) order.push(s.guid)
     }
     walkFolder(null)
     return order
@@ -2223,6 +2251,22 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
     viewDocument(guid)
   }, [viewDocument])
 
+  const handleNewNote = useCallback((notebookGuid: string) => {
+    if (lockedBy) { promptCheckoutLocked(); return }
+    const guid = addNote(notebookGuid)
+    selectDocuments(new Set([guid]))
+    viewDocument(guid)
+  }, [lockedBy, addNote, selectDocuments, viewDocument])
+
+  // A note's name is "YYMMDD HH:MM - Title": renaming it sets the title.
+  const handleRenameDoc = useCallback((guid: string, name: string) => {
+    if (useDocumentStore.getState().sources.find((s) => s.guid === guid)?.sourceType === 'note') {
+      updateNote(guid, { title: name })
+    } else {
+      renameSource(guid, name)
+    }
+  }, [renameSource, updateNote])
+
   // Routes survey-tree clicks to (1) the SurveyViewer's mode/childId
   // store and (2) the document store's current-source so the viewer
   // pane focuses on this survey. Two writes because the survey lives
@@ -2260,6 +2304,8 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
   const [editingFolder, setEditingFolder] = useState<string | null>(null)
   const [editFolderName, setEditFolderName] = useState('')
   const [isNewFolder, setIsNewFolder] = useState(false)
+  /** What the New dialog creates: a folder or a notebook. */
+  const [newFolderKind, setNewFolderKind] = useState<'folder' | 'notebook'>('folder')
   const [newFolderParentGuid, setNewFolderParentGuid] = useState<string | null>(null)
   const [editingDocGuid, setEditingDocGuid] = useState<string | null>(null)
   const [tagsCollapsed, setTagsCollapsed] = useState(readTagsCollapsed)
@@ -2587,6 +2633,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
           onClick={() => {
             if (lockedBy) { promptCheckoutLocked(); return }
             setIsNewFolder(true)
+            setNewFolderKind('folder')
             setNewFolderParentGuid(null)
             setEditingFolder('__new__')
             setEditFolderName('New Folder')
@@ -2596,6 +2643,22 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
           style={lockedBy ? { opacity: 0.4 } : undefined}
         >
           <Icon icon={faFolderPlus} />
+        </button>
+        <button
+          className="panel-header-add"
+          onClick={() => {
+            if (lockedBy) { promptCheckoutLocked(); return }
+            setIsNewFolder(true)
+            setNewFolderKind('notebook')
+            setNewFolderParentGuid(null)
+            setEditingFolder('__new__')
+            setEditFolderName('New Notebook')
+          }}
+          title={lockedBy ? checkoutLockedTitle(lockedBy) : 'Create notebook'}
+          aria-label="Create notebook"
+          style={lockedBy ? { opacity: 0.4 } : undefined}
+        >
+          <Icon icon={faNotebookPen} />
         </button>
         {onPopOut && <button className="panel-header-popout" onClick={onPopOut} title={isPoppedOut ? "Pop back in" : "Pop out"} aria-label={isPoppedOut ? "Pop pane back into main window" : "Pop pane out into its own window"}><Icon icon={isPoppedOut ? faDownLeftAndUpRightToCenter : faUpRightFromSquare} /></button>}
         {onClose && <button className="panel-header-close" onClick={onClose} title="Close panel" aria-label="Close panel"><Icon icon={faXmark} /></button>}
@@ -2706,7 +2769,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
             onViewDocument={handleViewDocument}
             onContextMenuDoc={handleContextMenuDoc}
             onContextMenuFolder={handleContextMenuFolder}
-            onRenameDoc={renameSource}
+            onRenameDoc={handleRenameDoc}
             onFileDrop={handleFileDrop}
             editingDocGuid={editingDocGuid}
             onStartEditingDoc={setEditingDocGuid}
@@ -2720,6 +2783,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
             selectedSurveyEntities={selectedSurveyEntities}
             onToggleSurveyEntity={handleToggleSurveyEntity}
             searchQuery={trimmedDocSearch}
+            onNewNote={handleNewNote}
           />
         ))}
         {rootSources.map((source) =>
@@ -3118,7 +3182,12 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
           >
             Edit Tags...
           </div>
-          {folders.length > 0 && (
+          {(() => {
+            // Notes move between notebooks; everything else between folders.
+            const menuIsNote = sources.find((s) => s.guid === contextMenu.sourceGuid)?.sourceType === 'note'
+            const targets = folders.filter((f) => isNotebook(f) === menuIsNote && f.guid !== sourceFolder[contextMenu.sourceGuid!])
+            if (targets.length === 0 && (menuIsNote || !sourceFolder[contextMenu.sourceGuid!])) return null
+            return (
             <>
               <div className="context-menu-separator" />
               <div
@@ -3130,9 +3199,9 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
                   userSelect: 'none'
                 }}
               >
-                Move to Folder
+                {menuIsNote ? 'Move to Notebook' : 'Move to Folder'}
               </div>
-              {sourceFolder[contextMenu.sourceGuid!] && (
+              {!menuIsNote && sourceFolder[contextMenu.sourceGuid!] && (
                 <div
                   className="context-menu-item"
                   title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
@@ -3145,7 +3214,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
                   (Root)
                 </div>
               )}
-              {folders.map((f) => (
+              {targets.map((f) => (
                 <div
                   key={f.guid}
                   className="context-menu-item"
@@ -3156,11 +3225,12 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
                     moveSourceToFolder(contextMenu.sourceGuid!, f.guid)
                   }}
                 >
-                  <Icon icon={faFolder} style={{ fontSize: 10, opacity: 0.7, marginRight: 4 }} />{f.name}
+                  <Icon icon={menuIsNote ? faNotebookPen : faFolder} style={{ fontSize: 10, opacity: 0.7, marginRight: 4 }} />{f.name}
                 </div>
               ))}
             </>
-          )}
+            )
+          })()}
           <div className="context-menu-separator" />
           {(() => {
             // If the right-clicked doc is part of a multi-selection,
@@ -3180,7 +3250,9 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
                   for (const g of guidsToRemove) removeSource(g)
                 }}
               >
-                {guidsToRemove.length > 1 ? `Remove ${guidsToRemove.length} Documents` : 'Remove Document'}
+                {guidsToRemove.length > 1
+                  ? `Remove ${guidsToRemove.length} Documents`
+                  : sources.find((s) => s.guid === guidsToRemove[0])?.sourceType === 'note' ? 'Delete Note' : 'Remove Document'}
               </div>
             )
           })()}
@@ -3209,13 +3281,28 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
       )}
 
       {/* Context menu for folders */}
-      {contextMenu && contextMenu.folderGuid && (
+      {contextMenu && contextMenu.folderGuid && (() => {
+        const menuFolder = folders.find((f) => f.guid === contextMenu.folderGuid)
+        const menuNotebook = isNotebook(menuFolder)
+        return (
         <div
           ref={menuPos.ref}
           className="context-menu"
           style={{ left: menuPos.x, top: menuPos.y }}
           onClick={(e) => e.stopPropagation()}
         >
+          {menuNotebook && (
+            <div
+              className="context-menu-item"
+              title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
+              onClick={() => {
+                closeContextMenu()
+                handleNewNote(contextMenu.folderGuid!)
+              }}
+            >
+              New Note
+            </div>
+          )}
           <div
             className="context-menu-item"
             title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
@@ -3231,21 +3318,41 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
           >
             Rename
           </div>
-          <div
-            className="context-menu-item"
-            title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
-            onClick={() => {
-              closeContextMenu()
-              if (lockedBy) { promptCheckoutLocked(); return }
-              setIsNewFolder(true)
-              setNewFolderParentGuid(contextMenu.folderGuid!)
-              setEditingFolder('__new__')
-              setEditFolderName('New Folder')
-            }}
-          >
-            New Subfolder
-          </div>
-          {folders.find((f) => f.guid === contextMenu.folderGuid)?.parentGuid && (
+          {!menuNotebook && (
+            <>
+              <div
+                className="context-menu-item"
+                title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
+                onClick={() => {
+                  closeContextMenu()
+                  if (lockedBy) { promptCheckoutLocked(); return }
+                  setIsNewFolder(true)
+                  setNewFolderKind('folder')
+                  setNewFolderParentGuid(contextMenu.folderGuid!)
+                  setEditingFolder('__new__')
+                  setEditFolderName('New Folder')
+                }}
+              >
+                New Subfolder
+              </div>
+              <div
+                className="context-menu-item"
+                title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
+                onClick={() => {
+                  closeContextMenu()
+                  if (lockedBy) { promptCheckoutLocked(); return }
+                  setIsNewFolder(true)
+                  setNewFolderKind('notebook')
+                  setNewFolderParentGuid(contextMenu.folderGuid!)
+                  setEditingFolder('__new__')
+                  setEditFolderName('New Notebook')
+                }}
+              >
+                New Notebook
+              </div>
+            </>
+          )}
+          {menuFolder?.parentGuid && (
             <div
               className="context-menu-item"
               title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
@@ -3266,13 +3373,18 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
             onClick={() => {
               closeContextMenu()
               if (lockedBy) { promptCheckoutLocked(); return }
+              if (menuNotebook) {
+                const count = sources.filter((s) => sourceFolder[s.guid] === contextMenu.folderGuid).length
+                if (count > 0 && !window.confirm(`Delete "${menuFolder!.name}" and its ${count} note${count > 1 ? 's' : ''}? Their codes, quotes and memos will be deleted too.`)) return
+              }
               removeFolder(contextMenu.folderGuid!)
             }}
           >
-            Delete Folder
+            {menuNotebook ? 'Delete Notebook' : 'Delete Folder'}
           </div>
         </div>
-      )}
+        )
+      })()}
 
       {/* New / Rename folder dialog */}
       {editingFolder && (
@@ -3281,7 +3393,9 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
           onClick={() => { setEditingFolder(null); setIsNewFolder(false) }}
         >
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{isNewFolder ? 'New Folder' : 'Rename Folder'}</h2>
+            <h2>{isNewFolder
+              ? (newFolderKind === 'notebook' ? 'New Notebook' : 'New Folder')
+              : (isNotebook(folders.find((f) => f.guid === editingFolder)) ? 'Rename Notebook' : 'Rename Folder')}</h2>
             <div style={{ marginBottom: 12 }}>
               <input
                 type="text"
@@ -3290,7 +3404,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && editFolderName.trim()) {
                     if (isNewFolder) {
-                      addFolder(editFolderName.trim(), newFolderParentGuid)
+                      addFolder(editFolderName.trim(), newFolderParentGuid, newFolderKind === 'notebook' ? 'notebook' : undefined)
                     } else {
                       renameFolder(editingFolder, editFolderName.trim())
                     }
@@ -3314,7 +3428,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
                 onClick={() => {
                   if (editFolderName.trim()) {
                     if (isNewFolder) {
-                      addFolder(editFolderName.trim(), newFolderParentGuid)
+                      addFolder(editFolderName.trim(), newFolderParentGuid, newFolderKind === 'notebook' ? 'notebook' : undefined)
                     } else {
                       renameFolder(editingFolder, editFolderName.trim())
                     }

@@ -63,7 +63,7 @@ export function useLiveAnalysisData(): LiveAnalysisData {
 
   const codes = useMemo(() => flattenCodesWithParent(codesTree), [codesTree])
   const folders = useMemo(
-    () => docFolders.map((f) => ({ guid: f.guid, name: f.name, parentGuid: f.parentGuid ?? null })),
+    () => docFolders.map((f) => ({ guid: f.guid, name: f.name, parentGuid: f.parentGuid ?? null, kind: f.kind })),
     [docFolders]
   )
   const tagMembers = useMemo(() => {

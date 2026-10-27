@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import type { AnalysisInitData, Query, QueryResult, SurveyEntityRef, SurveyCellScopeArgs } from '../../models/types'
 import { Icon, faFileSearchCorner, faChevronDown, faChevronRight, faXmark } from '../Icon'
 import { toolColors } from '../../utils/tool-colors'
@@ -9,7 +9,8 @@ import {
   parseGroupByDrop,
   mergeGroupBy,
   groupByKey,
-  GroupByChips
+  GroupByChips,
+  useAutoGroupBy
 } from './group-by'
 import {
   buildSurveyAwareColumns,
@@ -38,8 +39,9 @@ type GroupByEntry =
   | { kind: 'tag'; tagGuid: string }
   | { kind: 'category'; categoryGuid: string }
   | { kind: 'folder'; folderGuid: string }
-  // Each in-scope survey becomes a band of its respondents.
-  | { kind: 'respondents' }
+  // Per survey: present shows the survey as one total, absent as a
+  // band of its respondents (see buildSurveyAwareColumns).
+  | { kind: 'respondents'; surveyGuid?: string; name?: string }
 
 interface Props {
   data: AnalysisInitData
@@ -86,7 +88,6 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
   }, [propData, live, questionScope])
   // Once the user removes the auto-added Respondents grouping, don't
   // re-seed it (they can drag it back from the Document Browser).
-  const respondentsDismissed = useRef(false)
   const [queryGuids, setQueryGuids] = useState<string[]>(savedConfig?.queryGuids ?? [])
   // Initial group-by state. Prefer the new `groupBy` if present, else
   // migrate the legacy `groupByTags` (string[] of tag guids) into the
@@ -234,15 +235,8 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     [resultSourceGuids, groupBy, data, sourceMap]
   )
 
-  // Auto-add "Respondents" grouping when survey results first appear on a
-  // fresh, never-saved analysis; removing the chip prevents re-adding.
-  useEffect(() => {
-    if (respondentsDismissed.current || savedConfig) return
-    if (groupBy.some((e) => e.kind === 'respondents')) return
-    if (hasSurveyInScope(resultSourceGuids, data)) {
-      setGroupBy((p) => mergeGroupBy(p, [{ kind: 'respondents' }]))
-    }
-  }, [resultSourceGuids, data, groupBy, savedConfig])
+  // Auto-add a Group-by chip for each survey and notebook in scope.
+  const dismissAutoGroup = useAutoGroupBy(resultSourceGuids, data, savedConfig, setGroupBy)
 
   // Grid: queryGuids.length rows × columns.length cols. A respondent
   // column counts only the results from that respondent's cells (query
@@ -449,7 +443,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
   }, [])
 
   const handleRemoveGroupBy = useCallback((entry: GroupByEntry) => {
-    if (entry.kind === 'respondents') respondentsDismissed.current = true
+    dismissAutoGroup(entry)
     const key = groupByKey(entry)
     setGroupBy((p) => p.filter((e) => groupByKey(e) !== key))
   }, [])

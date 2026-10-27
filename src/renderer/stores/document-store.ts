@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { TextSource, PlainTextSelection, PdfRegionSelection, TimeRange, Coding, SourceType, DocumentFolder } from '../models/types'
+import type { TextSource, PlainTextSelection, PdfRegionSelection, TimeRange, Coding, SourceType, DocumentFolder, NoteFormatData } from '../models/types'
 import { generateGuid } from '../utils/guid'
 import { useProjectStore } from './project-store'
 import { useMemoStore } from './memo-store'
@@ -9,6 +9,7 @@ import { isToolTab } from '../utils/tab-ids'
 import { computeTextEdit, adjustRange } from '../utils/text-edit-offsets'
 import { promotedArchiveHandle, mediaPathField } from '../utils/binary-handles'
 import { makeHmrSafe } from './hmr-preserve'
+import { noteName, noteData } from '../utils/notes'
 
 // Re-export so callers that already imported from this store don't break.
 export type { DocumentFolder }
@@ -25,6 +26,17 @@ export function parseSurveyEntityKey(key: string): { kind: 'resp' | 'quest'; sou
   const kind = key.slice(0, i)
   if (kind !== 'resp' && kind !== 'quest') return null
   return { kind, sourceGuid: key.slice(i + 1, j), id: key.slice(j + 1) }
+}
+
+/** Notes live only in notebooks, and notebooks hold only notes. */
+function canPlaceSource(
+  state: Pick<DocumentState, 'sources' | 'folders'>,
+  sourceGuid: string,
+  folderGuid: string | null
+): boolean {
+  const isNoteSource = state.sources.find((s) => s.guid === sourceGuid)?.sourceType === 'note'
+  const intoNotebook = !!folderGuid && state.folders.find((f) => f.guid === folderGuid)?.kind === 'notebook'
+  return isNoteSource === intoNotebook
 }
 
 interface DocumentState {
@@ -135,7 +147,11 @@ interface DocumentState {
   /** Bulk-load folders + per-source folder mapping at project open.
    *  Doesn't markDirty (load paths are already-clean state). */
   setFolders: (folders: DocumentFolder[], sourceFolder: Record<string, string>) => void
-  addFolder: (name: string, parentGuid?: string | null) => string
+  addFolder: (name: string, parentGuid?: string | null, kind?: DocumentFolder['kind']) => string
+  /** Create an empty note in a notebook, stamped now. Returns its guid. */
+  addNote: (notebookGuid: string) => string
+  /** Change a note's title and/or timestamp; its name follows. */
+  updateNote: (guid: string, patch: Partial<NoteFormatData>) => void
   removeFolder: (guid: string) => void
   renameSource: (guid: string, name: string) => void
   /** Change a single survey question's type (and its columns' types
@@ -645,23 +661,54 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     set({ folders, sourceFolder })
   },
 
-  addFolder: (name, parentGuid = null) => {
+  addFolder: (name, parentGuid = null, kind) => {
     const guid = generateGuid()
+    // Notebooks hold notes only — never a folder.
+    if (parentGuid && get().folders.find((f) => f.guid === parentGuid)?.kind === 'notebook') parentGuid = null
     set((state) => ({
-      folders: [...state.folders, { guid, name, parentGuid }]
+      folders: [...state.folders, kind ? { guid, name, parentGuid, kind } : { guid, name, parentGuid }]
     }))
     useProjectStore.getState().markDirty()
     return guid
   },
 
+  addNote: (notebookGuid) => {
+    const data: NoteFormatData = { title: '', noteDateTime: new Date().toISOString() }
+    const guid = get().addSource(noteName(data), '', 'note', data)
+    set((state) => ({ sourceFolder: { ...state.sourceFolder, [guid]: notebookGuid } }))
+    return guid
+  },
+
+  updateNote: (guid, patch) => {
+    set((state) => ({
+      sources: state.sources.map((s) => {
+        if (s.guid !== guid) return s
+        const data = { ...noteData(s), ...patch }
+        return { ...s, name: noteName(data), formatData: data }
+      })
+    }))
+    useProjectStore.getState().markDirty()
+  },
+
   removeFolder: (guid) => {
+    // Notes can't live outside a notebook, so deleting a notebook deletes
+    // its notes (the browser confirms first).
+    const state0 = get()
+    const noteGuids = state0.folders.find((f) => f.guid === guid)?.kind === 'notebook'
+      ? Object.entries(state0.sourceFolder).filter(([, fg]) => fg === guid).map(([sg]) => sg)
+      : []
+    for (const sg of noteGuids) get().removeSource(sg)
     set((state) => {
-      // Collect all descendant folder guids
+      // Collect all descendant folder guids. Notebooks inside a deleted
+      // folder keep their notes and move to the root instead.
       const toRemove = new Set<string>()
+      const rehome = new Set<string>()
       const collect = (id: string) => {
         toRemove.add(id)
         for (const f of state.folders) {
-          if (f.parentGuid === id) collect(f.guid)
+          if (f.parentGuid !== id) continue
+          if (f.kind === 'notebook') rehome.add(f.guid)
+          else collect(f.guid)
         }
       }
       collect(guid)
@@ -671,7 +718,9 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
         if (toRemove.has(fg)) delete newSourceFolder[sg]
       }
       return {
-        folders: state.folders.filter((f) => !toRemove.has(f.guid)),
+        folders: state.folders
+          .filter((f) => !toRemove.has(f.guid))
+          .map((f) => (rehome.has(f.guid) ? { ...f, parentGuid: null } : f)),
         sourceFolder: newSourceFolder
       }
     })
@@ -730,6 +779,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
   },
 
   moveSourceToFolder: (sourceGuid, folderGuid) => {
+    if (!canPlaceSource(get(), sourceGuid, folderGuid)) return
     set((state) => {
       const newSourceFolder = { ...state.sourceFolder }
       if (folderGuid === null) {
@@ -749,6 +799,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
       if (!source) return state
       // Move the source into the same folder as the sibling
       const siblingFolder = state.sourceFolder[siblingGuid] || null
+      if (!canPlaceSource(state, sourceGuid, siblingFolder)) return state
       const newSourceFolder = { ...state.sourceFolder }
       if (siblingFolder) {
         newSourceFolder[sourceGuid] = siblingFolder
@@ -782,6 +833,8 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     if (newParentGuid && (folderGuid === newParentGuid || isDescendant(folderGuid, newParentGuid))) {
       return
     }
+    // Nothing nests inside a notebook.
+    if (newParentGuid && get().folders.find((f) => f.guid === newParentGuid)?.kind === 'notebook') return
     set((state) => ({
       folders: state.folders.map((f) =>
         f.guid === folderGuid ? { ...f, parentGuid: newParentGuid } : f

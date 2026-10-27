@@ -93,12 +93,12 @@ function descendantFolderGuids(folders: AnalysisInitData['folders'], rootGuid: s
  *  Expands the group-by list into columns + spanning header bands:
  *    - tag → one column; category/folder → a band of columns (+ optional
  *      subtotal).
- *    - respondents is INVERTED: when the entry is PRESENT each in-scope
- *      survey collapses to a single whole-survey total column; when it's
- *      ABSENT the survey expands into per-respondent bands (+ optional
- *      whole-survey subtotal). The entry is auto-added when a survey
- *      enters scope, so the default view is the collapsed total and
- *      removing it reveals the individual respondents. Non-survey docs
+ *    - respondents is INVERTED and per survey: when a survey's entry is
+ *      PRESENT that survey collapses to a single whole-survey total
+ *      column; when it's ABSENT the survey expands into per-respondent
+ *      bands (+ optional whole-survey subtotal). Entries are auto-added
+ *      as surveys enter scope, so the default view is the collapsed
+ *      total and removing a survey's chip reveals its respondents. Non-survey docs
  *      are unaffected and handled by the remaining grouping (or as
  *      individual columns).
  *  Each tool maps these columns into its own cell computation. */
@@ -112,18 +112,25 @@ export function buildSurveyAwareColumns(
   const includeSubtotals = opts?.includeSubtotals !== false
   const columns: AnalysisColumn[] = []
   const groups: GroupedHeader[] = []
-  // Inverted Respondents semantics: the entry COLLAPSES each in-scope
-  // survey into a single total column; its absence EXPANDS the survey
-  // into per-respondent bands (the detailed view). It's auto-added when
-  // a survey enters scope, so the collapsed total is the default.
-  const respondentsGrouped = groupBy.some((e) => e.kind === 'respondents')
-  const expandSurveys = !respondentsGrouped
-  const surveyGuids = expandSurveys ? surveyGuidsAmong(candidateSourceGuids, data) : []
+  // Inverted Respondents semantics, per survey: a survey's entry
+  // COLLAPSES it into a single total column; its absence EXPANDS the
+  // survey into per-respondent bands (the detailed view). Entries are
+  // auto-added as surveys enter scope, so the collapsed total is the
+  // default. An entry without a surveyGuid collapses every survey.
+  const collapseAll = groupBy.some((e) => e.kind === 'respondents' && !e.surveyGuid)
+  const collapsed = new Set(groupBy.flatMap((e) => (e.kind === 'respondents' && e.surveyGuid ? [e.surveyGuid] : [])))
+  const surveyGuids = collapseAll ? [] : surveyGuidsAmong(candidateSourceGuids, data).filter((g) => !collapsed.has(g))
+  const expandSurveys = surveyGuids.length > 0
   const surveySet = new Set(surveyGuids)
   const docCandidates = candidateSourceGuids.filter((g) => !surveySet.has(g))
-  const otherEntries = groupBy.filter((e) => e.kind !== 'respondents')
+  // Notebook chips are folder entries, but they work like Respondents
+  // (below), not like an ordinary folder's band.
+  const notebooks = (data.folders || []).filter((f) => f.kind === 'notebook')
+  const notebookGuids = new Set(notebooks.map((f) => f.guid))
+  const isNotebookEntry = (e: GroupByEntry) => e.kind === 'folder' && notebookGuids.has(e.folderGuid)
+  const otherEntries = groupBy.filter((e) => e.kind !== 'respondents' && !isNotebookEntry(e))
 
-  if (expandSurveys && surveyGuids.length > 0) {
+  if (expandSurveys) {
     const { slots, headers } = expandRespondentSlots(surveyGuids, data, includeSubtotals)
     for (const s of slots) {
       columns.push({
@@ -135,6 +142,31 @@ export function buildSurveyAwareColumns(
       })
     }
     groups.push(...headers)
+  }
+  // Notebooks group their notes the way surveys group respondents: a
+  // notebook's chip COLLAPSES it into one total column; without the chip
+  // it EXPANDS into a band of its notes (newest first — a note's name
+  // starts with its YYMMDD HH:MM stamp) under the notebook's name, with
+  // an optional subtotal.
+  const collapsedNotebooks = new Set(groupBy.flatMap((e) => (e.kind === 'folder' && notebookGuids.has(e.folderGuid) ? [e.folderGuid] : [])))
+  for (const nb of notebooks) {
+    const notes = candidateSourceGuids
+      .filter((g) => data.sourceFolder?.[g] === nb.guid)
+      .sort((a, b) => (sourceMap.get(b) || '').localeCompare(sourceMap.get(a) || ''))
+    if (notes.length === 0) continue
+    if (collapsedNotebooks.has(nb.guid)) {
+      columns.push({ id: `notebook:${nb.guid}`, label: nb.name, sourceGuids: notes })
+      groups.push({ id: `notebook:${nb.guid}`, label: null, span: 1 })
+      continue
+    }
+    const before = columns.length
+    for (const g of notes) {
+      columns.push({ id: `notebook:${nb.guid}:note:${g}`, label: sourceMap.get(g) || 'Note', sourceGuids: [g] })
+    }
+    if (includeSubtotals) {
+      columns.push({ id: `notebook:${nb.guid}:subtotal`, label: 'Subtotal', sourceGuids: notes, isSubtotal: true })
+    }
+    groups.push({ id: `notebook:${nb.guid}`, label: nb.name, span: columns.length - before })
   }
   for (const entry of otherEntries) {
     if (entry.kind === 'tag') {
@@ -178,23 +210,28 @@ export function buildSurveyAwareColumns(
       groups.push({ id: `folder:${entry.folderGuid}`, label: folder.name, span: columns.length - before })
     }
   }
-  if (otherEntries.length > 0) {
-    // "Other" catch-all for non-survey docs that landed in no group.
-    const taggedGuids = new Set(columns.filter((c) => !c.isSubtotal && !c.respondentRef).flatMap((c) => c.sourceGuids))
-    const otherGuids = docCandidates.filter((g) => !taggedGuids.has(g))
-    if (otherGuids.length > 0) {
-      columns.push({ id: '__other', label: 'Other', sourceGuids: otherGuids })
-      groups.push({ id: '__other', label: null, span: 1 })
+  // Documents that landed in no group. Only a grouping the user chose — a
+  // tag, category or ordinary folder — gathers them into one "Other"
+  // column; notebook and Respondents chips leave them as individual
+  // columns, so a project's notebooks and surveys don't change how its
+  // other documents are laid out. A collapsed survey always keeps its own
+  // total column. Notes are always shown with their notebook (above).
+  const grouped = new Set(columns.filter((c) => !c.isSubtotal && !c.respondentRef).flatMap((c) => c.sourceGuids))
+  const ungrouped = docCandidates.filter((g) => !grouped.has(g) && !notebookGuids.has(data.sourceFolder?.[g] ?? ''))
+  const gatherOther = otherEntries.length > 0
+  const surveysLeft = new Set(surveyGuidsAmong(ungrouped, data))
+  const otherGuids: string[] = []
+  for (const g of ungrouped) {
+    if (gatherOther && !surveysLeft.has(g)) {
+      otherGuids.push(g)
+      continue
     }
-  } else {
-    // No tag/category/folder grouping: each remaining candidate becomes
-    // its own column. With surveys collapsed (Respondents grouped) this
-    // yields one survey-total column per survey; with surveys expanded
-    // only the non-survey docs remain here.
-    for (const g of docCandidates) {
-      columns.push({ id: g, label: sourceMap.get(g) || 'Document', sourceGuids: [g] })
-      groups.push({ id: g, label: null, span: 1 })
-    }
+    columns.push({ id: g, label: sourceMap.get(g) || 'Document', sourceGuids: [g] })
+    groups.push({ id: g, label: null, span: 1 })
+  }
+  if (otherGuids.length > 0) {
+    columns.push({ id: '__other', label: 'Other', sourceGuids: otherGuids })
+    groups.push({ id: '__other', label: null, span: 1 })
   }
   const hasGroupedHeader = groups.some((g) => g.label !== null)
   return { columns, headerGroups: groups, hasGroupedHeader }

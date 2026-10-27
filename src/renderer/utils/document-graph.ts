@@ -47,12 +47,13 @@ export interface DConn {
   toPort: number
 }
 
-export type DocCategory = 'video' | 'audio' | 'document' | 'image' | 'survey'
+export type DocCategory = 'video' | 'audio' | 'document' | 'image' | 'survey' | 'note'
 
 export function categoryOfSource(source: { name: string; sourceType?: string }): DocCategory {
-  // Surveys carry no telltale file extension, so they're identified by their
-  // sourceType rather than the name.
+  // Surveys and notes carry no telltale file extension, so they're
+  // identified by their sourceType rather than the name.
   if (source.sourceType === 'survey') return 'survey'
+  if (source.sourceType === 'note') return 'note'
   const st = sourceTypeFromFilename(source.name)
   if (st === 'video') return 'video'
   if (st === 'audio') return 'audio'

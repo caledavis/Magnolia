@@ -6,7 +6,7 @@
  * - `hidden`: syntax chars that should be visually hidden (zero-width)
  * - styled: content that should receive formatting (bold, italic, heading, etc.)
  */
-import { marked, type Token } from 'marked'
+import { marked, Marked, type Token } from 'marked'
 
 /* ── Public types ── */
 
@@ -26,11 +26,23 @@ export interface MdLineAnnotation {
 
 /* ── Main entry point ── */
 
+/** A lexer without setext headings ("Title" underlined with --- or ===).
+ *  Used for notes, which are written in place: a "-" typed under a line
+ *  to start a list would otherwise turn that line into a heading. */
+const noSetextLexer = new Marked({ tokenizer: { lheading: () => undefined } })
+
 /**
  * Parse full markdown text and return per-line annotations.
  * Each line index maps to block-level class + inline range annotations.
+ *
+ * Notes pass `setextHeadings: false` (see noSetextLexer) and
+ * `showListMarkers: true` — a note's list keeps its "-" / "1." visible,
+ * since nothing else would mark it as a list once the caret moves on.
  */
-export function parseMarkdownDocument(text: string): MdLineAnnotation[] {
+export function parseMarkdownDocument(
+  text: string,
+  opts?: { setextHeadings?: boolean; showListMarkers?: boolean }
+): MdLineAnnotation[] {
   const lines = text.split('\n')
   const lineCount = lines.length
   const result: MdLineAnnotation[] = Array.from({ length: lineCount }, () => ({
@@ -63,7 +75,7 @@ export function parseMarkdownDocument(text: string): MdLineAnnotation[] {
   }
 
   // Parse with marked
-  const tokens = marked.lexer(text)
+  const tokens = opts?.setextHeadings === false ? noSetextLexer.lexer(text) : marked.lexer(text)
 
   // Walk tokens and annotate
   walkTokens(tokens, 0)
@@ -135,11 +147,14 @@ export function parseMarkdownDocument(text: string): MdLineAnnotation[] {
           if (itemIdx === -1) continue
           const line = lineAt(itemIdx)
           result[line].blockClass = 'md-list-item'
-          // Hide bullet/number prefix
+          // Hide (or, for notes, mute) the bullet/number prefix
           const match = item.raw.match(/^(\s*(?:[\-\*\+]|\d+\.)\s)/)
           if (match) {
             const cpStart = cpAt(itemIdx)
-            result[line].inline.push({ cpStart, cpEnd: cpStart + [...match[1]].length, style: 'syntax', hidden: true })
+            const cpEnd = cpStart + [...match[1]].length
+            result[line].inline.push(opts?.showListMarkers
+              ? { cpStart, cpEnd, style: 'list-marker' }
+              : { cpStart, cpEnd, style: 'syntax', hidden: true })
           }
           // Task list checkbox
           if (item.task) {
@@ -274,6 +289,18 @@ export function parseMarkdownDocument(text: string): MdLineAnnotation[] {
     }
   }
 
+  /** File an inline annotation under every line it covers. A paragraph's
+   *  inline tokens span all of its lines, so the line has to come from the
+   *  annotation's own position, not the paragraph's first line. */
+  function pushInline(ann: MdAnnotation): void {
+    let ln = 0
+    while (ln + 1 < lineOffsets.length && lineOffsets[ln + 1] <= ann.cpStart) ln++
+    do {
+      result[ln].inline.push(ann)
+      ln++
+    } while (ln < lineOffsets.length && lineOffsets[ln] < ann.cpEnd)
+  }
+
   function processInlineToken(tok: any, searchFrom: number, line: number): void {
     const idx = text.indexOf(tok.raw, searchFrom)
     if (idx === -1) return
@@ -288,10 +315,10 @@ export function parseMarkdownDocument(text: string): MdLineAnnotation[] {
         const contentCpEnd = cpStart + [...tok.raw].length - delimLen
         const cpEnd = cpStart + [...tok.raw].length
         // Hide delimiters
-        result[line].inline.push({ cpStart, cpEnd: contentCpStart, style: 'syntax', hidden: true })
-        result[line].inline.push({ cpStart: contentCpEnd, cpEnd, style: 'syntax', hidden: true })
+        pushInline({ cpStart, cpEnd: contentCpStart, style: 'syntax', hidden: true })
+        pushInline({ cpStart: contentCpEnd, cpEnd, style: 'syntax', hidden: true })
         // Bold the content
-        result[line].inline.push({ cpStart: contentCpStart, cpEnd: contentCpEnd, style: 'bold' })
+        pushInline({ cpStart: contentCpStart, cpEnd: contentCpEnd, style: 'bold' })
         // Recurse for nested inline (e.g., bold+italic)
         if (tok.tokens) walkInlineTokens(tok.tokens, idx + delim.length, line)
         break
@@ -303,9 +330,9 @@ export function parseMarkdownDocument(text: string): MdLineAnnotation[] {
         const contentCpStart = cpStart + delimLen
         const contentCpEnd = cpStart + [...tok.raw].length - delimLen
         const cpEnd = cpStart + [...tok.raw].length
-        result[line].inline.push({ cpStart, cpEnd: contentCpStart, style: 'syntax', hidden: true })
-        result[line].inline.push({ cpStart: contentCpEnd, cpEnd, style: 'syntax', hidden: true })
-        result[line].inline.push({ cpStart: contentCpStart, cpEnd: contentCpEnd, style: 'italic' })
+        pushInline({ cpStart, cpEnd: contentCpStart, style: 'syntax', hidden: true })
+        pushInline({ cpStart: contentCpEnd, cpEnd, style: 'syntax', hidden: true })
+        pushInline({ cpStart: contentCpStart, cpEnd: contentCpEnd, style: 'italic' })
         if (tok.tokens) walkInlineTokens(tok.tokens, idx + delim.length, line)
         break
       }
@@ -315,9 +342,9 @@ export function parseMarkdownDocument(text: string): MdLineAnnotation[] {
         const contentCpStart = cpStart + backtickLen
         const cpEnd = cpStart + [...tok.raw].length
         const contentCpEnd = cpEnd - backtickLen
-        result[line].inline.push({ cpStart, cpEnd: contentCpStart, style: 'syntax', hidden: true })
-        result[line].inline.push({ cpStart: contentCpEnd, cpEnd, style: 'syntax', hidden: true })
-        result[line].inline.push({ cpStart: contentCpStart, cpEnd: contentCpEnd, style: 'code' })
+        pushInline({ cpStart, cpEnd: contentCpStart, style: 'syntax', hidden: true })
+        pushInline({ cpStart: contentCpEnd, cpEnd, style: 'syntax', hidden: true })
+        pushInline({ cpStart: contentCpStart, cpEnd: contentCpEnd, style: 'code' })
         break
       }
 
@@ -326,9 +353,9 @@ export function parseMarkdownDocument(text: string): MdLineAnnotation[] {
         const contentCpStart = cpStart + delimLen
         const cpEnd = cpStart + [...tok.raw].length
         const contentCpEnd = cpEnd - delimLen
-        result[line].inline.push({ cpStart, cpEnd: contentCpStart, style: 'syntax', hidden: true })
-        result[line].inline.push({ cpStart: contentCpEnd, cpEnd, style: 'syntax', hidden: true })
-        result[line].inline.push({ cpStart: contentCpStart, cpEnd: contentCpEnd, style: 'strikethrough' })
+        pushInline({ cpStart, cpEnd: contentCpStart, style: 'syntax', hidden: true })
+        pushInline({ cpStart: contentCpEnd, cpEnd, style: 'syntax', hidden: true })
+        pushInline({ cpStart: contentCpStart, cpEnd: contentCpEnd, style: 'strikethrough' })
         if (tok.tokens) walkInlineTokens(tok.tokens, idx + delimLen, line)
         break
       }
@@ -342,9 +369,9 @@ export function parseMarkdownDocument(text: string): MdLineAnnotation[] {
           const textCpStart = cpStart + [...tok.raw.slice(0, bracketOpen + 1)].length
           const textCpEnd = cpStart + [...tok.raw.slice(0, bracketClose)].length
           // Hide everything except the link text
-          result[line].inline.push({ cpStart, cpEnd: textCpStart, style: 'syntax', hidden: true })
-          result[line].inline.push({ cpStart: textCpEnd, cpEnd, style: 'syntax', hidden: true })
-          result[line].inline.push({ cpStart: textCpStart, cpEnd: textCpEnd, style: 'link-text' })
+          pushInline({ cpStart, cpEnd: textCpStart, style: 'syntax', hidden: true })
+          pushInline({ cpStart: textCpEnd, cpEnd, style: 'syntax', hidden: true })
+          pushInline({ cpStart: textCpStart, cpEnd: textCpEnd, style: 'link-text' })
         }
         break
       }
@@ -357,10 +384,10 @@ export function parseMarkdownDocument(text: string): MdLineAnnotation[] {
         if (bracketOpen !== -1 && bracketClose !== -1) {
           const altCpStart = cpStart + [...tok.raw.slice(0, bracketOpen + 1)].length
           const altCpEnd = cpStart + [...tok.raw.slice(0, bracketClose)].length
-          result[line].inline.push({ cpStart, cpEnd: altCpStart, style: 'syntax', hidden: true })
-          result[line].inline.push({ cpStart: altCpEnd, cpEnd, style: 'syntax', hidden: true })
+          pushInline({ cpStart, cpEnd: altCpStart, style: 'syntax', hidden: true })
+          pushInline({ cpStart: altCpEnd, cpEnd, style: 'syntax', hidden: true })
           if (altCpEnd > altCpStart) {
-            result[line].inline.push({ cpStart: altCpStart, cpEnd: altCpEnd, style: 'italic' })
+            pushInline({ cpStart: altCpStart, cpEnd: altCpEnd, style: 'italic' })
           }
         }
         break
@@ -368,7 +395,7 @@ export function parseMarkdownDocument(text: string): MdLineAnnotation[] {
 
       case 'escape': {
         // Backslash escape: hide the backslash
-        result[line].inline.push({ cpStart, cpEnd: cpStart + 1, style: 'syntax', hidden: true })
+        pushInline({ cpStart, cpEnd: cpStart + 1, style: 'syntax', hidden: true })
         break
       }
 
@@ -380,14 +407,14 @@ export function parseMarkdownDocument(text: string): MdLineAnnotation[] {
         while ((um = urlRe.exec(tok.raw)) !== null) {
           const urlCpStart = cpStart + [...tok.raw.slice(0, um.index)].length
           const urlCpEnd = urlCpStart + [...um[0]].length
-          result[line].inline.push({ cpStart: urlCpStart, cpEnd: urlCpEnd, style: 'autolink' })
+          pushInline({ cpStart: urlCpStart, cpEnd: urlCpEnd, style: 'autolink' })
         }
         break
       }
 
       case 'html': {
         const cpEnd = cpStart + [...tok.raw].length
-        result[line].inline.push({ cpStart, cpEnd, style: 'html-tag' })
+        pushInline({ cpStart, cpEnd, style: 'html-tag' })
         break
       }
 

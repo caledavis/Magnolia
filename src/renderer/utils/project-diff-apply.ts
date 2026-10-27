@@ -277,8 +277,12 @@ function applySourceChanges(items: SourceDiffItem[]): void {
       sources = [...sources, item.theirs]
       contents[item.theirs.guid] = item.theirsContent ?? ''
     } else if (item.bucket === 'bothDiffer' && item.theirs) {
-      const newName = item.theirs.name
-      sources = sources.map((s) => (s.guid === item.guid ? { ...s, name: newName } : s))
+      const theirs = item.theirs
+      // A note's name is derived from its title + timestamp (formatData),
+      // so taking the new name means taking those too.
+      sources = sources.map((s) => (s.guid !== item.guid ? s
+        : s.sourceType === 'note' ? { ...s, name: theirs.name, formatData: theirs.formatData }
+        : { ...s, name: theirs.name }))
     }
   }
   ds.setSources(sources, contents)

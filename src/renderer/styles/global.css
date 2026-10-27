@@ -948,6 +948,23 @@ textarea:focus {
   background: none;
 }
 
+/* "+" on a notebook row in the Document Browser — new note */
+.folder-row-add {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 10px;
+  line-height: 1;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+div:hover > .folder-row-add,
+.folder-row-add:focus-visible { opacity: 1; }
+.folder-row-add:hover { color: var(--text-primary); background: none; }
+
 /* Document tab bar.
  *
  * The horizontal rule under the tab strip is owned by each .tab-item
@@ -1105,6 +1122,26 @@ textarea:focus {
 .md-table-header { font-weight: 700; }
 .md-table-row { }
 .md-table-separator { min-height: 0; height: 0; overflow: hidden; }
+
+/* Note header — title and observation time, edited in place */
+.note-title-input {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  outline: none;
+}
+.note-title-input::placeholder { color: var(--text-muted); font-weight: 600; }
+.note-datetime-input {
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
 
 .panel {
   display: flex;

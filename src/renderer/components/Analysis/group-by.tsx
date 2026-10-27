@@ -1,9 +1,9 @@
+import { useCallback, useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
 import type { AnalysisInitData } from '../../models/types'
-import { Icon, faXmark, faFolder, faTag, faTags, faUser } from '../Icon'
+import { Icon, faXmark, faFolder, faNotebookPen, faTag, faTags, faUser } from '../Icon'
 
 /** Drag MIME emitted by the Document Browser's survey "Respondents"
- *  header. Carries no payload — its presence means "group surveys by
- *  respondent". */
+ *  header. Its payload is the survey's source guid. */
 export const RESPONDENTS_GROUP_MIME = 'application/x-magnolia-survey-respondents'
 
 /** A single Group-by entry. Drives the column/row breakdown in the
@@ -19,13 +19,14 @@ export type GroupByEntry =
   | { kind: 'tag'; tagGuid: string; name?: string }
   | { kind: 'category'; categoryGuid: string; name?: string }
   | { kind: 'folder'; folderGuid: string; name?: string }
-  // Inverted grouping: when present, each in-scope survey COLLAPSES to a
-  // single whole-survey total column; when absent, the survey EXPANDS
-  // into a band of its respondents (one slot per respondent + a
-  // whole-survey subtotal). Auto-added when a survey enters scope, so
-  // the collapsed total is the default. A single entry covers every
-  // survey in scope; non-survey documents are unaffected.
-  | { kind: 'respondents' }
+  // Inverted grouping, one entry per survey: when present, that survey
+  // COLLAPSES to a single whole-survey total column; when absent, it
+  // EXPANDS into a band of its respondents (one slot per respondent + a
+  // whole-survey subtotal). Auto-added for each survey that enters
+  // scope, so the collapsed total is the default. An entry without a
+  // surveyGuid — saved before entries were per survey — covers every
+  // survey. Non-survey documents are unaffected.
+  | { kind: 'respondents'; surveyGuid?: string; name?: string }
 
 export interface GroupedSlot {
   id: string
@@ -46,7 +47,7 @@ export function groupByKey(e: GroupByEntry): string {
     case 'tag': return `t:${e.tagGuid}`
     case 'category': return `c:${e.categoryGuid}`
     case 'folder': return `f:${e.folderGuid}`
-    case 'respondents': return 'respondents'
+    case 'respondents': return e.surveyGuid ? `r:${e.surveyGuid}` : 'respondents'
   }
 }
 
@@ -63,6 +64,47 @@ export function mergeGroupBy(prev: GroupByEntry[], fresh: GroupByEntry[]): Group
   return additions.length > 0 ? [...prev, ...additions] : prev
 }
 
+/** On a fresh, never-saved analysis, add a Group-by chip for each
+ *  survey and each notebook in scope: a "Respondents" chip per survey and
+ *  a folder chip per notebook holding a note in scope. Either chip shows
+ *  its survey / notebook as one total; removing it expands the survey
+ *  into its respondents or the notebook into its notes (see
+ *  buildSurveyAwareColumns). A chip the user removes isn't added again.
+ *  Returns the handler to call when a group-by chip is removed. */
+export function useAutoGroupBy(
+  scopeSourceGuids: string[],
+  data: Pick<AnalysisInitData, 'sources' | 'folders' | 'sourceFolder'>,
+  savedConfig: unknown,
+  setGroupBy: Dispatch<SetStateAction<GroupByEntry[]>>
+): (removed: GroupByEntry) => void {
+  const dismissed = useRef(new Set<string>())
+  useEffect(() => {
+    if (savedConfig) return
+    const inScope = new Set(scopeSourceGuids)
+    const fresh: GroupByEntry[] = []
+    for (const s of data.sources) {
+      if (s.sourceType === 'survey' && inScope.has(s.guid)) {
+        fresh.push({ kind: 'respondents', surveyGuid: s.guid, name: s.name })
+      }
+    }
+    const notebooksInScope = new Set<string>()
+    for (const g of scopeSourceGuids) {
+      const fg = data.sourceFolder?.[g]
+      if (fg) notebooksInScope.add(fg)
+    }
+    for (const f of data.folders || []) {
+      if (f.kind === 'notebook' && notebooksInScope.has(f.guid)) {
+        fresh.push({ kind: 'folder', folderGuid: f.guid, name: f.name })
+      }
+    }
+    const wanted = fresh.filter((e) => !dismissed.current.has(groupByKey(e)))
+    if (wanted.length > 0) setGroupBy((p) => mergeGroupBy(p, wanted))
+  }, [scopeSourceGuids, data, savedConfig, setGroupBy])
+  return useCallback((removed: GroupByEntry) => {
+    dismissed.current.add(groupByKey(removed))
+  }, [])
+}
+
 /** Read a drag event and return any group-by entries it carries.
  *  Order of precedence: folder > category > tag. The DocumentBrowser's
  *  category drag also sets the bundled-tags MIME for legacy targets,
@@ -74,7 +116,8 @@ export function mergeGroupBy(prev: GroupByEntry[], fresh: GroupByEntry[]): Group
 export function parseGroupByDrop(e: React.DragEvent): GroupByEntry[] {
   // The survey "Respondents" header carries only this marker MIME.
   if (e.dataTransfer.types.includes(RESPONDENTS_GROUP_MIME)) {
-    return [{ kind: 'respondents' }]
+    const surveyGuid = e.dataTransfer.getData(RESPONDENTS_GROUP_MIME)
+    return surveyGuid ? [{ kind: 'respondents', surveyGuid }] : []
   }
   const folderGuid = e.dataTransfer.getData('application/x-magnolia-folder')
   if (folderGuid) {
@@ -237,7 +280,7 @@ export function GroupByChips({
   onRemove
 }: {
   groupBy: GroupByEntry[]
-  data: Pick<AnalysisInitData, 'tags' | 'categories' | 'folders' | 'tagMembers' | 'sourceFolder'>
+  data: Pick<AnalysisInitData, 'tags' | 'categories' | 'folders' | 'tagMembers' | 'sourceFolder' | 'sources'>
   candidateSourceGuids: string[]
   onRemove: (entry: GroupByEntry) => void
 }) {
@@ -246,10 +289,13 @@ export function GroupByChips({
     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
       {groupBy.map((entry) => {
         if (entry.kind === 'respondents') {
+          const survey = entry.surveyGuid ? data.sources.find((s) => s.guid === entry.surveyGuid) : undefined
+          const surveyName = survey?.name || entry.name
           return (
-            <span key="respondents" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontWeight: 600, border: '1px solid var(--border-color)' }}>
+            <span key={groupByKey(entry)} title={surveyName ? `${surveyName}: respondents` : 'Respondents of every survey'} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontWeight: 600, border: '1px solid var(--border-color)' }}>
               <Icon icon={faUser} style={{ fontSize: 10, color: 'var(--text-muted)' }} />
-              Respondents
+              {surveyName ?? 'Respondents'}
+              {surveyName && <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>respondents</span>}
               <span onClick={() => onRemove(entry)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
             </span>
           )
@@ -283,8 +329,10 @@ export function GroupByChips({
           return fg ? folderSet.has(fg) : false
         }).length
         return (
-          <span key={`f:${entry.folderGuid}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontWeight: 600, border: '1px dashed var(--border-color)' }}>
-            <Icon icon={faFolder} style={{ fontSize: 10, color: 'var(--text-muted)' }} />
+          // A notebook's chip matches the survey Respondents chips — the
+          // other auto-added kind — rather than an ordinary folder's.
+          <span key={`f:${entry.folderGuid}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontWeight: 600, border: `1px ${folder?.kind === 'notebook' ? 'solid' : 'dashed'} var(--border-color)` }}>
+            <Icon icon={folder?.kind === 'notebook' ? faNotebookPen : faFolder} style={{ fontSize: 10, color: 'var(--text-muted)' }} />
             {folder?.name || entry.name || 'Folder'}
             <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>({docCount})</span>
             <span onClick={() => onRemove(entry)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>

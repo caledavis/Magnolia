@@ -11,6 +11,7 @@ import { VideoDocumentViewer } from './VideoDocumentViewer'
 import { ImageDocumentViewer } from './ImageDocumentViewer'
 import { SurveyViewer } from '../SurveyViewer/SurveyViewer'
 import { TabBar } from './TabBar'
+import { NoteHeader } from './NoteHeader'
 import type { Code, MemoEditInitData } from '../../models/types'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
 import { isAnalysisTab, isMapTab, isPreferencesTab, isMergeTab, isQueryBuilderTab, isToolTab, mapGuidFromTabId } from '../../utils/tab-ids'
@@ -120,6 +121,7 @@ export function DocumentViewer() {
   const addCodingToSelection = useDocumentStore((s) => s.addCodingToSelection)
   const removeCoding = useDocumentStore((s) => s.removeCoding)
   const removeSelection = useDocumentStore((s) => s.removeSelection)
+  const applyTranscriptEdit = useDocumentStore((s) => s.applyTranscriptEdit)
   const codes = useCodeStore((s) => s.codes)
   const findCode = useCodeStore((s) => s.findCode)
   const addMemo = useMemoStore((s) => s.addMemo)
@@ -247,6 +249,7 @@ export function DocumentViewer() {
   const isVideo = source?.sourceType === 'video'
   const isImage = source?.sourceType === 'image'
   const isSurvey = source?.sourceType === 'survey'
+  const isNote = source?.sourceType === 'note'
 
   const flatCodes = useMemo(() => flattenCodes(codes), [codes])
 
@@ -481,6 +484,7 @@ export function DocumentViewer() {
             userSelect: 'none'
           }}
         >
+          {isNote ? <NoteHeader source={source} /> : (
           <h1
             title={source.name}
             style={{
@@ -496,6 +500,7 @@ export function DocumentViewer() {
           >
             {source.name}
           </h1>
+          )}
           <MemoFab variant="inline" kind="document" sourceGuid={source.guid} />
         </div>
       )}
@@ -507,7 +512,7 @@ export function DocumentViewer() {
           <span className="viewer-meta">
             {(() => {
               const t = effectiveSourceType
-              const label = t === 'markdown' ? 'Markdown' : t === 'audio' ? 'Audio transcript' : t === 'video' ? 'Video transcript' : 'Plain text'
+              const label = t === 'note' ? 'Note' : t === 'markdown' ? 'Markdown' : t === 'audio' ? 'Audio transcript' : t === 'video' ? 'Video transcript' : 'Plain text'
               const wc = (content.match(/\S+/g) || []).length
               return `${label} · ${wc.toLocaleString()} words`
             })()}
@@ -594,7 +599,34 @@ export function DocumentViewer() {
             <SurveyViewer source={source} />
           </ViewerErrorBoundary>
         )}
-        {source && content && !isPdf && !isAudio && !isVideo && !isImage && !isSurvey && (
+        {source && isNote && (
+          <CodedTextView
+            key={source.guid}
+            text={content}
+            sourceType="note"
+            selections={source.selections}
+            codes={codes}
+            contentMemos={contentMemos}
+            quotes={quoteRangesForViewer}
+            externalHighlightRange={menuHighlight}
+            onTextSelected={handleTextSelected}
+            onMemoClick={(memoGuid) => {
+              const memo = useMemoStore.getState().findMemo(memoGuid)
+              if (memo) {
+                const initData: MemoEditInitData = { memo, theme: document.documentElement.getAttribute('data-theme') || '' }
+                window.api.openMemoEditWindow(initData)
+              }
+            }}
+            onCodingRightClick={handleRightClick}
+            hideLineNumbers
+            editable={!lockedBy}
+            onTextEdit={(next) => applyTranscriptEdit(source.guid, next)}
+            onSelectionCleared={() => setPendingSelection(null)}
+            placeholder="Write your observation…"
+            autoFocus={content === ''}
+          />
+        )}
+        {source && content && !isNote && !isPdf && !isAudio && !isVideo && !isImage && !isSurvey && (
           <CodedTextView
             text={content}
             sourceType={effectiveSourceType}

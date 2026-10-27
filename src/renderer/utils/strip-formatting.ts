@@ -57,7 +57,7 @@ function stripMarkdown(text: string): string {
  */
 export function stripFormatting(text: string, sourceType?: SourceType): string {
   if (!sourceType || sourceType === 'text') return text
-  if (sourceType === 'markdown') return stripMarkdown(text)
+  if (sourceType === 'markdown' || sourceType === 'note') return stripMarkdown(text)
   if (sourceType === 'pdf') return text // PDF extracted text is already clean
   if (sourceType === 'audio') return text // Audio transcript text is already clean
   return text

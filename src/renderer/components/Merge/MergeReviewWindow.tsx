@@ -228,6 +228,7 @@ function sourceTypeLabel(sourceType?: string): string {
     case 'video': return 'Video'
     case 'image': return 'Image'
     case 'markdown': return 'Markdown'
+    case 'note': return 'Note'
     default: return 'Text document'
   }
 }

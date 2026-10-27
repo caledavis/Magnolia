@@ -77,7 +77,7 @@ export function buildAnalysisInitData(
       sourceType: (s as any).sourceType,
       duration: (s as any).formatData?.duration
     })),
-    folders: docStore.folders.map((f) => ({ guid: f.guid, name: f.name, parentGuid: f.parentGuid ?? null })),
+    folders: docStore.folders.map((f) => ({ guid: f.guid, name: f.name, parentGuid: f.parentGuid ?? null, kind: f.kind })),
     sourceFolder: docStore.sourceFolder,
     codes: flattenCodesWithParent(cdStore.codes),
     tags: tgStore.tags.map((t) => ({ guid: t.guid, name: t.name, categoryGuid: t.categoryGuid, value: t.value })),

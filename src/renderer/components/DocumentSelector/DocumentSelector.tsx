@@ -17,7 +17,8 @@ const CATEGORY_LABELS: Record<DocCategory, string> = {
   audio: 'Audio',
   document: 'Document',
   image: 'Image',
-  survey: 'Survey'
+  survey: 'Survey',
+  note: 'Notes'
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1593,6 +1594,7 @@ export function DocumentSelector({
                     <option value="document">Document</option>
                     <option value="image">Image</option>
                     <option value="survey">Survey</option>
+                    <option value="note">Notes</option>
                   </select>
                 </div>
               )}

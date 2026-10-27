@@ -1,4 +1,4 @@
-import { Fragment, useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { Fragment, useState, useMemo, useCallback } from 'react'
 import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
 import { Icon, faFileCodeCorner, faChevronDown, faChevronRight } from '../Icon'
 import { toolColors } from '../../utils/tool-colors'
@@ -16,7 +16,8 @@ import {
   mergeGroupBy,
   groupByKey,
   migrateLegacyGroupBy,
-  GroupByChips
+  GroupByChips,
+  useAutoGroupBy
 } from './group-by'
 import {
   buildSurveyAwareColumns,
@@ -116,7 +117,6 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
   const [questionScope, setQuestionScope] = useState<QuestionScopeRef[]>(savedConfig?.questionScope ?? [])
   // Once the user removes the auto-added Respondents grouping, don't
   // re-seed it (they can drag it back from the Document Browser).
-  const respondentsDismissed = useRef(false)
   const live = useLiveAnalysisData()
   const data = useMemo(() => {
     const base = applySurveyCellScope({ ...propData, ...live }, docFilter)
@@ -163,17 +163,8 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
     [data, docFilter]
   )
 
-  // Auto-add "Respondents" grouping the first time a survey is in scope
-  // (for a fresh, never-saved analysis). Saved analyses keep exactly the
-  // grouping they were saved with; removing the chip sets the dismissed
-  // flag so it isn't re-added.
-  useEffect(() => {
-    if (respondentsDismissed.current || savedConfig) return
-    if (groupBy.some((e) => e.kind === 'respondents')) return
-    if (hasSurveyInScope(filteredSourceGuids, data)) {
-      setGroupBy((p) => mergeGroupBy(p, [{ kind: 'respondents' }]))
-    }
-  }, [filteredSourceGuids, data, groupBy, savedConfig])
+  // Auto-add a Group-by chip for each survey and notebook in scope.
+  const dismissAutoGroup = useAutoGroupBy(filteredSourceGuids, data, savedConfig, setGroupBy)
 
   const codeMap = useMemo(() => {
     const m = new Map<string, { name: string; color?: string; parentGuid?: string }>()
@@ -414,7 +405,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
   }, [])
 
   const handleRemoveGroupBy = useCallback((entry: GroupByEntry) => {
-    if (entry.kind === 'respondents') respondentsDismissed.current = true
+    dismissAutoGroup(entry)
     const key = groupByKey(entry)
     setGroupBy((p) => p.filter((e) => groupByKey(e) !== key))
   }, [])

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useCallback, useState, useEffect } from 'react'
+import React, { useMemo, useRef, useCallback, useState, useEffect, useLayoutEffect } from 'react'
 import type { PlainTextSelection, Code, Memo, SourceType } from '../../models/types'
 import { codepointCount } from '../../utils/unicode'
 import { Icon, QUOTE_ICON, MEMO_POINT_ICON, MEMO_RANGED_ICON } from '../Icon'
@@ -12,6 +12,8 @@ import { TranscriptGutter, TRANSCRIPT_ROW_STYLE } from './TranscriptGutter'
 import { CodeLabel } from './CodeLabel'
 import { useMemoStore } from '../../stores/memo-store'
 import { blendColors, multiColorUnderline } from '../../utils/code-highlight'
+import { computeTextEdit } from '../../utils/text-edit-offsets'
+import { continueListEdit, toggleMarkEdit } from '../../utils/notes'
 
 interface Props {
   text: string
@@ -42,6 +44,18 @@ interface Props {
    *  per-cell "1" gutters read as visual noise). When true, lines
    *  render flush-left and no `TranscriptGutter` is emitted. */
   hideLineNumbers?: boolean
+  /** Write and code in the same view (notes). Typing never touches the
+   *  DOM directly: each beforeinput becomes a text edit handed to
+   *  onTextEdit, and the view re-renders from the new text. */
+  editable?: boolean
+  onTextEdit?: (newText: string) => void
+  /** The text selection collapsed (a click or typing) — any pending
+   *  coding target is gone. */
+  onSelectionCleared?: () => void
+  /** Shown in an empty editable view. */
+  placeholder?: string
+  /** Put the caret in an editable view when it mounts. */
+  autoFocus?: boolean
 }
 
 export interface CodingRightClickContext {
@@ -168,9 +182,15 @@ export function CodedTextView({
   lineTimestamps,
   activeTimestampLine,
   hiddenRanges,
-  hideLineNumbers
+  hideLineNumbers,
+  editable = false,
+  onTextEdit,
+  onSelectionCleared,
+  placeholder,
+  autoFocus
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const editorRef = useRef<HTMLDivElement>(null)
 
   // Margin hover: the codepoint range to programmatically select
   const [hoveredRange, setHoveredRange] = useState<{ startCp: number; endCp: number } | null>(null)
@@ -373,7 +393,10 @@ export function CodedTextView({
     if (!containerRef.current) return
 
     const sel = window.getSelection()
-    if (!sel || sel.isCollapsed || sel.rangeCount === 0) return
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
+      if (editable) onSelectionCleared?.()
+      return
+    }
 
     const range = sel.getRangeAt(0)
     const container = containerRef.current
@@ -386,7 +409,7 @@ export function CodedTextView({
       const selectedText = [...text].slice(startCp, endCp).join('')
       onTextSelected(startCp, endCp, selectedText)
     }
-  }, [text, onTextSelected])
+  }, [text, onTextSelected, editable, onSelectionCleared])
 
   const handleContextMenu = useCallback(
     (e: React.MouseEvent, span: Span) => {
@@ -650,7 +673,9 @@ export function CodedTextView({
       // selected text and are now moving the mouse off a margin label on
       // the way to drag a code onto it). Only clear the preview selection
       // when there's no user selection to protect.
-      if (!userHasManualSelection) window.getSelection()?.removeAllRanges()
+      // An editable view's caret is a collapsed selection the user put
+      // there — leave it.
+      if (!userHasManualSelection && !(editable && liveSel?.isCollapsed)) window.getSelection()?.removeAllRanges()
       return
     }
 
@@ -724,7 +749,7 @@ export function CodedTextView({
         // Range might be invalid in edge cases
       }
     }
-  }, [activeRange, text, onTextSelected, externalHighlightRange, lockedRange])
+  }, [activeRange, text, onTextSelected, externalHighlightRange, lockedRange, editable])
 
   // Precompute memo ranges for highlighting
   const memoRanges = useMemo(() => {
@@ -1230,8 +1255,217 @@ export function CodedTextView({
     return () => cancelAnimationFrame(rafId)
   })
 
+  // ── Editing (notes) ───────────────────────────────────────────────
+  // The browser is never allowed to change the text DOM itself. Each
+  // beforeinput is turned into a codepoint edit, handed up through
+  // onTextEdit (which shifts codes, quotes and memos with it), and the
+  // caret is put back once the view has re-rendered from the new text.
+  // IME composition is the exception — it can't be cancelled — so the
+  // composed text is applied on compositionend and the lines remounted
+  // (editEpoch) so React doesn't reconcile against DOM it didn't write.
+  const pendingCaretRef = useRef<{ start: number; end: number } | null>(null)
+  const prevTextRef = useRef(text)
+  const composingRef = useRef<{ start: number; end: number } | null>(null)
+  const [editEpoch, setEditEpoch] = useState(0)
+  /** Lines showing their Markdown syntax: the ones holding the caret. */
+  const [revealLines, setRevealLines] = useState<{ from: number; to: number } | null>(null)
+
+  /** Codepoint at a DOM boundary in the editor. A boundary between line
+   *  rows (e.g. Select All's ends sit on the editor itself) resolves to
+   *  the first text span after it. */
+  const boundaryCp = useCallback((node: Node, offset: number): number | null => {
+    const container = containerRef.current
+    const editor = editorRef.current
+    if (!container || !editor) return null
+    if (node.nodeType === Node.TEXT_NODE || (node as Element).closest?.('[data-cpoffset]')) {
+      return resolveCpInContainer(container, node, offset)
+    }
+    const point = document.createRange()
+    point.setStart(node, offset)
+    for (const el of editor.querySelectorAll<HTMLElement>('[data-cpoffset]')) {
+      if (point.comparePoint(el, 0) >= 0) return parseInt(el.dataset.cpoffset!, 10)
+    }
+    return [...text].length
+  }, [text])
+
+  const cpsFromRange = useCallback((r: { startContainer: Node; startOffset: number; endContainer: Node; endOffset: number }) => {
+    const a = boundaryCp(r.startContainer, r.startOffset)
+    const b = boundaryCp(r.endContainer, r.endOffset)
+    if (a === null || b === null) return null
+    return { start: Math.min(a, b), end: Math.max(a, b) }
+  }, [boundaryCp])
+
+  const selectionCps = useCallback(() => {
+    const sel = window.getSelection()
+    if (!sel || sel.rangeCount === 0 || !editorRef.current?.contains(sel.anchorNode)) return null
+    return cpsFromRange(sel.getRangeAt(0))
+  }, [cpsFromRange])
+
+  /** Replace [start, end) with `insert`. The caret lands after the
+   *  insertion unless `select` says what to select instead. */
+  const applyEdit = useCallback((start: number, end: number, insert: string, select?: { start: number; end: number }) => {
+    if (!onTextEdit) return
+    const cps = [...text]
+    const after = start + [...insert].length
+    pendingCaretRef.current = select ?? { start: after, end: after }
+    onTextEdit(cps.slice(0, start).join('') + insert + cps.slice(end).join(''))
+    onSelectionCleared?.()
+  }, [text, onTextEdit, onSelectionCleared])
+
+  /** DOM position of codepoint `cp` inside the editor. */
+  const domPointAtCp = useCallback((cp: number): { node: Node; offset: number } | null => {
+    const editor = editorRef.current
+    if (!editor) return null
+    let fallback: { node: Node; offset: number } | null = null
+    for (const el of editor.querySelectorAll<HTMLElement>('[data-cpoffset]')) {
+      const start = parseInt(el.dataset.cpoffset!, 10)
+      const elText = el.textContent || ''
+      const elCps = [...elText]
+      const end = start + elCps.length
+      const textNode = el.firstChild && el.firstChild.nodeType === Node.TEXT_NODE ? el.firstChild : null
+      if (cp >= start && cp < end && textNode) {
+        return { node: textNode, offset: elCps.slice(0, cp - start).join('').length }
+      }
+      // The empty trailing line.
+      if (elCps.length === 0 && cp === start) return { node: el, offset: 0 }
+      if (cp === end && textNode) fallback = { node: textNode, offset: elText.length }
+    }
+    return fallback
+  }, [])
+
+  const placeSelection = useCallback((start: number, end: number = start) => {
+    const a = domPointAtCp(start)
+    const b = end === start ? a : domPointAtCp(end)
+    const sel = window.getSelection()
+    if (!a || !b || !sel) return
+    try {
+      sel.setBaseAndExtent(a.node, a.offset, b.node, b.offset)
+    } catch {
+      // A stale point — leave the caret where the browser put it.
+    }
+  }, [domPointAtCp])
+
+  // Restore the caret after the text changes: where our own edit left it,
+  // or — for an outside change such as undo — at the end of what changed.
+  useLayoutEffect(() => {
+    const prev = prevTextRef.current
+    prevTextRef.current = text
+    if (!editable) return
+    let target = pendingCaretRef.current
+    pendingCaretRef.current = null
+    if (target === null) {
+      if (prev === text || !editorRef.current || document.activeElement !== editorRef.current) return
+      const edit = computeTextEdit(prev, text)
+      if (!edit) return
+      target = { start: edit.newEnd, end: edit.newEnd }
+    }
+    placeSelection(target.start, target.end)
+  }, [text, editEpoch, editable, placeSelection])
+
+  useEffect(() => {
+    if (!editable || !autoFocus || !editorRef.current) return
+    editorRef.current.focus()
+    placeSelection([...text].length)
+    // Only on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    const editor = editorRef.current
+    if (!editable || !editor) return
+    const toggleMark = (mark: '**' | '*') => {
+      const sel = selectionCps()
+      if (!sel) return
+      const edit = toggleMarkEdit(text, sel.start, sel.end, mark)
+      applyEdit(edit.start, edit.end, edit.insert, { start: edit.selStart, end: edit.selEnd })
+    }
+    // Cmd+B / Cmd+I are handled here rather than as the browser's
+    // formatBold/formatItalic: Cmd+I is also the menu's Import Document,
+    // which only stands down when the keydown is consumed.
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return
+      const key = e.key.toLowerCase()
+      if (key !== 'b' && key !== 'i') return
+      e.preventDefault()
+      e.stopPropagation()
+      toggleMark(key === 'b' ? '**' : '*')
+    }
+    const onBeforeInput = (e: InputEvent) => {
+      // Composition can't be cancelled; it's applied on compositionend.
+      if (e.inputType === 'insertCompositionText' || e.inputType === 'deleteCompositionText' || e.inputType === 'insertFromComposition') return
+      e.preventDefault()
+      if (composingRef.current) return
+      const sel = selectionCps()
+      const target = e.getTargetRanges()[0]
+      const range = (target && cpsFromRange(target)) || sel
+      if (!range) return
+      const t = e.inputType
+      if (t === 'insertParagraph' || t === 'insertLineBreak') {
+        // In a note, Enter on a list item continues the list (Shift+Enter
+        // is a plain line break).
+        const list = sourceType === 'note' && t === 'insertParagraph' ? continueListEdit(text, range.start, range.end) : null
+        if (list) applyEdit(list.start, list.end, list.insert)
+        else applyEdit(range.start, range.end, '\n')
+      } else if (t === 'formatBold' || t === 'formatItalic') {
+        toggleMark(t === 'formatBold' ? '**' : '*')
+      } else if (t.startsWith('insert') && t !== 'insertFromDrop') {
+        const insert = (e.data ?? e.dataTransfer?.getData('text/plain') ?? '').replace(/\r\n?/g, '\n')
+        applyEdit(range.start, range.end, insert)
+      } else if (t.startsWith('delete') && t !== 'deleteByDrag') {
+        let { start, end } = range
+        // No target range from the browser, or one that resolves empty
+        // (across a line break the browser's range runs from just after
+        // the previous line's "\n" to the start of this line — the same
+        // codepoint): delete one codepoint.
+        if (start === end) {
+          if (t.endsWith('Backward')) start = Math.max(0, start - 1)
+          else end = Math.min([...text].length, end + 1)
+        }
+        if (start !== end) applyEdit(start, end, '')
+      }
+    }
+    const onCompositionStart = () => {
+      composingRef.current = selectionCps() ?? { start: 0, end: 0 }
+    }
+    const onCompositionEnd = (e: CompositionEvent) => {
+      const range = composingRef.current
+      composingRef.current = null
+      setEditEpoch((n) => n + 1)
+      if (range) applyEdit(range.start, range.end, e.data ?? '')
+    }
+    editor.addEventListener('keydown', onKeyDown)
+    editor.addEventListener('beforeinput', onBeforeInput)
+    editor.addEventListener('compositionstart', onCompositionStart)
+    editor.addEventListener('compositionend', onCompositionEnd)
+    return () => {
+      editor.removeEventListener('keydown', onKeyDown)
+      editor.removeEventListener('beforeinput', onBeforeInput)
+      editor.removeEventListener('compositionstart', onCompositionStart)
+      editor.removeEventListener('compositionend', onCompositionEnd)
+    }
+  }, [editable, text, sourceType, selectionCps, cpsFromRange, applyEdit])
+
+  // Track the caret's lines so their Markdown syntax shows while editing.
+  useEffect(() => {
+    if (!editable) return
+    const onSelectionChange = () => {
+      if (composingRef.current) return
+      const range = selectionCps()
+      if (!range) {
+        setRevealLines((prev) => (prev === null ? prev : null))
+        return
+      }
+      const from = lineAtCp(lineStarts, range.start)
+      const to = lineAtCp(lineStarts, range.end)
+      setRevealLines((prev) => (prev && prev.from === from && prev.to === to ? prev : { from, to }))
+    }
+    document.addEventListener('selectionchange', onSelectionChange)
+    return () => document.removeEventListener('selectionchange', onSelectionChange)
+  }, [editable, lineStarts, selectionCps])
+
   // ── Blocks (long documents) ───────────────────────────────────────
-  const blocked = lines.length >= BLOCK_MIN_LINES
+  // Notes are short and must keep every line in the DOM for the caret.
+  const blocked = !editable && lines.length >= BLOCK_MIN_LINES
   const blockCount = blocked ? Math.ceil(lines.length / BLOCK_LINES) : 0
   const [builtBlocks, setBuiltBlocks] = useState<Set<number>>(() => new Set([0, 1]))
   const [textWidth, setTextWidth] = useState(800)
@@ -1323,6 +1557,46 @@ export function CodedTextView({
       out.push(<div key={`block-${b}`} data-text-block={b}>{rows}</div>)
     }
     return out
+  }
+
+  // The editable surface holds only the text lines — the overlays sit
+  // outside it. Text ending in a newline (or no text at all) gets an
+  // empty last line for the caret to sit on.
+  const wrapEditable = (body: React.ReactNode): React.ReactNode => {
+    if (!editable) return body
+    const len = [...text].length
+    const needsTrailingLine = text === '' || text.endsWith('\n')
+    return (
+      <div
+        ref={editorRef}
+        data-note-editor="1"
+        contentEditable
+        suppressContentEditableWarning
+        spellCheck={false}
+        onKeyUp={() => {
+          const range = selectionCps()
+          if (!range) return
+          if (range.start === range.end) onSelectionCleared?.()
+          else onTextSelected(range.start, range.end, [...text].slice(range.start, range.end).join(''))
+        }}
+        style={{ outline: 'none', position: 'relative', minHeight: 22 * 4, paddingLeft: 20 }}
+      >
+        {body}
+        {needsTrailingLine && (
+          <div key={`${editEpoch}-end`} style={{ ...TRANSCRIPT_ROW_STYLE, minHeight: 22, lineHeight: '22px' }}>
+            <span data-cpoffset={len} style={{ flex: 1, whiteSpace: 'pre-wrap' }}><br /></span>
+          </div>
+        )}
+        {text === '' && placeholder && (
+          <div
+            contentEditable={false}
+            style={{ position: 'absolute', top: 0, left: 20, lineHeight: '22px', color: 'var(--text-muted)', pointerEvents: 'none', userSelect: 'none' }}
+          >
+            {placeholder}
+          </div>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -1431,10 +1705,14 @@ export function CodedTextView({
           }}
         />
       </div>
-      {renderLines((line, lineIdx) => {
+      {wrapEditable(renderLines((line, lineIdx) => {
         const lineAnns = perLine[lineIdx]?.annotations ?? []
         const fmtLine = formatAnnotations?.[lineIdx]
-        const fmtBlockClass = fmtLine?.blockClass || ''
+        // While the caret is on a line its Markdown syntax shows (muted)
+        // instead of collapsing, so it can be edited.
+        const revealSyntax = !!revealLines && lineIdx >= revealLines.from && lineIdx <= revealLines.to
+        const rawBlockClass = fmtLine?.blockClass || ''
+        const fmtBlockClass = revealSyntax && rawBlockClass === 'md-table-separator' ? '' : rawBlockClass
 
         // Check if this line overlaps with the playback highlight range
         const lineSpans = line.spans
@@ -1446,7 +1724,7 @@ export function CodedTextView({
 
         return (
           <div
-            key={lineIdx}
+            key={`${editEpoch}-${lineIdx}`}
             style={{
               ...TRANSCRIPT_ROW_STYLE,
               // Fixed-pixel line-box so the smaller gutter span
@@ -1597,10 +1875,11 @@ export function CodedTextView({
                       (r) => r.cpStart <= atom.cpStart && r.cpEnd >= atom.cpEnd
                     )
                     if (overlapping.length > 0) {
-                      const isHidden = overlapping.some((r) => r.hidden)
+                      const isSyntax = overlapping.some((r) => r.hidden)
+                      const isHidden = isSyntax && !revealSyntax
                       const extraStyle: React.CSSProperties = isHidden
                         ? { display: 'inline-block', width: 0, overflow: 'hidden', fontSize: 0, lineHeight: 0 }
-                        : {}
+                        : isSyntax ? { color: 'var(--text-muted)' } : {}
                       if (!isHidden) {
                         for (const r of overlapping) {
                           if (!r.hidden) Object.assign(extraStyle, r.style)
@@ -1682,6 +1961,7 @@ export function CodedTextView({
             {marginW > 0 && (
               <div
                 data-margin-col="1"
+                contentEditable={editable ? false : undefined}
                 style={{
                   width: marginW,
                   minWidth: marginW,
@@ -1700,6 +1980,7 @@ export function CodedTextView({
                 segment tops regardless of where the memo's start codepoint
                 lands within wrapped text. */}
             <div
+              contentEditable={editable ? false : undefined}
               style={{
                 display: 'flex',
                 flexShrink: 0,
@@ -1711,7 +1992,7 @@ export function CodedTextView({
             />
           </div>
         )
-      })}
+      }))}
 
       {/* Memo/Quote picker popup */}
       {memoPopup && (

@@ -5,6 +5,9 @@ export interface DocumentFolder {
   guid: string
   name: string
   parentGuid: string | null
+  /** 'notebook' marks a folder that holds notes (and only notes).
+   *  Absent for an ordinary folder. */
+  kind?: 'notebook'
 }
 
 export interface Project {
@@ -87,7 +90,7 @@ export interface Code {
   children: Code[]
 }
 
-export type SourceType = 'text' | 'markdown' | 'pdf' | 'audio' | 'image' | 'video' | 'survey'
+export type SourceType = 'text' | 'markdown' | 'pdf' | 'audio' | 'image' | 'video' | 'survey' | 'note'
 
 // ─── Survey ──────────────────────────────────────────────────────────
 //
@@ -220,6 +223,15 @@ export interface VideoFormatData {
    *  during transcription; drives click-to-seek and automatic bracket
    *  line-anchor placement. */
   lineTimes?: Record<string, number>
+}
+
+/** Format-specific data for note sources. A note's name is derived from
+ *  these: "YYMMDD HH:MM - Title" (see utils/notes.ts). */
+export interface NoteFormatData {
+  title: string
+  /** When the observation happened (ISO). Defaults to when the note was
+   *  created; the user can change it. */
+  noteDateTime: string
 }
 
 /** Format-specific data for image sources */
@@ -881,7 +893,7 @@ export interface AnalysisInitData {
      *  when computing % of media covered by code. */
     duration?: number
   }[]
-  folders: { guid: string; name: string; parentGuid: string | null }[]
+  folders: { guid: string; name: string; parentGuid: string | null; kind?: 'notebook' }[]
   codes: { guid: string; name: string; color?: string; isCodable: boolean; parentGuid?: string }[]
   tags: { guid: string; name: string; categoryGuid?: string; value?: string }[]
   categories: { guid: string; name: string; type?: TagCategoryType; listOptions?: string[] }[]

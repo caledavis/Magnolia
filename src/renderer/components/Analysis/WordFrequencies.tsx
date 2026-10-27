@@ -18,7 +18,8 @@ import {
   mergeGroupBy,
   groupByKey,
   migrateLegacyGroupBy,
-  GroupByChips
+  GroupByChips,
+  useAutoGroupBy
 } from './group-by'
 import {
   buildSurveyAwareColumns,
@@ -148,7 +149,6 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     () => savedConfig?.groupBy ?? migrateLegacyGroupBy(savedConfig?.groupByTags)
   )
   const [questionScope, setQuestionScope] = useState<QuestionScopeRef[]>(savedConfig?.questionScope ?? [])
-  const respondentsDismissed = useRef(false)
   const live = useLiveAnalysisData()
   const data = useMemo(() => {
     const base = applySurveyCellScope({ ...propData, ...live }, docFilter)
@@ -206,15 +206,8 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     return s.questionScope || s.respondentScope || s.tagGuids ? s : undefined
   }, [questionScope])
 
-  // Auto-add "Respondents" grouping when a survey first enters scope on a
-  // fresh, never-saved analysis; removing the chip prevents re-adding.
-  useEffect(() => {
-    if (respondentsDismissed.current || savedConfig) return
-    if (groupBy.some((e) => e.kind === 'respondents')) return
-    if (hasSurveyInScope(filteredSourceGuids, data)) {
-      setGroupBy((p) => mergeGroupBy(p, [{ kind: 'respondents' }]))
-    }
-  }, [filteredSourceGuids, data, groupBy, savedConfig])
+  // Auto-add a Group-by chip for each survey and notebook in scope.
+  const dismissAutoGroup = useAutoGroupBy(filteredSourceGuids, data, savedConfig, setGroupBy)
 
   const handleTagDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -224,7 +217,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
   }, [])
 
   const handleRemoveGroupBy = useCallback((entry: GroupByEntry) => {
-    if (entry.kind === 'respondents') respondentsDismissed.current = true
+    dismissAutoGroup(entry)
     const key = groupByKey(entry)
     setGroupBy((p) => p.filter((e) => groupByKey(e) !== key))
   }, [])
