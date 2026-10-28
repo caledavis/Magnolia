@@ -47,6 +47,7 @@ import {
   Minimize2,
   Link,
   PanelLeft,
+  SquareSplitVertical,
   SquarePlus,
   SquareArrowRightEnter,
   Plus,
@@ -167,6 +168,7 @@ export const faUpRightFromSquare = ExternalLink
 export const faDownLeftAndUpRightToCenter = Minimize2
 export const faLink = Link
 export const faTableColumns = PanelLeft
+export const faSquareSplitVertical = SquareSplitVertical
 export const faSquarePlus = SquarePlus
 export const faSquareArrowRightEnter = SquareArrowRightEnter
 export const faPlus = Plus

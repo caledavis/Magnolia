@@ -76,4 +76,5 @@ export function installAppearanceListeners(): void {
   // never paint a context menu. Once any entry runs the listeners
   // setup, the observer is live for the rest of the session.
   import('./install-context-menu-clamp').then((m) => m.installContextMenuClamp())
+  import('./install-drag-selection-keeper').then((m) => m.installDragSelectionKeeper())
 }

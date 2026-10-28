@@ -18,6 +18,7 @@ import 'pdfjs-dist/web/pdf_viewer.css'
 import { usePendingSelectionStore } from '../../stores/pending-selection-store'
 import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
 import { useRememberedScroll } from '../../utils/use-remembered-scroll'
+import { paneScrollKey, type SplitPane } from '../../utils/split-view'
 import { modKey } from '../../utils/platform'
 import { roundRegionToWholePixels } from '../../utils/region-rounding'
 
@@ -80,9 +81,16 @@ function resolveCp(node: Node, offset: number): number | null {
 interface Props {
   source: TextSource
   content: string
+  /** Which half of a split view this is; each remembers its own place. */
+  pane?: SplitPane
+  /** The half the reader is working in: only it takes code hotkeys,
+   *  mirrors its selection for the New Code dialog and follows quote /
+   *  memo clicks. Always true when the document isn't split. */
+  active?: boolean
+  onActivate?: () => void
 }
 
-export function PdfDocumentViewer({ source, content }: Props) {
+export function PdfDocumentViewer({ source, content, pane = 'primary', active = true, onActivate }: Props) {
   const addSelection = useDocumentStore((s) => s.addSelection)
   const addCodingToSelection = useDocumentStore((s) => s.addCodingToSelection)
   const removeCoding = useDocumentStore((s) => s.removeCoding)
@@ -123,6 +131,7 @@ export function PdfDocumentViewer({ source, content }: Props) {
   // to be set.
   const setGlobalPendingSelection = usePendingSelectionStore((s) => s.setSelection)
   useEffect(() => {
+    if (!active) return
     if (pendingBoxSelection) {
       setGlobalPendingSelection({
         kind: 'region',
@@ -134,7 +143,21 @@ export function PdfDocumentViewer({ source, content }: Props) {
     } else {
       setGlobalPendingSelection(null)
     }
-  }, [pendingSelection, pendingBoxSelection, source.guid, setGlobalPendingSelection])
+  }, [active, pendingSelection, pendingBoxSelection, source.guid, setGlobalPendingSelection])
+  // A half of a split view that stops being active drops its selection, so
+  // the New Code dialog can never code a stale selection in the other half.
+  const wasActiveRef = useRef(active)
+  useEffect(() => {
+    if (wasActiveRef.current && !active) {
+      setPendingSelection(null)
+      setPendingBoxSelection(null)
+      setBoxDrag(null)
+      setContextMenu(null)
+      setMenuHighlight(null)
+      setGlobalPendingSelection(null)
+    }
+    wasActiveRef.current = active
+  }, [active, setGlobalPendingSelection])
 
   const containerRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -173,7 +196,7 @@ export function PdfDocumentViewer({ source, content }: Props) {
   // fresh CSS animation — re-firing the pulse on every click.
   const pulseClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
-    if (!scrollTarget) return
+    if (!scrollTarget || !active) return
     if (scrollTarget.pdfRegion) {
       setPulseRegion(scrollTarget.pdfRegion)
       setPendingRegionScroll(scrollTarget.pdfRegion)
@@ -187,7 +210,7 @@ export function PdfDocumentViewer({ source, content }: Props) {
       setPendingTextScroll(r)
     }
     clearScrollTarget()
-  }, [scrollTarget, clearScrollTarget])
+  }, [scrollTarget, clearScrollTarget, active])
 
   // Perform the deferred region scroll once the target page's DOM exists.
   // allPagesRendered is the cheap way to know the layout has settled.
@@ -229,7 +252,7 @@ export function PdfDocumentViewer({ source, content }: Props) {
   // laid out, unless a saved quote/memo click is taking them to a specific
   // spot. Saved as they scroll, so it also survives switching to a tool
   // tab (which unmounts this viewer) and reopening the project.
-  const rememberScroll = useRememberedScroll(source.guid, scrollContainerRef, {
+  const rememberScroll = useRememberedScroll(paneScrollKey(source.guid, pane), scrollContainerRef, {
     ready: allPagesRendered,
     skipRestore: !!(pendingRegionScroll || pendingTextScroll)
   })
@@ -626,8 +649,9 @@ export function PdfDocumentViewer({ source, content }: Props) {
     setZoom(fitScale)
   }, [])
 
-  // Hotkeys + ESC handling
+  // Hotkeys + ESC handling (the active half of a split only)
   useEffect(() => {
+    if (!active) return
     const handleKeyDown = (e: KeyboardEvent) => {
       // ESC: cancel box drag or pending box, or close context menu
       if (e.key === 'Escape') {
@@ -654,12 +678,14 @@ export function PdfDocumentViewer({ source, content }: Props) {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [hotkeyMap, pendingSelection, pendingBoxSelection, applyCodingToRange, applyCodingToRegion, boxDrag, contextMenu])
+  }, [active, hotkeyMap, pendingSelection, pendingBoxSelection, applyCodingToRange, applyCodingToRegion, boxDrag, contextMenu])
 
   return (
     <div
       ref={containerRef}
       style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
+      onMouseDownCapture={onActivate}
+      onContextMenuCapture={onActivate}
       onMouseDown={(e) => {
         if (contextMenu && !(e.target as HTMLElement).closest('.context-menu')) {
           setContextMenu(null); setMenuHighlight(null)
