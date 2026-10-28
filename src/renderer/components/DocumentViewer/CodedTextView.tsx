@@ -166,6 +166,15 @@ function resolveCpInContainer(container: HTMLElement, node: Node, offset: number
   return null
 }
 
+/** The previous state if a rebuilt value has the same content, else the
+ *  new one. The margin overlay effect runs after every render and stores
+ *  freshly built arrays; handing React back the old array when nothing
+ *  moved lets it skip the re-render, instead of re-rendering (and
+ *  rebuilding the overlay) on every animation frame. */
+function sameContent<T>(prev: T, next: T): T {
+  return JSON.stringify(prev) === JSON.stringify(next) ? prev : next
+}
+
 export function CodedTextView({
   text,
   sourceType,
@@ -988,8 +997,8 @@ export function CodedTextView({
     const hasMemos = !!contentMemos && contentMemos.length > 0
     const hasQuotes = !!quotesProp && quotesProp.length > 0
     if (selections.length === 0 && !hasMemos && !hasQuotes) {
-      setBracketLabels([])
-      setIconGroups([])
+      setBracketLabels((prev) => (prev.length === 0 ? prev : []))
+      setIconGroups((prev) => (prev.length === 0 ? prev : []))
       return
     }
 
@@ -1141,7 +1150,7 @@ export function CodedTextView({
           maxWidth: labelMaxWidthFor(p.labelLeft)
         })
       }
-      setBracketLabels(labels)
+      setBracketLabels((prev) => sameContent(prev, labels))
 
       // --- Memo + quote icon groups ----------------------------------
       // Measure the visual top/bottom Y of an arbitrary codepoint range
@@ -1250,7 +1259,7 @@ export function CodedTextView({
         }
         return { ...g, leftX: left }
       })
-      setIconGroups(packedGroups)
+      setIconGroups((prev) => sameContent(prev, packedGroups))
     })
     return () => cancelAnimationFrame(rafId)
   })
