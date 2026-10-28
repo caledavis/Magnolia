@@ -960,9 +960,11 @@ pub async fn flush_heartbeat(app: AppHandle) -> CmdResult<()> {
     Ok(())
 }
 
-/// Keep the menu's window list in step with renamed windows.
+/// Keep the menu's window list in step with renamed windows. A title change
+/// also resets the traffic lights on macOS.
 #[tauri::command]
-pub async fn window_title_changed(app: AppHandle) -> CmdResult<()> {
+pub async fn window_title_changed(app: AppHandle, window: tauri::WebviewWindow) -> CmdResult<()> {
+    crate::windows::place_traffic_lights(&window);
     crate::menu::rebuild(&app);
     Ok(())
 }

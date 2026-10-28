@@ -104,22 +104,112 @@ fn base_builder<'a>(
 }
 
 /// Chromeless on every platform: macOS keeps its traffic lights inset into
-/// the page; Windows/Linux draw their own controls in the toolbar.
+/// the page; Windows/Linux draw their own controls in the toolbar. `lights_y`
+/// is handed to tao; `None` leaves the lights to `keep_traffic_lights_placed`.
 fn chromeless<'a>(
     b: WebviewWindowBuilder<'a, tauri::Wry, AppHandle>,
-    lights_y: f64,
+    lights_y: Option<f64>,
 ) -> WebviewWindowBuilder<'a, tauri::Wry, AppHandle> {
     #[cfg(target_os = "macos")]
     {
-        let _ = lights_y;
-        b.title_bar_style(tauri::TitleBarStyle::Overlay)
-            .hidden_title(true)
-            .traffic_light_position(LogicalPosition::new(20.0, lights_y))
+        let b = b
+            .title_bar_style(tauri::TitleBarStyle::Overlay)
+            .hidden_title(true);
+        match lights_y {
+            Some(y) => b.traffic_light_position(LogicalPosition::new(20.0, y)),
+            None => b,
+        }
     }
     #[cfg(not(target_os = "macos"))]
     {
         let _ = (lights_y, LogicalPosition::<f64>::new(0.0, 0.0));
         b.decorations(false)
+    }
+}
+
+/// Main-window traffic-light offset (close button's top-left, in points from
+/// the window's top-left): y=20 centres the 14px light cluster in the 54px
+/// toolbar.
+const MAIN_LIGHTS: (f64, f64) = (20.0, 20.0);
+
+/// Place the main window's traffic lights ourselves rather than through
+/// tao: tao's layout leaves the cluster 9pt above the toolbar's centre line
+/// and re-applies itself on redraw. AppKit puts the buttons back at the top
+/// on title changes, resizes and focus changes, so place them after each.
+fn keep_traffic_lights_placed(w: &WebviewWindow) {
+    #[cfg(target_os = "macos")]
+    {
+        place_traffic_lights(w);
+        let (app, label) = (w.app_handle().clone(), w.label().to_string());
+        w.on_window_event(move |e| {
+            if matches!(
+                e,
+                WindowEvent::Resized(_)
+                    | WindowEvent::Focused(_)
+                    | WindowEvent::ThemeChanged(_)
+                    | WindowEvent::ScaleFactorChanged { .. }
+            ) && let Some(w) = app.get_webview_window(&label)
+            {
+                place_traffic_lights(&w);
+            }
+        });
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = (w, MAIN_LIGHTS);
+}
+
+/// Move the main window's traffic lights to `MAIN_LIGHTS` (other windows
+/// keep tao's placement).
+pub fn place_traffic_lights(w: &WebviewWindow) {
+    #[cfg(target_os = "macos")]
+    if w.label() == MAIN {
+        let app = w.app_handle().clone();
+        let _ = app.clone().run_on_main_thread(move || {
+            let Some(ns_window) = app
+                .get_webview_window(MAIN)
+                .and_then(|w| w.ns_window().ok())
+            else {
+                return;
+            };
+            // SAFETY: looked up on the main thread, where the window is
+            // owned and closed, so it is alive for this call.
+            unsafe { inset_traffic_lights(&*(ns_window as *const objc2_app_kit::NSWindow)) }
+        });
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = w;
+}
+
+/// Grow the title-bar container to `y` above and below the buttons, then
+/// centre them in it and space them from `x`, keeping AppKit's spacing.
+#[cfg(target_os = "macos")]
+fn inset_traffic_lights(window: &objc2_app_kit::NSWindow) {
+    use objc2_app_kit::NSWindowButton;
+    let (x, y) = MAIN_LIGHTS;
+    let buttons = [
+        NSWindowButton::CloseButton,
+        NSWindowButton::MiniaturizeButton,
+        NSWindowButton::ZoomButton,
+    ]
+    .map(|b| window.standardWindowButton(b));
+    let [Some(close), Some(mini), Some(zoom)] = buttons else {
+        return;
+    };
+    // SAFETY: plain view-hierarchy reads on the main thread.
+    let Some(container) = (unsafe { close.superview().and_then(|v| v.superview()) }) else {
+        return;
+    };
+    let close_rect = close.frame();
+    let mut bar = container.frame();
+    bar.size.height = close_rect.size.height + 2.0 * y;
+    bar.origin.y = window.frame().size.height - bar.size.height;
+    container.setFrame(bar);
+    let spacing = mini.frame().origin.x - close_rect.origin.x;
+    for (i, button) in [close, mini, zoom].iter().enumerate() {
+        let mut origin = button.frame().origin;
+        origin.x = x + i as f64 * spacing;
+        origin.y = y;
+        button.setFrameOrigin(origin);
     }
 }
 
@@ -134,7 +224,7 @@ pub fn show_welcome(app: &AppHandle) {
         .resizable(false)
         .maximizable(false)
         .center();
-    match chromeless(b, 20.0).build() {
+    match chromeless(b, Some(20.0)).build() {
         Ok(w) => {
             let handle = app.clone();
             w.on_window_event(move |e| {
@@ -195,14 +285,14 @@ pub fn open_main(app: &AppHandle) -> Option<WebviewWindow> {
         .center();
     #[cfg(target_os = "macos")]
     let b = b.accept_first_mouse(true);
-    // y=20 centres the 14px light cluster in the 54px toolbar.
-    let w = match chromeless(b, 20.0).build() {
+    let w = match chromeless(b, None).build() {
         Ok(w) => w,
         Err(e) => {
             log::error!("could not open main window: {e}");
             return None;
         }
     };
+    keep_traffic_lights_placed(&w);
     let handle = app.clone();
     w.on_window_event(move |e| match e {
         WindowEvent::CloseRequested { api, .. } => {
