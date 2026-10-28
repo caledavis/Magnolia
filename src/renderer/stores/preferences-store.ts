@@ -19,8 +19,7 @@ export interface FootPedalMappings {
  *  ("Clean") for backwards compatibility with older preference files. */
 export type ThemeId = '' | 'dark' | 'granola' | 'granola-dark' | 'high-contrast' | 'magnolia' | 'magnolia-dark'
 
-/** Paper size for PDFs Magnolia exports. Values are Electron
- *  printToPDF `pageSize` strings. */
+/** Paper size for PDFs Magnolia exports (see src-tauri/src/print). */
 export type PaperSize = 'A4' | 'A3' | 'A5' | 'Letter' | 'Legal' | 'Tabloid'
 
 /** Toolbar button display: 'icons' is the compact macOS Mail-style

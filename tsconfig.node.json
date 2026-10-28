@@ -12,10 +12,5 @@
     "target": "ESNext",
     "types": ["node"]
   },
-  "include": [
-    "src/main/**/*",
-    "src/preload/**/*",
-    "src/renderer/models/types.ts",
-    "electron.vite.config.ts"
-  ]
+  "include": ["vite.config.ts", "vitest.config.ts"]
 }

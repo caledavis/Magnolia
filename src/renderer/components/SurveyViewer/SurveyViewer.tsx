@@ -62,7 +62,9 @@ import type {
   SurveyRespondent,
   TextSource
 } from '../../models/types'
-import { useSurveyViewStore, type SurveyViewMode } from '../../stores/survey-view-store'
+import { useSurveyViewStore, type SurveyView, type SurveyViewMode } from '../../stores/survey-view-store'
+import { getViewSetting, setViewSetting } from '../../stores/view-position-store'
+import { useRememberedScroll } from '../../utils/use-remembered-scroll'
 import { useDocumentStore } from '../../stores/document-store'
 import { useCodeStore } from '../../stores/code-store'
 import { useMemoStore } from '../../stores/memo-store'
@@ -2073,7 +2075,8 @@ const summaryTdStyle: React.CSSProperties = {
 
 export function SurveyViewer({ source }: Props) {
   const survey: SurveyData | undefined = (source.formatData as SurveyFormatData | undefined)?.survey
-  const view = useSurveyViewStore((s) => s.viewBySurveyGuid[source.guid]) ?? { mode: 'summary' as SurveyViewMode }
+  const chosenView = useSurveyViewStore((s) => s.viewBySurveyGuid[source.guid])
+  const view = chosenView ?? { mode: 'summary' as SurveyViewMode }
   const setView = useSurveyViewStore((s) => s.setView)
   const scrollTarget = useSurveyViewStore((s) => s.scrollTarget)
   const clearScrollTarget = useSurveyViewStore((s) => s.setScrollTarget)
@@ -2748,6 +2751,33 @@ export function SurveyViewer({ source }: Props) {
     [survey, view]
   )
 
+  // Return to where the reader was: the respondent or question that was
+  // open (the first time this survey is shown, unless a tree or coded-cell
+  // click has already chosen a view) and the scroll position within it.
+  const viewSettingKey = `${source.guid}|view`
+  useEffect(() => {
+    if (chosenView || !survey) return
+    const saved = getViewSetting(viewSettingKey)
+    if (!saved) return
+    try {
+      const { mode, childId } = JSON.parse(saved) as SurveyView
+      const exists =
+        mode === 'respondent' ? survey.respondents.some((r) => r.id === childId)
+        : mode === 'question' ? survey.questions.some((q) => q.id === childId)
+        : mode === 'summary'
+      if (exists) setView(source.guid, mode, childId)
+    } catch { /* unreadable setting: stay on the summary */ }
+  }, [source.guid]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (chosenView) setViewSetting(viewSettingKey, JSON.stringify({ mode: chosenView.mode, childId: chosenView.childId }))
+  }, [chosenView, viewSettingKey])
+  const surveyScrollRef = useRef<HTMLDivElement>(null)
+  const rememberScroll = useRememberedScroll(
+    `${source.guid}|${view.mode}|${view.childId ?? ''}`,
+    surveyScrollRef,
+    { ready: !!survey, skipRestore: scrollTarget?.surveyGuid === source.guid }
+  )
+
   const handleMemoClick = useCallback((memoGuid: string) => {
     const memo = useMemoStore.getState().findMemo(memoGuid)
     if (!memo) return
@@ -2789,7 +2819,7 @@ export function SurveyViewer({ source }: Props) {
       }}
       onDrop={handleDrop}
     >
-      <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-panel)', padding: '0 20px 24px 20px' }}>
+      <div ref={surveyScrollRef} onScroll={rememberScroll} style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-panel)', padding: '0 20px 24px 20px' }}>
         {view.mode === 'summary' && (
           <SummaryView
             survey={survey}

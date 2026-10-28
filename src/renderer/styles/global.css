@@ -1179,7 +1179,9 @@ div:hover > .folder-row-add,
   padding-left: 12px;
   padding-right: 12px;
   /* The main window's OS title bar is hidden, so mark the toolbar
-   * as a drag region (interactive children below opt out). */
+   * as a drag region (interactive children below opt out). The
+   * properties document intent; platform/tauri-api.ts performs the
+   * drag, using the same .app-toolbar / no-drag rules. */
   -webkit-app-region: drag;
   app-region: drag;
 }
@@ -1193,7 +1195,7 @@ div:hover > .folder-row-add,
  * child holding every button) opts out of the toolbar's drag region
  * entirely, not just on its buttons: .app-toolbar marks its whole area
  * draggable so the frameless window can be moved, but a drag region
- * under the cursor swallows scroll gestures in Electron. Without that
+ * under the cursor swallows scroll gestures. Without that
  * override, the gaps between buttons stayed draggable and killed
  * horizontal scrolling the moment the cursor drifted off a button. This
  * outer .app-toolbar-scroll element deliberately stays plain — it's the

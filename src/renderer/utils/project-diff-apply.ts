@@ -211,7 +211,7 @@ export async function dedupeIdenticalSources(
  *  ipc-handlers.ts's import-merge-binary IPC. Injected rather than called
  *  as `window.api.importMergeBinary` directly, so this module (and its
  *  tests) never need a `window` global — only the renderer call site
- *  (MergeReviewWindow.tsx) touches Electron's API surface. */
+ *  (MergeReviewWindow.tsx) touches the window.api bridge. */
 export type ImportBinaryFn = (comparisonFilePath: string, handle: string) => Promise<string | null>
 
 /** Resolves every binary-backed (`binary: true`) onlyTheirs source in

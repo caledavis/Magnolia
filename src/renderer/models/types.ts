@@ -516,7 +516,7 @@ export interface EditorInfo {
 }
 
 // IPC API exposed to renderer
-export interface ElectronAPI {
+export interface MagnoliaAPI {
   getFileSize: (filePath: string) => Promise<number | null>
   readPdfFile: (filePath: string) => Promise<Uint8Array>
   onProjectLoadProgress: (callback: (p: { stage: string; current: number; total: number }) => void) => () => void
@@ -950,6 +950,6 @@ export interface SavedAnalysis {
 
 declare global {
   interface Window {
-    api: ElectronAPI
+    api: MagnoliaAPI
   }
 }

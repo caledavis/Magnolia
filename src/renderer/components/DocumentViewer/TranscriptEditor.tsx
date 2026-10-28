@@ -24,6 +24,7 @@ import type { Code, Memo, MemoEditInitData, PlainTextSelection } from '../../mod
 import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { modKey } from '../../utils/platform'
+import { useRememberedScroll } from '../../utils/use-remembered-scroll'
 
 interface Props {
   sourceGuid: string
@@ -200,6 +201,15 @@ export function TranscriptEditor({
   const [menuHighlight, setMenuHighlight] = useState<{ startCp: number; endCp: number } | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
   const dragCounterRef = useRef(0)
+
+  // Return to where the reader was in the coded transcript, unless a quote
+  // or query-result click is highlighting a specific passage. Transcription
+  // mode's textarea isn't tracked; switching back restores the position.
+  const codingAreaRef = useRef<HTMLDivElement>(null)
+  const rememberScroll = useRememberedScroll(sourceGuid, codingAreaRef, {
+    ready: !isTranscribing && !!content,
+    skipRestore: !!externalHighlight
+  })
 
   const flatCodes = useMemo(() => flattenCodes(codes), [codes])
   const hotkeyMap = useMemo(() => {
@@ -490,7 +500,9 @@ export function TranscriptEditor({
            Class hook so theme CSS can match this transcript's margins
            to the video transcript's container padding. */
         <div
+          ref={codingAreaRef}
           className="transcript-coding-area"
+          onScroll={rememberScroll}
           style={{
             flex: 1,
             overflow: 'auto',

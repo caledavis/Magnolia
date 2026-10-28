@@ -10,6 +10,7 @@ import { usePreferencesStore } from '../../stores/preferences-store'
 import { useDocumentStore } from '../../stores/document-store'
 import { Icon, faPlay, faPause, faBackward, faForward, faVolumeHigh, faVolumeLow, faVolumeXmark } from '../Icon'
 import { decodePeaks } from '../../utils/waveform-peaks'
+import { useRememberedPlayhead } from '../../utils/use-remembered-playhead'
 import type { TextSource } from '../../models/types'
 
 interface Props {
@@ -115,14 +116,17 @@ export function AudioDocumentViewer({ source, content }: Props) {
     }
   }, [hasAudio, audioData?.audioFilePath]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Audio event handlers
+  // Audio event handlers. The playhead is remembered between visits.
+  const { restore: restorePlayhead, save: savePlayhead } = useRememberedPlayhead(source.guid, audioRef)
   const handleTimeUpdate = useCallback(() => {
     if (audioRef.current) setCurrentTime(audioRef.current.currentTime)
-  }, [])
+    savePlayhead()
+  }, [savePlayhead])
 
   const handleLoadedMetadata = useCallback(() => {
     if (audioRef.current) setDuration(audioRef.current.duration)
-  }, [])
+    restorePlayhead()
+  }, [restorePlayhead])
 
   const handlePlay = useCallback(() => setIsPlaying(true), [])
   const handlePause = useCallback(() => {
@@ -130,7 +134,8 @@ export function AudioDocumentViewer({ source, content }: Props) {
     // Sync to the exact paused position so the seek bar (frame-accurate
     // while playing) doesn't step back to the last timeupdate.
     if (audioRef.current) setCurrentTime(audioRef.current.currentTime)
-  }, [])
+    savePlayhead()
+  }, [savePlayhead])
 
   const getAudio = () => audioRef.current
 

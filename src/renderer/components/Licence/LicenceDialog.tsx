@@ -11,22 +11,22 @@ interface Props {
  *  THIRD-PARTY-LICENSES.txt button is for. Order is intentional:
  *  the bigger / more recognisable projects come first. */
 const BUNDLED_LIBRARIES: { name: string; role: string; licence: string }[] = [
-  { name: 'Electron', role: 'desktop runtime', licence: 'MIT' },
+  { name: 'Tauri', role: 'desktop runtime', licence: 'Apache-2.0 / MIT' },
   { name: 'React', role: 'UI framework', licence: 'MIT' },
   { name: 'TipTap', role: 'rich-text editor for memos', licence: 'MIT' },
   { name: 'PDF.js', role: 'PDF rendering', licence: 'Apache-2.0' },
-  { name: 'mammoth', role: '.docx → HTML conversion', licence: 'BSD-2-Clause' },
-  { name: 'libheif-js', role: 'HEIC / HEIF image decoding', licence: 'LGPL-3.0' },
-  { name: 'utif', role: 'TIFF image decoding', licence: 'MIT' },
-  { name: 'xlsx', role: '.xlsx survey import', licence: 'Apache-2.0' },
-  { name: 'JSZip', role: 'QDPX project archive read/write', licence: 'MIT' },
-  { name: 'fast-xml-parser', role: 'QDPX XML parsing', licence: 'MIT' },
+  { name: 'zip', role: 'QDPX project archive read/write', licence: 'MIT' },
+  { name: 'roxmltree', role: 'QDPX XML parsing', licence: 'MIT / Apache-2.0' },
+  { name: 'lopdf', role: 'PDF page geometry and export chrome', licence: 'MIT' },
+  { name: 'calamine', role: '.xlsx survey import', licence: 'MIT' },
+  { name: 'zune-heic', role: 'HEIC / HEIF image decoding', licence: 'MIT / Apache-2.0 / Zlib' },
+  { name: 'image', role: 'TIFF image decoding', licence: 'MIT / Apache-2.0' },
+  { name: 'Lofty', role: 'audio metadata', licence: 'MIT / Apache-2.0' },
+  { name: 'resvg', role: 'SVG rendering for PDF exports', licence: 'Apache-2.0 / MIT' },
   { name: 'marked', role: 'Markdown rendering', licence: 'MIT' },
-  { name: 'music-metadata', role: 'audio metadata', licence: 'MIT' },
   { name: 'react-resizable-panels', role: 'split-pane layout', licence: 'MIT' },
   { name: 'Zustand', role: 'state management', licence: 'MIT' },
-  { name: 'Lucide', role: 'icon set', licence: 'ISC' },
-  { name: 'electron-updater', role: 'auto-update', licence: 'MIT' }
+  { name: 'Lucide', role: 'icon set', licence: 'ISC' }
 ]
 
 export function LicenceDialog({ open, onClose }: Props) {

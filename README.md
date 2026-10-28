@@ -10,8 +10,7 @@
 
 - [macOS — Apple Silicon](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-mac-arm64.dmg)
 - [macOS — Intel](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-mac-x64.dmg)
-- [Windows — Installer](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-win-x64.exe)
-- [Windows — Portable](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-win-portable-x64.exe) (no installation or admin rights needed — ideal for managed or work computers)
+- [Windows](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-win-x64.exe) (installs for your user account — no admin rights needed, so it works on managed or work computers)
 - [Linux — AppImage](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-linux-x86_64.AppImage) (see [Troubleshooting](#troubleshooting) if it fails to launch)
 - [Linux — .deb](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-linux-amd64.deb) (Debian/Ubuntu)
 - [Linux — .rpm](https://github.com/caledavis/Magnolia/releases/latest/download/Magnolia-linux-x86_64.rpm) (Fedora/openSUSE/RHEL)

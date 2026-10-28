@@ -83,7 +83,7 @@ export function QueryResultsWindow() {
   // identical (context menu with New Code… / Existing Codes… that opens
   // an inline drop-zone). Drop-zone drag-drop accepts custom MIME types
   // dragged from the main window's Code Browser; Chromium routes them
-  // across BrowserWindow instances in the same Electron app.
+  // across the app's windows.
   const [codeAllMenu, setCodeAllMenu] = useState<null | 'context' | 'drop-zone'>(null)
   const [dropOver, setDropOver] = useState(false)
   const codeAllRef = useRef<HTMLDivElement>(null)

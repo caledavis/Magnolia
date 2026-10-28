@@ -4,6 +4,7 @@ import { useCodeStore } from '../../stores/code-store'
 import { useMemoStore } from '../../stores/memo-store'
 import { useQuoteStore } from '../../stores/quote-store'
 import { useSurveyViewStore } from '../../stores/survey-view-store'
+import { useRememberedScroll } from '../../utils/use-remembered-scroll'
 import { CodedTextView, type CodingRightClickContext } from './CodedTextView'
 import { PdfDocumentViewer } from './PdfDocumentViewer'
 import { AudioDocumentViewer } from './AudioDocumentViewer'
@@ -165,33 +166,17 @@ export function DocumentViewer() {
   const scrollTarget = useDocumentStore((s) => s.scrollTarget)
   const clearScrollTarget = useDocumentStore((s) => s.clearScrollTarget)
   const textContainerRef = useRef<HTMLDivElement>(null)
-  const scrollPositionsRef = useRef<Map<string, number>>(new Map())
   const prevGuidRef = useRef<string | null>(null)
 
-  // Preserve scroll position when switching tabs
+  // Clear selection/menu state on tab switch
   useEffect(() => {
-    const prevGuid = prevGuidRef.current
-    // Save previous tab's scroll position
-    if (prevGuid && textContainerRef.current) {
-      scrollPositionsRef.current.set(prevGuid, textContainerRef.current.scrollTop)
-    }
-    // Clear selection/menu state on tab switch
-    if (prevGuid !== selectedGuid) {
+    if (prevGuidRef.current !== selectedGuid) {
       setPendingSelection(null)
       setContextMenu(null)
       setMenuHighlight(null)
     }
     prevGuidRef.current = selectedGuid
-    // Restore new tab's scroll position (unless there's a scrollTarget which takes priority)
-    if (selectedGuid && !scrollTarget && textContainerRef.current) {
-      const saved = scrollPositionsRef.current.get(selectedGuid)
-      if (saved !== undefined) {
-        requestAnimationFrame(() => {
-          if (textContainerRef.current) textContainerRef.current.scrollTop = saved
-        })
-      }
-    }
-  }, [selectedGuid]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedGuid])
 
   // When a scroll target is set, highlight and scroll to it. The
   // highlight is then released after a short pulse so subsequent hover
@@ -250,6 +235,16 @@ export function DocumentViewer() {
   const isImage = source?.sourceType === 'image'
   const isSurvey = source?.sourceType === 'survey'
   const isNote = source?.sourceType === 'note'
+  // Text-like documents scroll in this component's container; the other
+  // types scroll inside their dedicated viewers.
+  const textScrolls = !!source && !isPdf && !isAudio && !isVideo && !isImage && !isSurvey
+
+  // Return to where the reader last was in this document, unless a scroll
+  // target (a quote or memo click) is taking them somewhere specific.
+  const rememberScroll = useRememberedScroll(selectedGuid, textContainerRef, {
+    ready: textScrolls,
+    skipRestore: !!scrollTarget
+  })
 
   const flatCodes = useMemo(() => flattenCodes(codes), [codes])
 
@@ -523,6 +518,7 @@ export function DocumentViewer() {
       <div
         ref={textContainerRef}
         className="panel-content"
+        onScroll={textScrolls ? rememberScroll : undefined}
         style={{
           position: 'relative',
           outline: isDragOver && pendingSelection ? '2px dashed var(--accent)' : 'none',

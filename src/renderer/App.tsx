@@ -66,6 +66,7 @@ import { useUndoStore } from './stores/undo-store'
 import { useLogbookStore } from './stores/logbook-store'
 import { useMemoStore } from './stores/memo-store'
 import { useQuoteStore } from './stores/quote-store'
+import { flushViewPositions } from './stores/view-position-store'
 import { useRelationshipMapStore } from './stores/relationship-map-store'
 import { useSurveyViewStore } from './stores/survey-view-store'
 import { useAnalysisTabsStore } from './stores/analysis-tabs-store'
@@ -224,6 +225,7 @@ function App() {
   // drop target so the survey lands in the right folder on confirm.
   const [surveyImportQueue, setSurveyImportQueue] = useState<
     {
+      id: number
       csv: string
       suggestedName: string
       parsed: SurveyData
@@ -239,6 +241,10 @@ function App() {
    *  so the dialog can show "Detected as …" and let the user override
    *  if the detection was a guess. Errors surface as an alert; the
    *  file is skipped on failure. */
+  // Keys the preview dialog per queue entry: it seeds its state from props
+  // once, so without a fresh key the next survey would show (and import)
+  // the previous one's parse.
+  const surveyImportSeq = useRef(0)
   const queueSurveyImport = useCallback(
     (csv: string, suggestedName: string, folderGuid?: string) => {
       try {
@@ -248,6 +254,7 @@ function App() {
         setSurveyImportQueue((prev) => [
           ...prev,
           {
+            id: ++surveyImportSeq.current,
             csv,
             suggestedName,
             parsed,
@@ -1614,7 +1621,7 @@ function App() {
     }
   }, [codeStore, pendingCodeAllNewCode])
 
-  // Handle menu actions from Electron
+  // Handle actions from the native application menu
   useEffect(() => {
     const unsubscribe = window.api.onMenuAction((action) => {
       switch (action) {
@@ -1734,7 +1741,7 @@ function App() {
   }, [panelVisibility, queryResultsClosed])
 
   // Custom keyboard shortcuts for project-level operations.
-  // Native text undo/redo/selectAll is handled by Electron's native roles.
+  // Native text undo/redo/selectAll is handled by the menu's predefined items.
   // When no text input is focused, these shortcuts trigger project-level actions instead.
   useEffect(() => {
     const isTextInput = () => {
@@ -2111,6 +2118,7 @@ function App() {
   // trap the user inside a window they asked to close.
   useEffect(() => {
     const unsub = window.api.onFlushAndClose(async () => {
+      flushViewPositions()
       const ps = useProjectStore.getState()
       if (ps.isDirty && ps.filePath) {
         const heartbeat = setInterval(() => window.api.sendFlushHeartbeat(), 1000)
@@ -3306,6 +3314,7 @@ function App() {
 
       {surveyImportQueue.length > 0 && (
         <SurveyImportDialog
+          key={surveyImportQueue[0].id}
           initial={surveyImportQueue[0].parsed}
           suggestedName={surveyImportQueue[0].suggestedName}
           rawCsv={surveyImportQueue[0].csv}

@@ -1,0 +1,47 @@
+[package]
+name = "magnolia"
+version = "1.9.0"
+description = "Open-source qualitative data analysis software"
+authors = ["Cale Davis <cale@caledavis.eu>"]
+license = "EUPL-1.2"
+repository = "https://github.com/caledavis/Magnolia"
+edition = "2024"
+
+[lib]
+name = "magnolia_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+magnolia-core = { path = "../crates/magnolia-core" }
+tauri = { version = "2.12", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-single-instance = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+base64 = "0.23"
+chrono = "0.4"
+log = "0.4"
+lopdf = "0.46"
+resvg = "0.45"
+urlencoding = "2"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", features = ["NSString", "NSURL", "NSDictionary", "NSValue", "NSGeometry"] }
+objc2-app-kit = { version = "0.3", features = ["NSPrintInfo", "NSPrintOperation", "NSView", "NSWindow", "NSResponder", "NSApplication", "NSButton", "NSControl"] }
+objc2-web-kit = { version = "0.3", features = ["WKWebView", "objc2-app-kit"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+webview2-com = "0.39"
+windows = { version = "0.62", features = ["Win32_Foundation", "Win32_System_Com"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+webkit2gtk = { version = "2", features = ["v2_40"] }
+gtk = "0.18"
