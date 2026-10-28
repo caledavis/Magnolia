@@ -21,6 +21,7 @@ import { usePreferencesStore } from '../../stores/preferences-store'
 import { Icon, faPlay, faPause, faBackward, faForward, faVolumeHigh, faVolumeLow, faVolumeXmark } from '../Icon'
 import { formatTime, clamp, snapTimeToSecond, DEFAULT_PX_PER_SECOND } from './video-time-utils'
 import { decodePeaks } from '../../utils/waveform-peaks'
+import { useRememberedPlayhead } from '../../utils/use-remembered-playhead'
 import type { TextSource, VideoFormatData } from '../../models/types'
 
 interface Props {
@@ -115,14 +116,18 @@ export function VideoDocumentViewer({ source, content }: Props) {
     }
   }, [hasVideo, videoData?.videoFilePath]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // The playhead is remembered between visits.
+  const { restore: restorePlayhead, save: savePlayhead } = useRememberedPlayhead(source.guid, videoRef)
   const handleTimeUpdate = useCallback(() => {
     if (videoRef.current) setCurrentTime(videoRef.current.currentTime)
-  }, [])
+    savePlayhead()
+  }, [savePlayhead])
 
   const handleLoadedMetadata = useCallback(() => {
     if (!videoRef.current) return
     const v = videoRef.current
     setDuration(v.duration)
+    restorePlayhead()
     // Update the source's formatData with duration/dimensions read from
     // the element if they weren't extracted during import.
     const needsUpdate = !videoData?.duration || !videoData.width || !videoData.height
@@ -133,7 +138,7 @@ export function VideoDocumentViewer({ source, content }: Props) {
         height: v.videoHeight
       })
     }
-  }, [source.guid, updateSourceFormatData, videoData])
+  }, [source.guid, updateSourceFormatData, videoData, restorePlayhead])
 
   const handlePlay = useCallback(() => setIsPlaying(true), [])
   const handlePause = useCallback(() => {
@@ -141,7 +146,8 @@ export function VideoDocumentViewer({ source, content }: Props) {
     // Sync to the exact paused position so the seek bar (frame-accurate
     // while playing) doesn't step back to the last timeupdate.
     if (videoRef.current) setCurrentTime(videoRef.current.currentTime)
-  }, [])
+    savePlayhead()
+  }, [savePlayhead])
 
   const getVideo = () => videoRef.current
 

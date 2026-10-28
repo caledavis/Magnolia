@@ -66,6 +66,7 @@ import { useUndoStore } from './stores/undo-store'
 import { useLogbookStore } from './stores/logbook-store'
 import { useMemoStore } from './stores/memo-store'
 import { useQuoteStore } from './stores/quote-store'
+import { flushViewPositions } from './stores/view-position-store'
 import { useRelationshipMapStore } from './stores/relationship-map-store'
 import { useSurveyViewStore } from './stores/survey-view-store'
 import { useAnalysisTabsStore } from './stores/analysis-tabs-store'
@@ -2117,6 +2118,7 @@ function App() {
   // trap the user inside a window they asked to close.
   useEffect(() => {
     const unsub = window.api.onFlushAndClose(async () => {
+      flushViewPositions()
       const ps = useProjectStore.getState()
       if (ps.isDirty && ps.filePath) {
         const heartbeat = setInterval(() => window.api.sendFlushHeartbeat(), 1000)

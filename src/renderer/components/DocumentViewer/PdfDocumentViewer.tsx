@@ -17,7 +17,7 @@ import type { Code, Memo, MemoEditInitData, TextSource, PdfRegionSelection } fro
 import 'pdfjs-dist/web/pdf_viewer.css'
 import { usePendingSelectionStore } from '../../stores/pending-selection-store'
 import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
-import { usePdfViewStore } from '../../stores/pdf-view-store'
+import { useRememberedScroll } from '../../utils/use-remembered-scroll'
 import { modKey } from '../../utils/platform'
 import { roundRegionToWholePixels } from '../../utils/region-rounding'
 
@@ -225,42 +225,14 @@ export function PdfDocumentViewer({ source, content }: Props) {
     setPendingTextScroll(null)
   }, [pendingTextScroll, allPagesRendered])
 
-  // Persist the scroll position continuously (not just on unmount — the
-  // component can be torn down without a clean unmount opportunity, e.g.
-  // when a tool tab like Preferences takes over) so switching away and
-  // back — even via a tool tab — restores the same page. See
-  // pdf-view-store.ts for why this lives outside the component.
-  useEffect(() => {
-    const sc = scrollContainerRef.current
-    if (!sc) return
-    let raf = 0
-    const handleScroll = () => {
-      if (raf) return
-      raf = requestAnimationFrame(() => {
-        raf = 0
-        usePdfViewStore.getState().setScrollPosition(source.guid, sc.scrollTop)
-      })
-    }
-    sc.addEventListener('scroll', handleScroll, { passive: true })
-    return () => {
-      sc.removeEventListener('scroll', handleScroll)
-      if (raf) cancelAnimationFrame(raf)
-    }
-  }, [source.guid])
-
-  // Restore that position once, the first time this document's pages have
-  // finished laying out. An explicit scroll target (opened via a saved
-  // quote/memo click) takes priority over the last-viewed position.
-  const restoredScrollGuidRef = useRef<string | null>(null)
-  useEffect(() => {
-    if (!allPagesRendered) return
-    if (restoredScrollGuidRef.current === source.guid) return
-    restoredScrollGuidRef.current = source.guid
-    if (pendingRegionScroll || pendingTextScroll) return
-    const sc = scrollContainerRef.current
-    const saved = usePdfViewStore.getState().scrollPositions[source.guid]
-    if (sc && saved) sc.scrollTop = saved
-  }, [allPagesRendered, source.guid, pendingRegionScroll, pendingTextScroll])
+  // Return to the page the reader was on, once this document's pages have
+  // laid out, unless a saved quote/memo click is taking them to a specific
+  // spot. Saved as they scroll, so it also survives switching to a tool
+  // tab (which unmounts this viewer) and reopening the project.
+  const rememberScroll = useRememberedScroll(source.guid, scrollContainerRef, {
+    ready: allPagesRendered,
+    skipRestore: !!(pendingRegionScroll || pendingTextScroll)
+  })
 
   const codeMap = useMemo(() => buildCodeMap(codes), [codes])
   const flatCodes = useMemo(() => flattenCodes(codes), [codes])
@@ -734,6 +706,7 @@ export function PdfDocumentViewer({ source, content }: Props) {
       <div
         ref={scrollContainerRef}
         className="pdf-scroll-area"
+        onScroll={rememberScroll}
         style={{
           flex: 1, overflowY: 'auto', overflowX: 'auto',
           background: 'var(--bg-panel)', padding: '16px', position: 'relative',

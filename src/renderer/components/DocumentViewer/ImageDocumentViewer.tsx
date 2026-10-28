@@ -26,6 +26,8 @@ import { usePendingSelectionStore } from '../../stores/pending-selection-store'
 import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
 import { modKey } from '../../utils/platform'
 import { roundRegionToWholePixels } from '../../utils/region-rounding'
+import { getViewSetting, setViewSetting } from '../../stores/view-position-store'
+import { useRememberedScroll } from '../../utils/use-remembered-scroll'
 
 // Horizontal space the right-hand RichMarginColumn + its 8-px gap actually
 // occupy in the flex row. The margin column has flex-basis 260 plus an 8-px
@@ -180,14 +182,27 @@ export function ImageDocumentViewer({ source }: Props) {
     setPendingRegionScroll(null)
   }, [pendingRegionScroll, imageLoaded])
 
-  // Zoom state. Initialised to 1.0; replaced with a fit-to-window scale as
-  // soon as the image's natural dimensions are known. Reset whenever the
-  // user opens a different image source.
+  // Zoom state. Initialised to 1.0; replaced as soon as the image's
+  // natural dimensions are known with the zoom the reader last left this
+  // image at, or else a fit-to-window scale. Reset whenever the user opens
+  // a different image source.
   const [zoom, setZoom] = useState(1)
+  // The image whose zoom `zoom` currently holds, so a stale zoom isn't
+  // saved against the next image during the render that switches to it.
+  const zoomOwnerRef = useRef<string | null>(null)
+  // The last fit-to-window zoom. Left at fit, an image is saved as "fit"
+  // (an empty setting) so it refits to the window next time.
+  const fitZoomRef = useRef<number | null>(null)
   useEffect(() => {
+    zoomOwnerRef.current = null
     setZoom(1)
     setImageLoaded(false)
   }, [source.guid])
+  const zoomSettingKey = `${source.guid}|zoom`
+  useEffect(() => {
+    if (zoomOwnerRef.current !== source.guid) return
+    setViewSetting(zoomSettingKey, zoom === fitZoomRef.current ? '' : String(zoom))
+  }, [zoom, source.guid, zoomSettingKey])
 
   /** Compute a zoom that fits the image's natural size into the visible
    *  area of the scroll container, leaving room for the margin column.
@@ -201,9 +216,20 @@ export function ImageDocumentViewer({ source }: Props) {
   }, [])
 
   const handleImageLoad = useCallback((naturalW: number, naturalH: number) => {
+    const saved = Number(getViewSetting(zoomSettingKey))
+    fitZoomRef.current = computeFitZoom(naturalW, naturalH)
+    zoomOwnerRef.current = source.guid
     setImageLoaded(true)
-    setZoom(computeFitZoom(naturalW, naturalH))
-  }, [computeFitZoom])
+    setZoom(saved >= MIN_ZOOM && saved <= MAX_ZOOM ? saved : fitZoomRef.current)
+  }, [computeFitZoom, zoomSettingKey, source.guid])
+
+  // Return to where the reader was in a zoomed-in image, unless a box-quote
+  // click is taking them to a specific region.
+  const rememberScroll = useRememberedScroll(source.guid, scrollContainerRef, {
+    ready: imageLoaded,
+    skipRestore: !!pendingRegionScroll,
+    horizontal: true
+  })
 
   /** Re-fit the image to the current container size. Pulls natural
    *  dimensions off the rendered <img>, so it stays accurate after a
@@ -211,7 +237,8 @@ export function ImageDocumentViewer({ source }: Props) {
   const handleFit = useCallback(() => {
     const img = pagesContentRef.current?.querySelector('img') as HTMLImageElement | null
     if (!img || !img.naturalWidth || !img.naturalHeight) return
-    setZoom(computeFitZoom(img.naturalWidth, img.naturalHeight))
+    fitZoomRef.current = computeFitZoom(img.naturalWidth, img.naturalHeight)
+    setZoom(fitZoomRef.current)
   }, [computeFitZoom])
 
   // Cmd/Ctrl + wheel zoom — same multiplicative-step UX as RelationshipMap.
@@ -467,6 +494,7 @@ export function ImageDocumentViewer({ source }: Props) {
       <div
         ref={scrollContainerRef}
         className="image-scroll-area"
+        onScroll={rememberScroll}
         style={{
           flex: 1, overflowY: 'auto', overflowX: 'auto',
           background: 'var(--bg-panel)', padding: '16px', position: 'relative',
