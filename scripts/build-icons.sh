@@ -10,14 +10,13 @@
 #   graphic_files/app_and_file_icons/qdc_icon.png   → .qdc codebook icon
 #
 # App icon outputs:
-#   build/icon.icns          — bundled by electron-builder for the .dmg
-#   build/icon.ico           — bundled by electron-builder for Windows .exe
-#   build/icon.png           — Linux + electron-builder fallback
-#   resources/icon.png       — runtime app/dock icon (imported by main/index.ts)
+#   build/icon.{icns,ico,png}          — master copies
+#   src-tauri/icons/                   — every size Tauri bundles (via `tauri icon`)
 # Document icon outputs (.qdpx in Finder/Explorer/etc):
-#   build/document-icon.{icns,ico,png}
+#   build/document-icon.{icns,ico,png} → src-tauri/icons/document-icon.icns
 # Codebook icon outputs (.qdc in Finder/Explorer/etc):
-#   build/codebook-icon.{icns,ico,png}
+#   build/codebook-icon.{icns,ico,png} → src-tauri/icons/codebook-icon.icns
+# (The macOS document icons are wired up in src-tauri/Info.plist.)
 #
 # Requires: sips + iconutil (built-in macOS) + npx png-to-ico.
 
@@ -58,18 +57,23 @@ build_variants() {
   rm -rf "$tmp"
 }
 
-echo "→ App icon (build/icon.{icns,ico,png}, resources/icon.png)…"
+echo "→ App icon (build/icon.{icns,ico,png}, src-tauri/icons/)…"
 build_variants "$ICONS_DIR/app_icon.png" "build/icon"
-cp build/icon.png resources/icon.png
+npx tauri icon build/icon.png -o src-tauri/icons >/dev/null
+rm -rf src-tauri/icons/android src-tauri/icons/ios
+# Keep the hand-built .icns/.ico (iconutil / png-to-ico) over Tauri's own.
+cp build/icon.icns build/icon.ico src-tauri/icons/
 
 if [[ -f "$ICONS_DIR/qdpx_icon.png" ]]; then
   echo "→ Document icon (build/document-icon.{icns,ico,png})…"
   build_variants "$ICONS_DIR/qdpx_icon.png" "build/document-icon"
+  cp build/document-icon.icns src-tauri/icons/
 fi
 
 if [[ -f "$ICONS_DIR/qdc_icon.png" ]]; then
   echo "→ Codebook icon (build/codebook-icon.{icns,ico,png})…"
   build_variants "$ICONS_DIR/qdc_icon.png" "build/codebook-icon"
+  cp build/codebook-icon.icns src-tauri/icons/
 fi
 
 echo "Done."

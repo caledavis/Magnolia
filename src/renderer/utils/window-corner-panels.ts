@@ -12,9 +12,11 @@ const CORNER_SLOP = 8
  * depends on the layout (query results hidden, side columns collapsed,
  * panes closed), so it's measured rather than assumed.
  *
- * Also keeps --window-zoom on <html> up to date: the window corner radius
- * is fixed in screen points, but CSS px scale with the interface zoom, so
- * the CSS divides by this to stay concentric at every Interface Scale.
+ * The CSS divides the corner radius by --window-zoom (set on <html> by
+ * setZoomFactor in platform/tauri-api.ts): the window corner radius is
+ * fixed in screen points, but CSS px scale with the interface zoom.
+ * WKWebView reports window.outerWidth as 0, so the zoom can't be measured
+ * from the outer/inner width ratio.
  */
 export function useWindowCornerPanels(): void {
   useEffect(() => {
@@ -22,12 +24,6 @@ export function useWindowCornerPanels(): void {
 
     const update = (): void => {
       frame = 0
-      const root = document.documentElement
-      // A frameless window's outer and inner widths match in screen
-      // points, so their ratio is the page zoom.
-      const zoom = window.innerWidth > 0 ? window.outerWidth / window.innerWidth : 1
-      root.style.setProperty('--window-zoom', String(Math.round(zoom * 1000) / 1000))
-
       const container = document.querySelector('.app-main-panels')
       if (!container) return
       const box = container.getBoundingClientRect()

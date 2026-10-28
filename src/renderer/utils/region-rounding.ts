@@ -1,7 +1,7 @@
 /**
  * Rounds a freshly-drawn box-coding region to the same whole-pixel corners
- * the .qdpx writer will round it to on save (src/main/qdpx/xml-serializer.ts's
- * serializePictureSelection/serializePdfSelection — REFI-QDA's
+ * the .qdpx writer will round it to on save (crates/magnolia-core/src/qdpx/serializer.rs's
+ * serialize_picture_selection/serialize_pdf_selection — REFI-QDA's
  * PictureSelection/PDFSelection coordinates are xs:integer, so raw floats
  * from mouse/zoom math get rounded at export regardless).
  *

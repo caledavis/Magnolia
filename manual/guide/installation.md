@@ -12,8 +12,7 @@ Magnolia runs on macOS, Windows, and Linux.
 
 ### Windows
 
-- **With admin rights:** run the `Magnolia-win-x64.exe` installer.
-- **Without admin rights:** use the portable build, `Magnolia-win-portable-x64.exe`. Pop it on a flash drive or something so you can run it from there.
+- Run the `Magnolia-win-x64.exe` installer. It installs Magnolia just for your user account, so you don't need admin rights.
 
 ::: tip
 Windows users may be warned when downloading Magnolia that the app is not downloaded very often. If you experience this, simply open up the Downloads list in Edge, right-click the failed download, and click `Keep`.

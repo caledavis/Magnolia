@@ -1,3 +1,5 @@
+// Must load first: installs window.api for everything below.
+import './platform/tauri-api'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { WelcomeScreen } from './components/Welcome/WelcomeScreen'

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Merged into the generated Info.plist. Declares the document types
+     with their own Finder icons (tauri.conf.json's fileAssociations has no
+     icon option); the .icns files are copied in via bundle.macOS.files. -->
+<plist version="1.0">
+<dict>
+  <key>CFBundleDocumentTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleTypeExtensions</key>
+      <array><string>qdpx</string></array>
+      <key>CFBundleTypeIconFile</key>
+      <string>document-icon.icns</string>
+      <key>CFBundleTypeName</key>
+      <string>QDPX Project</string>
+      <key>CFBundleTypeRole</key>
+      <string>Editor</string>
+      <key>LSHandlerRank</key>
+      <string>Owner</string>
+    </dict>
+    <dict>
+      <key>CFBundleTypeExtensions</key>
+      <array><string>qdc</string></array>
+      <key>CFBundleTypeIconFile</key>
+      <string>codebook-icon.icns</string>
+      <key>CFBundleTypeName</key>
+      <string>QDC Codebook</string>
+      <key>CFBundleTypeRole</key>
+      <string>Viewer</string>
+      <key>LSHandlerRank</key>
+      <string>Owner</string>
+    </dict>
+  </array>
+</dict>
+</plist>

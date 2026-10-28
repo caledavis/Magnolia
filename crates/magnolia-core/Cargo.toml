@@ -1,0 +1,24 @@
+[package]
+name = "magnolia-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+base64 = "0.23.1"
+calamine = "0.37.0"
+chrono = "0.4.45"
+encoding_rs = "0.8.42"
+image = { version = "0.25.10", default-features = false, features = ["jpeg", "png", "tiff"] }
+lofty = "0.25.5"
+lopdf = "0.46.0"
+regex = "1.13.1"
+roxmltree = "0.21.2"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { version = "1.0.154", features = ["preserve_order"] }
+thiserror = "2.0.21"
+uuid = { version = "1.29.0", features = ["v4"] }
+zip = "9.1.2"
+zune-heic = { version = "0.5.0", default-features = false }
+
+[dev-dependencies]
+tempfile = "3.27.0"

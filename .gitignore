@@ -1,6 +1,11 @@
 node_modules/
 out/
 dist/
+
+# Rust / Tauri build output, and release assets collected by scripts/release.mjs
+target/
+src-tauri/gen/
+release/
 .DS_Store
 *.log
 

@@ -1,3 +1,5 @@
+// Must load first: installs window.api for everything below.
+import './platform/tauri-api'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
@@ -6,7 +8,7 @@ import { applyStoredAppearance, installAppearanceListeners } from './utils/apply
 // Initialize undo system (subscriptions activate on import)
 import './stores/undo-store'
 
-// Prevent Electron from opening dropped files in the browser window.
+// Prevent the webview from opening dropped files in the window.
 // Individual components (e.g. DocumentBrowser) selectively handle drops.
 document.addEventListener('dragover', (e) => e.preventDefault())
 document.addEventListener('drop', (e) => e.preventDefault())

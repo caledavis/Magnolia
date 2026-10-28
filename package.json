@@ -15,27 +15,21 @@
   "bugs": {
     "url": "https://github.com/caledavis/Magnolia/issues"
   },
-  "main": "./out/main/index.js",
   "scripts": {
-    "postinstall": "node node_modules/electron/install.js",
-    "dev": "electron-vite dev",
-    "build": "electron-vite build",
-    "preview": "electron-vite preview",
-    "test": "vitest run",
+    "dev": "tauri dev",
+    "dev:web": "vite",
+    "build": "tauri build",
+    "build:web": "vite build",
+    "tauri": "tauri",
+    "typecheck": "tsc -p tsconfig.web.json --noEmit",
+    "test": "vitest run && cargo test --workspace",
     "test:watch": "vitest",
-    "package:mac": "npm run build && electron-builder --mac",
-    "package:win": "npm run build && electron-builder --win",
-    "package:linux": "npm run build && electron-builder --linux",
-    "release:mac": "npm run build && electron-builder --mac --publish always",
-    "release:win": "npm run build && electron-builder --win --publish always",
-    "release:linux": "npm run build && electron-builder --linux --publish always",
     "licenses": "node scripts/build-third-party-licenses.mjs > THIRD-PARTY-LICENSES.txt",
     "icons": "bash scripts/build-icons.sh",
     "downloads": "bash scripts/downloads.sh"
   },
   "dependencies": {
-    "@electron-toolkit/utils": "^4.0.0",
-    "@iarna/rtf-to-html": "^1.1.0",
+    "@tauri-apps/api": "^2.12.4",
     "@tiptap/extension-color": "^3.22.2",
     "@tiptap/extension-placeholder": "^3.22.1",
     "@tiptap/extension-text-align": "^3.22.2",
@@ -46,180 +40,28 @@
     "@tiptap/starter-kit": "^3.22.1",
     "@types/diff": "^7.0.2",
     "diff": "^9.0.0",
-    "electron-updater": "^6.8.3",
-    "fast-xml-parser": "^4.5.3",
-    "heic-decode": "^2.1.0",
     "jszip": "^3.10.1",
     "lucide-react": "^1.20.0",
-    "mammoth": "^1.12.0",
     "marked": "^17.0.5",
     "mp4box": "^2.4.1",
-    "music-metadata": "^11.12.3",
     "pdfjs-dist": "^4.10.38",
-    "pngjs": "^7.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-resizable-panels": "^2.1.7",
-    "rtf-parser": "^1.3.3",
     "tiptap-markdown": "^0.9.0",
-    "utif": "^3.1.0",
     "uuid": "^9.0.1",
-    "xlsx": "^0.18.5",
-    "yauzl": "^2.10.0",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.12.4",
     "@types/marked": "^5.0.2",
-    "@types/pngjs": "^6.0.5",
+    "@types/node": "^22.20.5",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/uuid": "^9.0.8",
-    "@types/yauzl": "^2.10.3",
     "@vitejs/plugin-react": "^4.3.4",
-    "electron": "^44.9.0",
-    "electron-builder": "^26.8.1",
-    "electron-vite": "^2.3.0",
     "typescript": "^5.7.3",
     "vite": "^5.4.14",
-    "vitest": "^2.1.9",
-    "xmllint-wasm": "^5.2.0"
-  },
-  "build": {
-    "appId": "com.magnolia.app",
-    "productName": "Magnolia",
-    "copyright": "Copyright © 2026 Cale Davis",
-    "directories": {
-      "buildResources": "build",
-      "output": "dist"
-    },
-    "files": [
-      "out/**/*",
-      "resources/**"
-    ],
-    "extraResources": [
-      "LICENSE",
-      "THIRD-PARTY-LICENSES.txt"
-    ],
-    "mac": {
-      "icon": "build/icon.icns",
-      "artifactName": "${productName}-mac-${arch}.${ext}",
-      "category": "public.app-category.productivity",
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "arm64",
-            "x64"
-          ]
-        },
-        {
-          "target": "zip",
-          "arch": [
-            "arm64",
-            "x64"
-          ]
-        }
-      ],
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist",
-      "darkModeSupport": true
-    },
-    "dmg": {
-      "title": "${productName} ${version}",
-      "icon": "build/icon.icns",
-      "contents": [
-        {
-          "x": 130,
-          "y": 220,
-          "type": "file"
-        },
-        {
-          "x": 410,
-          "y": 220,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ],
-      "window": {
-        "width": 540,
-        "height": 380
-      }
-    },
-    "win": {
-      "icon": "build/icon.ico",
-      "artifactName": "${productName}-win-${arch}.${ext}",
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
-    },
-    "portable": {
-      "artifactName": "${productName}-win-portable-${arch}.${ext}"
-    },
-    "linux": {
-      "icon": "build/icon.png",
-      "artifactName": "${productName}-linux-${arch}.${ext}",
-      "category": "Education",
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "deb",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "rpm",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
-    },
-    "fileAssociations": [
-      {
-        "ext": "qdpx",
-        "name": "QDPX Project",
-        "description": "REFI-QDA Project Exchange File",
-        "icon": "build/document-icon"
-      },
-      {
-        "ext": "qdc",
-        "name": "QDC Codebook",
-        "description": "REFI-QDA Codebook File",
-        "icon": "build/codebook-icon"
-      }
-    ],
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "caledavis",
-        "repo": "Magnolia"
-      }
-    ]
+    "vitest": "^2.1.9"
   }
 }

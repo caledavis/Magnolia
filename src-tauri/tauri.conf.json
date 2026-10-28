@@ -1,0 +1,109 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Magnolia",
+  "version": "../package.json",
+  "identifier": "com.magnolia.app",
+  "build": {
+    "beforeDevCommand": "npm run dev:web",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "npm run build:web",
+    "frontendDist": "../out/renderer"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [],
+    "security": {
+      "csp": null
+    },
+    "macOSPrivateApi": false
+  },
+  "bundle": {
+    "active": true,
+    "createUpdaterArtifacts": true,
+    "targets": [
+      "app",
+      "dmg",
+      "nsis",
+      "appimage",
+      "deb",
+      "rpm"
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "copyright": "Copyright © 2026 Cale Davis",
+    "category": "Productivity",
+    "shortDescription": "Open-source qualitative data analysis",
+    "longDescription": "Magnolia is free and open-source qualitative data analysis software built on the REFI-QDA standard.",
+    "resources": {
+      "../LICENSE": "LICENSE",
+      "../THIRD-PARTY-LICENSES.txt": "THIRD-PARTY-LICENSES.txt"
+    },
+    "fileAssociations": [
+      {
+        "ext": [
+          "qdpx"
+        ],
+        "name": "QDPX Project",
+        "description": "REFI-QDA Project Exchange File",
+        "role": "Editor",
+        "mimeType": "application/x-qdpx"
+      },
+      {
+        "ext": [
+          "qdc"
+        ],
+        "name": "QDC Codebook",
+        "description": "REFI-QDA Codebook File",
+        "role": "Viewer",
+        "mimeType": "application/x-qdc"
+      }
+    ],
+    "macOS": {
+      "minimumSystemVersion": "13.0",
+      "hardenedRuntime": true,
+      "dmg": {
+        "windowSize": {
+          "width": 540,
+          "height": 380
+        },
+        "appPosition": {
+          "x": 130,
+          "y": 220
+        },
+        "applicationFolderPosition": {
+          "x": 410,
+          "y": 220
+        }
+      },
+      "files": {
+        "Resources/document-icon.icns": "icons/document-icon.icns",
+        "Resources/codebook-icon.icns": "icons/codebook-icon.icns"
+      },
+      "entitlements": "entitlements.mac.plist"
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    },
+    "linux": {
+      "deb": {
+        "section": "education"
+      },
+      "rpm": {}
+    }
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/caledavis/Magnolia/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVEQzRDNUY3OTdBM0YxOTAKUldTUThhT1g5OFhFWFF4eUV2STEzaGQxNDZwQzV5eDdzdURmVWh3WG5tWlJORjlOMXd6Rm55U00K"
+    }
+  }
+}

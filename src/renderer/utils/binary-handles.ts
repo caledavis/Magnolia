@@ -1,6 +1,6 @@
 /**
  * Helpers for the renderer side of the `magnolia-bin://` binary-handle
- * lifecycle (see src/main/binary-store.ts for the resolver).
+ * lifecycle (see crates/magnolia-core/src/binary_store.rs for the resolver).
  *
  * A freshly-imported media binary (audio / video / image / PDF) is held in the
  * main process as a transient `overlay://<token>.<ext>` handle. Once a save

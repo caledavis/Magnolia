@@ -23,7 +23,7 @@ interface FootPedalMappings {
 
 type ThemeId = '' | 'dark' | 'granola' | 'granola-dark' | 'high-contrast' | 'magnolia' | 'magnolia-dark'
 
-/** Paper size for exported PDFs — Electron printToPDF `pageSize` values. */
+/** Paper size for exported PDFs (see src-tauri/src/print). */
 type PaperSize = 'A4' | 'A3' | 'A5' | 'Letter' | 'Legal' | 'Tabloid'
 
 /** Toolbar button display: 'icons' is the compact macOS Mail-style
