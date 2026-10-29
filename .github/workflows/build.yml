@@ -7,7 +7,7 @@ name: Build
 
 on:
   push:
-    branches: [main, tauri-rust]
+    branches: [main]
     paths-ignore:
       - 'manual/**'
       - '**.md'
