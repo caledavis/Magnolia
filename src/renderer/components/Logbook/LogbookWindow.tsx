@@ -71,8 +71,8 @@ function EditEntryDialog({
   const [content, setContent] = useState(entry?.content || '')
 
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ position: 'fixed' }}>
-      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ minWidth: 480 }}>
+    <div className="modal-overlay" style={{ position: 'fixed' }}>
+      <div className="modal" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Escape') onClose() }} style={{ minWidth: 480 }}>
         <h2 style={{ margin: '0 0 12px' }}>{entry ? 'Edit Entry' : 'New Entry'}</h2>
 
         <div style={{ marginBottom: 10 }}>

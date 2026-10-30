@@ -665,11 +665,13 @@ export function CodeEditDialog({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    // Clicking outside doesn't close it, so a name and description being
+    // typed aren't lost by a stray click (#27). Cancel or Escape do.
+    <div className="modal-overlay">
       {/* Fixed width so the modal doesn't grow as the user types a
           description — the auto-width TipTap editor would otherwise size
           the modal to its longest line. A definite width makes it wrap. */}
-      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ width: 400 }}>
+      <div className="modal" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Escape') onClose() }} style={{ width: 400 }}>
         <h2>{isEdit ? 'Edit Code' : 'New Code'}</h2>
 
         {/* Name + color pip */}

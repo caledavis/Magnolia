@@ -274,10 +274,11 @@ export function SurveyImportDialog({
   }
 
   return (
-    <div className="modal-overlay" onClick={onCancel}>
+    <div className="modal-overlay">
       <div
         className="modal"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => { if (e.key === 'Escape') onCancel() }}
         style={{ minWidth: 720, maxWidth: 900, maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}
       >
         <h2 style={{ margin: 0 }}>Import Survey</h2>

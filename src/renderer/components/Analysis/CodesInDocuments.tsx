@@ -472,7 +472,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
       </div>
 
       {showSaveDialog && (
-        <div className="modal-overlay" onClick={() => setShowSaveDialog(false)}>
+        <div className="modal-overlay">
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2>Save Analysis</h2>
             <input

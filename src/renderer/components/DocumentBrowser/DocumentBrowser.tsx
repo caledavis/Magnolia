@@ -2048,12 +2048,8 @@ function ManageDocumentTagsDialog({
 
         {/* ── Edit list options sub-dialog ── */}
         {editingListCat && (
-          <div
-            className="modal-overlay"
-            onClick={() => setEditingListCat(null)}
-            style={{ position: 'fixed' }}
-          >
-            <div className="modal" onClick={(e) => e.stopPropagation()} style={{ minWidth: 350 }}>
+          <div className="modal-overlay" style={{ position: 'fixed' }}>
+            <div className="modal" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Escape') setEditingListCat(null) }} style={{ minWidth: 350 }}>
               <h2>Edit List Options</h2>
               <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
                 One option per line:
@@ -3404,10 +3400,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
 
       {/* New / Rename folder dialog */}
       {editingFolder && (
-        <div
-          className="modal-overlay"
-          onClick={() => { setEditingFolder(null); setIsNewFolder(false) }}
-        >
+        <div className="modal-overlay">
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2>{isNewFolder
               ? (newFolderKind === 'notebook' ? 'New Notebook' : 'New Folder')

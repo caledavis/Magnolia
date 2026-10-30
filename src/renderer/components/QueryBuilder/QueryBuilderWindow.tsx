@@ -631,11 +631,8 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
 
       {/* Save query dialog */}
       {showSaveDialog && (
-        <div
-          className="modal-overlay"
-          onClick={() => setShowSaveDialog(false)}
-        >
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="modal" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Escape') setShowSaveDialog(false) }}>
             <h2>Save Query</h2>
             <div style={{ marginBottom: 12 }}>
               <input

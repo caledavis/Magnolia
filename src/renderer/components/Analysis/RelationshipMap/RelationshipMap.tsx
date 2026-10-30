@@ -801,11 +801,8 @@ export function RelationshipMap({ data, savedConfig }: Props) {
 
       {/* Save dialog */}
       {showSaveDialog && (
-        <div
-          className="modal-overlay"
-          onClick={() => setShowSaveDialog(false)}
-        >
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ minWidth: 320 }}>
+        <div className="modal-overlay">
+          <div className="modal" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Escape') setShowSaveDialog(false) }} style={{ minWidth: 320 }}>
             <h2>Save Relationship Map</h2>
             <input
               value={saveName}
