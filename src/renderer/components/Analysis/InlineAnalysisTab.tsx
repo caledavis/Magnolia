@@ -31,6 +31,7 @@ import { FrameworkMatrix } from './FrameworkMatrix'
 import { CodeFrequencies } from './CodeFrequencies'
 import { CodeOrders } from './CodeOrders'
 import { WordFrequencies } from './WordFrequencies'
+import { WordCombinations } from './WordCombinations'
 import { ResultsInDocuments } from './ResultsInDocuments'
 import { Reports } from './Reports'
 import { QueryBuilderWindow } from '../QueryBuilder/QueryBuilderWindow'
@@ -198,6 +199,8 @@ function dispatch(
       return <CodeOrders data={data} savedConfig={savedConfig} inTab={inTab} />
     case 'word-frequencies':
       return <WordFrequencies data={data} savedConfig={savedConfig} inTab={inTab} />
+    case 'word-combinations':
+      return <WordCombinations data={data} savedConfig={savedConfig} inTab={inTab} />
     case 'reports':
       return <Reports data={data} savedConfig={savedConfig} inTab={inTab} />
     default:

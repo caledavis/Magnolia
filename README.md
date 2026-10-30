@@ -72,7 +72,9 @@ Magnolia's rich suite of analytical tools allow you to interrogate your data. Yo
 
 - **Code Frequencies:** Easily see how much of each document is covered by particular codes.
 
-- **Word Frequencies:** See which words appear how often. See the data displayed as a chart or a word cloud.
+- **Word Frequencies:** See which words appear how often, in whole documents or only in the passages coded with particular codes. See the data displayed as a chart or a word cloud.
+
+- **Word Combinations:** See which words go together: phrases that repeat, the words that tend to appear in the same sentences as a word you choose, and a word tree of everything that comes before and after it.
 
 - **Reports:** Combine analysis results, documents, queries, and more into a PDF report.
 

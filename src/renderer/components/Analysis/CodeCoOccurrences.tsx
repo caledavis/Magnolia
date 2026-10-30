@@ -1,14 +1,15 @@
 import { useState, useMemo, useCallback } from 'react'
 import type { AnalysisInitData, SurveyCellScopeArgs } from '../../models/types'
-import { Icon, faSquaresIntersect, faChevronDown, faChevronRight } from '../Icon'
+import { Icon, faSquaresIntersect } from '../Icon'
 import { toolColors } from '../../utils/tool-colors'
 import {
-  DocumentSelector,
   emptyDocumentFilter,
   type DocumentFilterState
 } from '../DocumentSelector/DocumentSelector'
+import { DocumentsSection } from './DocumentsSection'
+import { documentFilterFromConfig } from './documents-filter'
 import { truncate, countCoOccurrences, toCsv, pctOfTotal, resolveFilteredSources, applySurveyCellScope, binarizeGrid } from './analysis-helpers'
-import { QuestionScopeBox, hasSurveyInScope, type QuestionScopeRef } from './survey-grouping'
+import type { QuestionScopeRef } from './survey-grouping'
 import { generateGuid } from '../../utils/guid'
 import { useLiveAnalysisData } from './use-live-analysis-data'
 import { SankeyView } from './SankeyView'
@@ -20,7 +21,7 @@ import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 
 interface Props {
   data: AnalysisInitData
-  savedConfig?: { rowCodeGuids: string[]; colCodeGuids: string[]; docFilter: DocumentFilterState; questionScope?: QuestionScopeRef[]; guid: string; name: string }
+  savedConfig?: { rowCodeGuids: string[]; colCodeGuids: string[]; docFilter: DocumentFilterState; /** Up to 1.9; now in docFilter. */ questionScope?: QuestionScopeRef[]; guid: string; name: string }
   inTab?: {
     onClose: () => void
     onSaved: (savedGuid: string, name: string) => void
@@ -90,7 +91,7 @@ function CodeDropZone({ label, onDrop: onDropCodes, existingGuids }: {
 }
 
 export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props) {
-  const [docFilter, setDocFilter] = useState<DocumentFilterState>(savedConfig?.docFilter ?? emptyDocumentFilter())
+  const [docFilter, setDocFilter] = useState<DocumentFilterState>(documentFilterFromConfig(savedConfig))
   const [rowCodeGuids, setRowCodeGuids] = useState<string[]>(savedConfig?.rowCodeGuids ?? [])
   const [colCodeGuids, setColCodeGuids] = useState<string[]>(savedConfig?.colCodeGuids ?? [])
   // Live store reads override the equivalent (potentially stale) fields
@@ -99,17 +100,14 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
   // the zustand stores; non-overridden fields (sources, sourceContents,
   // sourceSelections) still fall through to the snapshot. See
   // use-live-analysis-data.ts for the rationale.
-  const [questionScope, setQuestionScope] = useState<QuestionScopeRef[]>(savedConfig?.questionScope ?? [])
   const live = useLiveAnalysisData()
   const data = useMemo(() => {
-    const base = applySurveyCellScope({ ...propData, ...live }, docFilter)
-    return questionScope.length > 0 ? applySurveyCellScope(base, { questionScope }) : base
-  }, [propData, live, docFilter, questionScope])
+    return applySurveyCellScope({ ...propData, ...live }, docFilter)
+  }, [propData, live, docFilter])
   const [view, setView] = useState<GridView>('table')
   const visualMode = view === 'visual'
   const sankeyMode = view === 'sankey'
   const [binaryMode, setBinaryMode] = useState(false)
-  const [docSectionOpen, setDocSectionOpen] = useState(false)
   const [analysisGuid] = useState(savedConfig?.guid ?? generateGuid())
   const [analysisName, setAnalysisName] = useState(savedConfig?.name ?? '')
   const [showSaveDialog, setShowSaveDialog] = useState(false)
@@ -117,14 +115,13 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
 
   // Dirty tracking (see useToolDirtyState).
   const currentConfig = useMemo(
-    () => ({ rowCodeGuids, colCodeGuids, docFilter, questionScope }),
-    [rowCodeGuids, colCodeGuids, docFilter, questionScope]
+    () => ({ rowCodeGuids, colCodeGuids, docFilter }),
+    [rowCodeGuids, colCodeGuids, docFilter]
   )
   const initialBaseline = useMemo(() => ({
     rowCodeGuids: savedConfig?.rowCodeGuids ?? [],
     colCodeGuids: savedConfig?.colCodeGuids ?? [],
-    docFilter: savedConfig?.docFilter ?? emptyDocumentFilter(),
-    questionScope: savedConfig?.questionScope ?? []
+    docFilter: documentFilterFromConfig(savedConfig),
   }), [])
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
 
@@ -132,7 +129,6 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
     setRowCodeGuids(baseline.rowCodeGuids)
     setColCodeGuids(baseline.colCodeGuids)
     setDocFilter(baseline.docFilter)
-    setQuestionScope(baseline.questionScope ?? [])
   }, [baseline])
 
   const filteredSourceGuids = useMemo(
@@ -143,9 +139,10 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
   // Survey-cell scope carried into a generated drill-down query so it
   // re-runs against the same subset the table reflects.
   const surveyScope = useCallback((): SurveyCellScopeArgs | undefined => {
-    if (questionScope.length === 0) return undefined
-    return { questionScope: questionScope.map((q) => ({ sourceGuid: q.sourceGuid, id: q.id })) }
-  }, [questionScope])
+    const { questionScope, respondentScope } = docFilter
+    if (!questionScope?.length && !respondentScope?.length) return undefined
+    return { questionScope, respondentScope }
+  }, [docFilter])
 
   const codeMap = useMemo(() => {
     const m = new Map<string, { name: string; color?: string; parentGuid?: string }>()
@@ -269,12 +266,12 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
       guid: analysisGuid,
       toolType: 'code-cooccurrences',
       name,
-      config: { rowCodeGuids, colCodeGuids, docFilter, questionScope }
+      config: { rowCodeGuids, colCodeGuids, docFilter }
     })
-    setBaseline({ rowCodeGuids, colCodeGuids, docFilter, questionScope })
+    setBaseline({ rowCodeGuids, colCodeGuids, docFilter })
     if (inTab) inTab.onSaved(analysisGuid, name)
     else setTimeout(() => window.close(), 200)
-  }, [analysisGuid, rowCodeGuids, colCodeGuids, docFilter, questionScope, inTab, setBaseline])
+  }, [analysisGuid, rowCodeGuids, colCodeGuids, docFilter, inTab, setBaseline])
 
   useRegisterToolSave(inTab?.tabId, () => {
     if (isExisting) {
@@ -348,41 +345,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
       )}
 
       <div style={{ flex: 1, overflow: 'auto', padding: '14px 20px' }}>
-        {/* Document Selector */}
-        <div className="analysis-section" style={{ marginBottom: 14 }}>
-          <div
-            onClick={() => setDocSectionOpen(!docSectionOpen)}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}
-          >
-            <Icon icon={docSectionOpen ? faChevronDown : faChevronRight} style={{ fontSize: 12, color: 'var(--text-muted)' }} />
-            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Select Documents</span>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>
-              {filteredSourceGuids.length} document{filteredSourceGuids.length !== 1 ? 's' : ''}
-            </span>
-          </div>
-          {docSectionOpen && (
-            <div style={{ marginTop: 10, minHeight: 160 }}>
-              <DocumentSelector
-                sources={data.sources}
-                tags={data.tags}
-                categories={data.categories}
-                folders={data.folders}
-                sourceFolder={data.sourceFolder}
-                tagMembers={data.tagMembers}
-                respondentTagMembers={data.respondentTagMembers}
-                questionTagMembers={data.questionTagMembers}
-                surveyEntityLabels={data.surveyEntityLabels}
-                filter={docFilter}
-                onChange={setDocFilter}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Questions scope — only meaningful when a survey is analysed. */}
-        {hasSurveyInScope(filteredSourceGuids, data) && (
-          <QuestionScopeBox value={questionScope} onChange={setQuestionScope} data={data} />
-        )}
+        <DocumentsSection data={data} filter={docFilter} onChange={setDocFilter} filteredSourceGuids={filteredSourceGuids} />
 
         {/* Results Grid */}
         <div
@@ -392,7 +355,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)', marginRight: 4 }}>Co-Occurrence Grid</span>
+              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)', marginRight: 4 }}>Results</span>
               <SegmentedControl
                 label="View"
                 value={view}

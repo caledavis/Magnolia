@@ -168,7 +168,13 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
         .build()?;
     menu = menu.item(&documents);
 
-    let mut view = SubmenuBuilder::new(app, "View");
+    // The standard tab-switching shortcuts (as in Safari and every
+    // browser). The renderer also takes Cmd+Shift+] / [ on macOS and
+    // Ctrl+PageDown / PageUp elsewhere; a menu item holds only one.
+    let mut view = SubmenuBuilder::new(app, "View")
+        .item(&item(app, "previous-tab", "Show Previous Tab", Some("Ctrl+Shift+Tab"))?)
+        .item(&item(app, "next-tab", "Show Next Tab", Some("Ctrl+Tab"))?)
+        .item(&sep()?);
     for (key, label) in [
         ("documents", "Documents"),
         ("codes", "Codes"),
@@ -302,6 +308,11 @@ pub fn handle_event(app: &AppHandle, id: &str) {
                 }
             });
         }
+        // Tabs only live in the main window.
+        "next-tab" | "previous-tab" => match focused_label(app) {
+            Some(l) if l != MAIN => {}
+            _ => send_action(app, id),
+        },
         "close-tab" => match focused_label(app) {
             Some(l) if l != MAIN => {
                 if let Some(w) = app.get_webview_window(&l) {

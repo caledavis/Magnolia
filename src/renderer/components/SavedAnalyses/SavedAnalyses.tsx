@@ -35,6 +35,7 @@ const TOOL_ORDER: AnalysisToolType[] = [
   'code-frequencies',
   'code-orders',
   'word-frequencies',
+  'word-combinations',
   'relationship-map'
 ]
 

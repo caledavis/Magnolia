@@ -1,8 +1,6 @@
-import { useState } from 'react'
 import type { AnalysisInitData, SurveyEntityRef } from '../../models/types'
 import type { GroupByEntry, GroupedHeader } from './group-by'
-import { Icon, faXmark, faQuestion, faUser } from '../Icon'
-import { truncate, tagColumnSources } from './analysis-helpers'
+import { tagColumnSources } from './analysis-helpers'
 
 /** One slot produced by the "Respondents" grouping: a single respondent
  *  of a survey, or the whole-survey subtotal. Tools map these into their
@@ -23,15 +21,6 @@ export function surveyGuidsAmong(
 ): string[] {
   const surveys = new Set(data.sources.filter((s) => s.sourceType === 'survey').map((s) => s.guid))
   return sourceGuids.filter((g) => surveys.has(g))
-}
-
-/** True when any of the given source guids is a survey — used to decide
- *  whether to auto-add Respondents grouping / show the Questions box. */
-export function hasSurveyInScope(
-  sourceGuids: string[],
-  data: Pick<AnalysisInitData, 'sources'>
-): boolean {
-  return surveyGuidsAmong(sourceGuids, data).length > 0
 }
 
 /** Expand each in-scope survey into a band of respondent slots (one per
@@ -243,18 +232,6 @@ export interface QuestionScopeRef extends SurveyEntityRef {
   label?: string
 }
 
-/** Stable key for a question scope ref. */
-export function questionScopeKey(r: SurveyEntityRef): string {
-  return `${r.sourceGuid}:${r.id}`
-}
-
-/** True if the drag could be a survey-question (payload is JSON; the
- *  actual kind is only readable on drop, so this is permissive for the
- *  drag-over highlight). */
-export function isQuestionDrag(e: React.DragEvent): boolean {
-  return e.dataTransfer.types.includes('application/json')
-}
-
 /** Read a drag event and return the survey-question(s) it carries. The
  *  Document Browser emits `{ kind: 'survey-question', entityGuid,
  *  surveyGuid, label }` as application/json. */
@@ -268,77 +245,6 @@ export function parseQuestionDrop(e: React.DragEvent): QuestionScopeRef[] {
     }
   } catch { /* ignore */ }
   return []
-}
-
-/** Drop zone for scoping a survey analysis to specific questions. Empty
- *  = all questions. Drag question nodes from the Document Browser in.
- *  Mirrors the "Group by" section's styling and drag-over overlay. */
-export function QuestionScopeBox({
-  value,
-  onChange,
-  data
-}: {
-  value: QuestionScopeRef[]
-  onChange: (next: QuestionScopeRef[]) => void
-  data: Pick<AnalysisInitData, 'surveyEntityLabels'>
-}) {
-  const [over, setOver] = useState(false)
-  const remove = (r: SurveyEntityRef) =>
-    onChange(value.filter((v) => questionScopeKey(v) !== questionScopeKey(r)))
-  const onDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setOver(false)
-    const fresh = parseQuestionDrop(e)
-    if (fresh.length === 0) return
-    const seen = new Set(value.map(questionScopeKey))
-    const additions = fresh.filter((f) => !seen.has(questionScopeKey(f)))
-    if (additions.length > 0) onChange([...value, ...additions])
-  }
-  return (
-    <div
-      className="analysis-section"
-      style={{ marginBottom: 14, position: 'relative' }}
-      onDragOver={(e) => {
-        if (isQuestionDrag(e)) {
-          e.preventDefault()
-          e.dataTransfer.dropEffect = 'copy'
-          setOver(true)
-        }
-      }}
-      onDragLeave={() => setOver(false)}
-      onDrop={onDrop}
-    >
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: value.length > 0 ? 8 : 0, position: 'relative', zIndex: 1 }}>
-        <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Questions</span>
-        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-          {value.length > 0 ? 'Analysis limited to these questions' : 'Drag survey questions here to scope (default: all)'}
-        </span>
-      </div>
-      {value.length > 0 && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
-          {value.map((r) => {
-            const live = data.surveyEntityLabels?.[r.sourceGuid]?.questions?.[r.id]
-            return (
-              <span key={questionScopeKey(r)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
-                <Icon icon={faQuestion} style={{ fontSize: 10, color: 'var(--text-muted)' }} />
-                {truncate(live || r.label || 'Question', 40)}
-                <span onClick={() => remove(r)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
-              </span>
-            )
-          })}
-        </div>
-      )}
-      {over && (
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'color-mix(in srgb, var(--accent) 8%, transparent)',
-          border: '2px dashed var(--accent)',
-          borderRadius: 'var(--radius-md)',
-          pointerEvents: 'none'
-        }} />
-      )}
-    </div>
-  )
 }
 
 /** Read a drag event and return the survey-respondent(s) it carries. The
@@ -355,76 +261,4 @@ export function parseRespondentDrop(e: React.DragEvent): QuestionScopeRef[] {
     }
   } catch { /* ignore */ }
   return []
-}
-
-/** Drop zone for scoping a query to specific survey respondents. Empty =
- *  all respondents. Drag respondent nodes from the Document Browser in.
- *  Mirrors QuestionScopeBox; reuses QuestionScopeRef (a labelled
- *  SurveyEntityRef) and the shared scope-key/drag helpers. */
-export function RespondentScopeBox({
-  value,
-  onChange,
-  data
-}: {
-  value: QuestionScopeRef[]
-  onChange: (next: QuestionScopeRef[]) => void
-  data: Pick<AnalysisInitData, 'surveyEntityLabels'>
-}) {
-  const [over, setOver] = useState(false)
-  const remove = (r: SurveyEntityRef) =>
-    onChange(value.filter((v) => questionScopeKey(v) !== questionScopeKey(r)))
-  const onDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setOver(false)
-    const fresh = parseRespondentDrop(e)
-    if (fresh.length === 0) return
-    const seen = new Set(value.map(questionScopeKey))
-    const additions = fresh.filter((f) => !seen.has(questionScopeKey(f)))
-    if (additions.length > 0) onChange([...value, ...additions])
-  }
-  return (
-    <div
-      className="analysis-section"
-      style={{ marginBottom: 14, position: 'relative' }}
-      onDragOver={(e) => {
-        if (isQuestionDrag(e)) {
-          e.preventDefault()
-          e.dataTransfer.dropEffect = 'copy'
-          setOver(true)
-        }
-      }}
-      onDragLeave={() => setOver(false)}
-      onDrop={onDrop}
-    >
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: value.length > 0 ? 8 : 0, position: 'relative', zIndex: 1 }}>
-        <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Respondents</span>
-        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-          {value.length > 0 ? 'Limited to these respondents' : 'Drag survey respondents here to scope (default: all)'}
-        </span>
-      </div>
-      {value.length > 0 && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
-          {value.map((r) => {
-            const live = data.surveyEntityLabels?.[r.sourceGuid]?.respondents?.[r.id]
-            return (
-              <span key={questionScopeKey(r)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
-                <Icon icon={faUser} style={{ fontSize: 10, color: 'var(--text-muted)' }} />
-                {truncate(live || r.label || 'Respondent', 40)}
-                <span onClick={() => remove(r)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
-              </span>
-            )
-          })}
-        </div>
-      )}
-      {over && (
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'color-mix(in srgb, var(--accent) 8%, transparent)',
-          border: '2px dashed var(--accent)',
-          borderRadius: 'var(--radius-md)',
-          pointerEvents: 'none'
-        }} />
-      )}
-    </div>
-  )
 }

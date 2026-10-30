@@ -146,6 +146,7 @@ export const ANALYSIS_TOOL_COLORS: Record<string, string> = {
   'code-frequencies': '#10A8A0',
   'code-orders': '#1880D8',
   'word-frequencies': '#6848E0',
+  'word-combinations': '#C83C3C',
   'relationship-map': '#A830D0'
 }
 

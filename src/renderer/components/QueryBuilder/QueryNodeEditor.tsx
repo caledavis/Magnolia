@@ -9,7 +9,7 @@ import { modKey, altClickHint } from '../../utils/platform'
    Types
    ═══════════════════════════════════════════════════ */
 
-type NodeKind = 'code' | 'any' | 'text' | 'logical' | 'overlap' | 'inside' | 'outside' | 'before' | 'followedBy' | 'result'
+type NodeKind = 'code' | 'any' | 'text' | 'logical' | 'overlap' | 'inside' | 'outside' | 'before' | 'followedBy' | 'sameSentence' | 'result'
 
 type LogicalOp = 'and' | 'or' | 'not' | 'xor'
 
@@ -75,6 +75,7 @@ const KIND_COLOR: Record<NodeKind, string> = {
   outside: '#eab308',
   before: '#22c55e',
   followedBy: '#06b6d4',
+  sameSentence: '#ec4899',
   result: '#8b5cf6'
 }
 
@@ -88,6 +89,7 @@ const KIND_LABEL: Record<NodeKind, string> = {
   outside: 'Outside',
   before: 'Before',
   followedBy: 'Followed by',
+  sameSentence: 'Same sentence',
   result: 'Result'
 }
 
@@ -120,7 +122,7 @@ const LOGICAL_OP_SLOTS: Record<LogicalOp, { min: number; max: number }> = {
   xor: { min: 2, max: 2 }
 }
 
-const SPATIAL_KINDS: NodeKind[] = ['overlap', 'inside', 'outside', 'before', 'followedBy']
+const SPATIAL_KINDS: NodeKind[] = ['overlap', 'inside', 'outside', 'before', 'followedBy', 'sameSentence']
 const DUAL_CODE_KINDS: NodeKind[] = ['logical', ...SPATIAL_KINDS]
 
 const KIND_TOOLTIP: Record<NodeKind, string> = {
@@ -133,6 +135,7 @@ const KIND_TOOLTIP: Record<NodeKind, string> = {
   outside: 'Code 1 selections that do not overlap with any Code 2 selection',
   before: 'Input 1 selections that end before an Input 2 selection starts, with no overlap between them',
   followedBy: 'Input 1 selections that start after an Input 2 selection ends, with no overlap between them',
+  sameSentence: 'The sentences that contain both an Input 1 selection and an Input 2 selection. Connect it straight to Result',
   result: 'The final query output'
 }
 
@@ -327,7 +330,7 @@ function walkNode(
     const ch2 = walkNode(ins[1].from, nodes, cc, visited, codes)
     if (!ch1 || !ch2) return null
     result = {
-      type: n.kind as 'overlap' | 'inside' | 'outside' | 'before' | 'followedBy',
+      type: n.kind as 'overlap' | 'inside' | 'outside' | 'before' | 'followedBy' | 'sameSentence',
       condition1: ch1,
       condition2: ch2
     }
@@ -540,7 +543,7 @@ function conditionToGraph(
       return { id, yMin: Math.min(yMin, stub.y), yMax: Math.max(yMax, stub.y + h) }
     }
 
-    // Spatial dual-input kinds: overlap, inside, outside, before, followedBy
+    // Spatial dual-input kinds: overlap, inside, outside, before, followedBy, sameSentence
     if ('condition1' in c && 'condition2' in c) {
       const child1 = buildNode(c.condition1, col)
       const child2 = buildNode(c.condition2, col)
@@ -1200,7 +1203,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
         <PaletteDivider />
 
         <PaletteGroup label="Spatial">
-          {(['overlap', 'inside', 'outside', 'before', 'followedBy'] as NodeKind[]).map((k) => (
+          {SPATIAL_KINDS.map((k) => (
             <PaletteButton
               key={k}
               kind={k}

@@ -1,12 +1,13 @@
 import { useState, useMemo, useCallback, useRef } from 'react'
 import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
-import { Icon, faChartBar, faChevronDown, faChevronRight, faCircleInfo } from '../Icon'
+import { Icon, faChartBar, faCircleInfo } from '../Icon'
 import { toolColors } from '../../utils/tool-colors'
 import {
-  DocumentSelector,
   emptyDocumentFilter,
   type DocumentFilterState
 } from '../DocumentSelector/DocumentSelector'
+import { DocumentsSection } from './DocumentsSection'
+import { documentFilterFromConfig } from './documents-filter'
 import { truncate, codeFrequencyInSource, toCsv, resolveFilteredSources, applySurveyCellScope } from './analysis-helpers'
 import { generateGuid } from '../../utils/guid'
 import {
@@ -21,8 +22,6 @@ import {
 } from './group-by'
 import {
   buildSurveyAwareColumns,
-  hasSurveyInScope,
-  QuestionScopeBox,
   type QuestionScopeRef
 } from './survey-grouping'
 import { useLiveAnalysisData } from './use-live-analysis-data'
@@ -39,6 +38,7 @@ interface Props {
     docFilter: DocumentFilterState
     groupByTags?: string[]
     groupBy?: GroupByEntry[]
+    /** Up to 1.9; now in docFilter (see documentFilterFromConfig). */
     questionScope?: QuestionScopeRef[]
     guid: string
     name: string
@@ -54,23 +54,20 @@ interface Props {
 }
 
 export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
-  const [docFilter, setDocFilter] = useState<DocumentFilterState>(savedConfig?.docFilter ?? emptyDocumentFilter())
+  const [docFilter, setDocFilter] = useState<DocumentFilterState>(documentFilterFromConfig(savedConfig))
   const [codeGuids, setCodeGuids] = useState<string[]>(savedConfig?.codeGuids ?? [])
   const [groupBy, setGroupBy] = useState<GroupByEntry[]>(
     () => savedConfig?.groupBy ?? migrateLegacyGroupBy(savedConfig?.groupByTags)
   )
-  const [questionScope, setQuestionScope] = useState<QuestionScopeRef[]>(savedConfig?.questionScope ?? [])
   const live = useLiveAnalysisData()
   // Scope survey-cell selections to the tag filter so all metrics are
   // cell-precise (a survey tagged via one respondent counts only that
   // respondent's coded cells). No-op when no tag constraint is active.
-  // The Questions scope narrows the analysis to the chosen survey
-  // questions on top of that.
+  // The survey questions and respondents chosen in From these documents
+  // narrow it further.
   const data = useMemo(() => {
-    const base = applySurveyCellScope({ ...propData, ...live }, docFilter)
-    return questionScope.length > 0 ? applySurveyCellScope(base, { questionScope }) : base
-  }, [propData, live, docFilter, questionScope])
-  const [docSectionOpen, setDocSectionOpen] = useState(false)
+    return applySurveyCellScope({ ...propData, ...live }, docFilter)
+  }, [propData, live, docFilter])
   const [dropOver, setDropOver] = useState(false)
   const [tagDropOver, setTagDropOver] = useState(false)
   const chartRef = useRef<SVGSVGElement>(null)
@@ -84,14 +81,13 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
   // Dirty tracking (see useToolDirtyState — baseline is the saved
   // config or empty defaults; refreshed on save, restored on discard).
   const currentConfig = useMemo(
-    () => ({ codeGuids, docFilter, groupBy, questionScope }),
-    [codeGuids, docFilter, groupBy, questionScope]
+    () => ({ codeGuids, docFilter, groupBy }),
+    [codeGuids, docFilter, groupBy]
   )
   const initialBaseline = useMemo(() => ({
     codeGuids: savedConfig?.codeGuids ?? [],
-    docFilter: savedConfig?.docFilter ?? emptyDocumentFilter(),
+    docFilter: documentFilterFromConfig(savedConfig),
     groupBy: savedConfig?.groupBy ?? migrateLegacyGroupBy(savedConfig?.groupByTags),
-    questionScope: savedConfig?.questionScope ?? []
   }), [])
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
 
@@ -99,7 +95,6 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
     setCodeGuids(baseline.codeGuids)
     setDocFilter(baseline.docFilter)
     setGroupBy(baseline.groupBy)
-    setQuestionScope(baseline.questionScope ?? [])
   }, [baseline])
 
   const filteredSourceGuids = useMemo(
@@ -108,15 +103,17 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
   )
 
   // Survey-cell scope carried into a generated query so it re-runs
-  // against the same subset: the tool-level Questions scope plus, for a
+  // against the same subset: the survey questions and respondents
+  // chosen in From these documents plus, for a
   // respondent / tagged column, that column's narrowing.
   const surveyScope = useCallback((col?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): SurveyCellScopeArgs | undefined => {
     const s: SurveyCellScopeArgs = {}
-    if (questionScope.length > 0) s.questionScope = questionScope.map((q) => ({ sourceGuid: q.sourceGuid, id: q.id }))
+    if (docFilter.questionScope?.length) s.questionScope = docFilter.questionScope
+    if (docFilter.respondentScope?.length) s.respondentScope = docFilter.respondentScope
     if (col?.respondentRef) s.respondentScope = [col.respondentRef]
     if (col?.tagScopeGuids?.length) s.tagGuids = col.tagScopeGuids
     return s.questionScope || s.respondentScope || s.tagGuids ? s : undefined
-  }, [questionScope])
+  }, [docFilter.questionScope, docFilter.respondentScope])
 
   // Auto-add a Group-by chip for each survey and notebook in scope.
   const dismissAutoGroup = useAutoGroupBy(filteredSourceGuids, data, savedConfig, setGroupBy)
@@ -236,12 +233,12 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
       guid: analysisGuid,
       toolType: 'code-frequencies',
       name,
-      config: { codeGuids, docFilter, groupBy, questionScope }
+      config: { codeGuids, docFilter, groupBy }
     })
-    setBaseline({ codeGuids, docFilter, groupBy, questionScope })
+    setBaseline({ codeGuids, docFilter, groupBy })
     if (inTab) inTab.onSaved(analysisGuid, name)
     else setTimeout(() => window.close(), 200)
-  }, [analysisGuid, codeGuids, docFilter, groupBy, questionScope, inTab, setBaseline])
+  }, [analysisGuid, codeGuids, docFilter, groupBy, inTab, setBaseline])
 
   useRegisterToolSave(inTab?.tabId, () => {
     if (isExisting) {
@@ -410,18 +407,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
       )}
 
       <div style={{ flex: 1, overflow: 'auto', padding: '14px 20px' }}>
-        {/* Document Selector */}
-        <div className="analysis-section" style={{ marginBottom: 14 }}>
-          <div onClick={() => setDocSectionOpen(!docSectionOpen)} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
-            <Icon icon={docSectionOpen ? faChevronDown : faChevronRight} style={{ fontSize: 12, color: 'var(--text-muted)' }} />
-            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Select Documents</span>
-          </div>
-          {docSectionOpen && (
-            <div style={{ marginTop: 10, minHeight: 160 }}>
-              <DocumentSelector sources={data.sources} tags={data.tags} categories={data.categories} folders={data.folders} sourceFolder={data.sourceFolder} tagMembers={data.tagMembers} respondentTagMembers={data.respondentTagMembers} questionTagMembers={data.questionTagMembers} surveyEntityLabels={data.surveyEntityLabels} filter={docFilter} onChange={setDocFilter} />
-            </div>
-          )}
-        </div>
+        <DocumentsSection data={data} filter={docFilter} onChange={setDocFilter} filteredSourceGuids={filteredSourceGuids} />
 
         {/* Group by \u2014 entire section is the drop target. */}
         <div
@@ -438,7 +424,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
           onDrop={handleTagDrop}
         >
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: groupBy.length > 0 ? 8 : 0, position: 'relative', zIndex: 1 }}>
-            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Group by</span>
+            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Grouped by</span>
             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
               Drag tags, categories, or folders here
             </span>
@@ -462,10 +448,6 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
           )}
         </div>
 
-        {/* Questions scope \u2014 only meaningful when a survey is analysed. */}
-        {hasSurveyInScope(filteredSourceGuids, data) && (
-          <QuestionScopeBox value={questionScope} onChange={setQuestionScope} data={data} />
-        )}
 
         {/* Results Grid \u2014 entire section accepts code drops. */}
         <div
@@ -481,7 +463,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
           onDrop={(e) => { setDropOver(false); handleDrop(e) }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, position: 'relative', zIndex: 1 }}>
-            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Frequency Grid</span>
+            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Results</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, position: 'relative' }}>
               <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportCsv} disabled={codeGuids.length === 0}>
                 Export CSV

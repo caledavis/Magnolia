@@ -1,12 +1,13 @@
 import { Fragment, useState, useMemo, useCallback } from 'react'
 import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
-import { Icon, faFileCodeCorner, faChevronDown, faChevronRight } from '../Icon'
+import { Icon, faFileCodeCorner } from '../Icon'
 import { toolColors } from '../../utils/tool-colors'
 import {
-  DocumentSelector,
   emptyDocumentFilter,
   type DocumentFilterState
 } from '../DocumentSelector/DocumentSelector'
+import { DocumentsSection } from './DocumentsSection'
+import { documentFilterFromConfig } from './documents-filter'
 import { truncate, countCodeInSource, toCsv, pctOfTotal, resolveFilteredSources, applySurveyCellScope, binarizeGrid } from './analysis-helpers'
 import { generateGuid } from '../../utils/guid'
 import {
@@ -21,8 +22,6 @@ import {
 } from './group-by'
 import {
   buildSurveyAwareColumns,
-  hasSurveyInScope,
-  QuestionScopeBox,
   type QuestionScopeRef,
   type AnalysisColumn
 } from './survey-grouping'
@@ -45,6 +44,7 @@ interface Props {
     /** New shape: tags + categories + folders + respondents. */
     groupBy?: GroupByEntry[]
     /** Survey questions the analysis is scoped to (empty = all). */
+    /** Up to 1.9; now in docFilter (see documentFilterFromConfig). */
     questionScope?: QuestionScopeRef[]
     guid: string
     name: string
@@ -109,26 +109,21 @@ function frameworkRowsForColumns(columns: AnalysisColumn[], data: AnalysisInitDa
 }
 
 export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) {
-  const [docFilter, setDocFilter] = useState<DocumentFilterState>(savedConfig?.docFilter ?? emptyDocumentFilter())
+  const [docFilter, setDocFilter] = useState<DocumentFilterState>(documentFilterFromConfig(savedConfig))
   const [codeGuids, setCodeGuids] = useState<string[]>(savedConfig?.codeGuids ?? [])
   const [groupBy, setGroupBy] = useState<GroupByEntry[]>(
     () => savedConfig?.groupBy ?? migrateLegacyGroupBy(savedConfig?.groupByTags)
   )
-  const [questionScope, setQuestionScope] = useState<QuestionScopeRef[]>(savedConfig?.questionScope ?? [])
   // Once the user removes the auto-added Respondents grouping, don't
   // re-seed it (they can drag it back from the Document Browser).
   const live = useLiveAnalysisData()
   const data = useMemo(() => {
-    const base = applySurveyCellScope({ ...propData, ...live }, docFilter)
-    // Question scope narrows the whole analysis to the chosen survey
-    // questions (surveys with no chosen question keep all of theirs).
-    return questionScope.length > 0 ? applySurveyCellScope(base, { questionScope }) : base
-  }, [propData, live, docFilter, questionScope])
+    return applySurveyCellScope({ ...propData, ...live }, docFilter)
+  }, [propData, live, docFilter])
   const [view, setView] = useState<GridView>('table')
   const visualMode = view === 'visual'
   const sankeyMode = view === 'sankey'
   const [binaryMode, setBinaryMode] = useState(false)
-  const [docSectionOpen, setDocSectionOpen] = useState(false)
   const [dropOver, setDropOver] = useState(false)
   const [tagDropOver, setTagDropOver] = useState(false)
   const [analysisGuid] = useState(savedConfig?.guid ?? generateGuid())
@@ -140,14 +135,13 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
   // never-saved tools). Save updates the baseline; Discard restores the
   // working state from it.
   const currentConfig = useMemo(
-    () => ({ codeGuids, docFilter, groupBy, questionScope }),
-    [codeGuids, docFilter, groupBy, questionScope]
+    () => ({ codeGuids, docFilter, groupBy }),
+    [codeGuids, docFilter, groupBy]
   )
   const initialBaseline = useMemo(() => ({
     codeGuids: savedConfig?.codeGuids ?? [],
-    docFilter: savedConfig?.docFilter ?? emptyDocumentFilter(),
+    docFilter: documentFilterFromConfig(savedConfig),
     groupBy: savedConfig?.groupBy ?? migrateLegacyGroupBy(savedConfig?.groupByTags),
-    questionScope: savedConfig?.questionScope ?? []
   }), [])
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
 
@@ -155,7 +149,6 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
     setCodeGuids(baseline.codeGuids)
     setDocFilter(baseline.docFilter)
     setGroupBy(baseline.groupBy)
-    setQuestionScope(baseline.questionScope ?? [])
   }, [baseline])
 
   const filteredSourceGuids = useMemo(
@@ -304,16 +297,18 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
 
   // Survey-cell scope carried into a generated query so it re-runs
   // against the same subset the clicked cell/column represented: the
-  // tool-level Questions scope plus, for a respondent or tagged column,
+  // survey questions and respondents chosen in From these documents plus,
+  // for a respondent or tagged column,
   // that column's respondent / tag narrowing. Returns undefined when
   // there's nothing to scope (the common non-survey case).
   const surveyScope = useCallback((col?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): SurveyCellScopeArgs | undefined => {
     const s: SurveyCellScopeArgs = {}
-    if (questionScope.length > 0) s.questionScope = questionScope.map((q) => ({ sourceGuid: q.sourceGuid, id: q.id }))
+    if (docFilter.questionScope?.length) s.questionScope = docFilter.questionScope
+    if (docFilter.respondentScope?.length) s.respondentScope = docFilter.respondentScope
     if (col?.respondentRef) s.respondentScope = [col.respondentRef]
     if (col?.tagScopeGuids?.length) s.tagGuids = col.tagScopeGuids
     return s.questionScope || s.respondentScope || s.tagGuids ? s : undefined
-  }, [questionScope])
+  }, [docFilter.questionScope, docFilter.respondentScope])
 
   const handleDoubleClick = useCallback((rowIdx: number, colIdx: number) => {
     const val = grid[rowIdx][colIdx]
@@ -423,12 +418,12 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
       guid: analysisGuid,
       toolType: 'codes-in-documents',
       name,
-      config: { codeGuids, docFilter, groupBy, questionScope }
+      config: { codeGuids, docFilter, groupBy }
     })
-    setBaseline({ codeGuids, docFilter, groupBy, questionScope })
+    setBaseline({ codeGuids, docFilter, groupBy })
     if (inTab) inTab.onSaved(analysisGuid, name)
     else setTimeout(() => window.close(), 200)
-  }, [analysisGuid, codeGuids, docFilter, groupBy, questionScope, inTab, setBaseline])
+  }, [analysisGuid, codeGuids, docFilter, groupBy, inTab, setBaseline])
 
   // Register the save handler so the TabBar's unsaved-changes dialog
   // can fire it when the user picks Save while closing this tab.
@@ -503,19 +498,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
       )}
 
       <div style={{ flex: 1, overflow: 'auto', padding: '14px 20px' }}>
-        {/* Document Selector */}
-        <div className="analysis-section" style={{ marginBottom: 14 }}>
-          <div onClick={() => setDocSectionOpen(!docSectionOpen)} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
-            <Icon icon={docSectionOpen ? faChevronDown : faChevronRight} style={{ fontSize: 12, color: 'var(--text-muted)' }} />
-            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Select Documents</span>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>{filteredSourceGuids.length} document{filteredSourceGuids.length !== 1 ? 's' : ''}</span>
-          </div>
-          {docSectionOpen && (
-            <div style={{ marginTop: 10, minHeight: 160 }}>
-              <DocumentSelector sources={data.sources} tags={data.tags} categories={data.categories} folders={data.folders} sourceFolder={data.sourceFolder} tagMembers={data.tagMembers} respondentTagMembers={data.respondentTagMembers} questionTagMembers={data.questionTagMembers} surveyEntityLabels={data.surveyEntityLabels} filter={docFilter} onChange={setDocFilter} />
-            </div>
-          )}
-        </div>
+        <DocumentsSection data={data} filter={docFilter} onChange={setDocFilter} filteredSourceGuids={filteredSourceGuids} />
 
         {/* Group by \u2014 entire section is the drop target. The dashed
             "drop here" box has been replaced by an absolute-positioned
@@ -535,7 +518,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
           onDrop={handleTagDrop}
         >
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: groupBy.length > 0 ? 8 : 0, position: 'relative', zIndex: 1 }}>
-            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Group by</span>
+            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Grouped by</span>
             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
               Drag tags, categories, or folders here
             </span>
@@ -558,11 +541,6 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
             }} />
           )}
         </div>
-
-        {/* Questions scope \u2014 only meaningful when a survey is analysed. */}
-        {hasSurveyInScope(filteredSourceGuids, data) && (
-          <QuestionScopeBox value={questionScope} onChange={setQuestionScope} data={data} />
-        )}
 
         {/* Results Grid \u2014 entire section accepts code drops. */}
         <div

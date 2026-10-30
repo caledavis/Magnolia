@@ -21,9 +21,11 @@ import {
 import { buildSurveyAwareColumns, type AnalysisColumn } from './survey-grouping'
 import { buildDisplayRows, fullLabel, summaryKey } from './framework-matrix-model'
 import { buildExportSvg } from './RelationshipMap/svg-export'
-import { emptyDocumentFilter } from '../DocumentSelector/DocumentSelector'
-import { executeQuery } from '../../utils/query-engine'
-import { stripFormatting } from '../../utils/strip-formatting'
+import { countWords, sourceTexts, codedPassageTexts, codeSet, wordFilter, countPhrases, wordAssociations } from './word-counts'
+import { combinationsPassages, defaultCombinationsConfig, effectiveFocus } from './WordCombinations'
+import { buildWordTree, layoutWordTree, wordTreeSvg } from './word-tree'
+import { documentFilterFromConfig } from './documents-filter'
+import { runResultsQueries } from './ResultsInDocuments'
 import { escHtml } from '../../utils/pdf-export'
 import { TOOL_REGISTRY } from '../../utils/tool-registry'
 import { useProjectStore } from '../../stores/project-store'
@@ -38,6 +40,7 @@ export const REPORT_TABLE_CSS = `
   table.report-table th.rowhead, table.report-table td.rowhead { text-align: left; font-weight: 600; }
   table.report-table th { background: #f3f4f6; color: #555; font-size: 9px; font-weight: 600; }
   table.report-table td.zero { color: #bbb; }
+  .report-note { font-size: 10px; color: #555; margin: 2px 0 4px 0; }
   table.report-co td.co-seq { text-align: left; white-space: normal; line-height: 1.8; }
   .co-chip { display: inline-block; white-space: nowrap; }
   .co-chip .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 3px; vertical-align: middle; }
@@ -223,11 +226,10 @@ function buildColData(columns: AnalysisColumn[], data: AnalysisInitData): Map<st
 }
 
 function scopedData(toolType: AnalysisInitData['toolType'], config: any): { data: AnalysisInitData; docFilter: any } {
-  const docFilter = config?.docFilter ?? emptyDocumentFilter()
-  const base = buildAnalysisInitData(toolType)
-  let data = applySurveyCellScope(base, docFilter)
-  const questionScope = config?.questionScope ?? []
-  if (questionScope.length) data = applySurveyCellScope(data, { questionScope })
+  // Survey questions and respondents are in the filter (moved there
+  // from a separate Questions box after 1.9).
+  const docFilter = documentFilterFromConfig(config)
+  const data = applySurveyCellScope(buildAnalysisInitData(toolType), docFilter)
   return { data, docFilter }
 }
 
@@ -287,32 +289,15 @@ function resultsInDocumentsHtml(config: any, options: AnalysisItemOptions): stri
   const queryGuids: string[] = config?.queryGuids ?? []
   if (queryGuids.length === 0) return '<div class="empty">(no queries in this analysis)</div>'
 
-  const base = buildAnalysisInitData('results-in-documents')
-  const questionScope = config?.questionScope ?? []
-  const data = questionScope.length ? applySurveyCellScope(base, { questionScope }) : base
+  const data = buildAnalysisInitData('results-in-documents')
 
   const queryMap = new Map<string, { name: string; query?: any }>()
   for (const sq of data.savedQueries || []) queryMap.set(sq.guid, { name: sq.name, query: sq.query })
   const sourceMap = new Map<string, string>(data.sources.map((s) => [s.guid, s.name]))
 
-  const execSources = data.sources.map((s) => ({
-    guid: s.guid,
-    name: s.name,
-    selections: (data.sourceSelections[s.guid] || []).map((sel: any) => ({ ...sel, codings: sel.codings || [] }))
-  }))
-  const execCodes = data.codes.map((c) => ({ guid: c.guid, name: c.name, color: c.color, isCodable: c.isCodable, children: [] }))
-  const execTags = data.tags.map((t) => ({ guid: t.guid, name: t.name, memberSourceGuids: data.tagMembers[t.guid] || [] }))
-  const execFolders = (data.folders || []).map((f) => ({ guid: f.guid, name: f.name, parentGuid: f.parentGuid }))
-
-  const queryResults = new Map<string, QueryResult[]>()
-  for (const qGuid of queryGuids) {
-    const sq = queryMap.get(qGuid)
-    if (!sq?.query) continue
-    queryResults.set(
-      qGuid,
-      executeQuery(sq.query, execSources as any, data.sourceContents, execCodes as any, execTags as any, data.sourceFolder, execFolders)
-    )
-  }
+  // Run as the tool and the Query Results pane run them; questions an
+  // older analysis chose narrow the survey results.
+  const { queryResults } = runResultsQueries(queryGuids, queryMap, config?.questionScope ?? [])
 
   const resultSourceGuids = new Set<string>()
   for (const results of queryResults.values()) for (const r of results) resultSourceGuids.add(r.sourceGuid)
@@ -473,38 +458,6 @@ function codeOrdersHtml(config: any, _options: AnalysisItemOptions): string {
   return `<div class="report-wide"><table class="report-table report-co"><thead><tr><th class="rowhead">Document</th><th class="rowhead">Order of codes</th></tr></thead><tbody>${body}</tbody></table></div>`
 }
 
-// ── Word Frequencies (top words × series) ──────────────────────────
-
-function parseWordSet(s: string): Set<string> {
-  return new Set((s || '').split(/[,\n]+/).map((w) => w.trim().toLowerCase()).filter(Boolean))
-}
-
-function countWordsIn(d: AnalysisInitData, sourceGuids: string[], excludeSet: Set<string>, includeSet: Set<string> | null): Map<string, number> {
-  const freq = new Map<string, number>()
-  for (const sg of sourceGuids) {
-    const src = d.sources.find((s) => s.guid === sg)
-    const st = (src as { sourceType?: string } | undefined)?.sourceType
-    let text: string | undefined
-    if (st === 'survey') {
-      text = (d.surveyCodableCells?.[sg] || []).map((c) => c.text).join('\n')
-    } else {
-      text = d.sourceContents[sg]
-      if (text && st && st !== 'text') {
-        try { text = stripFormatting(text, st as any) } catch { /* keep raw */ }
-      }
-    }
-    if (!text) continue
-    const words = text.toLowerCase().match(/\b[a-zA-ZÀ-ɏ']+\b/g) || []
-    for (const w of words) {
-      if (w.length < 2) continue
-      if (excludeSet.has(w)) continue
-      if (includeSet && !includeSet.has(w)) continue
-      freq.set(w, (freq.get(w) || 0) + 1)
-    }
-  }
-  return freq
-}
-
 // ── Word Frequencies visualisations (bar chart + word cloud) ───────
 // Faithful headless SVG versions of the on-screen Word Frequencies
 // charts, so a report can include them as well as the table.
@@ -561,7 +514,7 @@ function wordCloudSvg(words: [string, number][], maxFreq: number): string {
 }
 
 /** Grouped vertical bar chart, ported from the tool. */
-function wordBarChartSvg(words: [string, number][], series: AnalysisColumn[], seriesFreqs: Map<string, number>[], maxFreq: number): string {
+function wordBarChartSvg(words: [string, number][], series: WordSeries[], seriesFreqs: Map<string, number>[], maxFreq: number): string {
   if (words.length === 0) return ''
   const barW = 600, barH = 380, barMaxH = 200, marginB = 160
   const nSeries = series.length
@@ -611,7 +564,7 @@ function wordBarChartSvg(words: [string, number][], series: AnalysisColumn[], se
       const count = seriesFreqs[si].get(word) || 0
       const bH = count > 0 ? (count / yMax) * barMaxH : 0
       const bX = groupX + (nSeries > 1 ? si * subBarW : 0)
-      const color = WF_SERIES_COLORS[si % WF_SERIES_COLORS.length]
+      const color = _s.color || WF_SERIES_COLORS[si % WF_SERIES_COLORS.length]
       parts.push(`<rect x="${bX.toFixed(1)}" y="${(xAxisY - bH).toFixed(1)}" width="${subBarW.toFixed(1)}" height="${bH.toFixed(1)}" fill="${color}" opacity="0.85" rx="${Math.min(2, subBarW / 4).toFixed(1)}"/>`)
     })
     parts.push(`<line x1="${tickX.toFixed(1)}" y1="${xAxisY}" x2="${tickX.toFixed(1)}" y2="${xAxisY + 4}" stroke="${WF_BORDER}"/>`)
@@ -621,24 +574,47 @@ function wordBarChartSvg(words: [string, number][], series: AnalysisColumn[], se
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${effectiveBarW} ${barH}" class="wf-viz">${parts.join('')}</svg>`
 }
 
+/** A Word Frequencies series: a group-by column, or one code's passages. */
+type WordSeries = AnalysisColumn & { codeGuid?: string; color?: string }
+
+// ── Word Frequencies (top words × series) ──────────────────────────
+
 function wordFrequenciesHtml(config: any, options: AnalysisItemOptions): string {
   const { data, docFilter } = scopedData('word-frequencies', config)
   const filtered = resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids ?? [], docFilter.typeInclude ?? [], docFilter.typeExclude ?? [])
   const sourceMap = new Map<string, string>(data.sources.map((s) => [s.guid, s.name]))
-  const excludeSet = parseWordSet(config?.excludeWords ?? '')
-  const incl = parseWordSet(config?.includeWords ?? '')
-  const includeSet = incl.size > 0 ? incl : null
+  const filter = wordFilter(config?.includeWords ?? '', config?.excludeWords ?? '')
   const wordCount: number = config?.wordCount ?? 30
   const groupBy = config?.groupBy ?? []
-  const series: AnalysisColumn[] =
-    groupBy.length === 0
-      ? [{ id: '__all', label: 'All', sourceGuids: filtered }]
-      : buildSurveyAwareColumns(groupBy, data, filtered, sourceMap, { includeSubtotals: true }).columns
-  const seriesFreqs = series.map((s) =>
-    countWordsIn(s.respondentRef ? applySurveyCellScope(data, { respondentScope: [s.respondentRef] }) : data, s.sourceGuids, excludeSet, includeSet)
-  )
-  const total = new Map<string, number>()
-  for (const fm of seriesFreqs) for (const [w, c] of fm) total.set(w, (total.get(w) || 0) + c)
+  let series: WordSeries[]
+  let total: Map<string, number>
+  const codeSets = new Map<string, Set<string>>()
+  if (config?.textSource === 'coded') {
+    // One series per code still in the project; the total counts every
+    // chosen code's passages once.
+    const codeMap = new Map(data.codes.map((c) => [c.guid, c]))
+    const codeGuids: string[] = (config?.codeGuids ?? []).filter((g: string) => codeMap.has(g))
+    const includeSubcodes: boolean = config?.includeSubcodes ?? true
+    for (const g of codeGuids) codeSets.set(g, codeSet(data.codes, g, includeSubcodes))
+    series = codeGuids.map((g) => ({ id: g, label: codeMap.get(g)!.name, sourceGuids: filtered, codeGuid: g, color: codeMap.get(g)!.color }))
+    const all = new Set<string>()
+    for (const set of codeSets.values()) for (const g of set) all.add(g)
+    total = countWords(codedPassageTexts(data, filtered, all).passages.map((p) => p.text), filter)
+    if (series.length === 0) return '<div class="empty">(no codes in this analysis)</div>'
+  } else {
+    series =
+      groupBy.length === 0
+        ? [{ id: '__all', label: 'All', sourceGuids: filtered }]
+        : buildSurveyAwareColumns(groupBy, data, filtered, sourceMap, { includeSubtotals: true }).columns
+    // Counted once over the filtered sources, as on screen: summing the
+    // series would count subtotals and multiply-tagged documents twice.
+    total = countWords(filtered.flatMap((g) => sourceTexts(data, g)), filter)
+  }
+  const seriesFreqs = series.map((s) => {
+    if (s.codeGuid) return countWords(codedPassageTexts(data, s.sourceGuids, codeSets.get(s.codeGuid)!).passages.map((p) => p.text), filter)
+    const sd = s.respondentRef ? applySurveyCellScope(data, { respondentScope: [s.respondentRef] }) : data
+    return countWords(s.sourceGuids.flatMap((g) => sourceTexts(sd, g)), filter)
+  })
   const ranked = Array.from(total.entries()).sort((a, b) => b[1] - a[1]).slice(0, wordCount)
   if (ranked.length === 0) return '<div class="empty">(no words)</div>'
 
@@ -662,6 +638,56 @@ function wordFrequenciesHtml(config: any, options: AnalysisItemOptions): string 
   if (options.barChart) viz += `<div class="report-wf-viz">${wordBarChartSvg(ranked, series, seriesFreqs, maxFreq)}</div>`
   if (options.wordCloud) viz += `<div class="report-wf-viz">${wordCloudSvg(ranked, maxFreq)}</div>`
   return table + viz
+}
+
+// ── Word Combinations (phrases, associations or word tree) ────────────────────
+
+const COMBINATION_ROWS = 30
+
+function wordCombinationsHtml(config: any): string {
+  const cfg = { ...defaultCombinationsConfig(), ...config }
+  const { data, docFilter } = scopedData('word-combinations', config)
+  const filtered = resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids ?? [], docFilter.typeInclude ?? [], docFilter.typeExclude ?? [])
+  const known = new Set(data.codes.map((c) => c.guid))
+  const codeSets = new Map<string, Set<string>>()
+  for (const g of cfg.codeGuids as string[]) if (known.has(g)) codeSets.set(g, codeSet(data.codes, g, cfg.includeSubcodes))
+  if (cfg.textSource === 'coded' && codeSets.size === 0) return '<div class="empty">(no codes in this analysis)</div>'
+  const { passages } = combinationsPassages(data, filtered, cfg.textSource, codeSets)
+  const texts = passages.map((p) => p.text)
+  const filter = wordFilter(cfg.includeWords, cfg.excludeWords)
+
+  if (cfg.view === 'tree') {
+    const focus = effectiveFocus(cfg.focusWord, passages, filter)
+    if (!focus) return '<div class="empty">(no words)</div>'
+    const tree = buildWordTree(passages, focus)
+    const intro = `<div class="report-note">\u201C${escHtml(focus)}\u201D appears ${tree.count} time${tree.count === 1 ? '' : 's'}.</div>`
+    if (tree.count === 0) return intro
+    return intro + `<div class="report-wf-viz">${wordTreeSvg(layoutWordTree(tree), {
+      text: WF_TEXT,
+      line: WF_BORDER
+    })}</div>`
+  }
+
+  if (cfg.view === 'associations') {
+    const focus = effectiveFocus(cfg.focusWord, passages, filter)
+    if (!focus) return '<div class="empty">(no words)</div>'
+    const result = wordAssociations(texts, focus, filter, Math.max(1, cfg.minTogether))
+    const intro = `<div class="report-note">\u201C${escHtml(focus)}\u201D appears in ${result.focusSentences} of ${result.sentences} sentences.</div>`
+    if (result.rows.length === 0) return intro + '<div class="empty">(no associated words)</div>'
+    const body = result.rows
+      .slice(0, COMBINATION_ROWS)
+      .map((r) => `<tr><td class="rowhead">${escHtml(r.word)}</td><td>${r.together}</td><td>${(r.share * 100).toFixed(1)}%</td><td>${r.g2.toFixed(1)}</td></tr>`)
+      .join('')
+    return intro + wrapTable(`<thead><tr><th class="rowhead">Word</th><th>Together</th><th>% of Sentences</th><th>G\u00B2</th></tr></thead><tbody>${body}</tbody>`, 3)
+  }
+
+  const phrases = countPhrases(texts, cfg.phraseLength === 3 ? 3 : 2, filter, Math.max(1, cfg.minCount))
+  if (phrases.length === 0) return '<div class="empty">(no repeated phrases)</div>'
+  const body = phrases
+    .slice(0, COMBINATION_ROWS)
+    .map((p) => `<tr><td class="rowhead">${escHtml(p.phrase)}</td><td>${p.count}</td></tr>`)
+    .join('')
+  return wrapTable(`<thead><tr><th class="rowhead">Phrase</th><th>Count</th></tr></thead><tbody>${body}</tbody>`, 1)
 }
 
 // ── Framework Matrix (rows × codes of free-text summaries) ───────────
@@ -737,6 +763,9 @@ export function renderAnalysisItemHtml(
         break
       case 'word-frequencies':
         inner = wordFrequenciesHtml(sa.config, item.options)
+        break
+      case 'word-combinations':
+        inner = wordCombinationsHtml(sa.config)
         break
       case 'relationship-map':
         inner = relationshipMapHtml(sa.config)

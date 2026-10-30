@@ -384,6 +384,9 @@ export type CodeCondition =
   | { type: 'outside'; condition1: CodeCondition; condition2: CodeCondition }
   | { type: 'before'; condition1: CodeCondition; condition2: CodeCondition }
   | { type: 'followedBy'; condition1: CodeCondition; condition2: CodeCondition }
+  /** The sentences containing both a Condition 1 and a Condition 2 selection.
+   *  Only valid as the whole query: its sentences can't feed another operator. */
+  | { type: 'sameSentence'; condition1: CodeCondition; condition2: CodeCondition }
 
 export interface Query {
   documentFilter: {
@@ -875,6 +878,7 @@ export type AnalysisToolType =
   | 'code-frequencies'
   | 'code-orders'
   | 'word-frequencies'
+  | 'word-combinations'
   | 'relationship-map'
   | 'reports'
 

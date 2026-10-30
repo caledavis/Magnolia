@@ -40,6 +40,33 @@ export interface DNode {
   setOps?: (SetOp | undefined)[]
 }
 
+export interface DocumentFilterState {
+  sourceGuids: string[]
+  tagGuids: string[]
+  tagExcludeGuids: string[]
+  folderGuids: string[]
+  typeInclude: string[]
+  typeExclude: string[]
+  /** Persisted graph layout for the node editor */
+  graph?: { nodes: DNode[]; conns: DConn[] }
+  /** Surveys limited to some of their questions or respondents (chosen
+   *  on the survey in Selected Documents). A survey not listed keeps all
+   *  of them. Only surveys in the selection are kept. */
+  questionScope?: SurveyEntityRef[]
+  respondentScope?: SurveyEntityRef[]
+}
+
+export function emptyDocumentFilter(): DocumentFilterState {
+  return {
+    sourceGuids: [],
+    tagGuids: [],
+    tagExcludeGuids: [],
+    folderGuids: [],
+    typeInclude: [],
+    typeExclude: []
+  }
+}
+
 export interface DConn {
   id: string
   from: string

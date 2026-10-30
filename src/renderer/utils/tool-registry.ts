@@ -11,6 +11,7 @@ import {
   faChartColumn,
   faBarsStaggered,
   faFont,
+  faWholeWord,
   faCircleNodes,
   faNotebookTabs
 } from '../components/Icon'
@@ -47,6 +48,7 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = {
   'code-frequencies':      { icon: faChartColumn,      label: 'Code Frequencies',     color: '#10A0A0', description: 'See how much of each document is covered by each code' }, // teal
   'code-orders':           { icon: faBarsStaggered,    label: 'Code Orders',          color: '#2080D8', description: 'See the order in which codes appear in each document' },  // blue
   'word-frequencies':      { icon: faFont,             label: 'Word Frequencies',     color: '#6848E0', description: 'See which words often appear' },                           // indigo
+  'word-combinations':     { icon: faWholeWord,        label: 'Word Combinations',    color: '#C83C3C', description: 'See which words go together' },                            // crimson
   'relationship-map':      { icon: faCircleNodes,      label: 'Relationships',        color: '#A830D0', description: 'Map relationships between different things' },             // violet
   'reports':               { icon: faNotebookTabs,     label: 'Reports',              color: '#607080', description: 'Compile results into an exportable PDF report' },          // slate
 }

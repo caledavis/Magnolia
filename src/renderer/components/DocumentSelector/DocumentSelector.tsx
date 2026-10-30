@@ -9,8 +9,11 @@ import {
   type DConn,
   type SetOp,
   type DNodeKind,
-  type DocCategory
+  type DocCategory,
+  type DocumentFilterState
 } from '../../utils/document-graph'
+import type { SurveyEntityRef } from '../../models/types'
+import { SurveyScopeLine, chosenIds, mayBeSurveyEntityDrag, parseSurveyEntityDrop, withSurveyEntity, withSurveyIds } from './SurveyScope'
 
 const CATEGORY_LABELS: Record<DocCategory, string> = {
   video: 'Video',
@@ -53,27 +56,9 @@ export interface DocumentSelectorFolder {
   parentGuid: string | null
 }
 
-export interface DocumentFilterState {
-  sourceGuids: string[]
-  tagGuids: string[]
-  tagExcludeGuids: string[]
-  folderGuids: string[]
-  typeInclude: string[]
-  typeExclude: string[]
-  /** Persisted graph layout for the node editor */
-  graph?: { nodes: DNode[]; conns: DConn[] }
-}
-
-export function emptyDocumentFilter(): DocumentFilterState {
-  return {
-    sourceGuids: [],
-    tagGuids: [],
-    tagExcludeGuids: [],
-    folderGuids: [],
-    typeInclude: [],
-    typeExclude: []
-  }
-}
+// DocumentFilterState and emptyDocumentFilter live in ../../utils/document-graph
+// (no React, so tests and reports can use them); re-exported here.
+export { emptyDocumentFilter, type DocumentFilterState } from '../../utils/document-graph'
 
 /* ═══════════════════════════════════════════════════
    Node graph types
@@ -635,6 +620,8 @@ export function DocumentSelector({
       return defaultGraph.current?.conns ?? []
     }
   )
+  const [questionScope, setQuestionScope] = useState<SurveyEntityRef[]>(filter.questionScope ?? [])
+  const [respondentScope, setRespondentScope] = useState<SurveyEntityRef[]>(filter.respondentScope ?? [])
   const [selNodes, setSelNodes] = useState<Set<string>>(new Set())
   const [selConn, setSelConn] = useState<string | null>(null)
   const [marqueeRect, setMarqueeRect] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
@@ -811,6 +798,14 @@ export function DocumentSelector({
     // respondent/question tag (walkNode), and tagGuids narrows them to
     // the matching cells.
     const { include, exclude } = collectFilterTags(nodes, conns)
+    // Choices for a survey that has left the selection are dropped. Empty
+    // scopes are left out, so a filter saved before they existed still
+    // compares equal (dirty tracking compares JSON).
+    const selected = new Set(resolved)
+    const inSelection = (scope: SurveyEntityRef[]) => {
+      const kept = scope.filter((r) => selected.has(r.sourceGuid))
+      return kept.length > 0 ? kept : undefined
+    }
     const newFilter: DocumentFilterState = {
       sourceGuids: resolved,
       tagGuids: include,
@@ -818,10 +813,28 @@ export function DocumentSelector({
       folderGuids: [],
       typeInclude: [],
       typeExclude: [],
-      graph: { nodes, conns }
+      graph: { nodes, conns },
+      questionScope: inSelection(questionScope),
+      respondentScope: inSelection(respondentScope)
     }
     onChange(newFilter)
-  }, [nodes, conns, sources, tagMembers, folders, sourceFolder])
+  }, [nodes, conns, sources, tagMembers, folders, sourceFolder, questionScope, respondentScope])
+
+  /* --- survey questions & respondents --- */
+  const setSurveyScope = useCallback((kind: 'questions' | 'respondents', surveyGuid: string, ids: string[]) => {
+    const set = kind === 'questions' ? setQuestionScope : setRespondentScope
+    set((p) => withSurveyIds(p, surveyGuid, ids))
+  }, [])
+
+  // A question or respondent dropped anywhere on the selector limits its
+  // survey to it (adding to any already chosen).
+  const handleSurveyEntityDrop = useCallback((e: React.DragEvent) => {
+    const dropped = parseSurveyEntityDrop(e)
+    if (!dropped) return
+    e.preventDefault()
+    const set = dropped.kind === 'questions' ? setQuestionScope : setRespondentScope
+    set((p) => withSurveyEntity(p, dropped.ref))
+  }, [])
 
   /* --- document-level mouse handlers --- */
   useEffect(() => {
@@ -1141,7 +1154,15 @@ export function DocumentSelector({
   /* ═══ Render ═══ */
 
   return (
-    <div>
+    <div
+      onDragOver={(e) => {
+        if (mayBeSurveyEntityDrag(e)) {
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'copy'
+        }
+      }}
+      onDrop={handleSurveyEntityDrop}
+    >
       {/* ── Toolbar ── two labeled groups (Input / Logical) using the
           shared PaletteGroup + PaletteButton + PaletteDivider helpers
           so the look matches the Content Query palette exactly. */}
@@ -1866,6 +1887,17 @@ export function DocumentSelector({
                     >
                       {sourceMap.get(guid) || '(deleted document)'}
                     </div>
+                    {surveyEntityLabels[guid] && (['questions', 'respondents'] as const).map((kind) => (
+                      <SurveyScopeLine
+                        key={kind}
+                        kind={kind}
+                        surveyName={sourceMap.get(guid) || 'Survey'}
+                        labels={surveyEntityLabels[guid][kind]}
+                        chosen={chosenIds(kind === 'questions' ? questionScope : respondentScope, guid)}
+                        onChange={(ids) => setSurveyScope(kind, guid, ids)}
+                        narrowedByTags={(scope?.[kind].length ?? 0) > 0}
+                      />
+                    ))}
                     {narrowed && (
                       <div style={{ padding: '1px 6px 0 16px', fontSize: 9, color: 'var(--text-muted)', lineHeight: 1.5, whiteSpace: 'normal' }}>
                         {scope!.respondents.length > 0 && (
@@ -1902,7 +1934,7 @@ export function DocumentSelector({
       <div style={{ marginTop: 6, fontSize: 10, color: 'var(--text-muted)' }}>
         {selNodes.size > 1
           ? `${selNodes.size} selected — ${modKey('C')} copy · ${modKey('V')} paste · Delete to remove`
-          : 'Drag documents & tags onto canvas · Connect nodes to Result'}
+          : 'Drag documents & tags onto canvas · Connect nodes to Result · Drag survey questions & respondents here to choose them'}
       </div>
     </div>
   )

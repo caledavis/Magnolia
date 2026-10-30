@@ -56,7 +56,7 @@ export function QueryResultsWindow() {
       endPosition: result.endPosition,
       pdfRegion: sel?.pdfRegion,
       timeRange: result.timeRange,
-      surveyCell: sel?.surveyCell
+      surveyCell: result.surveyCell ?? sel?.surveyCell
     })
   }, [sourceSelections])
 

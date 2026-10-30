@@ -4,6 +4,7 @@ import { DocumentBrowser } from './components/DocumentBrowser/DocumentBrowser'
 import { CodeBrowser, CodeEditDialog } from './components/CodeBrowser/CodeBrowser'
 import { DocumentViewer } from './components/DocumentViewer/DocumentViewer'
 import { QueryResultViewer } from './components/QueryResultViewer/QueryResultViewer'
+import { wordCondition, sentenceCondition, type WordQueryCodes } from './components/Analysis/word-counts'
 import { SavedQueries } from './components/SavedQueries/SavedQueries'
 import { SavedAnalyses } from './components/SavedAnalyses/SavedAnalyses'
 import {
@@ -20,6 +21,7 @@ import {
 } from './components/Icon'
 import { LicenceDialog } from './components/Licence/LicenceDialog'
 import { UpdateDialog, type UpdateAvailableInfo } from './components/Update/UpdateDialog'
+import { isMac } from './utils/platform'
 import { sourceTypeFromExtension } from './utils/format-registry'
 import { parseSurveyGrid, type SurveyFormat } from './utils/survey/survey-parser'
 import { parseCsv } from './utils/survey/csv-parser'
@@ -38,6 +40,7 @@ const ANALYSIS_TOOL_TITLES: Record<string, string> = {
   'code-frequencies': 'Code Frequencies',
   'code-orders': 'Code Orders',
   'word-frequencies': 'Word Frequencies',
+  'word-combinations': 'Word Combinations',
   'reports': 'Report'
 }
 
@@ -138,6 +141,8 @@ function describeCondition(cond: CodeCondition, findCode: (guid: string) => Code
       return `(${describeCondition(cond.condition1, findCode, d + 1)}) before (${describeCondition(cond.condition2, findCode, d + 1)})`
     case 'followedBy':
       return `(${describeCondition(cond.condition1, findCode, d + 1)}) followed by (${describeCondition(cond.condition2, findCode, d + 1)})`
+    case 'sameSentence':
+      return `(${describeCondition(cond.condition1, findCode, d + 1)}) in the same sentence as (${describeCondition(cond.condition2, findCode, d + 1)})`
     default:
       return 'Query'
   }
@@ -1701,6 +1706,8 @@ function App() {
         case 'toggle-panel-memos': togglePanel('memos'); break
         case 'toggle-panel-quotes': togglePanel('quotes'); break
         case 'toggle-panel-analyses': togglePanel('analyses'); break
+        case 'next-tab': useDocumentStore.getState().showAdjacentTab(1); break
+        case 'previous-tab': useDocumentStore.getState().showAdjacentTab(-1); break
         case 'close-active-tab': {
           // Cmd+W in the main window — close whichever document /
           // analysis / query-builder tab is currently viewed. Mirrors
@@ -1755,6 +1762,21 @@ function App() {
     const inNoteEditor = () => !!(document.activeElement as HTMLElement | null)?.closest?.('[data-note-editor]')
     const handleKeydown = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey)) return
+      // The other standard pair for switching tabs (the View menu has
+      // Ctrl+Tab / Ctrl+Shift+Tab): Cmd+Shift+] / [ on macOS, as in
+      // Safari and Finder; Ctrl+PageDown / PageUp elsewhere.
+      const tabStep = isMac
+        ? (e.metaKey && e.shiftKey && !e.altKey && !e.ctrlKey
+            ? (e.code === 'BracketRight' ? 1 : e.code === 'BracketLeft' ? -1 : 0)
+            : 0)
+        : (e.ctrlKey && !e.shiftKey && !e.altKey
+            ? (e.key === 'PageDown' ? 1 : e.key === 'PageUp' ? -1 : 0)
+            : 0)
+      if (tabStep !== 0) {
+        e.preventDefault()
+        useDocumentStore.getState().showAdjacentTab(tabStep)
+        return
+      }
       if (e.key === 'a' && !isTextInput()) {
         if (activePanelRef.current === 'documents') {
           e.preventDefault()
@@ -1944,11 +1966,20 @@ function App() {
         }
         useQueryStore.getState().setComplexQuery(scopedQuery)
       } else if (action === 'run-word-query') {
-        // Build a text search query for a word in specific documents
-        const [word, filteredGuids, scope] = args as [string, string[] | undefined, SurveyCellScopeArgs | undefined]
+        // Build a text search query for a word in specific documents,
+        // limited to coded passages when the tool counted those.
+        const [word, filteredGuids, scope, codes] = args as [string, string[] | undefined, SurveyCellScopeArgs | undefined, WordQueryCodes | undefined]
         const query: Query = {
           documentFilter: applySurveyScopeToFilter(filteredGuids && filteredGuids.length > 0 ? { sourceGuids: filteredGuids } : {}, scope),
-          codeCondition: { type: 'text', searchText: word, caseSensitive: false, wholeWord: true }
+          codeCondition: wordCondition(word, codes)
+        }
+        useQueryStore.getState().setComplexQuery(query)
+      } else if (action === 'run-sentence-query') {
+        // The sentences containing both words (Word Combinations' associations).
+        const [word1, word2, filteredGuids, scope, codes] = args as [string, string, string[] | undefined, SurveyCellScopeArgs | undefined, WordQueryCodes | undefined]
+        const query: Query = {
+          documentFilter: applySurveyScopeToFilter(filteredGuids && filteredGuids.length > 0 ? { sourceGuids: filteredGuids } : {}, scope),
+          codeCondition: sentenceCondition(word1, word2, codes)
         }
         useQueryStore.getState().setComplexQuery(query)
       } else if (action === 'open-document') {

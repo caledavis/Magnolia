@@ -10,10 +10,12 @@ import {
 import type {
   CodeCondition,
   Query,
-  QueryBuilderInitData
+  QueryBuilderInitData,
+  SurveyEntityRef
 } from '../../models/types'
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
-import { QuestionScopeBox, RespondentScopeBox, type QuestionScopeRef } from '../Analysis/survey-grouping'
+import { chosenEntries } from '../DocumentSelector/SurveyScope'
+import { documentsSummary } from '../Analysis/documents-filter'
 import { useQueryStore } from '../../stores/query-store'
 import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
@@ -48,14 +50,15 @@ function describeDocFilter(
     const exNames = df.tagExcludeGuids.map((g) => tags.find((tg) => tg.guid === g)?.name).filter(Boolean) as string[]
     if (exNames.length > 0) parts.push('NOT ' + exNames.join(', '))
   }
-  if (df.questionScope && df.questionScope.length > 0) {
-    const names = df.questionScope.map((r) => surveyEntityLabels?.[r.sourceGuid]?.questions?.[r.id]).filter(Boolean) as string[]
-    parts.push(names.length > 0 && names.length <= 2 ? names.join(', ') : `${df.questionScope.length} question${df.questionScope.length > 1 ? 's' : ''}`)
+  const describeScope = (scope: SurveyEntityRef[] | undefined, kind: 'questions' | 'respondents', noun: string) => {
+    if (!scope || scope.length === 0) return
+    const chosen = chosenEntries(scope)
+    if (chosen.length === 0) { parts.push(`no ${noun}s`); return }
+    const names = chosen.map((r) => surveyEntityLabels?.[r.sourceGuid]?.[kind]?.[r.id]).filter(Boolean) as string[]
+    parts.push(names.length > 0 && names.length <= 2 ? names.join(', ') : `${chosen.length} ${noun}${chosen.length > 1 ? 's' : ''}`)
   }
-  if (df.respondentScope && df.respondentScope.length > 0) {
-    const names = df.respondentScope.map((r) => surveyEntityLabels?.[r.sourceGuid]?.respondents?.[r.id]).filter(Boolean) as string[]
-    parts.push(names.length > 0 && names.length <= 2 ? names.join(', ') : `${df.respondentScope.length} respondent${df.respondentScope.length > 1 ? 's' : ''}`)
-  }
+  describeScope(df.questionScope, 'questions', 'question')
+  describeScope(df.respondentScope, 'respondents', 'respondent')
   return parts.length > 0 ? ' IN ' + parts.join(', ') : ''
 }
 
@@ -76,6 +79,7 @@ function describeCondition(cond: CodeCondition, codes: { guid: string; name: str
     case 'outside': return `${describeCondition(cond.condition1, codes)} outside ${describeCondition(cond.condition2, codes)}`
     case 'before': return `${describeCondition(cond.condition1, codes)} before ${describeCondition(cond.condition2, codes)}`
     case 'followedBy': return `${describeCondition(cond.condition1, codes)} followed by ${describeCondition(cond.condition2, codes)}`
+    case 'sameSentence': return `${describeCondition(cond.condition1, codes)} in the same sentence as ${describeCondition(cond.condition2, codes)}`
     default: return 'Query'
   }
 }
@@ -110,6 +114,9 @@ interface Props {
   }
 }
 
+/** A stable empty scope, so memos keyed on it don't re-run every render. */
+const NO_REFS: SurveyEntityRef[] = []
+
 export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
   // In tab mode `initData` is provided synchronously as a prop, so the
   // edit-related state below initializes from it on the very first
@@ -130,7 +137,9 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
         typeExclude: [],
         // Hand the persisted graph back so DocumentSelector rebuilds from
         // it instead of synthesising one from the resolved arrays.
-        graph: df.graph
+        graph: df.graph,
+        questionScope: df.questionScope ?? [],
+        respondentScope: df.respondentScope ?? []
       }
     }
     return emptyDocumentFilter()
@@ -147,21 +156,16 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
   const [docSectionOpen, setDocSectionOpen] = useState(() => {
     if (!initData?.editQuery) return false
     const df = initData.editQuery.documentFilter
-    return Boolean(df.sourceGuids?.length || df.tagGuids?.length || df.tagExcludeGuids?.length || df.folderGuids?.length)
+    return Boolean(df.sourceGuids?.length || df.tagGuids?.length || df.tagExcludeGuids?.length || df.folderGuids?.length || df.questionScope?.length || df.respondentScope?.length)
   })
   const [codeCondition, setCodeCondition] = useState<CodeCondition | null>(null)
   const [currentGraph, setCurrentGraph] = useState<{ nodes: any[]; conns: any[] } | null>(null)
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [saveQueryName, setSaveQueryName] = useState('')
-  // Survey-cell scope (Question / Respondent). Held separately from the
-  // DocumentSelector's filter; folded into documentFilter on build. Both
-  // seed from the edited query (refs without labels resolve live).
-  const [questionScope, setQuestionScope] = useState<QuestionScopeRef[]>(
-    initData?.editQuery?.documentFilter.questionScope ?? []
-  )
-  const [respondentScope, setRespondentScope] = useState<QuestionScopeRef[]>(
-    initData?.editQuery?.documentFilter.respondentScope ?? []
-  )
+  // Survey questions and respondents, chosen on each survey in the
+  // Document Selector and carried in its filter.
+  const questionScope = docFilter.questionScope ?? NO_REFS
+  const respondentScope = docFilter.respondentScope ?? NO_REFS
 
   // Saved-query name shown after the title in tab mode. Subscribed via
   // useQueryStore so that renaming (from this header or from the Saved
@@ -212,20 +216,6 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
     respondentScope: respondentScope.map((r) => ({ sourceGuid: r.sourceGuid, id: r.id }))
   }), [docFilter, questionScope, respondentScope])
 
-  // Whether a survey is within the current Document Selector scope. The
-  // selector emits its resolved document set into docFilter.sourceGuids,
-  // so an active filter is "in scope" iff that resolved set includes a
-  // survey; an empty filter means all documents, so any survey qualifies.
-  // Drives whether the survey-cell scope editors are shown — there's no
-  // point scoping by question/respondent when no survey is being queried.
-  const surveyInScope = useMemo(() => {
-    const surveyGuids = Object.keys(data?.surveyEntityLabels ?? {})
-    if (surveyGuids.length === 0) return false
-    const filtered = docFilter.sourceGuids.length > 0 || docFilter.folderGuids.length > 0 || docFilter.tagGuids.length > 0 || docFilter.typeInclude.length > 0
-    if (!filtered) return true
-    const sg = new Set(surveyGuids)
-    return docFilter.sourceGuids.some((g) => sg.has(g))
-  }, [data, docFilter])
   const currentConfig = useMemo(
     () => ({ docFilter: docFilterForCompare, codeCondition }),
     [docFilterForCompare, codeCondition]
@@ -256,10 +246,10 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
       // Restore the authored selector graph so Discard reverts to the
       // exact node structure (operators included) rather than letting the
       // DocumentSelector re-synthesise a lossy union from the flat arrays.
-      graph: discardDocGraphRef.current
+      graph: discardDocGraphRef.current,
+      questionScope: baseline.docFilter.questionScope ?? [],
+      respondentScope: baseline.docFilter.respondentScope ?? []
     })
-    setQuestionScope(baseline.docFilter.questionScope ?? [])
-    setRespondentScope(baseline.docFilter.respondentScope ?? [])
     setDocFilterKey((k) => k + 1)
     setInitialCondition(baseline.codeCondition ?? undefined)
     setEditorRemountKey((k) => k + 1)
@@ -291,11 +281,11 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
         folderGuids: df.folderGuids ?? [],
         typeInclude: [],
         typeExclude: [],
-        graph: df.graph
+        graph: df.graph,
+        questionScope: df.questionScope ?? [],
+        respondentScope: df.respondentScope ?? []
       })
-      setQuestionScope(df.questionScope ?? [])
-      setRespondentScope(df.respondentScope ?? [])
-      if (df.sourceGuids?.length || df.tagGuids?.length || df.tagExcludeGuids?.length || df.folderGuids?.length) setDocSectionOpen(true)
+      if (df.sourceGuids?.length || df.tagGuids?.length || df.tagExcludeGuids?.length || df.folderGuids?.length || df.questionScope?.length || df.respondentScope?.length) setDocSectionOpen(true)
       setDocFilterKey((k) => k + 1)
       // Re-seat the dirty baseline from the freshly-arrived data.
       // Window mode populates this asynchronously via IPC; without
@@ -315,8 +305,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
     } else {
       setEditGuid(undefined)
       setInitialCondition(undefined)
-      setQuestionScope([])
-      setRespondentScope([])
+      setDocFilter((f) => ({ ...f, questionScope: [], respondentScope: [] }))
       setDocFilterKey((k) => k + 1)
       setBaseline({
         docFilter: { sourceGuids: [], tagGuids: [], tagExcludeGuids: [], folderGuids: [], questionScope: [], respondentScope: [] },
@@ -467,11 +456,16 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
     return false
   })
 
-  const hasDocFilters =
-    docFilter.sourceGuids.length > 0 ||
+  // How many documents the query searches. The selector puts its
+  // resolved set in sourceGuids; with no filter at all, that's every
+  // document, and a filter that matches nothing leaves it empty.
+  const filtersDocuments =
     docFilter.folderGuids.length > 0 ||
     docFilter.tagGuids.length > 0 ||
     docFilter.typeInclude.length > 0
+  const docCount = docFilter.sourceGuids.length > 0 || filtersDocuments
+    ? docFilter.sourceGuids.length
+    : (data?.sources.length ?? 0)
 
   if (!data) {
     return (
@@ -564,7 +558,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
           having the same nesting in both tools means the same gutter
           offset is applied. */}
       <div style={{ flex: 1, overflow: 'auto', padding: '14px 20px' }}>
-            {/* ── Part 1: Search these documents (collapsible) ── */}
+            {/* ── Part 1: From these documents (collapsible) ── */}
             <div className="analysis-section" style={{ marginBottom: 14 }}>
               <div
                 onClick={() => setDocSectionOpen(!docSectionOpen)}
@@ -584,18 +578,10 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
                     color: 'var(--text-secondary)'
                   }}
                 >
-                  Select Documents
+                  From these documents
                 </span>
-                <span
-                  style={{
-                    fontSize: 11,
-                    color: hasDocFilters
-                      ? 'var(--status-success)'
-                      : 'var(--text-muted)',
-                    marginLeft: 'auto'
-                  }}
-                >
-                  {hasDocFilters ? 'Filtered' : 'All documents'}
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                  {documentsSummary(docCount, data.sources.length, docFilter)}
                 </span>
               </div>
 
@@ -619,18 +605,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
               )}
             </div>
 
-            {/* ── Survey scope: limit the queried survey(s) to specific
-                questions / respondents. Shown only when a survey is within
-                the Document Selector scope. Empty = all questions / all
-                respondents. ── */}
-            {surveyInScope && (
-              <>
-                <QuestionScopeBox value={questionScope} onChange={setQuestionScope} data={data} />
-                <RespondentScopeBox value={respondentScope} onChange={setRespondentScope} data={data} />
-              </>
-            )}
-
-            {/* ── Part 2: For this content (node editor) ── */}
+            {/* ── Part 2: Find this content (node editor) ── */}
             <div className="analysis-section" style={{ marginBottom: 14 }}>
               <div
                 style={{
@@ -640,7 +615,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
                   marginBottom: 10
                 }}
               >
-                Select Content
+                Find this content
               </div>
 
               <QueryNodeEditor

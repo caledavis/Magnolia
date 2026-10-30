@@ -1,15 +1,16 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
-import { stripFormatting } from '../../utils/strip-formatting'
-import { sourceTypeFromFilename } from '../../utils/format-registry'
-import { Icon, faFont, faChevronDown, faChevronRight } from '../Icon'
+import { Icon, faFont } from '../Icon'
 import { toolColors } from '../../utils/tool-colors'
 import {
-  DocumentSelector,
   emptyDocumentFilter,
   type DocumentFilterState
 } from '../DocumentSelector/DocumentSelector'
+import { DocumentsSection } from './DocumentsSection'
+import { documentFilterFromConfig } from './documents-filter'
 import { toCsv, resolveFilteredSources, STOP_WORDS, applySurveyCellScope } from './analysis-helpers'
+import { countWords, sourceTexts, codedPassageTexts, wordFilter, type WordQueryCodes } from './word-counts'
+import { type TextSource, useCodeSets, allCodes, CountWordsIn, CodesSection } from './word-sources'
 import { generateGuid } from '../../utils/guid'
 import {
   type GroupByEntry,
@@ -23,8 +24,6 @@ import {
 } from './group-by'
 import {
   buildSurveyAwareColumns,
-  hasSurveyInScope,
-  QuestionScopeBox,
   type AnalysisColumn,
   type QuestionScopeRef
 } from './survey-grouping'
@@ -45,7 +44,11 @@ interface Props {
     wordCount: number
     groupByTags?: string[]
     groupBy?: GroupByEntry[]
+    /** Up to 1.9; now in docFilter (see documentFilterFromConfig). */
     questionScope?: QuestionScopeRef[]
+    textSource?: TextSource
+    codeGuids?: string[]
+    includeSubcodes?: boolean
     guid: string
     name: string
   }
@@ -58,6 +61,9 @@ interface Props {
 }
 
 type VizMode = 'bar' | 'cloud'
+
+/** A chart series: a group-by column, or one code's passages. */
+type Series = AnalysisColumn & { codeGuid?: string; color?: string }
 
 /** Parse a CSS colour (#RGB / #RRGGBB / rgb(...)) into HSL. Returns
  *  null if the input doesn't match a supported syntax. */
@@ -143,18 +149,19 @@ function useThemeAccentHsl(): { h: number; s: number; l: number } {
 }
 
 export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
-  const [docFilter, setDocFilter] = useState<DocumentFilterState>(savedConfig?.docFilter ?? emptyDocumentFilter())
-  const [docSectionOpen, setDocSectionOpen] = useState(false)
+  const [docFilter, setDocFilter] = useState<DocumentFilterState>(documentFilterFromConfig(savedConfig))
   const [groupBy, setGroupBy] = useState<GroupByEntry[]>(
     () => savedConfig?.groupBy ?? migrateLegacyGroupBy(savedConfig?.groupByTags)
   )
-  const [questionScope, setQuestionScope] = useState<QuestionScopeRef[]>(savedConfig?.questionScope ?? [])
   const live = useLiveAnalysisData()
   const data = useMemo(() => {
-    const base = applySurveyCellScope({ ...propData, ...live }, docFilter)
-    return questionScope.length > 0 ? applySurveyCellScope(base, { questionScope }) : base
-  }, [propData, live, docFilter, questionScope])
+    return applySurveyCellScope({ ...propData, ...live }, docFilter)
+  }, [propData, live, docFilter])
   const [tagDropOver, setTagDropOver] = useState(false)
+  const [textSource, setTextSource] = useState<TextSource>(savedConfig?.textSource ?? 'documents')
+  const [codeGuids, setCodeGuids] = useState<string[]>(savedConfig?.codeGuids ?? [])
+  const [includeSubcodes, setIncludeSubcodes] = useState(savedConfig?.includeSubcodes ?? true)
+  const coded = textSource === 'coded'
   const [includeWords, setIncludeWords] = useState(savedConfig?.includeWords ?? '')
   const [excludeWords, setExcludeWords] = useState(savedConfig?.excludeWords ?? Array.from(STOP_WORDS).join(', '))
   const [vizMode, setVizMode] = useState<VizMode>('bar')
@@ -168,16 +175,18 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
 
   // Dirty tracking (see useToolDirtyState).
   const currentConfig = useMemo(
-    () => ({ docFilter, includeWords, excludeWords, wordCount, groupBy, questionScope }),
-    [docFilter, includeWords, excludeWords, wordCount, groupBy, questionScope]
+    () => ({ docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes }),
+    [docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes]
   )
   const initialBaseline = useMemo(() => ({
-    docFilter: savedConfig?.docFilter ?? emptyDocumentFilter(),
+    docFilter: documentFilterFromConfig(savedConfig),
     includeWords: savedConfig?.includeWords ?? '',
     excludeWords: savedConfig?.excludeWords ?? Array.from(STOP_WORDS).join(', '),
     wordCount: savedConfig?.wordCount ?? 30,
     groupBy: savedConfig?.groupBy ?? migrateLegacyGroupBy(savedConfig?.groupByTags),
-    questionScope: savedConfig?.questionScope ?? []
+    textSource: savedConfig?.textSource ?? 'documents',
+    codeGuids: savedConfig?.codeGuids ?? [],
+    includeSubcodes: savedConfig?.includeSubcodes ?? true
   }), [])
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
 
@@ -187,7 +196,9 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     setExcludeWords(baseline.excludeWords)
     setWordCount(baseline.wordCount)
     setGroupBy(baseline.groupBy)
-    setQuestionScope(baseline.questionScope ?? [])
+    setTextSource(baseline.textSource)
+    setCodeGuids(baseline.codeGuids)
+    setIncludeSubcodes(baseline.includeSubcodes)
   }, [baseline])
 
   const filteredSourceGuids = useMemo(
@@ -195,16 +206,18 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     [data, docFilter]
   )
 
-  // Survey-cell scope carried into a generated word query: the tool-level
-  // Questions scope plus, for a respondent / tagged series, that series'
+  // Survey-cell scope carried into a generated word query: the survey
+  // questions and respondents chosen in From these documents plus, for a
+  // respondent / tagged series, that series'
   // narrowing.
   const surveyScope = useCallback((series?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): SurveyCellScopeArgs | undefined => {
     const s: SurveyCellScopeArgs = {}
-    if (questionScope.length > 0) s.questionScope = questionScope.map((q) => ({ sourceGuid: q.sourceGuid, id: q.id }))
+    if (docFilter.questionScope?.length) s.questionScope = docFilter.questionScope
+    if (docFilter.respondentScope?.length) s.respondentScope = docFilter.respondentScope
     if (series?.respondentRef) s.respondentScope = [series.respondentRef]
     if (series?.tagScopeGuids?.length) s.tagGuids = series.tagScopeGuids
     return s.questionScope || s.respondentScope || s.tagGuids ? s : undefined
-  }, [questionScope])
+  }, [docFilter.questionScope, docFilter.respondentScope])
 
   // Auto-add a Group-by chip for each survey and notebook in scope.
   const dismissAutoGroup = useAutoGroupBy(filteredSourceGuids, data, savedConfig, setGroupBy)
@@ -222,15 +235,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     setGroupBy((p) => p.filter((e) => groupByKey(e) !== key))
   }, [])
 
-  const excludeSet = useMemo(() => {
-    const words = excludeWords.split(/[,\n]+/).map((w) => w.trim().toLowerCase()).filter(Boolean)
-    return new Set(words)
-  }, [excludeWords])
-
-  const includeSet = useMemo(() => {
-    const words = includeWords.split(/[,\n]+/).map((w) => w.trim().toLowerCase()).filter(Boolean)
-    return words.length > 0 ? new Set(words) : null
-  }, [includeWords])
+  const filter = useMemo(() => wordFilter(includeWords, excludeWords), [includeWords, excludeWords])
 
   // 8 distinct hues evenly spread around the active theme's accent
   // colour. Lightness is clamped to a readable mid-range so series stay
@@ -258,69 +263,65 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     return m
   }, [data.sources])
 
-  // Series build. Default (no group-by) collapses to a single "All"
-  // series across the filtered source set; otherwise the shared,
-  // survey-aware builder produces tag/category/folder bands and the
+  const codeMap = useMemo(() => new Map(data.codes.map((c) => [c.guid, c])), [data.codes])
+
+  const codeSets = useCodeSets(data.codes, codeGuids, includeSubcodes)
+
+  // Series build. Counting coded passages makes one series per code.
+  // Otherwise the default (no group-by) collapses to a single "All"
+  // series across the filtered source set, and a group-by makes the
+  // shared, survey-aware builder produce tag/category/folder bands and the
   // Respondents grouping (columns renamed → chart series here).
   const { series, seriesGroups } = useMemo(() => {
+    if (coded) {
+      const perCode: Series[] = [...codeSets.keys()].map((g) => ({
+        id: g, label: codeMap.get(g)!.name, sourceGuids: filteredSourceGuids, codeGuid: g, color: codeMap.get(g)!.color
+      }))
+      return { series: perCode, seriesGroups: [] as { id: string; label: string | null; span: number }[] }
+    }
     if (groupBy.length === 0) {
-      const all: AnalysisColumn[] = [{ id: '__all', label: 'All', sourceGuids: filteredSourceGuids }]
+      const all: Series[] = [{ id: '__all', label: 'All', sourceGuids: filteredSourceGuids }]
       return { series: all, seriesGroups: [] as { id: string; label: string | null; span: number }[] }
     }
     const built = buildSurveyAwareColumns(groupBy, data, filteredSourceGuids, sourceMap, { includeSubtotals: true })
-    return { series: built.columns, seriesGroups: built.headerGroups }
-  }, [groupBy, filteredSourceGuids, data, sourceMap])
+    return { series: built.columns as Series[], seriesGroups: built.headerGroups }
+  }, [coded, codeSets, codeMap, groupBy, filteredSourceGuids, data, sourceMap])
 
-  // Word frequency helper: count words for a set of source GUIDs within
-  // a given (possibly respondent-scoped) data snapshot.
-  const countWordsIn = useCallback((d: AnalysisInitData, sourceGuids: string[]) => {
-    const freq = new Map<string, number>()
-    for (const sg of sourceGuids) {
-      const src = d.sources.find((s) => s.guid === sg)
-      let text: string
-      if ((src as { sourceType?: string } | undefined)?.sourceType === 'survey') {
-        // A survey's analysable text is its codable (open-ended) answers,
-        // not the raw CSV (which holds headers, metadata, closed answers).
-        text = (d.surveyCodableCells?.[sg] || []).map((c) => c.text).join('\n')
-      } else {
-        text = d.sourceContents[sg]
-        if (text) {
-          // Strip formatting syntax so we count content words only
-          const st = src ? sourceTypeFromFilename(src.name) : 'text'
-          if (st !== 'text') text = stripFormatting(text, st)
-        }
-      }
-      if (!text) continue
-      const words = text.toLowerCase().match(/\b[a-zA-Z\u00C0-\u024F']+\b/g) || []
-      for (const w of words) {
-        if (w.length < 2) continue
-        if (excludeSet.has(w)) continue
-        if (includeSet && !includeSet.has(w)) continue
-        freq.set(w, (freq.get(w) || 0) + 1)
-      }
-    }
-    return freq
-  }, [excludeSet, includeSet])
+  const seriesColor = useCallback(
+    (si: number) => series[si]?.color || SERIES_COLORS[si % SERIES_COLORS.length],
+    [series, SERIES_COLORS]
+  )
 
-  // Per-series frequency maps. A respondent series counts only that
-  // respondent's codable cells (surveyCodableCells scoped to the
-  // respondent first); other series read the shared data directly.
+  // Per-series frequency maps. A code series counts its coded passages;
+  // a respondent series counts only that respondent's codable cells
+  // (surveyCodableCells scoped to the respondent first); other series
+  // read the shared data directly.
   const seriesFreqs = useMemo(() => {
     return series.map((s) => {
+      if (s.codeGuid) return countWords(codedPassageTexts(data, s.sourceGuids, codeSets.get(s.codeGuid)!).passages.map((p) => p.text), filter)
       const sd = s.respondentRef ? applySurveyCellScope(data, { respondentScope: [s.respondentRef] }) : data
-      return countWordsIn(sd, s.sourceGuids)
+      return countWords(s.sourceGuids.flatMap((g) => sourceTexts(sd, g)), filter)
     })
-  }, [series, data, countWordsIn])
+  }, [series, data, codeSets, filter])
+
+  // Every passage coded with any chosen code, overlaps merged.
+  const allCodedPassages = useMemo(() => {
+    if (!coded) return null
+    return codedPassageTexts(data, filteredSourceGuids, allCodes(codeSets))
+  }, [coded, codeSets, data, filteredSourceGuids])
 
   // Overall word frequencies for ranking + table, counted once over the
-  // filtered sources. Summing the series instead would count words twice
-  // when grouped: subtotal series repeat their parts, a document tagged
-  // into two columns appears in both, and an expanded survey has a
-  // whole-survey subtotal beside its respondents.
-  const wordFreqs = useMemo(
-    () => Array.from(countWordsIn(data, filteredSourceGuids).entries()).sort((a, b) => b[1] - a[1]),
-    [data, filteredSourceGuids, countWordsIn]
-  )
+  // filtered sources (or once over all the chosen codes' passages).
+  // Summing the series instead would count words twice: subtotal series
+  // repeat their parts, a document tagged into two columns appears in
+  // both, an expanded survey has a whole-survey subtotal beside its
+  // respondents, and a passage can carry two of the chosen codes.
+  const wordFreqs = useMemo(() => {
+    const freq = allCodedPassages
+      ? countWords(allCodedPassages.passages.map((p) => p.text), filter)
+      : countWords(filteredSourceGuids.flatMap((g) => sourceTexts(data, g)), filter)
+    return Array.from(freq.entries()).sort((a, b) => b[1] - a[1])
+  }, [allCodedPassages, data, filteredSourceGuids, filter])
 
   const displayWords = useMemo(() => wordFreqs.slice(0, wordCount), [wordFreqs, wordCount])
   const maxFreq = useMemo(() => {
@@ -347,9 +348,20 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     window.api.exportSvg(chartRef.current.outerHTML, `word-frequencies-${vizMode}.svg`)
   }, [vizMode])
 
-  const handleWordClick = useCallback((word: string) => {
-    window.api.sendAnalysisAction('run-word-query', word, filteredSourceGuids, surveyScope())
-  }, [filteredSourceGuids, surveyScope])
+  // Search for a word: in a series' documents and passages when given,
+  // otherwise across everything the tool counted.
+  const handleWordClick = useCallback((word: string, s?: Series) => {
+    const queryCodes = (guids: string[]): WordQueryCodes => ({ codeGuids: guids, includeSubcodes })
+    if (s?.codeGuid) {
+      window.api.sendAnalysisAction('run-word-query', word, s.sourceGuids, surveyScope(), queryCodes([s.codeGuid]))
+    } else if (coded) {
+      window.api.sendAnalysisAction('run-word-query', word, filteredSourceGuids, surveyScope(), queryCodes([...codeSets.keys()]))
+    } else if (s && s.id !== '__all' && s.id !== '__other') {
+      window.api.sendAnalysisAction('run-word-query', word, s.sourceGuids, surveyScope(s))
+    } else {
+      window.api.sendAnalysisAction('run-word-query', word, filteredSourceGuids, surveyScope())
+    }
+  }, [coded, codeSets, includeSubcodes, filteredSourceGuids, surveyScope])
 
   // Bar chart — fixed width, bars shrink to fit
   const barW = 600
@@ -446,12 +458,12 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
       guid: analysisGuid,
       toolType: 'word-frequencies',
       name,
-      config: { docFilter, includeWords, excludeWords, wordCount, groupBy, questionScope }
+      config: { docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes }
     })
-    setBaseline({ docFilter, includeWords, excludeWords, wordCount, groupBy, questionScope })
+    setBaseline({ docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes })
     if (inTab) inTab.onSaved(analysisGuid, name)
     else setTimeout(() => window.close(), 200)
-  }, [analysisGuid, docFilter, includeWords, excludeWords, wordCount, groupBy, questionScope, inTab, setBaseline])
+  }, [analysisGuid, docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes, inTab, setBaseline])
 
   useRegisterToolSave(inTab?.tabId, () => {
     if (isExisting) {
@@ -523,68 +535,69 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
       )}
 
       <div style={{ flex: 1, overflow: 'auto', padding: '14px 20px' }}>
-        {/* Document Selector */}
-        <div className="analysis-section" style={{ marginBottom: 14 }}>
-          <div onClick={() => setDocSectionOpen(!docSectionOpen)} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
-            <Icon icon={docSectionOpen ? faChevronDown : faChevronRight} style={{ fontSize: 12, color: 'var(--text-muted)' }} />
-            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Select Documents</span>
-          </div>
-          {docSectionOpen && (
-            <div style={{ marginTop: 10, minHeight: 160 }}>
-              <DocumentSelector sources={data.sources} tags={data.tags} categories={data.categories} folders={data.folders} sourceFolder={data.sourceFolder} tagMembers={data.tagMembers} respondentTagMembers={data.respondentTagMembers} questionTagMembers={data.questionTagMembers} surveyEntityLabels={data.surveyEntityLabels} filter={docFilter} onChange={setDocFilter} />
+        <DocumentsSection data={data} filter={docFilter} onChange={setDocFilter} filteredSourceGuids={filteredSourceGuids} />
+
+        <CountWordsIn
+          value={textSource}
+          onChange={setTextSource}
+          codedTitle="Count the words in passages coded with the chosen codes, one series per code."
+        />
+
+        {coded ? (
+          <CodesSection
+            codes={data.codes}
+            codeSets={codeSets}
+            onChangeCodes={setCodeGuids}
+            includeSubcodes={includeSubcodes}
+            onChangeIncludeSubcodes={setIncludeSubcodes}
+            boxCount={allCodedPassages?.boxCount ?? 0}
+          />
+        ) : (
+          /* Group by \u2014 entire section is the drop target. */
+          <div
+            className="analysis-section"
+            style={{ marginBottom: 14, position: 'relative' }}
+            onDragOver={(e) => {
+              if (isGroupByDrag(e)) {
+                e.preventDefault()
+                e.dataTransfer.dropEffect = 'copy'
+                setTagDropOver(true)
+              }
+            }}
+            onDragLeave={() => setTagDropOver(false)}
+            onDrop={handleTagDrop}
+          >
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: groupBy.length > 0 ? 8 : 0, position: 'relative', zIndex: 1 }}>
+              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Grouped by</span>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                Drag tags, categories, or folders here
+              </span>
             </div>
-          )}
-        </div>
-
-        {/* Group by \u2014 entire section is the drop target. */}
-        <div
-          className="analysis-section"
-          style={{ marginBottom: 14, position: 'relative' }}
-          onDragOver={(e) => {
-            if (isGroupByDrag(e)) {
-              e.preventDefault()
-              e.dataTransfer.dropEffect = 'copy'
-              setTagDropOver(true)
-            }
-          }}
-          onDragLeave={() => setTagDropOver(false)}
-          onDrop={handleTagDrop}
-        >
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: groupBy.length > 0 ? 8 : 0, position: 'relative', zIndex: 1 }}>
-            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Group by</span>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-              Drag tags, categories, or folders here
-            </span>
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <GroupByChips
+                groupBy={groupBy}
+                data={data}
+                candidateSourceGuids={filteredSourceGuids}
+                onRemove={handleRemoveGroupBy}
+              />
+            </div>
+            {tagDropOver && (
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'color-mix(in srgb, var(--accent) 8%, transparent)',
+                border: '2px dashed var(--accent)',
+                borderRadius: 'var(--radius-md)',
+                pointerEvents: 'none'
+              }} />
+            )}
           </div>
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <GroupByChips
-              groupBy={groupBy}
-              data={data}
-              candidateSourceGuids={filteredSourceGuids}
-              onRemove={handleRemoveGroupBy}
-            />
-          </div>
-          {tagDropOver && (
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: 'color-mix(in srgb, var(--accent) 8%, transparent)',
-              border: '2px dashed var(--accent)',
-              borderRadius: 'var(--radius-md)',
-              pointerEvents: 'none'
-            }} />
-          )}
-        </div>
-
-        {/* Questions scope — only meaningful when a survey is analysed. */}
-        {hasSurveyInScope(filteredSourceGuids, data) && (
-          <QuestionScopeBox value={questionScope} onChange={setQuestionScope} data={data} />
         )}
 
         {/* Include/Exclude words */}
         <div style={{ display: 'flex', gap: 14, marginBottom: 14 }}>
           <div className="analysis-section" style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>Include words</div>
-            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>Leave empty to include all words (except excluded)</div>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>Only these words</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>Leave empty to include every word not left out</div>
             <textarea
               value={includeWords}
               onChange={(e) => setIncludeWords(e.target.value)}
@@ -593,8 +606,8 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
             />
           </div>
           <div className="analysis-section" style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>Exclude words</div>
-            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>Common English stop words are excluded by default</div>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>Leave out these words</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>Common English stop words are left out by default</div>
             <textarea
               value={excludeWords}
               onChange={(e) => setExcludeWords(e.target.value)}
@@ -608,7 +621,9 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
           {/* Table — fixed width so viz panel stays constant between bar/cloud */}
           <div className="analysis-section" style={{ width: 260, flexShrink: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>Word Table ({wordFreqs.length} words)</span>
+              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                Results <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-muted)' }}>{wordFreqs.length} words</span>
+              </span>
               <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportCsv}>Export CSV</button>
             </div>
             <div style={{ maxHeight: 350, overflowY: 'auto' }}>
@@ -621,7 +636,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
                 </thead>
                 <tbody>
                   {wordFreqs.slice(0, 200).map(([word, count]) => (
-                    <tr key={word} onClick={() => handleWordClick(word)} style={{ cursor: 'pointer' }} title={`Search for "${word}"`}>
+                    <tr key={word} onClick={() => handleWordClick(word)} style={{ cursor: 'pointer' }} title={coded ? `Search for "${word}" in the coded passages` : `Search for "${word}"`}>
                       <td style={{ padding: '2px 6px', borderBottom: '1px solid var(--border-color)' }}>{word}</td>
                       <td style={{ padding: '2px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'right' }}>{count}</td>
                     </tr>
@@ -673,7 +688,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
                       const s = series[cursor]
                       items.push(
                         <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10 }}>
-                          <div style={{ width: 10, height: 10, background: SERIES_COLORS[cursor % SERIES_COLORS.length], borderRadius: 2 }} />
+                          <div style={{ width: 10, height: 10, background: seriesColor(cursor), borderRadius: 2 }} />
                           <span style={{ fontStyle: s.isSubtotal ? 'italic' : undefined, fontWeight: s.isSubtotal ? 700 : undefined }}>{s.label}</span>
                         </div>
                       )
@@ -686,7 +701,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
                     const s = series[cursor]
                     items.push(
                       <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10 }}>
-                        <div style={{ width: 10, height: 10, background: SERIES_COLORS[cursor % SERIES_COLORS.length], borderRadius: 2 }} />
+                        <div style={{ width: 10, height: 10, background: seriesColor(cursor), borderRadius: 2 }} />
                         {s.label}
                       </div>
                     )
@@ -699,7 +714,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
 
             {displayWords.length === 0 ? (
               <div style={{ padding: 30, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                No words to display
+                {coded && codeSets.size === 0 ? 'Drag codes into Coded with to count the words in their passages' : 'No words to display'}
               </div>
             ) : vizMode === 'bar' ? (
               (() => {
@@ -814,25 +829,11 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
                                 y={bY}
                                 width={subBarW}
                                 height={bH}
-                                fill={SERIES_COLORS[si % SERIES_COLORS.length]}
+                                fill={seriesColor(si)}
                                 opacity={0.85}
                                 rx={Math.min(2, subBarW / 4)}
                                 style={{ cursor: count > 0 ? 'pointer' : undefined }}
-                                onClick={() => {
-                                  if (count > 0) {
-                                    if (nSeries > 1 && s.id !== '__all') {
-                                      // Filter query by this series' tag
-                                      if (s.id === '__other') {
-                                        window.api.sendAnalysisAction('run-word-query', word, filteredSourceGuids, surveyScope())
-                                      } else {
-                                        // Run query scoped to this tag's documents
-                                        window.api.sendAnalysisAction('run-word-query', word, s.sourceGuids, surveyScope(s))
-                                      }
-                                    } else {
-                                      handleWordClick(word)
-                                    }
-                                  }
-                                }}
+                                onClick={() => { if (count > 0) handleWordClick(word, s) }}
                               >
                                 <title>{`${word}: ${count}${nSeries > 1 ? ` (${s.label})` : ''}`}</title>
                               </rect>

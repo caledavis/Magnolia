@@ -224,13 +224,18 @@ export function ResultItem({
 
   // "Respondent N · Question N" label for survey-cell results. The
   // numbers are 1-based positions in the survey's respondent /
-  // question lists, matching what the survey browser shows.
+  // question lists, matching what the survey browser shows. The cell
+  // comes from the result itself: text-search and sentence results
+  // have no stored selection to read it from.
   let surveyCellLabel: string | null = null
-  if (selection?.surveyCell && survey) {
-    const rIdx = survey.respondents.findIndex((r) => r.id === selection.surveyCell!.respondentId)
-    const qIdx = survey.questions.findIndex((q) => q.id === selection.surveyCell!.questionId)
+  let surveyCellTitle: string | undefined
+  const surveyCell = result.surveyCell ?? selection?.surveyCell
+  if (surveyCell && survey) {
+    const rIdx = survey.respondents.findIndex((r) => r.id === surveyCell.respondentId)
+    const qIdx = survey.questions.findIndex((q) => q.id === surveyCell.questionId)
     if (rIdx >= 0 && qIdx >= 0) {
       surveyCellLabel = `Respondent ${rIdx + 1} · Question ${qIdx + 1}`
+      surveyCellTitle = `${survey.respondents[rIdx].displayName || `Respondent ${rIdx + 1}`}\n${survey.questions[qIdx].text}`
     }
   }
 
@@ -279,6 +284,7 @@ export function ResultItem({
         <div style={{ display: 'flex', gap: 4, flex: 1, flexWrap: 'wrap', alignItems: 'center' }}>
           {surveyCellLabel && (
             <span
+              title={surveyCellTitle}
               style={{
                 fontSize: 10,
                 color: 'var(--text-muted)',

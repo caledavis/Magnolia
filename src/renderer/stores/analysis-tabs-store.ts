@@ -35,6 +35,7 @@ export type ToolKind =
   | 'code-frequencies'
   | 'code-orders'
   | 'word-frequencies'
+  | 'word-combinations'
   | 'reports'
   | 'query-builder'
 

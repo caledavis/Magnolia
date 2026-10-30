@@ -68,6 +68,8 @@ interface DocumentState {
   viewDocument: (guid: string | null) => void
   closeTab: (guid: string) => void
   reorderTabs: (guids: string[]) => void
+  /** Show the next (1) or previous (-1) open tab, wrapping round. */
+  showAdjacentTab: (step: 1 | -1) => void
   /** Insert any tool tab id (map: / analysis: / query-builder:) into
    *  openTabs and make it active. Tab-kind agnostic. */
   openToolTab: (tabId: string) => void
@@ -325,6 +327,16 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
   }),
   selectDocuments: (guids) => set({ selectedDocumentGuids: guids }),
   selectSurveyEntities: (keys) => set({ selectedSurveyEntities: keys }),
+  showAdjacentTab: (step) => {
+    const { openTabs, viewedDocumentGuid } = get()
+    if (openTabs.length === 0) return
+    const i = viewedDocumentGuid ? openTabs.indexOf(viewedDocumentGuid) : -1
+    const next = i === -1
+      ? openTabs[step > 0 ? 0 : openTabs.length - 1]
+      : openTabs[(i + step + openTabs.length) % openTabs.length]
+    if (next !== viewedDocumentGuid) set({ viewedDocumentGuid: next })
+  },
+
   viewDocument: (guid) => {
     set((state) => {
       if (!guid) return { viewedDocumentGuid: null }

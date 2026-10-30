@@ -87,8 +87,9 @@ function liveResolveFilter(df: Query['documentFilter']): {
 }
 
 /** Run a query against current data with the document filter re-resolved
- *  live (see liveResolveFilter). */
-function runQueryLive(query: Query): { results: QueryResult[]; missingDocuments: string[] } {
+ *  live (see liveResolveFilter). Everything that runs a saved query goes
+ *  through here, so a query finds the same results wherever it's used. */
+export function runQueryLive(query: Query): { results: QueryResult[]; missingDocuments: string[] } {
   const docState = useDocumentStore.getState()
   const { documentFilter, noDocs } = liveResolveFilter(query.documentFilter)
   // "Missing documents" only applies to frozen (graph-less) filters. A

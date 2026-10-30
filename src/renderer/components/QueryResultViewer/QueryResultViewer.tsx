@@ -506,13 +506,14 @@ export function QueryResultViewer({ onSaveQuery, onEditQuery, queryName, onCodeA
                 // wouldn't navigate to anything in the raw CSV view,
                 // and the SurveyViewer ignores the doc-store
                 // scrollTarget — it has its own.
-                if (selection?.surveyCell) {
+                const surveyCell = result.surveyCell ?? selection?.surveyCell
+                if (surveyCell) {
                   const svs = useSurveyViewStore.getState()
-                  svs.setView(result.sourceGuid, 'respondent', selection.surveyCell.respondentId)
+                  svs.setView(result.sourceGuid, 'respondent', surveyCell.respondentId)
                   svs.setScrollTarget({
                     surveyGuid: result.sourceGuid,
-                    respondentId: selection.surveyCell.respondentId,
-                    questionId: selection.surveyCell.questionId
+                    respondentId: surveyCell.respondentId,
+                    questionId: surveyCell.questionId
                   })
                 }
                 viewDocumentAt(

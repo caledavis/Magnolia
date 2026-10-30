@@ -2,8 +2,8 @@ import { useState, useMemo, useCallback } from 'react'
 import type { AnalysisInitData, Query, QueryResult, SurveyEntityRef, SurveyCellScopeArgs } from '../../models/types'
 import { Icon, faFileSearchCorner, faChevronDown, faChevronRight, faXmark } from '../Icon'
 import { toolColors } from '../../utils/tool-colors'
-import { executeQuery } from '../../utils/query-engine'
-import { truncate, toCsv, pctOfTotal, binarizeGrid, applySurveyCellScope } from './analysis-helpers'
+import { runQueryLive } from '../../stores/query-store'
+import { truncate, toCsv, pctOfTotal, binarizeGrid } from './analysis-helpers'
 import { generateGuid } from '../../utils/guid'
 import {
   parseGroupByDrop,
@@ -14,8 +14,6 @@ import {
 } from './group-by'
 import {
   buildSurveyAwareColumns,
-  hasSurveyInScope,
-  QuestionScopeBox,
   type QuestionScopeRef
 } from './survey-grouping'
 import { useLiveAnalysisData } from './use-live-analysis-data'
@@ -51,7 +49,9 @@ interface Props {
     groupBy?: GroupByEntry[]
     /** Legacy shape, pre-category support. Migrated on load. */
     groupByTags?: string[]
-    /** Survey questions the analysis is scoped to (empty = all). */
+    /** Survey questions the analysis is scoped to (empty = all). Set
+     *  in a Questions box up to 1.9; questions are now chosen in each
+     *  query's From these documents, so this can only be removed. */
     questionScope?: QuestionScopeRef[]
     guid: string
     name: string
@@ -77,15 +77,40 @@ function isQueryDrag(e: React.DragEvent): boolean {
   return e.dataTransfer.types.includes('application/x-magnolia-query')
 }
 
+/** Each saved query's results, run as the Query Results pane runs them
+ *  (runQueryLive), so the counts here match what clicking the query
+ *  shows. Questions chosen in an older version's Questions box narrow a
+ *  survey's results to those questions. Shared with the report. */
+export function runResultsQueries(
+  queryGuids: string[],
+  queries: Map<string, { query?: Query }>,
+  questionScope: SurveyEntityRef[]
+): { queryResults: Map<string, QueryResult[]>; missingDocCount: number } {
+  const scoped = new Map<string, Set<string>>()
+  for (const q of questionScope) {
+    if (!scoped.has(q.sourceGuid)) scoped.set(q.sourceGuid, new Set())
+    scoped.get(q.sourceGuid)!.add(q.id)
+  }
+  const inScope = (r: QueryResult) => {
+    const questions = r.surveyCell && scoped.get(r.sourceGuid)
+    return !questions || questions.has(r.surveyCell!.questionId)
+  }
+  const queryResults = new Map<string, QueryResult[]>()
+  let missingDocCount = 0
+  for (const qGuid of queryGuids) {
+    const query = queries.get(qGuid)?.query
+    if (!query) continue
+    const { results, missingDocuments } = runQueryLive(query)
+    queryResults.set(qGuid, scoped.size > 0 ? results.filter(inScope) : results)
+    missingDocCount += missingDocuments.length
+  }
+  return { queryResults, missingDocCount }
+}
+
 export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props) {
   const live = useLiveAnalysisData()
   const [questionScope, setQuestionScope] = useState<QuestionScopeRef[]>(savedConfig?.questionScope ?? [])
-  const data = useMemo(() => {
-    const base = { ...propData, ...live }
-    // Scope survey selections to the chosen questions so query results
-    // (built from these selections) honour the Questions box.
-    return questionScope.length > 0 ? applySurveyCellScope(base, { questionScope }) : base
-  }, [propData, live, questionScope])
+  const data = useMemo(() => ({ ...propData, ...live }), [propData, live])
   // Once the user removes the auto-added Respondents grouping, don't
   // re-seed it (they can drag it back from the Document Browser).
   const [queryGuids, setQueryGuids] = useState<string[]>(savedConfig?.queryGuids ?? [])
@@ -151,66 +176,13 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     return m
   }, [data.sources])
 
-  // Build sources/codes in format executeQuery expects
-  const execSources = useMemo(() => data.sources.map((s) => ({
-    guid: s.guid,
-    name: s.name,
-    selections: (data.sourceSelections[s.guid] || []).map((sel: any) => ({
-      ...sel,
-      codings: sel.codings || []
-    })),
-    creatingUser: '',
-    creationDateTime: '',
-    modifyingUser: '',
-    modifiedDateTime: ''
-  })), [data.sources, data.sourceSelections])
-
-  const execCodes = useMemo(() => data.codes.map((c) => ({
-    guid: c.guid,
-    name: c.name,
-    color: c.color,
-    isCodable: c.isCodable,
-    children: []
-  })), [data.codes])
-
-  const execTags = useMemo(() => data.tags.map((t) => ({
-    guid: t.guid,
-    name: t.name,
-    memberSourceGuids: data.tagMembers[t.guid] || []
-  })), [data.tags, data.tagMembers])
-
-  const execFolders = useMemo(() => (data.folders || []).map((f) => ({
-    guid: f.guid,
-    name: f.name,
-    parentGuid: f.parentGuid
-  })), [data.folders])
-
-  // Execute each query and cache results; track missing documents
-  const { queryResults, missingDocCount } = useMemo(() => {
-    const map = new Map<string, QueryResult[]>()
-    const existingGuids = new Set(data.sources.map((s) => s.guid))
-    let missing = 0
-    for (const qGuid of queryGuids) {
-      const sq = queryMap.get(qGuid)
-      if (!sq?.query) continue
-      if (sq.query.documentFilter.sourceGuids?.length) {
-        for (const sg of sq.query.documentFilter.sourceGuids) {
-          if (!existingGuids.has(sg)) missing++
-        }
-      }
-      const results = executeQuery(
-        sq.query,
-        execSources as any,
-        data.sourceContents,
-        execCodes as any,
-        execTags as any,
-        data.sourceFolder,
-        execFolders
-      )
-      map.set(qGuid, results)
-    }
-    return { queryResults: map, missingDocCount: missing }
-  }, [queryGuids, queryMap, execSources, data.sourceContents, data.sources, execCodes, execTags, data.sourceFolder, execFolders])
+  // Run each query exactly as the Query Results pane does. `data` is a
+  // dependency so results refresh when the project changes.
+  const { queryResults, missingDocCount } = useMemo(
+    () => runResultsQueries(queryGuids, queryMap, questionScope),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [queryGuids, queryMap, questionScope, data]
+  )
 
   // Columns: union of all documents that appear in any query's results
   const resultSourceGuids = useMemo(() => {
@@ -335,8 +307,8 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     if (items.length > 0) addQueries(items)
   }, [addQueries])
 
-  // Survey-cell scope carried into a generated query: the tool-level
-  // Questions scope plus, for a respondent / tagged item column, that
+  // Survey-cell scope carried into a generated query: any questions an
+  // older analysis chose plus, for a respondent / tagged item column, that
   // column's narrowing. Items are the table's columns here (the layout
   // is transposed), so `col` is an item column.
   const surveyScope = useCallback((col?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): SurveyCellScopeArgs | undefined => {
@@ -558,7 +530,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
           onDrop={handleTagDrop}
         >
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: groupBy.length > 0 ? 8 : 0, position: 'relative', zIndex: 1 }}>
-            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Group by</span>
+            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Grouped by</span>
             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
               Drag tags, categories, or folders here
             </span>
@@ -582,9 +554,16 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
           </div>
         </div>
 
-        {/* Questions scope — only meaningful when a survey is analysed. */}
-        {hasSurveyInScope(resultSourceGuids, data) && (
-          <QuestionScopeBox value={questionScope} onChange={setQuestionScope} data={data} />
+        {/* Questions chosen in the Questions box of an older version. */}
+        {questionScope.length > 0 && (
+          <div className="analysis-section" style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: 'var(--text-secondary)' }}>
+            <span style={{ flex: 1 }}>
+              {`Only ${questionScope.length} survey question${questionScope.length === 1 ? ' is' : 's are'} counted, as chosen in an earlier version of Magnolia. To choose questions now, use From these documents in the Query Builder.`}
+            </span>
+            <button className="secondary" style={{ fontSize: 10, padding: '3px 8px', flexShrink: 0 }} onClick={() => setQuestionScope([])}>
+              Count All Questions
+            </button>
+          </div>
         )}
 
         {/* Missing documents warning */}
