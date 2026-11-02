@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useCallback, useState, useEffect, useLayoutEffect } from 'react'
+import React, { memo, useMemo, useRef, useCallback, useState, useEffect, useLayoutEffect } from 'react'
 import type { PlainTextSelection, Code, Memo, SourceType } from '../../models/types'
 import { codepointCount } from '../../utils/unicode'
 import { Icon, QUOTE_ICON, MEMO_POINT_ICON, MEMO_RANGED_ICON } from '../Icon'
@@ -175,7 +175,12 @@ function sameContent<T>(prev: T, next: T): T {
   return JSON.stringify(prev) === JSON.stringify(next) ? prev : next
 }
 
-export function CodedTextView({
+/** Memoised: a transcript's editor re-renders on every playback tick, and
+ *  with stable props this view then skips the re-render (and its margin
+ *  overlay measuring) unless something it shows actually changed. */
+export const CodedTextView = memo(CodedTextViewImpl)
+
+function CodedTextViewImpl({
   text,
   sourceType,
   selections,

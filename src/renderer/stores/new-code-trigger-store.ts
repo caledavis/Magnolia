@@ -5,7 +5,7 @@
  * changes. Existence is a workaround for the fact that the dialog state
  * lives in App.tsx but the context menus that need to open it live
  * inside DocumentViewer / PdfDocumentViewer / ImageDocumentViewer /
- * VideoTranscriptView etc. — passing an onNewCode callback through every
+ * TranscriptEditor etc. — passing an onNewCode callback through every
  * viewer prop chain would be much more invasive.
  *
  * The dialog reads the user's current pending selection from

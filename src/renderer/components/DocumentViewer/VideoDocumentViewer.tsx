@@ -269,7 +269,6 @@ export function VideoDocumentViewer({ source, content }: Props) {
           content={content}
           selections={source.selections}
           currentPlaybackTime={0}
-          videoDuration={0}
           externalHighlight={externalHighlight}
         />
       </div>
@@ -491,7 +490,6 @@ export function VideoDocumentViewer({ source, content }: Props) {
           currentPlaybackTime={currentTime}
           onTimestampClick={seekTo}
           videoMode
-          videoDuration={effectiveDuration}
           lineTimes={videoData?.lineTimes}
           externalHighlight={externalHighlight}
         />

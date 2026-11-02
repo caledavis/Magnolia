@@ -1,8 +1,7 @@
 /**
  * CodeLabel — the small, coloured, monospaced code name that sits next
- * to a bracket in every margin column. Shared by CodedTextView (text +
- * audio transcript), VideoTranscriptView (video transcript), and
- * RichMarginColumn (PDF / image). Colocating the styling means changes
+ * to a bracket in every margin column. Shared by CodedTextView (text and
+ * audio/video transcripts) and RichMarginColumn (PDF / image). Colocating the styling means changes
  * to font, size, weight, line-height, ellipsis, or the
  * `data-margin-label` hook apply everywhere at once.
  */

@@ -6,11 +6,11 @@
  *    against that line index in formatData.lineTimes — no bracketed
  *    timestamps are ever injected into the transcript text. This is the
  *    same behaviour for both audio and video.
- * 2. Coding Mode (OFF): Read-only coded view. For audio this is
- *    CodedTextView with a timestamp gutter fed from lineTimes; for
- *    video it is VideoTranscriptView (time-range brackets on the right).
+ * 2. Coding Mode (OFF): Read-only coded view — CodedTextView with a
+ *    timestamp gutter fed from lineTimes, for audio and video alike.
  */
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import { CodedTextView, type CodingRightClickContext } from './CodedTextView'
 import { useDocumentStore } from '../../stores/document-store'
 import { useCodeStore } from '../../stores/code-store'
@@ -33,19 +33,15 @@ interface Props {
   selections: PlainTextSelection[]
   currentPlaybackTime: number
   onTimestampClick?: (seconds: number) => void
-  /** Enable the video-specific coding view (VideoTranscriptView). When
-   *  false, the coding view uses CodedTextView (audio / text). The
-   *  transcription flow is identical either way: plain textarea with
-   *  line-times recorded silently to formatData.lineTimes. */
+  /** A video's transcript rather than audio's; only the transcription
+   *  area's wording differs. Both code in CodedTextView, and both record
+   *  line times silently to formatData.lineTimes while transcribing. */
   videoMode?: boolean
-  videoDuration?: number
   lineTimes?: Record<string, number>
   /** Pulsed highlight fed from the parent viewer when the user clicks a
-   *  saved quote / memo / query result. For audio it's forwarded to
-   *  CodedTextView as externalHighlightRange (cp coords). For video it
-   *  carries line indexes (startCp/endCp repurposed) plus an optional
-   *  timeRange — the video viewer seeks on timeRange and this
-   *  component forwards the line range to VideoTranscriptView. */
+   *  saved quote / memo / query result, forwarded to CodedTextView as
+   *  externalHighlightRange (cp coords). The video viewer also seeks to
+   *  the optional timeRange itself. */
   externalHighlight?: {
     startCp: number
     endCp: number
@@ -111,7 +107,7 @@ function buildTranscriptHtml(
 
 export function TranscriptEditor({
   sourceGuid, sourceName, content, selections, currentPlaybackTime,
-  onTimestampClick, videoMode = false, videoDuration = 0, lineTimes, externalHighlight
+  onTimestampClick, videoMode = false, lineTimes, externalHighlight
 }: Props) {
   const [exportMenu, setExportMenu] = useState<{ x: number; y: number } | null>(null)
   const [isTranscribing, setIsTranscribing] = useState(false)
@@ -173,8 +169,11 @@ export function TranscriptEditor({
   const addCode = useCodeStore((s) => s.addCode)
   const addMemo = useMemoStore((s) => s.addMemo)
   const removeMemo = useMemoStore((s) => s.removeMemo)
-  const contentMemos = useMemoStore((s) => s.getContentMemosForSource(sourceGuid))
-  const sourceQuotes = useQuoteStore((s) => s.getQuotesForSource(sourceGuid))
+  // Shallow-compared so an unchanged list keeps its identity: this editor
+  // re-renders on every playback tick, and a fresh array each time would
+  // re-render the coded view (and its margin measuring) along with it.
+  const contentMemos = useMemoStore(useShallow((s) => s.getContentMemosForSource(sourceGuid)))
+  const sourceQuotes = useQuoteStore(useShallow((s) => s.getQuotesForSource(sourceGuid)))
   const quoteRanges = useMemo(() =>
     sourceQuotes.map((q) => ({ guid: q.guid, startCp: q.startPosition, endCp: q.endPosition })),
     [sourceQuotes]
@@ -243,6 +242,21 @@ export function TranscriptEditor({
     },
     [sourceGuid, addSelection, addCodingToSelection]
   )
+
+  // Stable props for the coded view, which is memoised so playback ticks
+  // don't re-render it (only a change of the active timestamp line does).
+  const codedHighlight = useMemo(
+    () => (externalHighlight
+      ? { startCp: externalHighlight.startCp, endCp: externalHighlight.endCp }
+      : menuHighlight),
+    [externalHighlight, menuHighlight]
+  )
+  const openMemo = useCallback((memoGuid: string) => {
+    const memo = useMemoStore.getState().findMemo(memoGuid)
+    if (memo) {
+      window.api.openMemoEditWindow({ memo, theme: document.documentElement.getAttribute('data-theme') || '' } as MemoEditInitData)
+    }
+  }, [])
 
   const handleTextSelected = useCallback(
     (startCp: number, endCp: number, selectedText: string) => {
@@ -492,8 +506,8 @@ export function TranscriptEditor({
       ) : (
         /* Coding mode — audio AND video both use the character-precise
            CodedTextView so a code highlights the exact coded text. The
-           per-line timestamp gutter (lineTimestampMap) gives video the same
-           time context VideoTranscriptView used to; the CodeTrack timeline
+           per-line timestamp gutter (lineTimestampMap) gives the time
+           context; for video the CodeTrack timeline
            (rendered by VideoDocumentViewer) projects codings that carry a
            time range. */
         /* Coding mode: read-only highlighted text with full coding.
@@ -545,21 +559,12 @@ export function TranscriptEditor({
               codes={codes}
               contentMemos={contentMemos}
               quotes={quoteRanges}
-              externalHighlightRange={
-                externalHighlight
-                  ? { startCp: externalHighlight.startCp, endCp: externalHighlight.endCp }
-                  : menuHighlight
-              }
+              externalHighlightRange={codedHighlight}
               lineTimestamps={lineTimestampMap}
               activeTimestampLine={activeTimestampLine}
               onTimestampClick={onTimestampClick}
               onTextSelected={handleTextSelected}
-              onMemoClick={(memoGuid) => {
-                const memo = useMemoStore.getState().findMemo(memoGuid)
-                if (memo) {
-                  window.api.openMemoEditWindow({ memo, theme: document.documentElement.getAttribute('data-theme') || '' } as MemoEditInitData)
-                }
-              }}
+              onMemoClick={openMemo}
               onCodingRightClick={handleRightClick}
             />
           ) : (

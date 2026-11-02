@@ -1,11 +1,9 @@
 /**
  * TranscriptGutter — the fixed-width, right-aligned, monospaced label at
- * the start of every transcript / document line. Shared by CodedTextView
- * (audio coding + plain-text viewer — renders the line number or the
- * inline timestamp) and VideoTranscriptView (renders the per-row
- * playhead time). Styling lives here so all three callers stay in sync:
- * change the width, padding, or active treatment once and it applies
- * everywhere.
+ * the start of every transcript / document line, as rendered by
+ * CodedTextView (the line number, or the line's timestamp in an audio or
+ * video transcript). Styling lives here so a change to the width,
+ * padding, or active treatment applies everywhere.
  *
  * Also exports TRANSCRIPT_ROW_STYLE, the shared row-container style used
  * by every viewer that wraps a gutter + body. Keeping it here means
