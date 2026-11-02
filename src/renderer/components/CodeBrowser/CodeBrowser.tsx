@@ -50,6 +50,11 @@ function filterCodeTree(codes: Code[], query: string, alwaysIncludeGuid: string 
   return result
 }
 
+/** Every code in a subtree, depth first. */
+function flattenTree(codes: Code[]): Code[] {
+  return codes.flatMap((c) => [c, ...flattenTree(c.children)])
+}
+
 function isDescendant(codes: Code[], parentGuid: string, childGuid: string): boolean {
   const find = (list: Code[]): boolean => {
     for (const c of list) {
@@ -821,6 +826,7 @@ export function CodeBrowser({ onNewCode, onClose, onPopOut, isPoppedOut }: Props
   const [editingMemoGuid, setEditingMemoGuid] = useState<string | null>(null)
   const [editingCodeGuid, setEditingCodeGuid] = useState<string | null>(null)
   const [mergeConfirm, setMergeConfirm] = useState<{ sourceGuid: string; targetGuid: string } | null>(null)
+  const [mergeSubcodes, setMergeSubcodes] = useState<'move' | 'merge'>('move')
   const [searchQuery, setSearchQuery] = useState('')
   // Collapsed by default — the filter input replaces the "Codes" title
   // in the header row itself rather than adding a permanent second row,
@@ -1042,7 +1048,14 @@ export function CodeBrowser({ onNewCode, onClose, onPopOut, isPoppedOut }: Props
             onAddChild={handleAddChild}
             onMoveCode={moveCode}
             onMoveCodeNear={moveCodeNear}
-            onMergeInto={(sourceGuid, targetGuid) => setMergeConfirm({ sourceGuid, targetGuid })}
+            onMergeInto={(sourceGuid, targetGuid) => {
+              // Merging a code into one of its own subcodes would remove the
+              // target along with it.
+              const source = findCode(sourceGuid)
+              if (!source || isDescendant(codes, sourceGuid, targetGuid)) return
+              setMergeSubcodes('move')
+              setMergeConfirm({ sourceGuid, targetGuid })
+            }}
             onEditMemo={setEditingMemoGuid}
             onQueryAllDocs={handleQueryAllDocs}
             onQueryActiveDoc={handleQueryActiveDoc}
@@ -1058,24 +1071,64 @@ export function CodeBrowser({ onNewCode, onClose, onPopOut, isPoppedOut }: Props
         const sourceCode = findCode(mergeConfirm.sourceGuid)
         const targetCode = findCode(mergeConfirm.targetGuid)
         if (!sourceCode || !targetCode) return null
-        const sourceCount = codeCounts.get(sourceCode.guid) || 0
+        const subcodes = flattenTree(sourceCode.children)
+        const hasSubcodes = subcodes.length > 0
+        const recodedCount = (codeCounts.get(sourceCode.guid) || 0) +
+          (hasSubcodes && mergeSubcodes === 'merge'
+            ? subcodes.reduce((n, c) => n + (codeCounts.get(c.guid) || 0), 0)
+            : 0)
+        const subcodeWord = subcodes.length === 1 ? 'subcode' : 'subcodes'
+        const option = (value: 'move' | 'merge', title: string, detail: React.ReactNode) => (
+          <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 10, cursor: 'pointer' }}>
+            <input
+              type="radio"
+              name="merge-subcodes"
+              checked={mergeSubcodes === value}
+              onChange={() => setMergeSubcodes(value)}
+              style={{ marginTop: 3 }}
+            />
+            <span>
+              <strong>{title}</strong>
+              <span style={{ display: 'block', color: 'var(--text-secondary)' }}>{detail}</span>
+            </span>
+          </label>
+        )
         return (
           <div className="modal-overlay" onClick={() => setMergeConfirm(null)}>
-            <div className="modal" onClick={(e) => e.stopPropagation()} style={{ minWidth: 400 }}>
+            <div className="modal" onClick={(e) => e.stopPropagation()} style={{ minWidth: 400, maxWidth: 480 }}>
               <h2>Merge Codes</h2>
               <p style={{ fontSize: 'var(--font-size-sm)', lineHeight: 1.5, marginBottom: 12 }}>
                 Merge <strong>{sourceCode.name}</strong> into <strong>{targetCode.name}</strong>?
-                {sourceCount > 0 && (
-                  <> All {sourceCount} coded segment{sourceCount !== 1 ? 's' : ''} will be recoded with <strong>{targetCode.name}</strong>.</>
+                {recodedCount > 0 && (
+                  <> {recodedCount} coded segment{recodedCount !== 1 ? 's' : ''} will be recoded with <strong>{targetCode.name}</strong>.</>
                 )}
-                {' '}This cannot be undone.
+              </p>
+              {hasSubcodes && (
+                <div style={{ fontSize: 'var(--font-size-sm)', lineHeight: 1.45, marginBottom: 12 }}>
+                  <p style={{ margin: '0 0 8px' }}>
+                    <strong>{sourceCode.name}</strong> has {subcodes.length} {subcodeWord}.
+                  </p>
+                  {option(
+                    'move',
+                    'Move Subcodes',
+                    <>They become subcodes of <strong>{targetCode.name}</strong> and keep their own coded segments.</>
+                  )}
+                  {option(
+                    'merge',
+                    'Merge Subcodes',
+                    <>They are merged into <strong>{targetCode.name}</strong> too: their coded segments are recoded with it, and the {subcodeWord} {subcodes.length === 1 ? 'is' : 'are'} removed.</>
+                  )}
+                </div>
+              )}
+              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-muted)', margin: '0 0 12px' }}>
+                You can undo this with {modKey('Z')}.
               </p>
               <div className="modal-actions">
                 <button className="secondary" onClick={() => setMergeConfirm(null)}>Cancel</button>
                 <button
                   className="danger"
                   onClick={() => {
-                    mergeIntoCode(mergeConfirm.sourceGuid, mergeConfirm.targetGuid)
+                    mergeIntoCode(mergeConfirm.sourceGuid, mergeConfirm.targetGuid, mergeSubcodes)
                     setMergeConfirm(null)
                   }}
                 >

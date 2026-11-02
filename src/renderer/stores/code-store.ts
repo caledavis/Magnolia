@@ -19,8 +19,12 @@ interface CodeState {
   setCodeDescription: (guid: string, description: string) => void
   setCodeHotkey: (guid: string, hotkey: number | undefined) => void
   mergeCodes: (importedCodes: Code[]) => void
-  /** Merge sourceCode into targetCode: recode all selections, then delete sourceCode */
-  mergeIntoCode: (sourceGuid: string, targetGuid: string) => void
+  /** Merge sourceCode into targetCode: recode its segments with the target,
+   *  then remove it. Its subcodes either move under the target, keeping
+   *  their own segments (`'move'`), or are merged into the target too
+   *  (`'merge'`). Merging a code into itself or one of its own subcodes
+   *  does nothing. */
+  mergeIntoCode: (sourceGuid: string, targetGuid: string, subcodes?: 'move' | 'merge') => void
   findCode: (guid: string) => Code | undefined
   flatCodes: () => Code[]
   clearAll: () => void
@@ -210,23 +214,49 @@ export const useCodeStore = create<CodeState>((set, get) => ({
     }
   },
 
-  mergeIntoCode: (sourceGuid, targetGuid) => {
-    // Recode all selections: replace sourceGuid codings with targetGuid.
+  mergeIntoCode: (sourceGuid, targetGuid, subcodes = 'move') => {
+    const source = findInTree(get().codes, sourceGuid)
+    if (!source || sourceGuid === targetGuid) return
+    const descendants = flattenCodes(source.children)
+    // The target would be removed along with the source's subtree.
+    if (descendants.some((c) => c.guid === targetGuid)) return
+    if (!findInTree(get().codes, targetGuid)) return
+
+    const recoded = new Set([sourceGuid])
+    if (subcodes === 'merge') for (const c of descendants) recoded.add(c.guid)
+
+    // Recode the merged codes' segments with the target. A passage coded
+    // with both would end up with the target twice; keep one.
     const ds = useDocumentStore.getState()
     const newSources = ds.sources.map((s: any) => ({
       ...s,
-      selections: s.selections.map((sel: any) => ({
-        ...sel,
-        codings: sel.codings.map((coding: any) =>
-          coding.codeGuid === sourceGuid
-            ? { ...coding, codeGuid: targetGuid }
-            : coding
-        )
-      }))
+      selections: s.selections.map((sel: any) => {
+        if (!sel.codings?.some((c: any) => recoded.has(c.codeGuid))) return sel
+        let seenTarget = false
+        const codings = []
+        for (const coding of sel.codings) {
+          const codeGuid = recoded.has(coding.codeGuid) ? targetGuid : coding.codeGuid
+          if (codeGuid === targetGuid) {
+            if (seenTarget) continue
+            seenTarget = true
+          }
+          codings.push(codeGuid === coding.codeGuid ? coding : { ...coding, codeGuid })
+        }
+        return { ...sel, codings }
+      })
     }))
     useDocumentStore.setState({ sources: newSources })
-    // Remove the source code from the tree
-    set((state) => ({ codes: removeFromTree(state.codes, sourceGuid) }))
+
+    set((state) => {
+      const withoutSource = removeFromTree(state.codes, sourceGuid)
+      if (subcodes === 'merge' || source.children.length === 0) return { codes: withoutSource }
+      return {
+        codes: updateInTree(withoutSource, targetGuid, (c) => ({
+          ...c,
+          children: [...c.children, ...source.children]
+        }))
+      }
+    })
     useProjectStore.getState().markDirty()
   },
 
