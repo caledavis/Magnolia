@@ -145,6 +145,8 @@ html:not([data-theme]) .app-toolbar-btn svg {
   --text-secondary: #b4b6c3;
   --text-muted: #7c7e8c;
   --accent: #0a84ff;
+  /* Links read as text, so they need more contrast than the accent. */
+  --link: #64a8ff;
   --accent-hover: #409cff;
   --danger: #ff453a;
   --success: #32d74b;
@@ -512,6 +514,7 @@ html:not([data-theme]) .app-toolbar-btn svg {
   --text-secondary: #A8B0BC;
   --text-muted: #6E7682;
   --accent: #5B8FFF;
+  --link: #8ab4ff;
   --accent-hover: #7AA5FF;
   --danger: #F87171;
   --success: #34D399;
@@ -1985,7 +1988,12 @@ html:not([data-theme]) .app-toolbar {
 }
 .markdown-content th { background: var(--bg-tertiary); }
 .markdown-content strong { font-weight: 600; }
-.markdown-content a { color: var(--accent); }
+/* Links in memos, descriptions and notes, shown or being edited. Without
+   this the editor used the browser's default dark blue, which is hard to
+   read on the dark themes. --link is set only where the accent is too dim
+   to read as text. */
+.markdown-content a,
+.markdown-editor .tiptap a { color: var(--link, var(--accent)); }
 .markdown-content hr { border: none; border-top: 1px solid var(--border-color); margin: 8px 0; }
 
 /* Tiptap markdown editor */
