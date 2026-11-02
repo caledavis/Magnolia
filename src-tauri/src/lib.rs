@@ -108,11 +108,14 @@ pub fn run() {
             updater::get_update_badge,
             updater::update_install,
             updater::update_skip,
-            updater::update_remind_later,
+            updater::update_dismiss,
+            updater::update_window_state,
+            updater::update_window_fit,
             updater::check_for_updates,
         ])
         .setup(|app| {
             storage::init(app.handle());
+            updater::preview_at_launch(app.handle());
             menu::rebuild(app.handle());
             // Launched by double-clicking a project (or with a path argument):
             // skip the welcome screen.

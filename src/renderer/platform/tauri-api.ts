@@ -365,10 +365,12 @@ const api: MagnoliaAPI = {
   },
 
   // Auto-update
-  onUpdateAvailable: (callback) => on('update-available', callback),
+  getUpdateView: () => invoke('update_window_state'),
+  onUpdateView: (callback) => on('update-window:state', callback),
   installUpdate: () => void invoke('update_install'),
   skipUpdateVersion: (version) => void invoke('update_skip', { version }),
-  remindUpdateLater: () => void invoke('update_remind_later'),
+  dismissUpdate: () => void invoke('update_dismiss'),
+  fitUpdateWindow: (delta) => void invoke('update_window_fit', { delta }),
   getAppVersion: () => invoke('get_app_version'),
   checkForUpdates: () => void invoke('check_for_updates'),
   onUpdateStatus: (callback) => on('update:status', callback as any),

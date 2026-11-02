@@ -1,0 +1,352 @@
+/* The software update window: a native-looking system panel, matched to a
+   macOS alert (13pt system text, 24pt rounded buttons, filled default
+   button), with Windows and Linux variants keyed off [data-platform].
+   Follows the OS light/dark appearance, not Magnolia's theme. */
+
+:root {
+  color-scheme: light dark;
+  --u-bg: #ffffff;
+  --u-text: rgba(0, 0, 0, 0.85);
+  --u-text-secondary: rgba(0, 0, 0, 0.5);
+  --u-notes-bg: #ffffff;
+  --u-notes-border: rgba(0, 0, 0, 0.12);
+  --u-button: rgba(0, 0, 0, 0.07);
+  --u-button-active: rgba(0, 0, 0, 0.14);
+  --u-accent: #0a7aff;
+  --u-accent-active: #0062d6;
+  --u-on-accent: #ffffff;
+  --u-track: rgba(0, 0, 0, 0.08);
+  --u-focus: rgba(10, 122, 255, 0.5);
+  --u-font: -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+  --u-size: 13px;
+  --u-button-height: 24px;
+  --u-button-radius: 8px;
+  --u-pad: 20px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --u-bg: #262626;
+    --u-text: rgba(255, 255, 255, 0.86);
+    --u-text-secondary: rgba(255, 255, 255, 0.5);
+    --u-notes-bg: #1e1e1e;
+    --u-notes-border: rgba(255, 255, 255, 0.1);
+    --u-button: rgba(255, 255, 255, 0.14);
+    --u-button-active: rgba(255, 255, 255, 0.22);
+    --u-accent: #0a84ff;
+    --u-accent-active: #3d9bff;
+    --u-track: rgba(255, 255, 255, 0.12);
+    --u-focus: rgba(10, 132, 255, 0.6);
+  }
+}
+
+/* Windows 11: Segoe UI 9pt, 32px buttons, accent default button. */
+:root[data-platform='win32'] {
+  --u-bg: #f3f3f3;
+  --u-notes-bg: #fbfbfb;
+  --u-notes-border: rgba(0, 0, 0, 0.08);
+  --u-button: #fbfbfb;
+  --u-button-active: #f0f0f0;
+  --u-accent: #005fb8;
+  --u-accent-active: #1a6fbf;
+  --u-size: 12px;
+  --u-button-height: 32px;
+  --u-button-radius: 4px;
+  --u-pad: 24px;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-platform='win32'] {
+    --u-bg: #202020;
+    --u-notes-bg: #2b2b2b;
+    --u-button: #2d2d2d;
+    --u-button-active: #323232;
+    --u-accent: #60cdff;
+    --u-accent-active: #5ab8e5;
+    --u-on-accent: #000000;
+  }
+}
+
+/* GNOME/Adwaita-ish. */
+:root[data-platform='linux'] {
+  --u-size: 13px;
+  --u-button-height: 34px;
+  --u-button-radius: 6px;
+  --u-accent: #3584e4;
+  --u-accent-active: #1c71d8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--u-bg);
+  color: var(--u-text);
+  font: var(--u-size) / 1.35 var(--u-font);
+  -webkit-font-smoothing: antialiased;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+  overflow: hidden;
+}
+
+.update-window {
+  height: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: 1fr auto;
+  column-gap: 16px;
+  row-gap: 16px;
+  padding: var(--u-pad);
+}
+
+/* The icon file is full-bleed; macOS masks app icons itself, so mask it
+   the same way here: inset to the icon grid (824/1024) with the
+   continuous-corner radius. Windows/Linux icons keep their square. */
+.update-icon {
+  width: 64px;
+  height: 64px;
+  padding: 6px;
+  margin-top: -6px;
+}
+
+.update-status .update-icon {
+  width: 52px;
+  height: 52px;
+  padding: 5px;
+  margin-top: -5px;
+}
+
+:root[data-platform='darwin'] .update-icon {
+  border-radius: 22.5%;
+  background-clip: content-box;
+  clip-path: inset(6px round 22.5%);
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25));
+}
+
+:root[data-platform='darwin'] .update-status .update-icon {
+  clip-path: inset(5px round 22.5%);
+}
+
+:root:not([data-platform='darwin']) .update-icon {
+  border-radius: 8px;
+}
+
+.update-body {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  font-size: var(--u-size);
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.update-info {
+  margin: 0;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* The status panel sizes the window to fit, so it takes its natural height. */
+.update-window.update-status {
+  height: auto;
+  grid-template-rows: auto auto;
+}
+
+.update-status .update-info {
+  color: var(--u-text-secondary);
+  font-size: calc(var(--u-size) - 2px);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Release notes ── */
+
+.update-notes-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 14px 0 6px;
+  font-weight: 700;
+  font-size: calc(var(--u-size) - 1px);
+}
+
+.update-released {
+  font-weight: 400;
+  color: var(--u-text-secondary);
+}
+
+.update-notes {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--u-notes-bg);
+  border: 1px solid var(--u-notes-border);
+  border-radius: 6px;
+  padding: 2px 14px;
+  outline: none;
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: auto;
+}
+
+.update-notes h1,
+.update-notes h2,
+.update-notes h3 {
+  font-size: var(--u-size);
+  font-weight: 700;
+  margin: 12px 0 4px;
+}
+
+.update-notes p {
+  margin: 6px 0;
+}
+
+.update-notes ul,
+.update-notes ol {
+  margin: 4px 0 10px;
+  padding-left: 20px;
+}
+
+.update-notes li {
+  margin: 3px 0;
+}
+
+.update-notes a {
+  color: var(--u-accent);
+}
+
+.update-notes code {
+  font: 0.92em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.update-notes-empty {
+  color: var(--u-text-secondary);
+  font-style: italic;
+}
+
+/* ── Progress ── */
+
+.update-progress {
+  position: relative;
+  height: 6px;
+  margin: 6px 0 7px;
+  border-radius: 3px;
+  background: var(--u-track);
+  overflow: hidden;
+}
+
+.update-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--u-accent);
+  transition: width 0.1s linear;
+}
+
+.update-progress.indeterminate .update-progress-fill {
+  position: absolute;
+  width: 30%;
+  animation: update-sweep 1.3s ease-in-out infinite;
+}
+
+@keyframes update-sweep {
+  from {
+    left: -30%;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+/* ── Buttons ── */
+
+.update-buttons {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.update-spacer {
+  flex: 1;
+}
+
+button {
+  font: inherit;
+  height: var(--u-button-height);
+  min-width: 76px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--u-button-radius);
+  background: var(--u-button);
+  color: var(--u-text);
+  white-space: nowrap;
+  cursor: default;
+}
+
+button:active {
+  background: var(--u-button-active);
+}
+
+button.update-default {
+  background: var(--u-accent);
+  color: var(--u-on-accent);
+}
+
+button.update-default:active {
+  background: var(--u-accent-active);
+}
+
+button:focus {
+  outline: none;
+}
+
+button:focus-visible {
+  outline: 3px solid var(--u-focus);
+  outline-offset: 0;
+}
+
+:root[data-platform='win32'] button {
+  min-width: 96px;
+  padding: 0 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom-color: rgba(0, 0, 0, 0.18);
+}
+
+:root[data-platform='win32'] button.update-default {
+  border-color: transparent;
+}
+
+/* Windows puts the default button first in the row. */
+:root[data-platform='win32'] .update-default {
+  order: -1;
+}
+
+:root[data-platform='win32'] .update-skip {
+  order: -3;
+}
+
+:root[data-platform='win32'] .update-spacer {
+  order: -2;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-platform='win32'] button {
+    border-color: rgba(255, 255, 255, 0.07);
+    border-top-color: rgba(255, 255, 255, 0.09);
+  }
+}

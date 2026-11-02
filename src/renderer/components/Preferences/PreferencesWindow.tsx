@@ -476,7 +476,7 @@ function UpdateStatusLine({ status }: { status: UpdateStatus }) {
   const map: Record<UpdateStatus['state'], { color: string; text: string }> = {
     checking:      { color: 'var(--text-muted)',   text: 'Checking for updates…' },
     'up-to-date':  { color: 'var(--success)',      text: `You're up to date${status.version ? ` (version ${status.version})` : ''}.` },
-    available:     { color: 'var(--accent)',       text: `Update available${status.version ? ` — version ${status.version}` : ''}. It's downloading now; you'll be prompted to install it shortly.` },
+    available:     { color: 'var(--accent)',       text: `Update available${status.version ? ` — version ${status.version}` : ''}. The update window has the details.` },
     error:         { color: 'var(--danger)',       text: `Couldn't check for updates: ${status.message ?? 'unknown error'}` },
     'dev-disabled':{ color: 'var(--text-muted)',   text: 'Update checks are disabled in development builds.' }
   }

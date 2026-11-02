@@ -30,7 +30,8 @@ export default defineConfig({
         logbook: resolve('src/renderer/logbook.html'),
         welcome: resolve('src/renderer/welcome.html'),
         'memo-edit': resolve('src/renderer/memo-edit.html'),
-        'query-results': resolve('src/renderer/query-results.html')
+        'query-results': resolve('src/renderer/query-results.html'),
+        update: resolve('src/renderer/update.html')
       }
     }
   },

@@ -20,7 +20,6 @@ import {
   faChevronsRight
 } from './components/Icon'
 import { LicenceDialog } from './components/Licence/LicenceDialog'
-import { UpdateDialog, type UpdateAvailableInfo } from './components/Update/UpdateDialog'
 import { isMac } from './utils/platform'
 import { sourceTypeFromExtension } from './utils/format-registry'
 import { parseSurveyGrid, type SurveyFormat } from './utils/survey/survey-parser'
@@ -280,7 +279,6 @@ function App() {
   // Documents whose binary content is missing from the just-opened .qdpx —
   // drives the re-import banner so the user can repair the project.
   const [missingBinaries, setMissingBinaries] = useState<MissingBinary[]>([])
-  const [updateInfo, setUpdateInfo] = useState<UpdateAvailableInfo | null>(null)
   // Someone else's checkout marker found on a just-opened project, hit by a
   // first-edit auto-checkout attempt that lost the race, or clicked into
   // from any mutating control app-wide — see project-store.ts's
@@ -315,10 +313,6 @@ function App() {
   useEffect(() => {
     if (!prefsLoaded) loadPrefs()
   }, [prefsLoaded, loadPrefs])
-
-  useEffect(() => {
-    return window.api.onUpdateAvailable(setUpdateInfo)
-  }, [])
 
   // "Newer version available" nudge badge on the toolbar wordmark. State is
   // computed in the main process (independent of whether this build can
@@ -3207,7 +3201,6 @@ function App() {
 
       <ProjectDetailsDialog open={showProjectDetails} onClose={() => setShowProjectDetails(false)} />
       <LicenceDialog open={showLicenceDialog} onClose={() => setShowLicenceDialog(false)} />
-      <UpdateDialog info={updateInfo} onDismiss={() => setUpdateInfo(null)} />
       {/* !stealBackConflict guards against both rendering at once: they're
           set independently (markDirty's edit-time block calls
           promptCheckoutConflict; a save's own conflict check sets

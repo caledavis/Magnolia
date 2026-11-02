@@ -484,6 +484,23 @@ export interface QueryBuilderInitData {
 /** "Newer version available" nudge state, computed in the main process by
  *  comparing this build against the latest published GitHub release. Drives the
  *  toolbar wordmark badge and the Updates pane on all builds. */
+/** What the software update window shows; see src-tauri/src/updater.rs. */
+export type UpdateView =
+  | { state: 'checking' }
+  | { state: 'downloading'; version: string; received: number; total: number | null }
+  | {
+      state: 'available'
+      version: string
+      currentVersion: string
+      /** Release day, YYYY-MM-DD. */
+      releaseDate: string | null
+      releaseNotes: string
+    }
+  | { state: 'ready'; version: string }
+  | { state: 'installing'; version: string | null }
+  | { state: 'up-to-date'; version: string }
+  | { state: 'error'; title: string; message: string }
+
 export interface UpdateBadgeState {
   available: boolean
   latestVersion: string | null
@@ -674,13 +691,15 @@ export interface MagnoliaAPI {
   closeWindow: () => void
   isWindowMaximized: () => Promise<boolean>
   onWindowMaximizedChanged: (callback: (isMax: boolean) => void) => () => void
-  // Auto-update dialog (Sparkle-style prompt driven by the renderer)
-  onUpdateAvailable: (
-    callback: (info: { version: string; currentVersion: string; releaseDate: string | null; releaseNotes: string }) => void
-  ) => () => void
+  // Software update window (Sparkle-style; opened and driven by the backend)
+  getUpdateView: () => Promise<UpdateView | null>
+  onUpdateView: (callback: (view: UpdateView) => void) => () => void
   installUpdate: () => void
   skipUpdateVersion: (version: string) => void
-  remindUpdateLater: () => void
+  /** Remind Me Later / Cancel / OK: close the update window. */
+  dismissUpdate: () => void
+  /** Resize the update window by `delta` px so its status panel fits. */
+  fitUpdateWindow: (delta: number) => void
   getAppVersion: () => Promise<string>
   checkForUpdates: () => void
   onUpdateStatus: (

@@ -7,7 +7,7 @@ use crate::state::AppState;
 use serde_json::{Value, json};
 use std::time::Duration;
 use tauri::{
-    AppHandle, Emitter, EventTarget, LogicalPosition, Manager, PhysicalSize, WebviewUrl,
+    AppHandle, Emitter, EventTarget, LogicalPosition, LogicalSize, Manager, PhysicalSize, WebviewUrl,
     WebviewWindow, WebviewWindowBuilder, WindowEvent,
 };
 
@@ -16,6 +16,7 @@ pub const WELCOME: &str = "welcome";
 pub const CODEBOOK: &str = "codebook";
 pub const LOGBOOK: &str = "logbook";
 pub const QUERY_RESULTS: &str = "query-results";
+pub const UPDATE: &str = "update";
 const MEMO_PREFIX: &str = "memo-";
 
 /// How long the renderer may stay silent mid-flush before the main window is
@@ -357,8 +358,10 @@ fn on_main_destroyed(app: &AppHandle) {
         ui.queued_events.retain(|(label, _), _| label != MAIN);
         (ui.is_quitting, ui.restart_after_quit)
     };
+    // The update window belongs to the app, not the project: it stays up
+    // (showing "Installing…" during Install and Relaunch).
     for (label, w) in app.webview_windows() {
-        if label != WELCOME && label != MAIN {
+        if label != WELCOME && label != MAIN && label != UPDATE {
             let _ = w.destroy();
         }
     }
@@ -400,6 +403,75 @@ pub fn quit_for_update(app: &AppHandle) {
 pub fn open_project_in_main(app: &AppHandle, path: &str) {
     if open_main(app).is_some() {
         emit_when_ready(app, MAIN, "open-recent-project", json!(path));
+    }
+}
+
+// ── Software update window ──
+
+/// The Sparkle-style update window (see `updater`): a small status panel
+/// while checking or downloading, a larger resizable prompt once an update
+/// is ready. A native title bar, unlike the app's own windows.
+pub fn show_update_window(app: &AppHandle, prompt: bool) {
+    // The status panel's height is a first guess; it fits itself to its
+    // content (`fit_update_status`).
+    let (width, height) = if prompt { (620.0, 420.0) } else { (UPDATE_STATUS_WIDTH, 150.0) };
+    let min = LogicalSize::new(500.0, 340.0);
+    if let Some(w) = app.get_webview_window(UPDATE) {
+        if w.is_resizable().unwrap_or(prompt) != prompt {
+            let _ = w.set_resizable(prompt);
+            let _ = w.set_min_size(prompt.then_some(min));
+            let _ = w.set_size(LogicalSize::new(width, height));
+            let _ = w.center();
+        }
+        let _ = w.show();
+        let _ = w.set_focus();
+        return;
+    }
+    let title = if cfg!(target_os = "macos") { "Software Update" } else { "Magnolia Update" };
+    let b = base_builder(app, UPDATE, "update.html")
+        .title(title)
+        .inner_size(width, height)
+        .resizable(prompt)
+        .minimizable(false)
+        .maximizable(false)
+        .center();
+    let b = if prompt { b.min_inner_size(min.width, min.height) } else { b };
+    match b.build() {
+        Ok(w) => {
+            let handle = app.clone();
+            w.on_window_event(move |e| {
+                if let WindowEvent::Destroyed = e {
+                    crate::updater::on_window_destroyed(&handle);
+                }
+            });
+        }
+        Err(e) => log::error!("could not open update window: {e}"),
+    }
+}
+
+/// Keep in step with STATUS_WIDTH in UpdateWindow.tsx.
+const UPDATE_STATUS_WIDTH: f64 = 440.0;
+
+/// Grow or shrink the status panel's window by `delta` points so its
+/// content fits. The page measures the shortfall against its own viewport,
+/// so this needn't know how tall the title bar is. On macOS `set_size`
+/// sets the whole frame (and `inner_size` lags behind), so it's applied to
+/// the outer size there; elsewhere to the content size.
+pub fn fit_update_status(app: &AppHandle, delta: f64) {
+    let Some(w) = app.get_webview_window(UPDATE) else { return };
+    if w.is_resizable().unwrap_or(true) || delta.abs() < 0.5 {
+        return;
+    }
+    let size = if cfg!(target_os = "macos") { w.outer_size() } else { w.inner_size() };
+    if let (Ok(size), Ok(scale)) = (size, w.scale_factor()) {
+        let height = (size.height as f64 / scale + delta).clamp(100.0, 520.0);
+        let _ = w.set_size(LogicalSize::new(UPDATE_STATUS_WIDTH, height));
+    }
+}
+
+pub fn close_update_window(app: &AppHandle) {
+    if let Some(w) = app.get_webview_window(UPDATE) {
+        let _ = w.close();
     }
 }
 
