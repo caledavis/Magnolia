@@ -21,7 +21,8 @@ import {
 import { buildSurveyAwareColumns, type AnalysisColumn } from './survey-grouping'
 import { buildDisplayRows, fullLabel, summaryKey } from './framework-matrix-model'
 import { buildExportSvg } from './RelationshipMap/svg-export'
-import { countWords, sourceTexts, codedPassageTexts, codeSet, wordFilter, countPhrases, wordAssociations } from './word-counts'
+import { countWords, sourceTexts, codedPassageTexts, queryPassageTexts, codeSet, wordFilter, countPhrases, wordAssociations } from './word-counts'
+import { runQueries, allResults } from './word-sources'
 import { combinationsPassages, defaultCombinationsConfig, effectiveFocus } from './WordCombinations'
 import { buildWordTree, layoutWordTree, wordTreeSvg } from './word-tree'
 import { documentFilterFromConfig } from './documents-filter'
@@ -227,9 +228,10 @@ function buildColData(columns: AnalysisColumn[], data: AnalysisInitData): Map<st
 
 function scopedData(toolType: AnalysisInitData['toolType'], config: any): { data: AnalysisInitData; docFilter: any } {
   // Survey questions and respondents are in the filter (moved there
-  // from a separate Questions box after 1.9).
+  // from a separate Questions box after 1.9). Word tools counting query
+  // results ignore it: each query carries its own documents.
   const docFilter = documentFilterFromConfig(config)
-  const data = applySurveyCellScope(buildAnalysisInitData(toolType), docFilter)
+  const data = applySurveyCellScope(buildAnalysisInitData(toolType), config?.textSource === 'query' ? {} : docFilter)
   return { data, docFilter }
 }
 
@@ -574,8 +576,9 @@ function wordBarChartSvg(words: [string, number][], series: WordSeries[], series
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${effectiveBarW} ${barH}" class="wf-viz">${parts.join('')}</svg>`
 }
 
-/** A Word Frequencies series: a group-by column, or one code's passages. */
-type WordSeries = AnalysisColumn & { codeGuid?: string; color?: string }
+/** A Word Frequencies series: a group-by column, one code's passages, or
+ *  one saved query's results. */
+type WordSeries = AnalysisColumn & { codeGuid?: string; queryGuid?: string; color?: string }
 
 // ── Word Frequencies (top words × series) ──────────────────────────
 
@@ -589,7 +592,14 @@ function wordFrequenciesHtml(config: any, options: AnalysisItemOptions): string 
   let series: WordSeries[]
   let total: Map<string, number>
   const codeSets = new Map<string, Set<string>>()
-  if (config?.textSource === 'coded') {
+  const queryRuns = runQueries(config?.textSource === 'query' ? config?.queryGuids ?? [] : [])
+  if (config?.textSource === 'query') {
+    // One series per query still in the project; the total counts every
+    // query's results once.
+    series = [...queryRuns].map(([g, run]) => ({ id: g, label: run.name, sourceGuids: [], queryGuid: g }))
+    total = countWords(queryPassageTexts(data, allResults(queryRuns)).passages.map((p) => p.text), filter)
+    if (series.length === 0) return '<div class="empty">(no queries in this analysis)</div>'
+  } else if (config?.textSource === 'coded') {
     // One series per code still in the project; the total counts every
     // chosen code's passages once.
     const codeMap = new Map(data.codes.map((c) => [c.guid, c]))
@@ -612,6 +622,7 @@ function wordFrequenciesHtml(config: any, options: AnalysisItemOptions): string 
   }
   const seriesFreqs = series.map((s) => {
     if (s.codeGuid) return countWords(codedPassageTexts(data, s.sourceGuids, codeSets.get(s.codeGuid)!).passages.map((p) => p.text), filter)
+    if (s.queryGuid) return countWords(queryPassageTexts(data, queryRuns.get(s.queryGuid)!.results).passages.map((p) => p.text), filter)
     const sd = s.respondentRef ? applySurveyCellScope(data, { respondentScope: [s.respondentRef] }) : data
     return countWords(s.sourceGuids.flatMap((g) => sourceTexts(sd, g)), filter)
   })
@@ -652,7 +663,9 @@ function wordCombinationsHtml(config: any): string {
   const codeSets = new Map<string, Set<string>>()
   for (const g of cfg.codeGuids as string[]) if (known.has(g)) codeSets.set(g, codeSet(data.codes, g, cfg.includeSubcodes))
   if (cfg.textSource === 'coded' && codeSets.size === 0) return '<div class="empty">(no codes in this analysis)</div>'
-  const { passages } = combinationsPassages(data, filtered, cfg.textSource, codeSets)
+  const queryRuns = runQueries(cfg.textSource === 'query' ? cfg.queryGuids : [])
+  if (cfg.textSource === 'query' && queryRuns.size === 0) return '<div class="empty">(no queries in this analysis)</div>'
+  const { passages } = combinationsPassages(data, filtered, cfg.textSource, codeSets, queryRuns)
   const texts = passages.map((p) => p.text)
   const filter = wordFilter(cfg.includeWords, cfg.excludeWords)
 

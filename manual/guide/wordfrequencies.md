@@ -1,6 +1,6 @@
 # Word Frequencies
 
-The Word Frequencies tool allows you to see which words appear most often in your documents, or in the passages you have coded with particular codes. It lists every word with the number of times it appears, and shows the most frequent words as a bar chart or a word cloud.
+The Word Frequencies tool allows you to see which words appear most often in your documents, in the passages you have coded with particular codes, or in the results of your saved queries. It lists every word with the number of times it appears, and shows the most frequent words as a bar chart or a word cloud.
 
 **To open Word Frequencies:**
 
@@ -9,14 +9,18 @@ The Word Frequencies tool allows you to see which words appear most often in you
 2. Choose `Word Frequencies`.
 
 The tool contains:
-- The [Document Selector](/guide/documentselector)
+- The `Count words in` choice
+- The [Document Selector](/guide/documentselector) (when counting the words in documents or coded passages)
 - The [Grouped by](/guide/grouping) function (when counting the words in documents)
 
-## Counting words in documents or coded passages
+## Choosing what to count
 
 Use `Count words in` to choose what Magnolia reads:
-- `Documents` counts the words in the whole of each selected document; or,
-- `Coded Passages` counts only the words in the passages you have coded with particular codes.
+- `Documents` counts the words in the whole of each selected document;
+- `Coded Passages` counts only the words in the passages you have coded with particular codes; or,
+- `Query Results` counts only the words in the results of your saved [queries](/guide/querying).
+
+### Coded passages
 
 Counting coded passages lets you compare how people talk about different things. Think of it as reading only the highlighted parts of your documents. For example, you could compare the words used in passages coded *Belonging & Connection* with those coded *Isolation & loneliness*.
 
@@ -49,6 +53,34 @@ The [Document Selector](/guide/documentselector) still applies: only the passage
 ::: tip
 Boxes drawn on PDFs and images have no text, so they can't be counted. Magnolia tells you how many boxes it has left out.
 :::
+
+### Query results
+
+Counting query results lets you look at the words in exactly the passages a query finds. For example, a query for the passages where *Unpaid placements & internships* overlaps with *Cost of living & housing* finds where students talk about both at once; counting the words in its results shows how they talk about it.
+
+**To count the words in query results:**
+
+1. Click `Query Results`; and,
+
+2. Drag one or more saved queries from the Saved Queries Panel into the `From these queries` box.
+
+The number beside each query shows how many results it found.
+
+<figure>
+     <img src="./images/WordFrequenciesQuery.png" alt="Counting the words in the results of two saved queries.">
+     <figcaption>Counting the words in the results of two saved queries.</figcaption>
+</figure>
+
+Each query searches the documents you chose when you built it, so the Document Selector is hidden. To count the words in different documents, change the query's documents in the [Query Builder](/guide/querying).
+
+Each query becomes its own bar in the bar chart, so you can compare the queries word by word. The results table counts the results of all the queries together, and results that overlap are only counted once.
+
+<figure>
+     <img src="./images/WordFrequenciesQueryChart.png" alt="The results, with a bar for each query.">
+     <figcaption>The results, with a bar for each query.</figcaption>
+</figure>
+
+The counts update when you change a query, or when your coding changes what it finds.
 
 ## Choosing which words to count
 
@@ -104,6 +136,8 @@ The bar chart shows a separate bar for each document. If you have used [Grouped 
 Click a word in the table or the chart to search for it. Every place the word appears is shown in the Query Results pane.
 
 When you are counting coded passages, the search only looks inside those passages. Clicking a code's bar searches only that code's passages.
+
+When you are counting query results, the search only looks inside those results. Clicking a query's bar searches only that query's results.
 
 ::: tip
 To see which words go *together*, rather than which words are common, use [Word Combinations](/guide/wordcombinations).

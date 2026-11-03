@@ -1,6 +1,7 @@
 /**
  * Word Combinations — which words go together. Three views over the same
- * text (the selected documents, or the passages coded with chosen codes):
+ * text (the selected documents, the passages coded with chosen codes, or
+ * the results of chosen saved queries):
  *   - Phrases: sequences of two or three words that repeat;
  *   - Associations: the words that share sentences with a focus word more
  *     often than chance would explain, scored by log-likelihood (G²); and
@@ -20,13 +21,24 @@ import {
   countWords,
   sourceTexts,
   codedPassageTexts,
+  queryPassageTexts,
   countPhrases,
   wordAssociations,
   wordFilter,
   type SourceText,
   type WordQueryCodes
 } from './word-counts'
-import { type TextSource, useCodeSets, allCodes, CountWordsIn, CodesSection } from './word-sources'
+import {
+  type TextSource,
+  type QueryRun,
+  useCodeSets,
+  allCodes,
+  useQueryRuns,
+  allResults,
+  CountWordsIn,
+  CodesSection,
+  QueriesSection
+} from './word-sources'
 import { generateGuid } from '../../utils/guid'
 import { useLiveAnalysisData } from './use-live-analysis-data'
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
@@ -44,6 +56,8 @@ export interface WordCombinationsConfig {
   textSource: TextSource
   codeGuids: string[]
   includeSubcodes: boolean
+  /** Saved queries whose results are read when textSource is 'query'. */
+  queryGuids: string[]
   includeWords: string
   excludeWords: string
   view: CombinationsView
@@ -60,6 +74,7 @@ export function defaultCombinationsConfig(): WordCombinationsConfig {
     textSource: 'documents',
     codeGuids: [],
     includeSubcodes: true,
+    queryGuids: [],
     includeWords: '',
     excludeWords: Array.from(STOP_WORDS).join(', '),
     view: 'phrases',
@@ -76,9 +91,11 @@ export function combinationsPassages(
   data: AnalysisInitData,
   sourceGuids: string[],
   textSource: TextSource,
-  codeSets: Map<string, Set<string>>
+  codeSets: Map<string, Set<string>>,
+  queryRuns: Map<string, QueryRun>
 ): { passages: SourceText[]; boxCount: number } {
   if (textSource === 'coded') return codedPassageTexts(data, sourceGuids, allCodes(codeSets))
+  if (textSource === 'query') return queryPassageTexts(data, allResults(queryRuns))
   return { passages: sourceGuids.flatMap((g) => sourceTexts(data, g).map((text) => ({ sourceGuid: g, text }))), boxCount: 0 }
 }
 
@@ -163,6 +180,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
   const [textSource, setTextSource] = useState<TextSource>(initial.textSource)
   const [codeGuids, setCodeGuids] = useState<string[]>(initial.codeGuids)
   const [includeSubcodes, setIncludeSubcodes] = useState(initial.includeSubcodes)
+  const [queryGuids, setQueryGuids] = useState<string[]>(initial.queryGuids)
   const [includeWords, setIncludeWords] = useState(initial.includeWords)
   const [excludeWords, setExcludeWords] = useState(initial.excludeWords)
   const [view, setView] = useState<CombinationsView>(initial.view)
@@ -171,9 +189,12 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
   const [focusWord, setFocusWord] = useState(initial.focusWord)
   const [minTogether, setMinTogether] = useState(initial.minTogether)
   const live = useLiveAnalysisData()
+  // Saved queries choose their own documents and survey cells, so the
+  // Document Selector's scope doesn't apply to them.
+  const byQuery = textSource === 'query'
   const data = useMemo(() => {
-    return applySurveyCellScope({ ...propData, ...live }, docFilter)
-  }, [propData, live, docFilter])
+    return applySurveyCellScope({ ...propData, ...live }, byQuery ? {} : docFilter)
+  }, [propData, live, docFilter, byQuery])
   const [analysisGuid] = useState(savedConfig?.guid ?? generateGuid())
   const [analysisName, setAnalysisName] = useState(savedConfig?.name ?? '')
   const [showSaveDialog, setShowSaveDialog] = useState(false)
@@ -182,8 +203,8 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
 
   // Dirty tracking (see useToolDirtyState).
   const currentConfig: WordCombinationsConfig = useMemo(
-    () => ({ docFilter, textSource, codeGuids, includeSubcodes, includeWords, excludeWords, view, phraseLength, minCount, focusWord, minTogether }),
-    [docFilter, textSource, codeGuids, includeSubcodes, includeWords, excludeWords, view, phraseLength, minCount, focusWord, minTogether]
+    () => ({ docFilter, textSource, codeGuids, includeSubcodes, queryGuids, includeWords, excludeWords, view, phraseLength, minCount, focusWord, minTogether }),
+    [docFilter, textSource, codeGuids, includeSubcodes, queryGuids, includeWords, excludeWords, view, phraseLength, minCount, focusWord, minTogether]
   )
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initial, inTab)
 
@@ -192,6 +213,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
     setTextSource(baseline.textSource)
     setCodeGuids(baseline.codeGuids)
     setIncludeSubcodes(baseline.includeSubcodes)
+    setQueryGuids(baseline.queryGuids)
     setIncludeWords(baseline.includeWords)
     setExcludeWords(baseline.excludeWords)
     setView(baseline.view)
@@ -206,11 +228,12 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
     [data, docFilter]
   )
   const codeSets = useCodeSets(data.codes, codeGuids, includeSubcodes)
+  const queryRuns = useQueryRuns(data, queryGuids, byQuery)
   const filter = useMemo(() => wordFilter(includeWords, excludeWords), [includeWords, excludeWords])
 
   const { passages, boxCount } = useMemo(
-    () => combinationsPassages(data, filteredSourceGuids, textSource, codeSets),
-    [data, filteredSourceGuids, textSource, codeSets]
+    () => combinationsPassages(data, filteredSourceGuids, textSource, codeSets, queryRuns),
+    [data, filteredSourceGuids, textSource, codeSets, queryRuns]
   )
   const texts = useMemo(() => passages.map((p) => p.text), [passages])
 
@@ -235,24 +258,27 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
   const treeRef = useRef<SVGSVGElement>(null)
 
   // Searches run in the same documents, survey questions and (when
-  // counting coded passages) codes as the analysis.
+  // counting coded passages) codes as the analysis, or inside the chosen
+  // queries' results, which carry their own documents.
   const surveyScope = useCallback((): SurveyCellScopeArgs | undefined => (
-    docFilter.questionScope?.length || docFilter.respondentScope?.length
+    !byQuery && (docFilter.questionScope?.length || docFilter.respondentScope?.length)
       ? { questionScope: docFilter.questionScope, respondentScope: docFilter.respondentScope }
       : undefined
-  ), [docFilter])
+  ), [docFilter, byQuery])
   const queryCodes = useCallback((): WordQueryCodes | undefined => (
     coded ? { codeGuids: [...codeSets.keys()], includeSubcodes } : undefined
   ), [coded, codeSets, includeSubcodes])
+  const searchSources = byQuery ? [] : filteredSourceGuids
+  const withinGuids = byQuery ? [...queryRuns.keys()] : undefined
 
-  const searchFor = useCallback((text: string, sourceGuids: string[]) => {
-    window.api.sendAnalysisAction('run-word-query', text, sourceGuids, surveyScope(), queryCodes())
-  }, [surveyScope, queryCodes])
+  const searchFor = useCallback((text: string) => {
+    window.api.sendAnalysisAction('run-word-query', text, searchSources, surveyScope(), queryCodes(), withinGuids)
+  }, [searchSources, surveyScope, queryCodes, withinGuids])
 
   // The sentences where the focus word and an associated word appear together.
   const searchSentences = useCallback((word: string) => {
-    window.api.sendAnalysisAction('run-sentence-query', focus, word, filteredSourceGuids, surveyScope(), queryCodes())
-  }, [focus, filteredSourceGuids, surveyScope, queryCodes])
+    window.api.sendAnalysisAction('run-sentence-query', focus, word, searchSources, surveyScope(), queryCodes(), withinGuids)
+  }, [focus, searchSources, surveyScope, queryCodes, withinGuids])
 
   const handleExportCsv = useCallback(() => {
     if (view === 'phrases') {
@@ -308,9 +334,12 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
     return false
   })
 
+  const readingWhat = coded ? 'coded passages' : byQuery ? 'query results' : 'selected documents'
   const emptyMessage = coded && codeSets.size === 0
     ? 'Drag codes into Coded with to look at the words in their passages'
-    : view === 'phrases'
+    : byQuery && queryRuns.size === 0
+      ? 'Drag saved queries into the From these queries box to look at the words in their results'
+      : view === 'phrases'
       ? 'No phrases repeat often enough. Try a lower minimum count.'
       : 'No words to show'
 
@@ -375,13 +404,17 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
       )}
 
       <div style={{ flex: 1, overflow: 'auto', padding: '14px 20px' }}>
-        <DocumentsSection data={data} filter={docFilter} onChange={setDocFilter} filteredSourceGuids={filteredSourceGuids} />
-
         <CountWordsIn
           value={textSource}
           onChange={setTextSource}
           codedTitle="Look only at the passages coded with the chosen codes."
+          queryTitle="Look only at the results of the chosen saved queries. Each query searches the documents chosen in it."
         />
+        {byQuery ? (
+          <QueriesSection runs={queryRuns} onChangeQueries={setQueryGuids} boxCount={boxCount} />
+        ) : (
+          <DocumentsSection data={data} filter={docFilter} onChange={setDocFilter} filteredSourceGuids={filteredSourceGuids} />
+        )}
         {coded && (
           <CodesSection
             codes={data.codes}
@@ -493,7 +526,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                     </thead>
                     <tbody>
                       {phrases.slice(0, PHRASE_ROWS).map(({ phrase, count }) => (
-                        <tr key={phrase} onClick={() => searchFor(phrase, filteredSourceGuids)} style={{ cursor: 'pointer' }} title={`Search for "${phrase}"`}>
+                        <tr key={phrase} onClick={() => searchFor(phrase)} style={{ cursor: 'pointer' }} title={`Search for "${phrase}"`}>
                           <td style={tdStyle}>{phrase}</td>
                           <td style={{ ...tdStyle, textAlign: 'right' }}>{count}</td>
                         </tr>
@@ -506,7 +539,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
           ) : view === 'tree' ? (
             !tree || !treeLayout ? (
               <div style={{ padding: 30, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                {tree ? `“${focus}” doesn’t appear in the ${coded ? 'coded passages' : 'selected documents'}.` : emptyMessage}
+                {tree ? `“${focus}” doesn’t appear in the ${readingWhat}.` : emptyMessage}
               </div>
             ) : (
               <>
@@ -514,14 +547,14 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                   {`“${focus}” appears ${tree.count} time${tree.count === 1 ? '' : 's'}. Click a branch to search for it.`}
                 </div>
                 <div style={{ maxHeight: 560, overflow: 'auto' }}>
-                  <WordTreeChart layout={treeLayout} svgRef={treeRef} onSearch={(phrase) => searchFor(phrase, filteredSourceGuids)} />
+                  <WordTreeChart layout={treeLayout} svgRef={treeRef} onSearch={(phrase) => searchFor(phrase)} />
                 </div>
               </>
             )
           ) : !associations || associations.rows.length === 0 ? (
             <div style={{ padding: 30, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
               {associations && associations.focusSentences === 0
-                ? `“${focus}” doesn’t appear in the ${coded ? 'coded passages' : 'selected documents'}.`
+                ? `“${focus}” doesn’t appear in the ${readingWhat}.`
                 : associations
                   ? `No word shares enough sentences with “${focus}”. Try a lower minimum.`
                   : emptyMessage}

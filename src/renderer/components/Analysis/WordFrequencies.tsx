@@ -9,8 +9,17 @@ import {
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
 import { toCsv, resolveFilteredSources, STOP_WORDS, applySurveyCellScope } from './analysis-helpers'
-import { countWords, sourceTexts, codedPassageTexts, wordFilter, type WordQueryCodes } from './word-counts'
-import { type TextSource, useCodeSets, allCodes, CountWordsIn, CodesSection } from './word-sources'
+import { countWords, sourceTexts, codedPassageTexts, queryPassageTexts, wordFilter, type WordQueryCodes } from './word-counts'
+import {
+  type TextSource,
+  useCodeSets,
+  allCodes,
+  useQueryRuns,
+  allResults,
+  CountWordsIn,
+  CodesSection,
+  QueriesSection
+} from './word-sources'
 import { generateGuid } from '../../utils/guid'
 import {
   type GroupByEntry,
@@ -49,6 +58,7 @@ interface Props {
     textSource?: TextSource
     codeGuids?: string[]
     includeSubcodes?: boolean
+    queryGuids?: string[]
     guid: string
     name: string
   }
@@ -62,8 +72,9 @@ interface Props {
 
 type VizMode = 'bar' | 'cloud'
 
-/** A chart series: a group-by column, or one code's passages. */
-type Series = AnalysisColumn & { codeGuid?: string; color?: string }
+/** A chart series: a group-by column, one code's passages, or one saved
+ *  query's results. */
+type Series = AnalysisColumn & { codeGuid?: string; queryGuid?: string; color?: string }
 
 /** Parse a CSS colour (#RGB / #RRGGBB / rgb(...)) into HSL. Returns
  *  null if the input doesn't match a supported syntax. */
@@ -153,15 +164,19 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
   const [groupBy, setGroupBy] = useState<GroupByEntry[]>(
     () => savedConfig?.groupBy ?? migrateLegacyGroupBy(savedConfig?.groupByTags)
   )
-  const live = useLiveAnalysisData()
-  const data = useMemo(() => {
-    return applySurveyCellScope({ ...propData, ...live }, docFilter)
-  }, [propData, live, docFilter])
-  const [tagDropOver, setTagDropOver] = useState(false)
   const [textSource, setTextSource] = useState<TextSource>(savedConfig?.textSource ?? 'documents')
   const [codeGuids, setCodeGuids] = useState<string[]>(savedConfig?.codeGuids ?? [])
   const [includeSubcodes, setIncludeSubcodes] = useState(savedConfig?.includeSubcodes ?? true)
+  const [queryGuids, setQueryGuids] = useState<string[]>(savedConfig?.queryGuids ?? [])
   const coded = textSource === 'coded'
+  // Saved queries choose their own documents and survey cells, so the
+  // Document Selector's scope doesn't apply to them.
+  const byQuery = textSource === 'query'
+  const live = useLiveAnalysisData()
+  const data = useMemo(() => {
+    return applySurveyCellScope({ ...propData, ...live }, byQuery ? {} : docFilter)
+  }, [propData, live, docFilter, byQuery])
+  const [tagDropOver, setTagDropOver] = useState(false)
   const [includeWords, setIncludeWords] = useState(savedConfig?.includeWords ?? '')
   const [excludeWords, setExcludeWords] = useState(savedConfig?.excludeWords ?? Array.from(STOP_WORDS).join(', '))
   const [vizMode, setVizMode] = useState<VizMode>('bar')
@@ -175,8 +190,8 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
 
   // Dirty tracking (see useToolDirtyState).
   const currentConfig = useMemo(
-    () => ({ docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes }),
-    [docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes]
+    () => ({ docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes, queryGuids }),
+    [docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes, queryGuids]
   )
   const initialBaseline = useMemo(() => ({
     docFilter: documentFilterFromConfig(savedConfig),
@@ -186,7 +201,8 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     groupBy: savedConfig?.groupBy ?? migrateLegacyGroupBy(savedConfig?.groupByTags),
     textSource: savedConfig?.textSource ?? 'documents',
     codeGuids: savedConfig?.codeGuids ?? [],
-    includeSubcodes: savedConfig?.includeSubcodes ?? true
+    includeSubcodes: savedConfig?.includeSubcodes ?? true,
+    queryGuids: savedConfig?.queryGuids ?? []
   }), [])
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
 
@@ -199,6 +215,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     setTextSource(baseline.textSource)
     setCodeGuids(baseline.codeGuids)
     setIncludeSubcodes(baseline.includeSubcodes)
+    setQueryGuids(baseline.queryGuids)
   }, [baseline])
 
   const filteredSourceGuids = useMemo(
@@ -266,8 +283,10 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
   const codeMap = useMemo(() => new Map(data.codes.map((c) => [c.guid, c])), [data.codes])
 
   const codeSets = useCodeSets(data.codes, codeGuids, includeSubcodes)
+  const queryRuns = useQueryRuns(data, queryGuids, byQuery)
 
-  // Series build. Counting coded passages makes one series per code.
+  // Series build. Counting coded passages makes one series per code, and
+  // counting query results one series per query.
   // Otherwise the default (no group-by) collapses to a single "All"
   // series across the filtered source set, and a group-by makes the
   // shared, survey-aware builder produce tag/category/folder bands and the
@@ -279,13 +298,17 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
       }))
       return { series: perCode, seriesGroups: [] as { id: string; label: string | null; span: number }[] }
     }
+    if (byQuery) {
+      const perQuery: Series[] = [...queryRuns].map(([g, run]) => ({ id: g, label: run.name, sourceGuids: [], queryGuid: g }))
+      return { series: perQuery, seriesGroups: [] as { id: string; label: string | null; span: number }[] }
+    }
     if (groupBy.length === 0) {
       const all: Series[] = [{ id: '__all', label: 'All', sourceGuids: filteredSourceGuids }]
       return { series: all, seriesGroups: [] as { id: string; label: string | null; span: number }[] }
     }
     const built = buildSurveyAwareColumns(groupBy, data, filteredSourceGuids, sourceMap, { includeSubtotals: true })
     return { series: built.columns as Series[], seriesGroups: built.headerGroups }
-  }, [coded, codeSets, codeMap, groupBy, filteredSourceGuids, data, sourceMap])
+  }, [coded, codeSets, codeMap, byQuery, queryRuns, groupBy, filteredSourceGuids, data, sourceMap])
 
   const seriesColor = useCallback(
     (si: number) => series[si]?.color || SERIES_COLORS[si % SERIES_COLORS.length],
@@ -299,16 +322,19 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
   const seriesFreqs = useMemo(() => {
     return series.map((s) => {
       if (s.codeGuid) return countWords(codedPassageTexts(data, s.sourceGuids, codeSets.get(s.codeGuid)!).passages.map((p) => p.text), filter)
+      if (s.queryGuid) return countWords(queryPassageTexts(data, queryRuns.get(s.queryGuid)!.results).passages.map((p) => p.text), filter)
       const sd = s.respondentRef ? applySurveyCellScope(data, { respondentScope: [s.respondentRef] }) : data
       return countWords(s.sourceGuids.flatMap((g) => sourceTexts(sd, g)), filter)
     })
-  }, [series, data, codeSets, filter])
+  }, [series, data, codeSets, queryRuns, filter])
 
-  // Every passage coded with any chosen code, overlaps merged.
+  // Every passage coded with any chosen code, or every result of the
+  // chosen queries, overlaps merged.
   const allCodedPassages = useMemo(() => {
-    if (!coded) return null
-    return codedPassageTexts(data, filteredSourceGuids, allCodes(codeSets))
-  }, [coded, codeSets, data, filteredSourceGuids])
+    if (coded) return codedPassageTexts(data, filteredSourceGuids, allCodes(codeSets))
+    if (byQuery) return queryPassageTexts(data, allResults(queryRuns))
+    return null
+  }, [coded, codeSets, byQuery, queryRuns, data, filteredSourceGuids])
 
   // Overall word frequencies for ranking + table, counted once over the
   // filtered sources (or once over all the chosen codes' passages).
@@ -352,7 +378,11 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
   // otherwise across everything the tool counted.
   const handleWordClick = useCallback((word: string, s?: Series) => {
     const queryCodes = (guids: string[]): WordQueryCodes => ({ codeGuids: guids, includeSubcodes })
-    if (s?.codeGuid) {
+    if (s?.queryGuid) {
+      window.api.sendAnalysisAction('run-word-query', word, [], undefined, undefined, [s.queryGuid])
+    } else if (byQuery) {
+      window.api.sendAnalysisAction('run-word-query', word, [], undefined, undefined, [...queryRuns.keys()])
+    } else if (s?.codeGuid) {
       window.api.sendAnalysisAction('run-word-query', word, s.sourceGuids, surveyScope(), queryCodes([s.codeGuid]))
     } else if (coded) {
       window.api.sendAnalysisAction('run-word-query', word, filteredSourceGuids, surveyScope(), queryCodes([...codeSets.keys()]))
@@ -361,7 +391,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     } else {
       window.api.sendAnalysisAction('run-word-query', word, filteredSourceGuids, surveyScope())
     }
-  }, [coded, codeSets, includeSubcodes, filteredSourceGuids, surveyScope])
+  }, [coded, codeSets, includeSubcodes, byQuery, queryRuns, filteredSourceGuids, surveyScope])
 
   // Bar chart — fixed width, bars shrink to fit
   const barW = 600
@@ -458,12 +488,12 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
       guid: analysisGuid,
       toolType: 'word-frequencies',
       name,
-      config: { docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes }
+      config: { docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes, queryGuids }
     })
-    setBaseline({ docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes })
+    setBaseline({ docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes, queryGuids })
     if (inTab) inTab.onSaved(analysisGuid, name)
     else setTimeout(() => window.close(), 200)
-  }, [analysisGuid, docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes, inTab, setBaseline])
+  }, [analysisGuid, docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes, queryGuids, inTab, setBaseline])
 
   useRegisterToolSave(inTab?.tabId, () => {
     if (isExisting) {
@@ -535,13 +565,18 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
       )}
 
       <div style={{ flex: 1, overflow: 'auto', padding: '14px 20px' }}>
-        <DocumentsSection data={data} filter={docFilter} onChange={setDocFilter} filteredSourceGuids={filteredSourceGuids} />
-
         <CountWordsIn
           value={textSource}
           onChange={setTextSource}
           codedTitle="Count the words in passages coded with the chosen codes, one series per code."
+          queryTitle="Count the words in the results of the chosen saved queries, one series per query. Each query searches the documents chosen in it."
         />
+
+        {byQuery ? (
+          <QueriesSection runs={queryRuns} onChangeQueries={setQueryGuids} boxCount={allCodedPassages?.boxCount ?? 0} />
+        ) : (
+          <DocumentsSection data={data} filter={docFilter} onChange={setDocFilter} filteredSourceGuids={filteredSourceGuids} />
+        )}
 
         {coded ? (
           <CodesSection
@@ -552,7 +587,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
             onChangeIncludeSubcodes={setIncludeSubcodes}
             boxCount={allCodedPassages?.boxCount ?? 0}
           />
-        ) : (
+        ) : byQuery ? null : (
           /* Group by \u2014 entire section is the drop target. */
           <div
             className="analysis-section"
@@ -636,7 +671,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
                 </thead>
                 <tbody>
                   {wordFreqs.slice(0, 200).map(([word, count]) => (
-                    <tr key={word} onClick={() => handleWordClick(word)} style={{ cursor: 'pointer' }} title={coded ? `Search for "${word}" in the coded passages` : `Search for "${word}"`}>
+                    <tr key={word} onClick={() => handleWordClick(word)} style={{ cursor: 'pointer' }} title={coded ? `Search for "${word}" in the coded passages` : byQuery ? `Search for "${word}" in the query results` : `Search for "${word}"`}>
                       <td style={{ padding: '2px 6px', borderBottom: '1px solid var(--border-color)' }}>{word}</td>
                       <td style={{ padding: '2px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'right' }}>{count}</td>
                     </tr>
@@ -714,7 +749,11 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
 
             {displayWords.length === 0 ? (
               <div style={{ padding: 30, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                {coded && codeSets.size === 0 ? 'Drag codes into Coded with to count the words in their passages' : 'No words to display'}
+                {coded && codeSets.size === 0
+                  ? 'Drag codes into Coded with to count the words in their passages'
+                  : byQuery && queryRuns.size === 0
+                    ? 'Drag saved queries into the From these queries box to count the words in their results'
+                    : 'No words to display'}
               </div>
             ) : vizMode === 'bar' ? (
               (() => {

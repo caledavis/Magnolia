@@ -9,8 +9,8 @@ The Word Combinations tool allows you to see which words go together in your doc
 2. Choose `Word Combinations`.
 
 The tool contains:
-- The [Document Selector](/guide/documentselector)
-- The `Count words in` choice, as in [Word Frequencies](/guide/wordfrequencies#counting-words-in-documents-or-coded-passages)
+- The `Count words in` choice, as in [Word Frequencies](/guide/wordfrequencies#choosing-what-to-count)
+- The [Document Selector](/guide/documentselector) (when reading documents or coded passages)
 
 The tool shows its results in three ways, which you choose with the buttons above the results:
 
@@ -28,10 +28,18 @@ The tool shows its results in three ways, which you choose with the buttons abov
 ## Choosing what to read
 
 Use `Count words in` to choose what Magnolia reads:
-- `Documents` reads the whole of each selected document; or,
-- `Coded Passages` reads only the passages you have coded with particular codes. Drag the codes from the Code Browser into the `Coded with` box.
+- `Documents` reads the whole of each selected document;
+- `Coded Passages` reads only the passages you have coded with particular codes. Drag the codes from the Code Browser into the `Coded with` box; or,
+- `Query Results` reads only the results of your saved [queries](/guide/querying). Drag the queries from the Saved Queries Panel into the `From these queries` box.
 
-When you read coded passages, the passages of all your codes are read together. Clicking a result searches only inside those passages.
+When you read coded passages, the passages of all your codes are read together. When you read query results, the results of all your queries are read together. Either way, clicking a result searches only inside the passages or results being read.
+
+Each query searches the documents you chose when you built it, so the Document Selector is hidden while you read query results.
+
+<figure>
+     <img src="./images/WordCombinationsQuery.png" alt="Reading the results of a saved query.">
+     <figcaption>Reading the results of a saved query.</figcaption>
+</figure>
 
 ## Phrases
 

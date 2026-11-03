@@ -416,6 +416,11 @@ export interface Query {
     graph?: { nodes: any[]; conns: any[] }
   }
   codeCondition: CodeCondition
+  /** Only keep text matches that fall inside the results of these queries
+   *  (each run with its own document filter). Set by the word tools'
+   *  searches when they count words in query results; the Query Builder
+   *  never authors it. */
+  within?: Query[]
 }
 
 /** Survey-cell scope carried from an analysis result cell-click into the

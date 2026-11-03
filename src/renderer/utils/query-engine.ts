@@ -271,6 +271,12 @@ export function executeQuery(
   // matching behaviour identical to the old pre-expanded form.
   const codeCondition = expandSubcodeConditions(query.codeCondition, codeMap)
 
+  // `within`: text matches count only inside other queries' results (an
+  // empty list allows none).
+  const keep = query.within
+    ? withinFilter(query.within, sources, sourceContents, codes, tags, sourceFolder, folders)
+    : undefined
+
   // Evaluate each source
   for (const source of filteredSources) {
     const content = sourceContents[source.guid] ?? source.plainTextContent ?? ''
@@ -290,7 +296,7 @@ export function executeQuery(
 
     // Standalone text search: find all occurrences in the full document text
     if (condType === 'text') {
-      results.push(...textSearchDocument(codeCondition as { type: 'text'; searchText: string; caseSensitive?: boolean }, source, content, cellScope))
+      results.push(...textSearchDocument(codeCondition as { type: 'text'; searchText: string; caseSensitive?: boolean }, source, content, cellScope, keep))
       continue
     }
 
@@ -302,7 +308,7 @@ export function executeQuery(
       for (const child of flatChildren) {
         if (child.type === 'text') {
           // Document-wide text search for this branch
-          for (const r of textSearchDocument(child, source, content, cellScope)) {
+          for (const r of textSearchDocument(child, source, content, cellScope, keep)) {
             const key = spanKey(r)
             if (!seen.has(key)) { seen.add(key); results.push(r) }
           }
@@ -325,7 +331,7 @@ export function executeQuery(
     }
 
     if (condType === 'sameSentence') {
-      const evalSelections = buildSpatialSelections(scopedSelections, codeCondition, source, content, cellScope)
+      const evalSelections = buildSpatialSelections(scopedSelections, codeCondition, source, content, cellScope, keep)
       results.push(...findSameSentences(codeCondition as SameSentenceCondition, evalSelections, source, content, codeMap))
       continue
     }
@@ -338,7 +344,7 @@ export function executeQuery(
       condType === 'overlap' || condType === 'inside' || condType === 'outside' ||
       condType === 'before' || condType === 'followedBy'
     const evalSelections = isSpatial
-      ? buildSpatialSelections(scopedSelections, codeCondition, source, content, cellScope)
+      ? buildSpatialSelections(scopedSelections, codeCondition, source, content, cellScope, keep)
       : scopedSelections
 
     for (const selection of evalSelections) {
@@ -378,6 +384,39 @@ export function executeQuery(
   return results
 }
 
+/** Whether a text match (in a document, or in one survey cell) may count. */
+type KeepMatch = (sourceGuid: string, start: number, end: number, cell?: { respondentId: string; questionId: string }) => boolean
+
+/** The `within` filter: a text match counts only when it lies wholly inside
+ *  one of the results of the given queries, each run with its own
+ *  document filter. Box results (PDF/image regions) hold no text, so no
+ *  match can fall inside them. */
+function withinFilter(
+  queries: Query[],
+  sources: TextSource[],
+  sourceContents: Record<string, string>,
+  codes: Code[],
+  tags: QDASet[],
+  sourceFolder?: Record<string, string>,
+  folders?: { guid: string; parentGuid: string | null }[]
+): KeepMatch {
+  const spans = new Map<string, { start: number; end: number }[]>()
+  const key = (sourceGuid: string, cell?: { respondentId: string; questionId: string }) =>
+    cell ? `${sourceGuid}\n${cell.respondentId}\n${cell.questionId}` : sourceGuid
+  for (const q of queries) {
+    for (const r of executeQuery({ ...q, within: undefined }, sources, sourceContents, codes, tags, sourceFolder, folders)) {
+      // Video results carry transcript line indexes, not text offsets.
+      if (r.timeRange) continue
+      const k = key(r.sourceGuid, r.surveyCell)
+      let arr = spans.get(k)
+      if (!arr) { arr = []; spans.set(k, arr) }
+      arr.push({ start: r.startPosition, end: r.endPosition })
+    }
+  }
+  return (sourceGuid, start, end, cell) =>
+    (spans.get(key(sourceGuid, cell)) ?? []).some((s) => s.start <= start && end <= s.end)
+}
+
 /* ═══════════════════════════════════════════════════
    Text search helpers
    ═══════════════════════════════════════════════════ */
@@ -393,7 +432,8 @@ function textSearchDocument(
   cond: { type: 'text'; searchText: string; caseSensitive?: boolean; wholeWord?: boolean },
   source: TextSource,
   content: string,
-  cellScope?: TagCellScope
+  cellScope?: TagCellScope,
+  keep?: KeepMatch
 ): QueryResult[] {
   const results: QueryResult[] = []
   if (!cond.searchText) return results
@@ -411,6 +451,7 @@ function textSearchDocument(
         const cellText = buildCellText(respondent.answers[question.id])
         if (!cellText) continue
         for (const hit of findTextMatches(cellText, cond)) {
+          if (keep && !keep(source.guid, hit.start, hit.end, { respondentId: respondent.id, questionId: question.id })) continue
           results.push({
             sourceGuid: source.guid,
             sourceName: source.name,
@@ -433,6 +474,7 @@ function textSearchDocument(
   }
 
   for (const hit of findTextMatches(content, cond)) {
+    if (keep && !keep(source.guid, hit.start, hit.end)) continue
     results.push({
       sourceGuid: source.guid,
       sourceName: source.name,
@@ -541,7 +583,8 @@ function buildSpatialSelections(
   cond: CodeCondition,
   source: TextSource,
   content: string,
-  cellScope: TagCellScope
+  cellScope: TagCellScope,
+  keep?: KeepMatch
 ): EvalSelection[] {
   const texts = collectTextConditions(cond)
   const survey = (source.formatData as SurveyFormatData | undefined)?.survey
@@ -566,6 +609,7 @@ function buildSpatialSelections(
     cellText?: string,
     cell?: { respondentId: string; questionId: string }
   ): void => {
+    if (keep && !keep(source.guid, start, end, cell)) return
     const key = spanKey({ startPosition: start, endPosition: end, surveyCell: cell })
     if (seen.has(key)) return // don't duplicate an existing coded span
     seen.add(key)
@@ -912,7 +956,9 @@ function findOverlapIntersections(
       matchedText,
       contextBefore: before,
       contextAfter: after,
-      matchedCodes: collectMatchedCodes(condition.condition1, allCodes, codeMap)
+      matchedCodes: collectMatchedCodes(condition.condition1, allCodes, codeMap),
+      // Survey intersections index into one cell's text; say which.
+      surveyCell: selection.surveyCell
     })
   }
 

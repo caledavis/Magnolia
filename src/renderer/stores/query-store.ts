@@ -103,7 +103,7 @@ export function runQueryLive(query: Query): { results: QueryResult[]; missingDoc
   const results = noDocs
     ? []
     : executeQuery(
-        { ...query, documentFilter },
+        { ...query, documentFilter, within: liveWithin(query.within) },
         docState.sources,
         docState.sourceContents,
         useCodeStore.getState().flatCodes(),
@@ -114,6 +114,19 @@ export function runQueryLive(query: Query): { results: QueryResult[]; missingDoc
   return { results, missingDocuments }
 }
 
+/** A query's `within` queries with their document filters resolved live.
+ *  One whose filter now matches no documents has no results, so it drops
+ *  out (left in, its empty filter would mean every document). */
+function liveWithin(within: Query[] | undefined): Query[] | undefined {
+  if (!within) return undefined
+  const out: Query[] = []
+  for (const q of within) {
+    const { documentFilter, noDocs } = liveResolveFilter(q.documentFilter)
+    if (!noDocs) out.push({ ...q, documentFilter })
+  }
+  return out
+}
+
 /** What a query actually executes on: the code condition plus the
  *  live-resolved document filter, minus the document graph itself — its
  *  node positions change whenever the user lays out the builder canvas,
@@ -121,7 +134,11 @@ export function runQueryLive(query: Query): { results: QueryResult[]; missingDoc
 function executionKey(query: Query): string {
   const { documentFilter, noDocs } = liveResolveFilter(query.documentFilter)
   const { graph: _graph, ...filter } = documentFilter
-  return JSON.stringify({ codeCondition: query.codeCondition, filter, noDocs })
+  const within = liveWithin(query.within)?.map((q) => {
+    const { graph: _g, ...f } = q.documentFilter
+    return { codeCondition: q.codeCondition, filter: f }
+  })
+  return JSON.stringify({ codeCondition: query.codeCondition, filter, noDocs, within })
 }
 
 /** executionKey of the latest scheduled run; null once cleared. */

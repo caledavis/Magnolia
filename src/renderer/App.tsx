@@ -147,6 +147,17 @@ function describeCondition(cond: CodeCondition, findCode: (guid: string) => Code
   }
 }
 
+/** The saved queries a word search is limited to (see Query.within), or
+ *  undefined when the word tool wasn't counting query results. */
+function withinQueries(queryGuids: string[] | undefined): Query[] | undefined {
+  if (!queryGuids) return undefined
+  const saved = useQueryStore.getState().savedQueries
+  return queryGuids.flatMap((g) => {
+    const q = saved.find((sq) => sq.guid === g)?.query
+    return q ? [q] : []
+  })
+}
+
 function describeQuery(
   query: Query,
   findCode: (guid: string) => Code | undefined,
@@ -197,6 +208,7 @@ function describeQuery(
     }
   }
   if (parts.length > 0) name += ' IN ' + parts.join(', ')
+  if (query.within) name += ` inside the results of ${query.within.length === 1 ? '1 query' : `${query.within.length} queries`}`
   return name
 }
 
@@ -1961,19 +1973,22 @@ function App() {
         useQueryStore.getState().setComplexQuery(scopedQuery)
       } else if (action === 'run-word-query') {
         // Build a text search query for a word in specific documents,
-        // limited to coded passages when the tool counted those.
-        const [word, filteredGuids, scope, codes] = args as [string, string[] | undefined, SurveyCellScopeArgs | undefined, WordQueryCodes | undefined]
+        // limited to coded passages, or to saved queries' results, when
+        // the tool counted those.
+        const [word, filteredGuids, scope, codes, queryGuids] = args as [string, string[] | undefined, SurveyCellScopeArgs | undefined, WordQueryCodes | undefined, string[] | undefined]
         const query: Query = {
           documentFilter: applySurveyScopeToFilter(filteredGuids && filteredGuids.length > 0 ? { sourceGuids: filteredGuids } : {}, scope),
-          codeCondition: wordCondition(word, codes)
+          codeCondition: wordCondition(word, codes),
+          within: withinQueries(queryGuids)
         }
         useQueryStore.getState().setComplexQuery(query)
       } else if (action === 'run-sentence-query') {
         // The sentences containing both words (Word Combinations' associations).
-        const [word1, word2, filteredGuids, scope, codes] = args as [string, string, string[] | undefined, SurveyCellScopeArgs | undefined, WordQueryCodes | undefined]
+        const [word1, word2, filteredGuids, scope, codes, queryGuids] = args as [string, string, string[] | undefined, SurveyCellScopeArgs | undefined, WordQueryCodes | undefined, string[] | undefined]
         const query: Query = {
           documentFilter: applySurveyScopeToFilter(filteredGuids && filteredGuids.length > 0 ? { sourceGuids: filteredGuids } : {}, scope),
-          codeCondition: sentenceCondition(word1, word2, codes)
+          codeCondition: sentenceCondition(word1, word2, codes),
+          within: withinQueries(queryGuids)
         }
         useQueryStore.getState().setComplexQuery(query)
       } else if (action === 'open-document') {

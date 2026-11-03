@@ -6,9 +6,10 @@
  * Words are counted in one of two kinds of text:
  *   - a document's analysable text (sourceTexts): its content with
  *     formatting syntax stripped, or a survey's open-ended answers; or
- *   - the passages coded with a set of codes (codedPassageTexts).
+ *   - the passages coded with a set of codes (codedPassageTexts); or
+ *   - the results of saved queries (queryPassageTexts).
  */
-import type { AnalysisInitData, CodeCondition, PlainTextSelection } from '../../models/types'
+import type { AnalysisInitData, CodeCondition, PlainTextSelection, QueryResult } from '../../models/types'
 import { stripFormatting } from '../../utils/strip-formatting'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
 import { sentenceRanges } from '../../utils/sentences'
@@ -97,33 +98,74 @@ export function codedPassageTexts(d: AnalysisInitData, sourceGuids: string[], co
   let boxCount = 0
   for (const sg of sourceGuids) {
     const sels = (d.sourceSelections[sg] || []).filter((sel) => sel.codings.some((c) => codeGuids.has(c.codeGuid)))
-    if (sels.length === 0) continue
-    // Ranges grouped by the text they index into: '' for the document,
-    // or a survey cell's key.
-    const byText = new Map<string, { start: number; end: number }[]>()
+    const byText: RangesByText = new Map()
     for (const sel of sels) {
       if (sel.pdfRegion) { boxCount++; continue }
-      const key = cellKey(sel)
-      let arr = byText.get(key)
-      if (!arr) { arr = []; byText.set(key, arr) }
-      arr.push({ start: sel.startPosition, end: sel.endPosition })
+      addRange(byText, cellKey(sel), sel.startPosition, sel.endPosition)
     }
-    if (byText.size === 0) continue
-    const st = sourceTypeOf(d, sg)
-    const cellTexts = new Map<string, string>()
-    for (const c of d.surveyCodableCells?.[sg] || []) cellTexts.set(`${c.respondentId}\n${c.questionId}`, c.text)
-    for (const [key, ranges] of byText) {
-      const base = key ? cellTexts.get(key) : d.sourceContents[sg]
-      if (!base) continue
-      // Offsets are codepoints: split once per text, not once per passage.
-      const cps = Array.from(base)
-      for (const r of mergeRanges(ranges)) {
-        const passage = cps.slice(r.start, r.end).join('')
-        if (passage) passages.push({ sourceGuid: sg, text: key ? passage : stripFormatting(passage, st) })
-      }
-    }
+    passages.push(...rangeTexts(d, sg, byText))
   }
   return { passages, boxCount }
+}
+
+/** The text of every result of the given query runs, read the same way
+ *  as coded passages: overlapping results are merged so each stretch of
+ *  text is counted once, and box results (regions on PDFs and images)
+ *  are counted but have no text. */
+export function queryPassageTexts(d: AnalysisInitData, results: QueryResult[]): CodedPassages {
+  const passages: SourceText[] = []
+  let boxCount = 0
+  const bySource = new Map<string, QueryResult[]>()
+  for (const r of results) {
+    let arr = bySource.get(r.sourceGuid)
+    if (!arr) { arr = []; bySource.set(r.sourceGuid, arr) }
+    arr.push(r)
+  }
+  for (const [sg, rs] of bySource) {
+    const boxes = new Set((d.sourceSelections[sg] || []).filter((sel) => sel.pdfRegion).map((sel) => sel.guid))
+    const byText: RangesByText = new Map()
+    for (const r of rs) {
+      if (boxes.has(r.selectionGuid)) { boxCount++; continue }
+      // Video results hold transcript line indexes, not text offsets;
+      // their matched text is already the lines they cover.
+      if (r.timeRange) { if (r.matchedText) passages.push({ sourceGuid: sg, text: r.matchedText }); continue }
+      const key = r.surveyCell ? `${r.surveyCell.respondentId}\n${r.surveyCell.questionId}` : ''
+      addRange(byText, key, r.startPosition, r.endPosition)
+    }
+    passages.push(...rangeTexts(d, sg, byText))
+  }
+  return { passages, boxCount }
+}
+
+/** Ranges grouped by the text they index into: '' for the document, or a
+ *  survey cell's key. */
+type RangesByText = Map<string, { start: number; end: number }[]>
+
+function addRange(byText: RangesByText, key: string, start: number, end: number): void {
+  let arr = byText.get(key)
+  if (!arr) { arr = []; byText.set(key, arr) }
+  arr.push({ start, end })
+}
+
+/** The text of a source's ranges, overlaps merged. Survey ranges are read
+ *  from their cell's text, since their offsets are cell-relative. */
+function rangeTexts(d: AnalysisInitData, sg: string, byText: RangesByText): SourceText[] {
+  if (byText.size === 0) return []
+  const out: SourceText[] = []
+  const st = sourceTypeOf(d, sg)
+  const cellTexts = new Map<string, string>()
+  for (const c of d.surveyCodableCells?.[sg] || []) cellTexts.set(`${c.respondentId}\n${c.questionId}`, c.text)
+  for (const [key, ranges] of byText) {
+    const base = key ? cellTexts.get(key) : d.sourceContents[sg]
+    if (!base) continue
+    // Offsets are codepoints: split once per text, not once per passage.
+    const cps = Array.from(base)
+    for (const r of mergeRanges(ranges)) {
+      const passage = cps.slice(r.start, r.end).join('')
+      if (passage) out.push({ sourceGuid: sg, text: key ? passage : stripFormatting(passage, st) })
+    }
+  }
+  return out
 }
 
 function cellKey(sel: PlainTextSelection): string {
