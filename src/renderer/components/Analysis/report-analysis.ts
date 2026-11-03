@@ -23,7 +23,7 @@ import { buildDisplayRows, fullLabel, summaryKey } from './framework-matrix-mode
 import { buildExportSvg } from './RelationshipMap/svg-export'
 import { countWords, sourceTexts, codedPassageTexts, queryPassageTexts, codeSet, wordFilter, countPhrases, wordAssociations } from './word-counts'
 import { runQueries, allResults } from './word-sources'
-import { combinationsPassages, defaultCombinationsConfig, effectiveFocus } from './WordCombinations'
+import { combinationsPassages, defaultCombinationsConfig, effectiveFocus, phraseLengthOf } from './WordCombinations'
 import { buildWordTree, layoutWordTree, wordTreeSvg } from './word-tree'
 import { documentFilterFromConfig } from './documents-filter'
 import { runResultsQueries } from './ResultsInDocuments'
@@ -694,7 +694,7 @@ function wordCombinationsHtml(config: any): string {
     return intro + wrapTable(`<thead><tr><th class="rowhead">Word</th><th>Together</th><th>% of Sentences</th><th>G\u00B2</th></tr></thead><tbody>${body}</tbody>`, 3)
   }
 
-  const phrases = countPhrases(texts, cfg.phraseLength === 3 ? 3 : 2, filter, Math.max(1, cfg.minCount))
+  const phrases = countPhrases(texts, phraseLengthOf(cfg.phraseLength), filter, Math.max(1, cfg.minCount))
   if (phrases.length === 0) return '<div class="empty">(no repeated phrases)</div>'
   const body = phrases
     .slice(0, COMBINATION_ROWS)

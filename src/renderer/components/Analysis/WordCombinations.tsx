@@ -61,11 +61,20 @@ export interface WordCombinationsConfig {
   includeWords: string
   excludeWords: string
   view: CombinationsView
-  phraseLength: 2 | 3
+  phraseLength: PhraseLength
   minCount: number
   /** Empty uses the most frequent word. */
   focusWord: string
   minTogether: number
+}
+
+/** How many words a phrase has. */
+export type PhraseLength = 2 | 3 | 4 | 5
+const PHRASE_LENGTHS: PhraseLength[] = [2, 3, 4, 5]
+
+/** A saved phrase length, or 2 if it isn't one the tool offers. */
+export function phraseLengthOf(n: unknown): PhraseLength {
+  return PHRASE_LENGTHS.includes(n as PhraseLength) ? (n as PhraseLength) : 2
 }
 
 export function defaultCombinationsConfig(): WordCombinationsConfig {
@@ -184,7 +193,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
   const [includeWords, setIncludeWords] = useState(initial.includeWords)
   const [excludeWords, setExcludeWords] = useState(initial.excludeWords)
   const [view, setView] = useState<CombinationsView>(initial.view)
-  const [phraseLength, setPhraseLength] = useState<2 | 3>(initial.phraseLength)
+  const [phraseLength, setPhraseLength] = useState<PhraseLength>(phraseLengthOf(initial.phraseLength))
   const [minCount, setMinCount] = useState(initial.minCount)
   const [focusWord, setFocusWord] = useState(initial.focusWord)
   const [minTogether, setMinTogether] = useState(initial.minTogether)
@@ -469,12 +478,9 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                 <>
                   <SegmentedControl
                     label="Phrase length"
-                    value={String(phraseLength) as '2' | '3'}
-                    onChange={(v) => setPhraseLength(v === '3' ? 3 : 2)}
-                    options={[
-                      { value: '2', label: '2 Words' },
-                      { value: '3', label: '3 Words' }
-                    ]}
+                    value={String(phraseLength)}
+                    onChange={(v) => setPhraseLength(phraseLengthOf(Number(v)))}
+                    options={PHRASE_LENGTHS.map((n) => ({ value: String(n), label: `${n} Words` }))}
                   />
                   <label style={{ fontSize: 10, color: 'var(--text-muted)' }}>Minimum count:
                     <input type="number" min={1} max={1000} value={minCount} onChange={(e) => setMinCount(Number(e.target.value))}

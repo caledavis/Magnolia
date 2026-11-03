@@ -16,7 +16,7 @@ The tool shows its results in three ways, which you choose with the buttons abov
 
 | Button | Output |
 | --- | --- |
-| `Phrases` | Lists the sequences of two or three words that repeat. This is the default. |
+| `Phrases` | Lists the sequences of two to five words that repeat. This is the default. |
 | `Associations` | Lists the words that appear in the same sentences as a word you choose. |
 | `Word Tree` | Shows every place a word you choose appears, with the words before and after it. |
 
@@ -47,7 +47,7 @@ Each query searches the documents you chose when you built it, so the Document S
 
 | Option | Use |
 | --- | --- |
-| `2 Words` / `3 Words` | Chooses how long each phrase is. |
+| `2 Words` to `5 Words` | Chooses how long each phrase is. Longer phrases repeat less often, so you may need to lower the minimum count to see any. |
 | `Minimum count` | Hides phrases that appear fewer times than this. It starts at 2. |
 
 A phrase never runs across punctuation or a line break, so "money, time" is not counted as a phrase.

@@ -195,6 +195,15 @@ describe('countPhrases', () => {
     expect(countPhrases(['Quality of life matters.'], 2, stop, 1)).toEqual([{ phrase: 'life matters', count: 1 }])
   })
 
+  it('counts longer phrases', () => {
+    const texts = ['At the end of the day it works. At the end of the day we rest.']
+    expect(countPhrases(texts, 4, wordFilter('', 'the, it, we'), 2)).toEqual([
+      { phrase: 'at the end of', count: 2 },
+      { phrase: 'end of the day', count: 2 }
+    ])
+    expect(countPhrases(texts, 5, wordFilter('', ''), 2).map((r) => r.phrase)).toEqual(['at the end of the', 'the end of the day'])
+  })
+
   it('never joins words across punctuation, line breaks or double spaces', () => {
     expect(countPhrases(['mental, health', 'mental\nhealth', 'mental  health', 'well-being'], 2, wordFilter('', ''), 1)).toEqual([])
   })
