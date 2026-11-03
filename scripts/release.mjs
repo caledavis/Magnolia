@@ -7,13 +7,16 @@
  *     version-less names the README's download links and the update
  *     manifests use. On macOS it also zips the .app for electron-updater.
  *
- *   node scripts/release.mjs manifests <version> <dir> [notes-file]
+ *   node scripts/release.mjs manifests <version> <dir> [notes-file] [--base-url <url>]
  *     Given every platform's assets in <dir> (e.g. from
  *     `gh release download vX.Y.Z -D <dir>`), write:
  *       latest.json       — Tauri's updater manifest (signed payloads)
  *       latest-mac.yml    — electron-updater manifests, so installs of
  *       latest.yml          Magnolia 1.x (Electron) still find and install
  *       latest-linux.yml    this release
+ *     --base-url points the download links at <url> instead of the GitHub
+ *     release, for rehearsing an update against a local server (RELEASING.md,
+ *     "Testing an update before release").
  */
 import { createHash } from 'node:crypto'
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
@@ -91,10 +94,11 @@ function legacyYml(version, dir, file, date, extra = '') {
     .join('\n') + '\n'
 }
 
-function manifests(version, dir, notesFile) {
+function manifests(version, dir, notesFile, baseUrl) {
   const v = version.replace(/^v/, '')
   const date = new Date().toISOString()
-  const url = (file) => `https://github.com/${REPO}/releases/download/v${v}/${file}`
+  const base = baseUrl ? baseUrl.replace(/\/?$/, '/') : `https://github.com/${REPO}/releases/download/v${v}/`
+  const url = (file) => `${base}${file}`
   const has = (f) => existsSync(join(dir, f))
   const sig = (f) => readFileSync(join(dir, `${f}.sig`), 'utf-8').trim()
 
@@ -133,12 +137,15 @@ function manifests(version, dir, notesFile) {
   }
 }
 
-const [cmd, ...args] = process.argv.slice(2)
+const argv = process.argv.slice(2)
+const flag = argv.indexOf('--base-url')
+const baseUrl = flag >= 0 ? argv.splice(flag, 2)[1] : undefined
+const [cmd, ...args] = argv
 try {
   if (cmd === 'collect' && args[0]) collect(args[0])
-  else if (cmd === 'manifests' && args[0] && args[1]) manifests(args[0], resolve(args[1]), args[2])
+  else if (cmd === 'manifests' && args[0] && args[1]) manifests(args[0], resolve(args[1]), args[2], baseUrl)
   else {
-    console.error('usage: release.mjs collect <mac-arm64|mac-x64|win|linux>\n       release.mjs manifests <version> <dir> [notes-file]')
+    console.error('usage: release.mjs collect <mac-arm64|mac-x64|win|linux>\n       release.mjs manifests <version> <dir> [notes-file] [--base-url <url>]')
     process.exit(1)
   }
 } catch (e) {

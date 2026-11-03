@@ -136,7 +136,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .build(tauri::generate_context!())
+        .build(updater::with_endpoint_override(tauri::generate_context!()))
         .expect("error while building Magnolia");
 
     app.run(|app, event| match event {

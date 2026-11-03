@@ -27,6 +27,13 @@
 //! instead, starting at launch (`=uptodate` and `=error` show those
 //! outcomes); `MAGNOLIA_FORCE_UPDATE_BADGE` still drives just the badge.
 //!
+//! `MAGNOLIA_UPDATE_ENDPOINT=<url of a latest.json>` makes a release
+//! build check that manifest instead of GitHub's, so a real download and
+//! install can be rehearsed against a local server
+//! (RELEASING.md, "Testing an update before release"). Plain `http` is
+//! allowed only for such an override; signatures are still checked against
+//! the built-in key, so it can't make the app install an unsigned update.
+//!
 //! Publishing is described in RELEASING.md.
 
 use crate::storage;
@@ -76,6 +83,29 @@ impl Drop for CheckGuard {
         CHECKING.store(false, Ordering::SeqCst);
         FOLLOWING.store(false, Ordering::SeqCst);
     }
+}
+
+/// Points the updater at `MAGNOLIA_UPDATE_ENDPOINT` when it is set (see the
+/// module docs). Applied to the bundled config before the app is built,
+/// because the plugin reads its endpoints and transport rules from there.
+pub fn with_endpoint_override<R: tauri::Runtime>(mut context: tauri::Context<R>) -> tauri::Context<R> {
+    let Ok(endpoint) = std::env::var("MAGNOLIA_UPDATE_ENDPOINT") else {
+        return context;
+    };
+    let endpoint = endpoint.trim().to_string();
+    if endpoint.is_empty() {
+        return context;
+    }
+    // Logging isn't up yet (plugins start after this), so say it directly.
+    eprintln!("[auto-update] checking {endpoint} (MAGNOLIA_UPDATE_ENDPOINT)");
+    let plugins = &mut context.config_mut().plugins.0;
+    let updater = plugins.entry("updater".into()).or_insert_with(|| json!({}));
+    if let Some(cfg) = updater.as_object_mut() {
+        let insecure = endpoint.starts_with("http://");
+        cfg.insert("endpoints".into(), json!([endpoint]));
+        cfg.insert("dangerousInsecureTransportProtocol".into(), json!(insecure));
+    }
+    context
 }
 
 fn current_version(app: &AppHandle) -> String {

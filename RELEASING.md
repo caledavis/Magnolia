@@ -275,6 +275,77 @@ through `latest.json`.
 
 ---
 
+## Testing an update before release
+
+Updaters only see a **published** release, so rehearse against a local
+server first. Nothing here touches GitHub. Example: the real release is
+2.0.0, and a throwaway 2.0.1 stands in for "the next version".
+
+**Build the two versions** (signing key and Apple variables exported):
+```sh
+npm version 2.0.0 --no-git-tag-version
+npm run tauri build -- --target aarch64-apple-darwin
+node scripts/release.mjs collect mac-arm64
+mkdir -p ~/update-test && mv release ~/update-test/2.0.0
+
+npm version 2.0.1 --no-git-tag-version     # throwaway; don't commit it
+npm run tauri build -- --target aarch64-apple-darwin
+node scripts/release.mjs collect mac-arm64
+mv release ~/update-test/2.0.1
+echo "Test release notes — **markdown** works." > ~/update-test/notes.md
+git checkout package.json package-lock.json src-tauri/Cargo.toml   # back to the real version
+```
+
+### Tauri → Tauri (`latest.json`)
+
+1. Install 2.0.0: open `~/update-test/2.0.0/Magnolia-mac-arm64.dmg` and drag
+   it to Applications.
+2. Write the 2.0.1 manifest with local download links, and serve it:
+   ```sh
+   node scripts/release.mjs manifests 2.0.1 ~/update-test/2.0.1 ~/update-test/notes.md --base-url http://localhost:8000/
+   python3 -m http.server 8000 -d ~/update-test/2.0.1
+   ```
+3. Launch 2.0.0 pointed at it (quit Magnolia first):
+   ```sh
+   open -n --env MAGNOLIA_UPDATE_ENDPOINT=http://localhost:8000/latest.json /Applications/Magnolia.app
+   ```
+   `MAGNOLIA_UPDATE_ENDPOINT` makes a release build check that manifest
+   instead of GitHub's. Signatures are still checked against the built-in
+   key.
+4. Check: the prompt appears with the notes; Remind Me Later; Skip This
+   Version (then Help → Check for Updates… still offers it); Install Update
+   → progress → Cancel; Install Update again → Install and Relaunch; the
+   relaunched app's About says 2.0.1. Reinstall 2.0.0 and also check
+   "close the window when Ready to Install, then quit" installs on quit.
+   The server log shows each request.
+
+### Electron 1.x → Tauri (`latest-mac.yml`)
+
+1. Get a 1.9.0 copy and point its updater at the local server. Editing
+   the bundle breaks its signature, so re-sign it with the **same Developer
+   ID** (Squirrel.Mac only installs an update whose signer matches):
+   ```sh
+   gh release download v1.9.0 -p 'Magnolia-*arm64*.zip' -D ~/update-test/1.9.0
+   ditto -x -k ~/update-test/1.9.0/*.zip /Applications
+   printf 'provider: generic\nurl: http://localhost:8000/\nupdaterCacheDirName: magnolia-updater\n' \
+     > /Applications/Magnolia.app/Contents/Resources/app-update.yml
+   codesign --force --deep --options runtime --preserve-metadata=entitlements \
+     --sign "Developer ID Application: Cale Davis (DTRLLXT8T7)" /Applications/Magnolia.app
+   ```
+2. Write the 2.0.0 manifests and serve them:
+   ```sh
+   node scripts/release.mjs manifests 2.0.0 ~/update-test/2.0.0 ~/update-test/notes.md --base-url http://localhost:8000/
+   python3 -m http.server 8000 -d ~/update-test/2.0.0
+   ```
+3. Open 1.9.0 and let it update. Check: the Tauri 2.0.0 launches
+   afterwards, preferences and recent projects are still there.
+
+Back up `~/Library/Application Support/Magnolia` before testing and restore
+it afterwards, since every run reads and writes it. Remove
+`/Applications/Magnolia.app` when done and install the real release.
+
+---
+
 ## Skipping a platform
 
 To ship, say, a macOS-only update, build and collect just that platform and
