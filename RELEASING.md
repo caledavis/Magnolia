@@ -249,6 +249,14 @@ the Tauri build:
   the **same Developer ID** as the installed 1.x app, so always release
   signed builds. Preferences and recent projects carry over (same
   `~/Library/Application Support/Magnolia` folder).
+  After installing, Squirrel.Mac can't relaunch the app: it looks for
+  `Squirrel.framework` inside the new bundle, which a Tauri app doesn't
+  have. Magnolia quits and stays closed until the user opens it again. 1.x
+  shows the GitHub release body in its update dialog, so the **first Tauri
+  release's notes must say so**, e.g.:
+  > **Updating from Magnolia 1.x on a Mac:** Magnolia will close to finish
+  > the update and won't reopen by itself. Open it again from your
+  > Applications folder; your projects and preferences are kept.
 - **Windows:** electron-updater runs the new installer silently. Tauri installs
   per-user into a different folder than Electron did, so the old copy's
   uninstaller entry stays in "Installed apps" until the user removes it;
@@ -326,6 +334,7 @@ git checkout package.json package-lock.json src-tauri/Cargo.toml   # back to the
    ID** (Squirrel.Mac only installs an update whose signer matches):
    ```sh
    gh release download v1.9.0 -p 'Magnolia-*arm64*.zip' -D ~/update-test/1.9.0
+   rm -rf /Applications/Magnolia.app   # ditto merges into an existing bundle
    ditto -x -k ~/update-test/1.9.0/*.zip /Applications
    printf 'provider: generic\nurl: http://localhost:8000/\nupdaterCacheDirName: magnolia-updater\n' \
      > /Applications/Magnolia.app/Contents/Resources/app-update.yml
