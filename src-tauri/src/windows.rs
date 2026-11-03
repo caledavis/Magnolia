@@ -286,6 +286,10 @@ pub fn open_main(app: &AppHandle) -> Option<WebviewWindow> {
         .center();
     #[cfg(target_os = "macos")]
     let b = b.accept_first_mouse(true);
+    let b = match crate::automation::script() {
+        Some(script) => b.initialization_script(&script),
+        None => b,
+    };
     let w = match chromeless(b, None).build() {
         Ok(w) => w,
         Err(e) => {

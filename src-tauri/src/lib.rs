@@ -1,6 +1,7 @@
 //! Magnolia desktop app: a Tauri shell around the React renderer, with all
 //! project I/O, conversion and system integration in Rust.
 
+mod automation;
 mod commands;
 mod menu;
 mod print;
@@ -26,8 +27,13 @@ fn open_path(app: &AppHandle, path: String) {
 }
 
 pub fn run() {
-    let app = tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+    let builder = tauri::Builder::default();
+    // An automated screenshot run is a second copy of the app on purpose:
+    // it mustn't hand its scratch project to a Magnolia the user has open.
+    let builder = if automation::active() {
+        builder
+    } else {
+        builder.plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             // A second launch (e.g. double-clicking another .qdpx on
             // Windows/Linux) hands its arguments to this instance.
             match qdpx_from_args(&args) {
@@ -42,6 +48,8 @@ pub fn run() {
                 }
             }
         }))
+    };
+    let app = builder
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
@@ -112,6 +120,10 @@ pub fn run() {
             updater::update_window_state,
             updater::update_window_fit,
             updater::check_for_updates,
+            automation::automation_set_size,
+            automation::automation_capture,
+            automation::automation_log,
+            automation::automation_quit,
         ])
         .setup(|app| {
             storage::init(app.handle());

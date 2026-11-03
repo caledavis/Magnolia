@@ -18,6 +18,7 @@ pub fn init(app: &AppHandle) {
         .config_dir()
         .unwrap_or_else(|_| std::env::temp_dir())
         .join("Magnolia");
+    let base = crate::automation::data_dir().unwrap_or(base);
     let _ = std::fs::create_dir_all(&base);
     let _ = DIR.set(base);
 }
