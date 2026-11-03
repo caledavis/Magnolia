@@ -16,7 +16,7 @@ declare module 'csstype' {
 
 declare global {
   /** App version, injected at build time from package.json via the
-   *  `define` in vite.config.ts. */
+   *  `define` in vite.config.mts. */
   const __APP_VERSION__: string
 }
 

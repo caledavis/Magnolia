@@ -12,5 +12,5 @@
     "target": "ESNext",
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "vitest.config.ts"]
+  "include": ["vite.config.mts", "vitest.config.mts"]
 }

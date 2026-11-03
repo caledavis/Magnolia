@@ -5,7 +5,7 @@ import { defineConfig } from 'vitest/config'
 // `cargo test --workspace`.
 export default defineConfig({
   // project-store.ts references __APP_VERSION__, a global normally injected
-  // by vite.config.ts's define — stub it here too so tests that import
+  // by vite.config.mts's define — stub it here too so tests that import
   // renderer stores (e.g. for the merge apply engine) don't need the app's
   // build config.
   define: {
