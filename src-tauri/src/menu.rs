@@ -204,17 +204,10 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     view = view
         .item(&sep()?)
         .item(&PredefinedMenuItem::fullscreen(app, None)?);
-    let open_windows: Vec<(String, String)> = app
-        .webview_windows()
-        .into_iter()
-        .filter(|(l, _)| l != WELCOME)
-        .map(|(l, w)| (l, w.title().unwrap_or_default().replace(" — Magnolia", "")))
-        .collect();
+    let open_windows = window_list(app);
     if app.get_webview_window(MAIN).is_some() && !open_windows.is_empty() {
         view = view.item(&sep()?);
-        let mut sorted = open_windows;
-        sorted.sort_by_key(|(l, _)| (l != MAIN, l.clone()));
-        for (label, title) in sorted {
+        for (label, title) in open_windows {
             let title = if title.is_empty() {
                 "Magnolia".to_string()
             } else {
@@ -257,15 +250,60 @@ fn about_metadata(app: &AppHandle) -> tauri::menu::AboutMetadata<'static> {
     }
 }
 
-/// Rebuild and install the app menu (window list / checkbox state changed).
+/// The View menu's window list: (label, title) with the main window first.
+/// The title leaves out " — Magnolia" and the " — Edited" marker, so
+/// editing or saving the project doesn't change the menu.
+fn window_list(app: &AppHandle) -> Vec<(String, String)> {
+    let mut list: Vec<(String, String)> = app
+        .webview_windows()
+        .into_iter()
+        .filter(|(l, _)| l != WELCOME)
+        .map(|(l, w)| {
+            let title = w.title().unwrap_or_default();
+            (l, title.replace(" — Magnolia", "").replace(" — Edited", ""))
+        })
+        .collect();
+    list.sort_by_key(|(l, _)| (l != MAIN, l.clone()));
+    list
+}
+
+/// What the menu shows that can change: panel visibility and the window
+/// list. Installing a new menu makes the macOS menu bar flicker, so a
+/// rebuild that wouldn't change it is skipped.
+fn contents_key(app: &AppHandle) -> String {
+    let visibility = app.state::<AppState>().ui.lock().unwrap().panel_visibility.clone();
+    format!("{visibility:?}|{:?}|{}", window_list(app), app.get_webview_window(MAIN).is_some())
+}
+
+static INSTALLED: std::sync::Mutex<Option<String>> = std::sync::Mutex::new(None);
+
+/// Rebuild and install the app menu (a window opened or closed).
 pub fn rebuild(app: &AppHandle) {
+    install(app, true);
+}
+
+/// Rebuild the menu only if what it shows has changed (a window was
+/// renamed, or panel visibility was reported).
+pub fn rebuild_if_changed(app: &AppHandle) {
+    install(app, false);
+}
+
+fn install(app: &AppHandle, force: bool) {
     let handle = app.clone();
     // Menus must be built on the main thread.
-    let _ = app.run_on_main_thread(move || match build(&handle) {
-        Ok(m) => {
-            let _ = handle.set_menu(m);
+    let _ = app.run_on_main_thread(move || {
+        let key = contents_key(&handle);
+        let mut installed = INSTALLED.lock().unwrap();
+        if !force && installed.as_deref() == Some(key.as_str()) {
+            return;
         }
-        Err(e) => log::error!("menu build failed: {e}"),
+        match build(&handle) {
+            Ok(m) => {
+                let _ = handle.set_menu(m);
+                *installed = Some(key);
+            }
+            Err(e) => log::error!("menu build failed: {e}"),
+        }
     });
 }
 

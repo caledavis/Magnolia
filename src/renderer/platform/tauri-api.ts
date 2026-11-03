@@ -176,9 +176,12 @@ window.addEventListener('dblclick', (e) => {
 })
 
 // Electron mirrored the page <title> into the window title (used by the
-// View menu's window list); do the same.
+// View menu's window list); do the same. The observer sees every change
+// to <head>, so only a new title is passed on.
+let syncedTitle = ''
 function syncTitle(): void {
-  if (!document.title) return
+  if (!document.title || document.title === syncedTitle) return
+  syncedTitle = document.title
   void current.setTitle(document.title).then(() => invoke('window_title_changed'))
 }
 new MutationObserver(syncTitle).observe(document.head ?? document.documentElement, {

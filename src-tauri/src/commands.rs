@@ -944,7 +944,7 @@ pub async fn update_panel_visibility(
     visibility: Value,
 ) -> CmdResult<()> {
     state.ui.lock().unwrap().panel_visibility = Some(visibility);
-    crate::menu::rebuild(&app);
+    crate::menu::rebuild_if_changed(&app);
     Ok(())
 }
 
@@ -965,7 +965,7 @@ pub async fn flush_heartbeat(app: AppHandle) -> CmdResult<()> {
 #[tauri::command]
 pub async fn window_title_changed(app: AppHandle, window: tauri::WebviewWindow) -> CmdResult<()> {
     crate::windows::place_traffic_lights(&window);
-    crate::menu::rebuild(&app);
+    crate::menu::rebuild_if_changed(&app);
     Ok(())
 }
 
