@@ -12,7 +12,7 @@ Think of it as a timeline for each document. It is particularly useful for inter
 
 The tool contains:
 - The [Document Selector](/guide/documentselector)
-- The [Group By](/guide/grouping) function
+- The [Grouped by](/guide/grouping) function
 
 ## Adding codes
 
@@ -33,7 +33,7 @@ Each row is one document. The further right a block sits, the later in the docum
      <figcaption>Four codes across every document in the project.</figcaption>
 </figure>
 
-If you have used [Group By](/guide/grouping) to group documents by tag, the tagged documents are placed end to end on a single strip.
+If you have used [Grouped by](/guide/grouping) to group documents by tag, the tagged documents are placed end to end on a single strip.
 
 <figure>
      <img src="./images/CodeOrdersGrouped.png" alt="The Code Orders visualisation, grouped by tag.">

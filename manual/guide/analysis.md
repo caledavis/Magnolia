@@ -16,6 +16,7 @@ underlying data.
 - **[Code Orders](/guide/codeorders)** — see the order in which codes appear in each document.
 - **[Code Frequencies](/guide/codefrequencies)** — see how much of each document is covered by each code.
 - **[Word Frequencies](/guide/wordfrequencies)** — see which words appear often.
+- **[Word Combinations](/guide/wordcombinations)** — see which words go together.
 
 ## Grouping and saving
 

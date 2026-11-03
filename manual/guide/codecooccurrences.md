@@ -21,7 +21,7 @@ The tool contains the [Document Selector](/guide/documentselector).
 1. Drag the codes from the Code Browser into either:
    1. The `Drop codes here for rows` box, to add them as rows;
    2. The `Drop codes here for columns` box, to add them as columns; or,
-   3. Anywhere else in the `Co-Occurrence Grid`, to add them as both rows and columns.
+   3. Anywhere else in the `Results` box, to add them as both rows and columns.
 
 2. The table fills in as you add codes.
 

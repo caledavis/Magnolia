@@ -10,7 +10,7 @@ The Codes in Documents tool allows you to see how often particular codes appear 
 
 The tool contains:
 - The [Document Selector](/guide/documentselector)
-- The [Group By](/guide/grouping) function
+- The [Grouped by](/guide/grouping) function
 
 <figure>
      <img src="./images/CodesInDocuments.png" alt="The Codes in Documents tool.">
@@ -79,7 +79,7 @@ Once you can see where your codes appear, you may want to write a summary of wha
 
 - Tags, tag categories and folders you have grouped by become groups in the matrix, with their documents nested beneath them.
 - Documents that are not in any group each get their own row.
-- If you have chosen documents in `Select Documents`, the matrix includes only those documents. Its groups then stay limited to those documents, so a document you tag later is not added to them.
+- If you have chosen documents in `From these documents`, the matrix includes only those documents. Its groups then stay limited to those documents, so a document you tag later is not added to them.
 
 The new matrix is not saved until you click `Save Analysis` in it.
 

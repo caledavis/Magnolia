@@ -1,0 +1,127 @@
+# Word Combinations
+
+The Word Combinations tool allows you to see which words go together in your documents. Where [Word Frequencies](/guide/wordfrequencies) tells you which words are common, Word Combinations tells you how they are used: the phrases that keep coming up, the words that appear alongside a word you choose, and every context a word appears in.
+
+**To open Word Combinations:**
+
+1. Click the `Analyse` button in the toolbar.
+
+2. Choose `Word Combinations`.
+
+The tool contains:
+- The [Document Selector](/guide/documentselector)
+- The `Count words in` choice, as in [Word Frequencies](/guide/wordfrequencies#counting-words-in-documents-or-coded-passages)
+
+The tool shows its results in three ways, which you choose with the buttons above the results:
+
+| Button | Output |
+| --- | --- |
+| `Phrases` | Lists the sequences of two or three words that repeat. This is the default. |
+| `Associations` | Lists the words that appear in the same sentences as a word you choose. |
+| `Word Tree` | Shows every place a word you choose appears, with the words before and after it. |
+
+<figure>
+     <img src="./images/WordCombinationsOverview.png" alt="The Word Combinations tool, showing phrases.">
+     <figcaption>The Word Combinations tool, showing phrases.</figcaption>
+</figure>
+
+## Choosing what to read
+
+Use `Count words in` to choose what Magnolia reads:
+- `Documents` reads the whole of each selected document; or,
+- `Coded Passages` reads only the passages you have coded with particular codes. Drag the codes from the Code Browser into the `Coded with` box.
+
+When you read coded passages, the passages of all your codes are read together. Clicking a result searches only inside those passages.
+
+## Phrases
+
+`Phrases` lists the sequences of words that appear more than once, with the number of times each one appears. Think of it as finding the expressions your participants keep reaching for, such as "cost of living" or "mental health".
+
+| Option | Use |
+| --- | --- |
+| `2 Words` / `3 Words` | Chooses how long each phrase is. |
+| `Minimum count` | Hides phrases that appear fewer times than this. It starts at 2. |
+
+A phrase never runs across punctuation or a line break, so "money, time" is not counted as a phrase.
+
+You can change which phrases are listed using the two boxes above the results:
+
+| Box | Use |
+| --- | --- |
+| `Only these words` | Lists only the phrases that contain one of these words. Leave it empty to list every phrase. |
+| `Leave out these words` | Leaves out the phrases that start or end with one of these words. It starts with the list of common English words (such as "the" and "of"), which you can edit. |
+
+Because only the start and end of a phrase are checked, phrases such as "quality of life" are kept even though "of" is left out, while phrases such as "of the" are not.
+
+<figure>
+     <img src="./images/WordCombinationsPhrases.png" alt="The phrases of two words that appear at least twice.">
+     <figcaption>The phrases of two words that appear at least twice.</figcaption>
+</figure>
+
+Click a phrase to search for it. Every place it appears is shown in the Query Results pane.
+
+## Associations
+
+`Associations` takes a word you choose and lists the words that appear in the same sentences as it more often than chance would explain. For example, if "rent" keeps appearing in the same sentences as "worry", "worry" is near the top of the list for "rent".
+
+**To see a word's associations:**
+
+1. Click `Associations`.
+
+2. Type a word into the `Word` box. If you leave it empty, Magnolia uses the most frequent word that isn't in `Leave out these words`.
+
+The table lists each associated word with:
+
+| Column | Shows |
+| --- | --- |
+| `Together` | How many sentences contain both words. |
+| `% of Sentences` | The share of the chosen word's sentences that also contain this word. |
+| `G²` | How unlikely it is that the two words share this many sentences by chance. The higher the number, the stronger the association. |
+
+Use `Minimum together` to hide words that share fewer sentences than this with the chosen word. It starts at 3.
+
+::: info
+G² (log-likelihood) is a common measure of how strongly two words are associated. As a rule of thumb, a G² above 3.84 means the words appear together more often than chance would explain (at p < 0.05), and above 10.83, much more often (at p < 0.001). Values below 3.84 are shown in grey.
+:::
+
+A sentence ends at a full stop, a question mark or an exclamation mark, or at a line break.
+
+<figure>
+     <img src="./images/WordCombinationsAssociations.png" alt="The words associated with “work”.">
+     <figcaption>The words associated with “work”.</figcaption>
+</figure>
+
+Click a word in the table to find the sentences where it appears with the chosen word. They are shown in the Query Results pane.
+
+## Word Tree
+
+`Word Tree` shows every place a word you choose appears. The words that come after it branch out to the right, and the words that come before it branch out to the left. When several sentences go on in the same way, they share a branch, so the tree reads as the phrases your participants use. Think of it as reading every sentence containing the word at once.
+
+**To see a word tree:**
+
+1. Click `Word Tree`.
+
+2. Type a word into the `Word` box. If you leave it empty, Magnolia uses the most frequent word that isn't a common English word. The word is shared with `Associations`, so you can switch between the two.
+
+Hover over a branch to highlight the sentences that run through it, on both sides of the word. Click a branch to search for it: the text from the word to the end of the branch is shown in the Query Results pane.
+
+A branch reaches up to 12 words from the chosen word. If a sentence goes on further, the branch ends with `…`.
+
+The word tree shows every word, so the `Only these words` and `Leave out these words` boxes are hidden while it is showing.
+
+<figure>
+     <img src="./images/WordCombinationsTree.png" alt="The word tree for “rent”, with the sentences through “is” highlighted.">
+     <figcaption>The word tree for “rent”, with the sentences through “is” highlighted.</figcaption>
+</figure>
+
+::: tip
+A very common word, such as "the", can produce a tree with hundreds of branches. The tree scrolls, but you will usually learn more from a less common word.
+:::
+
+## Saving and exporting
+
+You can save the analysis by clicking `Save Analysis`. It appears in the Analyses Panel. If you make changes later, click `Update Analysis` to save them.
+
+You can export the current results as a spreadsheet by clicking `Export CSV`. In `Word Tree`, you can also export the tree as an image by clicking `Export SVG`.
+
+You can also add the analysis to a [Report](/guide/reports) by dragging it from the Analyses Panel into the report. The report shows the results in the way they were showing when you saved the analysis.

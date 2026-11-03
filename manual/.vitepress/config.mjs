@@ -149,6 +149,7 @@ export default defineConfig({
           page('Code Orders', '/guide/codeorders'), // DONE
           page('Code Frequencies', '/guide/codefrequencies'), // DONE
           page('Word Frequencies', '/guide/wordfrequencies'), // DONE
+          page('Word Combinations', '/guide/wordcombinations'),
           page('Relationships', '/guide/relationships'), // DONE
           page('Reports', '/guide/reports'), // DONE
         ]

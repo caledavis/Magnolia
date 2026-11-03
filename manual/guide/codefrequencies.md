@@ -12,13 +12,13 @@ Where [Codes in Documents](/guide/codesindocuments) counts *how many times* a co
 
 The tool contains:
 - The [Document Selector](/guide/documentselector)
-- The [Group By](/guide/grouping) function
+- The [Grouped by](/guide/grouping) function
 
 ## Adding codes
 
 **To add codes to the table:**
 
-1. Drag the codes from the Code Browser into the `Frequency Grid` box.
+1. Drag the codes from the Code Browser into the `Results` box.
 
 2. Each code appears as a row in the table, and a chart appears beneath it.
 

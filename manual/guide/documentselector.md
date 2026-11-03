@@ -1,9 +1,9 @@
 # Document Selector
 
-The Document Selector is a function common to the query tool and several analysis tools. It allows you to select which documents your query or analysis applies to.
+The Document Selector is a function common to the query tool and several analysis tools. It allows you to select which documents your query or analysis applies to. In each tool, it is the `From these documents` section.
 
 ## Default state
-By default, the Document Selector is collapsed and targets all documents in your project.
+By default, the Document Selector is collapsed and targets all documents in your project. Its heading shows what it targets, so you can check without opening it: for example, `All 9 documents`, or `4 of 9 documents · 2 questions` once you have narrowed it down.
 <figure>
      <img src="./images/DocumentSelectorCollapsed.png" alt="The Document Selector in its default state.">
      <figcaption>The Document Selector in its default state.</figcaption>
@@ -43,4 +43,30 @@ For convenience, the Document Selector shows you which documents your selection 
 
 ::: tip
 Remember to connect your selection to the Result node box.
+:::
+
+## Survey questions and respondents
+If your selection includes a survey, you can limit it to some of the survey's questions or respondents. Think of it as choosing which columns and rows of the survey's spreadsheet to read.
+
+Each survey in the Selected Documents list shows two lines beneath its name: `All questions` and `All respondents`.
+
+**To choose questions or respondents:**
+
+1. Click `All questions` or `All respondents` beneath the survey's name.
+
+2. Tick the questions or respondents you want to include. Use `Select All` and `Deselect All` to tick or clear them all at once; and,
+
+3. Click outside the list to close it. The line now shows how many you have chosen, for example `2 of 14 questions`.
+
+<figure>
+     <img src="./images/DocumentSelectorSurvey.png" alt="Choosing two of a survey’s questions.">
+     <figcaption>Choosing two of a survey’s questions.</figcaption>
+</figure>
+
+You can also drag questions or respondents from the Document Browser onto the Document Selector. Each one you drop is added to its survey's choices.
+
+The choices only apply to that survey. Other documents in your selection are not affected.
+
+::: tip
+If you deselect every question or respondent, the line shows `No questions` or `No respondents`, and nothing from that survey is included. To leave a survey out entirely, it is clearer to remove it from your selection.
 :::

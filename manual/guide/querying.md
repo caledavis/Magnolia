@@ -39,6 +39,8 @@ The Query Builder allows you to create complex queries that target specific docu
 
 To open the Query Builder, click the `Query` button in the toolbar.
 
+The Query Builder has two sections: `From these documents`, which is the [Document Selector](/guide/documentselector), and `Find this content`, where you build the query itself.
+
 The Document Selector is, by default, collapsed. It will apply your query to all documents unless you specify otherwise.
 
 When a new query is created, the Query Builder is empty.
@@ -115,11 +117,22 @@ You can add spatial operators into your query to refine it. Spatial operators re
 | Outside | Outputs segments of Code 1 that do not overlap with Code 2 | 
 | Before | Outputs segments of Input 1 where Input 1 ends before Input 2, with no overlap between them | 
 | Followed By | Outputs segments of Input 1 where Input 1 starts after Input 2, with no overlap between them | 
+| Same Sentence | Outputs the sentences that contain both Input 1 and Input 2 | 
 
 <figure>
      <img src="./images/SpatialOperators.png" alt="The spatial operator nodes.">
      <figcaption>The spatial operator nodes.</figcaption>
 </figure>
+
+### Finding things in the same sentence
+
+The Same Sentence operator finds the sentences where two things appear together. Its inputs can be two pieces of text, a piece of text and a code, or two codes. For example, connecting the text "rent" and the text "worry" finds every sentence containing both words. Each result is the whole sentence.
+
+A sentence ends at a full stop, a question mark or an exclamation mark, or at a line break.
+
+::: tip
+The Same Sentence operator must be connected straight to the Results node. Its sentences can't be used as an input to another operator.
+:::
 
 ## An example
 

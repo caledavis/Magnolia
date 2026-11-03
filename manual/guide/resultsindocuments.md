@@ -10,7 +10,7 @@ Think of it as Codes in Documents for queries: instead of asking "where does thi
 
 2. Choose `Results in Documents`.
 
-The tool contains the [Group By](/guide/grouping) function.
+The tool contains the [Grouped by](/guide/grouping) function.
 
 ## Adding queries
 
