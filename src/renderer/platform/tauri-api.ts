@@ -177,12 +177,15 @@ window.addEventListener('dblclick', (e) => {
 
 // Electron mirrored the page <title> into the window title (used by the
 // View menu's window list); do the same. The observer sees every change
-// to <head>, so only a new title is passed on.
+// to <head>, so only a new title is passed on. The " — Edited" marker is
+// left out: on macOS a title change resets the traffic lights, which then
+// visibly jump back into place, and editing or saving shouldn't do that.
 let syncedTitle = ''
 function syncTitle(): void {
-  if (!document.title || document.title === syncedTitle) return
-  syncedTitle = document.title
-  void current.setTitle(document.title).then(() => invoke('window_title_changed'))
+  const title = document.title.replace(' — Edited', '')
+  if (!title || title === syncedTitle) return
+  syncedTitle = title
+  void current.setTitle(title).then(() => invoke('window_title_changed'))
 }
 new MutationObserver(syncTitle).observe(document.head ?? document.documentElement, {
   subtree: true,
