@@ -353,6 +353,57 @@ Back up `~/Library/Application Support/Magnolia` before testing and restore
 it afterwards, since every run reads and writes it. Remove
 `/Applications/Magnolia.app` when done and install the real release.
 
+### On Linux
+
+Only the **AppImage** updates itself (deb/rpm installs don't, on either
+updater), so that's what both rehearsals use. The steps above carry over
+with these changes.
+
+**Build the two versions** the same way, with the signing key exported and
+only the Linux bundles:
+```sh
+npm run tauri build -- --bundles appimage,deb,rpm
+node scripts/release.mjs collect linux
+```
+
+**Tauri → Tauri:** there's nothing to install. Copy the 2.0.0 AppImage
+(the updater overwrites whichever file it was started from, so keep the
+original for the install-on-quit run), write and serve the 2.0.1 manifests
+as above, then:
+```sh
+cp ~/update-test/2.0.0/Magnolia-linux-x86_64.AppImage ~/update-test/Magnolia-under-test.AppImage
+MAGNOLIA_UPDATE_ENDPOINT=http://localhost:8000/latest.json ~/update-test/Magnolia-under-test.AppImage
+```
+Over localhost the 120 MB download finishes in about a second, too fast to
+press Cancel. Serve it through a rate-limited server (~5 MB/s) for that step.
+
+**Electron 1.x → Tauri (`latest-linux.yml`):** nothing is signed, so
+instead of re-signing, extract 1.9.0, edit its `app-update.yml`, and run
+the extracted app with `APPIMAGE` set to a copy of the original. That copy
+is the file electron-updater replaces and relaunches:
+```sh
+gh release download v1.9.0 -p 'Magnolia-linux-x86_64.AppImage' -D ~/update-test/1.9.0
+cd ~/update-test/1.9.0 && chmod +x Magnolia-linux-x86_64.AppImage
+./Magnolia-linux-x86_64.AppImage --appimage-extract
+printf 'provider: generic\nurl: http://localhost:8000/\nupdaterCacheDirName: magnolia-updater\n' \
+  > squashfs-root/resources/app-update.yml
+cp Magnolia-linux-x86_64.AppImage ~/update-test/Magnolia-linux-x86_64.AppImage
+APPIMAGE=$HOME/update-test/Magnolia-linux-x86_64.AppImage squashfs-root/AppRun
+```
+With the 2.0.0 manifests served, 1.9.0 downloads the update on its own
+and installs it when you quit or restart. Expect two things in its log:
+- A `RangeError … Received NaN` from the differential download. The Tauri
+  AppImage has no embedded blockmap, so electron-updater falls back to a
+  full download. That's harmless.
+- The update is written under the release's file name. A user who renamed
+  their 1.9.0 AppImage ends up with `Magnolia-linux-x86_64.AppImage` and
+  loses the old file, along with any launcher pointing at it. Keep the
+  copy under the release name, as above, to test an in-place update.
+
+Back up `~/.config/Magnolia` (shared by the Electron and Tauri builds)
+before testing and restore it afterwards. The Tauri tests add
+`magnolia-update-state.json` there, which holds Skip This Version.
+
 ---
 
 ## Skipping a platform
