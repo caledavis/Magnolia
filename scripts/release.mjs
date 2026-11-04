@@ -22,9 +22,10 @@ import { createHash } from 'node:crypto'
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const REPO = 'caledavis/Magnolia'
-const root = resolve(new URL('..', import.meta.url).pathname)
+const root = fileURLToPath(new URL('..', import.meta.url))
 const out = join(root, 'release')
 
 /** Per-platform bundle locations → stable asset names. */
@@ -35,9 +36,13 @@ const PLATFORMS = {
 
 function findOne(dir, pattern) {
   if (!existsSync(dir)) throw new Error(`No bundle directory ${dir} — run the build first.`)
-  const hit = readdirSync(dir).find((f) => pattern.test(f))
-  if (!hit) throw new Error(`No file matching ${pattern} in ${dir}`)
-  return join(dir, hit)
+  // A previous version's bundle can still be sitting in this directory (Tauri
+  // doesn't clean it between builds), so among every match take the newest —
+  // not just the first alphabetically, which would silently grab a stale build.
+  const hits = readdirSync(dir).filter((f) => pattern.test(f))
+  if (!hits.length) throw new Error(`No file matching ${pattern} in ${dir}`)
+  const newest = hits.map((f) => join(dir, f)).sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)[0]
+  return newest
 }
 
 function copy(from, name) {
