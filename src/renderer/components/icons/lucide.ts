@@ -24,6 +24,7 @@ import {
   StickyNote,
   Bookmark,
   ChevronDown,
+  ChevronUp,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
@@ -101,6 +102,38 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
+/* Lucide icons with their parts reordered. SVG draws parts in document
+ * order, so a later part paints over an earlier one; these put each
+ * icon's parts in the order the icon palette (global.css, "Icon
+ * palette") wants them stacked. Same shapes, same lucide-* classes, so
+ * they look identical when drawn in one colour. */
+/** Share 2 with the rings drawn over the connecting lines. */
+const Share2Layered = createLucideIcon('share-2', [
+  ['line', { x1: '8.59', x2: '15.42', y1: '13.51', y2: '17.49', key: 'l1' }],
+  ['line', { x1: '15.41', x2: '8.59', y1: '6.51', y2: '10.49', key: 'l2' }],
+  ['circle', { cx: '18', cy: '5', r: '3', key: 'c1' }],
+  ['circle', { cx: '6', cy: '12', r: '3', key: 'c2' }],
+  ['circle', { cx: '18', cy: '19', r: '3', key: 'c3' }]
+])
+/** Notebook Tabs with the tab divider and tabs drawn under the cover. */
+const NotebookTabsLayered = createLucideIcon('notebook-tabs', [
+  ['path', { d: 'M15 2v20', key: 't1' }],
+  ['path', { d: 'M15 7h5', key: 't2' }],
+  ['path', { d: 'M15 12h5', key: 't3' }],
+  ['path', { d: 'M15 17h5', key: 't4' }],
+  ['path', { d: 'M2 6h4', key: 'r1' }],
+  ['path', { d: 'M2 10h4', key: 'r2' }],
+  ['path', { d: 'M2 14h4', key: 'r3' }],
+  ['path', { d: 'M2 18h4', key: 'r4' }],
+  ['rect', { width: '16', height: '20', x: '4', y: '2', rx: '2', key: 'b' }]
+])
+/** Git Merge with the two rings drawn over the branch line. */
+const GitMergeLayered = createLucideIcon('git-merge', [
+  ['path', { d: 'M6 21V9a9 9 0 0 0 9 9', key: 'p' }],
+  ['circle', { cx: '18', cy: '18', r: '3', key: 'c1' }],
+  ['circle', { cx: '6', cy: '6', r: '3', key: 'c2' }]
+])
+
 export type IconComponent = LucideIcon
 
 /* Fillable variants of four stock Lucide glyphs. The coloured document
@@ -146,6 +179,7 @@ export const faStickyNote = StickyNote
 export const faNoteSticky = StickyNote
 export const faBookmark = Bookmark
 export const faChevronDown = ChevronDown
+export const faChevronUp = ChevronUp
 export const faChevronRight = ChevronRight
 export const faChevronsLeft = ChevronsLeft
 export const faChevronsRight = ChevronsRight
@@ -160,7 +194,7 @@ export const faLightbulb = Lightbulb
 export const faBarsStaggered = ListOrdered
 export const faFont = Type
 export const faDiagramProject = Network
-export const faCircleNodes = Share2
+export const faCircleNodes = Share2Layered
 export const faMagnifyingGlass = Search
 export const faArrowsLeftRight = ArrowLeftRight
 export const faSwatchbook = Palette
@@ -208,7 +242,7 @@ export const faFileSearchCorner = FileSearchCorner
 export const faSquaresIntersect = SquaresIntersect
 export const faBook = Book
 export const faNotebookPen = NotebookPen
-export const faNotebookTabs = NotebookTabs
+export const faNotebookTabs = NotebookTabsLayered
 export const faPenLine = PenLine
 export const faGear = Settings
 export const faMessageSquare = MessageSquare
@@ -226,7 +260,7 @@ export const faAppWindow = AppWindow
  *  (checked out) vs. an incoming arrow (checked back in). */
 export const faClockArrowRight = ClockArrowRight
 export const faClockArrowLeft = ClockArrowLeft
-export const faGitMerge = GitMerge
+export const faGitMerge = GitMergeLayered
 /** Donate / sponsor — Help popover's "Donate" row. */
 export const faHeart = Heart
 export const faWholeWord = WholeWord

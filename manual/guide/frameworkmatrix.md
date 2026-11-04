@@ -78,6 +78,6 @@ To remove a row or column, click the `×` beside it. If you have written summari
 
 ## Saving and exporting
 
-You can save the matrix by clicking `Save Analysis`. It appears in the Analyses Panel under Framework Matrix. Once saved, your changes are saved automatically as you work.
+You can save the matrix by clicking `Save Analysis`. It appears in the Saved Analyses Panel under Framework Matrix. Once saved, your changes are saved automatically as you work.
 
 You can export the matrix as a spreadsheet by clicking `Export CSV`.

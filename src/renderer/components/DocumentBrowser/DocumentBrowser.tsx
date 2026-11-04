@@ -7,7 +7,7 @@ import type { TextSource, TagCategory, TagCategoryType, SurveyFormatData, Survey
 import { toolColors } from '../../utils/tool-colors'
 import { sourceTypeFromExtension, sourceTypeFromFilename } from '../../utils/format-registry'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
-import { useIconTint, iconTintKindForSourceType } from '../../utils/icon-tint'
+import { useIconTint, iconTintKindForSourceType, PALETTE_ICON_CLASS } from '../../utils/icon-tint'
 import { sortTagsForCategory, sortListOptions } from '../../utils/sort-tags'
 import { useSurveyViewStore } from '../../stores/survey-view-store'
 import { buildCellText } from '../../utils/survey/cell-text'
@@ -284,7 +284,7 @@ function FolderItem({
         onContextMenu={(e) => onContextMenuFolder(e, folder.guid)}
       >
         <Icon icon={effectiveExpanded ? faChevronDown : faChevronRight} style={{ fontSize: 9, flexShrink: 0, width: 10, textAlign: 'center', opacity: 0.6 }} />
-        <Icon icon={notebook ? faNotebookPen : faFolder} style={{ fontSize: 13, flexShrink: 0, width: 16, textAlign: 'center', opacity: 0.75, color: 'var(--text-muted)', ...tint('folder') }} />
+        <Icon className={PALETTE_ICON_CLASS} icon={notebook ? faNotebookPen : faFolder} style={{ fontSize: 13, flexShrink: 0, width: 16, textAlign: 'center', opacity: 0.75, color: 'var(--text-muted)', ...tint('folder') }} />
         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {folder.name}
         </span>
@@ -587,7 +587,7 @@ function DocItem({
           }}
         />
       )}
-      <Icon icon={iconForSource(source)} style={{ fontSize: 13, opacity: 0.75, flexShrink: 0, width: 16, textAlign: 'center', color: 'var(--text-muted)', ...tint(iconTintKindForSourceType(resolvedSourceType(source))) }} />
+      <Icon className={PALETTE_ICON_CLASS} icon={iconForSource(source)} style={{ fontSize: 13, opacity: 0.75, flexShrink: 0, width: 16, textAlign: 'center', color: 'var(--text-muted)', ...tint(iconTintKindForSourceType(resolvedSourceType(source))) }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         {editing ? (
           <input
@@ -933,7 +933,7 @@ function SurveyItem({
         {/* No chevron on the survey root — surveys are always
             expanded, so the survey icon aligns with peer DocItems
             at the same depth. */}
-        <Icon icon={SURVEY_ICON} style={{ fontSize: 14, opacity: 0.85, flexShrink: 0, width: 16, color: 'var(--text-muted)', ...tint('survey') }} />
+        <Icon className={PALETTE_ICON_CLASS} icon={SURVEY_ICON} style={{ fontSize: 14, opacity: 0.85, flexShrink: 0, width: 16, color: 'var(--text-muted)', ...tint('survey') }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           {editing ? (
             <input
@@ -1058,7 +1058,7 @@ function SurveyItem({
                   ) : (
                     <span style={{ width: 12, flexShrink: 0 }} />
                   )}
-                  <Icon icon={SURVEY_RESPONDENT_ICON} style={{ fontSize: 13, color: 'var(--text-muted)', flexShrink: 0, width: 14, ...tint('respondent') }} />
+                  <Icon className={PALETTE_ICON_CLASS} icon={SURVEY_RESPONDENT_ICON} style={{ fontSize: 13, color: 'var(--text-muted)', flexShrink: 0, width: 14, ...tint('respondent') }} />
                   <div style={{ flex: 1, minWidth: 0, color: 'var(--text-primary)' }}>
                     <NameWithTags
                       name={r.displayName}
@@ -1171,7 +1171,7 @@ function SurveyItem({
                 title={q.text}
               >
                 <span style={{ width: 12, flexShrink: 0 }} />
-                <Icon icon={SURVEY_QUESTION_ICON} style={{ fontSize: 13, color: 'var(--text-muted)', flexShrink: 0, width: 14, ...tint('question') }} />
+                <Icon className={PALETTE_ICON_CLASS} icon={SURVEY_QUESTION_ICON} style={{ fontSize: 13, color: 'var(--text-muted)', flexShrink: 0, width: 14, ...tint('question') }} />
                 <span style={{ flexShrink: 0, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums', marginRight: 2, minWidth: 14 }}>
                   {i + 1}
                 </span>
@@ -2838,8 +2838,8 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
         {/* Internal divider between the Documents tree and the Tags
             tree. Mirrors the queries-sidebar-divider pattern: a
             visible 1 px line that survives in every theme, including
-            the floating-card themes (Granola, Zine) where the global
-            "hide all resize handles" rule would otherwise blank it.
+            the floating-card Magnolia themes where the global "hide
+            all resize handles" rule would otherwise blank it.
             The className opts the handle into the per-theme exception
             list further down in global.css. */}
         {tagsCollapsed ? (

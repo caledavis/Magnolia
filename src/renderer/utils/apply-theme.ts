@@ -12,6 +12,7 @@
  * wins.
  */
 import { colourfulInterfaceFromSaved } from './colourful-interface'
+import { normaliseThemeId } from './theme-id'
 
 export async function applyStoredAppearance(): Promise<void> {
   let theme = 'magnolia'
@@ -22,7 +23,7 @@ export async function applyStoredAppearance(): Promise<void> {
     const prefs = await window.api.loadPreferences()
     if (prefs && typeof prefs === 'object') {
       if ('theme' in prefs && typeof (prefs as { theme: unknown }).theme === 'string') {
-        theme = (prefs as { theme: string }).theme
+        theme = normaliseThemeId((prefs as { theme: string }).theme)
         hadSavedTheme = true
       }
       if ('interfaceScale' in prefs && typeof (prefs as { interfaceScale: unknown }).interfaceScale === 'number') {
@@ -67,7 +68,7 @@ export const applyStoredTheme = applyStoredAppearance
  *  rendered them. Call once per renderer entry point. */
 export function installAppearanceListeners(): void {
   window.api.onThemeChanged((theme) => {
-    document.documentElement.setAttribute('data-theme', theme)
+    document.documentElement.setAttribute('data-theme', normaliseThemeId(theme))
   })
   window.api.onZoomFactorChanged((factor) => {
     window.api.setZoomFactor(factor)

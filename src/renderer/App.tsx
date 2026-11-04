@@ -81,7 +81,10 @@ import { StealBackDialog } from './components/StealBackDialog'
 import { NameGateOverlay } from './components/NameGateOverlay'
 import { CheckOutButton } from './components/Toolbar/CheckOutButton'
 // ES import so Vite bundles + hashes the Magnolia toolbar icon for production.
-import magnoliaIconUrl from './assets/magnoliaicononly.svg'
+// Inlined as a data URL: the logo is drawn as a CSS mask, and WebKit can
+// keep a failed mask fetch (e.g. while the dev server rebuilds) and draw
+// nothing. An inline URL has nothing to fetch.
+import magnoliaIconUrl from './assets/magnoliaicononly.svg?inline'
 import { usePendingSelectionStore } from './stores/pending-selection-store'
 import { useNewCodeTriggerStore } from './stores/new-code-trigger-store'
 import { generateGuid } from './utils/guid'
@@ -91,7 +94,10 @@ import { MemosPane } from './components/Memos/MemosPane'
 import { QuotesPane } from './components/Quotes/QuotesPane'
 import { AnalysisPopover } from './components/Toolbar/AnalysisPopover'
 import { StudioPopover } from './components/Toolbar/StudioPopover'
-import { HelpPopover } from './components/Toolbar/HelpPopover'
+import { HelpPopover, MANUAL_URL, SPONSOR_URL, HELP_ICONS } from './components/Toolbar/HelpPopover'
+import { PANE_ICONS } from './utils/pane-icons'
+import { RibbonTabs, RibbonBody, useRibbon, type RibbonButtonDef, type RibbonTabDef } from './components/Toolbar/Ribbon'
+import { TOOL_REGISTRY } from './utils/tool-registry'
 import { WindowControls } from './components/Toolbar/WindowControls'
 import type { Project, Query, CodeCondition, Code, TextSource, QDASet, LogbookInitData, AnalysisInitData, AnalysisToolType, PlainTextSelection, Memo, MemoEditInitData, SurveyCellScopeArgs } from './models/types'
 import { buildSurveyEntityLabels } from './utils/survey/survey-labels'
@@ -214,8 +220,7 @@ function describeQuery(
 
 /** Toolbar pill layout: groups a set of related buttons in a row. The
  *  rounded chip background/padding itself (macOS Mail-style) is CSS,
- *  scoped to Icons mode only via .app-toolbar-pill in global.css —
- *  Icons and Text mode reverts to a plain, unfilled row (see
+ *  scoped to Icons mode via .app-toolbar-pill in global.css (see
  *  Preferences → Appearance → Toolbar Style). */
 const TOOLBAR_PILL_STYLE: React.CSSProperties = {
   display: 'flex',
@@ -2553,6 +2558,103 @@ function App() {
     return unsub
   }, [])
 
+  // ── Ribbon (Toolbar Style "Ribbon") ── Every button runs the same
+  // action as its counterpart in the icon toolbar and its popovers.
+  const lockedReason = checkoutLockedBy ? checkoutLockedTitle(checkoutLockedBy) : undefined
+  const toolButton = (toolType: AnalysisToolType): RibbonButtonDef => {
+    const def = TOOL_REGISTRY[toolType]
+    return { id: toolType, label: def.label, title: def.description, icon: def.icon, onClick: () => openAnalysis(toolType) }
+  }
+  const panelButton = (id: PanelId | 'queries', label: string, icon: RibbonButtonDef['icon'], visible: boolean): RibbonButtonDef => ({
+    id: `panel-${id}`, label, icon, pressed: visible,
+    title: visible ? `Hide the ${label} pane` : `Show the ${label} pane`,
+    onClick: () => (id === 'queries' ? setQueryResultsClosed((prev) => !prev) : togglePanel(id))
+  })
+  const ribbonTabs: RibbonTabDef[] = [
+    {
+      id: 'home',
+      label: 'Home',
+      groups: [
+        {
+          label: 'Project',
+          buttons: [
+            {
+              id: 'project-details', label: 'Project Details', title: 'Project details',
+              glyph: <span className="ribbon-magnolia" aria-hidden style={{ WebkitMaskImage: `url("${magnoliaIconUrl}")`, maskImage: `url("${magnoliaIconUrl}")` }} />,
+              onClick: () => setShowProjectDetails(true)
+            },
+            { id: 'import', label: 'Import', title: 'Import documents', icon: faSquareArrowRightEnter, disabledReason: lockedReason, onClick: () => handleImportDocument() },
+            { id: 'merge', label: 'Merge', title: 'Merge a project into this one', icon: faGitMerge, iconStyle: { transform: 'scale(-1, -1)' }, onClick: () => handleMergeProject() },
+            {
+              id: 'preferences', label: 'Preferences', icon: faGear, badge: updateBadgeAvailable,
+              title: updateBadgeAvailable ? 'A new version is available — open Preferences → Updates' : 'Preferences',
+              onClick: () => {
+                if (updateBadgeAvailable) requestPreferencesCategory('updates')
+                useDocumentStore.getState().openToolTab(PREFERENCES_TAB_ID)
+              }
+            }
+          ]
+        },
+        {
+          label: 'Organise',
+          buttons: [
+            { id: 'codebook', label: 'Codebook', icon: faBook, onClick: () => openCodebook() },
+            { id: 'logbook', label: 'Logbook', icon: faNotebookPen, onClick: () => openLogbook() },
+            { id: 'tags', label: 'Tags', title: 'Manage tags', icon: faTags, onClick: () => setShowManageDocTags(true) }
+          ]
+        },
+        {
+          label: 'Query',
+          buttons: [
+            { id: 'query', label: 'Query', title: TOOL_REGISTRY.queryBuilder.description, icon: faMagnifyingGlass, onClick: () => openQueryBuilder() }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'analyse',
+      label: 'Analyse',
+      groups: [
+        { label: 'Codes', buttons: (['codes-in-documents', 'framework-matrix', 'code-cooccurrences', 'code-orders', 'code-frequencies'] as AnalysisToolType[]).map(toolButton) },
+        { label: 'Queries and words', buttons: (['results-in-documents', 'word-frequencies', 'word-combinations'] as AnalysisToolType[]).map(toolButton) },
+        { label: 'Relationships and reports', buttons: (['relationship-map', 'reports'] as AnalysisToolType[]).map(toolButton) }
+      ]
+    },
+    {
+      id: 'view',
+      label: 'View',
+      groups: [
+        {
+          label: 'Panes',
+          buttons: [
+            panelButton('documents', 'Documents', PANE_ICONS.documents, panelVisibility.documents),
+            panelButton('codes', 'Codes', PANE_ICONS.codes, panelVisibility.codes),
+            panelButton('queries', 'Queries', PANE_ICONS.queries, !queryResultsClosed),
+            panelButton('memos', 'Saved Memos', PANE_ICONS.memos, panelVisibility.memos),
+            panelButton('quotes', 'Saved Quotes', PANE_ICONS.quotes, panelVisibility.quotes),
+            panelButton('analyses', 'Saved Analyses', PANE_ICONS.analyses, panelVisibility.analyses)
+          ]
+        }
+      ]
+    },
+    {
+      id: 'help',
+      label: 'Help',
+      groups: [
+        {
+          label: 'Magnolia',
+          buttons: [
+            { id: 'manual', label: 'Manual', title: "Open Magnolia's user manual in your browser", icon: HELP_ICONS.manual, onClick: () => window.open(MANUAL_URL, '_blank') },
+            { id: 'licence', label: 'Licence', title: 'Licence & Attributions', icon: HELP_ICONS.licence, onClick: () => setShowLicenceDialog(true) },
+            { id: 'donate', label: 'Donate', title: 'Magnolia is free to use, but costs me money to make. If it is useful, please consider donating to cover my costs.', icon: HELP_ICONS.donate, onClick: () => window.open(SPONSOR_URL, '_blank') }
+          ]
+        }
+      ]
+    }
+  ]
+  const ribbon = useRibbon(ribbonTabs)
+  const useRibbonToolbar = toolbarStyle === 'ribbon'
+
   return (
     <div
       className="app-shell"
@@ -2588,7 +2690,7 @@ function App() {
           borderBottom: '1px solid var(--border-color)',
           background: 'var(--bg-secondary)',
           flexShrink: 0,
-          height: 54
+          height: useRibbonToolbar ? 40 : 54
         }}
       >
         {/* Left: the Magnolia icon followed by the open project's file
@@ -2606,7 +2708,9 @@ function App() {
             gap: 8
           }}
         >
-          <div
+          {/* With the ribbon, the logo is the Project Details button on
+              the Home tab instead. */}
+          {!useRibbonToolbar && <div
             aria-label="Magnolia"
             // Masked so the icon is themed to the toolbar's icon hue, like
             // the old wordmark. viewBox 42×49 (~0.857:1) → 21×24 fills the
@@ -2626,7 +2730,26 @@ function App() {
               maskPosition: 'center',
               pointerEvents: 'none'
             }}
-          />
+          />}
+          {useRibbonToolbar ? (
+            // With the ribbon, the Project Details button opens the
+            // project's details, so the name is plain text.
+            <span
+              style={{
+                color: 'var(--text-primary)',
+                fontSize: 13,
+                fontWeight: 500,
+                padding: '2px 6px',
+                maxWidth: 240,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                cursor: 'default'
+              }}
+            >
+              {projectStore.name}
+            </span>
+          ) : (
           <button
             type="button"
             className="app-toolbar-btn"
@@ -2658,6 +2781,7 @@ function App() {
           >
             {projectStore.name}
           </button>
+          )}
         </div>
 
         {/* Scrollable middle: every other toolbar option, between the
@@ -2665,6 +2789,11 @@ function App() {
             (right). Scrolls horizontally instead of overflowing and
             clipping/overlapping when the window is too narrow to fit
             everything — e.g. tiled or resized small (GitHub issue #15). */}
+        {useRibbonToolbar ? (
+          <div style={{ display: 'flex', alignItems: 'stretch', flex: '1 1 auto', minWidth: 0, height: '100%' }}>
+            <RibbonTabs ribbon={ribbon} />
+          </div>
+        ) : (
         <div style={{ display: 'flex', alignItems: 'center', flex: '1 1 auto', minWidth: 0, height: '100%' }}>
           {/* Scroll hint gutters: fixed-width slots flanking the scroll
               track (siblings, not overlays) so the chevron never sits on
@@ -2826,7 +2955,7 @@ function App() {
             }}
           >
             <Icon icon={faMagnifyingGlass} style={{ fontSize: 20 }} />
-            <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400, color: 'var(--text-secondary)', transition: 'color 0.12s' }}>Query</span>
+            <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400, transition: 'color 0.12s' }}>Query</span>
           </button>
 
           <ToolbarDivider />
@@ -2849,9 +2978,9 @@ function App() {
               { id: 'documents', label: 'Documents', visible: panelVisibility.documents },
               { id: 'codes', label: 'Codes', visible: panelVisibility.codes },
               { id: 'queries', label: 'Queries', visible: !queryResultsClosed },
-              { id: 'memos', label: 'Memos', visible: panelVisibility.memos },
-              { id: 'quotes', label: 'Quotes', visible: panelVisibility.quotes },
-              { id: 'analyses', label: 'Analyses', visible: panelVisibility.analyses },
+              { id: 'memos', label: 'Saved Memos', visible: panelVisibility.memos },
+              { id: 'quotes', label: 'Saved Quotes', visible: panelVisibility.quotes },
+              { id: 'analyses', label: 'Saved Analyses', visible: panelVisibility.analyses },
             ]}
             onToggle={(id) => {
               if (id === 'queries') setQueryResultsClosed((prev) => !prev)
@@ -2937,6 +3066,7 @@ function App() {
             <Icon icon={faChevronsRight} style={{ fontSize: 16 }} className="app-toolbar-scroll-hint" />
           </div>
         </div>
+        )}
 
         {/* Far right, pinned: Check Out / Check In, then window controls
             (minimise/maximise/close) on Windows and Linux — native traffic
@@ -2949,6 +3079,11 @@ function App() {
           <WindowControls />
         </div>
       </div>
+      {useRibbonToolbar && (
+        <div className="ribbon-host">
+          <RibbonBody ribbon={ribbon} />
+        </div>
+      )}
 
       <PanelGroup direction="vertical" className="app-main-panels" style={{ flex: 1 }}>
         <Panel defaultSize={queryResultsHidden ? 100 : 70} minSize={30}>
@@ -3303,7 +3438,7 @@ function App() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
               <span style={{ fontSize: 13, fontWeight: 500 }}>{loadProgress.stage}</span>
               {loadProgress.total > 0 && (
-                <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+                <span style={{ fontSize: 11 }}>
                   {loadProgress.current} / {loadProgress.total}
                 </span>
               )}

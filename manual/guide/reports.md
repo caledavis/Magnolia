@@ -19,9 +19,9 @@ Think of it as the place where your project comes together. Rather than copying 
 1. Drag it into the report from:
    1. The Document Browser (documents, and survey questions, respondents and answers);
    2. The Saved Queries Panel (saved queries);
-   3. The Analyses Panel (saved analyses);
-   4. The Memos Panel (memos); or,
-   5. The Quotes Panel (quotes).
+   3. The Saved Analyses Panel (saved analyses);
+   4. The Saved Memos Panel (memos); or,
+   5. The Saved Quotes Panel (quotes).
 
 2. The item appears in the report. You can drop it between existing items to place it exactly where you want it.
 
@@ -60,7 +60,7 @@ Analyses in a report are always worked out afresh when you export. If you have c
 
 ## Saving and exporting
 
-You can save the report by clicking `Save Report`. It appears in the Analyses Panel. Once a report has been saved, your changes are saved automatically as you work.
+You can save the report by clicking `Save Report`. It appears in the Saved Analyses Panel. Once a report has been saved, your changes are saved automatically as you work.
 
 To export the report, click `Export PDF`. The PDF begins with a table of contents, and each item in the report follows in order.
 

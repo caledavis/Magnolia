@@ -29,6 +29,7 @@ import {
   SURVEY_RESPONDENT_ICON
 } from '../Icon'
 import { TOOL_REGISTRY } from '../../utils/tool-registry'
+import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
 import { MarkdownEditor } from '../MarkdownEditor'
 import { generateGuid } from '../../utils/guid'
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
@@ -536,7 +537,7 @@ function PaletteChip({ block, icon, label }: { block: 'section' | 'text'; icon: 
       title={`Drag onto the list to add a ${label.toLowerCase()}`}
       style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '3px 10px', cursor: 'grab' }}
     >
-      <Icon icon={icon} style={{ fontSize: 11, color: 'var(--text-muted)' }} />
+      <Icon icon={icon} className={PALETTE_ICON_CLASS} style={{ fontSize: 11, color: 'var(--text-muted)' }} />
       {label}
     </div>
   )
@@ -572,7 +573,7 @@ function ReportRow({
         >
           <Icon icon={faBars} style={{ fontSize: 16 }} />
         </span>
-        <Icon icon={itemIcon(item)} style={{ fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }} />
+        <Icon icon={itemIcon(item)} className={PALETTE_ICON_CLASS} style={{ fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }} />
         <span style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)', flexShrink: 0 }}>{reportItemTypeLabel(item)}</span>
         <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {item.kind !== 'section' && item.kind !== 'text' ? label : ''}

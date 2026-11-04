@@ -66,8 +66,8 @@ Click any cell, or any bar in the chart, to see the selections coded with that c
 
 ## Saving and exporting
 
-You can save the analysis by clicking `Save Analysis`. It appears in the Analyses Panel. If you make changes later, click `Update Analysis` to save them.
+You can save the analysis by clicking `Save Analysis`. It appears in the Saved Analyses Panel. If you make changes later, click `Update Analysis` to save them.
 
 You can export the table as a spreadsheet by clicking `Export CSV`, and the chart as an image by clicking `Export SVG`.
 
-You can also add the analysis to a [Report](/guide/reports) by dragging it from the Analyses Panel into the report.
+You can also add the analysis to a [Report](/guide/reports) by dragging it from the Saved Analyses Panel into the report.

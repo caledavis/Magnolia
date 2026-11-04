@@ -6,6 +6,7 @@ import { useMemoStore } from '../../stores/memo-store'
 import { Icon, faXmark, faUpRightFromSquare, faDownLeftAndUpRightToCenter, faChevronDown, faChevronRight, MEMO_ICON, faMagnifyingGlass } from '../Icon'
 import type { AnalysisToolType, SavedAnalysis } from '../../models/types'
 import { TOOL_REGISTRY } from '../../utils/tool-registry'
+import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
 import { toolColors } from '../../utils/tool-colors'
 import { makeMapTabId } from '../../utils/tab-ids'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
@@ -260,7 +261,7 @@ export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemo
             }}
           />
         ) : (
-          <span style={{ flex: 1 }}>Analyses</span>
+          <span style={{ flex: 1 }}>Saved Analyses</span>
         )}
         {savedAnalyses.length > 0 && (
           <button
@@ -314,7 +315,7 @@ export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemo
               >
                 <Icon icon={isCollapsed ? faChevronRight : faChevronDown} style={{ fontSize: 9, width: 10, textAlign: 'center', opacity: 0.6 }} />
                 {group.icon && (
-                  <Icon icon={group.icon} style={{ fontSize: 11, opacity: 0.85, flexShrink: 0, width: 14, textAlign: 'center', color: 'var(--text-secondary)' }} />
+                  <Icon icon={group.icon} className={PALETTE_ICON_CLASS} style={{ fontSize: 11, opacity: 0.85, flexShrink: 0, width: 14, textAlign: 'center', color: 'var(--text-secondary)' }} />
                 )}
                 <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{group.label}</span>
                 <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500 }}>{group.items.length}</span>

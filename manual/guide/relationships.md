@@ -25,8 +25,8 @@ Think of it as a pinboard, where you can pin up documents, codes and quotes, and
    1. The Document Browser (documents, tags, folders, and survey respondents and questions);
    2. The Code Browser (codes);
    3. The Saved Queries Panel (saved queries);
-   4. The Analyses Panel (saved analyses);
-   5. The Memos Panel or the Quotes Panel (memos and quotes); or,
+   4. The Saved Analyses Panel (saved analyses);
+   5. The Saved Memos Panel or the Saved Quotes Panel (memos and quotes); or,
    6. The Query Results pane (individual query results).
 
 2. The item appears on the canvas as a box. To move it, drag it by its header.
@@ -71,8 +71,8 @@ Everything on the map stays connected to your project. Double-click an item to g
 
 ## Saving and exporting
 
-You can save the map by clicking `Save Analysis`. It appears in the Analyses Panel. If you make changes later, click `Update Analysis` to save them.
+You can save the map by clicking `Save Analysis`. It appears in the Saved Analyses Panel. If you make changes later, click `Update Analysis` to save them.
 
 You can export the map as an image by clicking the export button in the toolbar. The map is saved as an `.svg` file.
 
-You can also add the map to a [Report](/guide/reports) by dragging it from the Analyses Panel into the report.
+You can also add the map to a [Report](/guide/reports) by dragging it from the Saved Analyses Panel into the report.

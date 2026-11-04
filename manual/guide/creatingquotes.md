@@ -11,16 +11,16 @@ To create a quote:
      <figcaption>Adding a quote.</figcaption>
    </figure>
 
-3. The quote appears in the Quotes Panel.
+3. The quote appears in the Saved Quotes Panel.
 
    <figure>
-     <img src="./images/QuotesPanel.png" alt="The Quotes Panel.">
-     <figcaption>The Quotes Panel.</figcaption>
+     <img src="./images/QuotesPanel.png" alt="The Saved Quotes Panel.">
+     <figcaption>The Saved Quotes Panel.</figcaption>
    </figure>
 
-4. You can right-click on a quote in the Quotes Panel to copy it to the clipboard or delete it.
+4. You can right-click on a quote in the Saved Quotes Panel to copy it to the clipboard or delete it.
 
    <figure>
-     <img src="./images/QuotesContextualMenu.png" alt="The Quotes Panel contextual menu.">
-     <figcaption>The Quotes Panel contextual menu.</figcaption>
+     <img src="./images/QuotesContextualMenu.png" alt="The Saved Quotes Panel contextual menu.">
+     <figcaption>The Saved Quotes Panel contextual menu.</figcaption>
    </figure>

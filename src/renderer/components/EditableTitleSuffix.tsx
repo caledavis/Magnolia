@@ -60,9 +60,9 @@ export function EditableTitleSuffix({ name, onRename, autoEdit, placeholder }: P
           // Match the panel surface — same convention every other
           // text field inside the tools uses (.analysis-section
           // sets --bg-input to --bg-panel for the same reason).
-          // The default --bg-input resolves to --bg-tertiary, which
-          // in the Granola themes is the deep-cream canvas tone and
-          // reads as out of place against the tool's white surface.
+          // The default --bg-input resolves to --bg-tertiary, the
+          // window's canvas tone, which reads as out of place against
+          // the tool's white surface.
           background: 'var(--bg-panel)',
           border: '1px solid var(--accent)',
           borderRadius: 'var(--radius-sm)',

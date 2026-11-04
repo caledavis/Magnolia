@@ -128,8 +128,8 @@ A very common word, such as "the", can produce a tree with hundreds of branches.
 
 ## Saving and exporting
 
-You can save the analysis by clicking `Save Analysis`. It appears in the Analyses Panel. If you make changes later, click `Update Analysis` to save them.
+You can save the analysis by clicking `Save Analysis`. It appears in the Saved Analyses Panel. If you make changes later, click `Update Analysis` to save them.
 
 You can export the current results as a spreadsheet by clicking `Export CSV`. In `Word Tree`, you can also export the tree as an image by clicking `Export SVG`.
 
-You can also add the analysis to a [Report](/guide/reports) by dragging it from the Analyses Panel into the report. The report shows the results in the way they were showing when you saved the analysis.
+You can also add the analysis to a [Report](/guide/reports) by dragging it from the Saved Analyses Panel into the report. The report shows the results in the way they were showing when you saved the analysis.

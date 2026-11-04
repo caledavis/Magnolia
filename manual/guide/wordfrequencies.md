@@ -145,8 +145,8 @@ To see which words go *together*, rather than which words are common, use [Word 
 
 ## Saving and exporting
 
-You can save the analysis by clicking `Save Analysis`. It appears in the Analyses Panel. If you make changes later, click `Update Analysis` to save them.
+You can save the analysis by clicking `Save Analysis`. It appears in the Saved Analyses Panel. If you make changes later, click `Update Analysis` to save them.
 
 You can export the word table as a spreadsheet by clicking `Export CSV`, and the chart as an image by clicking `Export SVG`.
 
-You can also add the analysis to a [Report](/guide/reports) by dragging it from the Analyses Panel into the report. You can choose whether the report includes the bar chart, the word cloud, or both.
+You can also add the analysis to a [Report](/guide/reports) by dragging it from the Saved Analyses Panel into the report. You can choose whether the report includes the bar chart, the word cloud, or both.

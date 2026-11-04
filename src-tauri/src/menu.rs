@@ -179,9 +179,9 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
         ("documents", "Documents"),
         ("codes", "Codes"),
         ("queries", "Queries"),
-        ("memos", "Memos"),
-        ("quotes", "Quotes"),
-        ("analyses", "Analyses"),
+        ("memos", "Saved Memos"),
+        ("quotes", "Saved Quotes"),
+        ("analyses", "Saved Analyses"),
     ] {
         let check = CheckMenuItemBuilder::with_id(format!("{ACTION}toggle-panel-{key}"), label)
             .checked(shown(key))

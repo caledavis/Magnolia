@@ -3,6 +3,7 @@
  * Stores foot pedal key mappings and audio defaults.
  */
 import { create } from 'zustand'
+import { normaliseThemeId, type ThemeId } from '../utils/theme-id'
 import { COLOURFUL_INTERFACE_ENABLED, colourfulInterfaceFromSaved } from '../utils/colourful-interface'
 
 export interface FootPedalMappings {
@@ -13,19 +14,17 @@ export interface FootPedalMappings {
   fastForwardSeconds: number // default 5
 }
 
-/** Theme id stored in preferences. Lab is the new-install default
- *  (Lab Dark when the OS reports prefers-color-scheme: dark, per
- *  apply-theme.ts); the empty string is preserved as a valid id
- *  ("Clean") for backwards compatibility with older preference files. */
-export type ThemeId = '' | 'dark' | 'granola' | 'granola-dark' | 'high-contrast' | 'magnolia' | 'magnolia-dark'
+/** Theme id stored in preferences (see utils/theme-id.ts). */
+export type { ThemeId } from '../utils/theme-id'
 
 /** Paper size for PDFs Magnolia exports (see src-tauri/src/print). */
 export type PaperSize = 'A4' | 'A3' | 'A5' | 'Letter' | 'Legal' | 'Tabloid'
 
-/** Toolbar button display: 'icons' is the compact macOS Mail-style
- *  icon-only row (grouped in pills); 'icons-and-text' shows the label
- *  under/beside each icon, as the toolbar looked before that redesign. */
-export type ToolbarStyle = 'icons' | 'icons-and-text'
+/** Toolbar button display: 'ribbon' (the default) is the tabbed ribbon
+ *  (see Toolbar/Ribbon.tsx); 'icons' is the compact macOS Mail-style
+ *  icon-only row (grouped in pills). A saved 'icons-and-text', a style
+ *  since removed, falls back to the default. */
+export type ToolbarStyle = 'icons' | 'ribbon'
 
 export interface Preferences {
   footPedalMappings: FootPedalMappings
@@ -55,7 +54,7 @@ const DEFAULT_PREFERENCES: Preferences = {
   paperSize: 'A4',
   interfaceScale: 1,
   userName: '',
-  toolbarStyle: 'icons',
+  toolbarStyle: 'ribbon',
   colourfulInterface: COLOURFUL_INTERFACE_ENABLED
 }
 
@@ -83,11 +82,11 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
         set({
           footPedalMappings: { ...DEFAULT_PREFERENCES.footPedalMappings, ...prefs.footPedalMappings },
           defaultPlaybackSpeed: prefs.defaultPlaybackSpeed ?? DEFAULT_PREFERENCES.defaultPlaybackSpeed,
-          theme: (prefs.theme ?? DEFAULT_PREFERENCES.theme) as ThemeId,
+          theme: normaliseThemeId(prefs.theme),
           paperSize: (prefs.paperSize ?? DEFAULT_PREFERENCES.paperSize) as PaperSize,
           interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
           userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
-          toolbarStyle: prefs.toolbarStyle === 'icons-and-text' ? 'icons-and-text' : DEFAULT_PREFERENCES.toolbarStyle,
+          toolbarStyle: (prefs.toolbarStyle === 'icons' || prefs.toolbarStyle === 'ribbon') ? prefs.toolbarStyle : DEFAULT_PREFERENCES.toolbarStyle,
           colourfulInterface: colourfulInterfaceFromSaved(prefs.colourfulInterface),
           loaded: true
         })
@@ -164,11 +163,11 @@ if (typeof window !== 'undefined' && window.api?.onPreferencesUpdate) {
     usePreferencesStore.setState({
       footPedalMappings: { ...DEFAULT_PREFERENCES.footPedalMappings, ...(prefs.footPedalMappings || {}) },
       defaultPlaybackSpeed: prefs.defaultPlaybackSpeed ?? DEFAULT_PREFERENCES.defaultPlaybackSpeed,
-      theme: (prefs.theme ?? DEFAULT_PREFERENCES.theme) as ThemeId,
+      theme: normaliseThemeId(prefs.theme),
       paperSize: (prefs.paperSize ?? DEFAULT_PREFERENCES.paperSize) as PaperSize,
       interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
       userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
-      toolbarStyle: prefs.toolbarStyle === 'icons-and-text' ? 'icons-and-text' : DEFAULT_PREFERENCES.toolbarStyle,
+      toolbarStyle: (prefs.toolbarStyle === 'icons' || prefs.toolbarStyle === 'ribbon') ? prefs.toolbarStyle : DEFAULT_PREFERENCES.toolbarStyle,
       colourfulInterface: colourfulInterfaceFromSaved(prefs.colourfulInterface),
       loaded: true
     })

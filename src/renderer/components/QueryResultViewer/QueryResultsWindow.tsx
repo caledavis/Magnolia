@@ -524,9 +524,9 @@ export function QueryResultsWindow() {
             onEditQuery={(guid) => window.api.sendQueryResultsAction('edit-saved-query', { guid })}
           />
         </Panel>
-        {/* The class on this handle is read by the Granola theme
+        {/* The class on this handle is read by the Magnolia themes'
             override so the divider stays visible inside the
-            Queries panel even though the global Granola rule
+            Queries panel even though their global rule
             hides every other resize handle (to preserve the
             floating-card look). */}
         <PanelResizeHandle className="queries-sidebar-divider" style={{ width: 1, background: 'var(--border-color)', cursor: 'col-resize' }} />

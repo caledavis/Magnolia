@@ -24,10 +24,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon, faAppWindow, faCheck } from '../Icon'
+import { PANE_ICONS, type PaneIconId } from '../../utils/pane-icons'
+import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
 
 export interface StudioPanelToggle {
-  /** Stable key the host switches on in `onToggle`. */
-  id: string
+  /** Stable key the host switches on in `onToggle`; also picks the
+   *  row's icon from PANE_ICONS. */
+  id: PaneIconId
   label: string
   visible: boolean
 }
@@ -160,6 +163,7 @@ export function StudioPopover({ panels, onToggle }: Props) {
                 <span className="studio-popover-check" aria-hidden>
                   {panel.visible && <Icon icon={faCheck} style={{ fontSize: 13 }} />}
                 </span>
+                <Icon icon={PANE_ICONS[panel.id]} className={PALETTE_ICON_CLASS} style={{ fontSize: 14, flexShrink: 0 }} />
                 <span className="studio-popover-row-name">{panel.label}</span>
               </button>
             ))}

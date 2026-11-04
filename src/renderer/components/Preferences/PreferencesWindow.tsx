@@ -10,6 +10,7 @@
  * `window.close()`.
  */
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { normaliseThemeId, type ThemeId } from '../../utils/theme-id'
 import { Icon, faGear } from '../Icon'
 import { COLOURFUL_INTERFACE_ENABLED, colourfulInterfaceFromSaved } from '../../utils/colourful-interface'
 
@@ -21,16 +22,14 @@ interface FootPedalMappings {
   fastForwardSeconds: number
 }
 
-type ThemeId = '' | 'dark' | 'granola' | 'granola-dark' | 'high-contrast' | 'magnolia' | 'magnolia-dark'
 
 /** Paper size for exported PDFs (see src-tauri/src/print). */
 type PaperSize = 'A4' | 'A3' | 'A5' | 'Letter' | 'Legal' | 'Tabloid'
 
-/** Toolbar button display: 'icons' is the compact macOS Mail-style
- *  icon-only row (grouped in pills); 'icons-and-text' shows each
- *  tool's label alongside its icon, as the toolbar looked before that
- *  redesign. */
-type ToolbarStyle = 'icons' | 'icons-and-text'
+/** Toolbar button display: 'ribbon' (the default) is the tabbed ribbon
+ *  (see Toolbar/Ribbon.tsx); 'icons' is the compact macOS Mail-style
+ *  icon-only row (grouped in pills). */
+type ToolbarStyle = 'icons' | 'ribbon'
 
 interface Preferences {
   footPedalMappings: FootPedalMappings
@@ -58,18 +57,19 @@ const DEFAULT_PREFS: Preferences = {
   // Magnolia is the default for new installs (Lab Dark when the OS
   // reports prefers-color-scheme: dark — handled by apply-theme.ts
   // on first paint). Existing pref files that already carry a saved
-  // theme (including the legacy '' for Clean) override this.
+  // theme override this (an unknown one, such as the removed Clean,
+  // falls back to Magnolia).
   theme: 'magnolia',
   paperSize: 'A4',
   interfaceScale: 1,
   userName: '',
-  toolbarStyle: 'icons',
+  toolbarStyle: 'ribbon',
   colourfulInterface: COLOURFUL_INTERFACE_ENABLED
 }
 
 const TOOLBAR_STYLE_OPTIONS: { id: ToolbarStyle; label: string }[] = [
-  { id: 'icons', label: 'Icons' },
-  { id: 'icons-and-text', label: 'Icons and Text' }
+  { id: 'ribbon', label: 'Ribbon' },
+  { id: 'icons', label: 'Icons' }
 ]
 
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2]
@@ -86,12 +86,8 @@ interface ThemeOption {
 }
 
 const THEME_OPTIONS: ThemeOption[] = [
-  { id: 'magnolia',      label: 'Magnolia',      swatch: { bg: '#C8D0DA', surface: '#FFFFFF', accent: '#2563EB' } },
+  { id: 'magnolia',      label: 'Magnolia',      swatch: { bg: '#E9EDF3', surface: '#FFFFFF', accent: '#2563EB' } },
   { id: 'magnolia-dark', label: 'Magnolia Dark', swatch: { bg: '#14181E', surface: '#252B35', accent: '#5B8FFF' } },
-  { id: 'granola',       label: 'Granola',       swatch: { bg: '#f1e6cf', surface: '#ffffff', accent: '#c97134' } },
-  { id: 'granola-dark',  label: 'Granola Dark',  swatch: { bg: '#1f1a14', surface: '#2d271f', accent: '#e08a4a' } },
-  { id: '',              label: 'Clean',         swatch: { bg: '#ffffff', surface: '#ececec', accent: '#007AFF' } },
-  { id: 'dark',          label: 'Clean Dark',    swatch: { bg: '#1e1e2e', surface: '#2a2a3c', accent: '#0a84ff' } },
   { id: 'high-contrast', label: 'High Contrast', swatch: { bg: '#000000', surface: '#ffffff', accent: '#ffff00' } }
 ]
 
@@ -225,7 +221,7 @@ function AppearanceSettings({
           const selected = opt.id === value
           return (
             <div
-              key={opt.id || 'clean'}
+              key={opt.id}
               onClick={() => onChange(opt.id)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 12,
@@ -695,9 +691,9 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
         setPrefs({
           ...DEFAULT_PREFS,
           ...data,
-          theme: (data.theme ?? DEFAULT_PREFS.theme) as ThemeId,
+          theme: normaliseThemeId(data.theme),
           interfaceScale: typeof data.interfaceScale === 'number' ? data.interfaceScale : DEFAULT_PREFS.interfaceScale,
-          toolbarStyle: data.toolbarStyle === 'icons-and-text' ? 'icons-and-text' : DEFAULT_PREFS.toolbarStyle,
+          toolbarStyle: (data.toolbarStyle === 'icons' || data.toolbarStyle === 'ribbon') ? data.toolbarStyle : DEFAULT_PREFS.toolbarStyle,
           colourfulInterface: colourfulInterfaceFromSaved(data.colourfulInterface),
           footPedalMappings: { ...DEFAULT_PREFS.footPedalMappings, ...(data.footPedalMappings || {}) }
         })

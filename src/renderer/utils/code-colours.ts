@@ -36,7 +36,7 @@ export function codeColourPresets(colourful: boolean): readonly string[] {
 }
 
 /** Code colour presets for the given preferences: the Colourful set, or
- *  classic on the themes that don't take colour (Granola, High Contrast).
+ *  classic on the theme that doesn't take colour (High Contrast).
  *  Independent of the Colourful interface preference. */
 export function codeColourPresetsFor(prefs: { theme: string }): readonly string[] {
   return codeColourPresets(themeTakesColour(prefs.theme))

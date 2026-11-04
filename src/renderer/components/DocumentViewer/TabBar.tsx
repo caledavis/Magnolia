@@ -7,7 +7,7 @@ import { useAnalysisTabsStore } from '../../stores/analysis-tabs-store'
 import { useToolSaveRegistry } from '../../stores/tool-save-registry'
 import { TOOL_REGISTRY } from '../../utils/tool-registry'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
-import { useIconTint, useIconColourActive, iconTintKindForSourceType } from '../../utils/icon-tint'
+import { useIconTint, iconTintKindForSourceType, PALETTE_ICON_CLASS } from '../../utils/icon-tint'
 
 interface TabBarProps {
   openTabs: string[]
@@ -129,20 +129,13 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
     return {}
   }
 
-  // Tool tabs take their tool's registry colour and document tabs their
-  // source type's palette colour, matching the Document Browser. Empty
-  // (muted icon) on Granola and High Contrast.
-  const colourful = useIconColourActive()
+  // Every tab icon is a palette icon (PALETTE_ICON_CLASS), coloured the
+  // same as in the ribbon and the Document Browser. Document tabs also
+  // pass their source type's colour. Empty (muted icon) on
+  // High Contrast.
   const tint = useIconTint()
   const tintFor = (tabId: string): React.CSSProperties => {
-    if (!colourful) return {}
-    if (isMapTab(tabId)) return { color: TOOL_REGISTRY['relationship-map'].color }
-    if (isQueryBuilderTab(tabId)) return { color: TOOL_REGISTRY.queryBuilder.color }
-    if (isAnalysisTab(tabId)) {
-      const toolType = analysisTabs[tabId]?.toolType
-      const color = toolType ? TOOL_REGISTRY[toolType]?.color : undefined
-      return color ? { color } : {}
-    }
+    if (isMapTab(tabId) || isQueryBuilderTab(tabId) || isAnalysisTab(tabId)) return {}
     if (isPreferencesTab(tabId) || isMergeTab(tabId)) return {}
     const source = sourceMap.get(tabId)
     if (!source) return {}
@@ -239,6 +232,7 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
             {tabIcon && (
               <Icon
                 icon={tabIcon}
+                className={PALETTE_ICON_CLASS}
                 style={{
                   fontSize: 13,
                   color: 'var(--text-muted)',

@@ -624,7 +624,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
             }}
           />
         ) : (
-          <span style={{ flex: 1 }}>Memos</span>
+          <span style={{ flex: 1 }}>Saved Memos</span>
         )}
         {memos.length > 0 && (
           <button

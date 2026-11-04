@@ -16,15 +16,20 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon, faCircleQuestion, faScale, faFileAlt, faHeart, type IconComponent } from '../Icon'
+import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
 
 /** GitHub Sponsors page for funding Magnolia's development — same link
  *  as Preferences → Support Magnolia and the Welcome screen's ♥. */
-const SPONSOR_URL = 'https://github.com/sponsors/caledavis'
-const MANUAL_URL = 'https://caledavis.github.io/Magnolia/'
+export const SPONSOR_URL = 'https://github.com/sponsors/caledavis'
+export const MANUAL_URL = 'https://caledavis.github.io/Magnolia/'
 
 interface Props {
   onShowLicence: () => void
 }
+
+/** The Help items' icons, shared by this pop-up and the ribbon's Help
+ *  tab so the two always match. */
+export const HELP_ICONS = { licence: faScale, manual: faFileAlt, donate: faHeart }
 
 interface HelpRow {
   icon: IconComponent
@@ -100,19 +105,19 @@ export function HelpPopover({ onShowLicence }: Props) {
 
   const rows: HelpRow[] = [
     {
-      icon: faScale,
+      icon: HELP_ICONS.licence,
       name: 'Licence & Attributions',
       description: "Magnolia's licence (EUPL-1.2) and credits for bundled libraries.",
       action: onShowLicence
     },
     {
-      icon: faFileAlt,
+      icon: HELP_ICONS.manual,
       name: 'Manual',
       description: "Open Magnolia's user manual in your browser.",
       action: () => window.open(MANUAL_URL, '_blank')
     },
     {
-      icon: faHeart,
+      icon: HELP_ICONS.donate,
       name: 'Donate',
       description: 'Magnolia is free to use, but costs me money to make. If it is useful, please consider donating to cover my costs.',
       action: () => window.open(SPONSOR_URL, '_blank')
@@ -179,7 +184,7 @@ export function HelpPopover({ onShowLicence }: Props) {
                 className="analysis-popover-tile"
                 onClick={() => handleSelect(row.action)}
               >
-                <Icon icon={row.icon} style={{ fontSize: 14 }} />
+                <Icon icon={row.icon} className={PALETTE_ICON_CLASS} style={{ fontSize: 14 }} />
                 <div className="analysis-popover-tile-name">{row.name}</div>
                 <div className="analysis-popover-tile-desc">{row.description}</div>
               </button>

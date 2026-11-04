@@ -11,8 +11,7 @@
   /* The font used for document body text in the plain-text, audio
    * transcript, and video transcript viewers. Single source of truth
    * so all three viewers stay aligned. Defaults to the proportional UI
-   * font — matches Granola, and Clean now reads the same. Themes that
-   * want monospace can override at the theme level. */
+   * font. Themes that want monospace can override at the theme level. */
   --font-doc: var(--font-family);
   --font-size-sm: 12px;
   --font-size-base: 13px;
@@ -26,28 +25,9 @@
    * Token-based so a future theme with a web font could opt out. */
   --body-font-features: "ss01", "ss02", "cv11";
 
-  /* Clean (light) palette — light sister to Clean Dark's deep cool
-   * slate. Both carry the same blue tint deliberately so the two
-   * themes read as one family rather than as light/dark of different
-   * apps:
-   *
-   *  - Chrome at #e6ebf4 (clearly blue-tinted off-white). Stops short
-   *    of "Windows blue" or "LinkedIn blue" — the tint is saturated
-   *    enough that the eye registers it as deliberate, not as a
-   *    neutral that happens to skew cool.
-   *  - Panel stays pure #ffffff. The contrast between blue chrome and
-   *    white document is what gives the layout its "lifted card on
-   *    tinted surface" hierarchy.
-   *  - Borders pick up the same cool family (#c4ccdc) so panel edges
-   *    feel intentional rather than left over from a neutral palette.
-   *  - Text stays near-neutral. Pushing labels overtly blue would
-   *    over-saturate; a small cool nudge in --text-secondary /
-   *    --text-muted (the only places it would read) keeps them in the
-   *    family without making them feel coloured.
-   *
-   * Apple's #007AFF accent is kept — that's the anchor identity color
-   * for the Clean family and reads cleanly against the new blue
-   * chrome. */
+  /* Base palette: the defaults every theme starts from (Magnolia,
+   * Magnolia Dark and High Contrast each override what they need) and
+   * what shows for the instant before a window applies its theme. */
   --bg-primary: #dde4f0;
   /* bg-secondary doubles as the toolbar background AND the hover
    * fill on tree rows / list items. Set LIGHTER than bg-primary
@@ -78,7 +58,7 @@
    * (top-right of analysis / query / relationship-map tools) when a
    * memo is attached. var(--accent) resolves per theme, so a filled
    * memo button picks up the primary-action colour in every palette
-   * (Clean blue, Granola amber, Dark blue, HC yellow, etc.). Defined
+   * (Magnolia blue, HC yellow, etc.). Defined
    * once in the base :root because none of the theme overrides need
    * to redefine it — each only swaps --accent. */
   --memo-active-color: var(--accent);
@@ -90,147 +70,17 @@
   /* --canvas-bg is the surface colour for the dot-grid canvases in
    * the Query Builder + Document Selector AND the palette chips
    * that get dragged onto them. Keeping both on one token means
-   * the canvas + chips always read as the same surface. Defaults
-   * to bg-primary; the Clean (light) theme overrides to
-   * bg-tertiary below for a softer feel against its white panel. */
+   * the canvas + chips always read as the same surface. */
   --canvas-bg: var(--bg-primary);
 }
 
-/* Clean (light) theme: lighten the node-graph canvases and palette
- * chips so they sit a hair above the white panel rather than the
- * shade darker bg-primary that's normally used for chrome. */
-:root[data-theme=""],
-html:not([data-theme]) {
-  --canvas-bg: var(--bg-tertiary);
-}
 
-/* Toolbar icons and labels normally render at opacity 0.85 to soften
- * them. Against the new blue-tinted Clean chrome that dim factor
- * makes them sit too quietly — force full opacity so each icon
- * asserts itself confidently, the same trick High Contrast already
- * uses (see further down). */
-:root[data-theme=""] .app-toolbar-btn .toolbar-label,
-:root[data-theme=""] .app-toolbar-btn svg,
-html:not([data-theme]) .app-toolbar-btn .toolbar-label,
-html:not([data-theme]) .app-toolbar-btn svg {
-  opacity: 1;
-}
 
-:root[data-theme="dark"] {
-  /* Clean Dark palette. Originally a neutral macOS Dark Mode mirror
-   * with --bg-primary === --bg-panel — chrome and document area
-   * shared one uniform dark grey, intentionally flattening the
-   * hierarchy that light mode carries via white-on-grey.
-   *
-   * Iterated to match the new Clean (light) direction: more contrast,
-   * less flat grey:
-   *
-   *  - Chrome at #161821 (deep cool slate) instead of neutral #1e1e1e,
-   *    so dark mode reads as "deliberately tinted" rather than
-   *    "filled with grey".
-   *  - Panel lifted to #1c1f2a (one notch brighter than chrome) —
-   *    breaks the previous flat equality so the document surface
-   *    reads as its own card on the chrome below, the same hierarchy
-   *    Clean light gets from white-on-grey.
-   *  - Border at #2e3245 — visible enough to actually separate panels.
-   *  - Secondary text lifted to #b4b6c3 (was #9c9ca1) and muted to
-   *    #7c7e8c (was #6e6e6e), so labels and metadata read clearly
-   *    against the new chrome. */
-  --bg-primary: #161821;
-  --bg-secondary: #222533;
-  --bg-tertiary: #2c2f3f;
-  --bg-panel: #1c1f2a;
-  --border-color: #2e3245;
-  --text-primary: #ebebf5;
-  --text-secondary: #b4b6c3;
-  --text-muted: #7c7e8c;
-  --accent: #0a84ff;
-  /* Links read as text, so they need more contrast than the accent. */
-  --link: #64a8ff;
-  --accent-hover: #409cff;
-  --danger: #ff453a;
-  --success: #32d74b;
-  --selection-bg: #0a84ff66;
-  --btn-text: #ffffff;
-  --btn-secondary-hover: #2c2f3f;
-  --scrollbar-bg: transparent;
-  --scrollbar-thumb: #4a4d5c;
-  --memo-icon-color: #b4b6c3;
-  --quote-icon-color: #ff6961;
-}
 
-/* Granola — three-shade warm cream system.
- *  Mockup palette mapped onto Magnolia's CSS variables:
- *    bg-primary   = #fefaf3  very light cream — viewer body / content area
- *    bg-secondary = #faf2e3  warmer cream    — hover, active tab fill
- *    bg-tertiary  = #f1e6cf  deep cream      — main-window canvas
- *    bg-panel     = #ffffff  pure white      — panel card surface
- *  The three-shade system is what gives the floating-card layout its
- *  depth: white panels sit on the deep-cream canvas; the slightly
- *  cream-tinted viewer body is set apart from its surrounding white card.
- */
-:root[data-theme="granola"] {
-  --bg-primary: #fefaf3;
-  --bg-secondary: #faf2e3;
-  --bg-tertiary: #f1e6cf;
-  --bg-panel: #ffffff;
-  --border-color: #ecdcb8;
-  --text-primary: #2b231a;
-  --text-secondary: #6a5d4a;
-  --text-muted: #948871;
-  --accent: #c97134;
-  --accent-hover: #b35e23;
-  --danger: #c2453a;
-  --success: #82a55a;
-  /* Bumped from #fde0c0 — that cream sat too close to --bg-primary
-   * (#fefaf3, also cream) and highlights washed out. The saturated
-   * peach reads cleanly against both the cream viewer body and the
-   * white panel cards, while still feeling palette-native. */
-  --selection-bg: #fbc890;
-  --btn-text: #ffffff;
-  --btn-secondary-hover: #f4ead4;
-  --scrollbar-bg: #f1e6cf;
-  --scrollbar-thumb: #d8c590;
-  --memo-icon-color: #6a5d4a;
-  --quote-icon-color: #c25a6a;
-  --panel-header-height: 36px;
-  /* Granola swaps the document/transcript font from monospace to the
-   * proportional UI font. Single source of truth — every viewer that
-   * reads var(--font-doc) inherits this change. */
-  --font-doc: var(--font-family);
-}
 
-/* Granola Dark — same warm palette as Granola, but the cream canvas
- * becomes deep coffee and the white floating cards become mocha cards.
- * Structural Granola rules below use [data-theme^="granola"] so they
- * apply to both themes; only the variable values differ here. */
-:root[data-theme="granola-dark"] {
-  --bg-primary: #1f1a14;
-  --bg-secondary: #2a241c;
-  --bg-tertiary: #34291f;
-  --bg-panel: #2d271f;
-  --border-color: #4a3d2d;
-  --text-primary: #f1e6cf;
-  --text-secondary: #c4b39a;
-  --text-muted: #8a7c66;
-  --accent: #e08a4a;
-  --accent-hover: #f09b5b;
-  --danger: #d96459;
-  --success: #9bbf73;
-  --selection-bg: #4a3520;
-  --btn-text: #1f1a14;
-  --btn-secondary-hover: #3a3025;
-  --scrollbar-bg: #2a241c;
-  --scrollbar-thumb: #5a4a35;
-  --memo-icon-color: #c4b39a;
-  --quote-icon-color: #d76e7d;
-  --panel-header-height: 36px;
-  --font-doc: var(--font-family);
-}
 
-:root[data-theme="granola-dark"] ::-webkit-scrollbar-thumb:hover {
-  background: #6a5840;
-}
+
+
 
 
 /* High Contrast — maximum-contrast palette for visually impaired users.
@@ -342,9 +192,11 @@ html:not([data-theme]) .app-toolbar-btn svg {
  * (so it can't get lost to specificity / cascade questions).
  * ============================================================ */
 :root[data-theme="magnolia"] {
+  /* The panel cards' drop shadow, shared with the ribbon. */
+  --magnolia-card-shadow: 0 2px 8px rgba(20, 40, 70, 0.10), 0 1px 3px rgba(20, 40, 70, 0.07);
   --bg-primary: #F8FAFB;
   --bg-secondary: #EAEFF6;
-  --bg-tertiary: #D2DAE4;
+  --bg-tertiary: #E9EDF3;
   --bg-panel: #FFFFFF;
   --border-color: #A0AEC0;
   --text-primary: #1A2633;
@@ -373,12 +225,15 @@ html:not([data-theme]) .app-toolbar-btn svg {
 }
 
 /* Main-window padding around the panel area. Each .panel below carries
- * margin: 2px, so adjacent panes show a 4 px canvas gap between them
- * but only 2 px against the window edge. Adding 2 px padding on left,
- * right, and bottom matches the inter-pane gap on the outer edges too;
- * the top stays flush with the toolbar. */
+ * a margin of --pane-half-gap, so adjacent panes show twice that as the
+ * canvas gap between them but only once against the window edge. The
+ * same padding on left, right, and bottom matches the inter-pane gap
+ * on the outer edges too; the top stays flush with the toolbar. */
+:root {
+  --pane-half-gap: 1.5px;
+}
 :root[data-theme="magnolia"] .app-main-panels {
-  padding: 0 2px 2px 2px;
+  padding: 0 var(--pane-half-gap) var(--pane-half-gap) var(--pane-half-gap);
   box-sizing: border-box;
 }
 
@@ -388,29 +243,29 @@ html:not([data-theme]) .app-toolbar-btn svg {
   background: var(--bg-panel);
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  margin: 2px;
-  height: calc(100% - 4px);
-  width: calc(100% - 4px);
+  margin: var(--pane-half-gap);
+  height: calc(100% - 2 * var(--pane-half-gap));
+  width: calc(100% - 2 * var(--pane-half-gap));
   box-sizing: border-box;
-  box-shadow: 0 2px 8px rgba(20, 40, 70, 0.18), 0 1px 3px rgba(20, 40, 70, 0.12);
+  box-shadow: var(--magnolia-card-shadow);
 }
-:root[data-theme="magnolia"] #root > .panel { height: calc(100% - 4px); }
+:root[data-theme="magnolia"] #root > .panel { height: calc(100% - 2 * var(--pane-half-gap)); }
 
 /* macOS rounds the window's corners, and a 4 px panel corner sitting just
  * inside that curve looks pinched. The panels in the window's bottom
  * corners (marked by useWindowCornerPanels in utils/window-corner-panels.ts)
- * take a radius concentric with the window's: its radius less the 4 px
- * inset (2 px padding + 2 px margin). The window radius is in screen
+ * take a radius concentric with the window's: its radius less the
+ * inset (the padding plus the panel's margin, each --pane-half-gap). The window radius is in screen
  * points, so it's divided by the interface zoom. Applies to Magnolia and
  * Magnolia Dark. */
 :root[data-platform="darwin"] {
   --mac-window-radius: 16px;
 }
 :root[data-platform="darwin"][data-theme^="magnolia"] .panel[data-window-corner~="bl"] {
-  border-bottom-left-radius: max(4px, calc(var(--mac-window-radius) / var(--window-zoom, 1) - 4px));
+  border-bottom-left-radius: max(4px, calc(var(--mac-window-radius) / var(--window-zoom, 1) - 2 * var(--pane-half-gap)));
 }
 :root[data-platform="darwin"][data-theme^="magnolia"] .panel[data-window-corner~="br"] {
-  border-bottom-right-radius: max(4px, calc(var(--mac-window-radius) / var(--window-zoom, 1) - 4px));
+  border-bottom-right-radius: max(4px, calc(var(--mac-window-radius) / var(--window-zoom, 1) - 2 * var(--pane-half-gap)));
 }
 
 :root[data-theme="magnolia"] .modal {
@@ -483,6 +338,16 @@ html:not([data-theme]) .app-toolbar-btn svg {
 :root[data-theme="magnolia"] [data-panel-resize-handle-id] {
   background: transparent !important;
 }
+/* The handles between the cards take no space, so the gap between two
+ * panes is just their margins, the same as the gap at the window edge.
+ * react-resizable-panels still catches a drag within a few pixels of a
+ * zero-size handle. The dividers inside panes keep their 1 px line. */
+:root[data-theme^="magnolia"] [data-panel-group-direction="horizontal"] > [data-panel-resize-handle-id]:not(.queries-sidebar-divider):not(.documents-tags-divider) {
+  width: 0 !important;
+}
+:root[data-theme^="magnolia"] [data-panel-group-direction="vertical"] > [data-panel-resize-handle-id]:not(.queries-sidebar-divider):not(.documents-tags-divider) {
+  height: 0 !important;
+}
 :root[data-theme="magnolia"] .queries-sidebar-divider[data-panel-resize-handle-id],
 :root[data-theme="magnolia"] .documents-tags-divider[data-panel-resize-handle-id] {
   background: var(--border-color) !important;
@@ -538,7 +403,7 @@ html:not([data-theme]) .app-toolbar-btn svg {
 /* Match the light-Magnolia edge padding — see the comment on the
  * light-theme rule above. */
 :root[data-theme="magnolia-dark"] .app-main-panels {
-  padding: 0 2px 2px 2px;
+  padding: 0 var(--pane-half-gap) var(--pane-half-gap) var(--pane-half-gap);
   box-sizing: border-box;
 }
 
@@ -546,15 +411,15 @@ html:not([data-theme]) .app-toolbar-btn svg {
   background: var(--bg-panel);
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  margin: 2px;
-  height: calc(100% - 4px);
-  width: calc(100% - 4px);
+  margin: var(--pane-half-gap);
+  height: calc(100% - 2 * var(--pane-half-gap));
+  width: calc(100% - 2 * var(--pane-half-gap));
   box-sizing: border-box;
   /* Black-tinted two-layer shadow — cool tints read pale on dark
    * canvases; black at higher opacity gives the cards real lift. */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.4);
 }
-:root[data-theme="magnolia-dark"] #root > .panel { height: calc(100% - 4px); }
+:root[data-theme="magnolia-dark"] #root > .panel { height: calc(100% - 2 * var(--pane-half-gap)); }
 
 :root[data-theme="magnolia-dark"] .modal {
   background: var(--bg-panel);
@@ -732,46 +597,14 @@ body,
   background: transparent;
 }
 
-/* Dark thumbs — light translucent so they're visible on dark
- * backgrounds. Applies to Clean Dark only; Granola Dark uses the
- * thicker themed scrollbar further down. */
-:root[data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.28);
-  background-clip: padding-box;
-}
-:root[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.45);
-  background-clip: padding-box;
-}
 
-/* Granola: restore the original thicker themed scrollbar — a
- * transparent track with the cream / mocha --scrollbar-thumb sitting
- * over whatever bg is behind it (so the thumb reads as part of the
- * warm palette without painting an opaque stripe behind it). The
- * thumb fills the full 8 px gutter (no padding-box border) with a
- * 4 px corner radius, matching the chunkier pill the Granola themes
- * carried before the slim-translucent treatment was applied globally.
- * The corner pseudo (where horizontal and vertical scrollbars meet)
- * is also pinned to transparent so it doesn't render as a stray
- * square against the cream / mocha surface. */
-:root[data-theme^="granola"] ::-webkit-scrollbar-track {
-  background: transparent;
-}
-:root[data-theme^="granola"] ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  background-clip: border-box;
-  border: none;
-  border-radius: 4px;
-}
-:root[data-theme="granola"] ::-webkit-scrollbar-thumb:hover {
-  background: #c4ad75;
-}
-:root[data-theme="granola-dark"] ::-webkit-scrollbar-thumb:hover {
-  background: #6a5840;
-}
-:root[data-theme^="granola"] ::-webkit-scrollbar-corner {
-  background: transparent;
-}
+
+
+
+
+
+
+
 
 /* The little square where horizontal + vertical scrollbars meet — the
  * browser default is a flat grey block that reads as a stray white
@@ -781,13 +614,9 @@ body,
   background: transparent;
 }
 
-:root[data-theme="dark"] .context-menu {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.5);
-}
 
-:root[data-theme="dark"] .modal {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 12px 24px rgba(0, 0, 0, 0.55);
-}
+
+
 
 button {
   font-family: var(--font-family);
@@ -863,7 +692,7 @@ textarea:focus {
   display: flex;
   align-items: center;
   padding: 0 10px;
-  /* Inherit the panel surface (white in Clean) instead of sitting on
+  /* Inherit the panel surface (white) instead of sitting on
    * a darker --bg-secondary stripe. No bottom border either — the
    * title sits flush with the content beneath. */
   background: var(--bg-panel);
@@ -1024,8 +853,7 @@ div:hover > .folder-row-add,
   border-bottom: none;
   /* 2 px accent stripe along the top of the active tab. Inset
    * box-shadow keeps the label's vertical position unchanged
-   * (versus a border-top) and is a no-op when overridden by
-   * themes (e.g. Granola) that prefer outline-style highlighting. */
+   * (versus a border-top). */
   box-shadow: inset 0 2px 0 0 var(--accent);
 }
 .tab-item:hover:not(.active) {
@@ -1154,24 +982,9 @@ div:hover > .folder-row-add,
   overflow: hidden;
 }
 
-/* ============================================================
-   GRANOLA THEME — chrome refinements.
-   Mirrors mockups/alternatives-v2.html (.alt-granola): a deep-cream
-   canvas with white, rounded, softly-shadowed panels floating on it,
-   transparent panel headers, and a white (not cream) toolbar.
-   ============================================================ */
-
-/* The body becomes the deep-cream "canvas" that shows through the
- * gaps between cards. Panels themselves stay white. */
-:root[data-theme^="granola"] body,
-:root[data-theme^="granola"] #root {
-  background: var(--bg-tertiary);
-}
-
 /* Toolbar: white (matching the doc-viewer tab bar surface), separated
- * by a cream hairline. Uses --bg-panel so it reads as the same surface
- * as the floating cards below it. Applied universally — Clean and Dark
- * themes pick up the same compact toolbar treatment as Granola. */
+ * by a hairline. Uses --bg-panel so it reads as the same surface as
+ * the floating cards below it. Themes restyle it as they need. */
 .app-toolbar {
   background: var(--bg-panel) !important;
   border-bottom: 1px solid var(--border-color) !important;
@@ -1237,29 +1050,9 @@ div:hover > .folder-row-add,
   app-region: no-drag;
 }
 
-/* Clean themes: match the toolbar to the side-panel header colour
- * (--bg-secondary) so the top strip and the pane headers read as a
- * single chrome plane. Granola and HC keep their own --bg-panel
- * toolbar, where their three-shade system already separates the
- * chrome from the body. */
-:root[data-theme=""] .app-toolbar,
-:root[data-theme="dark"] .app-toolbar,
-html:not([data-theme]) .app-toolbar {
-  background: var(--bg-secondary) !important;
-}
 
-/* Popout windows whose root is a `.panel`: Granola's universal
- * `.panel` rule adds margin: 6px around every panel (the floating-card
- * effect). When the panel is the root of a popout window — i.e. a
- * direct child of #root — its default height: 100% plus that 6px each
- * side vertically means the panel overflows the viewport by 12px,
- * clipping the bottom rounded corner past the window. Subtracting the
- * combined vertical margin from the height lets the rounded corners
- * sit fully inside the popout window. Targets only popout-root panels
- * (main window has no `.panel` as a direct child of #root). */
-:root[data-theme^="granola"] #root > .panel {
-  height: calc(100% - 12px);
-}
+
+
 
 /* Connected zoom strip used in the PDF and image viewer toolbars.
  * Matches the mockup's segmented-control look: shared border between
@@ -1323,55 +1116,14 @@ html:not([data-theme]) .app-toolbar {
   cursor: default;
 }
 
-/* Each panel is a white, rounded, gently-shadowed card with a small
- * gap on every side so the cream canvas peeks through. The explicit
- * width/height keep the card + its 6px margin within the parent's box
- * so the rounded bottom isn't clipped by the parent's overflow:hidden. */
-:root[data-theme^="granola"] .panel {
-  background: var(--bg-panel);
-  border-radius: 16px;
-  margin: 6px;
-  height: calc(100% - 12px);
-  width: calc(100% - 12px);
-  box-sizing: border-box;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 2px 8px rgba(124, 91, 47, 0.08);
-}
 
-/* Panel header: transparent background, no rule below the title — the
- * label sits inside the white card area. Slightly larger label and
- * extra horizontal padding to read as a section title rather than a
- * separator strip. */
-:root[data-theme^="granola"] .panel-header {
-  background: transparent;
-  border-bottom: none;
-  padding: 0 16px;
-  /* Typography (size, weight, uppercase, letter-spacing, colour)
-   * flows through from the base .panel-header rule's small-caps
-   * treatment. Granola only adjusts the chrome bits here. */
-}
 
-/* Tab bar inside the document viewer: same cream as the inactive
- * tabs, so the bar reads as a continuous strip and only the active
- * tab (white) pops out of it. */
-:root[data-theme^="granola"] .tab-bar {
-  background: var(--bg-secondary);
-}
 
-/* Hide the visible-line resize handles between cards. They keep their
- * 3px width (still grabbable) but blend into the cream canvas so the
- * floating-card look isn't broken by a gridline running through it. */
-:root[data-theme^="granola"] [data-panel-resize-handle-id] {
-  background: transparent !important;
-}
-/* Exception: in-card dividers (Saved Queries vs results body; the
- * Documents tree vs Tags tree inside the left sidebar) are *part of*
- * a single card, not between-card gridlines. Keep them visible so
- * the sections read as deliberately demarcated regions. */
-:root[data-theme^="granola"] .queries-sidebar-divider[data-panel-resize-handle-id],
-:root[data-theme^="granola"] .documents-tags-divider[data-panel-resize-handle-id] {
-  background: var(--border-color) !important;
-}
+
+
+
+
+
 
 /* The per-tool accent on Analysis header icons used to clash with the
  * cream chrome, so this rule forced it to inherit. The inline style
@@ -1396,11 +1148,9 @@ html:not([data-theme]) .app-toolbar {
   color: var(--text-secondary) !important;
 }
 
-/* Preferences → Appearance → "Toolbar Style" ('icons', the default, vs
- * 'icons-and-text') toggles the two blocks below via the data attribute
- * App.tsx sets on .app-toolbar. Scoped by that attribute rather than a
- * class per button so switching the preference needs no re-render of
- * the toolbar's own JSX — only the CSS selector changes. */
+/* Preferences → Appearance → "Toolbar Style" 'icons' (the ribbon,
+ * the default, is styled under "Ribbon" below), keyed off the data
+ * attribute App.tsx sets on .app-toolbar. */
 
 /* Icons: macOS Mail-style — the visible label is hidden and the
  * button shrinks to fit just the icon; the tool's name still reaches
@@ -1408,12 +1158,20 @@ html:not([data-theme]) .app-toolbar {
  * hover) rather than an on-toolbar caption. Buttons within a group sit
  * in a rounded pill chip (distinct from a button's own hover fill,
  * var(--bg-tertiary), so hovering a button inside still reads as a
- * visible highlight) — Icons and Text below deliberately skips this,
- * see that block's own comment. */
+ * visible highlight). */
 .app-toolbar[data-toolbar-style="icons"] .app-toolbar-pill {
   background: var(--bg-secondary);
   border-radius: 999px;
   padding: 3px;
+}
+/* Magnolia's canvas is pale enough that the usual pill colour all but
+ * matches it, so the pills are white there, and a button inside one
+ * hovers in the pale blue instead of the theme's white wash. */
+:root[data-theme="magnolia"] .app-toolbar[data-toolbar-style="icons"] .app-toolbar-pill {
+  background: var(--bg-panel);
+}
+:root[data-theme="magnolia"] .app-toolbar[data-toolbar-style="icons"] .app-toolbar-pill button:not(.analysis-popover-tile):not(.studio-popover-row):not(.checkout-btn):hover {
+  background: var(--bg-secondary) !important;
 }
 .app-toolbar[data-toolbar-style="icons"] .app-toolbar-btn {
   gap: 0 !important;
@@ -1435,38 +1193,6 @@ html:not([data-theme]) .app-toolbar {
  * content (icon-only, no label alongside it to balance against). */
 .app-toolbar[data-toolbar-style="icons"] .app-toolbar-btn svg {
   font-size: 16px !important;
-}
-
-/* Icons and Text: the toolbar's look before the icon-only redesign —
- * label visible beside a smaller icon (13 px keeps FontAwesome
- * free-solid icons from feeling heavy next to body-sized text). No
- * pill chip here by design — the rounded background reads right
- * around a bare icon but crowds a full icon+label row, so this mode
- * stays a plain, unfilled group (background/radius/padding all
- * reset — .app-toolbar-pill only gets them in Icons mode, above). */
-.app-toolbar[data-toolbar-style="icons-and-text"] .app-toolbar-pill {
-  background: transparent;
-  border-radius: 0;
-  padding: 0;
-}
-/* Restores the original (pre-pill) spacing: a tighter gap between the
- * three button groups — they read as separated by the group itself
- * (dividers + the wider icon+label buttons) rather than by a pill's
- * own outer gap — and the original icon-to-label gap/button padding. */
-.app-toolbar[data-toolbar-style="icons-and-text"] .app-toolbar-scroll-inner {
-  gap: 2px !important;
-}
-.app-toolbar[data-toolbar-style="icons-and-text"] .app-toolbar-btn {
-  gap: 6px !important;
-  padding: 4px 10px !important;
-}
-.app-toolbar[data-toolbar-style="icons-and-text"] .app-toolbar-btn .toolbar-label {
-  display: inline !important;
-  font-size: 11.5px !important;
-  font-weight: 400 !important;
-}
-.app-toolbar[data-toolbar-style="icons-and-text"] .app-toolbar-btn svg {
-  font-size: 13px !important;
 }
 
 /* Check Out / Check In toggle (components/Toolbar/CheckOutButton.tsx) —
@@ -1523,7 +1249,7 @@ html:not([data-theme]) .app-toolbar {
  * pill treatment — instead of a small, sharper-cornered colored square
  * sitting inside an otherwise plain pill. The button itself is forced
  * transparent (rest AND hover) so its own background (still set inline,
- * still driving Icons and Text mode below) doesn't paint over the
+ * what Check Out shows with the ribbon) doesn't paint over the
  * pill's color. No :hover rule on the pill itself, by design — every
  * other Icons-mode pill's own background is static (only the
  * individual button inside gets a hover highlight), so Check Out's
@@ -1733,20 +1459,8 @@ html:not([data-theme]) .app-toolbar {
   outline: none;
 }
 
-/* (#1, #6) Document body: shares the panel surface (--bg-panel) so
- * the text reading area matches the analysis tools' background.
- * Body and code-margin labels both adopt the proportional UI font
- * instead of mono. */
-:root[data-theme^="granola"] .text-document {
-  font-family: var(--font-family) !important;
-  padding: 16px 28px !important;
-}
-/* When the same CodedTextView is rendered inside the audio transcript
- * coding wrapper, swap the plain-text padding for the video viewer's
- * tighter container padding so audio and video coding margins match. */
-:root[data-theme^="granola"] .transcript-coding-area .text-document {
-  padding: 4px 0 40px 12px !important;
-}
+
+
 /* Code-margin labels render in the proportional UI font across every
  * theme so the labels look the same regardless of which palette the
  * user picks. The monospace default in CodeLabel.tsx is overridden
@@ -1757,26 +1471,8 @@ html:not([data-theme]) .app-toolbar {
   letter-spacing: 0;
 }
 
-/* All viewer surfaces (PDF/image scroll areas, the audio/video
- * code-track timeline, the doc-viewer panel-content frame) share
- * the analysis tools' --bg-panel background — viewers and tools
- * read as one continuous surface across every theme. The base
- * .panel ancestor already paints --bg-panel, so these classes
- * just inherit it; no per-class background needed.
- *
- * Query Results body sits on the same --bg-panel surface so it
- * reads as a discrete panel against the cream canvas, matching
- * the other panes in the main window. */
-:root[data-theme^="granola"] .query-results-panel .panel-content {
-  background: var(--bg-panel);
-}
-/* Document-group header rows in Query Results match the audio/video
- * media controls bar (--bg-secondary) — the warmer cream that's used
- * for "control strip"-style surfaces across the app. */
-:root[data-theme^="granola"] .query-results-group-header {
-  background: var(--bg-secondary) !important;
-  border-bottom-color: var(--border-color) !important;
-}
+
+
 
 /* Single source of truth for the collapsible "section" boxes and the
  * result/chart areas in every analysis tool window. Each box used to
@@ -1793,34 +1489,13 @@ html:not([data-theme]) .app-toolbar {
    * (var(--bg-panel)) instead of the default --bg-tertiary grey. The
    * default sits a shade darker than the section background, which made
    * fields look like an inset against an already-white card; matching
-   * the surface keeps the field flush with its surroundings. Mirrors
-   * the Granola modal override pattern. */
+   * the surface keeps the field flush with its surroundings. */
   --bg-input: var(--bg-panel);
 }
 
-/* (#4) Tab bar — borderless. Inactive tabs read as a cream tab
- * strip; the active tab is the white panel surface popping
- * through. No outlines, no inter-tab rules, no bottom rule under
- * the strip. The colour contrast plus rounded top corners is
- * enough on its own. */
-:root[data-theme^="granola"] .tab-item {
-  background: var(--bg-secondary);
-  border: none;
-  border-radius: 6px 6px 0 0;
-  padding: 0 12px;
-  gap: 8px;
-}
-:root[data-theme^="granola"] .tab-item.active {
-  background: var(--bg-panel);
-  border: none;
-  box-shadow: none;
-}
-/* The default-theme ::after filler draws a 1 px rule across the
- * empty area to the right of the last tab. Granola has no rule
- * under the tab strip, so suppress it here. */
-:root[data-theme^="granola"] .tab-bar::after {
-  border-bottom: none;
-}
+
+
+
 
 /* (#5) Viewer control bar — sits between the tab bar and the document
  * body. Carries a small caption on the left, ⌘F hint on the right,
@@ -2082,24 +1757,8 @@ html:not([data-theme]) .app-toolbar {
   z-index: 900;
 }
 
-/* Granola modal tweaks: warm-tinted, lighter scrim so the cream theme
-   doesn't look like it's drowning under flat grey, and white input
-   surfaces so fields stand out from the cream modal body (the default
-   --bg-tertiary cream is too close in value to the modal's
-   --bg-secondary cream). The --bg-input override cascades to every
-   input/textarea/select AND to anything else that reads the variable
-   (e.g. MarkdownEditor body), so all fields stay consistent without
-   per-component rules. */
-:root[data-theme^="granola"] .modal-overlay {
-  background: rgba(43, 35, 26, 0.28);
-}
-:root[data-theme^="granola"] .modal,
-:root[data-theme^="granola"] .memo-edit-window,
-:root[data-theme^="granola"] .codebook-window,
-:root[data-theme^="granola"] .logbook-window,
-:root[data-theme^="granola"] .preferences-window {
-  --bg-input: var(--bg-panel);
-}
+
+
 
 .modal {
   background: var(--bg-secondary);
@@ -2239,87 +1898,130 @@ html:not([data-theme]) .app-toolbar {
   user-select: none !important;
 }
 
-/* ── Coloured icons and Colourful interface ────────────────────────────
- * Two parts:
+/* ── Icon palette ──────────────────────────────────────────────────────
+ * Four colours shared by every coloured icon: ink for an icon's body,
+ * blue for its content, coral for a highlight and gold for a small
+ * extra touch. Each icon colours its parts differently, picked out by
+ * their order in the Lucide SVG, so the rules below go icon by icon.
  *
- *  1. An icon palette (--icon-*) that the Document Browser and tab bar
- *     read, so each source type and folder carries its own colour. This
- *     is always on, whatever the Colourful interface preference says.
- *     Light values first; the [data-theme$="dark"] block (dark,
- *     magnolia-dark) lifts them for dark chrome. Memo icons join in via
- *     --memo-icon-color.
+ * An icon opts in with the mg-icon class (PALETTE_ICON_CLASS in
+ * utils/icon-tint.ts); analysis header icons are always in. Documents,
+ * folders and their tabs also set --mg-kind (via useIconTint) to their
+ * type's colour (the --icon-* tokens), which the file, folder and media
+ * glyphs use. The Icons toolbar doesn't opt in.
  *
- *  2. Colourful interface (Preferences → Appearance → Colour, on by
- *     default; apply-theme.ts / Preferences set [data-colourful] on
- *     <html>): on the light themes, a dark slate toolbar that frames the
- *     window, with each tool's icon in its own colour. The dark themes
- *     already have a dark toolbar and just get the coloured icons.
- *
- * High Contrast is left alone throughout — its palette is deliberate —
- * and so are Granola and Granola Dark, which don't suit the colours. */
-:root:not([data-theme="high-contrast"]):not([data-theme^="granola"]) {
-  --icon-folder: #2f7bf5;
-  --icon-text: #5b5cf0;
-  --icon-pdf: #f0453a;
-  --icon-audio: #f08c00;
-  --icon-video: #e8407f;
-  --icon-image: #1fa855;
-  --icon-survey: #a346e8;
-  --icon-respondent: #0aa5b8;
-  --icon-question: #a346e8;
-  --memo-icon-color: #e39b00;
-  /* Gradient partners: each icon's fill blends from its partner (top
-   * left) into its own colour (bottom right) — see icon-tint.ts. */
-  --icon-folder-2: #3cc3f5;
-  --icon-text-2: #7aa6ff;
-  --icon-pdf-2: #ff9a3c;
-  --icon-audio-2: #ffc61a;
-  --icon-video-2: #ff7ab8;
-  --icon-image-2: #7fd63a;
-  --icon-survey-2: #e45fd6;
-  --icon-respondent-2: #2fd19c;
-  --icon-question-2: #e45fd6;
-  /* Gradient strength (start → end opacity): airy on light grounds. */
-  --icon-fill-from: 0.25;
-  --icon-fill-to: 0.55;
+ * High Contrast is never coloured: these rules skip it, and the ribbon
+ * draws its icons in the text colour there. */
+:root {
+  --rb-ink: #34425a;
+  --rb-blue: #3a78d8;
+  --rb-coral: #e5674b;
+  --rb-gold: #eba62a;
+  --rb-tint: 28%;
 }
-:root[data-theme$="dark"]:not([data-theme^="granola"]) {
-  --icon-folder: #5c9dff;
-  --icon-text: #8f8fff;
-  --icon-pdf: #ff6b61;
-  --icon-audio: #ffad33;
-  --icon-video: #ff6aa6;
-  --icon-image: #45d97f;
-  --icon-survey: #c77dff;
-  --icon-respondent: #3fd7e6;
-  --icon-question: #c77dff;
-  --memo-icon-color: #ffc340;
-  --icon-folder-2: #5fd8ff;
-  --icon-text-2: #a8c6ff;
-  --icon-pdf-2: #ffb066;
-  --icon-audio-2: #ffdc5c;
-  --icon-video-2: #ffa0cf;
-  --icon-image-2: #b0f060;
-  --icon-survey-2: #f59aee;
-  --icon-respondent-2: #62ebbf;
-  --icon-question-2: #f59aee;
-  /* Stronger on dark grounds, where a faint fill turns muddy. */
-  --icon-fill-from: 0.45;
-  --icon-fill-to: 0.9;
+:root[data-theme$="dark"] {
+  --rb-ink: #c3cbd8;
+  --rb-blue: #6aa2f0;
+  --rb-coral: #f08a70;
+  --rb-gold: #f2c060;
 }
+:root[data-theme="high-contrast"] {
+  --rb-ink: var(--text-primary);
+  --rb-blue: var(--text-primary);
+  --rb-coral: var(--text-primary);
+  --rb-gold: var(--text-primary);
+  --rb-tint: 0%;
+}
+:root:not([data-theme="high-contrast"]) {
+  --icon-folder: var(--rb-blue);
+  --icon-text: var(--rb-blue);
+  --icon-pdf: var(--rb-coral);
+  --icon-audio: var(--rb-gold);
+  --icon-video: var(--rb-coral);
+  --icon-image: var(--rb-blue);
+  --icon-survey: var(--rb-blue);
+  --icon-respondent: var(--rb-blue);
+  --icon-question: var(--rb-coral);
+  --memo-icon-color: var(--rb-gold);
+  --quote-icon-color: var(--rb-blue);
+}
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon) { color: var(--rb-ink); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon) > * { stroke: var(--rb-ink); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon) > [fill="currentColor"] { fill: var(--rb-ink); }
+/* Backing shapes that only carry a fill (see icons/lucide.ts) stay
+ * stroke-less: the stroke rules above would otherwise outline them. */
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon) > [stroke="none"] { stroke: none !important; }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-headphones > :nth-child(-n+2) { fill: color-mix(in srgb, var(--mg-kind, var(--rb-blue)) var(--rb-tint), transparent); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-clipboard-pen > :nth-child(1) { fill: color-mix(in srgb, var(--rb-blue) var(--rb-tint), transparent); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-file > :nth-child(1),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-sticky-note > :nth-child(1) { fill: color-mix(in srgb, var(--mg-kind, var(--rb-blue)) var(--rb-tint), transparent); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-file > :nth-child(2),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-sticky-note > :nth-child(2),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-headphones > *,
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-video > :nth-child(1) { stroke: var(--mg-kind, var(--rb-blue)); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-video > :nth-child(2) { fill: color-mix(in srgb, var(--mg-kind, var(--rb-blue)) var(--rb-tint), transparent); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-folder > * { fill: color-mix(in srgb, var(--mg-kind, var(--rb-blue)) var(--rb-tint), transparent); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-image > :nth-child(2) { stroke: var(--rb-gold); fill: color-mix(in srgb, var(--rb-gold) var(--rb-tint), transparent); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-image > :nth-child(3) { stroke: var(--rb-blue); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-clipboard-pen > :nth-child(5),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-user > :nth-child(2) { stroke: var(--rb-blue); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-user > :nth-child(2) { fill: color-mix(in srgb, var(--rb-blue) var(--rb-tint), transparent); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-clipboard-pen > :nth-child(3),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-message-circle-question-mark > :nth-child(n+2) { stroke: var(--rb-coral); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-message-circle-question-mark > :nth-child(1) { fill: color-mix(in srgb, var(--rb-blue) var(--rb-tint), transparent); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-square-arrow-right-enter > :nth-child(-n+2),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-git-merge > :nth-child(3),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-book > *,
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-notebook-pen > :nth-child(n+2):nth-child(-n+5),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-tags > :nth-child(2),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-search > :nth-child(2) { stroke: var(--rb-blue); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-git-merge > :nth-child(2),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-tags > :nth-child(3) { stroke: var(--rb-coral); fill: var(--rb-coral); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-notebook-pen > :nth-child(6) { stroke: var(--rb-coral); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-book > *,
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-search > :nth-child(2) { fill: color-mix(in srgb, var(--rb-blue) var(--rb-tint), transparent); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-file-code-corner > :nth-child(n+3),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-squares-intersect > :nth-child(10),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-chart-column > :nth-child(3),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-chart-bar > :nth-child(3),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-whole-word > :nth-child(n+3):nth-child(-n+4),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-share-2 > :nth-child(3) { stroke: var(--rb-coral); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-squares-intersect > :nth-child(10) { fill: color-mix(in srgb, var(--rb-coral) var(--rb-tint), transparent); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-frame > :nth-child(-n+2),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-file-search-corner > :nth-child(n+3),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-chart-column > :nth-child(2),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-chart-bar > :nth-child(2),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-list-ordered > :nth-child(n+4),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-type > :nth-child(1),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-whole-word > :nth-child(-n+2),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-share-2 > :nth-child(4),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-notebook-tabs > :nth-child(-n+4) { stroke: var(--rb-blue); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-chart-column > :nth-child(4),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-chart-bar > :nth-child(4),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-share-2 > :nth-child(5) { stroke: var(--rb-gold); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-tag > :nth-child(1),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-quote > * { stroke: var(--rb-blue); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-tag > :nth-child(2) { stroke: var(--rb-coral); fill: var(--rb-coral); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-bookmark > * { stroke: var(--rb-coral); fill: color-mix(in srgb, var(--rb-coral) var(--rb-tint), transparent); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-lightbulb > :nth-child(1) { stroke: var(--rb-gold); fill: color-mix(in srgb, var(--rb-gold) var(--rb-tint), transparent); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-settings > :nth-child(2),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-file-text > :nth-child(n+3),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-scale > :nth-child(2n) { stroke: var(--rb-blue); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-heart > * { stroke: var(--rb-coral); fill: color-mix(in srgb, var(--rb-coral) var(--rb-tint), transparent); }
 
-/* Folders get a soft tinted fill, like a filled folder glyph. */
-:root:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .lucide-folder {
-  fill: currentColor;
-  fill-opacity: 0.22;
-}
+/* ── Colourful interface ──────────────────────────────────────────────
+ * Colourful interface (Preferences → Appearance → Colour; apply-theme.ts
+ * / Preferences set [data-colourful] on <html>): on the light themes, a
+ * dark slate toolbar that frames the window, with each tool's icon in
+ * its own colour. The dark themes already have a dark toolbar and just
+ * get the coloured icons. High Contrast is left alone. */
 
 /* Dark toolbar on the light themes. Rebinding the text / surface tokens
  * inside .app-toolbar recolours everything that reads them — project
  * name, Magnolia mark, labels, pills, dividers, hover fills, Check Out,
  * window controls. The popovers are portalled to <body>, so they keep
  * the theme's own light tokens. */
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]):not([data-theme$="dark"]) .app-toolbar {
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme$="dark"]) .app-toolbar {
   background: #2b3343 !important;
   border-bottom: none !important;
   --text-primary: #ffffff;
@@ -2334,23 +2036,239 @@ html:not([data-theme]) .app-toolbar {
  * in a hard edge — the white panels float on one continuous dark frame.
  * Scoped to .app-shell (the main window's root) rather than rebinding
  * --bg-primary, which also feeds canvases, inputs and popped-out windows. */
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]):not([data-theme$="dark"]) .app-shell {
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme$="dark"]) .app-shell {
   background: #2b3343;
 }
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]):not([data-theme$="dark"]) .app-toolbar button:not(.checkout-btn):hover {
+:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme$="dark"]) .app-toolbar button:not(.checkout-btn):hover {
   background: rgba(255, 255, 255, 0.14) !important;
 }
 
 /* One colour per toolbar tool. Bright values, since the toolbar is dark
  * on every theme this applies to. Query takes the Query Builder's
  * registry colour family (tool-registry.ts) so its tab matches. */
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-square-arrow-right-enter { color: #4fd17f !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-book { color: #ff9f4a !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-notebook-pen { color: #c792ff !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-tags { color: #3fd6c6 !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-git-merge { color: #ff7eb6 !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-search { color: #ff8a4c !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-lightbulb { color: #ffd23f !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-app-window { color: #5cc4ff !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-settings { color: #a9b6ff !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme^="granola"]) .app-toolbar .app-toolbar-btn svg.lucide-circle-question-mark { color: #7fb2ff !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-square-arrow-right-enter { color: #4fd17f !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-book { color: #ff9f4a !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-notebook-pen { color: #c792ff !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-tags { color: #3fd6c6 !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-git-merge { color: #ff7eb6 !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-search { color: #ff8a4c !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-lightbulb { color: #ffd23f !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-app-window { color: #5cc4ff !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-settings { color: #a9b6ff !important; }
+:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-circle-question-mark { color: #7fb2ff !important; }
+
+/* ── Ribbon (Toolbar Style "Ribbon"; see components/Toolbar/Ribbon.tsx) ──
+ * Adapted from labiia_quali's ribbon. The tab strip sits in the toolbar
+ * row; the active tab's buttons sit in .ribbon-body below it. */
+:root {
+  /* The tab row and the button strip read as one block: near-white,
+   * with a faint shade so it isn't stark. The tab row takes the top
+   * colour and the buttons fade from it to the bottom one. */
+  --ribbon-shade-top: color-mix(in srgb, var(--bg-panel) 82%, var(--bg-secondary));
+  --ribbon-shade-bottom: color-mix(in srgb, var(--bg-panel) 50%, var(--bg-secondary));
+  --ribbon-hover: var(--bg-tertiary);
+}
+:root .app-toolbar[data-toolbar-style="ribbon"] { background: var(--ribbon-shade-top) !important; }
+:root[data-theme="magnolia"] { --ribbon-hover: var(--bg-secondary); }
+:root[data-theme="magnolia"] .app-toolbar[data-toolbar-style="ribbon"] button:not(.analysis-popover-tile):not(.studio-popover-row):not(.checkout-btn):hover {
+  background: var(--ribbon-hover) !important;
+}
+/* The tabs and the chevron have no hover fill, like the ribbon buttons. */
+:root[data-theme="magnolia"] .app-toolbar[data-toolbar-style="ribbon"] .ribbon-tabs button:not(.analysis-popover-tile):not(.studio-popover-row):not(.checkout-btn):hover {
+  background: transparent !important;
+}
+.ribbon-tabs {
+  display: flex;
+  /* Centred, like the project name beside it, so the two share a line. */
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  padding-left: 4px;
+}
+/* Plain text tabs. The selected one is underlined in the accent; a
+ * hovered one gets a faint underline rather than a box, since a box
+ * would float free of the buttons below. */
+.ribbon-tab {
+  position: relative;
+  height: 30px;
+  padding: 0 14px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.ribbon-tab::after {
+  content: '';
+  position: absolute;
+  /* As wide as the label: the tab's padding is 14px each side. */
+  left: 14px;
+  right: 14px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 1px;
+  background: transparent;
+  transition: background 0.1s;
+}
+:root .app-toolbar .ribbon-tab:hover { background: transparent !important; color: var(--text-primary); }
+.ribbon-tab:hover::after { background: var(--border-color); }
+.ribbon-tabs:not(.ribbon-collapsed) .ribbon-tab[aria-selected="true"] {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.ribbon-tabs:not(.ribbon-collapsed) .ribbon-tab[aria-selected="true"]::after { background: var(--accent); }
+.ribbon-collapse {
+  align-self: center;
+  margin-left: 4px;
+  width: 26px;
+  height: 24px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+:root .app-toolbar .ribbon-collapse:hover { background: transparent !important; color: var(--text-primary); }
+
+/* With the ribbon, the toolbar row is only the tab strip: no bottom
+ * border, so the tabs and the buttons below read as one block. */
+:root .app-toolbar[data-toolbar-style="ribbon"] {
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+  align-items: stretch !important;
+}
+.app-toolbar[data-toolbar-style="ribbon"] > div { align-self: center; }
+.app-toolbar[data-toolbar-style="ribbon"] > div:has(> .ribbon-tabs) { align-self: stretch; }
+
+.ribbon-host {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 30;
+}
+.ribbon-body {
+  display: flex;
+  align-items: stretch;
+  padding: 4px 8px 4px;
+  background: linear-gradient(180deg, var(--ribbon-shade-top), var(--ribbon-shade-bottom));
+  border-bottom: 1px solid var(--border-color);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.ribbon-body::-webkit-scrollbar { display: none; }
+/* Shown from a collapsed ribbon: floats over the panes below. */
+.ribbon-peek-host {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+.ribbon-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 10px;
+  border-right: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+.ribbon-group:last-child { border-right: none; }
+.ribbon-group-buttons { display: flex; gap: 2px; flex: 1; }
+.ribbon-group-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding-top: 2px;
+  white-space: nowrap;
+}
+.ribbon-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 76px;
+  padding: 5px 4px 4px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+/* No hover fill: the ribbon stays flat. */
+:root .ribbon-btn:hover { background: transparent; }
+.ribbon-btn:active .ribbon-tile { transform: scale(0.92); }
+/* Pane toggles: a hidden pane's icon and label fade. */
+.ribbon-btn[aria-pressed="false"] .ribbon-tile { filter: saturate(0); opacity: 0.45; }
+.ribbon-btn[aria-pressed="false"] .ribbon-label { color: var(--text-muted); }
+.ribbon-btn[aria-disabled="true"] { opacity: 0.45; }
+.ribbon-label {
+  font-size: 11.5px;
+  line-height: 1.2;
+  text-align: center;
+  /* Room for two lines on every tab, so the ribbon keeps one height
+   * and the panes below don't jump when you switch tabs. */
+  min-height: 2.4em;
+}
+/* Flat buttons: the glyph alone, in the icon palette (see "Icon
+ * palette" above). */
+.ribbon-tile {
+  position: relative;
+  width: 30px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 24px;
+  transition: transform 0.08s;
+}
+/* On High Contrast the palette rules don't apply, so the glyph takes
+ * the ink colour, which is the text colour there. */
+.ribbon-tile svg { color: var(--rb-ink) !important; }
+/* The Magnolia logo, masked so it takes the palette's ink. */
+.ribbon-magnolia {
+  width: 21px;
+  height: 24px;
+  background: var(--rb-ink);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+.ribbon-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--ribbon-shade-bottom);
+}
+
+/* Magnolia with the ribbon. The ribbon takes the panel cards' border
+ * and shadow, clipped to its bottom edge so none falls on the tab row
+ * above, and the panes sit the same gap below it as they sit apart
+ * from each other (--pane-half-gap padding here + each panel's margin). */
+:root[data-theme="magnolia"]:has(.app-toolbar[data-toolbar-style="ribbon"]) {
+  --ribbon-card-border: var(--border-color);
+  --ribbon-card-shadow: var(--magnolia-card-shadow);
+}
+:root[data-theme="magnolia"] .ribbon-body {
+  border-bottom-color: var(--ribbon-card-border);
+  box-shadow: var(--ribbon-card-shadow);
+  clip-path: inset(0 0 -12px 0);
+}
+:root[data-theme="magnolia"]:has(.app-toolbar[data-toolbar-style="ribbon"]) .app-main-panels {
+  padding-top: var(--pane-half-gap);
+}

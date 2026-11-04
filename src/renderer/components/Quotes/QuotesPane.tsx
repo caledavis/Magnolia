@@ -174,7 +174,7 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
             }}
           />
         ) : (
-          <span style={{ flex: 1 }}>Quotes</span>
+          <span style={{ flex: 1 }}>Saved Quotes</span>
         )}
         {quotes.length > 0 && (
           <button
