@@ -125,6 +125,7 @@ export default defineConfig({
         items: [
           page('Supported document types and formats', '/guide/supportedformats'), // DONE
           page('Importing documents', '/guide/importing'),  // DONE
+          page('Notes', '/guide/notes'),
 //          page('Tags', '/guide/tags'),
         ]
       },
