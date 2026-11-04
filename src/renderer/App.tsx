@@ -57,7 +57,7 @@ function flattenCodesWithParent(
 }
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from './stores/project-store'
 import { usePreferencesStore } from './stores/preferences-store'
-import { useCodeColourPresets, nextCodeColour } from './utils/code-colours'
+import { useCodeColourPresets, nextCodeColour, codeColourPresetsFor } from './utils/code-colours'
 import { useWindowCornerPanels } from './utils/window-corner-panels'
 import { useMergeReviewStore } from './stores/merge-review-store'
 import { useDocumentStore, surveyEntityKey } from './stores/document-store'
@@ -233,6 +233,33 @@ const TOOLBAR_PILL_STYLE: React.CSSProperties = {
  *  uses: dividers inside a group, plain gaps between groups). */
 function ToolbarDivider(): JSX.Element {
   return <div style={{ width: 1, height: 16, background: 'var(--border-color)', margin: '0 4px', flexShrink: 0 }} />
+}
+
+/** Send the Codebook window the current codes and their coded-segment
+ *  counts (counted as the Codes pane counts them), opening it if it
+ *  isn't open. `renameGuid` asks it to start renaming that code. */
+function sendCodebookData(renameGuid?: string): void {
+  const codeCounts: Record<string, number> = {}
+  for (const source of useDocumentStore.getState().sources) {
+    for (const sel of source.selections) {
+      for (const coding of sel.codings) codeCounts[coding.codeGuid] = (codeCounts[coding.codeGuid] || 0) + 1
+    }
+  }
+  const initData: CodebookInitData = {
+    codes: useCodeStore.getState().codes,
+    codeCounts,
+    renameGuid,
+    theme: document.documentElement.getAttribute('data-theme') || ''
+  }
+  window.api.openCodebookWindow(initData)
+}
+
+/** Who has the project checked out, when it isn't this user: the same
+ *  test as useCheckoutLockedBy, outside a component. */
+function checkoutLockedByNow(): string | null {
+  const marker = useProjectStore.getState().checkoutMarker
+  if (!marker) return null
+  return marker.userName !== usePreferencesStore.getState().userName.trim() ? marker.userName : null
 }
 
 function App() {
@@ -431,13 +458,7 @@ function App() {
   const logbookStore = useLogbookStore()
   const memoStore = useMemoStore()
 
-  const openCodebook = useCallback(() => {
-    const initData: CodebookInitData = {
-      codes: codeStore.codes,
-      theme: document.documentElement.getAttribute('data-theme') || ''
-    }
-    window.api.openCodebookWindow(initData)
-  }, [codeStore.codes])
+  const openCodebook = useCallback(() => sendCodebookData(), [])
 
   const openLogbook = useCallback(() => {
     const initData: LogbookInitData = {
@@ -2276,11 +2297,64 @@ function App() {
     return unsub
   }, [])
 
-  // Listen for codebook updates from the codebook window
+  // Listen for codebook updates from the codebook window. Actions from
+  // its right-click menu mirror the Codes pane's; each that changes the
+  // codes sends the Codebook its codes again so it shows the change.
   useEffect(() => {
     const unsub = window.api.onCodebookUpdate((action, ...args) => {
       const cs = useCodeStore.getState()
+      const lockedMutation = ['rename-code', 'recolor-code', 'add-child-code', 'move-code-to-top', 'delete-code'].includes(action)
+      if (lockedMutation && checkoutLockedByNow()) {
+        useProjectStore.getState().promptCheckoutConflict()
+        return
+      }
       switch (action) {
+        case 'rename-code': {
+          const [guid, name] = args
+          if (typeof name === 'string' && name.trim()) cs.renameCode(guid, name.trim())
+          sendCodebookData()
+          break
+        }
+        case 'recolor-code': {
+          const [guid, color] = args
+          cs.recolorCode(guid, color)
+          sendCodebookData()
+          break
+        }
+        case 'add-child-code': {
+          // As in the Codes pane: a "New Code" in the parent's colour,
+          // which the Codebook then opens for renaming.
+          const [parentGuid] = args
+          const parent = cs.findCode(parentGuid)
+          const color = parent?.color || codeColourPresetsFor(usePreferencesStore.getState())[0]
+          const guid = cs.addCode('New Code', color, parentGuid)
+          sendCodebookData(guid)
+          break
+        }
+        case 'move-code-to-top': {
+          const [guid] = args
+          cs.moveCode(guid, null)
+          sendCodebookData()
+          break
+        }
+        case 'delete-code': {
+          const [guid] = args
+          cs.removeCode(guid)
+          sendCodebookData()
+          break
+        }
+        case 'show-in-all-documents': {
+          const [codeGuid] = args
+          useQueryStore.getState().setComplexQuery({ documentFilter: {}, codeCondition: { type: 'code', codeGuid } })
+          break
+        }
+        case 'show-in-active-document': {
+          const [codeGuid] = args
+          const viewedGuid = useDocumentStore.getState().viewedDocumentGuid
+          if (!viewedGuid) break
+          useQueryStore.getState().setComplexQuery({ documentFilter: { sourceGuids: [viewedGuid] }, codeCondition: { type: 'code', codeGuid } })
+          break
+        }
         case 'save-code': {
           const [guid, name, color, description, hotkey] = args
           cs.renameCode(guid, name)
@@ -2353,6 +2427,10 @@ function App() {
         }
         case 'clear-query':
           useQueryStore.getState().clearQuery()
+          break
+        case 'close-panel':
+          // The pop-out's × closes the pane too, as the popped-in one's does.
+          setQueryResultsClosed(true)
           break
         case 'save-query': {
           const q = useQueryStore.getState().currentQuery

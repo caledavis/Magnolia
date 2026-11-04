@@ -10,25 +10,27 @@ export const CLASSIC_CODE_COLOURS: readonly string[] = [
   '#a0a040', '#40a0a0', '#a040a0', '#e07070', '#70b070'
 ]
 
-/** The standard presets: drawn from the same family as the --icon-*
- *  colours, so coded text sits comfortably next to the coloured icons.
+/** The standard presets, built around the icon palette (global.css,
+ *  "Icon palette"): its coral (red) and blue lead, and its gold joins
+ *  colours of the same weight, so coded text sits comfortably next to
+ *  the icons. Lower-case, since nextCodeColour compares lower-case.
  *  (Originally made for the Colourful interface, hence the name.) */
 export const COLOURFUL_CODE_COLOURS: readonly string[] = [
-  '#3b82f6', // blue
-  '#e8833a', // orange
-  '#2fa36b', // green
-  '#8b5cf6', // violet
-  '#d94a4a', // red
-  '#2eb8d6', // cyan
-  '#e0457b', // pink
-  '#d9a13b', // amber
-  '#5468d4', // indigo
-  '#0e93a8', // teal
-  '#c8336c', // raspberry
-  '#6ba539', // leaf
-  '#b06ae0', // orchid
-  '#b07d4f', // tan
-  '#64748b'  // slate
+  '#e5674b', // coral, the palette's red (icon palette)
+  '#3a78d8', // blue (icon palette)
+  '#2a9d8f', // teal
+  '#7b61d1', // violet
+  '#eba62a', // gold (icon palette)
+  '#5a9e4b', // green
+  '#d6457a', // rose
+  '#45a5d6', // sky
+  '#e0873c', // orange
+  '#a352b8', // plum
+  '#5b6b85', // slate
+  '#4c5bc4', // indigo
+  '#b5543a', // brick
+  '#b8952a', // ochre
+  '#7aa35a'  // sage
 ]
 
 export function codeColourPresets(colourful: boolean): readonly string[] {

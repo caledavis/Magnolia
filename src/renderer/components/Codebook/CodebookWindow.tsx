@@ -1,11 +1,13 @@
 import { useState, useCallback, useEffect } from 'react'
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { Markdown, markdownToHtml } from '../Markdown'
 import { MarkdownEditor } from '../MarkdownEditor'
-import { Icon, MEMO_ICON } from '../Icon'
+import { Icon, faChevronDown, faChevronRight } from '../Icon'
 import type { Code, CodebookInitData } from '../../models/types'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
-import { modKey } from '../../utils/platform'
+import { modKey, isMac } from '../../utils/platform'
 import { useCodeColourPresets } from '../../utils/code-colours'
+import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 
 function flattenCodes(codes: Code[]): Code[] {
   const result: Code[] = []
@@ -16,63 +18,134 @@ function flattenCodes(codes: Code[]): Code[] {
   return result
 }
 
+/** A row of the code list, drawn exactly like a row of the Codes pane
+ *  (CodeTreeItem in CodeBrowser.tsx): chevron slot, colour pip, name,
+ *  hotkey and coded-segment count, the same spacing and the same
+ *  selection colour. Read-only here: click selects, the chevron folds,
+ *  double-click edits. */
 function CompactCodeEntry({
   code,
   depth,
+  selectedGuid,
+  codeCounts,
+  renamingGuid,
   onEditCode,
-  onSelectCode
+  onSelectCode,
+  onContextMenu,
+  onRename,
+  onStopRenaming
 }: {
   code: Code
   depth: number
+  selectedGuid: string | null
+  codeCounts: Record<string, number>
+  renamingGuid: string | null
   onEditCode: (guid: string) => void
   onSelectCode: (guid: string) => void
+  onContextMenu: (guid: string, x: number, y: number) => void
+  onRename: (guid: string, name: string) => void
+  onStopRenaming: () => void
 }) {
-  const hasMemo = !!code.description
+  const [expanded, setExpanded] = useState(true)
+  const count = codeCounts[code.guid] || 0
+  const renaming = renamingGuid === code.guid
+  const [editName, setEditName] = useState(code.name)
+  useEffect(() => { if (renaming) setEditName(code.name) }, [renaming, code.name])
+  const commit = () => {
+    if (editName.trim() && editName.trim() !== code.name) onRename(code.guid, editName.trim())
+    onStopRenaming()
+  }
   return (
-    <>
+    <div>
       <div
-        className="codebook-entry"
         style={{
-          padding: '4px 10px',
-          paddingLeft: 10 + depth * 16,
-          borderBottom: '1px solid var(--border-color)',
-          cursor: 'pointer',
-          transition: 'background 0.1s',
           display: 'flex',
           alignItems: 'center',
           gap: 6,
-          fontSize: 'var(--font-size-sm)'
+          padding: '3px 8px',
+          paddingLeft: 8 + depth * 16,
+          cursor: 'pointer',
+          borderRadius: 'var(--radius-sm)',
+          background: selectedGuid === code.guid ? 'var(--selection-bg)' : 'transparent',
+          fontSize: 'var(--font-size-sm)',
+          transition: 'background 0.1s'
         }}
         onClick={(e) => {
           e.stopPropagation()
           onSelectCode(code.guid)
         }}
         onDoubleClick={() => onEditCode(code.guid)}
+        onContextMenu={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          onSelectCode(code.guid)
+          onContextMenu(code.guid, e.clientX, e.clientY)
+        }}
         title="Double-click to edit"
       >
         <span
-          className="color-pip"
-          style={{ background: code.color || '#888', width: 8, height: 8, flexShrink: 0 }}
-        />
-        <span style={{ fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {code.name}
+          onClick={code.children.length > 0 ? (e) => {
+            e.stopPropagation()
+            setExpanded(!expanded)
+          } : undefined}
+          style={{
+            fontSize: 9,
+            flexShrink: 0,
+            width: 10,
+            textAlign: 'center',
+            opacity: 0.6,
+            cursor: code.children.length > 0 ? 'pointer' : 'default'
+          }}
+        >
+          {code.children.length > 0 && <Icon icon={expanded ? faChevronDown : faChevronRight} />}
         </span>
-        {hasMemo && (
-          <span style={{ fontSize: 10, color: 'var(--text-muted)', flexShrink: 0 }} title={code.description}>
-            <Icon icon={MEMO_ICON} />
+        <span style={{ width: 14, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span className="color-pip" style={{ background: code.color || '#888' }} />
+        </span>
+        {renaming ? (
+          <input
+            type="text"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            ref={(el) => { if (el && !el.dataset.selected) { el.select(); el.dataset.selected = 'true' } }}
+            onBlur={commit}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') commit()
+              else if (e.key === 'Escape') onStopRenaming()
+            }}
+            autoFocus
+            onClick={(e) => e.stopPropagation()}
+            onDoubleClick={(e) => e.stopPropagation()}
+            style={{ flex: 1, padding: '1px 4px' }}
+          />
+        ) : (
+          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {code.name}
           </span>
         )}
+        <span style={{ width: isMac ? 24 : 40, minWidth: isMac ? 24 : 40, flexShrink: 0, fontSize: 10, color: 'var(--text-muted)', textAlign: 'right' }}>
+          {code.hotkey !== undefined ? modKey(code.hotkey) : ''}
+        </span>
+        <span style={{ width: 28, minWidth: 28, flexShrink: 0, fontSize: 10, color: 'var(--text-muted)', textAlign: 'right' }}>
+          {count > 0 ? count : ''}
+        </span>
       </div>
-      {code.children.map((child) => (
+      {expanded && code.children.map((child) => (
         <CompactCodeEntry
           key={child.guid}
           code={child}
           depth={depth + 1}
+          selectedGuid={selectedGuid}
+          codeCounts={codeCounts}
+          renamingGuid={renamingGuid}
           onEditCode={onEditCode}
           onSelectCode={onSelectCode}
+          onContextMenu={onContextMenu}
+          onRename={onRename}
+          onStopRenaming={onStopRenaming}
         />
       ))}
-    </>
+    </div>
   )
 }
 
@@ -302,8 +375,19 @@ function CodeDetailPane({ code }: { code: Code | null }) {
   )
 }
 
+/** A pane-header button: the same size as the Queries pane's. */
+const HEADER_BUTTON: React.CSSProperties = { fontSize: 11, padding: '2px 8px', textTransform: 'none', letterSpacing: 0 }
+
 export function CodebookWindow() {
   const [codes, setCodes] = useState<Code[]>([])
+  const [codeCounts, setCodeCounts] = useState<Record<string, number>>({})
+  // The right-click menu, the code being renamed in place and the code
+  // whose colour is being chosen: the same menu as the Codes pane's.
+  const [contextMenu, setContextMenu] = useState<{ guid: string; x: number; y: number } | null>(null)
+  const [renamingGuid, setRenamingGuid] = useState<string | null>(null)
+  const [colourGuid, setColourGuid] = useState<string | null>(null)
+  const menuPos = useClampedMenuPosition(contextMenu)
+  const colourPresets = useCodeColourPresets()
   const [editingCodeGuid, setEditingCodeGuid] = useState<string | null>(null)
   const [selectedCodeGuid, setSelectedCodeGuid] = useState<string | null>(null)
 
@@ -314,6 +398,11 @@ export function CodebookWindow() {
       document.documentElement.setAttribute('data-theme', initData.theme)
     }
     setCodes(initData.codes)
+    setCodeCounts(initData.codeCounts ?? {})
+    if (initData.renameGuid) {
+      setSelectedCodeGuid(initData.renameGuid)
+      setRenamingGuid(initData.renameGuid)
+    }
   }, [])
 
   useEffect(() => {
@@ -370,77 +459,122 @@ export function CodebookWindow() {
   const selectedCode = selectedCodeGuid ? findCode(selectedCodeGuid) : null
 
   return (
-    <div className="codebook-window" style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}>
-      {/* Toolbar */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: '6px 10px',
-        background: 'var(--bg-secondary)',
-        borderBottom: '1px solid var(--border-color)',
-        gap: 6,
-        flexShrink: 0,
-        WebkitAppRegion: 'drag' as any
-      }}>
-        <span style={{ fontWeight: 600, fontSize: 'var(--font-size-base)', flex: 1 }}>
-          Codebook
-          <span style={{ fontWeight: 400, fontSize: 11, color: 'var(--text-muted)', marginLeft: 8 }}>
-            {allCodes.length} code{allCodes.length !== 1 ? 's' : ''}
-          </span>
-        </span>
-        <button
-          className="secondary"
-          style={{ fontSize: 11, padding: '3px 8px', WebkitAppRegion: 'no-drag' as any }}
-          onClick={handleImportQdc}
-          title="Import .qdc"
-        >
-          Import QDC
-        </button>
-        <button
-          className="secondary"
-          style={{ fontSize: 11, padding: '3px 8px', WebkitAppRegion: 'no-drag' as any }}
-          onClick={handleExportQdc}
-          title="Export .qdc"
-        >
-          Export QDC
-        </button>
-        <button
-          className="secondary"
-          style={{ fontSize: 11, padding: '3px 8px', WebkitAppRegion: 'no-drag' as any }}
-          onClick={handleExportPdf}
-        >
-          Export PDF
-        </button>
-      </div>
-
-      {/* Main content: two-pane — compact list on left, detail on right */}
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        {/* Code list */}
-        <div style={{ width: '50%', borderRight: '1px solid var(--border-color)', overflowY: 'auto' }}>
-          {codes.length === 0 ? (
-            <div className="empty-state" style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-              No codes yet.
+    // Laid out like the Queries pop-out: one card with the list on the
+    // left and the details on the right, each under a pane header, split
+    // by a draggable divider.
+    <div className="panel codebook-window">
+      <PanelGroup direction="horizontal" style={{ flex: 1, overflow: 'hidden' }}>
+        <Panel defaultSize={45} minSize={25} maxSize={70}>
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div className="panel-header">
+              <span style={{ flex: 1 }}>Codes</span>
+              <span style={{ fontWeight: 400, letterSpacing: 0 }}>{allCodes.length}</span>
             </div>
-          ) : (
-            <>
-              {codes.map((code) => (
-                <CompactCodeEntry
-                  key={code.guid}
-                  code={code}
-                  depth={0}
-                  onEditCode={setEditingCodeGuid}
-                  onSelectCode={setSelectedCodeGuid}
-                />
-              ))}
-            </>
-          )}
-        </div>
+            <div className="panel-content">
+              {codes.length === 0 ? (
+                <div className="empty-state" style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
+                  No codes yet.
+                </div>
+              ) : (
+                codes.map((code) => (
+                  <CompactCodeEntry
+                    key={code.guid}
+                    code={code}
+                    depth={0}
+                    selectedGuid={selectedCodeGuid}
+                    codeCounts={codeCounts}
+                    renamingGuid={renamingGuid}
+                    onEditCode={setEditingCodeGuid}
+                    onSelectCode={setSelectedCodeGuid}
+                    onContextMenu={(guid, x, y) => setContextMenu({ guid, x, y })}
+                    onRename={(guid, name) => window.api.sendCodebookUpdate('rename-code', guid, name)}
+                    onStopRenaming={() => setRenamingGuid(null)}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        </Panel>
+        <PanelResizeHandle className="queries-sidebar-divider" style={{ width: 1, background: 'var(--border-color)', cursor: 'col-resize' }} />
+        <Panel defaultSize={55} minSize={30}>
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div className="panel-header">
+              <span style={{ flex: 1 }}>Codebook</span>
+              <button className="secondary" style={HEADER_BUTTON} onClick={handleImportQdc} title="Import codes from a .qdc codebook">
+                Import QDC
+              </button>
+              <button className="secondary" style={HEADER_BUTTON} onClick={handleExportQdc} title="Export the codebook as a .qdc file">
+                Export QDC
+              </button>
+              <button className="secondary" style={HEADER_BUTTON} onClick={handleExportPdf} title="Export the codebook as a PDF">
+                Export PDF
+              </button>
+            </div>
+            <div className="panel-content">
+              <CodeDetailPane code={selectedCode ?? null} />
+            </div>
+          </div>
+        </Panel>
+      </PanelGroup>
 
-        {/* Detail pane */}
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          <CodeDetailPane code={selectedCode ?? null} />
-        </div>
-      </div>
+      {contextMenu && (() => {
+        const guid = contextMenu.guid
+        const send = (action: string, ...args: unknown[]) => {
+          setContextMenu(null)
+          window.api.sendCodebookUpdate(action, guid, ...args)
+        }
+        return (
+          <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setContextMenu(null)} onContextMenu={(e) => { e.preventDefault(); setContextMenu(null) }} />
+            <div ref={menuPos.ref} className="context-menu" style={{ left: menuPos.x, top: menuPos.y, zIndex: 100 }} onClick={(e) => e.stopPropagation()}>
+              <div className="context-menu-item" onClick={() => { setContextMenu(null); setRenamingGuid(guid) }}>Rename</div>
+              <div className="context-menu-item" onClick={() => { setContextMenu(null); setColourGuid(guid) }}>Change Color</div>
+              <div className="context-menu-item" onClick={() => { setContextMenu(null); setEditingCodeGuid(guid) }}>Edit Code</div>
+              <div className="context-menu-separator" />
+              <div className="context-menu-item" onClick={() => send('show-in-all-documents')}>Show in All Documents</div>
+              <div className="context-menu-item" onClick={() => send('show-in-active-document')}>Show in Active Document</div>
+              <div className="context-menu-separator" />
+              <div className="context-menu-item" onClick={() => send('add-child-code')}>Add Child Code</div>
+              <div className="context-menu-item" onClick={() => send('move-code-to-top')}>Move to Top Level</div>
+              <div className="context-menu-separator" />
+              <div className="context-menu-item" style={{ color: 'var(--menu-fg-danger)' }} onClick={() => send('delete-code')}>Delete</div>
+            </div>
+          </>
+        )
+      })()}
+
+      {colourGuid && (() => {
+        const code = findCode(colourGuid)
+        if (!code) return null
+        const recolor = (color: string) => window.api.sendCodebookUpdate('recolor-code', colourGuid, color)
+        return (
+          <div className="modal-overlay" onClick={() => setColourGuid(null)} style={{ position: 'fixed' }}>
+            <div className="modal" onClick={(e) => e.stopPropagation()} style={{ minWidth: 250 }}>
+              <h2>Choose Color</h2>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                {colourPresets.map((c) => (
+                  <div
+                    key={c}
+                    onClick={() => { recolor(c); setColourGuid(null) }}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      background: c,
+                      cursor: 'pointer',
+                      border: c === code.color ? '2px solid white' : '2px solid transparent'
+                    }}
+                  />
+                ))}
+              </div>
+              <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
+                <label style={{ fontSize: 12 }}>Custom:</label>
+                <input type="color" defaultValue={code.color || '#888888'} onChange={(e) => recolor(e.target.value)} />
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Edit code dialog */}
       {editingCodeGuid && (() => {

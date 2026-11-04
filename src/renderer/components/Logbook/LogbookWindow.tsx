@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
+import { Icon, faPlus } from '../Icon'
 import { Markdown } from '../Markdown'
 import { MarkdownEditor } from '../MarkdownEditor'
 import type { LogbookEntry, LogbookInitData } from '../../models/types'
@@ -241,78 +243,69 @@ export function LogbookWindow() {
   const selectedEntry = selectedGuid ? entries.find((e) => e.guid === selectedGuid) ?? null : null
 
   return (
-    <div className="logbook-window" style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}>
-      {/* Toolbar */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: '6px 10px',
-        background: 'var(--bg-secondary)',
-        borderBottom: '1px solid var(--border-color)',
-        gap: 6,
-        flexShrink: 0,
-        WebkitAppRegion: 'drag' as any
-      }}>
-        <span style={{ fontWeight: 600, fontSize: 'var(--font-size-base)', flex: 1 }}>
-          Logbook
-          <span style={{ fontWeight: 400, fontSize: 11, color: 'var(--text-muted)', marginLeft: 8 }}>
-            {entries.length} entr{entries.length !== 1 ? 'ies' : 'y'}
-          </span>
-        </span>
-        <button
-          style={{ fontSize: 11, padding: '3px 8px', WebkitAppRegion: 'no-drag' as any }}
-          onClick={handleNewEntry}
-        >
-          + Entry
-        </button>
-        <button
-          className="secondary"
-          style={{ fontSize: 11, padding: '3px 8px', WebkitAppRegion: 'no-drag' as any }}
-          onClick={handleExportPdf}
-        >
-          Export PDF
-        </button>
-      </div>
-
-      {/* Main content: two-pane — entry list on left, detail on right */}
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        {/* Entry list */}
-        <div style={{ width: '40%', borderRight: '1px solid var(--border-color)', overflowY: 'auto' }}>
-          {entries.length === 0 ? (
-            <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-              No entries yet. Click "+ Entry" to create one.
+    // Laid out like the Queries pop-out: one card with the entries on the
+    // left and the selected entry on the right, each under a pane header,
+    // split by a draggable divider.
+    <div className="panel logbook-window">
+      <PanelGroup direction="horizontal" style={{ flex: 1, overflow: 'hidden' }}>
+        <Panel defaultSize={40} minSize={25} maxSize={70}>
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div className="panel-header">
+              <span style={{ flex: 1 }}>Entries</span>
+              <span style={{ fontWeight: 400, letterSpacing: 0 }}>{entries.length}</span>
+              <button className="panel-header-add" onClick={handleNewEntry} title="New entry" aria-label="New entry">
+                <Icon icon={faPlus} />
+              </button>
             </div>
-          ) : (
-            <>
-              <div style={{ fontSize: 10, color: 'var(--text-muted)', padding: '4px 10px', borderBottom: '1px solid var(--border-color)' }}>
-                Click to preview · Double-click to edit · Right-click for options
-              </div>
-              {entries.map((entry) => (
-                <div
-                  key={entry.guid}
-                  onContextMenu={(e) => {
-                    e.preventDefault()
-                    setSelectedGuid(entry.guid)
-                    setEntryContextMenu({ x: e.clientX, y: e.clientY, guid: entry.guid })
-                  }}
-                >
-                  <EntryRow
-                    entry={entry}
-                    isSelected={selectedGuid === entry.guid}
-                    onClick={() => setSelectedGuid(entry.guid)}
-                    onDoubleClick={() => setEditingEntry(entry)}
-                  />
+            <div className="panel-content">
+              {entries.length === 0 ? (
+                <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
+                  No entries yet. Click + to create one.
                 </div>
-              ))}
-            </>
-          )}
-        </div>
-
-        {/* Detail pane */}
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          <EntryDetailPane entry={selectedEntry} />
-        </div>
-      </div>
+              ) : (
+                <>
+                  {entries.map((entry) => (
+                    <div
+                      key={entry.guid}
+                      onContextMenu={(e) => {
+                        e.preventDefault()
+                        setSelectedGuid(entry.guid)
+                        setEntryContextMenu({ x: e.clientX, y: e.clientY, guid: entry.guid })
+                      }}
+                    >
+                      <EntryRow
+                        entry={entry}
+                        isSelected={selectedGuid === entry.guid}
+                        onClick={() => setSelectedGuid(entry.guid)}
+                        onDoubleClick={() => setEditingEntry(entry)}
+                      />
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          </div>
+        </Panel>
+        <PanelResizeHandle className="queries-sidebar-divider" style={{ width: 1, background: 'var(--border-color)', cursor: 'col-resize' }} />
+        <Panel defaultSize={60} minSize={30}>
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div className="panel-header">
+              <span style={{ flex: 1 }}>Logbook</span>
+              <button
+                className="secondary"
+                style={{ fontSize: 11, padding: '2px 8px', textTransform: 'none', letterSpacing: 0 }}
+                onClick={handleExportPdf}
+                title="Export the logbook as a PDF"
+              >
+                Export PDF
+              </button>
+            </div>
+            <div className="panel-content">
+              <EntryDetailPane entry={selectedEntry} />
+            </div>
+          </div>
+        </Panel>
+      </PanelGroup>
 
       {/* Edit/New entry dialog */}
       {editingEntry !== null && (

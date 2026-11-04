@@ -21,15 +21,8 @@ document.addEventListener('drop', (e) => e.preventDefault())
 applyStoredAppearance()
 installAppearanceListeners()
 
-// Stamp the host platform on <html> so CSS can branch on it. The main
-// window keeps the macOS traffic lights (titleBarStyle: 'hiddenInset')
-// and needs an indent in `.app-toolbar` to clear them; Windows / Linux
-// have no traffic lights and want no indent. data-platform is the
-// scope hook in global.css.
-document.documentElement.setAttribute(
-  'data-platform',
-  ((window as any).api?.platform as string) || ''
-)
+// data-platform on <html> (the toolbar's traffic-light indent hangs off
+// it) is stamped by platform/tauri-api.ts, for every window.
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

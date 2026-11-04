@@ -175,6 +175,21 @@ window.addEventListener('dblclick', (e) => {
   if (firstClickInDragRegion && inDragRegion(e.target)) void current.toggleMaximize()
 })
 
+// Keep the window's own background the colour of the page's, so a
+// transparent macOS title bar (the pop-out windows have one) matches the
+// page beneath it. Re-run whenever the theme changes.
+function syncWindowBackground(): void {
+  requestAnimationFrame(() => {
+    const m = getComputedStyle(document.body).backgroundColor.match(/\d+(\.\d+)?/g)
+    if (!m || m.length < 3) return
+    const [r, g, b] = m.map(Number)
+    void current.setBackgroundColor([r, g, b, 255]).catch(() => { /* not supported here */ })
+  })
+}
+if (document.body) syncWindowBackground()
+else window.addEventListener('DOMContentLoaded', syncWindowBackground, { once: true })
+new MutationObserver(syncWindowBackground).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+
 // Electron mirrored the page <title> into the window title (used by the
 // View menu's window list); do the same. The observer sees every change
 // to <head>, so only a new title is passed on. The " — Edited" marker is
@@ -409,3 +424,9 @@ const api: MagnoliaAPI = {
 // Synchronous at startup so CSS / components can branch on it.
 ;(api as any).platform = platform
 ;(window as any).api = api
+
+// Stamp the host platform on <html> in every window (every entry loads
+// this file first), so CSS can branch on it: the main window's toolbar
+// clears the macOS traffic lights, and on macOS the panes in a window's
+// bottom corners, pop-outs included, follow its rounded corners.
+document.documentElement.setAttribute('data-platform', platform)

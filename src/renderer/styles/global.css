@@ -267,6 +267,18 @@
 :root[data-platform="darwin"][data-theme^="magnolia"] .panel[data-window-corner~="br"] {
   border-bottom-right-radius: max(4px, calc(var(--mac-window-radius) / var(--window-zoom, 1) - 2 * var(--pane-half-gap)));
 }
+/* A pane that fills a pop-out window (#root > .panel) sits the same
+ * distance from the window's edges as the main window's panes do (the
+ * window padding plus its own margin), so its bottom corners, which sit
+ * in both of the window's, follow the window's curve the same way. */
+:root[data-theme^="magnolia"] #root:has(> .panel) {
+  padding: var(--pane-half-gap);
+  box-sizing: border-box;
+}
+:root[data-platform="darwin"][data-theme^="magnolia"] #root > .panel {
+  border-bottom-left-radius: max(4px, calc(var(--mac-window-radius) / var(--window-zoom, 1) - 2 * var(--pane-half-gap)));
+  border-bottom-right-radius: max(4px, calc(var(--mac-window-radius) / var(--window-zoom, 1) - 2 * var(--pane-half-gap)));
+}
 
 :root[data-theme="magnolia"] .modal {
   background: var(--bg-panel);

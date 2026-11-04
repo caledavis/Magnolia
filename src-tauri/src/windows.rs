@@ -505,6 +505,11 @@ fn open_child(app: &AppHandle, label: &str, spec: ChildSpec, data: Value) {
         .title(spec.title)
         .inner_size(spec.size.0, spec.size.1)
         .min_inner_size(spec.min.0, spec.min.1);
+    // A transparent title bar shows the window's background colour, which
+    // the page keeps matched to its own (see syncWindowBackground in
+    // tauri-api.ts), so the title bar and the page read as one surface.
+    #[cfg(target_os = "macos")]
+    let b = b.title_bar_style(tauri::TitleBarStyle::Transparent);
     match b.build() {
         Ok(w) => {
             let handle = app.clone();

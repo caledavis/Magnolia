@@ -759,6 +759,10 @@ export interface MagnoliaAPI {
 
 export interface CodebookInitData {
   codes: Code[]
+  /** Coded segments per code guid, for the counts in the code list. */
+  codeCounts?: Record<string, number>
+  /** A code for the Codebook to start renaming (one just added). */
+  renameGuid?: string
   theme: string
 }
 

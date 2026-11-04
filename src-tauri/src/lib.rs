@@ -26,7 +26,27 @@ fn open_path(app: &AppHandle, path: String) {
     windows::open_project_in_main(app, &path);
 }
 
+/// Underline misspelt words as you type, in every window. WebKit checks
+/// spelling while typing only when its `WebContinuousSpellCheckingEnabled`
+/// default is on, which apps must ask for (Safari does). Registered as a
+/// default rather than set, so turning it off from a text field's
+/// right-click menu (Spelling and Grammar → Check Spelling While Typing)
+/// sticks. Must run before the first webview is created.
+#[cfg(target_os = "macos")]
+fn enable_spell_checking() {
+    use objc2::rc::Retained;
+    use objc2::runtime::AnyObject;
+    use objc2_foundation::{NSDictionary, NSNumber, NSString, NSUserDefaults};
+    let key = NSString::from_str("WebContinuousSpellCheckingEnabled");
+    let yes = NSNumber::new_bool(true);
+    let defaults: Retained<NSDictionary<NSString, AnyObject>> =
+        NSDictionary::from_slices(&[&*key], &[yes.as_ref()]);
+    unsafe { NSUserDefaults::standardUserDefaults().registerDefaults(&defaults) };
+}
+
 pub fn run() {
+    #[cfg(target_os = "macos")]
+    enable_spell_checking();
     let builder = tauri::Builder::default();
     // An automated screenshot run is a second copy of the app on purpose:
     // it mustn't hand its scratch project to a Magnolia the user has open.
