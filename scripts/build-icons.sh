@@ -11,7 +11,8 @@
 #
 # App icon outputs:
 #   build/icon.{icns,ico,png}          — master copies
-#   src-tauri/icons/                   — every size Tauri bundles (via `tauri icon`)
+#   src-tauri/icons/                   — every size Tauri bundles (via `tauri icon`),
+#                                        plus 256x256.png for the Linux icon theme
 # Document icon outputs (.qdpx in Finder/Explorer/etc):
 #   build/document-icon.{icns,ico,png} → src-tauri/icons/document-icon.icns
 # Codebook icon outputs (.qdc in Finder/Explorer/etc):
@@ -63,6 +64,9 @@ npx tauri icon build/icon.png -o src-tauri/icons >/dev/null
 rm -rf src-tauri/icons/android src-tauri/icons/ios
 # Keep the hand-built .icns/.ico (iconutil / png-to-ico) over Tauri's own.
 cp build/icon.icns build/icon.ico src-tauri/icons/
+# `tauri icon` has no plain 256px PNG (128x128@2x.png installs as a HiDPI
+# icon on Linux), so add one for hicolor/256x256.
+sips -z 256 256 build/icon.png --out src-tauri/icons/256x256.png >/dev/null
 
 if [[ -f "$ICONS_DIR/qdpx_icon.png" ]]; then
   echo "→ Document icon (build/document-icon.{icns,ico,png})…"
