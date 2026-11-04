@@ -33,6 +33,7 @@ import { EditableTitleSuffix } from '../EditableTitleSuffix'
 import { renameSavedAnalysis } from '../../utils/rename-saved-analysis'
 import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
+import { visualBoxColour } from '../../utils/code-colours'
 
 interface Props {
   data: AnalysisInitData
@@ -702,10 +703,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                         // line-box quirks that were nudging visual-mode
                         // rows ~1–4 px taller than numeric-mode rows.
                         const boxSize = val > 0 ? 6 + ratio * 18 : 3
-                        const r = Math.round(180 + ratio * 75)
-                        const g = Math.round(180 - ratio * 100)
-                        const b = Math.round(180 - ratio * 100)
-                        const boxColor = val > 0 ? `rgb(${r},${g},${b})` : 'var(--bg-tertiary)'
+                        const boxColor = val > 0 ? visualBoxColour(ratio) : 'var(--bg-tertiary)'
                         return (
                           <Fragment key={col.id}>
                           <td onClick={() => handleDoubleClick(i, j)} style={{

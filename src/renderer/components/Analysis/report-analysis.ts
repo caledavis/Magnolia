@@ -28,6 +28,7 @@ import { buildWordTree, layoutWordTree, wordTreeSvg } from './word-tree'
 import { documentFilterFromConfig } from './documents-filter'
 import { runResultsQueries } from './ResultsInDocuments'
 import { escHtml } from '../../utils/pdf-export'
+import { visualBoxHex } from '../../utils/code-colours'
 import { TOOL_REGISTRY } from '../../utils/tool-registry'
 import { useProjectStore } from '../../stores/project-store'
 import type { AnalysisInitData, QueryResult } from '../../models/types'
@@ -97,16 +98,12 @@ function trunc(s: string, n: number): string {
 }
 
 /** A sized colour box for a "Visual" cell, replicating the on-screen
- *  grid exactly: box size 6→24px and an rgb red ramp scaled by the
- *  value's share of the (non-subtotal) max; empty cells get a tiny grey
- *  square. */
+ *  grid: box size and shade scaled by the value's share of the
+ *  (non-subtotal) max; empty cells get a tiny grey square. */
 function visualBox(v: number, maxVal: number): string {
   const ratio = v > 0 ? Math.min(1, v / Math.max(1, maxVal)) : 0
   const size = v > 0 ? 5 + ratio * 15 : 3
-  const r = Math.round(180 + ratio * 75)
-  const g = Math.round(180 - ratio * 100)
-  const b = Math.round(180 - ratio * 100)
-  const color = v > 0 ? `rgb(${r},${g},${b})` : '#e9eef5'
+  const color = v > 0 ? visualBoxHex(ratio) : '#e9eef5'
   return `<div style="width:${size}px;height:${size}px;background:${color};border-radius:2px"></div>`
 }
 

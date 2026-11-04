@@ -55,3 +55,25 @@ export function nextCodeColour(presets: readonly string[], lastColour: string | 
   const idx = lastColour ? presets.indexOf(lastColour.toLowerCase()) : -1
   return presets[(idx + 1) % presets.length]
 }
+
+/** How much of its colour a Visual-view box takes: a light tint at the
+ *  smallest count, the full colour at the largest. */
+function visualStrength(ratio: number): number {
+  return Math.round(35 + 65 * Math.min(1, Math.max(0, ratio)))
+}
+
+/** A box in an analysis tool's Visual view: the icon palette's coral
+ *  (the code presets' red), the same for every box, mixed with the empty
+ *  box's grey by the count's share of the largest count. */
+export function visualBoxColour(ratio: number): string {
+  return `color-mix(in srgb, var(--rb-coral) ${visualStrength(ratio)}%, var(--bg-tertiary))`
+}
+
+/** visualBoxColour as a plain hex colour, for exported reports, mixed
+ *  with their empty box's grey (#e9eef5). */
+export function visualBoxHex(ratio: number): string {
+  const from = [0xe5, 0x67, 0x4b] // coral, COLOURFUL_CODE_COLOURS[0]
+  const to = [0xe9, 0xee, 0xf5]
+  const t = visualStrength(ratio) / 100
+  return '#' + from.map((c, i) => Math.round(c * t + to[i] * (1 - t)).toString(16).padStart(2, '0')).join('')
+}

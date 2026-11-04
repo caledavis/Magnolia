@@ -19,7 +19,7 @@ import {
 import { useLiveAnalysisData } from './use-live-analysis-data'
 import { SankeyView } from './SankeyView'
 import { SegmentedControl, type GridView } from './SegmentedControl'
-import { useCodeColourPresets } from '../../utils/code-colours'
+import { useCodeColourPresets, visualBoxColour } from '../../utils/code-colours'
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
 import { renameSavedAnalysis } from '../../utils/rename-saved-analysis'
 import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
@@ -799,10 +799,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                           // gap so visual-mode rows match numeric-mode
                           // rows exactly (no anti-aliasing / line-box jump).
                           const boxSize = val > 0 ? 6 + ratio * 18 : 3
-                          const r = Math.round(180 + ratio * 75)
-                          const g = Math.round(180 - ratio * 100)
-                          const b = Math.round(180 - ratio * 100)
-                          const boxColor = val > 0 ? `rgb(${r},${g},${b})` : 'var(--bg-tertiary)'
+                          const boxColor = val > 0 ? visualBoxColour(ratio) : 'var(--bg-tertiary)'
                           return (
                             <td key={qGuid} onClick={() => handleCellClick(i, j)} style={{
                               width: 50, minWidth: 50, maxWidth: 50, padding: 0,
