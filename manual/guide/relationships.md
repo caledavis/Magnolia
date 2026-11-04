@@ -13,9 +13,9 @@ Think of it as a pinboard, where you can pin up documents, codes and quotes, and
 
 **To open Relationships:**
 
-1. Click the `Analyse` button in the toolbar.
+1. Click the `Analyse` tab in the ribbon.
 
-2. Choose `Relationships`.
+2. Click `Relationships`.
 
 ## Adding items
 

@@ -6,9 +6,9 @@ Where [Codes in Documents](/guide/codesindocuments) counts *how many times* a co
 
 **To open Code Frequencies:**
 
-1. Click the `Analyse` button in the toolbar.
+1. Click the `Analyse` tab in the ribbon.
 
-2. Choose `Code Frequencies`.
+2. Click `Code Frequencies`.
 
 The tool contains:
 - The [Document Selector](/guide/documentselector)

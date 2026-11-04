@@ -6,9 +6,9 @@ Think of it as the place where your project comes together. Rather than copying 
 
 **To open Reports:**
 
-1. Click the `Analyse` button in the toolbar.
+1. Click the `Analyse` tab in the ribbon.
 
-2. Choose `Reports`.
+2. Click `Reports`.
 
 3. Give your report a title by typing it next to `Report:`.
 

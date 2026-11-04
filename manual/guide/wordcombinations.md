@@ -4,9 +4,9 @@ The Word Combinations tool allows you to see which words go together in your doc
 
 **To open Word Combinations:**
 
-1. Click the `Analyse` button in the toolbar.
+1. Click the `Analyse` tab in the ribbon.
 
-2. Choose `Word Combinations`.
+2. Click `Word Combinations`.
 
 The tool contains:
 - The `Count words in` choice, as in [Word Frequencies](/guide/wordfrequencies#choosing-what-to-count)

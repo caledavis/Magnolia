@@ -6,9 +6,9 @@ Think of it as a timeline for each document. It is particularly useful for inter
 
 **To open Code Orders:**
 
-1. Click the `Analyse` button in the toolbar.
+1. Click the `Analyse` tab in the ribbon.
 
-2. Choose `Code Orders`.
+2. Click `Code Orders`.
 
 The tool contains:
 - The [Document Selector](/guide/documentselector)

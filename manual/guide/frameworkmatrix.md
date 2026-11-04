@@ -3,15 +3,15 @@
 The Framework Matrix allows you to build a table with documents as the rows and codes as the columns, and write your own summary in each cell of what that code looks like in that document. It is a good way to condense a large amount of coded data into a single overview, and to compare different sources side by side.
 
 <figure>
-     <img src="./images/FrameworkMatrix.png" alt="A Framework Matrix with a tag group, an individual document, and three code columns.">
+     <img src="./images/FrameworkMatrix.png" alt="A Framework Matrix with two tag groups, an individual document, and four code columns.">
      <figcaption>A Framework Matrix.</figcaption>
 </figure>
 
 **To open the Framework Matrix:**
 
-1. Click the `Analyse` button in the toolbar.
+1. Click the `Analyse` tab in the ribbon.
 
-2. Choose `Framework Matrix`.
+2. Click `Framework Matrix`.
 
 You can also start a matrix from the [Codes in Documents](/guide/codesindocuments#opening-as-a-framework-matrix) tool by clicking `Open as Framework Matrix`. The matrix opens with the same codes and documents already added.
 

@@ -4,9 +4,9 @@ The Word Frequencies tool allows you to see which words appear most often in you
 
 **To open Word Frequencies:**
 
-1. Click the `Analyse` button in the toolbar.
+1. Click the `Analyse` tab in the ribbon.
 
-2. Choose `Word Frequencies`.
+2. Click `Word Frequencies`.
 
 The tool contains:
 - The `Count words in` choice

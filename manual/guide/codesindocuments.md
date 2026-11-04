@@ -4,9 +4,9 @@ The Codes in Documents tool allows you to see how often particular codes appear 
 
 **To open Codes in Documents:**
 
-1. Click the `Analyse` button in the toolbar.
+1. Click the `Analyse` tab in the ribbon.
 
-2. Choose `Codes in Documents`.
+2. Click `Codes in Documents`.
 
 The tool contains:
 - The [Document Selector](/guide/documentselector)

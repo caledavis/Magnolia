@@ -8,9 +8,9 @@ Two codes occur together when:
 
 **To open Code Co-Occurrences:**
 
-1. Click the `Analyse` button in the toolbar.
+1. Click the `Analyse` tab in the ribbon.
 
-2. Choose `Code Co-Occurrences`.
+2. Click `Code Co-Occurrences`.
 
 The tool contains the [Document Selector](/guide/documentselector).
 
