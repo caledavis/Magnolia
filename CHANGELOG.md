@@ -4,6 +4,10 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 
 ## [Unreleased]
 
+## [2.0.0]
+
+**Updating from Magnolia 1.x on a Mac:** Magnolia closes to finish the update and doesn't reopen by itself. Open it again from your Applications folder; your projects and preferences are kept.
+
 ### Added
 - **Notes.** Write your own field notes, observations and reflections in Magnolia, and code them like any other document. Click the notebook button at the top of the Documents panel to create a notebook, then **+** beside it to add a note. Each note has a title and the date and time of the observation, is named after them ("261104 14:30 - Library foyer"), and is listed newest first. Notes are written in Markdown and coded in the same view, with no separate editing mode: codes, quotes and memos stay on the same words as you keep writing, and ⌘Z undoes typing. Lists continue when you press Enter, and ⌘B and ⌘I make text bold or italic. The Document Selector has a **Notes** type, and notes are saved in the project as ordinary text documents, so other QDA software can open them.
 - **Keyboard shortcuts for switching tabs.** **Ctrl+Tab** shows the next tab and **Ctrl+Shift+Tab** the previous one, wrapping round at the ends; both are in the View menu. On macOS, **⌘⇧]** and **⌘⇧[** work too, as in Safari and Finder; on Windows and Linux, **Ctrl+PageDown** and **Ctrl+PageUp**.
@@ -15,6 +19,7 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 - **Word Frequencies can count the words in coded passages.** Choose `Coded Passages` and drag in codes to count only the words in the passages coded with them. Each code gets its own bar in the bar chart, in the code's colour, so you can compare how people talk about different things. Subcodes are included unless you untick `And subcodes`. Clicking a word searches only inside the coded passages.
 
 ### Changed
+- **Magnolia is rebuilt on a new, much lighter foundation.** It now runs on Tauri, with its core rewritten in Rust, in place of Electron. It takes up far less space (about 25 MB on a Mac, down from over 400 MB). Your projects, preferences and recent projects carry over, and project files are unchanged. On Windows, Magnolia now installs for your user account without needing administrator rights; the old copy stays in Installed apps until you remove it.
 - **Icons share one set of four colours.** The ribbon, the Documents panel, the tabs in the Viewer, the analysis tools and the Saved Analyses panel draw their icons in ink, blue, coral and gold, with each colour on a different part of the icon. Before, every document type and analysis tool had a colour of its own. Text documents and PDFs share an icon, so their corner tells them apart: blue for text, coral for PDFs. Memos are gold, like sticky notes. High Contrast stays uncoloured.
 - **The Visual view's squares are in the icons' coral,** shaded from a light tint for small counts to the full colour for the largest, in place of the old red. Exported reports match.
 - **New default code colours,** built around the icon colours: coral, blue, teal, violet, gold, green, rose and more, in place of the brighter set. New codes take them in turn, starting with coral. Codes you've already coloured keep their colours.
@@ -32,6 +37,7 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 - **The Icons and Text toolbar style,** which the ribbon replaces. If you used it, Magnolia opens with the ribbon.
 
 ### Fixed
+- **Memo and quote icons no longer disappear beside long code labels.** On a line whose code labels ran to the edge of the document, the memo or quote icon was pushed off the edge, so it couldn't be seen or clicked. Labels on a line with an icon now stop short of it, in text documents, PDFs and images.
 - **Misspelt words are underlined again on macOS.** Spelling wasn't checked as you typed anywhere in Magnolia. It now is, in every window; turn it off from a text box's right-click menu under Spelling and Grammar → Check Spelling While Typing.
 - **Merging a code no longer deletes its subcodes.** Merging a code that had subcodes removed them along with it, leaving their coded segments attached to codes that no longer existed. The Merge Codes popup now asks what to do with them: **Move Subcodes** puts them under the code you're keeping, with their coded segments intact, and **Merge Subcodes** recodes their segments with it too. A passage coded with both codes keeps a single coding, merging a code into one of its own subcodes no longer does anything, and the popup no longer says a merge can't be undone (⌘Z undoes it).
 - **Links are readable in the dark themes** ([#30](https://github.com/caledavis/Magnolia/issues/30)). While you edited a code description, memo or note, links showed in the browser's default dark blue, which was hard to see on a dark background. They now use the theme's link colour, as they already did once saved, and Magnolia Dark uses a lighter blue for links.
