@@ -2,6 +2,18 @@
 /**
  * Release helpers (see RELEASING.md).
  *
+ *   node scripts/release.mjs release <mac|win|linux> [--no-upload]
+ *     (npm run release:mac / release:win / release:linux.) Build this
+ *     platform's installers and update payloads, collect them, and upload
+ *     them to the draft release for package.json's version (vX.Y.Z). Loads
+ *     the updater key from ~/.tauri/magnolia-updater.key when
+ *     TAURI_SIGNING_PRIVATE_KEY isn't set; on macOS, needs the APPLE_*
+ *     variables (signing + notarization) and builds both architectures.
+ *
+ *   node scripts/release.mjs finish [notes-file]
+ *     (npm run release:finish.) Download every asset of the draft release,
+ *     write the update manifests (with the notes, if given) and upload them.
+ *
  *   node scripts/release.mjs collect <mac-arm64|mac-x64|win|linux>
  *     Copy this machine's Tauri bundles into release/ under the stable,
  *     version-less names the README's download links and the update
@@ -19,8 +31,9 @@
  *     "Testing an update before release").
  */
 import { createHash } from 'node:crypto'
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
+import { homedir, tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -45,8 +58,12 @@ function findOne(dir, pattern) {
   return newest
 }
 
+/** The files the current collect() copied, for uploading. */
+let collected = []
+
 function copy(from, name) {
   copyFileSync(from, join(out, name))
+  collected.push(join(out, name))
   console.log(`  ${name}`)
 }
 
@@ -61,6 +78,7 @@ function collect(platform) {
     // electron-updater (Magnolia 1.x) installs a zipped .app via Squirrel.Mac.
     const zip = join(out, `Magnolia-mac-${arch}.zip`)
     execFileSync('ditto', ['-c', '-k', '--sequesterRsrc', '--keepParent', join(bundle, 'macos', 'Magnolia.app'), zip])
+    collected.push(zip)
     console.log(`  Magnolia-mac-${arch}.zip`)
   } else if (platform === 'win') {
     const nsis = join(root, 'target', 'release', 'bundle', 'nsis')
@@ -142,15 +160,87 @@ function manifests(version, dir, notesFile, baseUrl) {
   }
 }
 
+const version = () => JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')).version
+const isWin = process.platform === 'win32'
+
+/** Run a command with its output shown; npm and gh are .cmd files on Windows. */
+function run(cmd, args, env = process.env) {
+  execFileSync(cmd, args, { stdio: 'inherit', env, shell: isWin, cwd: root })
+}
+
+/** The environment for a signed release build, or an error saying what's missing. */
+function releaseEnv(platform) {
+  const env = { ...process.env }
+  if (!env.TAURI_SIGNING_PRIVATE_KEY) {
+    const keyFile = join(homedir(), '.tauri', 'magnolia-updater.key')
+    if (!existsSync(keyFile)) {
+      throw new Error(`No updater signing key: set TAURI_SIGNING_PRIVATE_KEY, or copy the key to ${keyFile} (see RELEASING.md).`)
+    }
+    env.TAURI_SIGNING_PRIVATE_KEY = readFileSync(keyFile, 'utf-8')
+  }
+  env.TAURI_SIGNING_PRIVATE_KEY_PASSWORD ??= ''
+  if (platform === 'mac') {
+    // Unsigned Mac builds are blocked by Gatekeeper, and 1.x installs only
+    // update to a build signed with the same Developer ID, so don't go on.
+    const missing = ['APPLE_SIGNING_IDENTITY', 'APPLE_ID', 'APPLE_PASSWORD', 'APPLE_TEAM_ID'].filter((v) => !env[v])
+    if (missing.length) throw new Error(`Set ${missing.join(', ')} first, so the build is signed and notarized (see RELEASING.md).`)
+  }
+  return env
+}
+
+/** Build, collect and (unless --no-upload) upload this platform's assets. */
+function release(platform, upload) {
+  const host = { darwin: 'mac', win32: 'win', linux: 'linux' }[process.platform]
+  if (platform !== host) throw new Error(`Build ${platform} on a ${platform} machine (this one is ${host ?? process.platform}).`)
+  const env = releaseEnv(platform)
+  const tag = `v${version()}`
+  console.log(`Building Magnolia ${version()} for ${platform}…`)
+  collected = []
+  if (platform === 'mac') {
+    for (const target of ['mac-arm64', 'mac-x64']) {
+      run('npm', ['run', 'tauri', 'build', '--', '--target', PLATFORMS[target].triple], env)
+    }
+    for (const target of ['mac-arm64', 'mac-x64']) { console.log(`Collecting ${target}:`); collect(target) }
+  } else {
+    run('npm', ['run', 'tauri', 'build'], env)
+    console.log(`Collecting ${platform}:`)
+    collect(platform)
+  }
+  if (!upload) {
+    console.log(`\nDone. Upload with: gh release upload ${tag} ${collected.map((f) => `release/${f.split(/[\\/]/).pop()}`).join(' ')} --clobber`)
+    return
+  }
+  console.log(`Uploading to the ${tag} release…`)
+  run('gh', ['release', 'upload', tag, ...collected, '--clobber', '--repo', REPO])
+  console.log(`\nDone: ${collected.length} files uploaded to ${tag}.`)
+}
+
+/** Write the update manifests from the release's assets and upload them. */
+function finish(notesFile) {
+  const tag = `v${version()}`
+  const dir = join(tmpdir(), `magnolia-${tag}-assets`)
+  rmSync(dir, { recursive: true, force: true }) // a fresh copy of the release's assets
+  mkdirSync(dir, { recursive: true })
+  console.log(`Downloading the ${tag} assets…`)
+  run('gh', ['release', 'download', tag, '-D', dir, '--clobber', '--repo', REPO])
+  manifests(version(), dir, notesFile ? resolve(notesFile) : undefined)
+  const written = ['latest.json', 'latest-mac.yml', 'latest.yml', 'latest-linux.yml'].map((f) => join(dir, f)).filter(existsSync)
+  run('gh', ['release', 'upload', tag, ...written, '--clobber', '--repo', REPO])
+  console.log(`\nDone. Check the draft on GitHub, then publish it.`)
+}
+
 const argv = process.argv.slice(2)
 const flag = argv.indexOf('--base-url')
 const baseUrl = flag >= 0 ? argv.splice(flag, 2)[1] : undefined
-const [cmd, ...args] = argv
+const noUpload = argv.includes('--no-upload')
+const [cmd, ...args] = argv.filter((a) => a !== '--no-upload')
 try {
-  if (cmd === 'collect' && args[0]) collect(args[0])
+  if (cmd === 'release' && args[0]) release(args[0], !noUpload)
+  else if (cmd === 'finish') finish(args[0])
+  else if (cmd === 'collect' && args[0]) collect(args[0])
   else if (cmd === 'manifests' && args[0] && args[1]) manifests(args[0], resolve(args[1]), args[2], baseUrl)
   else {
-    console.error('usage: release.mjs collect <mac-arm64|mac-x64|win|linux>\n       release.mjs manifests <version> <dir> [notes-file] [--base-url <url>]')
+    console.error('usage: release.mjs release <mac|win|linux> [--no-upload]\n       release.mjs finish [notes-file]\n       release.mjs collect <mac-arm64|mac-x64|win|linux>\n       release.mjs manifests <version> <dir> [notes-file] [--base-url <url>]')
     process.exit(1)
   }
 } catch (e) {

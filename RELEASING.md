@@ -181,45 +181,41 @@ can write releases.
    ```sh
    gh release create vX.Y.Z --draft --title "Magnolia X.Y.Z" --notes ""
    ```
-3. **Build, collect and upload on each platform** (all on the same commit;
-   signing key and, on macOS, the Apple variables exported):
+3. **Build and upload on each platform** (all on the same commit). On each
+   machine, check out that commit and run its one command:
    ```sh
-   # macOS
-   npm run tauri build -- --target aarch64-apple-darwin
-   npm run tauri build -- --target x86_64-apple-darwin
-   node scripts/release.mjs collect mac-arm64
-   node scripts/release.mjs collect mac-x64
-
-   # Windows
-   npm run build
-   node scripts/release.mjs collect win
-
-   # Linux
-   npm run build
-   node scripts/release.mjs collect linux
+   npm run release:mac     # macOS: both arm64 and x64
+   npm run release:win     # Windows
+   npm run release:linux   # Linux
    ```
-   `collect` copies the bundles into `release/` under stable, version-less
-   names (so the README's `…/releases/latest/download/…` links keep
-   working). Then upload them:
-   ```sh
-   gh release upload vX.Y.Z release/*
-   ```
+   Each builds the installers and update payloads, collects them into
+   `release/` under stable, version-less names (so the README's
+   `…/releases/latest/download/…` links keep working), and uploads them to
+   the `vX.Y.Z` draft (the version in `package.json`). It loads the updater
+   key from `~/.tauri/magnolia-updater.key` unless `TAURI_SIGNING_PRIVATE_KEY`
+   is set. On macOS, export the four `APPLE_*` variables first (see
+   "Building for macOS"); `release:mac` stops without them, since an
+   unsigned build couldn't update Magnolia 1.x. Add `-- --no-upload` to
+   build and collect without uploading.
 4. **Write the release notes** in the draft's body on GitHub, and save the
    same text to a file (e.g. `notes.md`). **These notes appear inside the
    app** — the update dialog renders them (markdown) — so keep them
    user-facing.
-5. **Generate the update manifests** from all the uploaded assets:
+5. **Generate the update manifests** once every platform is uploaded:
    ```sh
-   rm -rf assets && gh release download vX.Y.Z -D assets
-   node scripts/release.mjs manifests X.Y.Z assets notes.md
-   gh release upload vX.Y.Z assets/latest.json assets/latest*.yml --clobber
+   npm run release:finish -- notes.md
    ```
+   It downloads the draft's assets, writes the manifests and uploads them.
    - `latest.json` is what Tauri builds poll.
    - `latest-mac.yml`, `latest.yml` and `latest-linux.yml` are for installs of
      **Magnolia 1.x (Electron)**, whose updater only reads those — see
      "Moving users off Electron" below. `latest-mac.yml` carries
      `minimumSystemVersion: '22.0.0'` (Darwin 22 = macOS 13), so Macs too old
      to run the build aren't offered it.
+
+   The steps underneath, if you need them on their own:
+   `node scripts/release.mjs collect <mac-arm64|mac-x64|win|linux>` and
+   `node scripts/release.mjs manifests X.Y.Z <assets-dir> notes.md`.
 6. **Publish** the draft. Until you do, updaters can't see it.
 
 ---

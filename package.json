@@ -26,7 +26,11 @@
     "test:watch": "vitest",
     "licenses": "node scripts/build-third-party-licenses.mjs > THIRD-PARTY-LICENSES.txt",
     "icons": "bash scripts/build-icons.sh",
-    "downloads": "bash scripts/downloads.sh"
+    "downloads": "bash scripts/downloads.sh",
+    "release:mac": "node scripts/release.mjs release mac",
+    "release:win": "node scripts/release.mjs release win",
+    "release:linux": "node scripts/release.mjs release linux",
+    "release:finish": "node scripts/release.mjs finish"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.4",
