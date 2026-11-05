@@ -126,6 +126,8 @@ export default defineConfig({
           page('Supported document types and formats', '/guide/supportedformats'), // DONE
           page('Importing documents', '/guide/importing'),  // DONE
           page('Notes', '/guide/notes'),
+          page('Surveys', '/guide/surveys'),
+          page('Transcription', '/guide/transcription'),
 //          page('Tags', '/guide/tags'),
         ]
       },
@@ -143,6 +145,7 @@ export default defineConfig({
           page('Querying your data', '/guide/querying'),  // DONE
           page('Selecting Documents', '/guide/documentselector'),  // DONE
           page('Grouping Results', '/guide/grouping'), // DONE
+          page('Analysis tools', '/guide/analysis'),
           page('Codes in Documents', '/guide/codesindocuments'), // DONE
           page('Framework Matrix', '/guide/frameworkmatrix'), // DONE
           page('Results in Documents', '/guide/resultsindocuments'), // DONE
