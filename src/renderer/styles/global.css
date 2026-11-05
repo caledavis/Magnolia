@@ -2181,6 +2181,9 @@ div:hover > .folder-row-add,
   right: 0;
   top: 0;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  /* Only below: the blur would otherwise reach up onto the tab row and
+   * break the shade running from the tabs into the buttons. */
+  clip-path: inset(0 0 -32px 0);
 }
 .ribbon-group {
   display: flex;
