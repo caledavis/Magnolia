@@ -40,7 +40,7 @@ Everyday commands:
 | `npm run build` | Release build + installers for this platform, into `target/…/release/bundle/` (for testing; nothing is uploaded) |
 | `npm run release:mac` | macOS release: builds arm64 + x64, collects and uploads to the draft (see "Cutting a release") |
 | `npm run release:win` | The same for Windows |
-| `npm run release:linux` | The same for Linux |
+| `npm run release:linux` | The same for Linux, on this machine (for testing only: releases are built by the **Release (Linux)** workflow, see "Building for Linux") |
 | `npm run release:finish` | Writes and uploads the update manifests, once every platform is uploaded and the draft has its notes |
 
 The GitHub **Build** workflow (`.github/workflows/build.yml`) compiles and
@@ -59,6 +59,11 @@ key lives at `~/.tauri/magnolia-updater.key` on the Mac it was generated on
 - **Copy it to each build machine** at the same place: `~/.tauri/magnolia-updater.key`
   (on Windows, `%USERPROFILE%\.tauri\magnolia-updater.key`). The
   `release:*` commands load it from there by themselves.
+- **Add it to GitHub** as the repository secret `TAURI_SIGNING_PRIVATE_KEY`,
+  for the Linux release workflow (once):
+  ```sh
+  gh secret set TAURI_SIGNING_PRIVATE_KEY --repo caledavis/Magnolia < ~/.tauri/magnolia-updater.key
+  ```
 - Only a plain `npm run build` needs it exported, if you want that build to
   carry an update payload:
   ```sh
@@ -163,15 +168,36 @@ with the signing key set).
 
 ## 3. Building for Linux
 
-**Machine:** an x64 Linux box with **Node.js**, **Rust**, **Git**, and the
-WebKitGTK development packages. On Debian/Ubuntu:
+**Build a release on GitHub, not on your own Linux machine.** An AppImage
+bundles most libraries from the machine it's built on, but takes glibc,
+libgpg-error and a few others from the user's system. Built on a recent
+distro, it needs that distro's glibc (so it won't start on Ubuntu 22.04 or
+Debian 12) and bundles a libgcrypt that an older libgpg-error can't satisfy
+(issue #31: `undefined symbol: gpgrt_add_post_log_func`). 2.0.0 was built
+this way and has both problems.
+
+The **Release (Linux)** workflow (`.github/workflows/release-linux.yml`)
+builds on Ubuntu 22.04 instead, starts the AppImage on clean Ubuntu 22.04,
+Ubuntu 24.04 and Debian 12 to check it loads, and only then uploads the
+AppImage, `.deb` and `.rpm` to the draft release. Run it once the draft
+exists, from the Actions tab or with:
+```sh
+gh workflow run release-linux.yml --repo caledavis/Magnolia
+gh run watch --repo caledavis/Magnolia   # follow it
+```
+It needs the `TAURI_SIGNING_PRIVATE_KEY` secret (see "The updater signing
+key"). Untick **upload** to build and test without uploading. To check an
+AppImage that's already published, fill in **check_release** (e.g.
+`v2.0.0`): it skips the build and only runs the smoke test.
+
+**Machine for local builds** (testing only): an x64 Linux box with
+**Node.js**, **Rust**, **Git**, and the WebKitGTK development packages. On
+Debian/Ubuntu:
 ```sh
 sudo apt install libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev libayatana-appindicator3-dev patchelf
 ```
-
-**Build a release:** `npm run release:linux` builds, collects and uploads
-(see "Cutting a release"). It needs `gh` logged in on this machine and the
-updater key at `~/.tauri/magnolia-updater.key`.
+`npm run release:linux` still builds, collects and uploads from there, but
+don't use it for a real release unless the machine runs Ubuntu 22.04.
 
 **Build by hand** (for testing):
 ```sh
@@ -203,9 +229,10 @@ gh release create vX.Y.Z --draft --title "Magnolia X.Y.Z" --notes ""
 
 # On the Mac (after exporting APPLE_ID and APPLE_APP_SPECIFIC_PASSWORD):
 npm run release:mac
-# On Windows and on Linux (after git pull):
+# On Windows (after git pull):
 npm run release:win
-npm run release:linux
+# Linux, from anywhere (builds on GitHub; see "Building for Linux"):
+gh workflow run release-linux.yml --repo caledavis/Magnolia
 
 # Anywhere, once all three are uploaded and the notes are written on GitHub:
 npm run release:finish
@@ -234,8 +261,10 @@ The steps in detail:
    ```sh
    npm run release:mac     # macOS: both arm64 and x64
    npm run release:win     # Windows
-   npm run release:linux   # Linux
    ```
+   Linux is built on GitHub instead: run the **Release (Linux)** workflow
+   (`gh workflow run release-linux.yml --repo caledavis/Magnolia`), which
+   uploads to the same draft once its smoke tests pass.
    Each builds the installers and update payloads, collects them into
    `release/` under stable, version-less names (so the README's
    `…/releases/latest/download/…` links keep working), and uploads them to
