@@ -786,6 +786,9 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
         onContextMenu={(e) => {
           // Right-click during box drag → cancel drag
           if (boxDrag) { setBoxDrag(null); e.preventDefault(); return }
+          // Magnolia's menu replaces the system one (Look Up, Copy…),
+          // which would otherwise open on top of it over selected text.
+          e.preventDefault()
           handleContextMenu(e)
         }}
         onDragOver={(e) => {
