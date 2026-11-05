@@ -90,6 +90,9 @@ jobs:
         run: |
           apt-get update
           apt-get install -y --no-install-recommends libwebkit2gtk-4.1-0 libgtk-3-0 ca-certificates curl
+          # Sound is on every desktop but not in a bare container (the
+          # package was renamed in Ubuntu 24.04).
+          apt-get install -y --no-install-recommends libasound2t64 || apt-get install -y --no-install-recommends libasound2
 
       - name: Download ${{ inputs.check_release }}
         if: inputs.check_release != ''
