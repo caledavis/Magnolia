@@ -20,8 +20,6 @@ The ribbon groups Magnolia's commands on four tabs. Click a tab to see its butto
 
 When a new version of Magnolia is available, a dot appears on `Preferences`.
 
-On a smaller screen, or in a window less than about 820 points tall, the ribbon is more compact: each button's label sits beside its icon, in a single row. If a tab's buttons don't fit the width of the window, they move closer together, and then show only their icons. Hover over an icon to see its name.
-
 **To fold the ribbon away:**
 
 1. Double-click any tab; or,

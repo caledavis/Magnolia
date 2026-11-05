@@ -2166,7 +2166,7 @@ div:hover > .folder-row-add,
 .ribbon-body {
   display: flex;
   align-items: stretch;
-  padding: 3px 8px 6px;
+  padding: 4px 8px 4px;
   background: linear-gradient(180deg, var(--ribbon-shade-top), var(--ribbon-shade-bottom));
   border-bottom: 1px solid var(--border-color);
   overflow-x: auto;
@@ -2182,23 +2182,30 @@ div:hover > .folder-row-add,
   top: 0;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
 }
-/* The groups are only for screen readers: every button is the same
- * gap from the next, within a group and across groups. */
-.ribbon-body { --ribbon-gap: 2px; gap: var(--ribbon-gap); }
 .ribbon-group {
   display: flex;
-  gap: var(--ribbon-gap);
+  flex-direction: column;
+  align-items: center;
+  padding: 0 10px;
+  border-right: 1px solid var(--border-color);
   flex-shrink: 0;
+}
+.ribbon-group:last-child { border-right: none; }
+.ribbon-group-buttons { display: flex; gap: 2px; flex: 1; }
+.ribbon-group-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding-top: 2px;
+  white-space: nowrap;
 }
 .ribbon-btn {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  /* One width for every button; longer labels wrap onto a second line. */
+  gap: 5px;
   width: 76px;
-  padding: 4px 4px 3px;
+  padding: 5px 4px 4px;
   border: none;
   border-radius: 6px;
   background: transparent;
@@ -2215,25 +2222,23 @@ div:hover > .folder-row-add,
 .ribbon-btn[aria-disabled="true"] { opacity: 0.45; }
 .ribbon-label {
   font-size: 11.5px;
-  /* Fixed, so a smaller font (.ribbon-tight) doesn't change the
-   * ribbon's height. */
-  line-height: 14px;
+  line-height: 1.2;
   text-align: center;
   /* Room for two lines on every tab, so the ribbon keeps one height
    * and the panes below don't jump when you switch tabs. */
-  min-height: 28px;
+  min-height: 2.4em;
 }
 /* Flat buttons: the glyph alone, in the icon palette (see "Icon
  * palette" above). */
 .ribbon-tile {
   position: relative;
-  width: 26px;
-  height: 24px;
+  width: 30px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 20px;
+  font-size: 24px;
   transition: transform 0.08s;
 }
 /* On High Contrast the palette rules don't apply, so the glyph takes
@@ -2241,8 +2246,8 @@ div:hover > .folder-row-add,
 .ribbon-tile svg { color: var(--rb-ink) !important; }
 /* The Magnolia logo, masked so it takes the palette's ink. */
 .ribbon-magnolia {
-  width: 18px;
-  height: 20px;
+  width: 21px;
+  height: 24px;
   background: var(--rb-ink);
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
@@ -2278,41 +2283,4 @@ div:hover > .folder-row-add,
 }
 :root[data-theme="magnolia"]:has(.app-toolbar[data-toolbar-style="ribbon"]) .app-main-panels {
   padding-top: var(--pane-half-gap);
-}
-
-/* Compact ribbon, on short windows (a non-Retina laptop, or a window
- * not much taller than half the screen): each button is a small glyph
- * with its label beside it, in one row. */
-@media (max-height: 820px) {
-  .ribbon-body { padding: 3px 6px; }
-  .ribbon-btn {
-    flex-direction: row;
-    gap: 5px;
-    width: auto;
-    padding: 4px 7px;
-  }
-  .ribbon-tile { width: 18px; height: 20px; font-size: 16px; }
-  .ribbon-magnolia { width: 14px; height: 16px; }
-  .ribbon-label { font-size: 12px; white-space: nowrap; min-height: 0; }
-  .ribbon-badge { width: 6px; height: 6px; top: -1px; right: -2px; }
-}
-
-/* A little too narrow (set by Ribbon.tsx when the buttons would
- * overflow): the buttons close up. */
-.ribbon-body.ribbon-tight { --ribbon-gap: 2px; }
-.ribbon-tight .ribbon-btn { width: 66px; padding-left: 1px; padding-right: 1px; }
-.ribbon-tight .ribbon-label { font-size: 11px; }
-@media (max-height: 820px) {
-  .ribbon-tight .ribbon-btn { width: auto; padding-left: 3px; padding-right: 3px; gap: 4px; }
-  .ribbon-tight .ribbon-label { font-size: 11.5px; }
-}
-
-/* Still too narrow for the labels:
- * glyphs only, each button's label in its tooltip. The label keeps its
- * height, zero wide, so the ribbon stays the same height as on the other
- * tabs and the panes below don't jump. */
-.ribbon-icons-only .ribbon-label { width: 0; overflow: hidden; visibility: hidden; white-space: nowrap; }
-.ribbon-icons-only .ribbon-btn { width: auto; padding-left: 8px; padding-right: 8px; }
-@media (max-height: 820px) {
-  .ribbon-icons-only .ribbon-btn { gap: 0; }
 }

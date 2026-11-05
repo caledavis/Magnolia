@@ -14,13 +14,8 @@
  * strip; the choice is remembered on this computer. While collapsed,
  * clicking a tab shows its buttons over the panels until you click a
  * button or anywhere else.
- *
- * On short windows the CSS lays the buttons out in one compact row
- * (see "Compact ribbon" in global.css). When a tab's labels don't fit
- * the window's width, the buttons first close up, then show only their
- * glyphs, with the label as a tooltip, rather than running off the edge.
  */
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Icon, faChevronUp, faChevronDown, type IconComponent } from '../Icon'
 import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
 
@@ -146,52 +141,17 @@ export function RibbonTabs({ ribbon }: { ribbon: RibbonState }) {
   )
 }
 
-/** Matches the compact layout's media query in global.css. */
-const COMPACT_QUERY = '(max-height: 820px)'
-
-/** The steps a ribbon too narrow for its buttons takes, in order. */
-const FIT_STEPS = ['ribbon-tight', 'ribbon-icons-only']
-
-/** Takes the first of FIT_STEPS (or none) at which the buttons fit the
- *  ribbon's width. Set on the element directly rather than through
- *  state, so each step can be measured and the choice settled before
- *  paint. */
-function useFitToWidth(ref: React.RefObject<HTMLDivElement | null>, deps: unknown[]) {
-  useLayoutEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const fit = () => {
-      el.classList.remove(...FIT_STEPS)
-      for (const step of FIT_STEPS) {
-        if (el.scrollWidth <= el.clientWidth + 1) break
-        el.classList.add(step)
-      }
-    }
-    fit()
-    const observer = new ResizeObserver(fit)
-    observer.observe(el)
-    const compact = window.matchMedia(COMPACT_QUERY)
-    compact.addEventListener('change', fit)
-    return () => {
-      observer.disconnect()
-      compact.removeEventListener('change', fit)
-    }
-  }, deps)
-}
-
 export function RibbonBody({ ribbon }: { ribbon: RibbonState }) {
   const { active, collapsed, peek, endPeek } = ribbon
-  const bodyRef = useRef<HTMLDivElement>(null)
-  const shown = !collapsed || peek
-  useFitToWidth(bodyRef, [active.id, shown, peek])
-  if (!shown) return null
+  if (collapsed && !peek) return null
   const body = (
-    <div ref={bodyRef} className="ribbon-body" role="tabpanel" aria-label={active.label}>
+    <div className="ribbon-body" role="tabpanel" aria-label={active.label}>
       {active.groups.map((group) => (
-        // Groups aren't labelled or divided on screen; the label is for
-        // screen readers.
         <div key={group.label} className="ribbon-group" role="group" aria-label={group.label}>
-          {group.buttons.map((b) => <RibbonButton key={b.id} def={b} onDone={endPeek} />)}
+          <div className="ribbon-group-buttons">
+            {group.buttons.map((b) => <RibbonButton key={b.id} def={b} onDone={endPeek} />)}
+          </div>
+          <div className="ribbon-group-label">{group.label}</div>
         </div>
       ))}
     </div>
@@ -205,7 +165,6 @@ function RibbonButton({ def, onDone }: { def: RibbonButtonDef; onDone: () => voi
     <button
       type="button"
       className="ribbon-btn"
-      aria-label={def.label}
       aria-pressed={def.pressed}
       aria-disabled={def.disabledReason ? true : undefined}
       title={def.disabledReason ?? def.title ?? def.label}
