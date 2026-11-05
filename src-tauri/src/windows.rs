@@ -622,7 +622,7 @@ pub fn open_memo(app: &AppHandle, data: Value) {
     let label = format!("{MEMO_PREFIX}{safe}");
     let spec = ChildSpec {
         page: "memo-edit.html",
-        title: "Memos",
+        title: "Memo",
         size: (550.0, 500.0),
         min: (400.0, 350.0),
         init_event: "memo-edit-init-data",

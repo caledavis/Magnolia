@@ -74,61 +74,60 @@ export function MemoEditWindow() {
 
   if (!memo) {
     return (
-      <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)' }}>
+      <div className="panel" style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)' }}>
         Loading...
       </div>
     )
   }
 
   return (
-    <div className="memo-edit-window" style={{
-      height: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      background: 'var(--bg-panel)',
-      color: 'var(--text-primary)'
-    }}>
-      {/* Title */}
-      <div style={{ padding: '10px 14px 0', flexShrink: 0 }}>
+    // One card under a pane header, like the Codebook and Logbook windows
+    // (the theme insets #root > .panel from the window's edges).
+    <div className="panel memo-edit-window">
+      <div className="panel-header">
+        <span style={{ flex: 1 }}>{isNew ? 'New Memo' : 'Memo'}</span>
+        {dirty && <span style={{ fontWeight: 400, letterSpacing: 0, textTransform: 'none' }}>Edited</span>}
+      </div>
+
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: '4px 12px 10px' }}>
         <input
           type="text"
           value={title}
           onChange={(e) => handleTitleChange(e.target.value)}
           placeholder="Memo title..."
+          aria-label="Memo title"
+          autoFocus={isNew}
           style={{
             width: '100%',
+            flexShrink: 0,
             fontSize: 16,
             fontWeight: 600,
             border: 'none',
             borderBottom: '1px solid var(--border-color)',
+            borderRadius: 0,
             background: 'transparent',
             padding: '6px 0',
+            marginBottom: 10,
             outline: 'none',
             color: 'var(--text-primary)'
           }}
         />
+        <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+          <MarkdownEditor value={content} onChange={handleContentChange} />
+        </div>
       </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, padding: '10px 14px', overflow: 'auto' }}>
-        <MarkdownEditor
-          value={content}
-          onChange={handleContentChange}
-        />
-      </div>
-
-      {/* Bottom action bar */}
+      {/* Actions, on the panel's own surface below a hairline. */}
       <div style={{
-        padding: '10px 20px',
+        padding: '8px 12px',
         borderTop: '1px solid var(--border-color)',
-        background: 'var(--bg-secondary)',
         display: 'flex',
         alignItems: 'center',
         gap: 8,
         flexShrink: 0
       }}>
         {!isNew && (
-          <button className="danger" style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleDelete}>
+          <button className="danger" style={{ fontSize: 11, padding: '4px 14px', border: '1px solid transparent' }} onClick={handleDelete}>
             Delete
           </button>
         )}
@@ -139,7 +138,8 @@ export function MemoEditWindow() {
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleSave} disabled={!dirty}>
           Save
         </button>
-        <button style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleSaveAndClose}>
+        {/* A transparent border, so it's the size of the bordered buttons beside it. */}
+        <button style={{ fontSize: 11, padding: '4px 14px', border: '1px solid transparent' }} onClick={handleSaveAndClose}>
           Save &amp; Close
         </button>
       </div>
