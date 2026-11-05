@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { PlainTextSelection, Code, Memo } from '../../models/types'
 import { layoutBrackets, capGeometry, bracketPieces, COL_W, LABEL_H, LABEL_GAP } from './bracketLayout'
 import { CodeLabel } from './CodeLabel'
-import { layoutIcons, buildIconItems, ICON_COL_W, LINE_GROUP_TOLERANCE, type IconGroup } from './iconLayout'
+import { layoutIcons, buildIconItems, iconRoomAt, ICON_COL_W, LABEL_TO_ICON_GAP, LINE_GROUP_TOLERANCE, type IconGroup } from './iconLayout'
 import { MemoQuoteIcons } from './MemoQuoteIcons'
 import { useMemoStore } from '../../stores/memo-store'
 import { measureLabelWidth } from '../../utils/measure-text'
@@ -81,7 +81,6 @@ interface CodeBracket {
 const LABEL_W = 80
 /** Small horizontal breathing room between a code label and the icon(s)
  *  that follow it on the same row. */
-const LABEL_TO_ICON_GAP = 4
 /** Breathing room kept clear between a fully-expanded label and the true
  *  right edge of the pane. */
 const LABEL_EDGE_PAD = 8
@@ -96,11 +95,11 @@ const LABEL_EDGE_PAD = 8
 function computeIconLefts(
   groups: IconGroup[],
   brackets: { top: number; height: number; column: number; labelTop: number; labelLeft: number; codeName: string }[],
-  labelMaxWidthFor: (labelLeft: number) => number
+  labelMaxWidthFor: (labelLeft: number, labelTop: number, groups: IconGroup[]) => number
 ): IconGroup[] {
   if (groups.length === 0) return groups
   // Pre-measure each bracket's label width once (canvas measurement is cheap).
-  const labelRights = brackets.map((b) => b.labelLeft + Math.min(labelMaxWidthFor(b.labelLeft), measureLabelWidth(b.codeName)))
+  const labelRights = brackets.map((b) => b.labelLeft + Math.min(labelMaxWidthFor(b.labelLeft, b.labelTop, groups), measureLabelWidth(b.codeName)))
 
   const baseLeftFor = (iconTop: number): number => {
     let x = 0
@@ -265,11 +264,13 @@ export function RichMarginColumn({ contentRef, containerRef, selections, codes, 
     if (!columnRect || !contentRect) return 0
     return Math.max(0, columnRect.left - (contentRect.right + 8))
   })()
-  const labelMaxWidthFor = (labelLeft: number): number => {
+  // A label on the same row as memo or quote icons stops short of them,
+  // so they stay on screen (see iconRoomAt).
+  const labelMaxWidthFor = (labelLeft: number, labelTop: number, groups: IconGroup[]): number => {
     const columnRect = columnRef.current?.getBoundingClientRect()
     const viewportRect = viewportRef?.current?.getBoundingClientRect()
     if (!columnRect || !viewportRect) return LABEL_W
-    const available = viewportRect.right - (columnRect.left - flushShiftPx + labelLeft) - LABEL_EDGE_PAD
+    const available = viewportRect.right - (columnRect.left - flushShiftPx + labelLeft) - LABEL_EDGE_PAD - iconRoomAt(groups, labelTop, LABEL_H)
     return Math.max(LABEL_W, available)
   }
   const [iconGroups, setIconGroups] = useState<IconGroup[]>([])
@@ -403,7 +404,7 @@ export function RichMarginColumn({ contentRef, containerRef, selections, codes, 
               left={b.labelLeft}
               top={b.labelTop}
               color={b.color}
-              maxWidth={labelMaxWidthFor(b.labelLeft)}
+              maxWidth={labelMaxWidthFor(b.labelLeft, b.labelTop, iconGroups)}
               text={b.codeName}
               onMouseEnter={() => {
                 if (b.isRegion) {

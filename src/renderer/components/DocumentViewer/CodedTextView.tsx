@@ -5,7 +5,7 @@ import { Icon, QUOTE_ICON, MEMO_POINT_ICON, MEMO_RANGED_ICON } from '../Icon'
 import { useQuoteStore } from '../../stores/quote-store'
 import { getFormat, type LineAnnotation, type InlineRange } from '../../utils/format-registry'
 import { layoutBrackets, capGeometry, bracketPieces, COL_W, LABEL_H, LABEL_GAP } from './bracketLayout'
-import { layoutIcons, buildIconItems, ICON_COL_W, LINE_GROUP_TOLERANCE, type IconGroup } from './iconLayout'
+import { layoutIcons, buildIconItems, iconRoomAt, ICON_COL_W, LABEL_TO_ICON_GAP, LINE_GROUP_TOLERANCE, type IconGroup } from './iconLayout'
 import { measureLabelWidth } from '../../utils/measure-text'
 import { MemoQuoteIcons } from './MemoQuoteIcons'
 import { TranscriptGutter, TRANSCRIPT_ROW_STYLE } from './TranscriptGutter'
@@ -1112,51 +1112,6 @@ function CodedTextViewImpl({
       // render brackets identically.
       const placed = layoutBrackets(entries)
 
-      // How much horizontal room a label starting at bracket-layout offset
-      // `labelLeft` actually has before the pane's measured right edge.
-      // Never less than MARGIN_LABEL_W, so deeply nested bracket columns
-      // don't regress below today's minimum. The margin column's own
-      // reserved width (marginW, above) is untouched by this — only the
-      // label's own CSS max-width grows, painting into otherwise-unused
-      // space via the overlay's overflow: visible.
-      const labelMaxWidthFor = (labelLeft: number): number =>
-        Math.max(MARGIN_LABEL_W, containerRect.width - (marginLeftPx + labelLeft) - LABEL_EDGE_PAD)
-
-      // Render. Caps and bars are drawn imperatively into the overlay.
-      // Labels are collected into React state (see setBracketLabels below).
-      const labels: BracketLabel[] = []
-      for (const p of placed) {
-        const top = p.top + 2
-        const height = Math.max(4, p.bottom - p.top - 4)
-        const columnOriginX = marginLeftPx + 4
-        const barLeft = columnOriginX + p.column * COL_W
-        const topCap = capGeometry(p.column, p.topCapTargetCol, columnOriginX)
-        const botCap = capGeometry(p.column, p.bottomCapTargetCol, columnOriginX)
-
-        for (const pieceStyle of bracketPieces(barLeft, top, height, topCap, botCap, p.color)) {
-          const piece = document.createElement('div')
-          Object.assign(piece.style, pieceStyle)
-          overlay.appendChild(piece)
-        }
-
-        // Labels are rendered via React (see bracketLabels state) so their
-        // event listeners survive every overlay rebuild.
-        labels.push({
-          key: `${p.selectionGuid}:${p.codingGuid}`,
-          left: marginLeftPx + p.labelLeft,
-          top: p.labelTop,
-          color: p.color,
-          codeName: p.codeName,
-          selStartCp: p.selStartCp,
-          selEndCp: p.selEndCp,
-          selectionGuid: p.selectionGuid,
-          codingGuid: p.codingGuid,
-          codeGuid: p.codeGuid,
-          maxWidth: labelMaxWidthFor(p.labelLeft)
-        })
-      }
-      setBracketLabels((prev) => sameContent(prev, labels))
-
       // --- Memo + quote icon groups ----------------------------------
       // Measure the visual top/bottom Y of an arbitrary codepoint range
       // by creating a precise DOM Range over the target chars. Using the
@@ -1228,10 +1183,57 @@ function CodedTextViewImpl({
       })
       const baseGroups = layoutIcons(items)
 
+      // How much horizontal room a label starting at bracket-layout offset
+      // `labelLeft` actually has before the pane's measured right edge.
+      // Never less than MARGIN_LABEL_W, so deeply nested bracket columns
+      // don't regress below today's minimum. The margin column's own
+      // reserved width (marginW, above) is untouched by this — only the
+      // label's own CSS max-width grows, painting into otherwise-unused
+      // space via the overlay's overflow: visible.
+      // A label on the same row as memo or quote icons stops short of
+      // them, so they stay on screen (see iconRoomAt).
+      const labelMaxWidthFor = (labelLeft: number, labelTop: number): number =>
+        Math.max(MARGIN_LABEL_W, containerRect.width - (marginLeftPx + labelLeft) - LABEL_EDGE_PAD - iconRoomAt(baseGroups, labelTop, LABEL_H))
+
+      // Render. Caps and bars are drawn imperatively into the overlay.
+      // Labels are collected into React state (see setBracketLabels below).
+      const labels: BracketLabel[] = []
+      for (const p of placed) {
+        const top = p.top + 2
+        const height = Math.max(4, p.bottom - p.top - 4)
+        const columnOriginX = marginLeftPx + 4
+        const barLeft = columnOriginX + p.column * COL_W
+        const topCap = capGeometry(p.column, p.topCapTargetCol, columnOriginX)
+        const botCap = capGeometry(p.column, p.bottomCapTargetCol, columnOriginX)
+
+        for (const pieceStyle of bracketPieces(barLeft, top, height, topCap, botCap, p.color)) {
+          const piece = document.createElement('div')
+          Object.assign(piece.style, pieceStyle)
+          overlay.appendChild(piece)
+        }
+
+        // Labels are rendered via React (see bracketLabels state) so their
+        // event listeners survive every overlay rebuild.
+        labels.push({
+          key: `${p.selectionGuid}:${p.codingGuid}`,
+          left: marginLeftPx + p.labelLeft,
+          top: p.labelTop,
+          color: p.color,
+          codeName: p.codeName,
+          selStartCp: p.selStartCp,
+          selEndCp: p.selEndCp,
+          selectionGuid: p.selectionGuid,
+          codingGuid: p.codingGuid,
+          codeGuid: p.codeGuid,
+          maxWidth: labelMaxWidthFor(p.labelLeft, p.labelTop)
+        })
+      }
+      setBracketLabels((prev) => sameContent(prev, labels))
+
+
       // Pack each icon as close as possible to any overlapping code-name
       // label, matching the RichMarginColumn behaviour. Coordinates are
       // container-absolute (same origin as the bracket labels below).
-      const LABEL_TO_ICON_GAP = 4
       const columnOriginX = marginLeftPx + 4
       const baseLeftFor = (iconTop: number): number => {
         let x = marginLeftPx
@@ -1240,7 +1242,7 @@ function CodedTextViewImpl({
           const labelBot = p.labelTop + LABEL_H
           const labelOverlaps = p.labelTop < iconBot && labelBot > iconTop
           if (labelOverlaps) {
-            const rendered = Math.min(labelMaxWidthFor(p.labelLeft), measureLabelWidth(p.codeName))
+            const rendered = Math.min(labelMaxWidthFor(p.labelLeft, p.labelTop), measureLabelWidth(p.codeName))
             x = Math.max(x, marginLeftPx + p.labelLeft + rendered + LABEL_TO_ICON_GAP)
             continue
           }

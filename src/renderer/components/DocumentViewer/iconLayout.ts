@@ -153,3 +153,16 @@ export function buildIconItems(
 
   return result
 }
+
+/** Gap kept between a code-name label and a memo or quote icon after it. */
+export const LABEL_TO_ICON_GAP = 4
+
+/** Room to keep free at the end of a code-name label on the row starting
+ *  at `labelTop` (rows are LABEL_H tall), for the memo and quote icons
+ *  that sit after it. Labels may stretch to the pane's edge, so without
+ *  this an icon on the same row as a long label is pushed past the edge
+ *  and can't be seen. */
+export function iconRoomAt(groups: Pick<IconGroup, 'top'>[], labelTop: number, rowHeight: number): number {
+  const n = groups.filter((g) => g.top < labelTop + rowHeight && g.top + rowHeight > labelTop).length
+  return n === 0 ? 0 : n * ICON_COL_W + LABEL_TO_ICON_GAP
+}
