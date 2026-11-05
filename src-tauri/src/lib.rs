@@ -143,6 +143,7 @@ pub fn run() {
             updater::check_for_updates,
             automation::automation_set_size,
             automation::automation_capture,
+            automation::automation_eval,
             automation::automation_log,
             automation::automation_quit,
         ])

@@ -92,6 +92,17 @@ pub fn automation_capture(
     }
 }
 
+/// Run `script` in the window labelled `label` (a pop-out such as `memos`),
+/// so automation can click in windows its own script doesn't run in.
+#[tauri::command]
+pub fn automation_eval(app: tauri::AppHandle, label: String, script: String) -> Result<(), String> {
+    check()?;
+    tauri::Manager::get_webview_window(&app, &label)
+        .ok_or(format!("no window {label}"))?
+        .eval(&script)
+        .map_err(|e| e.to_string())
+}
+
 /// Print a line to the terminal running the automation.
 #[tauri::command]
 pub fn automation_log(message: String) -> Result<(), String> {
