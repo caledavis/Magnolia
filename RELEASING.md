@@ -41,7 +41,7 @@ Everyday commands:
 | `npm run release:mac` | macOS release: builds arm64 + x64, collects and uploads to the draft (see "Cutting a release") |
 | `npm run release:win` | The same for Windows |
 | `npm run release:linux` | The same for Linux |
-| `npm run release:finish -- notes.md` | Writes and uploads the update manifests, once every platform is uploaded |
+| `npm run release:finish` | Writes and uploads the update manifests, once every platform is uploaded and the draft has its notes |
 
 The GitHub **Build** workflow (`.github/workflows/build.yml`) compiles and
 tests all three platforms on every push, so a Windows or Linux breakage shows
@@ -207,8 +207,8 @@ npm run release:mac
 npm run release:win
 npm run release:linux
 
-# Anywhere, once all three are uploaded and the notes are written:
-npm run release:finish -- notes.md
+# Anywhere, once all three are uploaded and the notes are written on GitHub:
+npm run release:finish
 # Then publish the draft on GitHub.
 ```
 
@@ -252,15 +252,21 @@ The steps in detail:
    otherwise, and stops without the Apple ID and password, since an
    un-notarized build couldn't update Magnolia 1.x. Add `-- --no-upload` to
    build and collect without uploading.
-4. **Write the release notes** in the draft's body on GitHub, and save the
-   same text to a file (e.g. `notes.md`). **These notes appear inside the
-   app** — the update dialog renders them (markdown) — so keep them
-   user-facing.
-5. **Generate the update manifests** once every platform is uploaded:
+4. **Write the release notes** in the draft's description on GitHub. **These
+   notes appear inside the app** — the update dialog renders them
+   (markdown) — so keep them user-facing.
+5. **Generate the update manifests** once every platform is uploaded and the
+   notes are written:
    ```sh
-   npm run release:finish -- notes.md
+   npm run release:finish
    ```
-   It downloads the draft's assets, writes the manifests and uploads them.
+   It downloads the draft's assets, takes the notes from the draft's
+   description (or from a file: `npm run release:finish -- notes.md`),
+   writes the manifests and uploads them. If you change the notes
+   afterwards, run it again. Electron's builds wrote their `latest*.yml`
+   as each platform was built; Tauri's `latest.json` lists every
+   platform's signed update, so it can only be written once all are
+   uploaded.
    - `latest.json` is what Tauri builds poll.
    - `latest-mac.yml`, `latest.yml` and `latest-linux.yml` are for installs of
      **Magnolia 1.x (Electron)**, whose updater only reads those — see

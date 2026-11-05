@@ -14,7 +14,8 @@
  *
  *   node scripts/release.mjs finish [notes-file]
  *     (npm run release:finish.) Download every asset of the draft release,
- *     write the update manifests (with the notes, if given) and upload them.
+ *     write the update manifests and upload them. Their release notes come
+ *     from notes-file, or else from the draft's description on GitHub.
  *
  *   node scripts/release.mjs collect <mac-arm64|mac-x64|win|linux>
  *     Copy this machine's Tauri bundles into release/ under the stable,
@@ -236,7 +237,17 @@ function finish(notesFile) {
   mkdirSync(dir, { recursive: true })
   console.log(`Downloading the ${tag} assets…`)
   run('gh', ['release', 'download', tag, '-D', dir, '--clobber', '--repo', REPO])
-  manifests(version(), dir, notesFile ? resolve(notesFile) : undefined)
+  // The notes shown in the update window: the file given, or else the
+  // draft's own description on GitHub.
+  let notes = notesFile ? resolve(notesFile) : undefined
+  if (!notes) {
+    const body = execFileSync('gh', ['release', 'view', tag, '--json', 'body', '--jq', '.body', '--repo', REPO], { encoding: 'utf-8', shell: isWin }).trim()
+    if (!body) throw new Error(`The ${tag} draft has no release notes yet: write them on GitHub, or pass a notes file.`)
+    notes = join(dir, 'release-notes.md')
+    writeFileSync(notes, body + '\n')
+    console.log(`Using the ${tag} draft's release notes (${body.length} characters).`)
+  }
+  manifests(version(), dir, notes)
   const written = ['latest.json', 'latest-mac.yml', 'latest.yml', 'latest-linux.yml'].map((f) => join(dir, f)).filter(existsSync)
   run('gh', ['release', 'upload', tag, ...written, '--clobber', '--repo', REPO])
   console.log(`\nDone. Check the draft on GitHub, then publish it.`)
