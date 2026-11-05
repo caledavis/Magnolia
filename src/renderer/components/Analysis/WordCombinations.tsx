@@ -625,7 +625,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
             ) : (
               <>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>
-                  {`${network.phraseCount === phrases.length ? `${phrases.length} phrase${phrases.length === 1 ? '' : 's'}` : `The ${network.phraseCount} commonest of ${phrases.length} phrases`}. Lines join the words that follow each other in them, thicker for commoner phrases; left-out words aren't drawn. Click a line to search for its phrase, or a word to see it in the Word Tree.`}
+                  {`${network.phraseCount === phrases.length ? `${phrases.length} phrase${phrases.length === 1 ? '' : 's'}` : `The ${network.phraseCount} commonest of ${phrases.length} phrases`}`}
                 </div>
                 <div style={{ maxHeight: 620, overflow: 'auto' }}>
                   <PhraseNetworkChart layout={networkLayout} svgRef={networkRef} onSearch={searchFor} onWord={showInTree} />
@@ -638,7 +638,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
             ) : (
               <>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>
-                  {phrases.length} phrase{phrases.length === 1 ? '' : 's'}{phrases.length > PHRASE_ROWS ? ` (showing the top ${PHRASE_ROWS})` : ''}. Click a phrase to search for it.
+                  {phrases.length} phrase{phrases.length === 1 ? '' : 's'}{phrases.length > PHRASE_ROWS ? ` (showing the top ${PHRASE_ROWS})` : ''}
                 </div>
                 <div style={{ maxHeight: 420, overflowY: 'auto' }}>
                   <table style={{ borderCollapse: 'collapse', fontSize: 11, width: '100%', maxWidth: 520 }}>
@@ -668,7 +668,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
             ) : (
               <>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>
-                  {`“${focus}” appears ${tree.count} time${tree.count === 1 ? '' : 's'}. Click a branch to search for it.`}
+                  {`“${focus}” appears ${tree.count} time${tree.count === 1 ? '' : 's'}`}
                 </div>
                 <div style={{ maxHeight: 560, overflow: 'auto' }}>
                   <WordTreeChart layout={treeLayout} svgRef={treeRef} onSearch={(phrase) => searchFor(phrase)} />
@@ -686,7 +686,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
           ) : (
             <>
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>
-                {`“${focus}” appears in ${associations.focusSentences} of ${associations.sentences} sentences. Click a word to find the sentences with both words.`}
+                {`“${focus}” appears in ${associations.focusSentences} of ${associations.sentences} sentences`}
               </div>
               <div style={{ maxHeight: 420, overflowY: 'auto', maxWidth: 520 }}>
                 <table style={{ borderCollapse: 'collapse', fontSize: 11, width: '100%' }}>
