@@ -202,8 +202,6 @@ export function WelcomeScreen() {
           </span>
           <span style={{ fontSize: 11.5, color: 'var(--text-secondary)', textAlign: 'center' }}>
             Use Magnolia at your own risk.
-            <br />
-            Coded by Claude.
           </span>
         </div>
       </div>
