@@ -9,8 +9,9 @@
 # "undefined symbol: gpgrt_add_post_log_func"). Building on the oldest
 # supported base avoids both.
 #
-# Run it from the Actions tab ("Release (Linux)" → Run workflow) once the
-# draft release exists, then run `npm run release:finish` as usual.
+# `npm run release:linux` starts it (from any machine) and follows it; or run
+# it from the Actions tab ("Release (Linux)" → Run workflow). Then run
+# `npm run release:finish` as usual.
 # Needs the repository secret TAURI_SIGNING_PRIVATE_KEY (the contents of
 # ~/.tauri/magnolia-updater.key); see RELEASING.md.
 
