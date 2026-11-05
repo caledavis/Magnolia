@@ -2260,6 +2260,21 @@ div:hover > .folder-row-add,
   mask-position: center;
 }
 
+/* Compact ribbon for short windows (a laptop screen, or a window that
+ * isn't full height): the group labels go, and the icons and padding
+ * shrink, so the buttons take about 62px rather than 95px. The labels
+ * keep their two lines, since tool names like "Code Co-occurrences"
+ * would be cut short on one. The group names are still the groups'
+ * accessible names (aria-label), and the separators still divide them. */
+@media (max-height: 800px) {
+  .ribbon-body { padding: 2px 8px; }
+  .ribbon-group-label { display: none; }
+  .ribbon-btn { gap: 3px; padding: 3px 4px; }
+  .ribbon-label { font-size: 11px; }
+  .ribbon-tile { width: 26px; height: 22px; font-size: 18px; }
+  .ribbon-magnolia { width: 16px; height: 18px; }
+}
+
 .ribbon-badge {
   position: absolute;
   top: 0;

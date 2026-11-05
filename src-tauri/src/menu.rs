@@ -1,7 +1,7 @@
 //! The application menu. Most items forward a `menu-action` string to the
 //! main window's renderer, which owns the behaviour; the menu is rebuilt when
-//! windows open/close (the View menu lists them) and when panel visibility
-//! changes (checkbox state).
+//! windows open/close (the View menu lists them) and when panel or ribbon
+//! visibility changes (checkbox state).
 
 use crate::state::AppState;
 use crate::windows::{self, MAIN, WELCOME};
@@ -174,6 +174,18 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     let mut view = SubmenuBuilder::new(app, "View")
         .item(&item(app, "previous-tab", "Show Previous Tab", Some("Ctrl+Shift+Tab"))?)
         .item(&item(app, "next-tab", "Show Next Tab", Some("Ctrl+Tab"))?)
+        .item(&sep()?);
+    // Shows or collapses the ribbon's buttons (the renderer reports
+    // "ribbon": true/false with the panel visibility). Greyed out when the
+    // toolbar style isn't Ribbon, which leaves "ribbon" out.
+    let ribbon = visibility.get("ribbon").and_then(Value::as_bool);
+    view = view
+        .item(
+            &CheckMenuItemBuilder::with_id(format!("{ACTION}toggle-ribbon"), "Show Ribbon")
+                .checked(ribbon.unwrap_or(false))
+                .enabled(ribbon.is_some())
+                .build(app)?,
+        )
         .item(&sep()?);
     for (key, label) in [
         ("documents", "Documents"),

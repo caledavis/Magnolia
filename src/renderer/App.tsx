@@ -432,6 +432,7 @@ function App() {
   // Which pane last took a mousedown — read only by the keyboard handler
   // below, never during render. A ref, not state: as state, every click
   // into a different pane re-rendered the whole App (and every open tool).
+  const toggleRibbonRef = useRef<() => void>(() => {})
   const activePanelRef = useRef<'documents' | 'codes' | 'viewer' | 'queries' | null>(null)
   const setActivePanel = (panel: 'documents' | 'codes' | 'viewer' | 'queries'): void => {
     activePanelRef.current = panel
@@ -1778,6 +1779,7 @@ function App() {
         case 'toggle-panel-memos': togglePanel('memos'); break
         case 'toggle-panel-quotes': togglePanel('quotes'); break
         case 'toggle-panel-analyses': togglePanel('analyses'); break
+        case 'toggle-ribbon': toggleRibbonRef.current(); break
         case 'next-tab': useDocumentStore.getState().showAdjacentTab(1); break
         case 'previous-tab': useDocumentStore.getState().showAdjacentTab(-1); break
         case 'close-active-tab': {
@@ -1810,14 +1812,6 @@ function App() {
     openAnalysis,
     queryStore
   ])
-
-  // Sync panel visibility to main process for View menu checkmarks.
-  // The "Queries" menu item now drives the merged Queries pane (which
-  // owns the Saved Queries sidebar + the live results), so its
-  // checkmark tracks !queryResultsClosed.
-  useEffect(() => {
-    window.api.updatePanelVisibility({ ...panelVisibility, queries: !queryResultsClosed })
-  }, [panelVisibility, queryResultsClosed])
 
   // Custom keyboard shortcuts for project-level operations.
   // Native text undo/redo/selectAll is handled by the menu's predefined items.
@@ -2816,6 +2810,22 @@ function App() {
   ]
   const ribbon = useRibbon(ribbonTabs)
   const useRibbonToolbar = toolbarStyle === 'ribbon'
+  // The menu handler is registered above useRibbon, so it reaches the
+  // ribbon's (stable) toggle through this ref.
+  toggleRibbonRef.current = ribbon.toggleCollapsed
+
+  // Sync panel visibility to main process for View menu checkmarks.
+  // The "Queries" menu item now drives the merged Queries pane (which
+  // owns the Saved Queries sidebar + the live results), so its
+  // checkmark tracks !queryResultsClosed. "ribbon" drives View → Show
+  // Ribbon, and is left out (greying the item) with the Icons toolbar.
+  useEffect(() => {
+    window.api.updatePanelVisibility({
+      ...panelVisibility,
+      queries: !queryResultsClosed,
+      ...(useRibbonToolbar ? { ribbon: !ribbon.collapsed } : {})
+    })
+  }, [panelVisibility, queryResultsClosed, useRibbonToolbar, ribbon.collapsed])
 
   return (
     <div
