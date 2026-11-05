@@ -434,6 +434,14 @@ const api: MagnoliaAPI = {
 ;(api as any).platform = platform
 ;(window as any).api = api
 
+// In a web view, window.close() only closes windows a page opened itself,
+// so in a pop-out (memo editor, Query Results, …) it did nothing. Close the
+// real window instead. The main window keeps the browser's (a no-op): it
+// closes through the flush-on-close handshake (see windows.rs).
+if (current.label !== MAIN) {
+  window.close = () => { void current.close() }
+}
+
 // Stamp the host platform on <html> in every window (every entry loads
 // this file first), so CSS can branch on it: the main window's toolbar
 // clears the macOS traffic lights, and on macOS the panes in a window's
