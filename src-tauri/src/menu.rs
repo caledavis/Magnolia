@@ -277,7 +277,8 @@ fn contents_key(app: &AppHandle) -> String {
 
 static INSTALLED: std::sync::Mutex<Option<String>> = std::sync::Mutex::new(None);
 
-/// Rebuild and install the app menu (a window opened or closed).
+/// Rebuild and install the app menu (a window opened or closed). On
+/// Windows and Linux it is installed on the main window alone.
 pub fn rebuild(app: &AppHandle) {
     install(app, true);
 }
@@ -299,7 +300,17 @@ fn install(app: &AppHandle, force: bool) {
         }
         match build(&handle) {
             Ok(m) => {
+                // macOS has one menu bar for the app. Windows and Linux draw
+                // the app menu in every window, so there it goes on the main
+                // window only: the welcome screen and the pop-outs (Codebook,
+                // Logbook, memos…) don't need one. Clicks reach the app-wide
+                // on_menu_event either way.
+                #[cfg(target_os = "macos")]
                 let _ = handle.set_menu(m);
+                #[cfg(not(target_os = "macos"))]
+                if let Some(w) = handle.get_webview_window(MAIN) {
+                    let _ = w.set_menu(m);
+                }
                 *installed = Some(key);
             }
             Err(e) => log::error!("menu build failed: {e}"),
