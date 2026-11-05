@@ -360,6 +360,15 @@ const api: MagnoliaAPI = {
   sendLogbookUpdate: (action, ...args) => toMain('logbook-update', { action, args }),
   onLogbookUpdate: (callback) => on<any>('logbook-update', (p) => callback(p.action, ...p.args)),
 
+  // Memos window (every memo in the project)
+  openMemosWindow: (data) => void invoke('open_child_window', { kind: 'memos', data }),
+  updateMemosWindow: (data) => void invoke('update_memos_window', { data }),
+  getMemosWindowData: () => invoke('get_window_data'),
+  onMemosWindowData: (callback) => on('memos-init-data', callback),
+  sendMemosWindowAction: (action, ...args) => toMain('memos-window-action', { action, args }),
+  focusMainWindow: () => void invoke('focus_main_window'),
+  onMemosWindowAction: (callback) => on<any>('memos-window-action', (p) => callback(p.action, ...p.args)),
+
   // Analysis actions (main → main)
   sendAnalysisAction: (action, ...args) => toMain('analysis-action', { action, args }),
   onAnalysisAction: (callback) => on<any>('analysis-action', (p) => callback(p.action, ...p.args)),

@@ -682,6 +682,18 @@ export interface MagnoliaAPI {
   onLogbookData: (callback: (data: LogbookInitData) => void) => () => void
   sendLogbookUpdate: (action: string, ...args: any[]) => void
   onLogbookUpdate: (callback: (action: string, ...args: any[]) => void) => () => void
+  // Memos window
+  openMemosWindow: (data: MemosWindowData) => void
+  /** Refreshes the Memos window if it is open. */
+  updateMemosWindow: (data: MemosWindowData) => void
+  getMemosWindowData: () => Promise<MemosWindowData>
+  onMemosWindowData: (callback: (data: MemosWindowData) => void) => () => void
+  /** 'edit' (guid), 'show' (guid), 'new' or 'delete' (guids): the main
+   *  window acts on them, prompting first while the project is checked out. */
+  sendMemosWindowAction: (action: MemosWindowAction, ...args: any[]) => void
+  onMemosWindowAction: (callback: (action: MemosWindowAction, ...args: any[]) => void) => () => void
+  /** Brings the main project window to the front. */
+  focusMainWindow: () => void
   // Analysis actions — round-trip through main so inline analysis
   // tools can hand work back to the main App (save-analysis,
   // run-query, open-memo, etc.).
@@ -847,6 +859,18 @@ export interface MemoEditInitData {
   theme: string
   /** When true, the memo hasn't been persisted yet — save creates it */
   isNew?: boolean
+}
+
+export type MemosWindowAction = 'edit' | 'show' | 'new' | 'delete'
+
+export interface MemosWindowData {
+  memos: Memo[]
+  /** Where each memo is attached, by memo guid (see utils/memo-places.ts). */
+  places: Record<string, import('../utils/memo-places').MemoPlace>
+  /** Who has the project checked out, when it isn't this user: edits are
+   *  then refused with a prompt in the main window. */
+  lockedBy: string | null
+  theme: string
 }
 
 export interface LogbookEntry {

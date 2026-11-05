@@ -3,12 +3,12 @@ import { createPortal } from 'react-dom'
 import { useMemoStore } from '../../stores/memo-store'
 import { useDocumentStore } from '../../stores/document-store'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
-import { useSurveyViewStore } from '../../stores/survey-view-store'
 import { Icon, faChevronDown, faChevronRight, faXmark, faUpRightFromSquare, faDownLeftAndUpRightToCenter, faPlus, faMagnifyingGlass } from '../Icon'
 import { generateGuid } from '../../utils/guid'
 import { isToolTab } from '../../utils/tab-ids'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import type { Memo, MemoType, MemoEditInitData } from '../../models/types'
+import { showMemoLocation } from '../../utils/show-memo'
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
@@ -327,55 +327,10 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
   // tool-tab states to null here.
   const activeTabId = useDocumentStore((s) => s.viewedDocumentGuid)
   const viewedDocumentGuid = activeTabId && !isToolTab(activeTabId) ? activeTabId : null
-  const viewDocument = useDocumentStore((s) => s.viewDocument)
-  const viewDocumentAt = useDocumentStore((s) => s.viewDocumentAt)
-  const setSurveyView = useSurveyViewStore((s) => s.setView)
-  const setSurveyScrollTarget = useSurveyViewStore((s) => s.setScrollTarget)
 
   // Single-click on a memo navigates to its associated document (and scrolls
   // to the anchor for selection memos). Project/analysis memos have no doc.
-  const handleSingleClickMemo = useCallback((memo: Memo) => {
-    // Survey-question memo → switch to Question view of that question.
-    if (memo.type === 'survey-question' && memo.sourceGuid && memo.questionGuid) {
-      setSurveyView(memo.sourceGuid, 'question', memo.questionGuid)
-      setSurveyScrollTarget({
-        surveyGuid: memo.sourceGuid,
-        questionId: memo.questionGuid
-      })
-      viewDocument(memo.sourceGuid)
-      return
-    }
-    // Survey-respondent memo → switch to Respondent view of that
-    // respondent (no question scroll target — the memo sits on the
-    // sticky header at the very top).
-    if (memo.type === 'survey-respondent' && memo.sourceGuid && memo.respondentId) {
-      setSurveyView(memo.sourceGuid, 'respondent', memo.respondentId)
-      setSurveyScrollTarget({
-        surveyGuid: memo.sourceGuid,
-        respondentId: memo.respondentId
-      })
-      viewDocument(memo.sourceGuid)
-      return
-    }
-    // Survey-cell memo (whole-cell, FAB-created) or span content
-    // memo inside a survey cell → Respondent view of that
-    // respondent, scroll to the matching question section.
-    if ((memo.type === 'survey-cell' || memo.type === 'content') && memo.sourceGuid && memo.surveyCell) {
-      setSurveyView(memo.sourceGuid, 'respondent', memo.surveyCell.respondentId)
-      setSurveyScrollTarget({
-        surveyGuid: memo.sourceGuid,
-        respondentId: memo.surveyCell.respondentId,
-        questionId: memo.surveyCell.questionId
-      })
-      viewDocument(memo.sourceGuid)
-      return
-    }
-    if (memo.type === 'content' && memo.sourceGuid && memo.startPosition !== undefined) {
-      viewDocumentAt(memo.sourceGuid, memo.startPosition, memo.endPosition ?? memo.startPosition, memo.pdfRegion)
-    } else if (memo.type === 'document' && memo.sourceGuids && memo.sourceGuids.length > 0) {
-      viewDocument(memo.sourceGuids[0])
-    }
-  }, [viewDocument, viewDocumentAt, setSurveyView, setSurveyScrollTarget])
+  const handleSingleClickMemo = useCallback((memo: Memo) => showMemoLocation(memo), [])
 
   const [newMemoMenu, setNewMemoMenu] = useState<{ x: number; y: number } | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)

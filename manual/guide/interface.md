@@ -13,7 +13,7 @@ The ribbon groups Magnolia's commands on four tabs. Click a tab to see its butto
 
 | Tab | What it contains |
 | --- | --- |
-| `Home` | `Project Details`, `Import`, `Merge` and `Preferences`; the `Codebook`, `Logbook` and `Tags`; and `Query`, which opens the [Query Builder](/guide/querying#the-query-builder). |
+| `Home` | `Project Details`, `Import`, `Merge` and `Preferences`; the `Codebook`, `Logbook`, `Memos` and `Tags`; and `Query`, which opens the [Query Builder](/guide/querying#the-query-builder). |
 | `Analyse` | Every analysis tool, from [Codes in Documents](/guide/codesindocuments) to [Reports](/guide/reports). |
 | `View` | A button for each pane, to show or hide it. |
 | `Help` | The `Manual`, the `Licence`, and `Donate`. |

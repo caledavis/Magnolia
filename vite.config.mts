@@ -28,6 +28,7 @@ export default defineConfig({
         index: resolve('src/renderer/index.html'),
         codebook: resolve('src/renderer/codebook.html'),
         logbook: resolve('src/renderer/logbook.html'),
+        memos: resolve('src/renderer/memos.html'),
         welcome: resolve('src/renderer/welcome.html'),
         'memo-edit': resolve('src/renderer/memo-edit.html'),
         'query-results': resolve('src/renderer/query-results.html'),

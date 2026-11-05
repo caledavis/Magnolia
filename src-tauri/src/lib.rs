@@ -118,6 +118,7 @@ pub fn run() {
             commands::open_acknowledgements,
             commands::open_child_window,
             commands::update_query_results_window,
+            commands::update_memos_window,
             commands::get_window_data,
             commands::drain_queued_events,
             commands::raise_other_windows,

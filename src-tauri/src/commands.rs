@@ -896,6 +896,7 @@ pub async fn open_child_window(app: AppHandle, kind: String, data: Value) -> Cmd
     match kind.as_str() {
         "codebook" => windows::open_codebook(&app, data),
         "logbook" => windows::open_logbook(&app, data),
+        "memos" => windows::open_memos(&app, data),
         "memo-edit" => windows::open_memo(&app, data),
         "query-results" => windows::open_query_results(&app, data),
         _ => return Err(format!("unknown window kind {kind}")),
@@ -906,6 +907,12 @@ pub async fn open_child_window(app: AppHandle, kind: String, data: Value) -> Cmd
 #[tauri::command]
 pub async fn update_query_results_window(app: AppHandle, data: Value) -> CmdResult<()> {
     windows::update_query_results(&app, data);
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn update_memos_window(app: AppHandle, data: Value) -> CmdResult<()> {
+    windows::update_memos(&app, data);
     Ok(())
 }
 

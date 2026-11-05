@@ -1,5 +1,6 @@
 //! Window lifecycle: the welcome screen, the main project window and the
-//! pop-out child windows (codebook, logbook, memos, query results), plus the
+//! pop-out child windows (codebook, logbook, the memos list, each memo,
+//! query results), plus the
 //! flush-on-close handshake and quitting.
 
 use crate::menu;
@@ -15,6 +16,9 @@ pub const MAIN: &str = "main";
 pub const WELCOME: &str = "welcome";
 pub const CODEBOOK: &str = "codebook";
 pub const LOGBOOK: &str = "logbook";
+/// The window listing every memo in the project (each memo opens in its
+/// own `memo-<guid>` window).
+pub const MEMOS: &str = "memos";
 pub const QUERY_RESULTS: &str = "query-results";
 pub const UPDATE: &str = "update";
 const MEMO_PREFIX: &str = "memo-";
@@ -549,6 +553,31 @@ pub fn open_logbook(app: &AppHandle, data: Value) {
         init_event: "logbook-init-data",
     };
     open_child(app, LOGBOOK, spec, data);
+}
+
+pub fn open_memos(app: &AppHandle, data: Value) {
+    let spec = ChildSpec {
+        page: "memos.html",
+        title: "Memos",
+        size: (760.0, 700.0),
+        min: (500.0, 400.0),
+        init_event: "memos-init-data",
+    };
+    open_child(app, MEMOS, spec, data);
+}
+
+/// Refreshes the Memos window when it is open; does nothing otherwise.
+pub fn update_memos(app: &AppHandle, data: Value) {
+    if app.get_webview_window(MEMOS).is_none() {
+        return;
+    }
+    state(app)
+        .ui
+        .lock()
+        .unwrap()
+        .window_data
+        .insert(MEMOS.into(), data.clone());
+    emit_to(app, MEMOS, "memos-init-data", data);
 }
 
 pub fn open_query_results(app: &AppHandle, data: Value) {

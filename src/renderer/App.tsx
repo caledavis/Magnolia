@@ -96,10 +96,12 @@ import { AnalysisPopover } from './components/Toolbar/AnalysisPopover'
 import { StudioPopover } from './components/Toolbar/StudioPopover'
 import { HelpPopover, MANUAL_URL, SPONSOR_URL, HELP_ICONS } from './components/Toolbar/HelpPopover'
 import { PANE_ICONS } from './utils/pane-icons'
+import { memoPlacer, type MemoPlace } from './utils/memo-places'
+import { showMemoLocation } from './utils/show-memo'
 import { RibbonTabs, RibbonBody, useRibbon, type RibbonButtonDef, type RibbonTabDef } from './components/Toolbar/Ribbon'
 import { TOOL_REGISTRY } from './utils/tool-registry'
 import { WindowControls } from './components/Toolbar/WindowControls'
-import type { Project, Query, CodeCondition, Code, TextSource, QDASet, LogbookInitData, AnalysisInitData, AnalysisToolType, PlainTextSelection, Memo, MemoEditInitData, SurveyCellScopeArgs } from './models/types'
+import type { Project, Query, CodeCondition, Code, TextSource, QDASet, LogbookInitData, AnalysisInitData, AnalysisToolType, PlainTextSelection, Memo, MemoEditInitData, MemosWindowData, SurveyCellScopeArgs } from './models/types'
 import { buildSurveyEntityLabels } from './utils/survey/survey-labels'
 
 /** Fold the survey-cell scope carried by an analysis cell-click into the
@@ -260,6 +262,42 @@ function checkoutLockedByNow(): string | null {
   const marker = useProjectStore.getState().checkoutMarker
   if (!marker) return null
   return marker.userName !== usePreferencesStore.getState().userName.trim() ? marker.userName : null
+}
+
+/** What the Memos window shows: every memo, where each is attached, and
+ *  whether edits are locked by someone else's checkout. */
+function memosWindowData(): MemosWindowData {
+  const memos = useMemoStore.getState().memos
+  const place = memoPlacer({
+    sources: useDocumentStore.getState().sources,
+    contents: useDocumentStore.getState().sourceContents,
+    savedQueries: useQueryStore.getState().savedQueries,
+    savedAnalyses: useProjectStore.getState().savedAnalyses ?? []
+  })
+  const places: Record<string, MemoPlace> = {}
+  for (const m of memos) places[m.guid] = place(m)
+  return { memos, places, lockedBy: checkoutLockedByNow(), theme: document.documentElement.getAttribute('data-theme') || '' }
+}
+
+/** Removes a memo, and its boxes on any relationship map. */
+function deleteMemoEverywhere(guid: string): void {
+  useMemoStore.getState().removeMemo(guid)
+  const rmStore = useRelationshipMapStore.getState()
+  for (const m of Object.values(rmStore.maps)) {
+    const nextElements = m.elements.filter((el) => !(el.kind === 'memo' && el.entityGuid === guid))
+    if (nextElements.length !== m.elements.length) rmStore.setElements(m.guid, nextElements)
+  }
+}
+
+/** Opens a memo in its own edit window; `isNew` for a draft that is only
+ *  created when saved. */
+function openMemoEditor(memo: Memo, isNew = false): void {
+  const initData: MemoEditInitData = {
+    memo,
+    theme: document.documentElement.getAttribute('data-theme') || '',
+    ...(isNew ? { isNew: true } : {})
+  }
+  window.api.openMemoEditWindow(initData)
 }
 
 function App() {
@@ -467,6 +505,8 @@ function App() {
     }
     window.api.openLogbookWindow(initData)
   }, [logbookStore.entries])
+
+  const openMemos = useCallback(() => window.api.openMemosWindow(memosWindowData()), [])
 
   const openAnalysis = useCallback((toolType: AnalysisToolType, config?: any) => {
     // Relationship Maps open as a tab in the Document Viewer instead of a
@@ -1900,15 +1940,58 @@ function App() {
   // so the deletion sticks.
   useEffect(() => {
     const unsub = window.api.onMemoDelete((guid: string) => {
-      useMemoStore.getState().removeMemo(guid)
-      const rmStore = useRelationshipMapStore.getState()
-      for (const m of Object.values(rmStore.maps)) {
-        const nextElements = m.elements.filter((el) => !(el.kind === 'memo' && el.entityGuid === guid))
-        if (nextElements.length !== m.elements.length) rmStore.setElements(m.guid, nextElements)
-      }
+      deleteMemoEverywhere(guid)
       setTimeout(() => { saveProjectRef.current() }, 0)
     })
     return unsub
+  }, [])
+
+  // The Memos window's actions. Edits are refused with the checkout
+  // prompt while someone else has the project, as in the Saved Memos pane.
+  useEffect(() => {
+    const unsub = window.api.onMemosWindowAction((action, ...args) => {
+      const memo = (guid: unknown) => useMemoStore.getState().findMemo(String(guid))
+      if (action === 'show') {
+        const m = memo(args[0])
+        if (m) showMemoLocation(m)
+        return
+      }
+      if (checkoutLockedByNow()) {
+        useProjectStore.getState().promptCheckoutConflict()
+        return
+      }
+      if (action === 'edit') {
+        const m = memo(args[0])
+        if (m) openMemoEditor(m)
+      } else if (action === 'new') {
+        openMemoEditor({ guid: generateGuid(), type: 'project', title: '', content: '', createdDateTime: new Date().toISOString() }, true)
+      } else if (action === 'delete') {
+        for (const guid of (args[0] as string[]) ?? []) deleteMemoEverywhere(guid)
+        setTimeout(() => { saveProjectRef.current() }, 0)
+      }
+    })
+    return unsub
+  }, [])
+
+  // Keep the Memos window up to date (a no-op while it's closed): memos,
+  // and the names of what they're attached to, change from many places.
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const push = () => {
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => { timer = null; window.api.updateMemosWindow(memosWindowData()) }, 150)
+    }
+    const watch = <S, T>(store: { subscribe: (l: (s: S, p: S) => void) => () => void }, pick: (s: S) => T) =>
+      store.subscribe((s, p) => { if (pick(s) !== pick(p)) push() })
+    const unsubs = [
+      watch(useMemoStore, (s) => s.memos),
+      watch(useDocumentStore, (s) => s.sources),
+      watch(useDocumentStore, (s) => s.sourceContents),
+      watch(useQueryStore, (s) => s.savedQueries),
+      watch(useProjectStore, (s) => s.savedAnalyses),
+      watch(useProjectStore, (s) => s.checkoutMarker)
+    ]
+    return () => { unsubs.forEach((u) => u()); if (timer) clearTimeout(timer) }
   }, [])
 
   // Listen for analysis actions (save, run-query)
@@ -2678,6 +2761,7 @@ function App() {
           buttons: [
             { id: 'codebook', label: 'Codebook', icon: faBook, onClick: () => openCodebook() },
             { id: 'logbook', label: 'Logbook', icon: faNotebookPen, onClick: () => openLogbook() },
+            { id: 'memos', label: 'Memos', title: 'See every memo in the project', icon: PANE_ICONS.memos, onClick: () => openMemos() },
             { id: 'tags', label: 'Tags', title: 'Manage tags', icon: faTags, onClick: () => setShowManageDocTags(true) }
           ]
         },
@@ -2918,6 +3002,7 @@ function App() {
             { icon: faSquareArrowRightEnter, label: 'Import', action: () => handleImportDocument(), locks: true },
             { icon: faBook, label: 'Codebook', action: () => openCodebook() },
             { icon: faNotebookPen, label: 'Logbook', action: () => openLogbook() },
+            { icon: PANE_ICONS.memos, label: 'Memos', action: () => openMemos() },
             { icon: faTags, label: 'Tags', action: () => setShowManageDocTags(true) }
           ].map((item, idx) => {
             const itemLocked = !!(item as { locks?: boolean }).locks && !!checkoutLockedBy

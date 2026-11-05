@@ -9,7 +9,7 @@ In all cases, memos can either be created by either:
 - Clicking the Memo button.
 
 ::: tip
-Only memos attached to the project as a whole are always visible in the Saved Memos panel. All other memos will only show when you have the document, query, or analysis to which they are attached  open in the Viewer. 
+Only memos attached to the project as a whole are always visible in the Saved Memos panel. All other memos will only show when you have the document, query, or analysis to which they are attached  open in the Viewer. To see every memo in the project at once, use the [Memos window](#seeing-all-your-memos).
 :::
 
 ## Project memos
@@ -66,9 +66,31 @@ All other memos are attached to components of a project, such as analyses, docum
 
 2. The memo appears in the Saved Memos Panel. The memo button becomes coloured-in.
 
+## Seeing all your memos
+
+The Memos window lists every memo in the project, whatever it is attached to.
+
+**To open the Memos window:**
+
+1. Click the `Home` tab in the ribbon.
+
+2. Click `Memos`.
+
+The memos are grouped by what they are attached to: the project, each document, saved queries, saved analyses and relationship maps. Under each memo, you can see what it is attached to (for a selection memo, the start of the selected text) and when it was last changed. Click a group's name to fold it away.
+
+Click a memo to read it on the right. From there:
+- Click `Edit` to change the memo. You can also double-click the memo in the list; or,
+- Click `Show` to see where the memo is attached in the main window. For a selection memo, the document opens at the selected text.
+
+Type in the `Search memos` box to find memos by their title, their text, or what they are attached to.
+
+Click the `+` button to write a new project memo. Click `Export PDF` to save every memo, in its groups, as a PDF.
+
 ## Deleting memos
 **To delete a memo:**
 
-1. Right-click the memo in the Saved Memos Panel.
+1. Right-click the memo in the Saved Memos Panel or the Memos window.
 
 2. Choose ```Delete Memo```.
+
+In the Memos window, you can delete several memos at once. Hold down `Shift` or `⌘` (`Ctrl` on Windows and Linux) while you click to select them, then right-click one of them.
