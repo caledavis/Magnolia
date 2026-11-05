@@ -2266,7 +2266,7 @@ div:hover > .folder-row-add,
  * keep their two lines, since tool names like "Code Co-occurrences"
  * would be cut short on one. The group names are still the groups'
  * accessible names (aria-label), and the separators still divide them. */
-@media (max-height: 800px) {
+@media (max-height: 850px) {
   .ribbon-body { padding: 2px 8px; }
   .ribbon-group-label { display: none; }
   .ribbon-btn { gap: 3px; padding: 3px 4px; }
