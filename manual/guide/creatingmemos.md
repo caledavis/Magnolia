@@ -76,6 +76,11 @@ The Memos window lists every memo in the project, whatever it is attached to.
 
 2. Click `Memos`.
 
+<figure>
+     <img src="./images/MemosWindow.png" alt="The Memos window, with a selection memo chosen.">
+     <figcaption>The Memos window, with a selection memo chosen.</figcaption>
+</figure>
+
 The memos are grouped by what they are attached to: the project, each document, saved queries, saved analyses and relationship maps. Under each memo, you can see what it is attached to (for a selection memo, the start of the selected text) and when it was last changed. Click a group's name to fold it away.
 
 Click a memo to read it on the right. From there:

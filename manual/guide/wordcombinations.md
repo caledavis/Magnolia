@@ -73,6 +73,11 @@ Click a phrase to search for it. Every place it appears is shown in the Query Re
 
 Click `Network` to draw the phrases instead of listing them. Each word is a dot, and the words that follow each other in a phrase are joined by a line. The more often a phrase appears, the thicker its line; the more often a word appears in phrases, the bigger its dot. Words that appear in several phrases join them up, so you can see, for example, that "mental health" and "health services" share "health".
 
+<figure>
+     <img src="./images/WordCombinationsNetwork.png" alt="The phrases of two words, drawn as a network.">
+     <figcaption>The phrases of two words, drawn as a network.</figcaption>
+</figure>
+
 With a phrase length of `2` the network shows pairs of words; with `3` and more, each phrase is drawn as a chain of lines.
 
 Words in `Leave out these words` aren't drawn. Instead, the line runs between the words either side of them: "quality of life" is drawn as a line from "quality" to "life". This stops small words such as "of" from joining up phrases that have nothing to do with each other.

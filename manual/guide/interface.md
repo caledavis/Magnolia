@@ -20,12 +20,15 @@ The ribbon groups Magnolia's commands on four tabs. Click a tab to see its butto
 
 When a new version of Magnolia is available, a dot appears on `Preferences`.
 
+On a smaller screen, or in a window less than 800 points tall, the ribbon is more compact: the group names under the buttons are hidden, and the buttons are smaller.
+
 **To fold the ribbon away:**
 
-1. Double-click any tab; or,
-2. Click the arrow to the right of the tabs.
+1. Double-click any tab;
+2. Click the arrow to the right of the tabs; or,
+3. Choose `View` → `Show Ribbon` in the menu bar.
 
-Only the tabs remain, which leaves more room for your work. While the ribbon is folded, click a tab to show its buttons; they disappear again when you click a button or anywhere else. Double-click a tab, or click the arrow, to bring the ribbon back.
+Only the tabs remain, which leaves more room for your work. While the ribbon is folded, click a tab to show its buttons; they disappear again when you click a button or anywhere else. Double-click a tab, click the arrow, or choose `View` → `Show Ribbon` again to bring the ribbon back.
 
 <figure>
      <img src="./images/RibbonCollapsed.png" alt="The ribbon folded away to its tabs.">
