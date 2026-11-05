@@ -20,7 +20,7 @@ The ribbon groups Magnolia's commands on four tabs. Click a tab to see its butto
 
 When a new version of Magnolia is available, a dot appears on `Preferences`.
 
-On a smaller screen, or in a window less than 800 points tall, the ribbon is more compact: the group names under the buttons are hidden, and the buttons are smaller.
+On a smaller screen, or in a window less than 850 points tall, the ribbon is more compact: the group names under the buttons are hidden, and the buttons are smaller.
 
 **To fold the ribbon away:**
 
