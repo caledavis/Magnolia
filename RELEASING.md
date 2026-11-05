@@ -37,7 +37,11 @@ Everyday commands:
 | `npm run dev` | Run the app with hot reload |
 | `npm test` | Renderer tests (Vitest) + backend tests (`cargo test`) |
 | `npm run typecheck` | TypeScript check of the renderer |
-| `npm run build` | Release build + installers for this platform, into `target/…/release/bundle/` |
+| `npm run build` | Release build + installers for this platform, into `target/…/release/bundle/` (for testing; nothing is uploaded) |
+| `npm run release:mac` | macOS release: builds arm64 + x64, collects and uploads to the draft (see "Cutting a release") |
+| `npm run release:win` | The same for Windows |
+| `npm run release:linux` | The same for Linux |
+| `npm run release:finish -- notes.md` | Writes and uploads the update manifests, once every platform is uploaded |
 
 The GitHub **Build** workflow (`.github/workflows/build.yml`) compiles and
 tests all three platforms on every push, so a Windows or Linux breakage shows
@@ -52,7 +56,11 @@ key lives at `~/.tauri/magnolia-updater.key` on the Mac it was generated on
 
 - **Back it up somewhere safe** (a password manager). If it's lost, installed
   copies can never verify another update and users must reinstall by hand.
-- Copy it to each build machine, then export it before a release build:
+- **Copy it to each build machine** at the same place: `~/.tauri/magnolia-updater.key`
+  (on Windows, `%USERPROFILE%\.tauri\magnolia-updater.key`). The
+  `release:*` commands load it from there by themselves.
+- Only a plain `npm run build` needs it exported, if you want that build to
+  carry an update payload:
   ```sh
   export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/magnolia-updater.key)"
   export TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""
@@ -81,18 +89,27 @@ key lives at `~/.tauri/magnolia-updater.key` on the Mac it was generated on
 - **App-specific password** for your Apple ID (for notarization) — generate at
   <https://appleid.apple.com>.
 
-**Sign + notarize:** set these before building and Tauri signs, notarizes and
-staples automatically:
+**Sign + notarize:** export your Apple ID and its app-specific password,
+as for the Electron builds:
 ```sh
-export APPLE_SIGNING_IDENTITY="Developer ID Application: <Your Name> (<YOUR_TEAM_ID>)"
 export APPLE_ID="you@example.com"
-export APPLE_PASSWORD="xxxx-xxxx-xxxx-xxxx"   # the app-specific password
-export APPLE_TEAM_ID="<YOUR_TEAM_ID>"
+export APPLE_APP_SPECIFIC_PASSWORD="xxxx-xxxx-xxxx-xxxx"
 ```
-Without them the build is unsigned — fine for local testing, but Gatekeeper
-blocks it on other Macs.
+Tauri then signs, notarizes and staples automatically. `npm run release:mac`
+fills in the rest: it signs with Magnolia's Developer ID, "Developer ID
+Application: Cale Davis (DTRLLXT8T7)", unless `APPLE_SIGNING_IDENTITY` and
+`APPLE_TEAM_ID` are set to another, and passes the password on as
+`APPLE_PASSWORD` (Tauri's name for it). It stops without the Apple ID and
+password, since an unsigned build couldn't update Magnolia 1.x. (electron-builder
+found the certificate in the keychain by itself; Tauri needs its name.)
 
-**Build:**
+**Build a release:** `npm run release:mac` builds both architectures, collects
+and uploads them (see "Cutting a release").
+
+**Build by hand** (for testing): a plain `tauri build` isn't signed unless
+you also export `APPLE_SIGNING_IDENTITY`, `APPLE_TEAM_ID` and
+`APPLE_PASSWORD` yourself; unsigned is fine on your own Mac, but Gatekeeper
+blocks it on others.
 ```sh
 npm run tauri build -- --target aarch64-apple-darwin
 npm run tauri build -- --target x86_64-apple-darwin
@@ -121,7 +138,11 @@ the "Desktop development with C++" workload from the Visual Studio Build
 Tools (Rust's MSVC toolchain needs it). WebView2 ships with Windows 10/11;
 the installer bootstraps it on machines that lack it.
 
-**Build:**
+**Build a release:** `npm run release:win` builds, collects and uploads
+(see "Cutting a release"). It needs `gh` logged in on this machine and the
+updater key at `%USERPROFILE%\.tauri\magnolia-updater.key`.
+
+**Build by hand** (for testing):
 ```powershell
 npm run build
 ```
@@ -148,7 +169,11 @@ WebKitGTK development packages. On Debian/Ubuntu:
 sudo apt install libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev libayatana-appindicator3-dev patchelf
 ```
 
-**Build:**
+**Build a release:** `npm run release:linux` builds, collects and uploads
+(see "Cutting a release"). It needs `gh` logged in on this machine and the
+updater key at `~/.tauri/magnolia-updater.key`.
+
+**Build by hand** (for testing):
 ```sh
 npm run build
 ```
@@ -168,13 +193,36 @@ Produces under `target/release/bundle/`: `appimage/…AppImage` (+ `.sig`),
 
 All platforms for one version land in a **single** `vX.Y.Z` GitHub release.
 You need the [`gh` CLI](https://cli.github.com) logged in to an account that
-can write releases.
+can write releases, on every build machine.
+
+**In short:**
+```sh
+npm version X.Y.Z --no-git-tag-version   # and version = "X.Y.Z" in src-tauri/Cargo.toml
+(cd src-tauri && cargo build) && git commit -am "Bump version to X.Y.Z" && git push
+gh release create vX.Y.Z --draft --title "Magnolia X.Y.Z" --notes ""
+
+# On the Mac (after exporting APPLE_ID and APPLE_APP_SPECIFIC_PASSWORD):
+npm run release:mac
+# On Windows and on Linux (after git pull):
+npm run release:win
+npm run release:linux
+
+# Anywhere, once all three are uploaded and the notes are written:
+npm run release:finish -- notes.md
+# Then publish the draft on GitHub.
+```
+
+The steps in detail:
 
 1. **Bump the version** in `package.json` ([SemVer](https://semver.org/):
    major = breaking project-file changes, minor = features, patch = fixes).
-   `src-tauri/tauri.conf.json` reads the version from there:
+   `src-tauri/tauri.conf.json` reads the version from there. `npm version`
+   doesn't touch `src-tauri/Cargo.toml`, so set its `version` to match too,
+   and build once so `Cargo.lock` follows:
    ```sh
    npm version X.Y.Z --no-git-tag-version
+   # edit src-tauri/Cargo.toml: version = "X.Y.Z"
+   (cd src-tauri && cargo build)
    git commit -am "Bump version to X.Y.Z" && git push
    ```
 2. **Create the draft release** (once, from any machine):
@@ -411,8 +459,8 @@ before testing and restore it afterwards. The Tauri tests add
 
 ## Skipping a platform
 
-To ship, say, a macOS-only update, build and collect just that platform and
-run `manifests` on what's in the release: platforms without assets are simply
+To ship, say, a macOS-only update, run just `npm run release:mac`, then
+`npm run release:finish`: platforms without assets in the release are simply
 left out of `latest.json`, so their installs stay on the previous version.
 The README's download link for a skipped platform keeps pointing at the
 previous version's file until you catch it up.
