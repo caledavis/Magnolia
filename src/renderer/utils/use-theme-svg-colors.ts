@@ -41,6 +41,7 @@ interface ThemeSvgColors {
   textMuted: string
   borderColor: string
   bgTertiary: string
+  bgPanel: string
   accent: string
 }
 
@@ -50,6 +51,7 @@ const FALLBACKS: ThemeSvgColors = {
   textMuted: '#888888',
   borderColor: '#d0d0d0',
   bgTertiary: '#f5f5f5',
+  bgPanel: '#ffffff',
   accent: '#007AFF'
 }
 
@@ -71,6 +73,7 @@ export function useThemeSvgColors(): ThemeSvgColors {
       textMuted: read('--text-muted', FALLBACKS.textMuted),
       borderColor: read('--border-color', FALLBACKS.borderColor),
       bgTertiary: read('--bg-tertiary', FALLBACKS.bgTertiary),
+      bgPanel: read('--bg-panel', FALLBACKS.bgPanel),
       accent: read('--accent', FALLBACKS.accent)
     }
   }, [tick])

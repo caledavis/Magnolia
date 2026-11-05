@@ -2,7 +2,9 @@
  * Word Combinations — which words go together. Three views over the same
  * text (the selected documents, the passages coded with chosen codes, or
  * the results of chosen saved queries):
- *   - Phrases: sequences of two or three words that repeat;
+ *   - Phrases: sequences of two to five words that repeat, as a list or
+ *     as a network of the words that follow each other in them (see
+ *     phrase-network.ts);
  *   - Associations: the words that share sentences with a focus word more
  *     often than chance would explain, scored by log-likelihood (G²); and
  *   - Word Tree: the words that come before and after the focus word,
@@ -48,8 +50,11 @@ import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { SegmentedControl } from './SegmentedControl'
 import { buildWordTree, connectedNodes, flattenWordTree, layoutWordTree, type TreeLayout } from './word-tree'
 import { useThemeSvgColors, SVG_FONT_FAMILY } from '../../utils/use-theme-svg-colors'
+import { buildPhraseNetwork, layoutPhraseNetwork, linkTitle, neighbours, LABEL_GAP, type NetworkLayout } from './phrase-network'
 
 export type CombinationsView = 'phrases' | 'associations' | 'tree'
+/** How Phrases are shown. */
+export type PhraseDisplay = 'list' | 'network'
 
 export interface WordCombinationsConfig {
   docFilter: DocumentFilterState
@@ -62,6 +67,7 @@ export interface WordCombinationsConfig {
   excludeWords: string
   view: CombinationsView
   phraseLength: PhraseLength
+  phraseDisplay: PhraseDisplay
   minCount: number
   /** Empty uses the most frequent word. */
   focusWord: string
@@ -88,6 +94,7 @@ export function defaultCombinationsConfig(): WordCombinationsConfig {
     excludeWords: Array.from(STOP_WORDS).join(', '),
     view: 'phrases',
     phraseLength: 2,
+    phraseDisplay: 'list',
     minCount: 2,
     focusWord: '',
     minTogether: 3
@@ -177,6 +184,68 @@ function WordTreeChart({ layout, svgRef, onSearch }: {
   )
 }
 
+/** The phrase network. Hovering a word lights up the words it's joined
+ *  to; clicking a line searches for its phrase, and clicking a word
+ *  opens it in the Word Tree. */
+function PhraseNetworkChart({ layout, svgRef, onSearch, onWord }: {
+  layout: NetworkLayout
+  svgRef: React.Ref<SVGSVGElement>
+  onSearch: (phrase: string) => void
+  onWord: (word: string) => void
+}) {
+  const colors = useThemeSvgColors()
+  const [hovered, setHovered] = useState<{ node: number } | { link: number } | null>(null)
+  const lit = useMemo(() => {
+    if (!hovered) return null
+    if ('node' in hovered) return neighbours(layout, hovered.node)
+    const l = layout.links[hovered.link]
+    return new Set([l.source, l.target])
+  }, [layout, hovered])
+  const linkLit = (i: number) => {
+    if (!hovered) return false
+    if ('link' in hovered) return hovered.link === i
+    const l = layout.links[i]
+    return l.source === hovered.node || l.target === hovered.node
+  }
+  return (
+    <svg ref={svgRef} viewBox={`0 0 ${layout.width} ${layout.height}`} width={layout.width} height={layout.height} fontFamily={SVG_FONT_FAMILY} style={{ display: 'block' }}>
+      {layout.links.map((l, i) => {
+        const s = layout.nodes[l.source], t = layout.nodes[l.target]
+        const on = linkLit(i)
+        return (
+          <g key={i} style={{ cursor: 'pointer' }}
+            onMouseEnter={() => setHovered({ link: i })}
+            onMouseLeave={() => setHovered(null)}
+            onClick={() => onSearch(l.phrases[0].phrase)}
+          >
+            <title>{`${linkTitle(l)}\nClick to search for “${l.phrases[0].phrase}”`}</title>
+            <line x1={s.x} y1={s.y} x2={t.x} y2={t.y} stroke={on ? colors.accent : colors.borderColor} strokeWidth={l.strokeWidth} strokeLinecap="round" opacity={hovered && !on ? 0.4 : 1} />
+            {/* A wider invisible line, so thin lines are easy to hover. */}
+            <line x1={s.x} y1={s.y} x2={t.x} y2={t.y} stroke="transparent" strokeWidth={Math.max(8, l.strokeWidth)} />
+          </g>
+        )
+      })}
+      {layout.nodes.map((n, i) => {
+        const on = lit?.has(i)
+        return (
+          <g key={n.word} style={{ cursor: 'pointer' }}
+            opacity={lit && !on ? 0.35 : 1}
+            onMouseEnter={() => setHovered({ node: i })}
+            onMouseLeave={() => setHovered(null)}
+            onClick={() => onWord(n.word)}
+          >
+            <title>{`“${n.word}”: in phrases ${n.count} time${n.count === 1 ? '' : 's'}. Click to see it in the Word Tree`}</title>
+            <circle cx={n.x} cy={n.y} r={n.r} fill={colors.accent} />
+            {/* Outlined in the background colour, so lines pass behind the words. */}
+            <text x={n.x} y={n.y + n.r + LABEL_GAP} textAnchor="middle" dominantBaseline="hanging" fontSize={n.fontSize} fill={on ? colors.accent : colors.textPrimary}
+              stroke={colors.bgPanel} strokeWidth={3} strokeLinejoin="round" paintOrder="stroke">{n.word}</text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
 const thStyle: React.CSSProperties = { padding: '3px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'left' }
 const tdStyle: React.CSSProperties = { padding: '2px 6px', borderBottom: '1px solid var(--border-color)' }
 
@@ -194,6 +263,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
   const [excludeWords, setExcludeWords] = useState(initial.excludeWords)
   const [view, setView] = useState<CombinationsView>(initial.view)
   const [phraseLength, setPhraseLength] = useState<PhraseLength>(phraseLengthOf(initial.phraseLength))
+  const [phraseDisplay, setPhraseDisplay] = useState<PhraseDisplay>(initial.phraseDisplay === 'network' ? 'network' : 'list')
   const [minCount, setMinCount] = useState(initial.minCount)
   const [focusWord, setFocusWord] = useState(initial.focusWord)
   const [minTogether, setMinTogether] = useState(initial.minTogether)
@@ -212,8 +282,8 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
 
   // Dirty tracking (see useToolDirtyState).
   const currentConfig: WordCombinationsConfig = useMemo(
-    () => ({ docFilter, textSource, codeGuids, includeSubcodes, queryGuids, includeWords, excludeWords, view, phraseLength, minCount, focusWord, minTogether }),
-    [docFilter, textSource, codeGuids, includeSubcodes, queryGuids, includeWords, excludeWords, view, phraseLength, minCount, focusWord, minTogether]
+    () => ({ docFilter, textSource, codeGuids, includeSubcodes, queryGuids, includeWords, excludeWords, view, phraseLength, phraseDisplay, minCount, focusWord, minTogether }),
+    [docFilter, textSource, codeGuids, includeSubcodes, queryGuids, includeWords, excludeWords, view, phraseLength, phraseDisplay, minCount, focusWord, minTogether]
   )
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initial, inTab)
 
@@ -227,6 +297,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
     setExcludeWords(baseline.excludeWords)
     setView(baseline.view)
     setPhraseLength(baseline.phraseLength)
+    setPhraseDisplay(baseline.phraseDisplay)
     setMinCount(baseline.minCount)
     setFocusWord(baseline.focusWord)
     setMinTogether(baseline.minTogether)
@@ -250,6 +321,20 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
     () => (view === 'phrases' ? countPhrases(texts, phraseLength, filter, Math.max(1, minCount)) : []),
     [view, texts, phraseLength, filter, minCount]
   )
+
+  const networkShown = view === 'phrases' && phraseDisplay === 'network'
+  const network = useMemo(
+    () => (networkShown ? buildPhraseNetwork(phrases, filter.exclude) : null),
+    [networkShown, phrases, filter]
+  )
+  const networkLayout = useMemo(() => (network && network.links.length > 0 ? layoutPhraseNetwork(network) : null), [network])
+  const networkRef = useRef<SVGSVGElement>(null)
+
+  // A word clicked in the network opens in the Word Tree.
+  const showInTree = useCallback((word: string) => {
+    setFocusWord(word)
+    setView('tree')
+  }, [])
 
   const focus = useMemo(
     () => (view !== 'phrases' ? effectiveFocus(focusWord, passages, filter) : ''),
@@ -310,9 +395,13 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
   }, [view, phrases, associations, tree, focus])
 
   const handleExportSvg = useCallback(() => {
+    if (networkShown) {
+      if (networkRef.current) window.api.exportSvg(networkRef.current.outerHTML, `phrase-network-${phraseLength}-words.svg`)
+      return
+    }
     if (!treeRef.current) return
     window.api.exportSvg(treeRef.current.outerHTML, `word-tree-${focus}.svg`)
-  }, [focus])
+  }, [focus, networkShown, phraseLength])
 
   const handleRename = useCallback((newName: string) => {
     setAnalysisName(newName)
@@ -349,7 +438,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
     : byQuery && queryRuns.size === 0
       ? 'Drag saved queries into the From these queries box to look at the words in their results'
       : view === 'phrases'
-      ? 'No phrases repeat often enough. Try a lower minimum count.'
+      ? 'No phrases repeat often enough. Try a lower number in Appears at least.'
       : 'No words to show'
 
   return (
@@ -476,16 +565,30 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
               />
               {view === 'phrases' ? (
                 <>
-                  <SegmentedControl
-                    label="Phrase length"
-                    value={String(phraseLength)}
-                    onChange={(v) => setPhraseLength(phraseLengthOf(Number(v)))}
-                    options={PHRASE_LENGTHS.map((n) => ({ value: String(n), label: `${n} Words` }))}
-                  />
-                  <label style={{ fontSize: 10, color: 'var(--text-muted)' }}>Minimum count:
-                    <input type="number" min={1} max={1000} value={minCount} onChange={(e) => setMinCount(Number(e.target.value))}
-                      style={{ width: 50, marginLeft: 4 }}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--text-muted)' }}>
+                    Phrase length:
+                    <SegmentedControl
+                      label="Phrase length"
+                      value={String(phraseLength)}
+                      onChange={(v) => setPhraseLength(phraseLengthOf(Number(v)))}
+                      options={PHRASE_LENGTHS.map((n) => ({ value: String(n), label: String(n), title: `Look for phrases of ${n} words.` }))}
                     />
+                    words
+                  </span>
+                  <SegmentedControl
+                    label="Show phrases as"
+                    value={phraseDisplay}
+                    onChange={setPhraseDisplay}
+                    options={[
+                      { value: 'list', label: 'List', title: 'Show the phrases as a list, commonest first.' },
+                      { value: 'network', label: 'Network', title: 'Show the words that follow each other in the phrases, joined by lines.' }
+                    ]}
+                  />
+                  <label style={{ fontSize: 10, color: 'var(--text-muted)' }} title="Show only the phrases that appear at least this many times.">Appears at least:
+                    <input type="number" min={1} max={1000} value={minCount} onChange={(e) => setMinCount(Number(e.target.value))}
+                      style={{ width: 50, margin: '0 4px' }}
+                    />
+                    times
                   </label>
                 </>
               ) : (
@@ -508,13 +611,28 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
               <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportCsv}>Export CSV</button>
-              {view === 'tree' && treeLayout && (
+              {((view === 'tree' && treeLayout) || (networkShown && networkLayout)) && (
                 <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportSvg}>Export SVG</button>
               )}
             </div>
           </div>
 
-          {view === 'phrases' ? (
+          {networkShown ? (
+            !networkLayout || !network ? (
+              <div style={{ padding: 30, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
+                {phrases.length === 0 ? emptyMessage : 'Every phrase is made of left-out words, so there is nothing to join.'}
+              </div>
+            ) : (
+              <>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>
+                  {`${network.phraseCount === phrases.length ? `${phrases.length} phrase${phrases.length === 1 ? '' : 's'}` : `The ${network.phraseCount} commonest of ${phrases.length} phrases`}. Lines join the words that follow each other in them, thicker for commoner phrases; left-out words aren't drawn. Click a line to search for its phrase, or a word to see it in the Word Tree.`}
+                </div>
+                <div style={{ maxHeight: 620, overflow: 'auto' }}>
+                  <PhraseNetworkChart layout={networkLayout} svgRef={networkRef} onSearch={searchFor} onWord={showInTree} />
+                </div>
+              </>
+            )
+          ) : view === 'phrases' ? (
             phrases.length === 0 ? (
               <div style={{ padding: 30, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>{emptyMessage}</div>
             ) : (

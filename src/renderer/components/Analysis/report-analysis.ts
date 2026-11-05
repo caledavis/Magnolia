@@ -25,6 +25,7 @@ import { countWords, sourceTexts, codedPassageTexts, queryPassageTexts, codeSet,
 import { runQueries, allResults } from './word-sources'
 import { combinationsPassages, defaultCombinationsConfig, effectiveFocus, phraseLengthOf } from './WordCombinations'
 import { buildWordTree, layoutWordTree, wordTreeSvg } from './word-tree'
+import { buildPhraseNetwork, layoutPhraseNetwork, phraseNetworkSvg } from './phrase-network'
 import { documentFilterFromConfig } from './documents-filter'
 import { runResultsQueries } from './ResultsInDocuments'
 import { escHtml } from '../../utils/pdf-export'
@@ -693,6 +694,18 @@ function wordCombinationsHtml(config: any): string {
 
   const phrases = countPhrases(texts, phraseLengthOf(cfg.phraseLength), filter, Math.max(1, cfg.minCount))
   if (phrases.length === 0) return '<div class="empty">(no repeated phrases)</div>'
+  if (cfg.phraseDisplay === 'network') {
+    const net = buildPhraseNetwork(phrases, filter.exclude)
+    if (net.links.length === 0) return '<div class="empty">(no phrases to join)</div>'
+    const shown = net.phraseCount === phrases.length ? `${phrases.length} phrase${phrases.length === 1 ? '' : 's'}` : `The ${net.phraseCount} commonest of ${phrases.length} phrases`
+    const intro = `<div class="report-note">${shown}. Lines join the words that follow each other in them; left-out words aren\u2019t drawn.</div>`
+    return intro + `<div class="report-wf-viz">${phraseNetworkSvg(layoutPhraseNetwork(net), {
+      text: WF_TEXT,
+      line: WF_BORDER,
+      node: hslToRgb(WF_ACCENT_HSL.h, WF_ACCENT_HSL.s, WF_ACCENT_HSL.l),
+      background: '#fff'
+    })}</div>`
+  }
   const body = phrases
     .slice(0, COMBINATION_ROWS)
     .map((p) => `<tr><td class="rowhead">${escHtml(p.phrase)}</td><td>${p.count}</td></tr>`)

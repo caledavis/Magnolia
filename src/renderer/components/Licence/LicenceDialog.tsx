@@ -26,6 +26,7 @@ const BUNDLED_LIBRARIES: { name: string; role: string; licence: string }[] = [
   { name: 'marked', role: 'Markdown rendering', licence: 'MIT' },
   { name: 'react-resizable-panels', role: 'split-pane layout', licence: 'MIT' },
   { name: 'Zustand', role: 'state management', licence: 'MIT' },
+  { name: 'd3-force', role: 'phrase network layout', licence: 'ISC' },
   { name: 'Lucide', role: 'icon set', licence: 'ISC' }
 ]
 

@@ -16,7 +16,7 @@ The tool shows its results in three ways, which you choose with the buttons abov
 
 | Button | Output |
 | --- | --- |
-| `Phrases` | Lists the sequences of two to five words that repeat. This is the default. |
+| `Phrases` | Lists the sequences of two to five words that repeat, or draws them as a network. This is the default. |
 | `Associations` | Lists the words that appear in the same sentences as a word you choose. |
 | `Word Tree` | Shows every place a word you choose appears, with the words before and after it. |
 
@@ -47,8 +47,9 @@ Each query searches the documents you chose when you built it, so the Document S
 
 | Option | Use |
 | --- | --- |
-| `2 Words` to `5 Words` | Chooses how long each phrase is. Longer phrases repeat less often, so you may need to lower the minimum count to see any. |
-| `Minimum count` | Hides phrases that appear fewer times than this. It starts at 2. |
+| `Phrase length` | Chooses how many words each phrase has, from `2` to `5`. Longer phrases repeat less often, so you may need to lower `Appears at least` to see any. |
+| `List` or `Network` | Chooses whether the phrases are listed or drawn as a network (see [The phrase network](#the-phrase-network)). |
+| `Appears at least` | Shows only the phrases that appear at least this many times. It starts at 2. |
 
 A phrase never runs across punctuation or a line break, so "money, time" is not counted as a phrase.
 
@@ -67,6 +68,22 @@ Because only the start and end of a phrase are checked, phrases such as "quality
 </figure>
 
 Click a phrase to search for it. Every place it appears is shown in the Query Results pane.
+
+### The phrase network
+
+Click `Network` to draw the phrases instead of listing them. Each word is a dot, and the words that follow each other in a phrase are joined by a line. The more often a phrase appears, the thicker its line; the more often a word appears in phrases, the bigger its dot. Words that appear in several phrases join them up, so you can see, for example, that "mental health" and "health services" share "health".
+
+With a phrase length of `2` the network shows pairs of words; with `3` and more, each phrase is drawn as a chain of lines.
+
+Words in `Leave out these words` aren't drawn. Instead, the line runs between the words either side of them: "quality of life" is drawn as a line from "quality" to "life". This stops small words such as "of" from joining up phrases that have nothing to do with each other.
+
+Only the 80 most common phrases are drawn, so the network stays readable. Raise `Appears at least` or add words to `Only these words` to focus it further.
+
+**In the network:**
+- Hover over a word to see the words it is joined to;
+- Hover over a line to see the phrases it stands for;
+- Click a line to search for its phrase. If the line stands for more than one phrase, the most common one is searched; or,
+- Click a word to see it in the [Word Tree](#word-tree).
 
 ## Associations
 
@@ -130,6 +147,6 @@ A very common word, such as "the", can produce a tree with hundreds of branches.
 
 You can save the analysis by clicking `Save Analysis`. It appears in the Saved Analyses Panel. If you make changes later, click `Update Analysis` to save them.
 
-You can export the current results as a spreadsheet by clicking `Export CSV`. In `Word Tree`, you can also export the tree as an image by clicking `Export SVG`.
+You can export the current results as a spreadsheet by clicking `Export CSV`. In `Word Tree`, and in the phrase network, you can also export the picture by clicking `Export SVG`.
 
 You can also add the analysis to a [Report](/guide/reports) by dragging it from the Saved Analyses Panel into the report. The report shows the results in the way they were showing when you saved the analysis.
