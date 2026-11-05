@@ -193,9 +193,16 @@ can write releases.
    `…/releases/latest/download/…` links keep working), and uploads them to
    the `vX.Y.Z` draft (the version in `package.json`). It loads the updater
    key from `~/.tauri/magnolia-updater.key` unless `TAURI_SIGNING_PRIVATE_KEY`
-   is set. On macOS, export the four `APPLE_*` variables first (see
-   "Building for macOS"); `release:mac` stops without them, since an
-   unsigned build couldn't update Magnolia 1.x. Add `-- --no-upload` to
+   is set. On macOS, export your Apple ID and app-specific password first
+   (as for the Electron builds):
+   ```sh
+   export APPLE_ID="you@example.com"
+   export APPLE_APP_SPECIFIC_PASSWORD="xxxx-xxxx-xxxx-xxxx"
+   ```
+   `release:mac` signs with Magnolia's Developer ID (Cale Davis,
+   DTRLLXT8T7) unless `APPLE_SIGNING_IDENTITY` and `APPLE_TEAM_ID` say
+   otherwise, and stops without the Apple ID and password, since an
+   un-notarized build couldn't update Magnolia 1.x. Add `-- --no-upload` to
    build and collect without uploading.
 4. **Write the release notes** in the draft's body on GitHub, and save the
    same text to a file (e.g. `notes.md`). **These notes appear inside the

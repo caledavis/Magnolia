@@ -7,8 +7,10 @@
  *     platform's installers and update payloads, collect them, and upload
  *     them to the draft release for package.json's version (vX.Y.Z). Loads
  *     the updater key from ~/.tauri/magnolia-updater.key when
- *     TAURI_SIGNING_PRIVATE_KEY isn't set; on macOS, needs the APPLE_*
- *     variables (signing + notarization) and builds both architectures.
+ *     TAURI_SIGNING_PRIVATE_KEY isn't set; on macOS, needs APPLE_ID and
+ *     APPLE_PASSWORD (or APPLE_APP_SPECIFIC_PASSWORD) for notarization,
+ *     signs with Magnolia's Developer ID unless APPLE_SIGNING_IDENTITY says
+ *     otherwise, and builds both architectures.
  *
  *   node scripts/release.mjs finish [notes-file]
  *     (npm run release:finish.) Download every asset of the draft release,
@@ -38,6 +40,9 @@ import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const REPO = 'caledavis/Magnolia'
+/** Magnolia's Developer ID, used when APPLE_SIGNING_IDENTITY / APPLE_TEAM_ID aren't set. */
+const MAC_TEAM_ID = 'DTRLLXT8T7'
+const MAC_IDENTITY = `Developer ID Application: Cale Davis (${MAC_TEAM_ID})`
 const root = fileURLToPath(new URL('..', import.meta.url))
 const out = join(root, 'release')
 
@@ -180,10 +185,18 @@ function releaseEnv(platform) {
   }
   env.TAURI_SIGNING_PRIVATE_KEY_PASSWORD ??= ''
   if (platform === 'mac') {
+    // The Developer ID certificate Magnolia is signed with (electron-builder
+    // found it in the keychain by itself; Tauri needs its name), and the
+    // Electron builds' name for the app-specific password.
+    env.APPLE_SIGNING_IDENTITY ||= MAC_IDENTITY
+    env.APPLE_TEAM_ID ||= MAC_TEAM_ID
+    env.APPLE_PASSWORD ||= env.APPLE_APP_SPECIFIC_PASSWORD
     // Unsigned Mac builds are blocked by Gatekeeper, and 1.x installs only
     // update to a build signed with the same Developer ID, so don't go on.
-    const missing = ['APPLE_SIGNING_IDENTITY', 'APPLE_ID', 'APPLE_PASSWORD', 'APPLE_TEAM_ID'].filter((v) => !env[v])
-    if (missing.length) throw new Error(`Set ${missing.join(', ')} first, so the build is signed and notarized (see RELEASING.md).`)
+    const missing = ['APPLE_ID', 'APPLE_PASSWORD'].filter((v) => !env[v])
+    if (missing.length) {
+      throw new Error(`Set ${missing.join(' and ')} (or APPLE_APP_SPECIFIC_PASSWORD) first, so the build is notarized (see RELEASING.md).`)
+    }
   }
   return env
 }
