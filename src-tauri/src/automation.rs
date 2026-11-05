@@ -56,10 +56,20 @@ pub fn automation_set_size(window: WebviewWindow, width: f64, height: f64) -> Re
         .map_err(|e| e.to_string())
 }
 
-/// Capture the window, without its shadow, to a PNG.
+/// Capture the window, without its shadow, to a PNG: the calling window,
+/// or the window labelled `label` (a pop-out such as `memos`).
 #[tauri::command]
-pub fn automation_capture(window: WebviewWindow, path: String) -> Result<(), String> {
+pub fn automation_capture(
+    app: tauri::AppHandle,
+    window: WebviewWindow,
+    path: String,
+    label: Option<String>,
+) -> Result<(), String> {
     check()?;
+    let window = match label {
+        Some(l) => tauri::Manager::get_webview_window(&app, &l).ok_or(format!("no window {l}"))?,
+        None => window,
+    };
     #[cfg(target_os = "macos")]
     {
         let ns = window.ns_window().map_err(|e| e.to_string())? as *const objc2_app_kit::NSWindow;
