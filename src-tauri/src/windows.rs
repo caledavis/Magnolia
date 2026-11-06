@@ -374,13 +374,20 @@ fn on_main_destroyed(app: &AppHandle) {
         }
     }
     if quitting {
-        crate::updater::install_pending_on_quit(app);
-        if restart {
-            app.restart();
-        }
-        app.exit(0);
+        finish_quit(app, restart);
     } else {
         show_welcome(app);
+    }
+}
+
+/// The last step of quitting, with everything flushed: apply a downloaded
+/// update and exit, or relaunch if this is Install and Relaunch.
+fn finish_quit(app: &AppHandle, restart: bool) {
+    if restart {
+        crate::updater::install_pending_and_relaunch(app);
+    } else {
+        crate::updater::install_pending_on_quit(app);
+        app.exit(0);
     }
 }
 
@@ -392,11 +399,8 @@ pub fn quit(app: &AppHandle) {
             let _ = w.close();
         }
         None => {
-            crate::updater::install_pending_on_quit(app);
-            if state(app).ui.lock().unwrap().restart_after_quit {
-                app.restart();
-            }
-            app.exit(0);
+            let restart = state(app).ui.lock().unwrap().restart_after_quit;
+            finish_quit(app, restart);
         }
     }
 }

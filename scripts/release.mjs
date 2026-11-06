@@ -100,7 +100,9 @@ function collect(platform) {
     copy(findOne(join(bundle, 'appimage'), /\.AppImage$/), 'Magnolia-linux-x86_64.AppImage')
     copy(findOne(join(bundle, 'appimage'), /\.AppImage\.sig$/), 'Magnolia-linux-x86_64.AppImage.sig')
     copy(findOne(join(bundle, 'deb'), /\.deb$/), 'Magnolia-linux-amd64.deb')
+    copy(findOne(join(bundle, 'deb'), /\.deb\.sig$/), 'Magnolia-linux-amd64.deb.sig')
     copy(findOne(join(bundle, 'rpm'), /\.rpm$/), 'Magnolia-linux-x86_64.rpm')
+    copy(findOne(join(bundle, 'rpm'), /\.rpm\.sig$/), 'Magnolia-linux-x86_64.rpm.sig')
   } else {
     throw new Error(`Unknown platform "${platform}" (mac-arm64, mac-x64, win, linux)`)
   }
@@ -144,6 +146,14 @@ function manifests(version, dir, notesFile, baseUrl) {
   add('darwin-x86_64', 'Magnolia-mac-x64.app.tar.gz')
   add('windows-x86_64', 'Magnolia-win-x64.exe')
   add('linux-x86_64', 'Magnolia-linux-x86_64.AppImage')
+  // A deb or rpm install looks for its own entry first and otherwise falls
+  // back to linux-x86_64, the AppImage, which it can't install. So a package
+  // without a signature would break its installs' updates: stop here instead.
+  for (const pkg of ['Magnolia-linux-amd64.deb', 'Magnolia-linux-x86_64.rpm']) {
+    if (has(pkg) && !has(`${pkg}.sig`)) throw new Error(`${pkg} has no .sig beside it in ${dir}, so its installs couldn't update.`)
+  }
+  add('linux-x86_64-deb', 'Magnolia-linux-amd64.deb')
+  add('linux-x86_64-rpm', 'Magnolia-linux-x86_64.rpm')
   const notes = notesFile ? readFileSync(notesFile, 'utf-8') : ''
   writeFileSync(join(dir, 'latest.json'), JSON.stringify({ version: v, notes, pub_date: date, platforms }, null, 2) + '\n')
   console.log(`  latest.json (${Object.keys(platforms).join(', ')})`)

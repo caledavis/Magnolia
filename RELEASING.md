@@ -204,8 +204,8 @@ workflow.
 ```sh
 npm run build
 ```
-Produces under `target/release/bundle/`: `appimage/…AppImage` (+ `.sig`),
-`deb/…deb`, and `rpm/…rpm`.
+Produces under `target/release/bundle/`: `appimage/…AppImage`, `deb/…deb` and
+`rpm/…rpm`, each with a `.sig`.
 
 **Notes:**
 - The **AppImage** is portable — `chmod +x` it and run. It needs **libfuse2**
@@ -321,8 +321,8 @@ The steps in detail:
 | `Magnolia-mac-arm64.app.tar.gz` / `-x64…` (+ `.sig`) | macOS | Tauri update payloads |
 | `Magnolia-mac-arm64.zip` / `-x64.zip` | macOS | Update payloads for Magnolia 1.x |
 | `Magnolia-win-x64.exe` (+ `.sig`) | Windows | Installer, and the update payload for both updaters |
-| `Magnolia-linux-x86_64.AppImage` (+ `.sig`) | Linux | Portable app, and the update payload |
-| `Magnolia-linux-amd64.deb` / `Magnolia-linux-x86_64.rpm` | Linux | Packages |
+| `Magnolia-linux-x86_64.AppImage` (+ `.sig`) | Linux | Portable app, and the update payload for AppImages |
+| `Magnolia-linux-amd64.deb` / `Magnolia-linux-x86_64.rpm` (+ `.sig`) | Linux | Packages, and the update payloads for deb and rpm installs |
 | `latest.json` | all | Tauri update manifest |
 | `latest-mac.yml` / `latest.yml` / `latest-linux.yml` | all | Update manifests for Magnolia 1.x |
 
@@ -350,8 +350,10 @@ the Tauri build:
   per-user into a different folder than Electron did, so the old copy's
   uninstaller entry stays in "Installed apps" until the user removes it;
   shortcuts point at the new app.
-- **Linux:** the AppImage is replaced in place; `.deb`/`.rpm` users update with
-  their package manager as before.
+- **Linux:** the AppImage is replaced in place; 1.x `.deb`/`.rpm` installs can't
+  update themselves, so those users install the 2.x package by hand once. After
+  that, the app updates them itself: `latest.json` has `linux-x86_64-deb` and
+  `linux-x86_64-rpm` entries, and the app asks for a password to install them.
 
 Keep publishing the `.yml` manifests and `.zip`s for a few releases, until
 1.x installs have died out. Once the Tauri build is installed, all updates go
@@ -444,9 +446,15 @@ it afterwards, since every run reads and writes it. Remove
 
 ### On Linux
 
-Only the **AppImage** updates itself (deb/rpm installs don't, on either
-updater), so that's what both rehearsals use. The steps above carry over
-with these changes.
+The two rehearsals below use the **AppImage**, the only Linux build that
+updates itself from 1.x. The steps above carry over with these changes.
+
+**Tauri → Tauri, deb or rpm:** install the older package, put the newer
+package and its `.sig` with the other assets, write and serve the manifests as
+above, then run `MAGNOLIA_UPDATE_ENDPOINT=http://localhost:8000/latest.json magnolia`.
+Install and Relaunch asks for your password, installs the package and reopens
+on the new version. Cancel the password prompt once too: the update window
+should say the install failed, and closing it should reopen the old version.
 
 **Build the two versions** the same way, with the signing key exported and
 only the Linux bundles:

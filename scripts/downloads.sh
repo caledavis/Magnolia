@@ -4,7 +4,7 @@
 #
 #   macOS:   .dmg (installer), .zip (1.x updater), .app.tar.gz (2.x updater)
 #   Windows: .exe (installer and update payload)
-#   Linux:   .deb / .rpm / .AppImage (AppImage is also the update payload)
+#   Linux:   .deb / .rpm / .AppImage (each is also its own update payload)
 #
 # Update manifests (latest*.yml / latest.json) and .sig files are left out:
 # they're fetched on every update check, not when the app is downloaded.
