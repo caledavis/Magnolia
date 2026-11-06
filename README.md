@@ -18,7 +18,7 @@
 Magnolia is free and open-source qualitative data analysis software released under the European Union Public Licence (EUPL).
 
 <p align="center">
-  <img src="screenshot-interface.webp" alt="Magnolia" width="49%">
+  <img src="screenshot-interface.webp" alt="The Magnolia interface, with a coded interview open" width="49%">
   <img src="screenshot-codedpdf.webp" alt="A coded PDF in Magnolia" width="49%">
 </p>
 
@@ -41,7 +41,7 @@ This ensures that Magnolia remains free for everyone, and disincentivises compan
 ## Powerful coding, powerful queries
 
 <p align="center">
-  <img src="screenshot-querybuilder.webp" alt="Magnolia" width="750">
+  <img src="screenshot-queryresults.webp" alt="Query results in Magnolia, listing the matching passages in each document" width="100%">
 </p>
 
 Magnolia's intuitive, graphical query builder lets you build powerful queries to explore your data.
@@ -53,7 +53,7 @@ You can selectively apply queries to specific documents, types of documents, doc
 ## A rich suite of analysis tools
 
 <p align="center">
-  <img src="screenshot-codecooccurrences.webp" alt="Magnolia" width="750">
+  <img src="screenshot-codecooccurrences.webp" alt="A code co-occurrence grid in Magnolia" width="750">
 </p>
 
 Magnolia's rich suite of analytical tools allow you to interrogate your data. You can selectively apply these tools to specific documents, types of documents, documents in specific folders, and/or documents with specific tags.  
@@ -87,7 +87,7 @@ Magnolia lets you transcribe audio and video. Naturally, you can do this with a 
 Magnolia does not include AI transcription.
 
 <p align="center">
-  <img src="screenshot-transcript.webp" alt="Magnolia" width="750">
+  <img src="screenshot-transcript.webp" alt="An audio transcript being coded in Magnolia" width="750">
 </p>
 
 ## Intuitive video coding
@@ -99,7 +99,7 @@ This means that when you code a transcript, your codes also appear in the video 
 ## Support for survey data
 
 <p align="center">
-  <img src="screenshot-surveys.webp" alt="Magnolia" width="750">
+  <img src="screenshot-surveys.webp" alt="The survey summary page in Magnolia" width="750">
 </p>
 
 Other QDA software breaks your survey responses into individual documents. Magnolia doesn't!
