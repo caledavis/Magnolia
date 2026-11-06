@@ -4,8 +4,11 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 
 ## [Unreleased]
 
+## [2.0.1]
+
 ### Fixed
 - **Going to a passage in a text document scrolls to it again.** Double-clicking a query result, or clicking a saved quote or memo, opened the text document but stayed at the place you last read, and the passage stayed highlighted afterwards. It now scrolls to the passage and the highlight fades after a moment.
+- **The Linux AppImage starts on older distributions again** ([#31](https://github.com/caledavis/Magnolia/issues/31)). The 2.0.0 AppImage wouldn't start on Ubuntu 22.04 or Debian 12, and could stop with `undefined symbol: gpgrt_add_post_log_func`. It's now built on Ubuntu 22.04 and checked on Ubuntu 22.04, Ubuntu 24.04 and Debian 12 before release.
 
 ## [2.0.0]
 
