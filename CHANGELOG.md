@@ -4,6 +4,9 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 
 ## [Unreleased]
 
+### Fixed
+- **Going to a passage in a text document scrolls to it again.** Double-clicking a query result, or clicking a saved quote or memo, opened the text document but stayed at the place you last read, and the passage stayed highlighted afterwards. It now scrolls to the passage and the highlight fades after a moment.
+
 ## [2.0.0]
 
 **Updating from Magnolia 1.x on a Mac:** Magnolia closes to finish the update and doesn't reopen by itself. Open it again from your Applications folder; your projects and preferences are kept.

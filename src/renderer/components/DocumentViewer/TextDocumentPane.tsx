@@ -22,6 +22,11 @@ import { modKey } from '../../utils/platform'
 import { CodedTextView, type CodingRightClickContext } from './CodedTextView'
 import type { Code, MemoEditInitData, SourceType, TextSource } from '../../models/types'
 
+/** After a long jump, how many frames the target must stay put, and how
+ *  long to keep re-centring it at most. */
+const SETTLE_STILL_FRAMES = 20
+const SETTLE_MAX_MS = 2000
+
 function flattenCodes(codes: Code[], depth = 0): { code: Code; depth: number }[] {
   const result: { code: Code; depth: number }[] = []
   for (const code of codes) {
@@ -134,39 +139,89 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
   // without this, clicking a Saved Quote or Saved Memo would park
   // `menuHighlight` permanently and externalHighlightRange would
   // override every following mouseenter.
+  //
+  // The target is copied into local state before the store's is cleared.
+  // Clearing it re-runs any effect that depends on it, and that effect's
+  // cleanup would cancel the scroll and the release before they happen.
+  const [jump, setJump] = useState<{ startCp: number; endCp: number } | null>(null)
   useEffect(() => {
     if (!active || !scrollTarget || !containerRef.current) return
-    setMenuHighlight(scrollTarget)
+    setJump(scrollTarget)
+    clearScrollTarget()
+  }, [active, scrollTarget, clearScrollTarget])
+  useEffect(() => {
+    if (!jump) return
+    setMenuHighlight(jump)
     // A long document builds the block holding the target only once it
     // re-renders with the highlight, so keep looking for a few frames.
     let frame = 0
     let rafId = 0
-    const tryScroll = () => {
-      if (!containerRef.current) return
-      const container = containerRef.current
-      const allSpans = container.querySelectorAll<HTMLSpanElement>('[data-cpoffset]')
-      for (const span of allSpans) {
+    let stopSettling = () => {}
+    const findSpan = (container: HTMLElement) => {
+      for (const span of container.querySelectorAll<HTMLSpanElement>('[data-cpoffset]')) {
         const cpOff = parseInt(span.dataset.cpoffset!, 10)
         const spanCpLen = [...(span.textContent || '')].length
-        if (scrollTarget.startCp >= cpOff && scrollTarget.startCp < cpOff + spanCpLen) {
-          // Smooth-scroll short hops only. Across a long document a smooth
-          // scroll would build every block it passes, and their changing
-          // heights would throw it off target.
-          const distance = Math.abs(span.getBoundingClientRect().top - container.getBoundingClientRect().top)
-          span.scrollIntoView({ behavior: distance < container.clientHeight * 3 ? 'smooth' : 'auto', block: 'center' })
+        if (jump.startCp >= cpOff && jump.startCp < cpOff + spanCpLen) return span
+      }
+      return null
+    }
+    // After a long jump, the blocks around the target get built and their
+    // real heights differ from their placeholders', which moves the target.
+    // Re-centre it until it stays put, unless the reader starts scrolling.
+    const settle = (container: HTMLElement) => {
+      const startedAt = performance.now()
+      let lastTop: number | null = null
+      let stillFrames = 0
+      const interruptions = ['wheel', 'touchstart', 'mousedown'] as const
+      stopSettling = () => {
+        cancelAnimationFrame(rafId)
+        for (const type of interruptions) container.removeEventListener(type, stopSettling)
+        window.removeEventListener('keydown', stopSettling)
+      }
+      for (const type of interruptions) container.addEventListener(type, stopSettling, { passive: true })
+      window.addEventListener('keydown', stopSettling)
+      const step = () => {
+        const span = findSpan(container)
+        if (!span || stillFrames >= SETTLE_STILL_FRAMES || performance.now() - startedAt > SETTLE_MAX_MS) {
+          stopSettling()
           return
         }
+        const top = span.getBoundingClientRect().top
+        if (lastTop !== null && Math.abs(top - lastTop) > 1) {
+          span.scrollIntoView({ behavior: 'auto', block: 'center' })
+          stillFrames = 0
+        } else {
+          stillFrames++
+        }
+        lastTop = span.getBoundingClientRect().top
+        rafId = requestAnimationFrame(step)
+      }
+      rafId = requestAnimationFrame(step)
+    }
+    const tryScroll = () => {
+      const container = containerRef.current
+      if (!container) return
+      const span = findSpan(container)
+      if (span) {
+        // Smooth-scroll short hops only. Across a long document a smooth
+        // scroll would build every block it passes, and their changing
+        // heights would throw it off target.
+        const distance = Math.abs(span.getBoundingClientRect().top - container.getBoundingClientRect().top)
+        const short = distance < container.clientHeight * 3
+        span.scrollIntoView({ behavior: short ? 'smooth' : 'auto', block: 'center' })
+        if (!short) settle(container)
+        return
       }
       if (++frame < 10) rafId = requestAnimationFrame(tryScroll)
     }
     rafId = requestAnimationFrame(tryScroll)
-    clearScrollTarget()
     const timer = setTimeout(() => setMenuHighlight(null), 1500)
     return () => {
       clearTimeout(timer)
       cancelAnimationFrame(rafId)
+      stopSettling()
     }
-  }, [active, scrollTarget, clearScrollTarget])
+  }, [jump])
 
   // Return to where the reader last was in this half, unless a scroll
   // target (a quote or memo click) is taking them somewhere specific.
