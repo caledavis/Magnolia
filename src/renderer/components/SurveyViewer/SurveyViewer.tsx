@@ -79,6 +79,8 @@ import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-
 import { modKey } from '../../utils/platform'
 import { onSelectionDrop } from '../../utils/selection-drag'
 import { SelectionDragHandle, textSelectionAnchor } from '../DocumentViewer/SelectionDragHandle'
+import { useTranslation } from 'react-i18next'
+import { t, formatDateTime } from '../../i18n'
 
 interface Props {
   source: TextSource
@@ -488,11 +490,11 @@ function quoteRangesForCell(
 // cell from a single-choice option list to a box plot on the next
 // render.
 
-const TYPE_LABEL: Record<SurveyQuestionType, string> = {
-  'open-ended': 'Open-ended',
-  'single-choice': 'Single choice',
-  numeric: 'Numeric',
-  'multi-select': 'Multi-select'
+const TYPE_KEY: Record<SurveyQuestionType, string> = {
+  'open-ended': 'survey.type.openEnded',
+  'single-choice': 'survey.type.singleChoice',
+  numeric: 'survey.type.numeric',
+  'multi-select': 'survey.type.multiSelect'
 }
 
 /** Allowed conversions depend on column shape: single-column
@@ -510,6 +512,7 @@ function QuestionTypeBadge({
   question: SurveyQuestion
   onChange: (next: SurveyQuestionType) => void
 }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLSpanElement | null>(null)
 
@@ -556,14 +559,14 @@ function QuestionTypeBadge({
         whiteSpace: 'nowrap',
         flexShrink: 0
       }}
-      title={isClickable ? 'Click to change the detected question type' : undefined}
+      title={isClickable ? t('survey.changeTypeTitle') : undefined}
       onClick={(e) => {
         if (!isClickable) return
         e.stopPropagation()
         setOpen((v) => !v)
       }}
     >
-      {TYPE_LABEL[question.type]}
+      {t(TYPE_KEY[question.type])}
       {isClickable && (
         <span style={{ fontSize: 8, lineHeight: 1, marginLeft: 1 }}>▾</span>
       )}
@@ -586,17 +589,17 @@ function QuestionTypeBadge({
           }}
           onMouseDown={(e) => e.preventDefault()}
         >
-          {allowed.map((t) => (
+          {allowed.map((type) => (
             <div
-              key={t}
+              key={type}
               className="context-menu-item"
               onClick={(e) => {
                 e.stopPropagation()
-                if (t !== question.type) onChange(t)
+                if (type !== question.type) onChange(type)
                 setOpen(false)
               }}
             >
-              {TYPE_LABEL[t]}
+              {t(TYPE_KEY[type])}
             </div>
           ))}
         </div>
@@ -684,8 +687,9 @@ function OptionListCell({
    *  staying blank, so the list doubles as the donut's legend. */
   showSwatches?: boolean
 }) {
+  const { t } = useTranslation()
   if (options.length === 0) {
-    return <div style={emptyAnswerStyle}>(no responses)</div>
+    return <div style={emptyAnswerStyle}>{t('survey.noResponses')}</div>
   }
   return (
     <ul style={{ listStyle: 'none', padding: 0, margin: '4px 0 12px 0', userSelect: 'none' }}>
@@ -781,6 +785,7 @@ function DonutChart({
   size?: number
   thickness?: number
 }) {
+  const { t } = useTranslation()
   const total = options.reduce((sum, d) => sum + d.count, 0)
   if (total === 0) return null
   const cx = size / 2
@@ -795,7 +800,7 @@ function DonutChart({
       viewBox={`0 0 ${size} ${size}`}
       style={{ flexShrink: 0, marginTop: 6 }}
       role="img"
-      aria-label="Answer distribution"
+      aria-label={t('survey.answerDistribution')}
     >
       {/* Track behind the segments so sub-pixel rounding between
           slices never reads as a gap in the ring. */}
@@ -869,8 +874,9 @@ function NumericBoxPlot({
   highlightValue?: number
   valueLabels?: Map<number, string>
 }) {
+  const { t } = useTranslation()
   if (!stats) {
-    return <div style={emptyAnswerStyle}>(no numeric responses)</div>
+    return <div style={emptyAnswerStyle}>{t('survey.noNumeric')}</div>
   }
   // Layout: box plot up top, X axis below with tick marks +
   // number labels + (optional) named-label row underneath.
@@ -973,14 +979,14 @@ function NumericBoxPlot({
         })}
       </svg>
       <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 14 }}>
-        <span>n = {stats.values.length}</span>
-        <span>mean {formatStat(stats.mean)}</span>
-        <span>median {formatStat(stats.median)}</span>
-        <span>mode {formatStat(stats.mode)}</span>
-        <span>IQR {formatStat(stats.q1)}–{formatStat(stats.q3)}</span>
+        <span>{t('survey.statN', { n: stats.values.length })}</span>
+        <span>{t('survey.statMean', { value: formatStat(stats.mean) })}</span>
+        <span>{t('survey.statMedian', { value: formatStat(stats.median) })}</span>
+        <span>{t('survey.statMode', { value: formatStat(stats.mode) })}</span>
+        <span>{t('survey.statIqr', { q1: formatStat(stats.q1), q3: formatStat(stats.q3) })}</span>
         {highlightValue != null && (
           <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-            this respondent: {formatStat(highlightValue)}
+            {t('survey.thisRespondent', { value: formatStat(highlightValue) })}
           </span>
         )}
       </div>
@@ -1019,6 +1025,7 @@ function SurveyCell({
   onCodingRightClick,
   onMemoClick
 }: CellProps) {
+  const { t } = useTranslation()
   const selections = useMemo(
     () => selectionsForCell(source.selections, respondentId, questionId),
     [source.selections, respondentId, questionId]
@@ -1048,7 +1055,7 @@ function SurveyCell({
   )
 
   if (!text) {
-    return <div style={emptyAnswerStyle}>(no answer)</div>
+    return <div style={emptyAnswerStyle}>{t('survey.noAnswer')}</div>
   }
 
   return (
@@ -1098,6 +1105,7 @@ function RespondentView({
   respondent: SurveyRespondent
   onJumpToQuestion: (questionId: string) => void
 }) {
+  const { t } = useTranslation()
   const respondentNumber = Math.max(0, survey.respondents.findIndex((r) => r.id === respondent.id)) + 1
   return (
     <article>
@@ -1106,7 +1114,7 @@ function RespondentView({
           <div style={{ flex: 1, minWidth: 0 }}>
             <h1 style={h1Style}>{respondent.displayName}</h1>
             {respondent.rawRespondentId && (
-              <div style={subtleMetaStyle}>RespondentID: {respondent.rawRespondentId}</div>
+              <div style={subtleMetaStyle}>{t('survey.respondentId', { id: respondent.rawRespondentId })}</div>
             )}
           </div>
           <MemoFab
@@ -1390,6 +1398,7 @@ function QuestionHeader({
   sourceGuid: string
   onChangeType: (t: SurveyQuestionType) => void
 }) {
+  const { t } = useTranslation()
   return (
     <header style={headerStyle}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
@@ -1402,12 +1411,12 @@ function QuestionHeader({
           kind="survey-question"
           sourceGuid={sourceGuid}
           questionGuid={question.id}
-          defaultTitle={`Q${questionNumber}`}
+          defaultTitle={t('survey.questionShort', { number: questionNumber })}
         />
       </div>
       <div style={{ ...subtleMetaStyle, display: 'flex', alignItems: 'center', gap: 8 }}>
         <QuestionTypeBadge question={question} onChange={onChangeType} />
-        <span>{respondents} respondents</span>
+        <span>{t('survey.respondentCount', { count: respondents })}</span>
       </div>
     </header>
   )
@@ -1446,7 +1455,7 @@ function questionAnsweredCount(q: SurveyQuestion, respondents: SurveyRespondent[
  *  `segmentColor(index)` — mirroring the on-screen single-choice
  *  layout where the list is the donut's legend. */
 function pdfOptionListHtml(options: OptionTally[], withSwatches = false, chosen?: Set<string>): string {
-  if (options.length === 0) return '<div class="empty">(no responses)</div>'
+  if (options.length === 0) return `<div class="empty">${escHtml(t('survey.noResponses'))}</div>`
   return (
     '<ul class="options">' +
     options
@@ -1514,7 +1523,7 @@ function pdfOpenEndedAnswersHtml(survey: SurveyData, q: SurveyQuestion): string 
       `<li><span class="who">${escHtml(r.displayName)}:</span> <span class="what">${escHtml(text)}</span></li>`
     )
   }
-  if (rows.length === 0) return '<div class="empty">(no responses)</div>'
+  if (rows.length === 0) return `<div class="empty">${escHtml(t('survey.noResponses'))}</div>`
   return '<ul class="answers">' + rows.join('') + '</ul>'
 }
 
@@ -1527,7 +1536,7 @@ function pdfNumericBoxPlotHtml(
   valueLabels?: Map<number, string>,
   highlightValue?: number
 ): string {
-  if (!stats) return '<div class="empty">(no numeric responses)</div>'
+  if (!stats) return `<div class="empty">${escHtml(t('survey.noNumeric'))}</div>`
   const W = 280
   const PAD_LEFT = 28
   const PAD_RIGHT = 28
@@ -1577,7 +1586,7 @@ function pdfNumericBoxPlotHtml(
     `<line x1="${x(axisMin)}" x2="${x(axisMax)}" y1="${AXIS_Y}" y2="${AXIS_Y}" stroke="#888" stroke-width="1"/>` +
     tickMarks +
     `</svg>` +
-    `<div class="stats-line">n ${stats.values.length} &nbsp;·&nbsp; mean ${formatStat(stats.mean)} &nbsp;·&nbsp; median ${formatStat(stats.median)} &nbsp;·&nbsp; mode ${formatStat(stats.mode)} &nbsp;·&nbsp; IQR ${formatStat(stats.q1)}–${formatStat(stats.q3)}</div>`
+    `<div class="stats-line">${[t('survey.statN', { n: stats.values.length }), t('survey.statMean', { value: formatStat(stats.mean) }), t('survey.statMedian', { value: formatStat(stats.median) }), t('survey.statMode', { value: formatStat(stats.mode) }), t('survey.statIqr', { q1: formatStat(stats.q1), q3: formatStat(stats.q3) })].map(escHtml).join(' &nbsp;·&nbsp; ')}</div>`
   )
 }
 
@@ -1633,7 +1642,7 @@ function renderSurveyQuestionRow(
 
   if (q.type === 'open-ended') {
     if (mode === 'contents') {
-      return `<tr>${headCells}<td><a class="show-answers" href="#oe-ans-${i}">Show answers →</a></td></tr>`
+      return `<tr>${headCells}<td><a class="show-answers" href="#oe-ans-${i}">${escHtml(t('survey.showAnswers'))}</a></td></tr>`
     }
     return (
       `<tr class="oe-head" id="oe-ans-${i}">${headCells}<td></td></tr>` +
@@ -1641,6 +1650,11 @@ function renderSurveyQuestionRow(
     )
   }
   return `<tr>${headCells}<td>${closedQuestionDistHtml(survey, q)}</td></tr>`
+}
+
+/** The header row of the question tables, in the interface language. */
+function questionsHeadRow(): string {
+  return `<tr><th>#</th><th>${escHtml(t('survey.colQuestion'))}</th><th>${escHtml(t('survey.colAnswered'))}</th><th>${escHtml(t('survey.colDistribution'))}</th></tr>`
 }
 
 /** A single question rendered exactly as it appears in the Survey
@@ -1653,12 +1667,12 @@ function renderSurveyQuestionRow(
  *  caller (as buildSurveySummaryBody's consumers do). */
 export function buildSurveyQuestionBody(survey: SurveyData, questionId: string): string {
   const i = survey.questions.findIndex((q) => q.id === questionId)
-  if (i < 0) return '<div class="empty">(question unavailable)</div>'
+  if (i < 0) return `<div class="empty">${escHtml(t('survey.questionUnavailable'))}</div>`
   return `<table>
   <colgroup>
     <col class="c-num"><col><col class="c-answered"><col class="c-distribution">
   </colgroup>
-  <thead><tr><th>#</th><th>Question</th><th>Answered</th><th>Distribution</th></tr></thead>
+  <thead>${questionsHeadRow()}</thead>
   <tbody>${renderSurveyQuestionRow(survey, survey.questions[i], i, 'detail')}</tbody>
 </table>`
 }
@@ -1671,7 +1685,7 @@ function pdfRespondentAnswerHtml(survey: SurveyData, q: SurveyQuestion, responde
   const ans = respondent.answers[q.id]
   if (q.type === 'open-ended') {
     const text = clean(buildOpenEndedText(ans))
-    return text ? `<div class="sv-ans-text">${escHtml(text)}</div>` : '<div class="empty">(no answer)</div>'
+    return text ? `<div class="sv-ans-text">${escHtml(text)}</div>` : `<div class="empty">${escHtml(t('survey.noAnswer'))}</div>`
   }
   if (q.type === 'single-choice') {
     const dist = computeSingleChoiceDistribution(survey, q)
@@ -1714,8 +1728,8 @@ function pdfRespondentQuestionBlock(survey: SurveyData, q: SurveyQuestion, i: nu
  *  `.survey-summary` container (the scoped CSS the markup relies on). */
 export function buildSurveyRespondentBody(survey: SurveyData, respondentId: string): string {
   const respondent = survey.respondents.find((r) => r.id === respondentId)
-  if (!respondent) return '<div class="empty">(respondent unavailable)</div>'
-  if (survey.questions.length === 0) return '<div class="empty">(no questions)</div>'
+  if (!respondent) return `<div class="empty">${escHtml(t('survey.respondentUnavailable'))}</div>`
+  if (survey.questions.length === 0) return `<div class="empty">${escHtml(t('survey.noQuestions'))}</div>`
   return survey.questions.map((q, i) => pdfRespondentQuestionBlock(survey, q, i, respondent)).join('')
 }
 
@@ -1726,7 +1740,7 @@ export function buildSurveyRespondentBody(survey: SurveyData, respondentId: stri
 export function buildSurveyCellBody(survey: SurveyData, respondentId: string, questionId: string): string {
   const respondent = survey.respondents.find((r) => r.id === respondentId)
   const i = survey.questions.findIndex((q) => q.id === questionId)
-  if (!respondent || i < 0) return '<div class="empty">(answer unavailable)</div>'
+  if (!respondent || i < 0) return `<div class="empty">${escHtml(t('survey.answerUnavailable'))}</div>`
   return pdfRespondentQuestionBlock(survey, survey.questions[i], i, respondent)
 }
 
@@ -1760,30 +1774,30 @@ export function buildSurveySummaryBody(survey: SurveyData): string {
     })
     .join('')
 
-  return `<div class="section-heading">Contents</div>
+  return `<div class="section-heading">${escHtml(t('survey.contents'))}</div>
 <table>
   <colgroup>
     <col class="c-num"><col><col class="c-answered"><col class="c-distribution">
   </colgroup>
-  <thead><tr><th>#</th><th>Question</th><th>Answered</th><th>Distribution</th></tr></thead>
+  <thead>${questionsHeadRow()}</thead>
   <tbody>${contentsRows}</tbody>
 </table>
 
-<div class="section-heading section-break">Questions</div>
+<div class="section-heading section-break">${escHtml(t('survey.questions'))}</div>
 <table>
   <colgroup>
     <col class="c-num"><col><col class="c-answered"><col class="c-distribution">
   </colgroup>
-  <thead><tr><th>#</th><th>Question</th><th>Answered</th><th>Distribution</th></tr></thead>
+  <thead>${questionsHeadRow()}</thead>
   <tbody>${questionsRows}</tbody>
 </table>
 
-<div class="section-heading">Respondents</div>
+<div class="section-heading">${escHtml(t('survey.respondents'))}</div>
 <table>
   <colgroup>
     <col class="c-num"><col><col class="c-completed">
   </colgroup>
-  <thead><tr><th>#</th><th>Respondent</th><th>Completed</th></tr></thead>
+  <thead><tr><th>#</th><th>${escHtml(t('survey.colRespondent'))}</th><th>${escHtml(t('survey.colCompleted'))}</th></tr></thead>
   <tbody>${respondentsRows}</tbody>
 </table>`
 }
@@ -1852,11 +1866,11 @@ export const SURVEY_SUMMARY_CSS = `
 function buildSurveySummaryHtml(survey: SurveyData, displayName: string): string {
   const totalRespondents = survey.respondents.length
   const totalQuestions = survey.questions.length
-  const now = new Date().toLocaleString()
-  const subtitle =
-    `${totalRespondents} respondent${totalRespondents === 1 ? '' : 's'} · ` +
-    `${totalQuestions} question${totalQuestions === 1 ? '' : 's'} — ` +
-    `exported ${escHtml(now)}`
+  const subtitle = escHtml(t('survey.pdfSubtitle', {
+    respondents: t('survey.respondentCount', { count: totalRespondents }),
+    questions: t('survey.questionCount', { count: totalQuestions }),
+    date: formatDateTime(new Date())
+  }))
   return buildPdfDocument({
     title: displayName,
     subtitle,
@@ -1879,6 +1893,7 @@ function SummaryView({
   onJumpToQuestion: (qid: string) => void
   onJumpToRespondent: (rid: string) => void
 }) {
+  const { t } = useTranslation()
   const totalRespondents = survey.respondents.length
   const totalQuestions = survey.questions.length
 
@@ -1886,8 +1901,9 @@ function SummaryView({
     const html = buildSurveySummaryHtml(survey, displayName)
     // Strip filesystem-hostile chars from the survey name so the
     // save dialog's default filename is always safe to accept as-is.
-    const safeName = (displayName || 'Survey Summary').replace(/[^a-zA-Z0-9 _-]/g, '').trim() || 'Survey Summary'
-    await exportPdfWithHeader(html, safeName, 'Export Survey Summary as PDF')
+    const fallback = t('survey.summaryDefaultName')
+    const safeName = (displayName || fallback).replace(/[^\p{L}\p{N} _-]/gu, '').trim() || fallback
+    await exportPdfWithHeader(html, safeName, t('survey.exportSummaryDialog'))
   }, [survey, displayName])
 
   return (
@@ -1900,29 +1916,29 @@ function SummaryView({
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 style={h1Style}>{displayName}</h1>
           <div style={subtleMetaStyle}>
-            {totalRespondents} respondent{totalRespondents === 1 ? '' : 's'} ·{' '}
-            {totalQuestions} question{totalQuestions === 1 ? '' : 's'}
+            {t('survey.respondentCount', { count: totalRespondents })} ·{' '}
+            {t('survey.questionCount', { count: totalQuestions })}
           </div>
         </div>
         <button
           className="secondary"
           style={{ fontSize: 11, padding: '3px 10px', flexShrink: 0 }}
           onClick={handleExportPdf}
-          title="Export this summary as a PDF, including each respondent's answers to open questions"
+          title={t('survey.exportSummaryTitle')}
         >
-          Export PDF
+          {t('survey.exportPdf')}
         </button>
       </div>
 
       <section style={{ marginTop: 28 }}>
-        <h2 style={summaryHeadingStyle}>Questions</h2>
+        <h2 style={summaryHeadingStyle}>{t('survey.questions')}</h2>
         <table style={summaryTableStyle}>
           <thead>
             <tr>
               <th style={summaryThStyle}>#</th>
-              <th style={{ ...summaryThStyle, width: '100%' }}>Question</th>
-              <th style={summaryThStyle}>Answered</th>
-              <th style={summaryThStyle}>Distribution</th>
+              <th style={{ ...summaryThStyle, width: '100%' }}>{t('survey.colQuestion')}</th>
+              <th style={summaryThStyle}>{t('survey.colAnswered')}</th>
+              <th style={summaryThStyle}>{t('survey.colDistribution')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1980,7 +1996,7 @@ function SummaryView({
                         }}
                         style={{ cursor: 'pointer', color: 'var(--accent)' }}
                       >
-                        Show answers →
+                        {t('survey.showAnswers')}
                       </a>
                     )}
                   </td>
@@ -1992,13 +2008,13 @@ function SummaryView({
       </section>
 
       <section style={{ marginTop: 32 }}>
-        <h2 style={summaryHeadingStyle}>Respondents</h2>
+        <h2 style={summaryHeadingStyle}>{t('survey.respondents')}</h2>
         <table style={summaryTableStyle}>
           <thead>
             <tr>
               <th style={summaryThStyle}>#</th>
-              <th style={{ ...summaryThStyle, width: '100%' }}>Respondent</th>
-              <th style={summaryThStyle}>Completed</th>
+              <th style={{ ...summaryThStyle, width: '100%' }}>{t('survey.colRespondent')}</th>
+              <th style={summaryThStyle}>{t('survey.colCompleted')}</th>
             </tr>
           </thead>
           <tbody>
@@ -2076,6 +2092,7 @@ const summaryTdStyle: React.CSSProperties = {
 // ── Main viewer ────────────────────────────────────────────────────
 
 export function SurveyViewer({ source }: Props) {
+  const { t } = useTranslation()
   const survey: SurveyData | undefined = (source.formatData as SurveyFormatData | undefined)?.survey
   const chosenView = useSurveyViewStore((s) => s.viewBySurveyGuid[source.guid])
   const view = chosenView ?? { mode: 'summary' as SurveyViewMode }
@@ -2604,7 +2621,7 @@ export function SurveyViewer({ source }: Props) {
       const overlapping = clickCp != null
         ? cellMemos
             .filter((m) => m.startPosition != null && m.endPosition != null && m.startPosition <= clickCp && m.endPosition >= clickCp)
-            .map((m) => ({ guid: m.guid, title: m.title || 'Memo', startCp: m.startPosition!, endCp: m.endPosition! }))
+            .map((m) => ({ guid: m.guid, title: m.title || t('viewer.memo'), startCp: m.startPosition!, endCp: m.endPosition! }))
         : []
 
       setMenu({
@@ -2810,7 +2827,7 @@ export function SurveyViewer({ source }: Props) {
   if (!survey) {
     return (
       <div style={{ padding: 24, color: 'var(--text-muted)' }}>
-        This survey couldn't be loaded — its parsed data is missing.
+        {t('survey.notLoaded')}
       </div>
     )
   }
@@ -2879,10 +2896,10 @@ export function SurveyViewer({ source }: Props) {
           />
         )}
         {view.mode === 'respondent' && !respondent && (
-          <div style={{ color: 'var(--text-muted)' }}>Select a respondent on the left.</div>
+          <div style={{ color: 'var(--text-muted)' }}>{t('survey.selectRespondent')}</div>
         )}
         {view.mode === 'question' && !question && (
-          <div style={{ color: 'var(--text-muted)' }}>Select a question on the left.</div>
+          <div style={{ color: 'var(--text-muted)' }}>{t('survey.selectQuestion')}</div>
         )}
       </div>
 
@@ -2901,15 +2918,15 @@ export function SurveyViewer({ source }: Props) {
             className="context-menu-item"
             onClick={() => { useNewCodeTriggerStore.getState().request(); closeMenu() }}
           >
-            New Code
+            {t('viewer.newCode')}
           </div>
           <div className="context-menu-separator" />
 
           {showApply && (
             <>
-              <div style={menuSectionLabelStyle}>Apply Code</div>
+              <div style={menuSectionLabelStyle}>{t('viewer.applyCode')}</div>
               <div style={menuHintStyle}>
-                To apply any code, select content and drag the code from the Code Browser to the selection.
+                {t('viewer.applyHint')}
               </div>
               {hotkeyCodes.map(({ code }) => (
                 <div
@@ -2926,7 +2943,7 @@ export function SurveyViewer({ source }: Props) {
               ))}
               {hotkeyCodes.length === 0 && (
                 <div className="context-menu-item" style={{ color: 'var(--text-muted)', pointerEvents: 'none' }}>
-                  No hotkeys assigned — right-click a code to assign one
+                  {t('viewer.noHotkeys')}
                 </div>
               )}
             </>
@@ -2936,7 +2953,7 @@ export function SurveyViewer({ source }: Props) {
 
           {showRemove && (
             <>
-              <div style={menuSectionLabelStyle}>Remove Code</div>
+              <div style={menuSectionLabelStyle}>{t('viewer.removeCode')}</div>
               {menu!.existingCodings.map((ec) => {
                 const code = findCode(ec.codeGuid)
                 return (
@@ -2947,7 +2964,7 @@ export function SurveyViewer({ source }: Props) {
                     onClick={() => handleRemoveCoding(ec.selectionGuid, ec.codingGuid)}
                   >
                     <span className="color-pip" style={{ background: code?.color || '#888' }} />
-                    {code?.name ?? 'Unknown'}
+                    {code?.name ?? t('common.unknown')}
                   </div>
                 )
               })}
@@ -2958,7 +2975,7 @@ export function SurveyViewer({ source }: Props) {
             <>
               <div className="context-menu-separator" />
               <div className="context-menu-item" onClick={handleAddQuote}>
-                Add as Quote
+                {t('viewer.addAsQuote')}
               </div>
             </>
           )}
@@ -2967,7 +2984,7 @@ export function SurveyViewer({ source }: Props) {
             <>
               <div className="context-menu-separator" />
               <div className="context-menu-item" onClick={handleAddContentMemo}>
-                Add Selection Memo
+                {t('viewer.addSelectionMemo')}
               </div>
             </>
           )}
@@ -2975,7 +2992,7 @@ export function SurveyViewer({ source }: Props) {
           {showDeleteMemo && (
             <>
               <div className="context-menu-separator" />
-              <div style={menuSectionLabelStyle}>Delete Memo</div>
+              <div style={menuSectionLabelStyle}>{t('viewer.deleteMemo')}</div>
               {menu!.overlappingMemos.map((m) => (
                 <div
                   key={m.guid}
