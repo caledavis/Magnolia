@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { useMergeReviewStore, collectCurrentProject, type FlatCategory } from '../../stores/merge-review-store'
 import { applyMerge, emptyApplyPlan, resolveBinarySources, type ApplyPlan } from '../../utils/project-diff-apply'
@@ -12,37 +13,38 @@ import { buildHighlightedSpans, formatClipTime } from '../QueryResultViewer/Quer
 import { PdfRegionThumbnail } from '../DocumentViewer/PdfRegionThumbnail'
 import { stripFormatting } from '../../utils/strip-formatting'
 import type { Code } from '../../models/types'
+import { t } from '../../i18n'
 
 interface MergeReviewWindowProps {
   onClose: () => void
 }
 
+/** A category's name is merge.cat.<id> in the catalogues. */
 interface CategoryMeta {
   id: FlatCategory
-  label: string
   count: (diff: MergeDiff) => number
 }
 
 const FLAT_CATEGORIES: CategoryMeta[] = [
-  { id: 'codes', label: 'Codes', count: (d) => d.codes.length },
-  { id: 'tags', label: 'Tags', count: (d) => d.tags.length },
-  { id: 'tagCategories', label: 'Tag Categories', count: (d) => d.tagCategories.length },
-  { id: 'memos', label: 'Memos', count: (d) => d.memos.length },
-  { id: 'quotes', label: 'Quotes', count: (d) => d.quotes.length },
-  { id: 'logbookEntries', label: 'Logbook', count: (d) => d.logbookEntries.length },
-  { id: 'savedQueries', label: 'Saved Queries', count: (d) => d.savedQueries.length },
-  { id: 'folders', label: 'Folders', count: (d) => d.folders.length },
-  { id: 'savedAnalyses', label: 'Saved Analyses', count: (d) => d.savedAnalyses.length }
+  { id: 'codes', count: (d) => d.codes.length },
+  { id: 'tags', count: (d) => d.tags.length },
+  { id: 'tagCategories', count: (d) => d.tagCategories.length },
+  { id: 'memos', count: (d) => d.memos.length },
+  { id: 'quotes', count: (d) => d.quotes.length },
+  { id: 'logbookEntries', count: (d) => d.logbookEntries.length },
+  { id: 'savedQueries', count: (d) => d.savedQueries.length },
+  { id: 'folders', count: (d) => d.folders.length },
+  { id: 'savedAnalyses', count: (d) => d.savedAnalyses.length }
 ]
 
-/** Possessive form of the comparison file's last-editor name — "Cale
- *  Davis's" — for every "only in ___" / "take ___ version" label. Falls
- *  back to the pronoun "theirs" (already possessive on its own, no
- *  trailing 's) when the file has no recorded editor (e.g. it was never
- *  saved after Stage 2 shipped). */
-function theirsPossessive(comparisonEditedBy: string | null): string {
+/** The comparison file's last editor, for every "only in ___" / "take
+ *  ___ version" label: as i18next options choosing each message's
+ *  `_named` form ("Only in Cale Davis's"), or its plain form ("Only in
+ *  theirs") when the file has no recorded editor (e.g. it was never saved
+ *  after Stage 2 shipped). Each language builds its own possessive. */
+function theirs(comparisonEditedBy: string | null): { context?: 'named'; name?: string } {
   const name = comparisonEditedBy?.trim()
-  return name ? `${name}’s` : 'theirs'
+  return name ? { context: 'named', name } : {}
 }
 
 /** `reconciling` (Steal Back's compare — see merge-review-store.ts's own
@@ -56,7 +58,7 @@ function theirsPossessive(comparisonEditedBy: string | null): string {
  *  there's no risk of a reconciling user reading "check to remove" as
  *  "check to keep" and deleting the very edit they're trying to save. */
 function bucketLabel(bucket: DiffItem<unknown>['bucket'], comparisonEditedBy: string | null, reconciling: boolean): string {
-  const theirs = theirsPossessive(comparisonEditedBy)
+  const who = theirs(comparisonEditedBy)
   if (bucket === 'onlyMine') {
     // Checked always means "this will be in the result" — same rule as
     // onlyTheirs below, not the opposite of it. onlyMine items are kept
@@ -68,15 +70,15 @@ function bucketLabel(bucket: DiffItem<unknown>['bucket'], comparisonEditedBy: st
     // guid to that category's approved set, same mechanism as always —
     // only the checkbox's checked/unchecked meaning was inverted).
     return reconciling
-      ? 'Your unsaved change — kept; uncheck to discard it instead'
-      : 'Only in mine — kept; uncheck to remove'
+      ? t('merge.bucket.mineReconciling')
+      : t('merge.bucket.mine')
   }
   if (bucket === 'onlyTheirs') {
     return reconciling
-      ? `${theirs} change since you lost control — check to add`
-      : `Only in ${theirs} — check to add`
+      ? t('merge.bucket.theirsReconciling', who)
+      : t('merge.bucket.theirs', who)
   }
-  return `Differs — check to take ${theirs} version`
+  return t('merge.bucket.differs', who)
 }
 
 /** Small color-pip, matching the one shown next to codes everywhere else
@@ -98,7 +100,7 @@ function describeItem(category: FlatCategory, item: DiffItem<any>): React.ReactN
       return (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <ColorPip color={obj?.color} />
-          {code.moved ? `${base} (moved)` : base}
+          {code.moved ? t('merge.moved', { name: base }) : base}
         </span>
       )
     }
@@ -107,7 +109,7 @@ function describeItem(category: FlatCategory, item: DiffItem<any>): React.ReactN
     case 'tagCategories':
       return obj?.name ?? item.guid
     case 'memos':
-      return obj?.title || `${obj?.type ?? 'memo'} memo`
+      return obj?.title || t('memos.untitled')
     case 'quotes':
       return obj?.text ? `"${String(obj.text).slice(0, 60)}"` : item.guid
     case 'logbookEntries':
@@ -120,7 +122,7 @@ function describeItem(category: FlatCategory, item: DiffItem<any>): React.ReactN
       const sa = item as SavedAnalysisDiffItem
       if (sa.relationshipMapSummary) {
         const s = sa.relationshipMapSummary
-        return `${obj?.name ?? sa.guid} (+${s.addedElements}/−${s.removedElements} elements, +${s.addedConnections}/−${s.removedConnections} connections)`
+        return t('merge.mapSummary', { name: obj?.name ?? sa.guid, addedElements: s.addedElements, removedElements: s.removedElements, addedConnections: s.addedConnections, removedConnections: s.removedConnections })
       }
       return obj?.name ?? item.guid
     }
@@ -165,11 +167,12 @@ function BucketSection({
 }
 
 function FlatCategoryPane({ category, diff }: { category: FlatCategory; diff: MergeDiff }): JSX.Element {
+  const { t } = useTranslation()
   const approved = useMergeReviewStore((s) => s.approved[category])
   const toggle = useMergeReviewStore((s) => s.toggle)
   const comparisonEditedBy = useMergeReviewStore((s) => s.comparisonEditedBy)
   const reconciling = useMergeReviewStore((s) => s.reconciling)
-  const theirs = theirsPossessive(comparisonEditedBy)
+  const who = theirs(comparisonEditedBy)
   const items = (diff as any)[category] as DiffItem<any>[]
   const onlyMine = items.filter((i) => i.bucket === 'onlyMine')
   const onlyTheirs = items.filter((i) => i.bucket === 'onlyTheirs')
@@ -193,19 +196,20 @@ function FlatCategoryPane({ category, diff }: { category: FlatCategory; diff: Me
   )
   return (
     <div>
-      <BucketSection title={`Only in ${theirs}`} items={onlyTheirs} isChecked={isChecked} onToggle={onToggle} describe={describe} />
-      <BucketSection title="Differs" items={bothDiffer} isChecked={isChecked} onToggle={onToggle} describe={describe} />
-      <BucketSection title={reconciling ? 'Your unsaved changes' : 'Only in mine'} items={onlyMine} isChecked={isChecked} onToggle={onToggle} describe={describe} />
+      <BucketSection title={t('merge.onlyTheirs', who)} items={onlyTheirs} isChecked={isChecked} onToggle={onToggle} describe={describe} />
+      <BucketSection title={t('merge.differs')} items={bothDiffer} isChecked={isChecked} onToggle={onToggle} describe={describe} />
+      <BucketSection title={reconciling ? t('merge.unsavedChanges') : t('merge.onlyMine')} items={onlyMine} isChecked={isChecked} onToggle={onToggle} describe={describe} />
     </div>
   )
 }
 
 function DocumentTextPane({ diff }: { diff: MergeDiff }): JSX.Element {
+  const { t } = useTranslation()
   const approved = useMergeReviewStore((s) => s.approved.documentText)
   const toggle = useMergeReviewStore((s) => s.toggle)
   const comparisonEditedBy = useMergeReviewStore((s) => s.comparisonEditedBy)
-  const theirs = theirsPossessive(comparisonEditedBy)
-  if (diff.documentText.length === 0) return <p style={{ color: 'var(--text-muted)', fontSize: 12.5 }}>No documents differ.</p>
+  const who = theirs(comparisonEditedBy)
+  if (diff.documentText.length === 0) return <p style={{ color: 'var(--text-muted)', fontSize: 12.5 }}>{t('merge.noDocsDiffer')}</p>
   return (
     <div>
       {diff.documentText.map((d) => (
@@ -213,7 +217,7 @@ function DocumentTextPane({ diff }: { diff: MergeDiff }): JSX.Element {
           key={d.sourceGuid}
           checked={approved.has(d.sourceGuid)}
           onChange={() => toggle('documentText', d.sourceGuid)}
-          label={`${d.sourceName} — text differs, check to take ${theirs} version`}
+          label={t('merge.textDiffers', { doc: d.sourceName, ...who })}
         />
       ))}
     </div>
@@ -222,14 +226,15 @@ function DocumentTextPane({ diff }: { diff: MergeDiff }): JSX.Element {
 
 function sourceTypeLabel(sourceType?: string): string {
   switch (sourceType) {
-    case 'survey': return 'Survey'
-    case 'pdf': return 'PDF'
-    case 'audio': return 'Audio'
-    case 'video': return 'Video'
-    case 'image': return 'Image'
-    case 'markdown': return 'Markdown'
-    case 'note': return 'Note'
-    default: return 'Text document'
+    case 'survey':
+    case 'pdf':
+    case 'audio':
+    case 'video':
+    case 'image':
+    case 'markdown':
+    case 'note':
+      return t(`merge.sourceType.${sourceType}`)
+    default: return t('merge.sourceType.text')
   }
 }
 
@@ -239,12 +244,13 @@ function sourceTypeLabel(sourceType?: string): string {
  *  (see resolveBinarySources) — the review UI doesn't need to know the
  *  difference. */
 function SourcesPane({ diff }: { diff: MergeDiff }): JSX.Element {
+  const { t } = useTranslation()
   const approved = useMergeReviewStore((s) => s.approved.sources)
   const toggle = useMergeReviewStore((s) => s.toggle)
   const comparisonEditedBy = useMergeReviewStore((s) => s.comparisonEditedBy)
   const reconciling = useMergeReviewStore((s) => s.reconciling)
-  const theirs = theirsPossessive(comparisonEditedBy)
-  if (diff.sources.length === 0) return <p style={{ color: 'var(--text-muted)', fontSize: 12.5 }}>No document differences.</p>
+  const who = theirs(comparisonEditedBy)
+  if (diff.sources.length === 0) return <p style={{ color: 'var(--text-muted)', fontSize: 12.5 }}>{t('merge.noDocDifferences')}</p>
 
   const renderRow = (item: SourceDiffItem): React.ReactNode => {
     if (item.bucket === 'bothDiffer') {
@@ -253,7 +259,7 @@ function SourcesPane({ diff }: { diff: MergeDiff }): JSX.Element {
           key={item.guid}
           checked={approved.has(item.guid)}
           onChange={() => toggle('sources', item.guid)}
-          label={<span>Renamed <strong>{item.mine?.name}</strong> → <strong>{item.theirs?.name}</strong> <span style={{ color: 'var(--text-muted)' }}>— check to take the new name</span></span>}
+          label={<span><Trans i18nKey="merge.renamed" values={{ from: item.mine?.name, to: item.theirs?.name }} components={{ b: <strong /> }} /> <span style={{ color: 'var(--text-muted)' }}>{t('merge.takeNewName')}</span></span>}
         />
       )
     }
@@ -283,19 +289,19 @@ function SourcesPane({ diff }: { diff: MergeDiff }): JSX.Element {
     <div>
       {onlyTheirs.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <h4 style={sectionHeaderStyle}>Only in {theirs} ({onlyTheirs.length})</h4>
+          <h4 style={sectionHeaderStyle}>{t('merge.onlyTheirsCount', { count: onlyTheirs.length, ...who })}</h4>
           {onlyTheirs.map(renderRow)}
         </div>
       )}
       {bothDiffer.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <h4 style={sectionHeaderStyle}>Renamed ({bothDiffer.length})</h4>
+          <h4 style={sectionHeaderStyle}>{t('merge.renamedCount', { count: bothDiffer.length })}</h4>
           {bothDiffer.map(renderRow)}
         </div>
       )}
       {onlyMine.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <h4 style={sectionHeaderStyle}>{reconciling ? 'Your unsaved changes' : 'Only in mine'} ({onlyMine.length})</h4>
+          <h4 style={sectionHeaderStyle}>{reconciling ? t('merge.unsavedCount', { count: onlyMine.length }) : t('merge.onlyMineCount', { count: onlyMine.length })}</h4>
           {onlyMine.map(renderRow)}
         </div>
       )}
@@ -348,6 +354,7 @@ function CodingPreview({
   instance: CodingInstance
   findCode: (guid: string) => { name: string; color?: string } | undefined
 }): JSX.Element {
+  const { t } = useTranslation()
   const sourceContents = useDocumentStore((s) => s.sourceContents)
   const source = useDocumentStore((s) => s.sources.find((src) => src.guid === sourceGuid))
   const selections = source?.selections ?? []
@@ -380,7 +387,7 @@ function CodingPreview({
     )
   }
 
-  if (!source) return <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Document not found</span>
+  if (!source) return <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('merge.docNotFound')}</span>
   const documentContent = sourceContents[sourceGuid] ?? ''
   const text = textForSelection(source, sel, documentContent)
   const matchedText = codepointSlice(text, sel.startPosition, sel.endPosition)
@@ -402,7 +409,7 @@ function CodingPreview({
     if (survey) {
       const rIdx = survey.respondents.findIndex((r) => r.id === sel.surveyCell!.respondentId)
       const qIdx = survey.questions.findIndex((q) => q.id === sel.surveyCell!.questionId)
-      if (rIdx >= 0 && qIdx >= 0) surveyCellLabel = `Respondent ${rIdx + 1} · Question ${qIdx + 1}`
+      if (rIdx >= 0 && qIdx >= 0) surveyCellLabel = t('merge.surveyCell', { respondent: rIdx + 1, question: qIdx + 1 })
     }
   }
 
@@ -437,22 +444,24 @@ function CodingPreview({
 }
 
 function CodingLabel({ code, suffix }: { code: { name: string; color?: string } | undefined; suffix: string }): JSX.Element {
+  const { t } = useTranslation()
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
       <ColorPip color={code?.color} />
-      {code?.name ?? 'Unknown code'} <span style={{ color: 'var(--text-muted)' }}>— {suffix}</span>
+      {code?.name ?? t('merge.unknownCode')} <span style={{ color: 'var(--text-muted)' }}>— {suffix}</span>
     </span>
   )
 }
 
 function CodingsPane({ diff }: { diff: MergeDiff }): JSX.Element {
+  const { t } = useTranslation()
   const approved = useMergeReviewStore((s) => s.codingsApproved)
   const toggleCoding = useMergeReviewStore((s) => s.toggleCoding)
   const comparisonEditedBy = useMergeReviewStore((s) => s.comparisonEditedBy)
   const reconciling = useMergeReviewStore((s) => s.reconciling)
-  const theirs = theirsPossessive(comparisonEditedBy)
+  const who = theirs(comparisonEditedBy)
   const findCode = useFindCode()
-  if (diff.codings.length === 0) return <p style={{ color: 'var(--text-muted)', fontSize: 12.5 }}>No coding differences.</p>
+  if (diff.codings.length === 0) return <p style={{ color: 'var(--text-muted)', fontSize: 12.5 }}>{t('merge.noCodingDiffs')}</p>
   return (
     <div>
       {diff.codings.map((c) => {
@@ -463,7 +472,7 @@ function CodingsPane({ diff }: { diff: MergeDiff }): JSX.Element {
               key={key}
               checked={approved.has(key)}
               onChange={() => toggleCoding(key)}
-              label={`${c.sourceName} — content differs, codings can't be itemized. Check to take ${theirs} content AND codings for this document.`}
+              label={t('merge.coarse', { doc: c.sourceName, ...who })}
             />
           )
         }
@@ -478,7 +487,7 @@ function CodingsPane({ diff }: { diff: MergeDiff }): JSX.Element {
                   <CheckboxRow
                     checked={approved.has(key)}
                     onChange={() => toggleCoding(key)}
-                    label={<CodingLabel code={code} suffix={reconciling ? `${theirs} coding since you lost control, check to add` : `only in ${theirs}, check to add`} />}
+                    label={<CodingLabel code={code} suffix={reconciling ? t('merge.codingTheirsReconciling', who) : t('merge.codingTheirs', who)} />}
                   />
                   <div style={{ marginLeft: 22 }}>
                     <CodingPreview sourceGuid={c.sourceGuid} instance={inst} findCode={findCode} />
@@ -498,7 +507,7 @@ function CodingsPane({ diff }: { diff: MergeDiff }): JSX.Element {
                     // underneath (buildApplyPlan reads it unchanged).
                     checked={!approved.has(key)}
                     onChange={() => toggleCoding(key)}
-                    label={<CodingLabel code={code} suffix={reconciling ? 'your unsaved coding, kept — uncheck to discard it instead' : 'only in mine, kept — uncheck to remove'} />}
+                    label={<CodingLabel code={code} suffix={reconciling ? t('merge.codingMineReconciling') : t('merge.codingMine')} />}
                   />
                   <div style={{ marginLeft: 22 }}>
                     <CodingPreview sourceGuid={c.sourceGuid} instance={inst} findCode={findCode} />
@@ -599,6 +608,7 @@ function keysForDeselectAll(id: FlatCategory | 'codings' | 'documentText', diff:
 }
 
 export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Element {
+  const { t } = useTranslation()
   const { diff, loading, error, comparisonFilePath, comparisonEditedBy, approved, codingsApproved, reconciling } = useMergeReviewStore()
   const reset = useMergeReviewStore((s) => s.reset)
   const [selected, setSelected] = useState<'codings' | 'documentText' | FlatCategory>('codes')
@@ -632,7 +642,7 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
     applyMerge(plan)
     setApplying(false)
     if (droppedCount > 0) {
-      setApplyWarning(`${droppedCount} document${droppedCount === 1 ? '' : 's'} couldn't be brought in — ${droppedCount === 1 ? 'its file' : 'their files'} may be missing from the comparison project, or it may have moved since you opened Compare.`)
+      setApplyWarning(t('merge.droppedWarning', { count: droppedCount }))
     }
     setApplied(totalApprovedCount(approved, codingsApproved) - droppedCount)
   }
@@ -698,7 +708,7 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
         // Should be unreachable given the unconditional re-steal above —
         // kept as a hard backstop against ever silently overwriting
         // someone else's saved changes if that assumption ever breaks.
-        setSaveError(`${(result as { marker: { userName: string } }).marker.userName} has checked this file out — try Save & Close again to retake it.`)
+        setSaveError(t('merge.checkedOut', { name: (result as { marker: { userName: string } }).marker.userName }))
         setSaving(false)
         return
       }
@@ -723,7 +733,7 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
     return (
       <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 10, width: 340 }}>
-          <span style={{ fontSize: 13, fontWeight: 500 }}>Comparing projects…</span>
+          <span style={{ fontSize: 13, fontWeight: 500 }}>{t('merge.comparing')}</span>
           <div style={{ height: 6, background: 'var(--bg-tertiary, var(--border-color))', borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
             <div
               style={{
@@ -749,26 +759,26 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
     )
   }
   if (!diff) {
-    return <div style={{ padding: 24, fontSize: 13, color: 'var(--text-secondary)' }}>No comparison loaded.</div>
+    return <div style={{ padding: 24, fontSize: 13, color: 'var(--text-secondary)' }}>{t('merge.noComparison')}</div>
   }
 
   if (applied !== null) {
     return (
       <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 12, height: '100%' }}>
-        <h2 style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>Merge applied</h2>
+        <h2 style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>{t('merge.applied')}</h2>
         <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
           {applied === 0 && reconciling
-            ? 'Nothing else to reconcile — your unsaved changes are kept as-is. Save to write them to disk.'
-            : `${applied} change${applied === 1 ? '' : 's'} applied to this project. Save to write them to disk.`}
+            ? t('merge.nothingElse')
+            : t('merge.appliedCount', { count: applied })}
         </p>
         {applyWarning && (
           <p style={{ fontSize: 12.5, color: 'var(--danger)' }}>{applyWarning}</p>
         )}
         {saveError && (
-          <p style={{ fontSize: 12.5, color: 'var(--danger)' }}>Couldn’t save: {saveError}</p>
+          <p style={{ fontSize: 12.5, color: 'var(--danger)' }}>{t('merge.couldntSave', { error: saveError })}</p>
         )}
         <div className="modal-actions" style={{ marginTop: 'auto' }}>
-          <button onClick={handleSaveAndClose} disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
+          <button onClick={handleSaveAndClose} disabled={saving}>{saving ? t('common.saving') : t('common.save')}</button>
         </div>
       </div>
     )
@@ -802,13 +812,9 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
     return items.filter((i) => i.bucket === 'onlyMine' ? !approvedSet.has(i.guid) : approvedSet.has(i.guid)).length
   }
 
-  const allCategories: { id: FlatCategory | 'codings' | 'documentText'; label: string }[] = [
-    { id: 'sources', label: 'Documents' },
-    ...FLAT_CATEGORIES.filter((c) => c.id !== 'savedAnalyses').map((c) => ({ id: c.id, label: c.label })),
-    { id: 'documentText', label: 'Document Text' },
-    { id: 'codings', label: 'Codings' },
-    { id: 'savedAnalyses', label: 'Saved Analyses' }
-  ]
+  const allCategories: { id: FlatCategory | 'codings' | 'documentText'; label: string }[] = (
+    ['sources', ...FLAT_CATEGORIES.filter((c) => c.id !== 'savedAnalyses').map((c) => c.id), 'documentText', 'codings', 'savedAnalyses'] as (FlatCategory | 'codings' | 'documentText')[]
+  ).map((id) => ({ id, label: t(`merge.cat.${id}`) }))
 
   const totalApproved = totalApprovedCount(approved, codingsApproved)
 
@@ -816,13 +822,13 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid var(--border-color)' }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Merge Project</h2>
+          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>{t('merge.title')}</h2>
           <p style={{ margin: '2px 0 0', fontSize: 11.5, color: 'var(--text-muted)' }}>
-            Comparing against {comparisonFilePath}
-            {comparisonEditedBy ? ` — last edited by ${comparisonEditedBy}` : ''}
+            {t('merge.comparingAgainst', { path: comparisonFilePath })}
+            {comparisonEditedBy ? ` ${t('merge.lastEditedBy', { name: comparisonEditedBy })}` : ''}
           </p>
         </div>
-        <button className="secondary" onClick={handleClose}>Close</button>
+        <button className="secondary" onClick={handleClose}>{t('common.close')}</button>
       </div>
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
@@ -854,8 +860,8 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
         <div style={{ flex: 1, padding: '14px 20px', overflowY: 'auto' }}>
           {categoryCount(selected) > 0 && (
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 8 }}>
-              <button className="secondary" onClick={handleDeselectAll}>Deselect All</button>
-              <button className="secondary" onClick={handleSelectAll}>Select All</button>
+              <button className="secondary" onClick={handleDeselectAll}>{t('merge.deselectAll')}</button>
+              <button className="secondary" onClick={handleSelectAll}>{t('merge.selectAll')}</button>
             </div>
           )}
           {selected === 'codings' && <CodingsPane diff={diff} />}
@@ -866,7 +872,7 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
       </div>
 
       <div className="modal-actions" style={{ padding: '12px 20px', borderTop: '1px solid var(--border-color)', margin: 0 }}>
-        <button className="secondary" onClick={handleClose}>Cancel</button>
+        <button className="secondary" onClick={handleClose}>{t('common.cancel')}</button>
         {/* Reconciling (Steal Back's compare): 0 approved is a normal,
             often-correct outcome — everything unique to mine is kept by
             default, so there may genuinely be nothing to check. Disabling
@@ -888,10 +894,10 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
             not assert a number that two different (both individually
             correct) ways of counting will routinely disagree on. */}
         {reconciling ? (
-          <button onClick={handleApply} disabled={applying}>{applying ? 'Applying…' : 'Continue'}</button>
+          <button onClick={handleApply} disabled={applying}>{applying ? t('merge.applying') : t('common.continue')}</button>
         ) : (
           <button onClick={handleApply} disabled={totalApproved === 0 || applying}>
-            {applying ? 'Applying…' : `Apply ${totalApproved > 0 ? `${totalApproved} ` : ''}Approved Change${totalApproved === 1 ? '' : 's'}`}
+            {applying ? t('merge.applying') : totalApproved > 0 ? t('merge.applyApproved', { count: totalApproved }) : t('merge.applyNone')}
           </button>
         )}
       </div>

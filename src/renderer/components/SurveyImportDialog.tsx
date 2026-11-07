@@ -32,6 +32,7 @@ import type {
   SurveyRespondent
 } from '../models/types'
 import { parseSurveyCsvAs, type SurveyFormat } from '../utils/survey/survey-parser'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   /** Initial parsed survey from the importer (parsed under the
@@ -53,10 +54,10 @@ interface Props {
   onCancel: () => void
 }
 
-const FORMAT_LABELS: Record<SurveyFormat, string> = {
+/** Product names stay as they are; "generic" is described. */
+const FORMAT_LABELS: Record<Exclude<SurveyFormat, 'generic'>, string> = {
   surveymonkey: 'SurveyMonkey',
-  'microsoft-forms': 'Microsoft Forms',
-  generic: 'Generic (single header row)'
+  'microsoft-forms': 'Microsoft Forms'
 }
 
 /** A single row in the editor — either a question or a stand-alone
@@ -68,16 +69,16 @@ type EditorRow =
 
 /** All type values the dropdown can offer for a row.
  *  Multi-select rows are restricted (see TYPE_OPTIONS_FOR_ROW). */
-const ALL_TYPES: { value: SurveyColumnType; label: string }[] = [
-  { value: 'open-ended', label: 'Open-ended' },
-  { value: 'single-choice', label: 'Single choice' },
-  { value: 'numeric', label: 'Numeric' },
-  { value: 'multi-select', label: 'Multi-select' },
-  { value: 'metadata', label: 'Metadata' },
-  { value: 'skip', label: 'Skip' }
+const ALL_TYPES: { value: SurveyColumnType; labelKey: string }[] = [
+  { value: 'open-ended', labelKey: 'survey.type.openEnded' },
+  { value: 'single-choice', labelKey: 'survey.type.singleChoice' },
+  { value: 'numeric', labelKey: 'survey.type.numeric' },
+  { value: 'multi-select', labelKey: 'survey.type.multiSelect' },
+  { value: 'metadata', labelKey: 'surveyImport.typeMetadata' },
+  { value: 'skip', labelKey: 'surveyImport.typeSkip' }
 ]
 
-function typeOptionsForRow(row: EditorRow): { value: SurveyColumnType; label: string }[] {
+function typeOptionsForRow(row: EditorRow): { value: SurveyColumnType; labelKey: string }[] {
   if (row.kind === 'question') {
     if (row.question.type === 'multi-select') {
       // Multi-select groups can only stay multi-select or be skipped.
@@ -141,6 +142,7 @@ export function SurveyImportDialog({
   onConfirm,
   onCancel
 }: Props) {
+  const { t } = useTranslation()
   const [name, setName] = useState(suggestedName)
   // Active format. Changing this re-parses the CSV under the new
   // format and resets the per-row type overrides — the column ids
@@ -281,17 +283,19 @@ export function SurveyImportDialog({
         onKeyDown={(e) => { if (e.key === 'Escape') onCancel() }}
         style={{ minWidth: 720, maxWidth: 900, maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}
       >
-        <h2 style={{ margin: 0 }}>Import Survey</h2>
+        <h2 style={{ margin: 0 }}>{t('surveyImport.title')}</h2>
         <p style={{ marginTop: 4, marginBottom: 12, fontSize: 12, color: 'var(--text-muted)' }}>
-          {survey.respondents.length} respondent{survey.respondents.length === 1 ? '' : 's'},{' '}
-          {survey.questions.length} question{survey.questions.length === 1 ? '' : 's'},{' '}
-          {survey.metadataColumnIds.length} metadata column{survey.metadataColumnIds.length === 1 ? '' : 's'}.
-          Adjust the detected type for any column before importing.
+          {t('surveyImport.summary', {
+            respondents: t('survey.respondentCount', { count: survey.respondents.length }),
+            questions: t('survey.questionCount', { count: survey.questions.length }),
+            metadata: t('surveyImport.metadataCount', { count: survey.metadataColumnIds.length })
+          })}{' '}
+          {t('surveyImport.adjust')}
         </p>
 
         <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 2 }}>
-            <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Survey name</span>
+            <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('surveyImport.name')}</span>
             <input
               type="text"
               value={name}
@@ -301,12 +305,12 @@ export function SurveyImportDialog({
           </label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
             <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
-              Source format
+              {t('surveyImport.sourceFormat')}
               {detectionConfident && format === detectedFormat && (
-                <span style={{ marginLeft: 4, color: 'var(--text-muted)' }}>· auto-detected</span>
+                <span style={{ marginLeft: 4, color: 'var(--text-muted)' }}>{t('surveyImport.autoDetected')}</span>
               )}
               {!detectionConfident && (
-                <span style={{ marginLeft: 4, color: 'var(--text-muted)' }}>· please confirm</span>
+                <span style={{ marginLeft: 4, color: 'var(--text-muted)' }}>{t('surveyImport.pleaseConfirm')}</span>
               )}
             </span>
             <select
@@ -316,13 +320,13 @@ export function SurveyImportDialog({
             >
               <option value="surveymonkey">{FORMAT_LABELS.surveymonkey}</option>
               <option value="microsoft-forms">{FORMAT_LABELS['microsoft-forms']}</option>
-              <option value="generic">{FORMAT_LABELS.generic}</option>
+              <option value="generic">{t('surveyImport.generic')}</option>
             </select>
           </label>
         </div>
         {parseError && (
           <div style={{ marginBottom: 12, padding: '6px 10px', background: 'var(--danger-bg, #fee)', color: 'var(--danger, #b00)', fontSize: 12, borderRadius: 'var(--radius-sm)' }}>
-            Could not re-parse with that format: {parseError}
+            {t('surveyImport.reparseFailed', { error: parseError })}
           </div>
         )}
 
@@ -330,9 +334,9 @@ export function SurveyImportDialog({
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ background: 'var(--bg-secondary)', position: 'sticky', top: 0, zIndex: 1 }}>
-                <th style={thStyle}>Type</th>
-                <th style={{ ...thStyle, width: '100%' }}>Column / Question</th>
-                <th style={thStyle}>Sample data</th>
+                <th style={thStyle}>{t('surveyImport.colType')}</th>
+                <th style={{ ...thStyle, width: '100%' }}>{t('surveyImport.colColumn')}</th>
+                <th style={thStyle}>{t('surveyImport.colSample')}</th>
               </tr>
             </thead>
             <tbody>
@@ -343,7 +347,7 @@ export function SurveyImportDialog({
                 const label =
                   row.kind === 'question'
                     ? stripHtml(row.question.text)
-                    : row.column.cleanHeader || '(empty header)'
+                    : row.column.cleanHeader || t('surveyImport.emptyHeader')
                 const opts = typeOptionsForRow(row)
                 const sample = sampleForRow(row, survey.respondents, survey.columns)
                 const isSkipped = currentType === 'skip'
@@ -370,7 +374,7 @@ export function SurveyImportDialog({
                         style={{ fontSize: 11, padding: '2px 4px' }}
                       >
                         {opts.map((o) => (
-                          <option key={o.value} value={o.value}>{o.label}</option>
+                          <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
                         ))}
                       </select>
                     </td>
@@ -396,8 +400,8 @@ export function SurveyImportDialog({
         </div>
 
         <div className="modal-actions" style={{ marginTop: 12, justifyContent: 'flex-end' }}>
-          <button className="secondary" onClick={onCancel}>Cancel</button>
-          <button onClick={handleConfirm}>Import {survey.respondents.length} Respondents</button>
+          <button className="secondary" onClick={onCancel}>{t('common.cancel')}</button>
+          <button onClick={handleConfirm}>{t('surveyImport.importRespondents', { count: survey.respondents.length })}</button>
         </div>
       </div>
     </div>
