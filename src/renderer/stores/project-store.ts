@@ -71,6 +71,13 @@ interface ProjectState {
 
 const defaultUserGuid = generateGuid()
 
+
+/** Whether a project name is the placeholder a new project gets (in
+ *  English, as stored by default, or in the current language). */
+export function isUntitledName(name: string): boolean {
+  return name === 'Untitled Project' || name === t('project.untitled')
+}
+
 export const useProjectStore = create<ProjectState>((set, get) => ({
   name: 'Untitled Project',
   origin: `Magnolia ${__APP_VERSION__}`,
@@ -121,7 +128,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   setFilePath: (path) =>
     set((state) => ({
       filePath: path,
-      name: !state.name || state.name === 'Untitled Project' ? deriveNameFromPath(path) : state.name
+      name: !state.name || isUntitledName(state.name) ? deriveNameFromPath(path) : state.name
     })),
   // Enforced lock: while someone else's checkoutMarker is on the project,
   // refuse to flip dirty at all — every store's mutation methods call this

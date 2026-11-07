@@ -48,7 +48,7 @@ function flattenCodesWithParent(
   }
   return result
 }
-import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from './stores/project-store'
+import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle, isUntitledName } from './stores/project-store'
 import { usePreferencesStore } from './stores/preferences-store'
 import { useCodeColourPresets, nextCodeColour, codeColourPresetsFor } from './utils/code-colours'
 import { useWindowCornerPanels } from './utils/window-corner-panels'
@@ -1874,18 +1874,20 @@ function App() {
 
   // Update window title with project file name and dirty indicator
   useEffect(() => {
-    let name = 'Untitled Project'
+    // 'Untitled Project' is the stored name of a new project; it is shown
+    // in the chosen language.
+    let name = t('project.untitled')
     if (projectStore.filePath) {
       // Extract filename without extension from the file path
       const parts = projectStore.filePath.replace(/\\/g, '/').split('/')
       const filename = parts[parts.length - 1] || ''
       name = filename.replace(/\.qdpx$/i, '') || name
-    } else if (projectStore.name) {
+    } else if (projectStore.name && !isUntitledName(projectStore.name)) {
       name = projectStore.name
     }
     const dirty = projectStore.isDirty ? ' — Edited' : ''
     document.title = `${name}${dirty} — Magnolia`
-  }, [projectStore.name, projectStore.filePath, projectStore.isDirty])
+  }, [projectStore.name, projectStore.filePath, projectStore.isDirty, t])
 
   // Listen for memo updates from the memo edit window
   useEffect(() => {
