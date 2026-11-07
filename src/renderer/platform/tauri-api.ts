@@ -16,6 +16,7 @@ import { getCurrentWebview } from '@tauri-apps/api/webview'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import type { MagnoliaAPI } from '../models/types'
 import { base64ToBytes, extractPdfText } from './pdf-text'
+import { t } from '../i18n'
 
 const current = getCurrentWebviewWindow()
 const MAIN = 'main'
@@ -91,7 +92,7 @@ async function completeProjectPdfText(
       console.error(`Failed to extract text from PDF ${source.guid}:`, err)
     }
     done++
-    for (const cb of localProgress) cb({ stage: 'Reading PDF text', current: done, total: pending.length })
+    for (const cb of localProgress) cb({ stage: t('pdfText.reading'), current: done, total: pending.length })
   }
   return data
 }
@@ -138,7 +139,7 @@ async function readDroppedFile(file: File): Promise<any> {
     bytes = await file.arrayBuffer()
   } catch {
     // WebKit can't read a dropped folder as bytes.
-    return { name: file.name, error: "Folders can't be imported. Drop the files inside it instead." }
+    return { name: file.name, error: t('native.import.folder') }
   }
   const doc = await invoke('read_dropped_file', new Uint8Array(bytes), {
     headers: { 'x-file-name': encodeURIComponent(file.name) }

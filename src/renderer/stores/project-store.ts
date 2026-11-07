@@ -105,7 +105,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   loadProject: (data) =>
     set({
-      name: data.name && data.name.trim() ? data.name : (data.filePath ? deriveNameFromPath(data.filePath) : 'Untitled Project'),
+      name: data.name && data.name.trim() ? data.name : (data.filePath ? deriveNameFromPath(data.filePath) : t('project.untitled')),
       origin: data.origin,
       description: data.description,
       users: data.users,

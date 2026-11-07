@@ -13,6 +13,7 @@ import { codepointSlice, getContext } from './unicode'
 import { buildCellText } from './survey/cell-text'
 import { sentenceSpans } from './sentences'
 import { resolveTagCellScope, tagMembershipFromTags, type TagCellScope } from './survey-cell-scope'
+import { t } from '../i18n'
 
 /** Resolve the text a selection actually points into.
  *
@@ -679,11 +680,11 @@ function flattenOr(cond: CodeCondition): CodeCondition[] {
 /** Validate a condition tree; returns an error message or null */
 export function validateCondition(cond: CodeCondition, nested = false): string | null {
   if (cond.type === 'sameSentence' && nested) {
-    return 'Same sentence must connect straight to Result: the sentences it finds can\'t be used as an input to another box or negated with NOT.'
+    return t('queryValidate.sameSentence')
   }
   if (cond.type === 'and' || cond.type === 'xor') {
     if (cond.conditions.every((c) => isAllTextCondition(c))) {
-      return 'Text-only inputs can only be combined with the OR operator. AND, EITHER/OR, and BUT NOT are not valid for multiple text inputs.'
+      return t('queryValidate.textOnlyOr')
     }
     for (const c of cond.conditions) {
       const err = validateCondition(c, true)

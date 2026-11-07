@@ -226,7 +226,8 @@
     "close": "Sluiten"
   },
   "project": {
-    "lockedTitle": "{{name}} werkt aan dit bestand: neem het over of maak een kopie om te bewerken"
+    "lockedTitle": "{{name}} werkt aan dit bestand: neem het over of maak een kopie om te bewerken",
+    "untitled": "Naamloos project"
   },
   "welcome": {
     "recentProjects": "Recente projecten",
@@ -663,7 +664,8 @@
     "typingHintAudio": "Typ terwijl de audio speelt: elke nieuwe regel krijgt ongemerkt de tijd van de afspeelkop.",
     "typingHintVideo": "Typ terwijl de video speelt: elke nieuwe regel krijgt ongemerkt de tijd van de afspeelkop.",
     "enterHint": "Druk op Enter om een nieuwe regel te beginnen. Codes worden gekoppeld aan tijdsintervallen op de track hierboven.",
-    "placeholder": "Begin met transcriberen…"
+    "placeholder": "Begin met transcriberen…",
+    "audioFileNote": "Audiobestand: {{file}}"
   },
   "speakers": {
     "detected_one": "{{count}} spreker gevonden",
@@ -1580,5 +1582,43 @@
       "survey-question": "VRAAG",
       "survey-cell": "ANTWOORD"
     }
+  },
+  "memoPlace": {
+    "deletedDocuments": "Verwijderde documenten",
+    "project": "Project",
+    "projectMemo": "Projectmemo",
+    "documentMemo": "Documentmemo",
+    "alsoOn_one": "Documentmemo (ook bij {{count}} ander document)",
+    "alsoOn_other": "Documentmemo (ook bij {{count}} andere documenten)",
+    "question": "Vraag: {{text}}",
+    "respondent": "Respondent: {{name}}",
+    "answerOf": "Antwoord van {{who}} op {{what}}",
+    "selectionInAnswer": "Selectie in het antwoord van {{who}} op {{what}}",
+    "regionOnPage": "Gebied op pagina {{page}}",
+    "selectionQuoted": "Selectie: \"{{text}}\"",
+    "selection": "Selectie",
+    "savedQueries": "Bewaarde query's",
+    "query": "Query: {{name}}",
+    "deletedQuery": "Een verwijderde query",
+    "savedAnalyses": "Bewaarde analyses",
+    "analysis": "Analyse: {{name}}",
+    "deletedAnalysis": "Een verwijderde analyse",
+    "map": "Kaart: {{name}}",
+    "mapMemo": "Memo bij relatiekaart",
+    "other": "Overig",
+    "memo": "Memo"
+  },
+  "pdfText": {
+    "reading": "Pdf-tekst lezen"
+  },
+  "surveyParse": {
+    "respondentN": "Respondent {{n}}",
+    "monkeyHeaders": "Een SurveyMonkey-CSV moet minstens twee kopregels hebben.",
+    "oneHeader": "Een enquête-CSV moet minstens één kopregel hebben.",
+    "response": "Antwoord"
+  },
+  "queryValidate": {
+    "sameSentence": "Dezelfde zin moet direct met Resultaat verbonden zijn: de zinnen die het vindt, kunnen geen invoer voor een ander vak zijn en niet met NOT worden ontkend.",
+    "textOnlyOr": "Invoer met alleen tekst kan alleen met de operator OR worden gecombineerd. AND, XOR en NOT zijn niet geldig voor meerdere tekstinvoeren."
   }
 }

@@ -226,7 +226,8 @@
     "close": "Fechar"
   },
   "project": {
-    "lockedTitle": "{{name}} está trabalhando neste arquivo: assuma o controle ou crie uma cópia para editar"
+    "lockedTitle": "{{name}} está trabalhando neste arquivo: assuma o controle ou crie uma cópia para editar",
+    "untitled": "Projeto sem título"
   },
   "welcome": {
     "recentProjects": "Projetos recentes",
@@ -683,7 +684,8 @@
     "typingHintAudio": "Digite enquanto o áudio toca: cada nova linha é marcada com a posição de reprodução.",
     "typingHintVideo": "Digite enquanto o vídeo toca: cada nova linha é marcada com a posição de reprodução.",
     "enterHint": "Pressione Enter para começar uma nova linha. Os códigos ficam ligados a intervalos de tempo na faixa acima.",
-    "placeholder": "Comece a transcrever…"
+    "placeholder": "Comece a transcrever…",
+    "audioFileNote": "Arquivo de áudio: {{file}}"
   },
   "speakers": {
     "detected_one": "{{count}} falante detectado",
@@ -1635,5 +1637,44 @@
       "survey-question": "PERGUNTA",
       "survey-cell": "RESPOSTA"
     }
+  },
+  "memoPlace": {
+    "deletedDocuments": "Documentos excluídos",
+    "project": "Projeto",
+    "projectMemo": "Memo do projeto",
+    "documentMemo": "Memo do documento",
+    "alsoOn_one": "Memo do documento (também em outro documento)",
+    "alsoOn_many": "Memo do documento (também em outros {{count}} documentos)",
+    "alsoOn_other": "Memo do documento (também em outros {{count}} documentos)",
+    "question": "Pergunta: {{text}}",
+    "respondent": "Respondente: {{name}}",
+    "answerOf": "Resposta de {{who}} a {{what}}",
+    "selectionInAnswer": "Seleção na resposta de {{who}} a {{what}}",
+    "regionOnPage": "Região na página {{page}}",
+    "selectionQuoted": "Seleção: \"{{text}}\"",
+    "selection": "Seleção",
+    "savedQueries": "Consultas salvas",
+    "query": "Consulta: {{name}}",
+    "deletedQuery": "Uma consulta excluída",
+    "savedAnalyses": "Análises salvas",
+    "analysis": "Análise: {{name}}",
+    "deletedAnalysis": "Uma análise excluída",
+    "map": "Mapa: {{name}}",
+    "mapMemo": "Memo do mapa de relações",
+    "other": "Outros",
+    "memo": "Memo"
+  },
+  "pdfText": {
+    "reading": "Lendo o texto dos PDFs"
+  },
+  "surveyParse": {
+    "respondentN": "Respondente {{n}}",
+    "monkeyHeaders": "Um CSV do SurveyMonkey deve ter pelo menos duas linhas de cabeçalho.",
+    "oneHeader": "Um CSV de pesquisa deve ter pelo menos uma linha de cabeçalho.",
+    "response": "Resposta"
+  },
+  "queryValidate": {
+    "sameSentence": "Mesma frase deve se conectar diretamente a Resultado: as frases que encontra não podem ser usadas como entrada de outra caixa nem negadas com NOT.",
+    "textOnlyOr": "Entradas só de texto só podem ser combinadas com o operador OR. AND, XOR e NOT não são válidos para várias entradas de texto."
   }
 }

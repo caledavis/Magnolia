@@ -226,7 +226,8 @@
     "close": "Close"
   },
   "project": {
-    "lockedTitle": "{{name}} is working on this file — take over or create a copy to edit"
+    "lockedTitle": "{{name}} is working on this file — take over or create a copy to edit",
+    "untitled": "Untitled Project"
   },
   "welcome": {
     "recentProjects": "Recent Projects",
@@ -663,7 +664,8 @@
     "typingHintAudio": "Type as the audio plays — each new line is silently tagged with the playhead time.",
     "typingHintVideo": "Type as the video plays — each new line is silently tagged with the playhead time.",
     "enterHint": "Press Enter to start a new line. Codes attach to time ranges on the track above.",
-    "placeholder": "Begin transcribing…"
+    "placeholder": "Begin transcribing…",
+    "audioFileNote": "Audio file: {{file}}"
   },
   "speakers": {
     "detected_one": "{{count}} speaker detected",
@@ -1580,5 +1582,43 @@
       "survey-question": "QUESTION",
       "survey-cell": "ANSWER"
     }
+  },
+  "memoPlace": {
+    "deletedDocuments": "Deleted documents",
+    "project": "Project",
+    "projectMemo": "Project memo",
+    "documentMemo": "Document memo",
+    "alsoOn_one": "Document memo (also on {{count}} other document)",
+    "alsoOn_other": "Document memo (also on {{count}} other documents)",
+    "question": "Question: {{text}}",
+    "respondent": "Respondent: {{name}}",
+    "answerOf": "Answer of {{who}} to {{what}}",
+    "selectionInAnswer": "Selection in the answer of {{who}} to {{what}}",
+    "regionOnPage": "Region on page {{page}}",
+    "selectionQuoted": "Selection: “{{text}}”",
+    "selection": "Selection",
+    "savedQueries": "Saved Queries",
+    "query": "Query: {{name}}",
+    "deletedQuery": "A deleted query",
+    "savedAnalyses": "Saved Analyses",
+    "analysis": "Analysis: {{name}}",
+    "deletedAnalysis": "A deleted analysis",
+    "map": "Map: {{name}}",
+    "mapMemo": "Relationship map memo",
+    "other": "Other",
+    "memo": "Memo"
+  },
+  "pdfText": {
+    "reading": "Reading PDF text"
+  },
+  "surveyParse": {
+    "respondentN": "Respondent {{n}}",
+    "monkeyHeaders": "SurveyMonkey CSV must have at least two header rows.",
+    "oneHeader": "Survey CSV must have at least one header row.",
+    "response": "Response"
+  },
+  "queryValidate": {
+    "sameSentence": "Same sentence must connect straight to Result: the sentences it finds can't be used as an input to another box or negated with NOT.",
+    "textOnlyOr": "Text-only inputs can only be combined with the OR operator. AND, EITHER/OR, and BUT NOT are not valid for multiple text inputs."
   }
 }

@@ -226,7 +226,8 @@
     "close": "Cerrar"
   },
   "project": {
-    "lockedTitle": "{{name}} está trabajando en este archivo: toma el control o crea una copia para editarlo"
+    "lockedTitle": "{{name}} está trabajando en este archivo: toma el control o crea una copia para editarlo",
+    "untitled": "Proyecto sin título"
   },
   "welcome": {
     "recentProjects": "Proyectos recientes",
@@ -683,7 +684,8 @@
     "typingHintAudio": "Escribe mientras se reproduce el audio: cada línea nueva se marca con la posición de reproducción.",
     "typingHintVideo": "Escribe mientras se reproduce el vídeo: cada línea nueva se marca con la posición de reproducción.",
     "enterHint": "Pulsa Intro para empezar una línea nueva. Los códigos se asocian a intervalos de tiempo en la pista de arriba.",
-    "placeholder": "Empieza a transcribir…"
+    "placeholder": "Empieza a transcribir…",
+    "audioFileNote": "Archivo de audio: {{file}}"
   },
   "speakers": {
     "detected_one": "Se detectó {{count}} hablante",
@@ -1635,5 +1637,44 @@
       "survey-question": "PREGUNTA",
       "survey-cell": "RESPUESTA"
     }
+  },
+  "memoPlace": {
+    "deletedDocuments": "Documentos eliminados",
+    "project": "Proyecto",
+    "projectMemo": "Memo del proyecto",
+    "documentMemo": "Memo del documento",
+    "alsoOn_one": "Memo del documento (también en otro documento)",
+    "alsoOn_many": "Memo del documento (también en otros {{count}} documentos)",
+    "alsoOn_other": "Memo del documento (también en otros {{count}} documentos)",
+    "question": "Pregunta: {{text}}",
+    "respondent": "Encuestado: {{name}}",
+    "answerOf": "Respuesta de {{who}} a {{what}}",
+    "selectionInAnswer": "Selección en la respuesta de {{who}} a {{what}}",
+    "regionOnPage": "Región en la página {{page}}",
+    "selectionQuoted": "Selección: «{{text}}»",
+    "selection": "Selección",
+    "savedQueries": "Consultas guardadas",
+    "query": "Consulta: {{name}}",
+    "deletedQuery": "Una consulta eliminada",
+    "savedAnalyses": "Análisis guardados",
+    "analysis": "Análisis: {{name}}",
+    "deletedAnalysis": "Un análisis eliminado",
+    "map": "Mapa: {{name}}",
+    "mapMemo": "Memo del mapa de relaciones",
+    "other": "Otros",
+    "memo": "Memo"
+  },
+  "pdfText": {
+    "reading": "Leyendo el texto de los PDF"
+  },
+  "surveyParse": {
+    "respondentN": "Encuestado {{n}}",
+    "monkeyHeaders": "Un CSV de SurveyMonkey debe tener al menos dos filas de encabezado.",
+    "oneHeader": "Un CSV de encuesta debe tener al menos una fila de encabezado.",
+    "response": "Respuesta"
+  },
+  "queryValidate": {
+    "sameSentence": "Misma oración debe conectarse directamente a Resultado: las oraciones que encuentra no pueden usarse como entrada de otro cuadro ni negarse con NOT.",
+    "textOnlyOr": "Las entradas solo de texto solo se pueden combinar con el operador OR. AND, XOR y NOT no son válidos para varias entradas de texto."
   }
 }

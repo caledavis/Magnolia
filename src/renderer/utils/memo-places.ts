@@ -7,6 +7,7 @@
  * the Memos window has no project stores of its own.
  */
 import type { Memo, SavedAnalysis, SavedQuery, SurveyData, TextSource } from '../models/types'
+import { t } from '../i18n'
 
 export interface MemoPlace {
   /** Memos with the same key are listed together. */
@@ -50,7 +51,7 @@ export function memoPlacer(lookups: MemoLookups): (memo: Memo) => MemoPlace {
 
   const inDocument = (sourceGuid: string | undefined, detail: string, canShow = true): MemoPlace => {
     const source = sourceGuid ? sources.get(sourceGuid) : undefined
-    if (!source) return { groupKey: 'missing', groupLabel: 'Deleted documents', groupOrder: GROUP_ORDER.other, detail, canShow: false }
+    if (!source) return { groupKey: 'missing', groupLabel: t('memoPlace.deletedDocuments'), groupOrder: GROUP_ORDER.other, detail, canShow: false }
     return { groupKey: `doc:${source.guid}`, groupLabel: source.name, groupOrder: GROUP_ORDER.document, detail, canShow }
   }
   const question = (survey: SurveyData | undefined, id: string | undefined) =>
@@ -61,19 +62,18 @@ export function memoPlacer(lookups: MemoLookups): (memo: Memo) => MemoPlace {
   return (memo) => {
     switch (memo.type) {
       case 'project':
-        return { groupKey: 'project', groupLabel: 'Project', groupOrder: GROUP_ORDER.project, detail: 'Project memo', canShow: false }
+        return { groupKey: 'project', groupLabel: t('memoPlace.project'), groupOrder: GROUP_ORDER.project, detail: t('memoPlace.projectMemo'), canShow: false }
       case 'document': {
         const [first, ...rest] = memo.sourceGuids ?? []
-        const also = rest.length ? ` (also on ${rest.length} other document${rest.length === 1 ? '' : 's'})` : ''
-        return inDocument(first, `Document memo${also}`)
+                return inDocument(first, rest.length ? t('memoPlace.alsoOn', { count: rest.length }) : t('memoPlace.documentMemo'))
       }
       case 'survey-question': {
         const survey = surveyOf(sources.get(memo.sourceGuid ?? ''))
-        return inDocument(memo.sourceGuid, `Question: ${excerpt(question(survey, memo.questionGuid))}`)
+        return inDocument(memo.sourceGuid, t('memoPlace.question', { text: excerpt(question(survey, memo.questionGuid)) }))
       }
       case 'survey-respondent': {
         const survey = surveyOf(sources.get(memo.sourceGuid ?? ''))
-        return inDocument(memo.sourceGuid, `Respondent: ${respondent(survey, memo.respondentId)}`)
+        return inDocument(memo.sourceGuid, t('memoPlace.respondent', { name: respondent(survey, memo.respondentId) }))
       }
       case 'survey-cell':
       case 'content': {
@@ -82,29 +82,29 @@ export function memoPlacer(lookups: MemoLookups): (memo: Memo) => MemoPlace {
           const survey = surveyOf(source)
           const who = respondent(survey, memo.surveyCell.respondentId)
           const what = excerpt(question(survey, memo.surveyCell.questionId))
-          return inDocument(memo.sourceGuid, `${memo.type === 'content' ? 'Selection in the answer' : 'Answer'} of ${who} to ${what}`)
+          return inDocument(memo.sourceGuid, t(memo.type === 'content' ? 'memoPlace.selectionInAnswer' : 'memoPlace.answerOf', { who, what }))
         }
-        if (memo.pdfRegion) return inDocument(memo.sourceGuid, `Region on page ${memo.pdfRegion.page}`)
+        if (memo.pdfRegion) return inDocument(memo.sourceGuid, t('memoPlace.regionOnPage', { page: memo.pdfRegion.page }))
         const text = lookups.contents?.[memo.sourceGuid ?? ''] ?? source?.plainTextContent
         const start = memo.startPosition, end = memo.endPosition
         const chosen = text && start !== undefined && end !== undefined && end > start ? excerpt(text.slice(start, end)) : ''
-        return inDocument(memo.sourceGuid, chosen ? `Selection: “${chosen}”` : 'Selection')
+        return inDocument(memo.sourceGuid, chosen ? t('memoPlace.selectionQuoted', { text: chosen }) : t('memoPlace.selection'))
       }
       case 'saved-query': {
         const name = queries.get(memo.queryGuid ?? '')
-        return { groupKey: 'queries', groupLabel: 'Saved Queries', groupOrder: GROUP_ORDER.query, detail: name ? `Query: ${name}` : 'A deleted query', canShow: false }
+        return { groupKey: 'queries', groupLabel: t('memoPlace.savedQueries'), groupOrder: GROUP_ORDER.query, detail: name ? t('memoPlace.query', { name }) : t('memoPlace.deletedQuery'), canShow: false }
       }
       case 'saved-analysis': {
         const name = analyses.get(memo.analysisGuid ?? '')?.name
-        return { groupKey: 'analyses', groupLabel: 'Saved Analyses', groupOrder: GROUP_ORDER.analysis, detail: name ? `Analysis: ${name}` : 'A deleted analysis', canShow: false }
+        return { groupKey: 'analyses', groupLabel: t('memoPlace.savedAnalyses'), groupOrder: GROUP_ORDER.analysis, detail: name ? t('memoPlace.analysis', { name }) : t('memoPlace.deletedAnalysis'), canShow: false }
       }
       case 'analysis': {
         const map = analyses.get(memo.analysisGuid ?? '')
-        const name = map?.name?.trim() || 'Untitled map'
-        return { groupKey: `map:${memo.analysisGuid ?? ''}`, groupLabel: `Map: ${name}`, groupOrder: GROUP_ORDER.map, detail: 'Relationship map memo', canShow: false }
+        const name = map?.name?.trim() || t('tabs.untitledMap')
+        return { groupKey: `map:${memo.analysisGuid ?? ''}`, groupLabel: t('memoPlace.map', { name }), groupOrder: GROUP_ORDER.map, detail: t('memoPlace.mapMemo'), canShow: false }
       }
       default:
-        return { groupKey: 'other', groupLabel: 'Other', groupOrder: GROUP_ORDER.other, detail: 'Memo', canShow: false }
+        return { groupKey: 'other', groupLabel: t('memoPlace.other'), groupOrder: GROUP_ORDER.other, detail: t('memoPlace.memo'), canShow: false }
     }
   }
 }
@@ -136,6 +136,6 @@ export function groupMemos(memos: Memo[], places: Record<string, MemoPlace>): Me
 export function memoMatches(memo: Memo, place: MemoPlace | undefined, query: string): boolean {
   const q = query.trim().toLowerCase()
   if (!q) return true
-  return [memo.title || 'Untitled Memo', memo.content, place?.detail ?? '', place?.groupLabel ?? '']
+  return [memo.title || t('memos.untitled'), memo.content, place?.detail ?? '', place?.groupLabel ?? '']
     .some((s) => s.toLowerCase().includes(q))
 }
