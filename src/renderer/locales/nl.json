@@ -227,5 +227,40 @@
   },
   "project": {
     "lockedTitle": "{{name}} werkt aan dit bestand: neem het over of maak een kopie om te bewerken"
+  },
+  "welcome": {
+    "recentProjects": "Recente projecten",
+    "clearTitle": "Recente projecten wissen",
+    "clear": "Wissen",
+    "noRecent": "Nog geen recente projecten",
+    "quit": "Stoppen",
+    "open": "Openen…",
+    "new": "Nieuw",
+    "sponsor": "Steun de ontwikkeling van Magnolia",
+    "ownRisk": "Gebruik Magnolia op eigen risico."
+  },
+  "update": {
+    "availableHeading": "Er is een nieuwe versie van Magnolia beschikbaar!",
+    "availableInfo": "Magnolia {{version}} is nu beschikbaar; je hebt {{current}}. Wil je deze nu downloaden?",
+    "releaseNotes": "Releaseopmerkingen:",
+    "released": "Uitgebracht op {{date}}",
+    "noNotes": "Er zijn geen releaseopmerkingen voor deze versie.",
+    "skip": "Deze versie overslaan",
+    "later": "Herinner me later",
+    "install": "Update installeren",
+    "checking": "Zoeken naar updates…",
+    "downloading": "Magnolia {{version}} downloaden…",
+    "progress": "{{received}} van {{total}}",
+    "ready": "Klaar om te installeren",
+    "readyInfo": "Magnolia {{version}} is gedownload. Als je dit venster sluit, wordt de update geïnstalleerd wanneer je Magnolia stopt.",
+    "installing": "Update installeren…",
+    "installingInfo": "Magnolia start opnieuw op als het klaar is.",
+    "upToDate": "Je bent helemaal bij!",
+    "upToDateInfo": "Magnolia {{version}} is momenteel de nieuwste beschikbare versie.",
+    "installAndRelaunch": "Installeren en opnieuw starten"
+  },
+  "common": {
+    "cancel": "Annuleren",
+    "ok": "OK"
   }
 }

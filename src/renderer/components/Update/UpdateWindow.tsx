@@ -2,6 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { UpdateView } from '../../models/types'
 import { Markdown } from '../Markdown'
 import appIcon from '../../../../src-tauri/icons/128x128@2x.png'
+import { useTranslation } from 'react-i18next'
+import { formatDate, formatNumber } from '../../i18n'
 
 /**
  * The Sparkle-style software update window. The backend (updater.rs) opens
@@ -60,38 +62,38 @@ function Prompt({
   defaultRef,
   cancelRef
 }: { view: Extract<UpdateView, { state: 'available' }> } & ButtonRefs): JSX.Element {
+  const { t } = useTranslation()
   const released = formatDay(view.releaseDate)
   return (
     <div className="update-window update-prompt">
       <img className="update-icon" src={appIcon} alt="" draggable={false} />
       <div className="update-body">
-        <h1>A new version of Magnolia is available!</h1>
+        <h1>{t('update.availableHeading')}</h1>
         <p className="update-info">
-          Magnolia {view.version} is now available—you have {view.currentVersion}. Would you like to download it
-          now?
+          {t('update.availableInfo', { version: view.version, current: view.currentVersion })}
         </p>
         <div className="update-notes-label">
-          <span>Release Notes:</span>
-          {released && <span className="update-released">Released {released}</span>}
+          <span>{t('update.releaseNotes')}</span>
+          {released && <span className="update-released">{t('update.released', { date: released })}</span>}
         </div>
         <div className="update-notes" tabIndex={-1}>
           {view.releaseNotes.trim() ? (
             <Markdown text={view.releaseNotes} />
           ) : (
-            <p className="update-notes-empty">No release notes were provided for this version.</p>
+            <p className="update-notes-empty">{t('update.noNotes')}</p>
           )}
         </div>
       </div>
       <div className="update-buttons">
         <button className="update-skip" onClick={() => window.api.skipUpdateVersion(view.version)}>
-          Skip This Version
+          {t('update.skip')}
         </button>
         <span className="update-spacer" />
         <button ref={cancelRef} onClick={() => window.api.dismissUpdate()}>
-          Remind Me Later
+          {t('update.later')}
         </button>
         <button ref={defaultRef} className="update-default" onClick={() => window.api.installUpdate()}>
-          Install Update
+          {t('update.install')}
         </button>
       </div>
     </div>
@@ -99,6 +101,7 @@ function Prompt({
 }
 
 function Status({ view, defaultRef, cancelRef }: { view: Exclude<UpdateView, { state: 'available' }> } & ButtonRefs) {
+  const { t } = useTranslation()
   let title: string
   let detail: React.ReactNode = null
   let progress: number | null | undefined // undefined: no bar; null: indeterminate
@@ -142,34 +145,34 @@ function Status({ view, defaultRef, cancelRef }: { view: Exclude<UpdateView, { s
 
   switch (view.state) {
     case 'checking':
-      title = 'Checking for updates…'
+      title = t('update.checking')
       progress = null
       button = 'cancel'
       break
     case 'downloading':
-      title = `Downloading Magnolia ${view.version}…`
+      title = t('update.downloading', { version: view.version })
       progress = view.total ? view.received / view.total : null
       detail = view.total
-        ? `${formatBytes(view.received)} of ${formatBytes(view.total)}`
+        ? t('update.progress', { received: formatBytes(view.received), total: formatBytes(view.total) })
         : view.received
           ? formatBytes(view.received)
           : ' '
       button = 'cancel'
       break
     case 'ready':
-      title = 'Ready to Install'
+      title = t('update.ready')
       progress = 1
-      detail = `Magnolia ${view.version} has been downloaded. If you close this window, it installs when you quit Magnolia.`
+      detail = t('update.readyInfo', { version: view.version })
       button = 'install'
       break
     case 'installing':
-      title = 'Installing update…'
-      detail = 'Magnolia will relaunch when it’s done.'
+      title = t('update.installing')
+      detail = t('update.installingInfo')
       progress = null
       break
     case 'up-to-date':
-      title = 'You’re up to date!'
-      detail = `Magnolia ${view.version} is currently the newest version available.`
+      title = t('update.upToDate')
+      detail = t('update.upToDateInfo', { version: view.version })
       button = 'ok'
       break
     case 'error':
@@ -191,7 +194,7 @@ function Status({ view, defaultRef, cancelRef }: { view: Exclude<UpdateView, { s
         <span className="update-spacer" />
         {button === 'cancel' && (
           <button ref={cancelRef} onClick={() => window.api.dismissUpdate()}>
-            Cancel
+            {t('common.cancel')}
           </button>
         )}
         {button === 'ok' && (
@@ -203,12 +206,12 @@ function Status({ view, defaultRef, cancelRef }: { view: Exclude<UpdateView, { s
             className="update-default"
             onClick={() => window.api.dismissUpdate()}
           >
-            OK
+            {t('common.ok')}
           </button>
         )}
         {button === 'install' && (
           <button ref={defaultRef} className="update-default" onClick={() => window.api.installUpdate()}>
-            Install and Relaunch
+            {t('update.installAndRelaunch')}
           </button>
         )}
       </div>
@@ -237,7 +240,7 @@ function ProgressBar({ value }: { value: number | null }): JSX.Element {
 function formatDay(day: string | null): string | null {
   const m = day && /^(\d{4})-(\d{2})-(\d{2})$/.exec(day)
   if (!m) return null
-  return new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString(undefined, {
+  return formatDate(new Date(+m[1], +m[2] - 1, +m[3]), {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
@@ -245,6 +248,6 @@ function formatDay(day: string | null): string | null {
 }
 
 function formatBytes(n: number): string {
-  if (n < 1e6) return `${Math.max(1, Math.round(n / 1e3))} KB`
-  return `${(n / 1e6).toFixed(1)} MB`
+  if (n < 1e6) return `${formatNumber(Math.max(1, Math.round(n / 1e3)))} KB`
+  return `${formatNumber(n / 1e6, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} MB`
 }

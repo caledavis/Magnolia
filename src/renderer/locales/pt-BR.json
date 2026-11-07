@@ -227,5 +227,40 @@
   },
   "project": {
     "lockedTitle": "{{name}} está trabalhando neste arquivo: assuma o controle ou crie uma cópia para editar"
+  },
+  "welcome": {
+    "recentProjects": "Projetos recentes",
+    "clearTitle": "Limpar os projetos recentes",
+    "clear": "Limpar",
+    "noRecent": "Nenhum projeto recente ainda",
+    "quit": "Encerrar",
+    "open": "Abrir…",
+    "new": "Novo",
+    "sponsor": "Patrocine o desenvolvimento do Magnolia",
+    "ownRisk": "Use o Magnolia por sua conta e risco."
+  },
+  "update": {
+    "availableHeading": "Uma nova versão do Magnolia está disponível!",
+    "availableInfo": "O Magnolia {{version}} já está disponível; você tem a {{current}}. Quer baixá-la agora?",
+    "releaseNotes": "Notas da versão:",
+    "released": "Lançada em {{date}}",
+    "noNotes": "Nenhuma nota foi fornecida para esta versão.",
+    "skip": "Ignorar esta versão",
+    "later": "Lembrar mais tarde",
+    "install": "Instalar atualização",
+    "checking": "Buscando atualizações…",
+    "downloading": "Baixando o Magnolia {{version}}…",
+    "progress": "{{received}} de {{total}}",
+    "ready": "Pronta para instalar",
+    "readyInfo": "O Magnolia {{version}} foi baixado. Se você fechar esta janela, ele será instalado quando você encerrar o Magnolia.",
+    "installing": "Instalando a atualização…",
+    "installingInfo": "O Magnolia será reaberto quando terminar.",
+    "upToDate": "Você está com a versão mais recente!",
+    "upToDateInfo": "O Magnolia {{version}} é a versão mais recente disponível.",
+    "installAndRelaunch": "Instalar e reabrir"
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "ok": "OK"
   }
 }
