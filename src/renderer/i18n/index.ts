@@ -83,6 +83,10 @@ const systemLanguages = (): readonly string[] =>
 function apply(language: LanguageId): void {
   void i18n.changeLanguage(language)
   document.documentElement.lang = language
+  // A window whose page names its title by key (a data-i18n attribute on <title>)
+  // takes it in this language. The main window's title is the project's.
+  const key = document.querySelector('title')?.dataset.i18n
+  if (key) document.title = i18n.t(key)
 }
 
 /** Put this window in the saved language and keep it in step with the

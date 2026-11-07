@@ -102,9 +102,10 @@ describe('keys the app uses', () => {
   })
 
   it('exist for the renderer', () => {
-    for (const file of filesUnder('src/renderer', ['.ts', '.tsx'])) {
-      // t('key'), t("key") and i18nKey="key"; keys built at runtime are skipped.
-      for (const m of readFileSync(file, 'utf-8').matchAll(/(?:\bt\(\s*|i18nKey=)['"]([\w.-]+)['"]/g)) {
+    for (const file of filesUnder('src/renderer', ['.ts', '.tsx', '.html'])) {
+      // t('key'), t("key"), i18nKey="key" and data-i18n="key"; keys built
+      // at runtime are skipped.
+      for (const m of readFileSync(file, 'utf-8').matchAll(/(?:\bt\(\s*|i18nKey=|data-i18n=)['"]([\w.-]+)['"]/g)) {
         expect(keys.has(m[1]), `${m[1]} (${file})`).toBe(true)
       }
     }

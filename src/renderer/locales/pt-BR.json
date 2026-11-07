@@ -238,7 +238,8 @@
     "open": "Abrir…",
     "new": "Novo",
     "sponsor": "Patrocine o desenvolvimento do Magnolia",
-    "ownRisk": "Use o Magnolia por sua conta e risco."
+    "ownRisk": "Use o Magnolia por sua conta e risco.",
+    "windowTitle": "Boas-vindas — Magnolia"
   },
   "update": {
     "availableHeading": "Uma nova versão do Magnolia está disponível!",

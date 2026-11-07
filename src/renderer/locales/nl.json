@@ -238,7 +238,8 @@
     "open": "Openen…",
     "new": "Nieuw",
     "sponsor": "Steun de ontwikkeling van Magnolia",
-    "ownRisk": "Gebruik Magnolia op eigen risico."
+    "ownRisk": "Gebruik Magnolia op eigen risico.",
+    "windowTitle": "Welkom — Magnolia"
   },
   "update": {
     "availableHeading": "Er is een nieuwe versie van Magnolia beschikbaar!",
