@@ -14,15 +14,11 @@ import {
 } from '../../utils/document-graph'
 import type { SurveyEntityRef } from '../../models/types'
 import { SurveyScopeLine, chosenIds, mayBeSurveyEntityDrag, parseSurveyEntityDrop, withSurveyEntity, withSurveyIds } from './SurveyScope'
+import { useTranslation } from 'react-i18next'
+import { t } from '../../i18n'
 
-const CATEGORY_LABELS: Record<DocCategory, string> = {
-  video: 'Video',
-  audio: 'Audio',
-  document: 'Document',
-  image: 'Image',
-  survey: 'Survey',
-  note: 'Notes'
-}
+/** A document category's name (docSelector.category.<category>). */
+const categoryLabel = (category: DocCategory): string => t(`docSelector.category.${category}`)
 
 /* ═══════════════════════════════════════════════════
    Exported interfaces (backward-compatible)
@@ -111,15 +107,7 @@ const KIND_COLOR: Record<DNodeKind, string> = {
   result: '#8b5cf6'
 }
 
-const KIND_LABEL: Record<DNodeKind, string> = {
-  docs: 'Documents',
-  tag: 'Tag',
-  type: 'Type',
-  folder: 'Folder',
-  allDocs: 'All docs',
-  setOp: 'Logical',
-  result: 'Result'
-}
+const kindLabel = (kind: DNodeKind): string => t(`docSelector.kind.${kind}`)
 
 const SET_OP_LABEL: Record<SetOp, string> = {
   union: 'Union',
@@ -133,21 +121,9 @@ const SET_OP_COLOR: Record<SetOp, string> = {
   subtract: '#f43f5e'
 }
 
-const SET_OP_TOOLTIP: Record<SetOp, string> = {
-  union: 'UNION \u2014 documents from either input (Input 1 + Input 2)',
-  intersect: 'INTERSECT \u2014 only documents in both inputs (Input 1 \u2229 Input 2)',
-  subtract: 'SUBTRACT \u2014 documents in Input 1 but not in Input 2 (Input 1 \u2212 Input 2)'
-}
+const setOpTooltip = (op: SetOp): string => t(`docSelector.op.${op}`)
 
-const KIND_TOOLTIP: Record<DNodeKind, string> = {
-  docs: 'A specific set of documents dragged from the Document Browser',
-  tag: 'All documents assigned to a particular tag',
-  type: 'All documents matching a file type extension',
-  folder: 'All documents inside a folder (sub-folders included)',
-  allDocs: 'Every document in the project',
-  setOp: 'Combine document sets with union, intersect, or subtract',
-  result: 'The final document selection \u2014 connect an input or operation here'
-}
+const kindTooltip = (kind: DNodeKind): string => t(`docSelector.tip.${kind}`)
 
 /* ═══════════════════════════════════════════════════
    Helpers
@@ -224,7 +200,7 @@ function graphFromFilter(
         y: 30 + nextRow * ROW_GAP,
         tagCategoryGuid: tag?.categoryGuid,
         tagGuid,
-        tagName: tag?.value || tag?.name || 'Tag'
+        tagName: tag?.value || tag?.name || t('common.tag')
       }
       nodes.push(tagNode)
       sourceNodes.push(tagNode)
@@ -260,7 +236,7 @@ function graphFromFilter(
         y: 30 + nextRow * ROW_GAP,
         tagCategoryGuid: tag?.categoryGuid,
         tagGuid,
-        tagName: tag?.value || tag?.name || 'Tag'
+        tagName: tag?.value || tag?.name || t('common.tag')
       }
       nodes.push(tagNode)
       excludeTagNodes.push(tagNode)
@@ -540,7 +516,7 @@ function collectFilterTags(nodes: DNode[], conns: DConn[]): { include: string[];
  *  trailing "+N more" so a big respondent group doesn't flood the panel. */
 function scopeListItems(items: string[], max = 50): string[] {
   if (items.length <= max) return items
-  return [...items.slice(0, max), `+${items.length - max} more`]
+  return [...items.slice(0, max), t('docSelector.more', { count: items.length - max })]
 }
 
 interface Props {
@@ -569,6 +545,7 @@ export function DocumentSelector({
   sources, tags, categories, folders, sourceFolder = {}, tagMembers = {},
   respondentTagMembers = {}, questionTagMembers = {}, surveyEntityLabels = {}, filter, onChange
 }: Props) {
+  const { t } = useTranslation()
   const canvasRef = useRef<HTMLDivElement>(null)
   const wireRef = useRef<SVGPathElement>(null)
   // Update module-level context so nodeH can compute accurate tag node heights
@@ -1042,7 +1019,7 @@ export function DocumentSelector({
               y: my - 20 + i * 60,
               tagCategoryGuid: tag?.categoryGuid,
               tagGuid: guid,
-              tagName: tag?.value || tag?.name || 'Tag',
+              tagName: tag?.value || tag?.name || t('common.tag'),
               betweenMode: autoMode
             }
           ])
@@ -1144,8 +1121,8 @@ export function DocumentSelector({
     const sgs = new Set<string>([...respIds.keys(), ...questIds.keys()])
     for (const sg of sgs) {
       const labels = surveyEntityLabels[sg] || { respondents: {}, questions: {} }
-      const rNames = [...(respIds.get(sg) || [])].map((id) => labels.respondents[id] || 'Respondent')
-      const qNames = [...(questIds.get(sg) || [])].map((id) => labels.questions[id] || 'Question')
+      const rNames = [...(respIds.get(sg) || [])].map((id) => labels.respondents[id] || t('docSelector.respondent'))
+      const qNames = [...(questIds.get(sg) || [])].map((id) => labels.questions[id] || t('docSelector.question'))
       result.set(sg, { respondents: sortNames(rNames), questions: sortNames(qNames) })
     }
     return result
@@ -1167,44 +1144,44 @@ export function DocumentSelector({
           shared PaletteGroup + PaletteButton + PaletteDivider helpers
           so the look matches the Content Query palette exactly. */}
       <div style={{ display: 'flex', gap: 14, marginBottom: 8, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <PaletteGroup label="Input">
+        <PaletteGroup label={t('queryBuilder.paletteInput')}>
           <PaletteButton
             kind="docs"
-            label={KIND_LABEL.docs}
+            label={kindLabel('docs')}
             color={KIND_COLOR.docs}
-            tooltip={KIND_TOOLTIP.docs}
+            tooltip={kindTooltip('docs')}
             dragMimeType="application/x-magnolia-ds-node"
             onClick={() => addNode('docs', { docGuids: [] })}
           />
           <PaletteButton
             kind="tag"
-            label={KIND_LABEL.tag}
+            label={kindLabel('tag')}
             color={KIND_COLOR.tag}
-            tooltip={KIND_TOOLTIP.tag}
+            tooltip={kindTooltip('tag')}
             dragMimeType="application/x-magnolia-ds-node"
             onClick={() => addNode('tag')}
           />
           <PaletteButton
             kind="type"
-            label={KIND_LABEL.type}
+            label={kindLabel('type')}
             color={KIND_COLOR.type}
-            tooltip={KIND_TOOLTIP.type}
+            tooltip={kindTooltip('type')}
             dragMimeType="application/x-magnolia-ds-node"
             onClick={() => addNode('type')}
           />
           <PaletteButton
             kind="folder"
-            label={KIND_LABEL.folder}
+            label={kindLabel('folder')}
             color={KIND_COLOR.folder}
-            tooltip={KIND_TOOLTIP.folder}
+            tooltip={kindTooltip('folder')}
             dragMimeType="application/x-magnolia-ds-node"
             onClick={() => addNode('folder')}
           />
           <PaletteButton
             kind="allDocs"
-            label={KIND_LABEL.allDocs}
+            label={kindLabel('allDocs')}
             color={KIND_COLOR.allDocs}
-            tooltip={KIND_TOOLTIP.allDocs}
+            tooltip={kindTooltip('allDocs')}
             dragMimeType="application/x-magnolia-ds-node"
             onClick={() => addNode('allDocs')}
           />
@@ -1212,12 +1189,12 @@ export function DocumentSelector({
 
         <PaletteDivider />
 
-        <PaletteGroup label="Logical">
+        <PaletteGroup label={kindLabel('setOp')}>
           <PaletteButton
             kind="setOp"
-            label={KIND_LABEL.setOp}
+            label={kindLabel('setOp')}
             color={KIND_COLOR.setOp}
-            tooltip={KIND_TOOLTIP.setOp}
+            tooltip={kindTooltip('setOp')}
             dragMimeType="application/x-magnolia-ds-node"
             onClick={() => addNode('setOp', { setOps: [undefined] })}
           />
@@ -1306,22 +1283,22 @@ export function DocumentSelector({
             if (!conn) return null
             const src = nodes.find((n) => n.id === conn.from)
             if (!src) return null
-            if (src.kind === 'docs') return `${src.docGuids?.length || 0} doc(s)`
-            if (src.kind === 'tag') return src.tagName || 'Tag'
-            if (src.kind === 'type') return src.typeExt ? CATEGORY_LABELS[src.typeExt as DocCategory] : 'Type'
+            if (src.kind === 'docs') return t('queryDesc.docs', { count: src.docGuids?.length || 0 })
+            if (src.kind === 'tag') return src.tagName || t('common.tag')
+            if (src.kind === 'type') return src.typeExt ? categoryLabel(src.typeExt as DocCategory) : kindLabel('type')
             if (src.kind === 'folder') {
               const fname = folders.find((f) => f.guid === src.folderGuid)?.name
-              return fname || 'Folder'
+              return fname || kindLabel('folder')
             }
-            if (src.kind === 'allDocs') return 'All Docs'
-            if (src.kind === 'setOp') return 'Set input'
-            return 'Input'
+            if (src.kind === 'allDocs') return t('docSelector.allDocsPort')
+            if (src.kind === 'setOp') return t('docSelector.setInput')
+            return t('queryBuilder.input')
           }
 
           return (
             <div
               key={node.id}
-              title={KIND_TOOLTIP[node.kind]}
+              title={kindTooltip(node.kind)}
               onMouseDown={(e) => nodeDown(e, node.id)}
               onClick={(e) => e.stopPropagation()}
               style={{
@@ -1359,7 +1336,7 @@ export function DocumentSelector({
                 gap: 4
               }}>
                 {node.kind === 'result' && <span style={{ color: KIND_COLOR.result }}>&#9654;</span>}
-                {KIND_LABEL[node.kind]}
+                {kindLabel(node.kind)}
               </div>
 
               {/* Docs node: list + drop zone */}
@@ -1373,7 +1350,7 @@ export function DocumentSelector({
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between'
                     }}>
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {sourceMap.get(guid) || '(deleted document)'}
+                        {sourceMap.get(guid) || t('docSelector.deletedDocument')}
                       </span>
                       <span
                         onMouseDown={(e) => e.stopPropagation()}
@@ -1432,7 +1409,7 @@ export function DocumentSelector({
                       borderTop: '1px dashed var(--border-color)', margin: '0 4px'
                     }}
                   >
-                    {(node.docGuids?.length || 0) === 0 ? 'Drop docs here' : '+ Drop more'}
+                    {(node.docGuids?.length || 0) === 0 ? t('docSelector.dropDocsHere') : t('docSelector.dropMore')}
                   </div>
                 </div>
               )}
@@ -1520,22 +1497,22 @@ export function DocumentSelector({
                       style={selectStyle}
                     >
                       {categories.length > 0 && (
-                        <option value="" disabled>Select category...</option>
+                        <option value="" disabled>{t('docSelector.selectCategory')}</option>
                       )}
                       {categories.map((c) => (
                         <option key={c.guid} value={c.guid}>{c.name}</option>
                       ))}
                       {uncatTags.length > 0 && (
-                        <option value="__uncat__">Uncategorised</option>
+                        <option value="__uncat__">{t('docSelector.uncategorised')}</option>
                       )}
                     </select>
 
                     {/* 2. Mode: Is / Between / Not Between (only for date/number categories) */}
                     {showModePicker && (
                       <div style={{ display: 'flex', gap: 2, marginTop: 3 }}>
-                        {modeBtn('is', 'Is', '#6366f1')}
-                        {modeBtn('between', 'Between', '#6366f1')}
-                        {modeBtn('not-between', 'Not Between', '#f43f5e')}
+                        {modeBtn('is', t('docSelector.mode.is'), '#6366f1')}
+                        {modeBtn('between', t('docSelector.mode.between'), '#6366f1')}
+                        {modeBtn('not-between', t('docSelector.mode.notBetween'), '#f43f5e')}
                       </div>
                     )}
 
@@ -1549,7 +1526,7 @@ export function DocumentSelector({
                           nd.id === node.id ? {
                             ...nd,
                             tagGuid: val || undefined,
-                            tagName: tag?.value || tag?.name || 'Tag',
+                            tagName: tag?.value || tag?.name || t('common.tag'),
                             // Sync the effective category onto the node state
                             tagCategoryGuid: nd.tagCategoryGuid || effectiveCatGuid
                           } : nd
@@ -1559,7 +1536,7 @@ export function DocumentSelector({
                       onClick={(e) => e.stopPropagation()}
                       style={{ ...selectStyle, marginTop: 3 }}
                     >
-                      <option value="">Select value...</option>
+                      <option value="">{t('docSelector.selectValue')}</option>
                       {valueTags.map((t) => (
                         <option key={t.guid} value={t.guid}>{t.value || t.name}</option>
                       ))}
@@ -1568,7 +1545,7 @@ export function DocumentSelector({
                     {/* 4. "and" + Value 2 (only for between / not-between) */}
                     {(mode === 'between' || mode === 'not-between') && (
                       <>
-                      <div style={{ textAlign: 'center', fontSize: 8, color: 'var(--text-muted)', fontStyle: 'italic', marginTop: 2, lineHeight: '12px' }}>and</div>
+                      <div style={{ textAlign: 'center', fontSize: 8, color: 'var(--text-muted)', fontStyle: 'italic', marginTop: 2, lineHeight: '12px' }}>{t('docSelector.and')}</div>
                       <select
                         value={node.tagGuid2 || ''}
                         onChange={(e) => {
@@ -1580,7 +1557,7 @@ export function DocumentSelector({
                         onClick={(e) => e.stopPropagation()}
                         style={{ ...selectStyle, marginTop: 2 }}
                       >
-                        <option value="">Select value 2...</option>
+                        <option value="">{t('docSelector.selectValue2')}</option>
                         {catTags.filter((t) => t.guid !== node.tagGuid).map((t) => (
                           <option key={t.guid} value={t.guid}>{t.value || t.name}</option>
                         ))}
@@ -1609,13 +1586,13 @@ export function DocumentSelector({
                       background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none'
                     }}
                   >
-                    <option value="">Select type...</option>
-                    <option value="video">Video</option>
-                    <option value="audio">Audio</option>
-                    <option value="document">Document</option>
-                    <option value="image">Image</option>
-                    <option value="survey">Survey</option>
-                    <option value="note">Notes</option>
+                    <option value="">{t('docSelector.selectType')}</option>
+                    <option value="video">{categoryLabel('video')}</option>
+                    <option value="audio">{categoryLabel('audio')}</option>
+                    <option value="document">{categoryLabel('document')}</option>
+                    <option value="image">{categoryLabel('image')}</option>
+                    <option value="survey">{categoryLabel('survey')}</option>
+                    <option value="note">{categoryLabel('note')}</option>
                   </select>
                 </div>
               )}
@@ -1637,7 +1614,7 @@ export function DocumentSelector({
                       background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none'
                     }}
                   >
-                    <option value="">Select folder...</option>
+                    <option value="">{t('docSelector.selectFolder')}</option>
                     {folderOptions.map((f) => (
                       <option key={f.guid} value={f.guid}>{f.label}</option>
                     ))}
@@ -1664,7 +1641,7 @@ export function DocumentSelector({
                         pointerEvents: 'none'
                       }}
                     >
-                      {name || `Input ${i + 1}`}
+                      {name || t('queryBuilder.inputN', { n: i + 1 })}
                     </div>
                   )
                   if (i < ops.length) {
@@ -1674,7 +1651,7 @@ export function DocumentSelector({
                       <div key={`op-${i}`} style={{ height: LABEL_H, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
                         <select
                           value={op || ''}
-                          title={op ? SET_OP_TOOLTIP[op] : 'Select an operator'}
+                          title={op ? setOpTooltip(op) : t('queryBuilder.selectOperator')}
                           onChange={(e) => {
                             const val = e.target.value as SetOp | ''
                             setNodes((p) => p.map((nd) => {
@@ -1696,10 +1673,10 @@ export function DocumentSelector({
                             textAlign: 'center', letterSpacing: 0.5, fontStyle: 'italic', outline: 'none'
                           }}
                         >
-                          <option value="" disabled>Operator...</option>
-                          <option value="union">Union (1 + 2)</option>
-                          <option value="intersect">Intersect (1 ∩ 2)</option>
-                          <option value="subtract">Subtract (1 − 2)</option>
+                          <option value="" disabled>{t('queryBuilder.operatorPlaceholder')}</option>
+                          <option value="union">{t('docSelector.opOption.union')}</option>
+                          <option value="intersect">{t('docSelector.opOption.intersect')}</option>
+                          <option value="subtract">{t('docSelector.opOption.subtract')}</option>
                         </select>
                         {ops.length > 1 && (
                           <span
@@ -1839,7 +1816,7 @@ export function DocumentSelector({
             opacity: 0.85
           }}
         >
-          Re-centre
+          {t('queryBuilder.recentre')}
         </button>
       </div>
 
@@ -1861,12 +1838,12 @@ export function DocumentSelector({
           background: 'var(--bg-secondary)',
           borderRadius: 'var(--radius-md) var(--radius-md) 0 0'
         }}>
-          Selected Documents
+          {t('docSelector.selectedDocuments')}
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: 4 }}>
           {resolvedGuids.length === 0 ? (
             <div className="empty-state" style={{ padding: '8px 6px', fontSize: 10, color: 'var(--text-muted)', fontStyle: 'italic' }}>
-              No documents selected. Connect nodes to Result.
+              {t('docSelector.noneSelected')}
             </div>
           ) : (
             <>
@@ -1885,13 +1862,13 @@ export function DocumentSelector({
                         textOverflow: 'ellipsis'
                       }}
                     >
-                      {sourceMap.get(guid) || '(deleted document)'}
+                      {sourceMap.get(guid) || t('docSelector.deletedDocument')}
                     </div>
                     {surveyEntityLabels[guid] && (['questions', 'respondents'] as const).map((kind) => (
                       <SurveyScopeLine
                         key={kind}
                         kind={kind}
-                        surveyName={sourceMap.get(guid) || 'Survey'}
+                        surveyName={sourceMap.get(guid) || t('docSelector.survey')}
                         labels={surveyEntityLabels[guid][kind]}
                         chosen={chosenIds(kind === 'questions' ? questionScope : respondentScope, guid)}
                         onChange={(ids) => setSurveyScope(kind, guid, ids)}
@@ -1933,8 +1910,8 @@ export function DocumentSelector({
       {/* ── Status bar ── */}
       <div style={{ marginTop: 6, fontSize: 10, color: 'var(--text-muted)' }}>
         {selNodes.size > 1
-          ? `${selNodes.size} selected — ${modKey('C')} copy · ${modKey('V')} paste · Delete to remove`
-          : 'Drag documents & tags onto canvas · Connect nodes to Result · Drag survey questions & respondents here to choose them'}
+          ? t('queryBuilder.statusSelected', { count: selNodes.size, copy: modKey('C'), paste: modKey('V') })
+          : t('docSelector.statusHint')}
       </div>
     </div>
   )

@@ -1026,5 +1026,109 @@
     "noMatches": "Geen overeenkomsten gevonden.",
     "openDocument": "Document openen",
     "copy": "Resultaat kopiëren"
+  },
+  "scope": {
+    "all": {
+      "questions": "Alle vragen",
+      "respondents": "Alle respondenten"
+    },
+    "none": {
+      "questions": "Geen vragen",
+      "respondents": "Geen respondenten"
+    },
+    "nOf": {
+      "questions_one": "{{n}} van {{count}} vraag",
+      "questions_other": "{{n}} van {{count}} vragen",
+      "respondents_one": "{{n}} van {{count}} respondent",
+      "respondents_other": "{{n}} van {{count}} respondenten"
+    },
+    "choose": {
+      "questions": "Vragen kiezen",
+      "respondents": "Respondenten kiezen"
+    },
+    "chooseTitle": {
+      "questions": "Kies welke vragen van {{survey}} je wilt analyseren",
+      "respondents": "Kies welke respondenten van {{survey}} je wilt analyseren"
+    },
+    "inSurvey": {
+      "questions": "Vragen in {{survey}}",
+      "respondents": "Respondenten in {{survey}}"
+    },
+    "tickedOf": "{{n}} van {{count}}",
+    "find": {
+      "questions": "Vragen zoeken",
+      "respondents": "Respondenten zoeken"
+    },
+    "noMatch": {
+      "questions": "Geen vragen komen overeen",
+      "respondents": "Geen respondenten komen overeen"
+    },
+    "noneIncluded": {
+      "questions": "Er zijn geen vragen uit deze enquête opgenomen",
+      "respondents": "Er zijn geen respondenten uit deze enquête opgenomen"
+    },
+    "othersUnaffected": "Andere documenten worden niet beïnvloed"
+  },
+  "docSelector": {
+    "category": {
+      "video": "Video",
+      "audio": "Audio",
+      "document": "Document",
+      "image": "Afbeelding",
+      "survey": "Enquête",
+      "note": "Notities"
+    },
+    "kind": {
+      "docs": "Documenten",
+      "tag": "Tag",
+      "type": "Type",
+      "folder": "Map",
+      "allDocs": "Alle documenten",
+      "setOp": "Logisch",
+      "result": "Resultaat"
+    },
+    "tip": {
+      "docs": "Een bepaalde set documenten die vanuit het paneel Documenten is gesleept",
+      "tag": "Alle documenten met een bepaalde tag",
+      "type": "Alle documenten van een bepaald bestandstype",
+      "folder": "Alle documenten in een map (inclusief submappen)",
+      "allDocs": "Elk document in het project",
+      "setOp": "Combineer documentensets met vereniging, doorsnede of verschil",
+      "result": "De uiteindelijke documentselectie: verbind hier een invoer of bewerking"
+    },
+    "op": {
+      "union": "VERENIGING: documenten uit een van beide invoeren (invoer 1 + invoer 2)",
+      "intersect": "DOORSNEDE: alleen documenten in beide invoeren (invoer 1 ∩ invoer 2)",
+      "subtract": "VERSCHIL: documenten in invoer 1 maar niet in invoer 2 (invoer 1 − invoer 2)"
+    },
+    "opOption": {
+      "union": "Vereniging (1 + 2)",
+      "intersect": "Doorsnede (1 ∩ 2)",
+      "subtract": "Verschil (1 − 2)"
+    },
+    "more": "+{{count}} meer",
+    "respondent": "Respondent",
+    "question": "Vraag",
+    "allDocsPort": "Alle documenten",
+    "setInput": "Setinvoer",
+    "deletedDocument": "(verwijderd document)",
+    "dropDocsHere": "Zet documenten hier neer",
+    "dropMore": "+ Meer neerzetten",
+    "selectCategory": "Categorie kiezen...",
+    "uncategorised": "Zonder categorie",
+    "mode": {
+      "is": "Is",
+      "between": "Tussen",
+      "notBetween": "Niet tussen"
+    },
+    "selectValue": "Waarde kiezen...",
+    "and": "en",
+    "selectValue2": "Waarde 2 kiezen...",
+    "selectType": "Type kiezen...",
+    "selectFolder": "Map kiezen...",
+    "selectedDocuments": "Geselecteerde documenten",
+    "noneSelected": "Geen documenten geselecteerd. Verbind de knooppunten met Resultaat.",
+    "survey": "Enquête",
+    "statusHint": "Sleep documenten en tags naar het canvas · Verbind de knooppunten met Resultaat · Sleep enquêtevragen en respondenten hierheen om ze te kiezen"
   }
 }

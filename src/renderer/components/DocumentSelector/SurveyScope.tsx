@@ -14,6 +14,8 @@
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { SurveyEntityRef } from '../../models/types'
+import { useTranslation } from 'react-i18next'
+import { t } from '../../i18n'
 
 export type SurveyScopeKind = 'questions' | 'respondents'
 
@@ -63,20 +65,17 @@ export function mayBeSurveyEntityDrag(e: React.DragEvent): boolean {
   return e.dataTransfer.types.includes('application/json')
 }
 
-const NOUN: Record<SurveyScopeKind, [string, string]> = {
-  questions: ['question', 'questions'],
-  respondents: ['respondent', 'respondents']
-}
+// Each phrase has a key per kind (scope.<phrase>.questions/.respondents):
+// "all", "no" and so on agree with the noun's gender in some languages.
 
 /** "All questions", "No questions", or "2 of 14 questions", for one
  *  survey's choices. */
 export function scopeSummary(kind: SurveyScopeKind, chosen: Set<string>, ids: string[]): string {
-  const [one, many] = NOUN[kind]
-  if (chosen.size === 0) return `All ${many}`
+  if (chosen.size === 0) return t(`scope.all.${kind}`)
   const n = ids.filter((id) => chosen.has(id)).length
-  if (n === 0) return `No ${many}`
-  if (n === ids.length) return `All ${many}`
-  return `${n} of ${ids.length} ${ids.length === 1 ? one : many}`
+  if (n === 0) return t(`scope.none.${kind}`)
+  if (n === ids.length) return t(`scope.all.${kind}`)
+  return t(`scope.nOf.${kind}`, { n, count: ids.length })
 }
 
 const CHECKLIST_W = 300
@@ -94,18 +93,19 @@ export function SurveyScopeLine({ kind, surveyName, labels, chosen, onChange, na
   /** The chosen ids; empty for all, [NONE_CHOSEN] for none. */
   onChange: (ids: string[]) => void
 }) {
+  const { t } = useTranslation()
   const ids = useMemo(() => Object.keys(labels), [labels])
   const [anchor, setAnchor] = useState<DOMRect | null>(null)
   const all = chosen.size === 0
   const summary = all && narrowedByTags
-    ? `Choose ${NOUN[kind][1]}`
+    ? t(`scope.choose.${kind}`)
     : scopeSummary(kind, chosen, ids)
   if (ids.length === 0) return null
   return (
     <>
       <div
         onClick={(e) => setAnchor(anchor ? null : (e.currentTarget as HTMLElement).getBoundingClientRect())}
-        title={`Choose which ${NOUN[kind][1]} of ${surveyName} to analyse`}
+        title={t(`scope.chooseTitle.${kind}`, { survey: surveyName })}
         style={{ padding: '1px 6px 0 16px', fontSize: 9, color: all ? 'var(--text-muted)' : 'var(--accent)', cursor: 'pointer', fontWeight: all ? 400 : 600 }}
       >
         {summary} ▾
@@ -136,6 +136,7 @@ function Checklist({ kind, surveyName, labels, ids, chosen, onChange, anchor, on
   anchor: DOMRect
   onClose: () => void
 }) {
+  const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const [search, setSearch] = useState('')
   const [pos, setPos] = useState({ left: anchor.right - CHECKLIST_W, top: anchor.bottom + 4 })
@@ -176,7 +177,6 @@ function Checklist({ kind, surveyName, labels, ids, chosen, onChange, anchor, on
 
   const q = search.trim().toLowerCase()
   const shown = q ? ids.filter((id) => (labels[id] ?? '').toLowerCase().includes(q)) : ids
-  const [, many] = NOUN[kind]
 
   return (
     <div
@@ -191,16 +191,16 @@ function Checklist({ kind, surveyName, labels, ids, chosen, onChange, anchor, on
     >
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
         <span style={{ fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={surveyName}>
-          {`${many[0].toUpperCase()}${many.slice(1)} in ${surveyName}`}
+          {t(`scope.inSurvey.${kind}`, { survey: surveyName })}
         </span>
-        <span style={{ color: 'var(--text-muted)', fontSize: 10, flexShrink: 0 }}>{ticked.size} of {ids.length}</span>
+        <span style={{ color: 'var(--text-muted)', fontSize: 10, flexShrink: 0 }}>{t('scope.tickedOf', { n: ticked.size, count: ids.length })}</span>
       </div>
       <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
         <button className="secondary" style={{ fontSize: 10, padding: '2px 8px' }} disabled={ticked.size === ids.length} onClick={() => tick(new Set(ids))}>
-          Select All
+          {t('merge.selectAll')}
         </button>
         <button className="secondary" style={{ fontSize: 10, padding: '2px 8px' }} disabled={ticked.size === 0} onClick={() => tick(new Set())}>
-          Deselect All
+          {t('merge.deselectAll')}
         </button>
       </div>
       {ids.length > 8 && (
@@ -209,7 +209,7 @@ function Checklist({ kind, surveyName, labels, ids, chosen, onChange, anchor, on
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder={`Find ${many}`}
+          placeholder={t(`scope.find.${kind}`)}
           style={{ width: '100%', marginBottom: 6, fontSize: 11 }}
         />
       )}
@@ -220,10 +220,10 @@ function Checklist({ kind, surveyName, labels, ids, chosen, onChange, anchor, on
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{labels[id] || id}</span>
           </label>
         ))}
-        {shown.length === 0 && <div style={{ color: 'var(--text-muted)', padding: '4px 0' }}>No {many} match</div>}
+        {shown.length === 0 && <div style={{ color: 'var(--text-muted)', padding: '4px 0' }}>{t(`scope.noMatch.${kind}`)}</div>}
       </div>
       <div style={{ fontSize: 10, color: ticked.size === 0 ? 'var(--text-secondary)' : 'var(--text-muted)', marginTop: 6 }}>
-        {ticked.size === 0 ? `No ${many} from this survey are included` : 'Other documents aren’t affected'}
+        {ticked.size === 0 ? t(`scope.noneIncluded.${kind}`) : t('scope.othersUnaffected')}
       </div>
     </div>
   )

@@ -1062,5 +1062,111 @@
     "noMatches": "Nenhuma correspondência encontrada.",
     "openDocument": "Abrir documento",
     "copy": "Copiar resultado"
+  },
+  "scope": {
+    "all": {
+      "questions": "Todas as perguntas",
+      "respondents": "Todos os respondentes"
+    },
+    "none": {
+      "questions": "Nenhuma pergunta",
+      "respondents": "Nenhum respondente"
+    },
+    "nOf": {
+      "questions_one": "{{n}} de {{count}} pergunta",
+      "questions_many": "{{n}} de {{count}} perguntas",
+      "questions_other": "{{n}} de {{count}} perguntas",
+      "respondents_one": "{{n}} de {{count}} respondente",
+      "respondents_many": "{{n}} de {{count}} respondentes",
+      "respondents_other": "{{n}} de {{count}} respondentes"
+    },
+    "choose": {
+      "questions": "Escolher perguntas",
+      "respondents": "Escolher respondentes"
+    },
+    "chooseTitle": {
+      "questions": "Escolha quais perguntas de {{survey}} analisar",
+      "respondents": "Escolha quais respondentes de {{survey}} analisar"
+    },
+    "inSurvey": {
+      "questions": "Perguntas de {{survey}}",
+      "respondents": "Respondentes de {{survey}}"
+    },
+    "tickedOf": "{{n}} de {{count}}",
+    "find": {
+      "questions": "Buscar perguntas",
+      "respondents": "Buscar respondentes"
+    },
+    "noMatch": {
+      "questions": "Nenhuma pergunta corresponde",
+      "respondents": "Nenhum respondente corresponde"
+    },
+    "noneIncluded": {
+      "questions": "Nenhuma pergunta desta pesquisa está incluída",
+      "respondents": "Nenhum respondente desta pesquisa está incluído"
+    },
+    "othersUnaffected": "Os outros documentos não são afetados"
+  },
+  "docSelector": {
+    "category": {
+      "video": "Vídeo",
+      "audio": "Áudio",
+      "document": "Documento",
+      "image": "Imagem",
+      "survey": "Pesquisa",
+      "note": "Notas"
+    },
+    "kind": {
+      "docs": "Documentos",
+      "tag": "Etiqueta",
+      "type": "Tipo",
+      "folder": "Pasta",
+      "allDocs": "Todos os docs.",
+      "setOp": "Lógico",
+      "result": "Resultado"
+    },
+    "tip": {
+      "docs": "Um conjunto específico de documentos arrastados do painel Documentos",
+      "tag": "Todos os documentos com uma etiqueta específica",
+      "type": "Todos os documentos de um tipo de arquivo",
+      "folder": "Todos os documentos de uma pasta (incluindo subpastas)",
+      "allDocs": "Todos os documentos do projeto",
+      "setOp": "Combine conjuntos de documentos com união, interseção ou subtração",
+      "result": "A seleção final de documentos: conecte aqui uma entrada ou operação"
+    },
+    "op": {
+      "union": "UNIÃO: documentos de qualquer uma das entradas (entrada 1 + entrada 2)",
+      "intersect": "INTERSEÇÃO: só documentos das duas entradas (entrada 1 ∩ entrada 2)",
+      "subtract": "SUBTRAÇÃO: documentos da entrada 1 que não estão na entrada 2 (entrada 1 − entrada 2)"
+    },
+    "opOption": {
+      "union": "União (1 + 2)",
+      "intersect": "Interseção (1 ∩ 2)",
+      "subtract": "Subtração (1 − 2)"
+    },
+    "more": "+{{count}} mais",
+    "respondent": "Respondente",
+    "question": "Pergunta",
+    "allDocsPort": "Todos os docs.",
+    "setInput": "Entrada de conjunto",
+    "deletedDocument": "(documento excluído)",
+    "dropDocsHere": "Solte documentos aqui",
+    "dropMore": "+ Solte mais",
+    "selectCategory": "Escolher categoria...",
+    "uncategorised": "Sem categoria",
+    "mode": {
+      "is": "É",
+      "between": "Entre",
+      "notBetween": "Fora de"
+    },
+    "selectValue": "Escolher valor...",
+    "and": "e",
+    "selectValue2": "Escolher valor 2...",
+    "selectType": "Escolher tipo...",
+    "selectFolder": "Escolher pasta...",
+    "selectedDocuments": "Documentos selecionados",
+    "noneSelected": "Nenhum documento selecionado. Conecte os nós a Resultado.",
+    "survey": "Pesquisa",
+    "statusHint": "Arraste documentos e etiquetas para a tela · Conecte os nós a Resultado · Arraste perguntas e respondentes para cá para escolhê-los"
   }
 }

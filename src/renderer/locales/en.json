@@ -1026,5 +1026,109 @@
     "noMatches": "No matches found.",
     "openDocument": "Open document",
     "copy": "Copy Result"
+  },
+  "scope": {
+    "all": {
+      "questions": "All questions",
+      "respondents": "All respondents"
+    },
+    "none": {
+      "questions": "No questions",
+      "respondents": "No respondents"
+    },
+    "nOf": {
+      "questions_one": "{{n}} of {{count}} question",
+      "questions_other": "{{n}} of {{count}} questions",
+      "respondents_one": "{{n}} of {{count}} respondent",
+      "respondents_other": "{{n}} of {{count}} respondents"
+    },
+    "choose": {
+      "questions": "Choose questions",
+      "respondents": "Choose respondents"
+    },
+    "chooseTitle": {
+      "questions": "Choose which questions of {{survey}} to analyse",
+      "respondents": "Choose which respondents of {{survey}} to analyse"
+    },
+    "inSurvey": {
+      "questions": "Questions in {{survey}}",
+      "respondents": "Respondents in {{survey}}"
+    },
+    "tickedOf": "{{n}} of {{count}}",
+    "find": {
+      "questions": "Find questions",
+      "respondents": "Find respondents"
+    },
+    "noMatch": {
+      "questions": "No questions match",
+      "respondents": "No respondents match"
+    },
+    "noneIncluded": {
+      "questions": "No questions from this survey are included",
+      "respondents": "No respondents from this survey are included"
+    },
+    "othersUnaffected": "Other documents aren’t affected"
+  },
+  "docSelector": {
+    "category": {
+      "video": "Video",
+      "audio": "Audio",
+      "document": "Document",
+      "image": "Image",
+      "survey": "Survey",
+      "note": "Notes"
+    },
+    "kind": {
+      "docs": "Documents",
+      "tag": "Tag",
+      "type": "Type",
+      "folder": "Folder",
+      "allDocs": "All docs",
+      "setOp": "Logical",
+      "result": "Result"
+    },
+    "tip": {
+      "docs": "A specific set of documents dragged from the Document Browser",
+      "tag": "All documents assigned to a particular tag",
+      "type": "All documents matching a file type extension",
+      "folder": "All documents inside a folder (sub-folders included)",
+      "allDocs": "Every document in the project",
+      "setOp": "Combine document sets with union, intersect, or subtract",
+      "result": "The final document selection — connect an input or operation here"
+    },
+    "op": {
+      "union": "UNION — documents from either input (Input 1 + Input 2)",
+      "intersect": "INTERSECT — only documents in both inputs (Input 1 ∩ Input 2)",
+      "subtract": "SUBTRACT — documents in Input 1 but not in Input 2 (Input 1 − Input 2)"
+    },
+    "opOption": {
+      "union": "Union (1 + 2)",
+      "intersect": "Intersect (1 ∩ 2)",
+      "subtract": "Subtract (1 − 2)"
+    },
+    "more": "+{{count}} more",
+    "respondent": "Respondent",
+    "question": "Question",
+    "allDocsPort": "All Docs",
+    "setInput": "Set input",
+    "deletedDocument": "(deleted document)",
+    "dropDocsHere": "Drop docs here",
+    "dropMore": "+ Drop more",
+    "selectCategory": "Select category...",
+    "uncategorised": "Uncategorised",
+    "mode": {
+      "is": "Is",
+      "between": "Between",
+      "notBetween": "Not Between"
+    },
+    "selectValue": "Select value...",
+    "and": "and",
+    "selectValue2": "Select value 2...",
+    "selectType": "Select type...",
+    "selectFolder": "Select folder...",
+    "selectedDocuments": "Selected Documents",
+    "noneSelected": "No documents selected. Connect nodes to Result.",
+    "survey": "Survey",
+    "statusHint": "Drag documents & tags onto canvas · Connect nodes to Result · Drag survey questions & respondents here to choose them"
   }
 }

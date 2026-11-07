@@ -1062,5 +1062,111 @@
     "noMatches": "No se encontraron coincidencias.",
     "openDocument": "Abrir documento",
     "copy": "Copiar resultado"
+  },
+  "scope": {
+    "all": {
+      "questions": "Todas las preguntas",
+      "respondents": "Todos los encuestados"
+    },
+    "none": {
+      "questions": "Ninguna pregunta",
+      "respondents": "Ningún encuestado"
+    },
+    "nOf": {
+      "questions_one": "{{n}} de {{count}} pregunta",
+      "questions_many": "{{n}} de {{count}} preguntas",
+      "questions_other": "{{n}} de {{count}} preguntas",
+      "respondents_one": "{{n}} de {{count}} encuestado",
+      "respondents_many": "{{n}} de {{count}} encuestados",
+      "respondents_other": "{{n}} de {{count}} encuestados"
+    },
+    "choose": {
+      "questions": "Elegir preguntas",
+      "respondents": "Elegir encuestados"
+    },
+    "chooseTitle": {
+      "questions": "Elige qué preguntas de {{survey}} analizar",
+      "respondents": "Elige qué encuestados de {{survey}} analizar"
+    },
+    "inSurvey": {
+      "questions": "Preguntas de {{survey}}",
+      "respondents": "Encuestados de {{survey}}"
+    },
+    "tickedOf": "{{n}} de {{count}}",
+    "find": {
+      "questions": "Buscar preguntas",
+      "respondents": "Buscar encuestados"
+    },
+    "noMatch": {
+      "questions": "Ninguna pregunta coincide",
+      "respondents": "Ningún encuestado coincide"
+    },
+    "noneIncluded": {
+      "questions": "No se incluye ninguna pregunta de esta encuesta",
+      "respondents": "No se incluye ningún encuestado de esta encuesta"
+    },
+    "othersUnaffected": "Los demás documentos no se ven afectados"
+  },
+  "docSelector": {
+    "category": {
+      "video": "Vídeo",
+      "audio": "Audio",
+      "document": "Documento",
+      "image": "Imagen",
+      "survey": "Encuesta",
+      "note": "Notas"
+    },
+    "kind": {
+      "docs": "Documentos",
+      "tag": "Etiqueta",
+      "type": "Tipo",
+      "folder": "Carpeta",
+      "allDocs": "Todos los docs.",
+      "setOp": "Lógico",
+      "result": "Resultado"
+    },
+    "tip": {
+      "docs": "Un conjunto concreto de documentos arrastrados desde el panel Documentos",
+      "tag": "Todos los documentos con una etiqueta concreta",
+      "type": "Todos los documentos de un tipo de archivo",
+      "folder": "Todos los documentos de una carpeta (con sus subcarpetas)",
+      "allDocs": "Todos los documentos del proyecto",
+      "setOp": "Combina conjuntos de documentos con unión, intersección o resta",
+      "result": "La selección final de documentos: conecta aquí una entrada u operación"
+    },
+    "op": {
+      "union": "UNIÓN: documentos de cualquiera de las entradas (entrada 1 + entrada 2)",
+      "intersect": "INTERSECCIÓN: solo documentos de ambas entradas (entrada 1 ∩ entrada 2)",
+      "subtract": "RESTA: documentos de la entrada 1 que no están en la entrada 2 (entrada 1 − entrada 2)"
+    },
+    "opOption": {
+      "union": "Unión (1 + 2)",
+      "intersect": "Intersección (1 ∩ 2)",
+      "subtract": "Resta (1 − 2)"
+    },
+    "more": "+{{count}} más",
+    "respondent": "Encuestado",
+    "question": "Pregunta",
+    "allDocsPort": "Todos los docs.",
+    "setInput": "Entrada de conjunto",
+    "deletedDocument": "(documento eliminado)",
+    "dropDocsHere": "Suelta documentos aquí",
+    "dropMore": "+ Suelta más",
+    "selectCategory": "Elegir categoría...",
+    "uncategorised": "Sin categoría",
+    "mode": {
+      "is": "Es",
+      "between": "Entre",
+      "notBetween": "Fuera de"
+    },
+    "selectValue": "Elegir valor...",
+    "and": "y",
+    "selectValue2": "Elegir valor 2...",
+    "selectType": "Elegir tipo...",
+    "selectFolder": "Elegir carpeta...",
+    "selectedDocuments": "Documentos seleccionados",
+    "noneSelected": "No hay documentos seleccionados. Conecta los nodos a Resultado.",
+    "survey": "Encuesta",
+    "statusHint": "Arrastra documentos y etiquetas al lienzo · Conecta los nodos a Resultado · Arrastra aquí preguntas y encuestados para elegirlos"
   }
 }
