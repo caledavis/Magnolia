@@ -305,7 +305,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
       return { series: perQuery, seriesGroups: [] as { id: string; label: string | null; span: number }[] }
     }
     if (groupBy.length === 0) {
-      const all: Series[] = [{ id: '__all', label: 'All', sourceGuids: filteredSourceGuids }]
+      const all: Series[] = [{ id: '__all', label: t('words.all'), sourceGuids: filteredSourceGuids }]
       return { series: all, seriesGroups: [] as { id: string; label: string | null; span: number }[] }
     }
     const built = buildSurveyAwareColumns(groupBy, data, filteredSourceGuids, sourceMap, { includeSubtotals: true })
@@ -364,7 +364,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
   }, [displayWords, seriesFreqs])
 
   const handleExportCsv = useCallback(() => {
-    const rows: string[][] = [['Word', 'Frequency']]
+    const rows: string[][] = [[t('words.word'), t('words.frequency')]]
     for (const [word, count] of wordFreqs) {
       rows.push([word, String(count)])
     }
@@ -570,8 +570,8 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
         <CountWordsIn
           value={textSource}
           onChange={setTextSource}
-          codedTitle="Count the words in passages coded with the chosen codes, one series per code."
-          queryTitle="Count the words in the results of the chosen saved queries, one series per query. Each query searches the documents chosen in it."
+          codedTitle={t('words.freqCodedTitle')}
+          queryTitle={t('words.freqQueryTitle')}
         />
 
         {byQuery ? (
@@ -634,7 +634,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
         <div style={{ display: 'flex', gap: 14, marginBottom: 14 }}>
           <div className="analysis-section" style={{ flex: 1 }}>
             <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>{t('analysis.onlyTheseWords')}</div>
-            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>Leave empty to include every word not left out</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>{t('words.onlyHint')}</div>
             <textarea
               value={includeWords}
               onChange={(e) => setIncludeWords(e.target.value)}
@@ -644,7 +644,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
           </div>
           <div className="analysis-section" style={{ flex: 1 }}>
             <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>{t('analysis.leaveOutWords')}</div>
-            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>Common English stop words are left out by default</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>{t('words.stopWordsHint')}</div>
             <textarea
               value={excludeWords}
               onChange={(e) => setExcludeWords(e.target.value)}
@@ -667,13 +667,13 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
               <table style={{ borderCollapse: 'collapse', fontSize: 11, width: '100%' }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: '3px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>Word</th>
-                    <th style={{ padding: '3px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'right' }}>Count</th>
+                    <th style={{ padding: '3px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>{t('words.word')}</th>
+                    <th style={{ padding: '3px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'right' }}>{t('words.count')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {wordFreqs.slice(0, 200).map(([word, count]) => (
-                    <tr key={word} onClick={() => handleWordClick(word)} style={{ cursor: 'pointer' }} title={coded ? `Search for "${word}" in the coded passages` : byQuery ? `Search for "${word}" in the query results` : `Search for "${word}"`}>
+                    <tr key={word} onClick={() => handleWordClick(word)} style={{ cursor: 'pointer' }} title={coded ? t('words.searchCoded', { word }) : byQuery ? t('words.searchQuery', { word }) : t('words.search', { word })}>
                       <td style={{ padding: '2px 6px', borderBottom: '1px solid var(--border-color)' }}>{word}</td>
                       <td style={{ padding: '2px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'right' }}>{count}</td>
                     </tr>
@@ -691,8 +691,8 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
                 value={vizMode}
                 onChange={setVizMode}
                 options={[
-                  { value: 'bar', label: 'Bar Chart' },
-                  { value: 'cloud', label: 'Word Cloud' }
+                  { value: 'bar', label: t('words.barChart') },
+                  { value: 'cloud', label: t('words.wordCloud') }
                 ]}
               />
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -752,10 +752,10 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
             {displayWords.length === 0 ? (
               <div style={{ padding: 30, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
                 {coded && codeSets.size === 0
-                  ? 'Drag codes into Coded with to count the words in their passages'
+                  ? t('words.freqDragCodes')
                   : byQuery && queryRuns.size === 0
-                    ? 'Drag saved queries into the From these queries box to count the words in their results'
-                    : 'No words to display'}
+                    ? t('words.freqDragQueries')
+                    : t('words.noWords')}
               </div>
             ) : vizMode === 'bar' ? (
               (() => {
@@ -876,7 +876,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
                                 style={{ cursor: count > 0 ? 'pointer' : undefined }}
                                 onClick={() => { if (count > 0) handleWordClick(word, s) }}
                               >
-                                <title>{`${word}: ${count}${nSeries > 1 ? ` (${s.label})` : ''}`}</title>
+                                <title>{nSeries > 1 ? t('words.barTitleSeries', { word, count, series: s.label }) : t('words.barTitle', { word, count })}</title>
                               </rect>
                             )
                           })}
@@ -919,7 +919,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
                     style={{ cursor: 'pointer' }}
                     onClick={() => handleWordClick(word)}
                   >
-                    <title>{`${word}: ${count} — click to search`}</title>
+                    <title>{t('words.cloudTitle', { word, count })}</title>
                     {word}
                   </text>
                 ))}

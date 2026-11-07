@@ -18,6 +18,7 @@
 import { forceSimulation, forceLink, forceManyBody, forceCollide, forceX, forceY, type SimulationNodeDatum } from 'd3-force'
 import type { PhraseRow } from './word-counts'
 import { SVG_FONT_FAMILY } from '../../utils/use-theme-svg-colors'
+import { t } from '../../i18n'
 
 /** The most phrases drawn: past this the network turns into a tangle. */
 export const NETWORK_PHRASES = 80
@@ -177,8 +178,8 @@ export function neighbours(layout: NetworkLayout, i: number): Set<number> {
 
 /** A line's tooltip: the phrases it stands for. */
 export function linkTitle(link: NetworkLink): string {
-  const lines = link.phrases.slice(0, 5).map((p) => `“${p.phrase}”: ${p.count} time${p.count === 1 ? '' : 's'}`)
-  if (link.phrases.length > 5) lines.push(`and ${link.phrases.length - 5} more`)
+  const lines = link.phrases.slice(0, 5).map((p) => t('combos.linkPhrase', { phrase: p.phrase, count: p.count }))
+  if (link.phrases.length > 5) lines.push(t('combos.andMore', { count: link.phrases.length - 5 }))
   return lines.join('\n')
 }
 
