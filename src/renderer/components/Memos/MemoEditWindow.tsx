@@ -1,8 +1,10 @@
 import { useState, useCallback, useEffect } from 'react'
 import { MarkdownEditor } from '../MarkdownEditor'
 import type { Memo, MemoEditInitData } from '../../models/types'
+import { useTranslation } from 'react-i18next'
 
 export function MemoEditWindow() {
+  const { t } = useTranslation()
   const [memo, setMemo] = useState<Memo | null>(null)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -64,7 +66,7 @@ export function MemoEditWindow() {
 
   const handleDelete = useCallback(() => {
     if (!memo) return
-    if (!window.confirm(`Delete memo "${memo.title || 'Untitled'}"? This cannot be undone.`)) return
+    if (!window.confirm(t('memoEdit.deleteConfirm', { title: memo.title || t('common.untitled') }))) return
     // For an unsaved draft (isNew), there's nothing to remove from the
     // store yet — just close. Otherwise tell the main window to drop
     // it and propagate to anything that references the memo.
@@ -75,7 +77,7 @@ export function MemoEditWindow() {
   if (!memo) {
     return (
       <div className="panel" style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)' }}>
-        Loading...
+        {t('common.loading')}
       </div>
     )
   }
@@ -85,8 +87,8 @@ export function MemoEditWindow() {
     // (the theme insets #root > .panel from the window's edges).
     <div className="panel memo-edit-window">
       <div className="panel-header">
-        <span style={{ flex: 1 }}>{isNew ? 'New Memo' : 'Memo'}</span>
-        {dirty && <span style={{ fontWeight: 400, letterSpacing: 0, textTransform: 'none' }}>Edited</span>}
+        <span style={{ flex: 1 }}>{isNew ? t('memoEdit.newMemo') : t('memoEdit.memo')}</span>
+        {dirty && <span style={{ fontWeight: 400, letterSpacing: 0, textTransform: 'none' }}>{t('memoEdit.edited')}</span>}
       </div>
 
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: '4px 12px 10px' }}>
@@ -94,8 +96,8 @@ export function MemoEditWindow() {
           type="text"
           value={title}
           onChange={(e) => handleTitleChange(e.target.value)}
-          placeholder="Memo title..."
-          aria-label="Memo title"
+          placeholder={t('memoEdit.titlePlaceholder')}
+          aria-label={t('memoEdit.titleLabel')}
           autoFocus={isNew}
           style={{
             width: '100%',
@@ -128,15 +130,15 @@ export function MemoEditWindow() {
       }}>
         {!isNew && (
           <button className="danger" style={{ fontSize: 11, padding: '4px 14px', border: '1px solid transparent' }} onClick={handleDelete}>
-            Delete
+            {t('common.delete')}
           </button>
         )}
         <span style={{ flex: 1 }} />
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={() => window.close()}>
-          Cancel
+          {t('common.cancel')}
         </button>
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleSave} disabled={!dirty}>
-          Save
+          {t('common.save')}
         </button>
         {/* A transparent border, so it's the size of the bordered buttons beside it. */}
         <button style={{ fontSize: 11, padding: '4px 14px', border: '1px solid transparent' }} onClick={handleSaveAndClose}>

@@ -1,6 +1,7 @@
 import { useState, type ReactElement } from 'react'
 import { useDocumentStore } from '../stores/document-store'
 import type { MissingBinary } from '../models/types'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Surfaced after opening a project that declares PDF/image/audio/video
@@ -19,6 +20,7 @@ export function MissingBinariesBanner({
   onResolved: (guid: string) => void
   onDismiss: () => void
 }): ReactElement | null {
+  const { t } = useTranslation()
   const reattach = useDocumentStore((s) => s.reattachSourceBinary)
   const [busyGuid, setBusyGuid] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -48,7 +50,6 @@ export function MissingBinariesBanner({
     }
   }
 
-  const plural = missing.length === 1 ? '' : 's'
 
   return (
     <div
@@ -77,13 +78,10 @@ export function MissingBinariesBanner({
         </span>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 600, marginBottom: 6 }}>
-            {missing.length} document{plural} {missing.length === 1 ? 'is' : 'are'} missing
-            {' '}their file{plural} from this project
+            {t('missing.title', { count: missing.length })}
           </div>
           <div style={{ marginBottom: 8, color: '#9a3412' }}>
-            Their content was never stored in the .qdpx and can&apos;t be recovered from the
-            file. Re-import the original{plural} to repair the project — your codes are kept,
-            and the next save embeds the file{plural} permanently.
+            {t('missing.text', { count: missing.length })}
           </div>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
             {missing.map((m) => (
@@ -105,7 +103,7 @@ export function MissingBinariesBanner({
                     cursor: busyGuid === m.guid ? 'default' : 'pointer'
                   }}
                 >
-                  {busyGuid === m.guid ? 'Re-importing…' : 'Re-import…'}
+                  {busyGuid === m.guid ? t('missing.reimporting') : t('missing.reimport')}
                 </button>
               </li>
             ))}
@@ -121,7 +119,7 @@ export function MissingBinariesBanner({
         <button
           type="button"
           onClick={onDismiss}
-          title="Dismiss"
+          title={t('common.dismiss')}
           style={{
             flexShrink: 0,
             border: 'none',

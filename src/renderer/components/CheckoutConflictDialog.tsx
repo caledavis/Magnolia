@@ -1,8 +1,10 @@
+import { Trans, useTranslation } from 'react-i18next'
+import { formatDateTime } from '../i18n'
 import type { CheckoutMarker } from '../models/types'
 
 function formatWhen(iso: string): string {
   const d = new Date(iso)
-  return Number.isNaN(d.getTime()) ? iso : d.toLocaleString()
+  return Number.isNaN(d.getTime()) ? iso : formatDateTime(d)
 }
 
 /**
@@ -29,22 +31,23 @@ export function CheckoutConflictDialog({
    *  opened, still fully editable" framing to offer a copy against). */
   onWorkOnCopy?: () => void
 }): JSX.Element {
+  const { t } = useTranslation()
   return (
     <div className="modal-overlay" onClick={onDismiss}>
       <div className="modal" style={{ width: onWorkOnCopy ? 460 : 420, maxWidth: '90vw' }} onClick={(e) => e.stopPropagation()}>
         <h2 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
-          {onWorkOnCopy ? 'This project is in use' : 'Take control anyway?'}
+          {onWorkOnCopy ? t('checkout.inUse') : t('checkout.takeControlQuestion')}
         </h2>
         <p style={{ margin: onWorkOnCopy ? '0 0 8px' : '0 0 16px', color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)', lineHeight: 1.5 }}>
-          <strong>{marker.userName}</strong> is working on this file since {formatWhen(marker.checkedOutAt)}.
-          {!onWorkOnCopy && " Taking over now will make the project yours. If they're still editing, saving could overwrite each other's changes."}
+          <Trans i18nKey="checkout.workingSince" values={{ name: marker.userName, when: formatWhen(marker.checkedOutAt) }} components={{ b: <strong /> }} />
+          {!onWorkOnCopy && <> {t('checkout.takeOverWarning')}</>}
         </p>
         {onWorkOnCopy && (
           <div style={{ margin: '0 0 16px', color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)', lineHeight: 1.5 }}>
-            <p style={{ margin: '0 0 4px' }}>You can view this file, but you can't edit until you choose one of these:</p>
+            <p style={{ margin: '0 0 4px' }}>{t('checkout.viewOnly')}</p>
             <ul style={{ margin: 0, paddingLeft: 20 }}>
-              <li><strong>Take control anyway</strong> if you are sure {marker.userName} has stopped working on the file; or</li>
-              <li><strong>Create a copy</strong> so you can merge your version and {marker.userName}'s version into one later.</li>
+              <li><Trans i18nKey="checkout.optionTakeControl" values={{ name: marker.userName }} components={{ b: <strong /> }} /></li>
+              <li><Trans i18nKey="checkout.optionCopy" values={{ name: marker.userName }} components={{ b: <strong /> }} /></li>
             </ul>
           </div>
         )}
@@ -54,9 +57,9 @@ export function CheckoutConflictDialog({
             overriding someone else's lock when Cancel or Create a
             Copy may be the safer choice. */}
         <div className="modal-actions">
-          <button className="secondary" onClick={onDismiss}>Cancel</button>
-          {onWorkOnCopy && <button className="secondary" onClick={onWorkOnCopy}>Create a Copy</button>}
-          <button className="secondary" onClick={onOverride}>Take Control Anyway</button>
+          <button className="secondary" onClick={onDismiss}>{t('common.cancel')}</button>
+          {onWorkOnCopy && <button className="secondary" onClick={onWorkOnCopy}>{t('checkout.createCopy')}</button>}
+          <button className="secondary" onClick={onOverride}>{t('checkout.takeControlAnyway')}</button>
         </div>
       </div>
     </div>

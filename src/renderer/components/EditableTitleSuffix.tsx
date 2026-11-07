@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   /** The current name to render after the colon. */
@@ -23,6 +24,7 @@ interface Props {
  * header without crowding it.
  */
 export function EditableTitleSuffix({ name, onRename, autoEdit, placeholder }: Props) {
+  const { t } = useTranslation()
   const [editing, setEditing] = useState(!!autoEdit)
   const [draft, setDraft] = useState(autoEdit ? name : '')
 
@@ -77,7 +79,7 @@ export function EditableTitleSuffix({ name, onRename, autoEdit, placeholder }: P
   return (
     <span
       onClick={startEdit}
-      title="Click to rename"
+      title={t('common.clickToRename')}
       style={{
         fontSize: 'inherit',
         fontWeight: 300,

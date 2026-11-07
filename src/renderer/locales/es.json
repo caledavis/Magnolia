@@ -282,7 +282,13 @@
     "skip": "Omitir",
     "import": "Importar",
     "export": "Exportar",
-    "unknown": "Desconocido"
+    "unknown": "Desconocido",
+    "continue": "Continuar",
+    "close": "Cerrar",
+    "dismiss": "Descartar",
+    "untitled": "Sin título",
+    "loading": "Cargando...",
+    "clickToRename": "Haz clic para cambiar el nombre"
   },
   "panel": {
     "popIn": "Volver a acoplar",
@@ -682,5 +688,100 @@
       "query": "Guarda la consulta para añadirle un memo",
       "analysis": "Guarda el análisis para añadirle un memo"
     }
+  },
+  "checkout": {
+    "inUse": "Este proyecto está en uso",
+    "takeControlQuestion": "¿Tomar el control de todos modos?",
+    "workingSince": "<b>{{name}}</b> está trabajando en este archivo desde {{when}}.",
+    "takeOverWarning": "Si tomas el control ahora, el proyecto pasará a ser tuyo. Si esa persona sigue editando, al guardar podríais sobrescribir los cambios del otro.",
+    "viewOnly": "Puedes ver este archivo, pero no editarlo hasta que elijas una de estas opciones:",
+    "optionTakeControl": "<b>Tomar el control de todos modos</b> si estás seguro de que {{name}} ha dejado de trabajar en el archivo; o",
+    "optionCopy": "<b>Crear una copia</b> para combinar más tarde tu versión y la de {{name}} en una sola.",
+    "createCopy": "Crear una copia",
+    "takeControlAnyway": "Tomar el control de todos modos"
+  },
+  "stealBack": {
+    "title": "No se puede guardar: el proyecto ha cambiado de manos",
+    "hasControl": "<b>{{name}}</b> tiene el control de este proyecto desde {{when}}. Tus cambios desde entonces no se han guardado.",
+    "youCan": "Puedes:",
+    "optionTakeControl": "<b>Tomar el control</b>: recuperar el control del proyecto y abrir la herramienta Combinar para conciliar tus cambios sin guardar con los cambios guardados de {{name}}; o",
+    "optionCopy": "<b>Crear una copia</b> para no perder tus cambios y combinar ambas más tarde.",
+    "takeControl": "Tomar el control"
+  },
+  "nameGate": {
+    "title": "Te damos la bienvenida a Magnolia",
+    "text": "Antes de empezar, ¿cómo te llamas? Tu nombre se muestra a tus compañeros cuando trabajas en un proyecto compartido o lo modificas, y se guarda en el propio archivo del proyecto cuando eres la última persona que lo edita.",
+    "placeholder": "Tu nombre"
+  },
+  "find": {
+    "title": "Buscar",
+    "in": "en {{name}}",
+    "placeholder": "palabra o frase...",
+    "caseSensitive": "Distinguir mayúsculas y minúsculas",
+    "wholeWord": "Palabra completa"
+  },
+  "projectDetails": {
+    "title": "Detalles del proyecto",
+    "name": "Nombre del proyecto",
+    "description": "Descripción",
+    "file": "Archivo:",
+    "unsaved": "Sin guardar",
+    "documents": "Documentos:",
+    "codes": "Códigos:",
+    "fileSize": "Tamaño del archivo:"
+  },
+  "licence": {
+    "free": "Magnolia es software libre y de código abierto.",
+    "released": "Publicado con la <b>Licencia Pública de la Unión Europea (EUPL) v1.2</b>. Puedes usar, estudiar, copiar, modificar y redistribuir Magnolia libremente, también con fines comerciales. Las obras derivadas deben distribuirse con la EUPL o con una de sus licencias compatibles, y su código fuente debe ponerse a disposición.",
+    "viewFull": "Ver el texto completo de la licencia",
+    "bundled": "Bibliotecas incluidas",
+    "bundledText": "Magnolia se basa en estos proyectos de código abierto. La atribución completa y el texto de la licencia de cada dependencia se incluyen con la aplicación.",
+    "viewAttributions": "Ver todas las atribuciones",
+    "role": {
+      "tauri": "entorno de escritorio",
+      "react": "marco de interfaz",
+      "tiptap": "editor de texto enriquecido para memos",
+      "pdfjs": "visualización de PDF",
+      "zip": "lectura y escritura de archivos de proyecto QDPX",
+      "roxmltree": "análisis del XML de QDPX",
+      "lopdf": "geometría de páginas PDF y elementos de las exportaciones",
+      "calamine": "importación de encuestas .xlsx",
+      "zuneHeic": "decodificación de imágenes HEIC / HEIF",
+      "image": "decodificación de imágenes TIFF",
+      "lofty": "metadatos de audio",
+      "resvg": "renderizado de SVG para las exportaciones PDF",
+      "marked": "visualización de Markdown",
+      "panels": "diseño de paneles divididos",
+      "zustand": "gestión del estado",
+      "d3force": "disposición de la red de frases",
+      "lucide": "conjunto de iconos"
+    }
+  },
+  "missing": {
+    "title_one": "A {{count}} documento le falta su archivo en este proyecto",
+    "title_many": "A {{count}} documentos les faltan sus archivos en este proyecto",
+    "title_other": "A {{count}} documentos les faltan sus archivos en este proyecto",
+    "text_one": "Su contenido nunca se guardó en el .qdpx y no se puede recuperar del archivo. Vuelve a importar el original para reparar el proyecto: tus códigos se conservan y al guardar el archivo quedará incluido para siempre.",
+    "text_many": "Su contenido nunca se guardó en el .qdpx y no se puede recuperar del archivo. Vuelve a importar los originales para reparar el proyecto: tus códigos se conservan y al guardar los archivos quedarán incluidos para siempre.",
+    "text_other": "Su contenido nunca se guardó en el .qdpx y no se puede recuperar del archivo. Vuelve a importar los originales para reparar el proyecto: tus códigos se conservan y al guardar los archivos quedarán incluidos para siempre.",
+    "reimport": "Volver a importar…",
+    "reimporting": "Importando de nuevo…"
+  },
+  "memoEdit": {
+    "deleteConfirm": "¿Eliminar el memo «{{title}}»? No se puede deshacer.",
+    "newMemo": "Memo nuevo",
+    "memo": "Memo",
+    "edited": "Editado",
+    "titlePlaceholder": "Título del memo...",
+    "titleLabel": "Título del memo"
+  },
+  "editor": {
+    "heading1": "Título 1",
+    "heading2": "Título 2",
+    "bold": "Negrita",
+    "italic": "Cursiva",
+    "underline": "Subrayado",
+    "bulletList": "Lista con viñetas",
+    "numberedList": "Lista numerada"
   }
 }

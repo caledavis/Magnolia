@@ -282,7 +282,13 @@
     "skip": "Overslaan",
     "import": "Importeren",
     "export": "Exporteren",
-    "unknown": "Onbekend"
+    "unknown": "Onbekend",
+    "continue": "Doorgaan",
+    "close": "Sluiten",
+    "dismiss": "Sluiten",
+    "untitled": "Naamloos",
+    "loading": "Laden...",
+    "clickToRename": "Klik om de naam te wijzigen"
   },
   "panel": {
     "popIn": "Terugzetten",
@@ -661,5 +667,98 @@
       "query": "Bewaar de query om er een memo aan te koppelen",
       "analysis": "Bewaar de analyse om er een memo aan te koppelen"
     }
+  },
+  "checkout": {
+    "inUse": "Dit project is in gebruik",
+    "takeControlQuestion": "Toch de controle overnemen?",
+    "workingSince": "<b>{{name}}</b> werkt sinds {{when}} aan dit bestand.",
+    "takeOverWarning": "Als je het nu overneemt, wordt het project van jou. Als die persoon nog aan het bewerken is, kunnen jullie bij het bewaren elkaars wijzigingen overschrijven.",
+    "viewOnly": "Je kunt dit bestand bekijken, maar pas bewerken als je een van deze kiest:",
+    "optionTakeControl": "<b>Toch de controle overnemen</b> als je zeker weet dat {{name}} niet meer aan het bestand werkt; of",
+    "optionCopy": "<b>Een kopie maken</b>, zodat je jouw versie en die van {{name}} later kunt samenvoegen.",
+    "createCopy": "Kopie maken",
+    "takeControlAnyway": "Toch overnemen"
+  },
+  "stealBack": {
+    "title": "Kan niet bewaren: het project is van eigenaar gewisseld",
+    "hasControl": "<b>{{name}}</b> heeft sinds {{when}} de controle over dit project. Je wijzigingen sindsdien zijn niet bewaard.",
+    "youCan": "Je kunt:",
+    "optionTakeControl": "<b>De controle overnemen</b>: de controle over het project terugnemen en het hulpmiddel Samenvoegen openen om je niet-bewaarde wijzigingen te combineren met de bewaarde wijzigingen van {{name}}; of",
+    "optionCopy": "<b>Een kopie maken</b>, zodat je wijzigingen niet verloren gaan, en de twee later samenvoegen.",
+    "takeControl": "Controle overnemen"
+  },
+  "nameGate": {
+    "title": "Welkom bij Magnolia",
+    "text": "Hoe heet je, voordat je begint? Je naam wordt aan teamgenoten getoond als je met een gedeeld project werkt of het wijzigt, en wordt in het projectbestand zelf bewaard als jij het als laatste hebt bewerkt.",
+    "placeholder": "Je naam"
+  },
+  "find": {
+    "title": "Zoeken",
+    "in": "in {{name}}",
+    "placeholder": "woord of zin...",
+    "caseSensitive": "Hoofdlettergevoelig",
+    "wholeWord": "Heel woord"
+  },
+  "projectDetails": {
+    "title": "Projectgegevens",
+    "name": "Projectnaam",
+    "description": "Beschrijving",
+    "file": "Bestand:",
+    "unsaved": "Niet bewaard",
+    "documents": "Documenten:",
+    "codes": "Codes:",
+    "fileSize": "Bestandsgrootte:"
+  },
+  "licence": {
+    "free": "Magnolia is vrije en opensourcesoftware.",
+    "released": "Uitgebracht onder de <b>Europese Unie Publieke Licentie (EUPL) v1.2</b>. Je mag Magnolia vrij gebruiken, bestuderen, kopiëren, wijzigen en verspreiden, ook voor commerciële doeleinden. Afgeleide werken moeten onder de EUPL of een daarmee compatibele licentie worden verspreid, en hun broncode moet beschikbaar worden gesteld.",
+    "viewFull": "Volledige licentietekst bekijken",
+    "bundled": "Meegeleverde bibliotheken",
+    "bundledText": "Magnolia is gebouwd op deze opensourceprojecten. De volledige vermelding en licentietekst van elke afhankelijkheid worden met de app meegeleverd.",
+    "viewAttributions": "Alle vermeldingen bekijken",
+    "role": {
+      "tauri": "desktopomgeving",
+      "react": "UI-framework",
+      "tiptap": "opgemaakte-teksteditor voor memo's",
+      "pdfjs": "pdf-weergave",
+      "zip": "lezen en schrijven van QDPX-projectarchieven",
+      "roxmltree": "verwerken van QDPX-XML",
+      "lopdf": "pdf-paginageometrie en opmaak van exports",
+      "calamine": "importeren van .xlsx-enquêtes",
+      "zuneHeic": "decoderen van HEIC-/HEIF-afbeeldingen",
+      "image": "decoderen van TIFF-afbeeldingen",
+      "lofty": "audiometadata",
+      "resvg": "SVG-weergave voor pdf-exports",
+      "marked": "Markdown-weergave",
+      "panels": "indeling met gesplitste panelen",
+      "zustand": "statusbeheer",
+      "d3force": "indeling van het zinnennetwerk",
+      "lucide": "pictogrammenset"
+    }
+  },
+  "missing": {
+    "title_one": "{{count}} document mist zijn bestand in dit project",
+    "title_other": "{{count}} documenten missen hun bestanden in dit project",
+    "text_one": "De inhoud is nooit in het .qdpx-bestand opgeslagen en kan daar niet uit worden hersteld. Importeer het origineel opnieuw om het project te herstellen: je codes blijven behouden en bij de volgende keer bewaren wordt het bestand blijvend opgenomen.",
+    "text_other": "De inhoud is nooit in het .qdpx-bestand opgeslagen en kan daar niet uit worden hersteld. Importeer de originelen opnieuw om het project te herstellen: je codes blijven behouden en bij de volgende keer bewaren worden de bestanden blijvend opgenomen.",
+    "reimport": "Opnieuw importeren…",
+    "reimporting": "Opnieuw importeren…"
+  },
+  "memoEdit": {
+    "deleteConfirm": "Memo \"{{title}}\" verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    "newMemo": "Nieuwe memo",
+    "memo": "Memo",
+    "edited": "Bewerkt",
+    "titlePlaceholder": "Titel van de memo...",
+    "titleLabel": "Titel van de memo"
+  },
+  "editor": {
+    "heading1": "Kop 1",
+    "heading2": "Kop 2",
+    "bold": "Vet",
+    "italic": "Cursief",
+    "underline": "Onderstrepen",
+    "bulletList": "Lijst met opsommingstekens",
+    "numberedList": "Genummerde lijst"
   }
 }

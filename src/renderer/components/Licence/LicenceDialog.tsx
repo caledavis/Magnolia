@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from 'react-i18next'
 import { Icon, faUpRightFromSquare } from '../Icon'
 
 interface Props {
@@ -10,27 +11,29 @@ interface Props {
  *  summary, not a full attributions dump — that's what the
  *  THIRD-PARTY-LICENSES.txt button is for. Order is intentional:
  *  the bigger / more recognisable projects come first. */
+/** `role` is the key of its description, licence.role.<role>. */
 const BUNDLED_LIBRARIES: { name: string; role: string; licence: string }[] = [
-  { name: 'Tauri', role: 'desktop runtime', licence: 'Apache-2.0 / MIT' },
-  { name: 'React', role: 'UI framework', licence: 'MIT' },
-  { name: 'TipTap', role: 'rich-text editor for memos', licence: 'MIT' },
-  { name: 'PDF.js', role: 'PDF rendering', licence: 'Apache-2.0' },
-  { name: 'zip', role: 'QDPX project archive read/write', licence: 'MIT' },
-  { name: 'roxmltree', role: 'QDPX XML parsing', licence: 'MIT / Apache-2.0' },
-  { name: 'lopdf', role: 'PDF page geometry and export chrome', licence: 'MIT' },
-  { name: 'calamine', role: '.xlsx survey import', licence: 'MIT' },
-  { name: 'zune-heic', role: 'HEIC / HEIF image decoding', licence: 'MIT / Apache-2.0 / Zlib' },
-  { name: 'image', role: 'TIFF image decoding', licence: 'MIT / Apache-2.0' },
-  { name: 'Lofty', role: 'audio metadata', licence: 'MIT / Apache-2.0' },
-  { name: 'resvg', role: 'SVG rendering for PDF exports', licence: 'Apache-2.0 / MIT' },
-  { name: 'marked', role: 'Markdown rendering', licence: 'MIT' },
-  { name: 'react-resizable-panels', role: 'split-pane layout', licence: 'MIT' },
-  { name: 'Zustand', role: 'state management', licence: 'MIT' },
-  { name: 'd3-force', role: 'phrase network layout', licence: 'ISC' },
-  { name: 'Lucide', role: 'icon set', licence: 'ISC' }
+  { name: 'Tauri', role: 'tauri', licence: 'Apache-2.0 / MIT' },
+  { name: 'React', role: 'react', licence: 'MIT' },
+  { name: 'TipTap', role: 'tiptap', licence: 'MIT' },
+  { name: 'PDF.js', role: 'pdfjs', licence: 'Apache-2.0' },
+  { name: 'zip', role: 'zip', licence: 'MIT' },
+  { name: 'roxmltree', role: 'roxmltree', licence: 'MIT / Apache-2.0' },
+  { name: 'lopdf', role: 'lopdf', licence: 'MIT' },
+  { name: 'calamine', role: 'calamine', licence: 'MIT' },
+  { name: 'zune-heic', role: 'zuneHeic', licence: 'MIT / Apache-2.0 / Zlib' },
+  { name: 'image', role: 'image', licence: 'MIT / Apache-2.0' },
+  { name: 'Lofty', role: 'lofty', licence: 'MIT / Apache-2.0' },
+  { name: 'resvg', role: 'resvg', licence: 'Apache-2.0 / MIT' },
+  { name: 'marked', role: 'marked', licence: 'MIT' },
+  { name: 'react-resizable-panels', role: 'panels', licence: 'MIT' },
+  { name: 'Zustand', role: 'zustand', licence: 'MIT' },
+  { name: 'd3-force', role: 'd3force', licence: 'ISC' },
+  { name: 'Lucide', role: 'lucide', licence: 'ISC' }
 ]
 
 export function LicenceDialog({ open, onClose }: Props) {
+  const { t } = useTranslation()
   if (!open) return null
 
   return (
@@ -45,18 +48,14 @@ export function LicenceDialog({ open, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
         style={{ width: 560, maxWidth: '92vw', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}
       >
-        <h2 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 600 }}>Licence & Attributions</h2>
+        <h2 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 600 }}>{t('toolbar.licenceAttributions')}</h2>
 
         <div style={{ overflowY: 'auto', flex: 1, paddingRight: 4 }}>
           <p style={{ margin: '0 0 8px', fontSize: 'var(--font-size-base)', lineHeight: 1.5 }}>
-            <strong>Magnolia is free and open-source software.</strong>
+            <strong>{t('licence.free')}</strong>
           </p>
           <p style={{ margin: '0 0 8px', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-            Released under the{' '}
-            <strong style={{ color: 'var(--text-primary)' }}>European Union Public Licence (EUPL) v1.2</strong>.
-            You are free to use, study, copy, modify, and redistribute Magnolia, including for commercial
-            purposes. Derivative works must be distributed under the EUPL or one of its compatible licences,
-            and their source code must be made available.
+            <Trans i18nKey="licence.released" components={{ b: <strong style={{ color: 'var(--text-primary)' }} /> }} />
           </p>
 
           <button
@@ -64,7 +63,7 @@ export function LicenceDialog({ open, onClose }: Props) {
             onClick={() => window.api.openLicence()}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 4 }}
           >
-            View full licence text <Icon icon={faUpRightFromSquare} style={{ fontSize: 10 }} />
+            {t('licence.viewFull')} <Icon icon={faUpRightFromSquare} style={{ fontSize: 10 }} />
           </button>
 
           <h3
@@ -77,11 +76,10 @@ export function LicenceDialog({ open, onClose }: Props) {
               color: 'var(--text-muted)'
             }}
           >
-            Bundled Libraries
+            {t('licence.bundled')}
           </h3>
           <p style={{ margin: '0 0 10px', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-            Magnolia is built on top of these open-source projects. Full attribution and licence text
-            for every dependency is bundled with the app.
+            {t('licence.bundledText')}
           </p>
 
           <div
@@ -106,7 +104,7 @@ export function LicenceDialog({ open, onClose }: Props) {
               >
                 <span>
                   <strong>{lib.name}</strong>
-                  <span style={{ color: 'var(--text-muted)' }}> — {lib.role}</span>
+                  <span style={{ color: 'var(--text-muted)' }}> — {t(`licence.role.${lib.role}`)}</span>
                 </span>
                 <span
                   style={{
@@ -127,12 +125,12 @@ export function LicenceDialog({ open, onClose }: Props) {
             onClick={() => window.api.openAcknowledgements()}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 12 }}
           >
-            View full attributions <Icon icon={faUpRightFromSquare} style={{ fontSize: 10 }} />
+            {t('licence.viewAttributions')} <Icon icon={faUpRightFromSquare} style={{ fontSize: 10 }} />
           </button>
         </div>
 
         <div className="modal-actions" style={{ marginTop: 12 }}>
-          <button onClick={onClose}>Close</button>
+          <button onClick={onClose}>{t('common.close')}</button>
         </div>
       </div>
     </div>

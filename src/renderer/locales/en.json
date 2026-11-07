@@ -282,7 +282,13 @@
     "skip": "Skip",
     "import": "Import",
     "export": "Export",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "continue": "Continue",
+    "close": "Close",
+    "dismiss": "Dismiss",
+    "untitled": "Untitled",
+    "loading": "Loading...",
+    "clickToRename": "Click to rename"
   },
   "panel": {
     "popIn": "Pop back in",
@@ -661,5 +667,98 @@
       "query": "Save the query to attach a memo",
       "analysis": "Save the analysis to attach a memo"
     }
+  },
+  "checkout": {
+    "inUse": "This project is in use",
+    "takeControlQuestion": "Take control anyway?",
+    "workingSince": "<b>{{name}}</b> is working on this file since {{when}}.",
+    "takeOverWarning": "Taking over now will make the project yours. If they're still editing, saving could overwrite each other's changes.",
+    "viewOnly": "You can view this file, but you can't edit until you choose one of these:",
+    "optionTakeControl": "<b>Take control anyway</b> if you are sure {{name}} has stopped working on the file; or",
+    "optionCopy": "<b>Create a copy</b> so you can merge your version and {{name}}'s version into one later.",
+    "createCopy": "Create a Copy",
+    "takeControlAnyway": "Take Control Anyway"
+  },
+  "stealBack": {
+    "title": "Can't save — the project changed hands",
+    "hasControl": "<b>{{name}}</b> has control of this project since {{when}}. Your changes since then haven't been saved.",
+    "youCan": "You can:",
+    "optionTakeControl": "<b>Take control</b> — take control of the project back and open the Merge tool to reconcile your unsaved changes with {{name}}'s saved ones; or",
+    "optionCopy": "<b>Create a copy</b> so your changes aren't lost, and merge the two later.",
+    "takeControl": "Take Control"
+  },
+  "nameGate": {
+    "title": "Welcome to Magnolia",
+    "text": "Before you get started, what's your name? It's shown to teammates when you check out or make changes to a shared project, and saved into the project file itself whenever you're the last person to edit it.",
+    "placeholder": "Your name"
+  },
+  "find": {
+    "title": "Find",
+    "in": "in {{name}}",
+    "placeholder": "word or phrase...",
+    "caseSensitive": "Case sensitive",
+    "wholeWord": "Whole word"
+  },
+  "projectDetails": {
+    "title": "Project Details",
+    "name": "Project Name",
+    "description": "Description",
+    "file": "File:",
+    "unsaved": "Unsaved",
+    "documents": "Documents:",
+    "codes": "Codes:",
+    "fileSize": "File size:"
+  },
+  "licence": {
+    "free": "Magnolia is free and open-source software.",
+    "released": "Released under the <b>European Union Public Licence (EUPL) v1.2</b>. You are free to use, study, copy, modify, and redistribute Magnolia, including for commercial purposes. Derivative works must be distributed under the EUPL or one of its compatible licences, and their source code must be made available.",
+    "viewFull": "View full licence text",
+    "bundled": "Bundled Libraries",
+    "bundledText": "Magnolia is built on top of these open-source projects. Full attribution and licence text for every dependency is bundled with the app.",
+    "viewAttributions": "View full attributions",
+    "role": {
+      "tauri": "desktop runtime",
+      "react": "UI framework",
+      "tiptap": "rich-text editor for memos",
+      "pdfjs": "PDF rendering",
+      "zip": "QDPX project archive read/write",
+      "roxmltree": "QDPX XML parsing",
+      "lopdf": "PDF page geometry and export chrome",
+      "calamine": ".xlsx survey import",
+      "zuneHeic": "HEIC / HEIF image decoding",
+      "image": "TIFF image decoding",
+      "lofty": "audio metadata",
+      "resvg": "SVG rendering for PDF exports",
+      "marked": "Markdown rendering",
+      "panels": "split-pane layout",
+      "zustand": "state management",
+      "d3force": "phrase network layout",
+      "lucide": "icon set"
+    }
+  },
+  "missing": {
+    "title_one": "{{count}} document is missing its file from this project",
+    "title_other": "{{count}} documents are missing their files from this project",
+    "text_one": "Their content was never stored in the .qdpx and can't be recovered from the file. Re-import the original to repair the project — your codes are kept, and the next save embeds the file permanently.",
+    "text_other": "Their content was never stored in the .qdpx and can't be recovered from the file. Re-import the originals to repair the project — your codes are kept, and the next save embeds the files permanently.",
+    "reimport": "Re-import…",
+    "reimporting": "Re-importing…"
+  },
+  "memoEdit": {
+    "deleteConfirm": "Delete memo \"{{title}}\"? This cannot be undone.",
+    "newMemo": "New Memo",
+    "memo": "Memo",
+    "edited": "Edited",
+    "titlePlaceholder": "Memo title...",
+    "titleLabel": "Memo title"
+  },
+  "editor": {
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "bulletList": "Bullet List",
+    "numberedList": "Numbered List"
   }
 }
