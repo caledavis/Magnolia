@@ -33,6 +33,7 @@ import {
   SURVEY_SUMMARY_CSS
 } from '../SurveyViewer/SurveyViewer'
 import type { AnalysisToolType, Quote, SurveyFormatData } from '../../models/types'
+import { t, formatDateTime } from '../../i18n'
 
 /** Per-tool display options chosen for an analysis item, mirroring the
  *  toggles the analysis tool itself exposes. Applied when the table is
@@ -86,44 +87,44 @@ export function reportAnchorId(item: ReportItem): string {
 export function resolveItemLabel(item: ReportItem): string {
   switch (item.kind) {
     case 'section':
-      return item.title || 'Section'
+      return item.title || t('reports.section')
     case 'text': {
       const firstLine = item.content.split('\n').find((l) => l.trim().length > 0) ?? ''
       const stripped = firstLine.replace(/[#*_>`~-]/g, '').trim()
-      return stripped ? stripped.slice(0, 60) : 'Text'
+      return stripped ? stripped.slice(0, 60) : t('reports.text')
     }
     case 'query': {
       const q = useQueryStore.getState().savedQueries.find((s) => s.guid === item.refGuid)
-      return q?.name ?? '(deleted query)'
+      return q?.name ?? t('reports.deletedQuery')
     }
     case 'analysis': {
       const a = useProjectStore.getState().savedAnalyses?.find((s) => s.guid === item.refGuid)
-      return a?.name ?? '(deleted analysis)'
+      return a?.name ?? t('reports.deletedAnalysis')
     }
     case 'quote': {
       const qt = useQuoteStore.getState().quotes.find((s) => s.guid === item.refGuid)
-      return qt ? `Quote — ${qt.sourceName}` : '(deleted quote)'
+      return qt ? t('reports.quoteFrom', { source: qt.sourceName }) : t('reports.deletedQuote')
     }
     case 'memo': {
       const m = useMemoStore.getState().findMemo(item.refGuid)
-      return m?.title ?? '(deleted memo)'
+      return m?.title ?? t('reports.deletedMemo')
     }
     case 'document': {
       const src = useDocumentStore.getState().sources.find((s) => s.guid === item.refGuid)
-      return src?.name ?? '(deleted document)'
+      return src?.name ?? t('reports.deletedDocument')
     }
     case 'survey-question': {
       const q = findSurveyQuestion(item.surveyGuid, item.questionId)
-      return q?.text ?? '(deleted question)'
+      return q?.text ?? t('reports.deletedQuestion')
     }
     case 'survey-respondent': {
       const r = findSurveyRespondent(item.surveyGuid, item.respondentId)
-      return r?.displayName ?? '(deleted respondent)'
+      return r?.displayName ?? t('reports.deletedRespondent')
     }
     case 'survey-cell': {
       const r = findSurveyRespondent(item.surveyGuid, item.respondentId)
       const q = findSurveyQuestion(item.surveyGuid, item.questionId)
-      if (!r || !q) return '(deleted answer)'
+      if (!r || !q) return t('reports.deletedAnswer')
       return `${r.displayName} — ${q.text}`
     }
   }
@@ -169,25 +170,25 @@ export function resolveItemSnippet(item: ReportItem): string | null {
 export function reportItemTypeLabel(item: ReportItem): string {
   switch (item.kind) {
     case 'section':
-      return item.level === 2 ? 'Subsection' : 'Section'
+      return item.level === 2 ? t('reports.subsection') : t('reports.section')
     case 'text':
-      return 'Text'
+      return t('reports.text')
     case 'query':
-      return 'Query'
+      return t('reports.query')
     case 'quote':
-      return 'Quote'
+      return t('reports.quote')
     case 'memo':
-      return 'Memo'
+      return t('reports.memo')
     case 'document':
-      return 'Document'
+      return t('reports.document')
     case 'survey-question':
-      return 'Survey Question'
+      return t('reports.surveyQuestion')
     case 'survey-respondent':
-      return 'Respondent'
+      return t('reports.respondent')
     case 'survey-cell':
-      return 'Answer'
+      return t('reports.answer')
     case 'analysis':
-      return TOOL_REGISTRY[item.toolType]?.label ?? 'Analysis'
+      return TOOL_REGISTRY[item.toolType]?.label ?? t('reports.analysis')
   }
 }
 
@@ -392,7 +393,7 @@ function buildReportBody(items: ReportItem[], assets: Map<string, DocAsset>): st
     })
     .join('')
   const tocHtml = items.length
-    ? `<div class="report-toc"><div class="section-heading">Contents</div><div class="toc-list">${toc}</div></div>`
+    ? `<div class="report-toc"><div class="section-heading">${escHtml(t('reports.contents'))}</div><div class="toc-list">${toc}</div></div>`
     : ''
 
   const body = items.map((it) => renderItem(it, assets, numbers.get(it.id)?.num ?? '')).join('')
@@ -410,7 +411,7 @@ function renderItem(item: ReportItem, assets: Map<string, DocAsset>, num: string
   const prefix = numBadge(num)
   switch (item.kind) {
     case 'section':
-      return `<h2 class="report-section report-h${item.level ?? 1}" id="${anchor}">${prefix}${escHtml(item.title || 'Section')}</h2>`
+      return `<h2 class="report-section report-h${item.level ?? 1}" id="${anchor}">${prefix}${escHtml(item.title || t('reports.section'))}</h2>`
     case 'text':
       return `<div class="report-block report-text" id="${anchor}">${markdownToHtml(item.content)}</div>`
     case 'query':
@@ -440,9 +441,9 @@ function renderSurveyQuestion(surveyGuid: string, questionId: string, anchor: st
   const src = useDocumentStore.getState().sources.find((s) => s.guid === surveyGuid)
   const survey = (src?.formatData as SurveyFormatData | undefined)?.survey
   if (!survey) {
-    return `<div class="report-block report-survey-inline" id="${anchor}"><div class="report-item-head">${prefix}Survey Question</div><div class="empty">(survey unavailable)</div></div>`
+    return `<div class="report-block report-survey-inline" id="${anchor}"><div class="report-item-head">${prefix}${escHtml(t('reports.surveyQuestion'))}</div><div class="empty">${escHtml(t('reports.surveyUnavailable'))}</div></div>`
   }
-  const head = `<div class="report-item-head">${prefix}Survey Question — ${escHtml(src?.name ?? '')}</div>`
+  const head = `<div class="report-item-head">${prefix}${escHtml(t('reports.headWith', { kind: t('reports.surveyQuestion'), name: src?.name ?? '' }))}</div>`
   return (
     `<div class="report-block report-survey-inline" id="${anchor}">` +
     head +
@@ -458,9 +459,9 @@ function renderSurveyRespondent(surveyGuid: string, respondentId: string, anchor
   const survey = (src?.formatData as SurveyFormatData | undefined)?.survey
   const respondent = survey?.respondents.find((r) => r.id === respondentId)
   if (!survey || !respondent) {
-    return `<div class="report-block report-document" id="${anchor}"><div class="report-item-head">${prefix}Respondent</div><div class="empty">(respondent unavailable)</div></div>`
+    return `<div class="report-block report-document" id="${anchor}"><div class="report-item-head">${prefix}${escHtml(t('reports.respondent'))}</div><div class="empty">${escHtml(t('reports.respondentUnavailable'))}</div></div>`
   }
-  const head = `<div class="report-item-head">${prefix}Respondent — ${escHtml(respondent.displayName)}</div>`
+  const head = `<div class="report-item-head">${prefix}${escHtml(t('reports.headWith', { kind: t('reports.respondent'), name: respondent.displayName }))}</div>`
   return (
     `<div class="report-block report-document" id="${anchor}">` +
     head +
@@ -477,9 +478,9 @@ function renderSurveyCell(surveyGuid: string, respondentId: string, questionId: 
   const survey = (src?.formatData as SurveyFormatData | undefined)?.survey
   const respondent = survey?.respondents.find((r) => r.id === respondentId)
   if (!survey || !respondent) {
-    return `<div class="report-block report-survey-inline" id="${anchor}"><div class="report-item-head">${prefix}Answer</div><div class="empty">(answer unavailable)</div></div>`
+    return `<div class="report-block report-survey-inline" id="${anchor}"><div class="report-item-head">${prefix}${escHtml(t('reports.answer'))}</div><div class="empty">${escHtml(t('reports.answerUnavailable'))}</div></div>`
   }
-  const head = `<div class="report-item-head">${prefix}Answer — ${escHtml(respondent.displayName)}</div>`
+  const head = `<div class="report-item-head">${prefix}${escHtml(t('reports.headWith', { kind: t('reports.answer'), name: respondent.displayName }))}</div>`
   return (
     `<div class="report-block report-survey-inline" id="${anchor}">` +
     head +
@@ -491,7 +492,7 @@ function renderSurveyCell(surveyGuid: string, respondentId: string, questionId: 
 
 function renderQuote(guid: string, anchor: string, prefix = ''): string {
   const q = useQuoteStore.getState().quotes.find((s) => s.guid === guid)
-  if (!q) return `<div class="report-block" id="${anchor}"><div class="empty">(deleted quote)</div></div>`
+  if (!q) return `<div class="report-block" id="${anchor}"><div class="empty">${escHtml(t('reports.deletedQuote'))}</div></div>`
   const text = freshQuoteText(q)
   return (
     `<div class="report-block report-quote-block" id="${anchor}">` +
@@ -503,10 +504,10 @@ function renderQuote(guid: string, anchor: string, prefix = ''): string {
 
 function renderMemo(guid: string, anchor: string, prefix = ''): string {
   const m = useMemoStore.getState().findMemo(guid)
-  if (!m) return `<div class="report-block" id="${anchor}"><div class="empty">(deleted memo)</div></div>`
+  if (!m) return `<div class="report-block" id="${anchor}"><div class="empty">${escHtml(t('reports.deletedMemo'))}</div></div>`
   return (
     `<div class="report-block report-memo" id="${anchor}">` +
-    `<div class="report-item-head">${prefix}${escHtml(m.title || 'Memo')}</div>` +
+    `<div class="report-item-head">${prefix}${escHtml(m.title || t('reports.memo'))}</div>` +
     `<div class="memo-content">${markdownToHtml(m.content || '')}</div>` +
     `</div>`
   )
@@ -520,22 +521,22 @@ function wrapDocument(anchor: string, inner: string): string {
 function renderDocument(guid: string, anchor: string, assets: Map<string, DocAsset>, prefix = ''): string {
   const src = useDocumentStore.getState().sources.find((s) => s.guid === guid)
   if (!src) {
-    return wrapDocument(anchor, `<div class="report-item-head">${prefix}Document</div><div class="empty">(deleted document)</div>`)
+    return wrapDocument(anchor, `<div class="report-item-head">${prefix}${escHtml(t('reports.document'))}</div><div class="empty">${escHtml(t('reports.deletedDocument'))}</div>`)
   }
-  const head = `<div class="report-item-head">${prefix}Document — ${escHtml(src.name)}</div>`
+  const head = `<div class="report-item-head">${prefix}${escHtml(t('reports.headWith', { kind: t('reports.document'), name: src.name }))}</div>`
   const asset = assets.get(guid)
 
   // Survey: embed the exact content the survey overview's "Export PDF"
   // produces (Contents / Questions / Respondents), under a survey heading.
   if (src.sourceType === 'survey') {
     const survey = (src.formatData as SurveyFormatData | undefined)?.survey
-    if (!survey) return wrapDocument(anchor, head + `<div class="empty">(survey data unavailable)</div>`)
+    if (!survey) return wrapDocument(anchor, head + `<div class="empty">${escHtml(t('reports.surveyDataUnavailable'))}</div>`)
     const r = survey.respondents.length
     const q = survey.questions.length
-    const sub = `${r} respondent${r === 1 ? '' : 's'} · ${q} question${q === 1 ? '' : 's'}`
+    const sub = escHtml(`${t('survey.respondentCount', { count: r })} · ${t('survey.questionCount', { count: q })}`)
     return wrapDocument(
       anchor,
-      `<div class="report-item-head">${prefix}Survey — ${escHtml(src.name)}</div>` +
+      `<div class="report-item-head">${prefix}${escHtml(t('reports.headWith', { kind: t('reports.survey'), name: src.name }))}</div>` +
         `<div class="report-survey-sub">${sub}</div>` +
         `<div class="survey-summary">${buildSurveySummaryBody(survey)}</div>`
     )
@@ -546,18 +547,18 @@ function renderDocument(guid: string, anchor: string, assets: Map<string, DocAss
     if (asset?.kind === 'image') {
       return wrapDocument(anchor, head + `<div class="report-media"><img class="report-media-img" src="${asset.dataUrl}" alt="${escHtml(src.name)}" /></div>`)
     }
-    return wrapDocument(anchor, head + `<div class="empty">(image unavailable)</div>`)
+    return wrapDocument(anchor, head + `<div class="empty">${escHtml(t('reports.imageUnavailable'))}</div>`)
   }
 
   // PDF: the original pages, rasterised and scaled to fit — one per page.
   if (src.sourceType === 'pdf') {
     if (asset?.kind === 'pdf' && asset.pages.length > 0) {
       const pages = asset.pages
-        .map((p, i) => `<div class="report-pdf-page${i === 0 ? ' first' : ''}"><img class="report-pdf-img" src="${p}" alt="${escHtml(src.name)} page ${i + 1}" /></div>`)
+        .map((p, i) => `<div class="report-pdf-page${i === 0 ? ' first' : ''}"><img class="report-pdf-img" src="${p}" alt="${escHtml(t('reports.pageAlt', { name: src.name, page: i + 1 }))}" /></div>`)
         .join('')
       return wrapDocument(anchor, head + pages)
     }
-    return wrapDocument(anchor, head + `<div class="empty">(PDF unavailable)</div>`)
+    return wrapDocument(anchor, head + `<div class="empty">${escHtml(t('reports.pdfUnavailable'))}</div>`)
   }
 
   // Video: the first frame plus any transcript text.
@@ -565,10 +566,10 @@ function renderDocument(guid: string, anchor: string, assets: Map<string, DocAss
     const transcript = (useDocumentStore.getState().sourceContents[guid] || '').trim()
     const frameHtml =
       asset?.kind === 'video' && asset.frame
-        ? `<div class="report-media"><img class="report-media-img" src="${asset.frame}" alt="${escHtml(src.name)} first frame" /></div>`
+        ? `<div class="report-media"><img class="report-media-img" src="${asset.frame}" alt="${escHtml(t('reports.firstFrameAlt', { name: src.name }))}" /></div>`
         : ''
     const transcriptHtml = transcript ? `<div class="doc-content">${escHtml(transcript)}</div>` : ''
-    const body = frameHtml + transcriptHtml || `<div class="empty">(no preview available)</div>`
+    const body = frameHtml + transcriptHtml || `<div class="empty">${escHtml(t('reports.noPreview'))}</div>`
     return wrapDocument(anchor, head + body)
   }
 
@@ -576,7 +577,7 @@ function renderDocument(guid: string, anchor: string, assets: Map<string, DocAss
   const content = useDocumentStore.getState().sourceContents[guid] || ''
   const body = content.trim()
     ? `<div class="doc-content">${escHtml(content)}</div>`
-    : `<div class="empty">(no text content)</div>`
+    : `<div class="empty">${escHtml(t('reports.noText'))}</div>`
   return wrapDocument(anchor, head + body)
 }
 
@@ -587,8 +588,8 @@ export function buildReportHtml(
   exportedAt: string,
   assets: Map<string, DocAsset> = new Map()
 ): string {
-  const reportTitle = title.trim() || 'Report'
-  const subtitle = `${items.length} item${items.length === 1 ? '' : 's'} — exported ${exportedAt}`
+  const reportTitle = title.trim() || t('reports.report')
+  const subtitle = t('reports.subtitle', { count: items.length, date: exportedAt })
   return buildPdfDocument({
     title: reportTitle,
     subtitle: escHtml(subtitle),
@@ -608,10 +609,10 @@ export async function exportReportPdf(
   // the HTML as data URLs before the string is handed to the main process,
   // whose isolated print window can't reach the renderer's blob URLs.
   const assets = await resolveDocAssets(items)
-  const exportedAt = new Date().toLocaleString()
+  const exportedAt = formatDateTime(new Date())
   const html = buildReportHtml(title, items, exportedAt, assets)
-  const safeName = (title.trim() || 'Report').replace(/[^\w\d -]/g, '').slice(0, 80) || 'Report'
-  return exportPdfWithHeader(html, safeName, 'Export Report as PDF')
+  const safeName = (title.trim() || t('reports.report')).replace(/[^\p{L}\p{N} _-]/gu, '').slice(0, 80) || t('reports.report')
+  return exportPdfWithHeader(html, safeName, t('reports.exportDialog'))
 }
 
 // ── Media resolution ───────────────────────────────────────────────

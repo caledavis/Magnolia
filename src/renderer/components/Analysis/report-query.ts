@@ -11,6 +11,7 @@ import { escHtml } from '../../utils/pdf-export'
 import { useQueryStore } from '../../stores/query-store'
 import { useDocumentStore } from '../../stores/document-store'
 import { surveyCellCitation } from './report-survey-cite'
+import { t } from '../../i18n'
 
 export const REPORT_QUERY_CSS = `
   .report-query .report-query-meta { font-size: 10px; color: #888; margin: 0 0 8px 0; }
@@ -30,7 +31,7 @@ export const REPORT_QUERY_CSS = `
 export function renderQueryItemHtml(refGuid: string, anchor: string, prefix = ''): string {
   const sq = useQueryStore.getState().savedQueries.find((q) => q.guid === refGuid)
   if (!sq?.query) {
-    return `<div class="report-block" id="${anchor}"><div class="report-item-head">${prefix}Query</div><div class="empty">(deleted query)</div></div>`
+    return `<div class="report-block" id="${anchor}"><div class="report-item-head">${prefix}${escHtml(t('reports.query'))}</div><div class="empty">${escHtml(t('reports.deletedQuery'))}</div></div>`
   }
 
   const base = buildAnalysisInitData('reports')
@@ -53,19 +54,19 @@ export function renderQueryItemHtml(refGuid: string, anchor: string, prefix = ''
   try {
     results = executeQuery(sq.query, execSources as any, base.sourceContents, execCodes as any, execTags as any, base.sourceFolder, execFolders)
   } catch {
-    return `<div class="report-block" id="${anchor}"><div class="report-item-head">${prefix}Query — ${escHtml(sq.name)}</div><div class="empty">Could not run this query.</div></div>`
+    return `<div class="report-block" id="${anchor}"><div class="report-item-head">${prefix}${escHtml(t('reports.headWith', { kind: t('reports.query'), name: sq.name }))}</div><div class="empty">${escHtml(t('reports.couldNotRunQuery'))}</div></div>`
   }
 
   const groups = groupByDocument(results)
-  const meta = `${results.length} match${results.length === 1 ? '' : 'es'} in ${groups.length} document${groups.length === 1 ? '' : 's'}`
+  const meta = escHtml(t('results.matchesInDocs', { matches: t('results.matchCount', { count: results.length }), documents: t('results.documentCount', { count: groups.length }) }))
 
-  let body = `<div class="report-block report-query" id="${anchor}"><div class="report-item-head">${prefix}Query — ${escHtml(sq.name)}</div>`
+  let body = `<div class="report-block report-query" id="${anchor}"><div class="report-item-head">${prefix}${escHtml(t('reports.headWith', { kind: t('reports.query'), name: sq.name }))}</div>`
   body += `<div class="report-query-meta">${meta}</div>`
   if (results.length === 0) {
-    body += '<div class="empty">(no matches)</div>'
+    body += `<div class="empty">${escHtml(t('reports.noMatches'))}</div>`
   }
   for (const group of groups) {
-    body += `<div class="doc-group"><h3 class="q-doc">${escHtml(group.sourceName)} <span class="count">(${group.results.length} match${group.results.length === 1 ? '' : 'es'})</span></h3>`
+    body += `<div class="doc-group"><h3 class="q-doc">${escHtml(group.sourceName)} <span class="count">(${escHtml(t('results.matchCount', { count: group.results.length }))})</span></h3>`
     for (const r of group.results) {
       const codes = r.matchedCodes
         .map((c) => `<span class="code-badge" style="border-left:3px solid ${c.color || '#888'}">${escHtml(c.name)}</span>`)

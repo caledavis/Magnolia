@@ -348,7 +348,7 @@ export function Reports({ savedConfig, inTab }: Props) {
   }, [baseline])
 
   useRegisterToolSave(inTab?.tabId, () => {
-    handleSave(nameRef.current.trim() || 'Untitled Report')
+    handleSave(nameRef.current.trim() || t('reports.untitledReport'))
     return true
   })
 
@@ -413,8 +413,8 @@ export function Reports({ savedConfig, inTab }: Props) {
   // persisted separately by commitTitle, so they're not tracked here.
   useEffect(() => {
     if (!dirty || !savedRef.current) return
-    const t = setTimeout(() => persistSaved(nameRef.current.trim() || analysisName.trim() || 'Untitled Report'), 800)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => persistSaved(nameRef.current.trim() || analysisName.trim() || t('reports.untitledReport')), 800)
+    return () => clearTimeout(timer)
   }, [dirty, analysisName, persistSaved])
 
   return (
@@ -423,12 +423,12 @@ export function Reports({ savedConfig, inTab }: Props) {
       <div style={{ padding: '14px 20px 6px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
         <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
           <Icon icon={faNotebookTabs} className="analysis-header-icon" style={{ fontSize: 16 }} />
-          Report:
+          {t('reports.reportLabel')}
           <EditableTitleSuffix
             name={analysisName}
             onRename={commitTitle}
             autoEdit={!isExisting}
-            placeholder="Untitled report"
+            placeholder={t('reports.untitledPlaceholder')}
           />
         </h2>
         <div style={{ flex: 1 }} />
@@ -441,15 +441,15 @@ export function Reports({ savedConfig, inTab }: Props) {
           </button>
         )}
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} disabled={exporting} onClick={handleExport}>
-          {exporting ? 'Exporting…' : 'Export PDF'}
+          {exporting ? t('reports.exporting') : t('common.exportPdf')}
         </button>
         {isExisting ? (
-          <button style={{ fontSize: 11, padding: '4px 14px' }} disabled={!dirty} onClick={() => handleSave(nameRef.current.trim() || 'Untitled Report')}>
-            {dirty ? 'Update Report' : 'Saved'}
+          <button style={{ fontSize: 11, padding: '4px 14px' }} disabled={!dirty} onClick={() => handleSave(nameRef.current.trim() || t('reports.untitledReport'))}>
+            {dirty ? t('reports.update') : t('analysis.saved')}
           </button>
         ) : (
-          <button style={{ fontSize: 11, padding: '4px 14px' }} onClick={() => handleSave(nameRef.current.trim() || 'Untitled Report')}>
-            Save Report
+          <button style={{ fontSize: 11, padding: '4px 14px' }} onClick={() => handleSave(nameRef.current.trim() || t('reports.untitledReport'))}>
+            {t('reports.save')}
           </button>
         )}
         <div style={{ width: 36, flexShrink: 0 }} />
@@ -457,9 +457,9 @@ export function Reports({ savedConfig, inTab }: Props) {
 
       {/* Tool toolbar: draggable Section / Text blocks. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 20px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-panel)', flexShrink: 0 }}>
-        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginRight: 4 }}>Drag to add:</span>
-        <PaletteChip block="section" icon={faHeading1} label="Section" />
-        <PaletteChip block="text" icon={faFont} label="Text" />
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginRight: 4 }}>{t('reports.dragToAdd')}</span>
+        <PaletteChip block="section" icon={faHeading1} label={t('reports.section')} />
+        <PaletteChip block="text" icon={faFont} label={t('reports.text')} />
       </div>
 
       {/* The report list */}
@@ -475,7 +475,7 @@ export function Reports({ savedConfig, inTab }: Props) {
       >
         {items.length === 0 ? (
           <div style={{ padding: 30, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)', border: '2px dashed var(--border-color)', borderRadius: 'var(--radius-md)' }}>
-            Drag documents, saved queries, analyses, quotes, and memos onto the canvas to build your report
+            {t('reports.canvasHint')}
           </div>
         ) : (
           <div>
@@ -529,6 +529,7 @@ export function Reports({ savedConfig, inTab }: Props) {
 }
 
 function PaletteChip({ block, icon, label }: { block: 'section' | 'text'; icon: typeof faHeading1; label: string }) {
+  const { t } = useTranslation()
   return (
     <div
       draggable
@@ -536,7 +537,7 @@ function PaletteChip({ block, icon, label }: { block: 'section' | 'text'; icon: 
         e.dataTransfer.setData(BLOCK_MIME, block)
         e.dataTransfer.effectAllowed = 'copy'
       }}
-      title={`Drag onto the list to add a ${label.toLowerCase()}`}
+      title={t('reports.dragOntoList', { block: label })}
       style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '3px 10px', cursor: 'grab' }}
     >
       <Icon icon={icon} className={PALETTE_ICON_CLASS} style={{ fontSize: 11, color: 'var(--text-muted)' }} />
@@ -581,7 +582,7 @@ function ReportRow({
         <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {item.kind !== 'section' && item.kind !== 'text' ? label : ''}
         </span>
-        <span onClick={onRemove} title="Remove" style={{ cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0, display: 'inline-flex' }}>
+        <span onClick={onRemove} title={t('common.remove')} style={{ cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0, display: 'inline-flex' }}>
           <Icon icon={faXmark} style={{ fontSize: 12 }} />
         </span>
       </div>
@@ -601,13 +602,13 @@ function ReportRow({
       {item.kind === 'section' && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
           <div style={{ display: 'inline-flex', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', overflow: 'hidden', flexShrink: 0 }}>
-            {([[1, 'Section'], [2, 'Subsection']] as const).map(([lvl, label]) => {
+            {([[1, t('reports.section')], [2, t('reports.subsection')]] as const).map(([lvl, label]) => {
               const active = (item.level ?? 1) === lvl
               return (
                 <button
                   key={lvl}
                   onClick={() => onUpdate({ level: lvl })}
-                  title={`${label} (H${lvl})`}
+                  title={t('reports.headingLevel', { label, level: lvl })}
                   style={{ fontSize: 11, fontWeight: 600, padding: '5px 10px', border: 'none', cursor: 'pointer', background: active ? 'var(--accent)' : 'var(--bg-tertiary)', color: active ? '#fff' : 'var(--text-secondary)' }}
                 >
                   {label}
@@ -618,7 +619,7 @@ function ReportRow({
           <input
             type="text"
             value={item.title}
-            placeholder="Section heading"
+            placeholder={t('reports.sectionHeading')}
             onChange={(e) => onUpdate({ title: e.target.value })}
             style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600, padding: '5px 8px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', background: 'var(--bg-input)', color: 'var(--text-primary)' }}
           />
@@ -636,19 +637,19 @@ function ReportRow({
       {item.kind === 'analysis' && (caps.totalsOnly || caps.binary || caps.visual || caps.barChart || caps.wordCloud) && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 8, paddingLeft: 28, flexWrap: 'wrap' }}>
           {caps.totalsOnly && (
-            <OptionToggle label="Totals only" checked={!!item.options.totalsOnly} onChange={(v) => onSetOption('totalsOnly', v)} />
+            <OptionToggle label={t('reports.totalsOnly')} checked={!!item.options.totalsOnly} onChange={(v) => onSetOption('totalsOnly', v)} />
           )}
           {caps.binary && (
-            <OptionToggle label="Binary" checked={!!item.options.binary} onChange={(v) => onSetOption('binary', v)} />
+            <OptionToggle label={t('reports.binary')} checked={!!item.options.binary} onChange={(v) => onSetOption('binary', v)} />
           )}
           {caps.visual && (
-            <OptionToggle label="Visual" checked={!!item.options.visual} onChange={(v) => onSetOption('visual', v)} />
+            <OptionToggle label={t('reports.visual')} checked={!!item.options.visual} onChange={(v) => onSetOption('visual', v)} />
           )}
           {caps.barChart && (
-            <OptionToggle label="Bar chart" checked={!!item.options.barChart} onChange={(v) => onSetOption('barChart', v)} />
+            <OptionToggle label={t('reports.barChart')} checked={!!item.options.barChart} onChange={(v) => onSetOption('barChart', v)} />
           )}
           {caps.wordCloud && (
-            <OptionToggle label="Word cloud" checked={!!item.options.wordCloud} onChange={(v) => onSetOption('wordCloud', v)} />
+            <OptionToggle label={t('reports.wordCloud')} checked={!!item.options.wordCloud} onChange={(v) => onSetOption('wordCloud', v)} />
           )}
         </div>
       )}

@@ -34,6 +34,7 @@ import { TOOL_REGISTRY } from '../../utils/tool-registry'
 import { useProjectStore } from '../../stores/project-store'
 import type { AnalysisInitData, QueryResult } from '../../models/types'
 import type { AnalysisItemOptions, ReportItem } from './report-export'
+import { t } from '../../i18n'
 
 /** CSS for the report's regenerated analysis tables, appended to the
  *  export document's styles. */
@@ -175,7 +176,7 @@ function renderGridTableHtml(
       return th + pctTh
     })
     .join('')
-  const headerRow = `<tr><th class="corner">${escHtml(rowLabel)}</th>${headCells}<th class="col totalhead"><div class="vlabel">Total</div></th><th class="col totalhead"><div class="vlabel">% of Total</div></th></tr>`
+  const headerRow = `<tr><th class="corner">${escHtml(rowLabel)}</th>${headCells}<th class="col totalhead"><div class="vlabel">${escHtml(t('analysis.total'))}</div></th><th class="col totalhead"><div class="vlabel">${escHtml(t('analysis.pctOfTotal'))}</div></th></tr>`
 
   // Body rows — Visual mode draws a sized box; Numeric shows the count.
   const body = rowNames
@@ -202,7 +203,7 @@ function renderGridTableHtml(
       return cell + pctCell
     })
     .join('')
-  const totalRow = `<tr class="total"><td class="rowname">Total</td>${totalCells}<td class="totalcell">${grandTotal}</td><td class="pctcell">${grandTotal ? '100.0%' : '–'}</td></tr>`
+  const totalRow = `<tr class="total"><td class="rowname">${escHtml(t('analysis.total'))}</td>${totalCells}<td class="totalcell">${grandTotal}</td><td class="pctcell">${grandTotal ? '100.0%' : '–'}</td></tr>`
 
   const wide = visIdx.length > 12
   return `<div class="report-wide${wide ? ' report-wide-rotate' : ''}"><table class="report-grid">${groupedRow}${headerRow}${body}${totalRow}</table></div>`
@@ -264,7 +265,7 @@ function codeIndent(depth?: number): string {
 
 function codesInDocumentsHtml(config: any, options: AnalysisItemOptions): string {
   const codeGuids: string[] = config?.codeGuids ?? []
-  if (codeGuids.length === 0) return '<div class="empty">(no codes in this analysis)</div>'
+  if (codeGuids.length === 0) return `<div class="empty">${escHtml(t('reports.noCodes'))}</div>`
   const { data, docFilter } = scopedData('codes-in-documents', config)
   const filtered = resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids ?? [], docFilter.typeInclude ?? [], docFilter.typeExclude ?? [])
   const sourceMap = new Map<string, string>(data.sources.map((s) => [s.guid, s.name]))
@@ -278,16 +279,16 @@ function codesInDocumentsHtml(config: any, options: AnalysisItemOptions): string
     })
   )
   if (options.binary) grid = binarizeGrid(grid)
-  const names = codeGuids.map((cg) => codeMap.get(cg)?.name ?? 'Code')
+  const names = codeGuids.map((cg) => codeMap.get(cg)?.name ?? t('analysis.code'))
   const depths = codeRowDepths(codeGuids, codeMap)
-  return renderGridTableHtml('Code', names, columns, headerGroups, grid, { binary: !!options.binary, visual: !!options.visual, totalsOnly: !!options.totalsOnly }, depths)
+  return renderGridTableHtml(t('analysis.code'), names, columns, headerGroups, grid, { binary: !!options.binary, visual: !!options.visual, totalsOnly: !!options.totalsOnly }, depths)
 }
 
 // ── Results in Documents ───────────────────────────────────────────
 
 function resultsInDocumentsHtml(config: any, options: AnalysisItemOptions): string {
   const queryGuids: string[] = config?.queryGuids ?? []
-  if (queryGuids.length === 0) return '<div class="empty">(no queries in this analysis)</div>'
+  if (queryGuids.length === 0) return `<div class="empty">${escHtml(t('reports.noQueries'))}</div>`
 
   const data = buildAnalysisInitData('results-in-documents')
 
@@ -316,15 +317,15 @@ function resultsInDocumentsHtml(config: any, options: AnalysisItemOptions): stri
     })
   })
   if (options.binary) grid = binarizeGrid(grid)
-  const names = queryGuids.map((g) => queryMap.get(g)?.name ?? 'Query')
-  return renderGridTableHtml('Query', names, columns, headerGroups, grid, { binary: !!options.binary, visual: !!options.visual, totalsOnly: !!options.totalsOnly })
+  const names = queryGuids.map((g) => queryMap.get(g)?.name ?? t('analysis.query'))
+  return renderGridTableHtml(t('analysis.query'), names, columns, headerGroups, grid, { binary: !!options.binary, visual: !!options.visual, totalsOnly: !!options.totalsOnly })
 }
 
 // ── Code Frequencies (percentage grid, no totals/subtotals) ─────────
 
 function codeFrequenciesHtml(config: any, options: AnalysisItemOptions): string {
   const codeGuids: string[] = config?.codeGuids ?? []
-  if (codeGuids.length === 0) return '<div class="empty">(no codes in this analysis)</div>'
+  if (codeGuids.length === 0) return `<div class="empty">${escHtml(t('reports.noCodes'))}</div>`
   const { data, docFilter } = scopedData('code-frequencies', config)
   const filtered = resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids ?? [], docFilter.typeInclude ?? [], docFilter.typeExclude ?? [])
   const sourceMap = new Map<string, string>(data.sources.map((s) => [s.guid, s.name]))
@@ -349,7 +350,7 @@ function codeFrequenciesHtml(config: any, options: AnalysisItemOptions): string 
           return `<td class="${v === 0 ? 'zero' : ''}">${v.toFixed(1)}%</td>`
         })
         .join('')
-      return `<tr><td class="rowhead">${codeIndent(depths[i])}${escHtml(codeMap.get(cg)?.name ?? 'Code')}</td>${cells}</tr>`
+      return `<tr><td class="rowhead">${codeIndent(depths[i])}${escHtml(codeMap.get(cg)?.name ?? t('analysis.code'))}</td>${cells}</tr>`
     })
     .join('')
   return wrapTable(`<thead>${thead}</thead><tbody>${body}</tbody>`, columns.length)
@@ -360,7 +361,7 @@ function codeFrequenciesHtml(config: any, options: AnalysisItemOptions): string 
 function codeCoOccurrencesHtml(config: any, options: AnalysisItemOptions): string {
   const rowCodeGuids: string[] = config?.rowCodeGuids ?? []
   const colCodeGuids: string[] = config?.colCodeGuids ?? []
-  if (rowCodeGuids.length === 0 || colCodeGuids.length === 0) return '<div class="empty">(no codes in this analysis)</div>'
+  if (rowCodeGuids.length === 0 || colCodeGuids.length === 0) return `<div class="empty">${escHtml(t('reports.noCodes'))}</div>`
   const { data, docFilter } = scopedData('code-cooccurrences', config)
   const filtered = resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids ?? [], docFilter.typeInclude ?? [], docFilter.typeExclude ?? [])
   const codeMap = new Map(data.codes.map((c) => [c.guid, c]))
@@ -381,12 +382,12 @@ function codeCoOccurrencesHtml(config: any, options: AnalysisItemOptions): strin
   const rowDepths = codeRowDepths(rowCodeGuids, codeMap)
   const colHead = totalsOnly
     ? ''
-    : colCodeGuids.map((g) => `<th class="col"><div class="vlabel">${escHtml(trunc(codeMap.get(g)?.name ?? 'Code', 26))}</div></th>`).join('')
-  const headerRow = `<tr><th class="corner"></th>${colHead}<th class="col totalhead"><div class="vlabel">Total</div></th><th class="col totalhead"><div class="vlabel">% of Total</div></th></tr>`
+    : colCodeGuids.map((g) => `<th class="col"><div class="vlabel">${escHtml(trunc(codeMap.get(g)?.name ?? t('analysis.code'), 26))}</div></th>`).join('')
+  const headerRow = `<tr><th class="corner"></th>${colHead}<th class="col totalhead"><div class="vlabel">${escHtml(t('analysis.total'))}</div></th><th class="col totalhead"><div class="vlabel">${escHtml(t('analysis.pctOfTotal'))}</div></th></tr>`
 
   const body = rowCodeGuids
     .map((rg, i) => {
-      const name = codeMap.get(rg)?.name ?? 'Code'
+      const name = codeMap.get(rg)?.name ?? t('analysis.code')
       const cells = totalsOnly
         ? ''
         : colCodeGuids
@@ -402,7 +403,7 @@ function codeCoOccurrencesHtml(config: any, options: AnalysisItemOptions): strin
     .join('')
 
   const totalCells = totalsOnly ? '' : colTotals.map((ct) => `<td class="cell"><div class="cw">${ct}</div></td>`).join('')
-  const totalRow = `<tr class="total"><td class="rowname">Total</td>${totalCells}<td class="totalcell">${grandTotal}</td><td class="pctcell">${grandTotal ? '100.0%' : '–'}</td></tr>`
+  const totalRow = `<tr class="total"><td class="rowname">${escHtml(t('analysis.total'))}</td>${totalCells}<td class="totalcell">${grandTotal}</td><td class="pctcell">${grandTotal ? '100.0%' : '–'}</td></tr>`
 
   const wide = (totalsOnly ? 0 : colCodeGuids.length) > 12
   return `<div class="report-wide${wide ? ' report-wide-rotate' : ''}"><table class="report-grid">${headerRow}${body}${totalRow}</table></div>`
@@ -424,13 +425,13 @@ function orderedCodeChips(
       for (const coding of sel.codings) {
         if (!codeGuids.includes(coding.codeGuid)) continue
         const info = codeMap.get(coding.codeGuid)
-        local.push({ start: sel.startPosition, name: info?.name || 'Code', color: info?.color || '#888' })
+        local.push({ start: sel.startPosition, name: info?.name || t('analysis.code'), color: info?.color || '#888' })
       }
     }
     local.sort((a, b) => a.start - b.start)
     for (const l of local) seq.push({ name: l.name, color: l.color })
   }
-  if (seq.length === 0) return '<span class="empty">(no codes)</span>'
+  if (seq.length === 0) return `<span class="empty">${escHtml(t('reports.noCodesShort'))}</span>`
   return seq
     .map((s) => `<span class="co-chip"><span class="dot" style="background:${s.color}"></span>${escHtml(s.name)}</span>`)
     .join('<span class="co-arrow">→</span>')
@@ -438,13 +439,13 @@ function orderedCodeChips(
 
 function codeOrdersHtml(config: any, _options: AnalysisItemOptions): string {
   const codeGuids: string[] = config?.codeGuids ?? []
-  if (codeGuids.length === 0) return '<div class="empty">(no codes in this analysis)</div>'
+  if (codeGuids.length === 0) return `<div class="empty">${escHtml(t('reports.noCodes'))}</div>`
   const { data, docFilter } = scopedData('code-orders', config)
   const filtered = resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids ?? [], docFilter.typeInclude ?? [], docFilter.typeExclude ?? [])
   const sourceMap = new Map<string, string>(data.sources.map((s) => [s.guid, s.name]))
   const codeMap = new Map(data.codes.map((c) => [c.guid, { name: c.name, color: c.color }]))
   const { columns: rows } = buildSurveyAwareColumns(config?.groupBy ?? [], data, filtered, sourceMap, { includeSubtotals: false })
-  if (rows.length === 0) return '<div class="empty">(no documents in scope)</div>'
+  if (rows.length === 0) return `<div class="empty">${escHtml(t('reports.noDocuments'))}</div>`
   const body = rows
     .map((row) => {
       const rd = row.respondentRef
@@ -596,7 +597,7 @@ function wordFrequenciesHtml(config: any, options: AnalysisItemOptions): string 
     // query's results once.
     series = [...queryRuns].map(([g, run]) => ({ id: g, label: run.name, sourceGuids: [], queryGuid: g }))
     total = countWords(queryPassageTexts(data, allResults(queryRuns)).passages.map((p) => p.text), filter)
-    if (series.length === 0) return '<div class="empty">(no queries in this analysis)</div>'
+    if (series.length === 0) return `<div class="empty">${escHtml(t('reports.noQueries'))}</div>`
   } else if (config?.textSource === 'coded') {
     // One series per code still in the project; the total counts every
     // chosen code's passages once.
@@ -608,11 +609,11 @@ function wordFrequenciesHtml(config: any, options: AnalysisItemOptions): string 
     const all = new Set<string>()
     for (const set of codeSets.values()) for (const g of set) all.add(g)
     total = countWords(codedPassageTexts(data, filtered, all).passages.map((p) => p.text), filter)
-    if (series.length === 0) return '<div class="empty">(no codes in this analysis)</div>'
+    if (series.length === 0) return `<div class="empty">${escHtml(t('reports.noCodes'))}</div>`
   } else {
     series =
       groupBy.length === 0
-        ? [{ id: '__all', label: 'All', sourceGuids: filtered }]
+        ? [{ id: '__all', label: t('words.all'), sourceGuids: filtered }]
         : buildSurveyAwareColumns(groupBy, data, filtered, sourceMap, { includeSubtotals: true }).columns
     // Counted once over the filtered sources, as on screen: summing the
     // series would count subtotals and multiply-tagged documents twice.
@@ -625,12 +626,12 @@ function wordFrequenciesHtml(config: any, options: AnalysisItemOptions): string 
     return countWords(s.sourceGuids.flatMap((g) => sourceTexts(sd, g)), filter)
   })
   const ranked = Array.from(total.entries()).sort((a, b) => b[1] - a[1]).slice(0, wordCount)
-  if (ranked.length === 0) return '<div class="empty">(no words)</div>'
+  if (ranked.length === 0) return `<div class="empty">${escHtml(t('reports.noWords'))}</div>`
 
   const single = series.length === 1
   const thead = single
-    ? `<tr><th class="rowhead">Word</th><th>Frequency</th></tr>`
-    : `<tr><th class="rowhead">Word</th>${series.map((s) => `<th>${escHtml(s.label)}</th>`).join('')}<th>Total</th></tr>`
+    ? `<tr><th class="rowhead">${escHtml(t('words.word'))}</th><th>${escHtml(t('words.frequency'))}</th></tr>`
+    : `<tr><th class="rowhead">${escHtml(t('words.word'))}</th>${series.map((s) => `<th>${escHtml(s.label)}</th>`).join('')}<th>${escHtml(t('analysis.total'))}</th></tr>`
   const body = ranked
     .map(([w, tot]) => {
       if (single) return `<tr><td class="rowhead">${escHtml(w)}</td><td>${tot}</td></tr>`
@@ -660,18 +661,18 @@ function wordCombinationsHtml(config: any): string {
   const known = new Set(data.codes.map((c) => c.guid))
   const codeSets = new Map<string, Set<string>>()
   for (const g of cfg.codeGuids as string[]) if (known.has(g)) codeSets.set(g, codeSet(data.codes, g, cfg.includeSubcodes))
-  if (cfg.textSource === 'coded' && codeSets.size === 0) return '<div class="empty">(no codes in this analysis)</div>'
+  if (cfg.textSource === 'coded' && codeSets.size === 0) return `<div class="empty">${escHtml(t('reports.noCodes'))}</div>`
   const queryRuns = runQueries(cfg.textSource === 'query' ? cfg.queryGuids : [])
-  if (cfg.textSource === 'query' && queryRuns.size === 0) return '<div class="empty">(no queries in this analysis)</div>'
+  if (cfg.textSource === 'query' && queryRuns.size === 0) return `<div class="empty">${escHtml(t('reports.noQueries'))}</div>`
   const { passages } = combinationsPassages(data, filtered, cfg.textSource, codeSets, queryRuns)
   const texts = passages.map((p) => p.text)
   const filter = wordFilter(cfg.includeWords, cfg.excludeWords)
 
   if (cfg.view === 'tree') {
     const focus = effectiveFocus(cfg.focusWord, passages, filter)
-    if (!focus) return '<div class="empty">(no words)</div>'
+    if (!focus) return `<div class="empty">${escHtml(t('reports.noWords'))}</div>`
     const tree = buildWordTree(passages, focus)
-    const intro = `<div class="report-note">\u201C${escHtml(focus)}\u201D appears ${tree.count} time${tree.count === 1 ? '' : 's'}.</div>`
+    const intro = `<div class="report-note">${escHtml(t('combos.appearsTimes', { word: focus, count: tree.count }))}.</div>`
     if (tree.count === 0) return intro
     return intro + `<div class="report-wf-viz">${wordTreeSvg(layoutWordTree(tree), {
       text: WF_TEXT,
@@ -681,24 +682,24 @@ function wordCombinationsHtml(config: any): string {
 
   if (cfg.view === 'associations') {
     const focus = effectiveFocus(cfg.focusWord, passages, filter)
-    if (!focus) return '<div class="empty">(no words)</div>'
+    if (!focus) return `<div class="empty">${escHtml(t('reports.noWords'))}</div>`
     const result = wordAssociations(texts, focus, filter, Math.max(1, cfg.minTogether))
-    const intro = `<div class="report-note">\u201C${escHtml(focus)}\u201D appears in ${result.focusSentences} of ${result.sentences} sentences.</div>`
-    if (result.rows.length === 0) return intro + '<div class="empty">(no associated words)</div>'
+    const intro = `<div class="report-note">${escHtml(t('combos.appearsInSentences', { word: focus, n: result.focusSentences, count: result.sentences }))}.</div>`
+    if (result.rows.length === 0) return intro + `<div class="empty">${escHtml(t('reports.noAssociated'))}</div>`
     const body = result.rows
       .slice(0, COMBINATION_ROWS)
       .map((r) => `<tr><td class="rowhead">${escHtml(r.word)}</td><td>${r.together}</td><td>${(r.share * 100).toFixed(1)}%</td><td>${r.g2.toFixed(1)}</td></tr>`)
       .join('')
-    return intro + wrapTable(`<thead><tr><th class="rowhead">Word</th><th>Together</th><th>% of Sentences</th><th>G\u00B2</th></tr></thead><tbody>${body}</tbody>`, 3)
+    return intro + wrapTable(`<thead><tr><th class="rowhead">${escHtml(t('words.word'))}</th><th>${escHtml(t('combos.together'))}</th><th>${escHtml(t('combos.pctOfSentences'))}</th><th>G\u00B2</th></tr></thead><tbody>${body}</tbody>`, 3)
   }
 
   const phrases = countPhrases(texts, phraseLengthOf(cfg.phraseLength), filter, Math.max(1, cfg.minCount))
-  if (phrases.length === 0) return '<div class="empty">(no repeated phrases)</div>'
+  if (phrases.length === 0) return `<div class="empty">${escHtml(t('reports.noRepeated'))}</div>`
   if (cfg.phraseDisplay === 'network') {
     const net = buildPhraseNetwork(phrases, filter.exclude)
-    if (net.links.length === 0) return '<div class="empty">(no phrases to join)</div>'
-    const shown = net.phraseCount === phrases.length ? `${phrases.length} phrase${phrases.length === 1 ? '' : 's'}` : `The ${net.phraseCount} commonest of ${phrases.length} phrases`
-    const intro = `<div class="report-note">${shown}. Lines join the words that follow each other in them; left-out words aren\u2019t drawn.</div>`
+    if (net.links.length === 0) return `<div class="empty">${escHtml(t('reports.noJoin'))}</div>`
+    const shown = net.phraseCount === phrases.length ? t('combos.phraseCount', { count: phrases.length }) : t('combos.commonestOf', { n: net.phraseCount, count: phrases.length })
+    const intro = `<div class="report-note">${escHtml(t('reports.networkNote', { shown }))}</div>`
     return intro + `<div class="report-wf-viz">${phraseNetworkSvg(layoutPhraseNetwork(net), {
       text: WF_TEXT,
       line: WF_BORDER,
@@ -710,7 +711,7 @@ function wordCombinationsHtml(config: any): string {
     .slice(0, COMBINATION_ROWS)
     .map((p) => `<tr><td class="rowhead">${escHtml(p.phrase)}</td><td>${p.count}</td></tr>`)
     .join('')
-  return wrapTable(`<thead><tr><th class="rowhead">Phrase</th><th>Count</th></tr></thead><tbody>${body}</tbody>`, 1)
+  return wrapTable(`<thead><tr><th class="rowhead">${escHtml(t('combos.phrase'))}</th><th>${escHtml(t('words.count'))}</th></tr></thead><tbody>${body}</tbody>`, 1)
 }
 
 // ── Framework Matrix (rows × codes of free-text summaries) ───────────
@@ -718,7 +719,7 @@ function wordCombinationsHtml(config: any): string {
 function summaryMatrixHtml(config: any): string {
   const codeGuids: string[] = config?.codeGuids ?? []
   const rowEntries = config?.rows ?? []
-  if (codeGuids.length === 0 || rowEntries.length === 0) return '<div class="empty">(no rows or codes in this analysis)</div>'
+  if (codeGuids.length === 0 || rowEntries.length === 0) return `<div class="empty">${escHtml(t('reports.noRowsOrCodes'))}</div>`
   const data = buildAnalysisInitData('framework-matrix')
   const summaries: Record<string, string> = config?.summaries ?? {}
   // Expand every group: the exported report should carry every summary,
@@ -728,7 +729,7 @@ function summaryMatrixHtml(config: any): string {
   const head = `<tr><th style="width:22%"></th>${codeGuids
     .map((cg) => {
       const c = codeMap.get(cg)
-      return `<th><span class="dot" style="background:${escHtml(c?.color || '#888')}"></span>${escHtml(c?.name ?? 'Deleted code')}</th>`
+      return `<th><span class="dot" style="background:${escHtml(c?.color || '#888')}"></span>${escHtml(c?.name ?? t('framework.deletedCode'))}</th>`
     })
     .join('')}</tr>`
   const body = rows
@@ -758,11 +759,11 @@ export function renderAnalysisItemHtml(
   prefix = ''
 ): string {
   const sa = useProjectStore.getState().savedAnalyses?.find((a) => a.guid === item.refGuid)
-  const toolLabel = TOOL_REGISTRY[item.toolType]?.label ?? 'Analysis'
+  const toolLabel = TOOL_REGISTRY[item.toolType]?.label ?? t('reports.analysis')
   if (!sa) {
-    return `<div class="report-block" id="${anchor}"><div class="report-item-head">${prefix}${escHtml(toolLabel)}</div><div class="empty">(deleted analysis)</div></div>`
+    return `<div class="report-block" id="${anchor}"><div class="report-item-head">${prefix}${escHtml(toolLabel)}</div><div class="empty">${escHtml(t('reports.deletedAnalysis'))}</div></div>`
   }
-  const head = `<div class="report-item-head">${prefix}${escHtml(toolLabel)} — ${escHtml(sa.name)}</div>`
+  const head = `<div class="report-item-head">${prefix}${escHtml(t('reports.headWith', { kind: toolLabel, name: sa.name }))}</div>`
   let inner: string
   try {
     switch (sa.toolType) {
@@ -794,10 +795,10 @@ export function renderAnalysisItemHtml(
         inner = relationshipMapHtml(sa.config)
         break
       default:
-        inner = `<div class="empty">${escHtml(sa.name)} — table generation for ${escHtml(toolLabel)} is coming soon.</div>`
+        inner = `<div class="empty">${escHtml(t('reports.comingSoon', { name: sa.name, tool: toolLabel }))}</div>`
     }
   } catch {
-    inner = '<div class="empty">Could not regenerate this analysis.</div>'
+    inner = `<div class="empty">${escHtml(t('reports.couldNotRegenerate'))}</div>`
   }
   return `<div class="report-block" id="${anchor}">${head}${inner}</div>`
 }
