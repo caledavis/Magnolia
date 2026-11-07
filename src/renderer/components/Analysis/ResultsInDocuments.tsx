@@ -24,6 +24,7 @@ import { EditableTitleSuffix } from '../EditableTitleSuffix'
 import { renameSavedAnalysis } from '../../utils/rename-saved-analysis'
 import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
+import { useTranslation } from 'react-i18next'
 
 /** Each "Group by" entry is one of:
  *   - a single tag → one row in the grid;
@@ -108,6 +109,7 @@ export function runResultsQueries(
 }
 
 export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props) {
+  const { t } = useTranslation()
   const live = useLiveAnalysisData()
   const [questionScope, setQuestionScope] = useState<QuestionScopeRef[]>(savedConfig?.questionScope ?? [])
   const data = useMemo(() => ({ ...propData, ...live }), [propData, live])
@@ -197,7 +199,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
   // the Total row. Counts documents, not rows: grouping by tags can list a
   // document under several rows, and survey respondents share one source.
   const resultDocCount = resultSourceGuids.length
-  const resultDocLabel = `${resultDocCount} ${resultDocCount === 1 ? 'document' : 'documents'}`
+  const resultDocLabel = t('resultsInDocs.docCount', { count: resultDocCount })
 
   // Column build via the shared, survey-aware builder. Candidate sources
   // are the documents that appear in any query's results; surveys among
@@ -369,7 +371,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
   // columns are left out — they would double-count their children.
   const colourPresets = useCodeColourPresets()
   const sankeyLeft = useMemo(
-    () => queryGuids.map((g, i) => ({ id: g, label: queryMap.get(g)?.name || 'Query', color: colourPresets[i % colourPresets.length] })),
+    () => queryGuids.map((g, i) => ({ id: g, label: queryMap.get(g)?.name || t('analysis.query'), color: colourPresets[i % colourPresets.length] })),
     [queryGuids, queryMap, colourPresets]
   )
   const sankeyRight = useMemo(() => columns.map((c) => ({ id: c.id, label: c.label })), [columns])
@@ -385,8 +387,8 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     // spreadsheet can pivot/group on it).
     const queryNames = queryGuids.map((g) => queryMap.get(g)?.name || '')
     const headerRow: string[] = []
-    if (hasGroupedHeader) headerRow.push('Category')
-    headerRow.push('Item', ...queryNames, 'Total', '% of Total')
+    if (hasGroupedHeader) headerRow.push(t('analysis.category'))
+    headerRow.push(t('analysis.item'), ...queryNames, t('analysis.total'), t('analysis.pctOfTotal'))
     const rows: string[][] = [headerRow]
     for (let j = 0; j < columns.length; j++) {
       const col = columns[j]
@@ -400,7 +402,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     }
     const totalRow: string[] = []
     if (hasGroupedHeader) totalRow.push('')
-    totalRow.push(`Total (${resultDocLabel})`, ...showRowTotals.map(String), String(showGrandTotal), pctOfTotal(showGrandTotal, showGrandTotal))
+    totalRow.push(t('resultsInDocs.totalWithDocs', { docs: resultDocLabel }), ...showRowTotals.map(String), String(showGrandTotal), pctOfTotal(showGrandTotal, showGrandTotal))
     rows.push(totalRow)
     window.api.exportCsv(toCsv(rows), 'results-in-documents.csv')
   }, [columns, rowLayout, queryGuids, showGrid, queryMap, showRowTotals, showColTotals, showGrandTotal, hasGroupedHeader, resultDocLabel])
@@ -459,11 +461,11 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
         </h2>
         <div style={{ flex: 1 }} />
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={() => inTab ? inTab.onClose() : window.close()}>
-          Close
+          {t('common.close')}
         </button>
         {isExisting && dirty && (
           <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleDiscard}>
-            Discard Changes
+            {t('common.discardChanges')}
           </button>
         )}
         {isExisting ? (
@@ -472,11 +474,11 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
             disabled={!dirty}
             onClick={() => { handleSave(analysisName) }}
           >
-            {dirty ? 'Update Analysis' : 'Saved'}
+            {dirty ? t('analysis.update') : t('analysis.saved')}
           </button>
         ) : (
           <button style={{ fontSize: 11, padding: '4px 14px' }} onClick={() => setShowSaveDialog(true)}>
-            Save Analysis
+            {t('analysis.save')}
           </button>
         )}
         {/* Clearance for the floating MemoFab. */}
@@ -486,24 +488,24 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
       {showSaveDialog && (
         <div className="modal-overlay">
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Save Analysis</h2>
+            <h2>{t('analysis.save')}</h2>
             <input
               autoFocus
               type="text"
               defaultValue={analysisName}
-              placeholder="Analysis name"
+              placeholder={t('analysis.namePlaceholder')}
               style={{ width: '100%' }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSave((e.target as HTMLInputElement).value.trim() || 'Untitled')
+                if (e.key === 'Enter') handleSave((e.target as HTMLInputElement).value.trim() || t('common.untitled'))
                 if (e.key === 'Escape') setShowSaveDialog(false)
               }}
             />
             <div className="modal-actions">
-              <button className="secondary" onClick={() => setShowSaveDialog(false)}>Cancel</button>
+              <button className="secondary" onClick={() => setShowSaveDialog(false)}>{t('common.cancel')}</button>
               <button onClick={(e) => {
                 const input = (e.target as HTMLElement).parentElement!.parentElement!.querySelector('input') as HTMLInputElement
-                handleSave(input.value.trim() || 'Untitled')
-              }}>Save</button>
+                handleSave(input.value.trim() || t('common.untitled'))
+              }}>{t('common.save')}</button>
             </div>
           </div>
         </div>
@@ -530,9 +532,9 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
           onDrop={handleTagDrop}
         >
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: groupBy.length > 0 ? 8 : 0, position: 'relative', zIndex: 1 }}>
-            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Grouped by</span>
+            <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>{t('analysis.groupedBy')}</span>
             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-              Drag tags, categories, or folders here
+              {t('analysis.dragGroupHint')}
             </span>
           </div>
           {tagDropOver && (
@@ -558,10 +560,10 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
         {questionScope.length > 0 && (
           <div className="analysis-section" style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: 'var(--text-secondary)' }}>
             <span style={{ flex: 1 }}>
-              {`Only ${questionScope.length} survey question${questionScope.length === 1 ? ' is' : 's are'} counted, as chosen in an earlier version of Magnolia. To choose questions now, use From these documents in the Query Builder.`}
+              {t('resultsInDocs.legacyQuestions', { count: questionScope.length })}
             </span>
             <button className="secondary" style={{ fontSize: 10, padding: '3px 8px', flexShrink: 0 }} onClick={() => setQuestionScope([])}>
-              Count All Questions
+              {t('resultsInDocs.countAllQuestions')}
             </button>
           </div>
         )}
@@ -579,7 +581,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
               color: 'var(--text-secondary)'
             }}
           >
-            {missingDocCount} document{missingDocCount !== 1 ? 's' : ''} referenced by {missingDocCount !== 1 ? 'these queries are' : 'a query is'} no longer in the project.
+            {t('resultsInDocs.missingDocs', { count: missingDocCount })}
           </div>
         )}
 
@@ -593,37 +595,37 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)', marginRight: 4 }}>Results</span>
+              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)', marginRight: 4 }}>{t('analysis.results')}</span>
               <SegmentedControl
-                label="View"
+                label={t('analysis.view')}
                 value={view}
                 onChange={setView}
                 options={[
-                  { value: 'table', label: 'Table', title: 'Show the grid as numbers.' },
-                  { value: 'visual', label: 'Visual', title: 'Show each cell as a box sized and shaded by its value.' },
-                  { value: 'sankey', label: 'Sankey', title: 'Show the grid as a Sankey diagram of query results flowing into documents.' }
+                  { value: 'table', label: t('analysis.viewTable'), title: t('analysis.viewTableTitle') },
+                  { value: 'visual', label: t('analysis.viewVisual'), title: t('analysis.viewVisualTitle') },
+                  { value: 'sankey', label: t('analysis.viewSankey'), title: t('resultsInDocs.sankeyTitle') }
                 ]}
               />
               <SegmentedControl
-                label="Values"
+                label={t('analysis.values')}
                 value={binaryMode ? 'binary' : 'counts'}
                 onChange={(v) => setBinaryMode(v === 'binary')}
                 options={[
-                  { value: 'counts', label: 'Counts', title: 'Show how many coded segments each cell holds.' },
-                  { value: 'binary', label: 'Binary', title: 'Show each cell as 1 (query matched) or 0 (no match); totals count the cells.' }
+                  { value: 'counts', label: t('analysis.valuesCounts'), title: t('analysis.valuesCountsTitle') },
+                  { value: 'binary', label: t('analysis.valuesBinary'), title: t('resultsInDocs.binaryTitle') }
                 ]}
               />
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
               <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportCsv} disabled={queryGuids.length === 0}>
-                Export CSV
+                {t('analysis.exportCsv')}
               </button>
             </div>
           </div>
 
           {queryGuids.length === 0 ? (
             <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)', position: 'relative', zIndex: 1 }}>
-              Drag saved queries from the Queries panel to build the grid
+              {t('resultsInDocs.dropHint')}
             </div>
           ) : sankeyMode ? (
             <div style={{ overflowX: 'auto' }}>
@@ -631,8 +633,8 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                 left={sankeyLeft}
                 right={sankeyRight}
                 values={showGrid}
-                leftTitle="Queries"
-                rightTitle="Documents"
+                leftTitle={t('analysis.queries')}
+                rightTitle={t('analysis.documents')}
                 excludeRight={sankeyExclude}
                 onLinkClick={handleCellClick}
                 onLeftClick={handleRowTotalClick}
@@ -670,7 +672,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                             collide with the rotated label at the bottom. */}
                         <span
                           onClick={() => setQueryGuids((p) => p.filter((g) => g !== qGuid))}
-                          title="Remove query"
+                          title={t('resultsInDocs.removeQuery')}
                           style={{
                             position: 'absolute', top: 2, right: 2,
                             fontSize: 9, color: 'var(--text-muted)',
@@ -689,15 +691,15 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                           whiteSpace: 'nowrap', fontSize: 10,
                           overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130
                         }}>
-                          {truncate(queryMap.get(qGuid)?.name || 'Query', 24)}
+                          {truncate(queryMap.get(qGuid)?.name || t('analysis.query'), 24)}
                         </div>
                       </th>
                     ))}
                     <th style={{ width: 50, minWidth: 50, maxWidth: 50, borderBottom: '1px solid var(--border-color)', verticalAlign: 'bottom', height: 80, padding: 0, position: 'relative' }}>
-                      <div style={{ position: 'absolute', bottom: 6, left: '50%', transformOrigin: 'bottom left', transform: 'rotate(-20deg)', whiteSpace: 'nowrap', fontSize: 10, fontWeight: 700 }}>Total</div>
+                      <div style={{ position: 'absolute', bottom: 6, left: '50%', transformOrigin: 'bottom left', transform: 'rotate(-20deg)', whiteSpace: 'nowrap', fontSize: 10, fontWeight: 700 }}>{t('analysis.total')}</div>
                     </th>
-                    <th title="Row total as % of grand total" style={{ width: 50, minWidth: 50, maxWidth: 50, background: 'color-mix(in srgb, var(--text-secondary) 6%, transparent)', borderBottom: '1px solid var(--border-color)', verticalAlign: 'bottom', height: 80, padding: 0, position: 'relative' }}>
-                      <div style={{ position: 'absolute', bottom: 6, left: '50%', transformOrigin: 'bottom left', transform: 'rotate(-20deg)', whiteSpace: 'nowrap', fontSize: 10, fontWeight: 700, fontStyle: 'italic', color: 'var(--text-secondary)' }}>% of Total</div>
+                    <th title={t('analysis.rowTotalPct')} style={{ width: 50, minWidth: 50, maxWidth: 50, background: 'color-mix(in srgb, var(--text-secondary) 6%, transparent)', borderBottom: '1px solid var(--border-color)', verticalAlign: 'bottom', height: 80, padding: 0, position: 'relative' }}>
+                      <div style={{ position: 'absolute', bottom: 6, left: '50%', transformOrigin: 'bottom left', transform: 'rotate(-20deg)', whiteSpace: 'nowrap', fontSize: 10, fontWeight: 700, fontStyle: 'italic', color: 'var(--text-secondary)' }}>{t('analysis.pctOfTotal')}</div>
                     </th>
                   </tr>
                 </thead>
@@ -859,7 +861,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                       colSpan={hasGroupedHeader ? 2 : 1}
                       style={{ padding: '4px 6px', borderTop: '2px solid var(--border-color)', fontWeight: 700 }}
                     >
-                      Total
+                      {t('analysis.total')}
                       <span style={{ marginLeft: 6, fontWeight: 400, fontSize: 11, color: 'var(--text-secondary)' }}>
                         ({resultDocLabel})
                       </span>

@@ -10,6 +10,7 @@ import { Icon, faChevronDown, faChevronRight } from '../Icon'
 import { DocumentSelector, type DocumentFilterState } from '../DocumentSelector/DocumentSelector'
 import { documentsSummary } from './documents-filter'
 import { mayBeSurveyEntityDrag, parseSurveyEntityDrop, withSurveyEntity } from '../DocumentSelector/SurveyScope'
+import { useTranslation } from 'react-i18next'
 
 export function DocumentsSection({ data, filter, onChange, filteredSourceGuids }: {
   data: AnalysisInitData
@@ -18,6 +19,7 @@ export function DocumentsSection({ data, filter, onChange, filteredSourceGuids }
   /** The documents the analysis reads after the filter. */
   filteredSourceGuids: string[]
 }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   // Open, the selector takes the drop itself.
   const handleDrop = (e: React.DragEvent) => {
@@ -42,7 +44,7 @@ export function DocumentsSection({ data, filter, onChange, filteredSourceGuids }
     >
       <div onClick={() => setOpen(!open)} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
         <Icon icon={open ? faChevronDown : faChevronRight} style={{ fontSize: 12, color: 'var(--text-muted)' }} />
-        <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>From these documents</span>
+        <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>{t('analysis.fromDocuments')}</span>
         <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>
           {documentsSummary(filteredSourceGuids.length, data.sources.length, filter)}
         </span>

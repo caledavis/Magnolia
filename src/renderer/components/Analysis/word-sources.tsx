@@ -10,6 +10,7 @@ import { Icon, faXmark } from '../Icon'
 import { SegmentedControl } from './SegmentedControl'
 import { codeSet } from './word-counts'
 import { runQueryLive, useQueryStore } from '../../stores/query-store'
+import { useTranslation } from 'react-i18next'
 
 /** What the words are counted in: whole documents, the passages coded
  *  with the chosen codes, or the results of the chosen saved queries
@@ -103,17 +104,18 @@ export function CountWordsIn({ value, onChange, codedTitle, queryTitle }: {
   /** Tooltip for the Query Results button. */
   queryTitle: string
 }) {
+  const { t } = useTranslation()
   return (
     <div className="analysis-section" style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
-      <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Count words in</span>
+      <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>{t('words.countIn')}</span>
       <SegmentedControl
-        label="Count words in"
+        label={t('words.countIn')}
         value={value}
         onChange={onChange}
         options={[
-          { value: 'documents', label: 'Documents', title: 'Count the words in the selected documents.' },
-          { value: 'coded', label: 'Coded Passages', title: codedTitle },
-          { value: 'query', label: 'Query Results', title: queryTitle }
+          { value: 'documents', label: t('words.sourceDocuments'), title: t('words.sourceDocumentsTitle') },
+          { value: 'coded', label: t('words.sourceCoded'), title: codedTitle },
+          { value: 'query', label: t('words.sourceQuery'), title: queryTitle }
         ]}
       />
     </div>
@@ -190,11 +192,12 @@ export function CodesSection({ codes, codeSets, onChangeCodes, includeSubcodes, 
   /** Box codings left out of the count, for the note under the codes. */
   boxCount: number
 }) {
+  const { t } = useTranslation()
   const codeMap = useMemo(() => new Map(codes.map((c) => [c.guid, c])), [codes])
   return (
     <DropSection
-      title="Coded with"
-      hint="Drag codes here"
+      title={t('words.codedWith')}
+      hint={t('words.dragCodesHere')}
       accepts={isCodeDrag}
       onDrop={(e) => {
         const dropped = parseDraggedCodes(e)
@@ -214,13 +217,13 @@ export function CodesSection({ codes, codeSets, onChangeCodes, includeSubcodes, 
         })}
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-secondary)', cursor: 'pointer', marginLeft: codeSets.size > 0 ? 6 : 0 }}>
           <input type="checkbox" checked={includeSubcodes} onChange={(e) => onChangeIncludeSubcodes(e.target.checked)} style={{ margin: 0 }} />
-          And subcodes
+          {t('queryBuilder.andSubcodes')}
         </label>
       </div>
       <BoxNote
         boxCount={boxCount}
-        one="1 box coded on a PDF or image has no text, so it isn’t counted."
-        many={(n) => `${n} boxes coded on PDFs or images have no text, so they aren’t counted.`}
+        one={t('words.boxesNotCounted', { count: 1 })}
+        many={(n) => t('words.boxesNotCounted', { count: n })}
       />
     </DropSection>
   )
@@ -234,10 +237,11 @@ export function QueriesSection({ runs, onChangeQueries, boxCount }: {
   /** Box results left out of the count, for the note under the queries. */
   boxCount: number
 }) {
+  const { t } = useTranslation()
   return (
     <DropSection
-      title="From these queries"
-      hint="Drag saved queries here"
+      title={t('words.fromQueries')}
+      hint={t('words.dragQueriesHere')}
       accepts={isQueryDrag}
       onDrop={(e) => {
         const dropped = parseDraggedQueries(e)
@@ -246,7 +250,7 @@ export function QueriesSection({ runs, onChangeQueries, boxCount }: {
     >
       <div style={chipRowStyle}>
         {runs.size === 0 && (
-          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Each query searches the documents chosen in it.</span>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('words.eachQuerySearches')}</span>
         )}
         {[...runs].map(([g, run]) => (
           <span key={g} style={chipStyle}>
@@ -258,8 +262,8 @@ export function QueriesSection({ runs, onChangeQueries, boxCount }: {
       </div>
       <BoxNote
         boxCount={boxCount}
-        one="1 result is a box on a PDF or image, which has no text, so it isn’t counted."
-        many={(n) => `${n} results are boxes on PDFs or images, which have no text, so they aren’t counted.`}
+        one={t('words.boxResultsNotCounted', { count: 1 })}
+        many={(n) => t('words.boxResultsNotCounted', { count: n })}
       />
     </DropSection>
   )

@@ -63,6 +63,7 @@ import { generateGuid } from '../../utils/guid'
 import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { useAnalysisTabsStore } from '../../stores/analysis-tabs-store'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   data: AnalysisInitData
@@ -191,6 +192,7 @@ function parseRowDrop(e: React.DragEvent, data: AnalysisInitData): SummaryRowEnt
 }
 
 export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
+  const { t } = useTranslation()
   const live = useLiveAnalysisData()
   const data = useMemo(() => ({ ...propData, ...live }), [propData, live])
 
@@ -520,23 +522,23 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
         </h2>
         <div style={{ flex: 1 }} />
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={() => inTab ? inTab.onClose() : window.close()}>
-          Close
+          {t('common.close')}
         </button>
         {isExisting && dirty && (
           <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleDiscard}>
-            Discard Changes
+            {t('common.discardChanges')}
           </button>
         )}
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleExportCsv} disabled={rows.length === 0 || codeGuids.length === 0}>
-          Export CSV
+          {t('analysis.exportCsv')}
         </button>
         {savedRef.current ? (
           <button style={{ fontSize: 11, padding: '4px 14px' }} disabled={!dirty} onClick={() => handleSave(nameRef.current.trim() || 'Untitled')}>
-            {dirty ? 'Update Analysis' : 'Saved'}
+            {dirty ? t('analysis.update') : t('analysis.saved')}
           </button>
         ) : (
           <button style={{ fontSize: 11, padding: '4px 14px' }} onClick={() => setShowSaveDialog(true)}>
-            Save Analysis
+            {t('analysis.save')}
           </button>
         )}
         {/* Clearance for the floating MemoFab. */}
@@ -546,24 +548,24 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
       {showSaveDialog && (
         <div className="modal-overlay">
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Save Analysis</h2>
+            <h2>{t('analysis.save')}</h2>
             <input
               autoFocus
               type="text"
               defaultValue={analysisName}
-              placeholder="Analysis name"
+              placeholder={t('analysis.namePlaceholder')}
               style={{ width: '100%' }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSave((e.target as HTMLInputElement).value.trim() || 'Untitled')
+                if (e.key === 'Enter') handleSave((e.target as HTMLInputElement).value.trim() || t('common.untitled'))
                 if (e.key === 'Escape') setShowSaveDialog(false)
               }}
             />
             <div className="modal-actions">
-              <button className="secondary" onClick={() => setShowSaveDialog(false)}>Cancel</button>
+              <button className="secondary" onClick={() => setShowSaveDialog(false)}>{t('common.cancel')}</button>
               <button onClick={(e) => {
                 const input = (e.target as HTMLElement).parentElement!.parentElement!.querySelector('input') as HTMLInputElement
-                handleSave(input.value.trim() || 'Untitled')
-              }}>Save</button>
+                handleSave(input.value.trim() || t('common.untitled'))
+              }}>{t('common.save')}</button>
             </div>
           </div>
         </div>
@@ -625,7 +627,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
                     <th key={cg} data-col={colIndex} style={{ ...stickyHeadStyle, textAlign: 'left' }} title={code?.name}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <DragHandle
-                          title="Drag to reorder"
+                          title={t('analysis.dragToReorder')}
                           onDragStart={(e) => startReorder(e, 'col', colIndex, (e.currentTarget as HTMLElement).closest('th'))}
                           onDragEnd={endReorder}
                         />
@@ -654,7 +656,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                       {row.entryIndex !== undefined ? (
                         <DragHandle
-                          title="Drag to reorder"
+                          title={t('analysis.dragToReorder')}
                           onDragStart={(e) => startReorder(e, 'row', row.entryIndex!, (e.currentTarget as HTMLElement).closest('tr'))}
                           onDragEnd={endReorder}
                         />

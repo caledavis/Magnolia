@@ -50,6 +50,7 @@ import {
   type ReportItem,
   type AnalysisItemOptions
 } from './report-export'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   data: AnalysisInitData
@@ -196,6 +197,7 @@ function dropEffectFor(e: React.DragEvent): 'move' | 'copy' {
 }
 
 export function Reports({ savedConfig, inTab }: Props) {
+  const { t } = useTranslation()
   const [items, setItems] = useState<ReportItem[]>(savedConfig?.items ?? [])
   const [analysisGuid] = useState(savedConfig?.guid ?? generateGuid())
   // The report's title is the analysis name, edited inline in the header
@@ -431,11 +433,11 @@ export function Reports({ savedConfig, inTab }: Props) {
         </h2>
         <div style={{ flex: 1 }} />
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={() => (inTab ? inTab.onClose() : window.close())}>
-          Close
+          {t('common.close')}
         </button>
         {isExisting && dirty && (
           <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleDiscard}>
-            Discard Changes
+            {t('common.discardChanges')}
           </button>
         )}
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} disabled={exporting} onClick={handleExport}>
@@ -560,6 +562,7 @@ function ReportRow({
   onReorderStart: (e: React.DragEvent) => void
   onReorderEnd: () => void
 }) {
+  const { t } = useTranslation()
   const caps = item.kind === 'analysis' ? ANALYSIS_CAPS[item.toolType] ?? {} : {}
   return (
     <div style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', marginBottom: 2, padding: '8px 10px' }}>
@@ -568,7 +571,7 @@ function ReportRow({
           draggable
           onDragStart={onReorderStart}
           onDragEnd={onReorderEnd}
-          title="Drag to reorder"
+          title={t('analysis.dragToReorder')}
           style={{ cursor: 'grab', color: 'var(--text-muted)', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '6px 7px', margin: '-4px -3px', borderRadius: 'var(--radius-sm)' }}
         >
           <Icon icon={faBars} style={{ fontSize: 16 }} />

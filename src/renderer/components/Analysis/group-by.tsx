@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
 import type { AnalysisInitData } from '../../models/types'
 import { Icon, faXmark, faFolder, faNotebookPen, faTag, faTags, faUser } from '../Icon'
+import { useTranslation } from 'react-i18next'
+import { t } from '../../i18n'
 
 /** Drag MIME emitted by the Document Browser's survey "Respondents"
  *  header. Its payload is the survey's source guid. */
@@ -213,7 +215,7 @@ export function buildGroupedSlots(
       const tag = data.tags.find((t) => t.guid === entry.tagGuid)
       if (!tag) continue
       const members = (data.tagMembers[entry.tagGuid] || []).filter((g) => opts.candidateSourceGuids.includes(g))
-      slots.push({ id: `tag:${entry.tagGuid}`, label: tag.value || tag.name || 'Tag', sourceGuids: members })
+      slots.push({ id: `tag:${entry.tagGuid}`, label: tag.value || tag.name || t('common.tag'), sourceGuids: members })
       groups.push({ id: `tag:${entry.tagGuid}`, label: null, span: 1 })
     } else if (entry.kind === 'category') {
       const cat = data.categories.find((c) => c.guid === entry.categoryGuid)
@@ -223,7 +225,7 @@ export function buildGroupedSlots(
       const before = slots.length
       for (const tag of childTags) {
         const members = (data.tagMembers[tag.guid] || []).filter((g) => opts.candidateSourceGuids.includes(g))
-        slots.push({ id: `cat:${entry.categoryGuid}:tag:${tag.guid}`, label: tag.value || tag.name || 'Tag', sourceGuids: members })
+        slots.push({ id: `cat:${entry.categoryGuid}:tag:${tag.guid}`, label: tag.value || tag.name || t('common.tag'), sourceGuids: members })
       }
       if (includeSubtotals) {
         // Union of every child-tag's members so a doc tagged with
@@ -234,7 +236,7 @@ export function buildGroupedSlots(
             if (opts.candidateSourceGuids.includes(g)) subtotalSet.add(g)
           }
         }
-        slots.push({ id: `cat:${entry.categoryGuid}:subtotal`, label: 'Subtotal', sourceGuids: Array.from(subtotalSet), isSubtotal: true })
+        slots.push({ id: `cat:${entry.categoryGuid}:subtotal`, label: t('analysis.subtotal'), sourceGuids: Array.from(subtotalSet), isSubtotal: true })
       }
       groups.push({ id: `cat:${entry.categoryGuid}`, label: cat.name, span: slots.length - before })
     } else if (entry.kind === 'folder') {
@@ -248,10 +250,10 @@ export function buildGroupedSlots(
       if (folderDocs.length === 0) continue
       const before = slots.length
       for (const docGuid of folderDocs) {
-        slots.push({ id: `folder:${entry.folderGuid}:doc:${docGuid}`, label: opts.sourceMap.get(docGuid) || 'Document', sourceGuids: [docGuid] })
+        slots.push({ id: `folder:${entry.folderGuid}:doc:${docGuid}`, label: opts.sourceMap.get(docGuid) || t('common.document'), sourceGuids: [docGuid] })
       }
       if (includeSubtotals) {
-        slots.push({ id: `folder:${entry.folderGuid}:subtotal`, label: 'Subtotal', sourceGuids: [...folderDocs], isSubtotal: true })
+        slots.push({ id: `folder:${entry.folderGuid}:subtotal`, label: t('analysis.subtotal'), sourceGuids: [...folderDocs], isSubtotal: true })
       }
       groups.push({ id: `folder:${entry.folderGuid}`, label: folder.name, span: slots.length - before })
     }
@@ -262,7 +264,7 @@ export function buildGroupedSlots(
     const taggedGuids = new Set(slots.filter((s) => !s.isSubtotal).flatMap((s) => s.sourceGuids))
     const otherGuids = opts.candidateSourceGuids.filter((g) => !taggedGuids.has(g))
     if (otherGuids.length > 0) {
-      slots.push({ id: '__other', label: 'Other', sourceGuids: otherGuids })
+      slots.push({ id: '__other', label: t('analysis.other'), sourceGuids: otherGuids })
       groups.push({ id: '__other', label: null, span: 1 })
     }
   }
@@ -284,6 +286,7 @@ export function GroupByChips({
   candidateSourceGuids: string[]
   onRemove: (entry: GroupByEntry) => void
 }) {
+  const { t } = useTranslation()
   if (groupBy.length === 0) return null
   return (
     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -292,10 +295,10 @@ export function GroupByChips({
           const survey = entry.surveyGuid ? data.sources.find((s) => s.guid === entry.surveyGuid) : undefined
           const surveyName = survey?.name || entry.name
           return (
-            <span key={groupByKey(entry)} title={surveyName ? `${surveyName}: respondents` : 'Respondents of every survey'} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontWeight: 600, border: '1px solid var(--border-color)' }}>
+            <span key={groupByKey(entry)} title={surveyName ? t('analysis.respondentsOf', { survey: surveyName }) : t('analysis.respondentsOfEvery')} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontWeight: 600, border: '1px solid var(--border-color)' }}>
               <Icon icon={faUser} style={{ fontSize: 10, color: 'var(--text-muted)' }} />
-              {surveyName ?? 'Respondents'}
-              {surveyName && <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>respondents</span>}
+              {surveyName ?? t('survey.respondents')}
+              {surveyName && <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>{t('analysis.respondentsSuffix')}</span>}
               <span onClick={() => onRemove(entry)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
             </span>
           )
@@ -305,7 +308,7 @@ export function GroupByChips({
           return (
             <span key={`t:${entry.tagGuid}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
               <Icon icon={faTag} style={{ fontSize: 10, color: 'var(--text-muted)' }} />
-              {tag?.value || tag?.name || entry.name || 'Tag'}
+              {tag?.value || tag?.name || entry.name || t('common.tag')}
               <span onClick={() => onRemove(entry)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
             </span>
           )
@@ -316,7 +319,7 @@ export function GroupByChips({
           return (
             <span key={`c:${entry.categoryGuid}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontWeight: 600, border: '1px solid var(--border-color)' }}>
               <Icon icon={faTags} style={{ fontSize: 10, color: 'var(--text-muted)' }} />
-              {cat?.name || entry.name || 'Category'}
+              {cat?.name || entry.name || t('analysis.category')}
               <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>({childCount})</span>
               <span onClick={() => onRemove(entry)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
             </span>
@@ -333,7 +336,7 @@ export function GroupByChips({
           // other auto-added kind — rather than an ordinary folder's.
           <span key={`f:${entry.folderGuid}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontWeight: 600, border: `1px ${folder?.kind === 'notebook' ? 'solid' : 'dashed'} var(--border-color)` }}>
             <Icon icon={folder?.kind === 'notebook' ? faNotebookPen : faFolder} style={{ fontSize: 10, color: 'var(--text-muted)' }} />
-            {folder?.name || entry.name || 'Folder'}
+            {folder?.name || entry.name || t('docSelector.kind.folder')}
             <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>({docCount})</span>
             <span onClick={() => onRemove(entry)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
           </span>

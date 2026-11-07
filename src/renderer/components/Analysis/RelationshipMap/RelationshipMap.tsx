@@ -33,6 +33,7 @@ import {
   faFontColor
 } from '../../Icon'
 import { ColourSwatchButton } from '../../ColourSwatchButton'
+import { useTranslation } from 'react-i18next'
 
 function ToolbarBtn({ active, disabled, onClick, title, children }: {
   active?: boolean; disabled?: boolean; onClick: () => void; title?: string; children: React.ReactNode
@@ -65,6 +66,7 @@ interface Props {
 }
 
 export function RelationshipMap({ data, savedConfig }: Props) {
+  const { t } = useTranslation()
   const [analysisGuid] = useState(savedConfig?.guid ?? generateGuid())
   const [elements, setElements] = useState<MapElement[]>(() => {
     const saved = savedConfig?.elements ?? []
@@ -743,11 +745,11 @@ export function RelationshipMap({ data, savedConfig }: Props) {
         flexShrink: 0
       }}>
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleExportSvg}>
-          Export SVG
+          {t('analysis.exportSvg')}
         </button>
         <div style={{ flex: 1 }} />
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleCloseRequest}>
-          Close
+          {t('common.close')}
         </button>
         {isExisting && dirty && (
           <button
@@ -755,7 +757,7 @@ export function RelationshipMap({ data, savedConfig }: Props) {
             style={{ fontSize: 11, padding: '4px 14px' }}
             onClick={handleDiscardChanges}
           >
-            Discard Changes
+            {t('common.discardChanges')}
           </button>
         )}
         {isExisting ? (
@@ -807,7 +809,7 @@ export function RelationshipMap({ data, savedConfig }: Props) {
             <input
               value={saveName}
               onChange={(e) => setSaveName(e.target.value)}
-              placeholder="Analysis name"
+              placeholder={t('analysis.namePlaceholder')}
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && handleConfirmFirstSave()}
               style={{ width: '100%' }}

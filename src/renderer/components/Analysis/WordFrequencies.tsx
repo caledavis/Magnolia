@@ -43,6 +43,7 @@ import { useThemeSvgColors, SVG_FONT_FAMILY } from '../../utils/use-theme-svg-co
 import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { SegmentedControl } from './SegmentedControl'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   data: AnalysisInitData
@@ -160,6 +161,7 @@ function useThemeAccentHsl(): { h: number; s: number; l: number } {
 }
 
 export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
+  const { t } = useTranslation()
   const [docFilter, setDocFilter] = useState<DocumentFilterState>(documentFilterFromConfig(savedConfig))
   const [groupBy, setGroupBy] = useState<GroupByEntry[]>(
     () => savedConfig?.groupBy ?? migrateLegacyGroupBy(savedConfig?.groupByTags)
@@ -514,11 +516,11 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
         </h2>
         <div style={{ flex: 1 }} />
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={() => inTab ? inTab.onClose() : window.close()}>
-          Close
+          {t('common.close')}
         </button>
         {isExisting && dirty && (
           <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleDiscard}>
-            Discard Changes
+            {t('common.discardChanges')}
           </button>
         )}
         {isExisting ? (
@@ -527,11 +529,11 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
             disabled={!dirty}
             onClick={() => { handleSave(analysisName) }}
           >
-            {dirty ? 'Update Analysis' : 'Saved'}
+            {dirty ? t('analysis.update') : t('analysis.saved')}
           </button>
         ) : (
           <button style={{ fontSize: 11, padding: '4px 14px' }} onClick={() => setShowSaveDialog(true)}>
-            Save Analysis
+            {t('analysis.save')}
           </button>
         )}
         {/* Clearance for the floating MemoFab. */}
@@ -541,24 +543,24 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
       {showSaveDialog && (
         <div className="modal-overlay">
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Save Analysis</h2>
+            <h2>{t('analysis.save')}</h2>
             <input
               autoFocus
               type="text"
               defaultValue={analysisName}
-              placeholder="Analysis name"
+              placeholder={t('analysis.namePlaceholder')}
               style={{ width: '100%' }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSave((e.target as HTMLInputElement).value.trim() || 'Untitled')
+                if (e.key === 'Enter') handleSave((e.target as HTMLInputElement).value.trim() || t('common.untitled'))
                 if (e.key === 'Escape') setShowSaveDialog(false)
               }}
             />
             <div className="modal-actions">
-              <button className="secondary" onClick={() => setShowSaveDialog(false)}>Cancel</button>
+              <button className="secondary" onClick={() => setShowSaveDialog(false)}>{t('common.cancel')}</button>
               <button onClick={(e) => {
                 const input = (e.target as HTMLElement).parentElement!.parentElement!.querySelector('input') as HTMLInputElement
-                handleSave(input.value.trim() || 'Untitled')
-              }}>Save</button>
+                handleSave(input.value.trim() || t('common.untitled'))
+              }}>{t('common.save')}</button>
             </div>
           </div>
         </div>
@@ -603,9 +605,9 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
             onDrop={handleTagDrop}
           >
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: groupBy.length > 0 ? 8 : 0, position: 'relative', zIndex: 1 }}>
-              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Grouped by</span>
+              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>{t('analysis.groupedBy')}</span>
               <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                Drag tags, categories, or folders here
+                {t('analysis.dragGroupHint')}
               </span>
             </div>
             <div style={{ position: 'relative', zIndex: 1 }}>
@@ -631,17 +633,17 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
         {/* Include/Exclude words */}
         <div style={{ display: 'flex', gap: 14, marginBottom: 14 }}>
           <div className="analysis-section" style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>Only these words</div>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>{t('analysis.onlyTheseWords')}</div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>Leave empty to include every word not left out</div>
             <textarea
               value={includeWords}
               onChange={(e) => setIncludeWords(e.target.value)}
-              placeholder="word1, word2, ..."
+              placeholder={t('analysis.wordsPlaceholder')}
               style={{ width: '100%', height: 60, resize: 'vertical' }}
             />
           </div>
           <div className="analysis-section" style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>Leave out these words</div>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>{t('analysis.leaveOutWords')}</div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>Common English stop words are left out by default</div>
             <textarea
               value={excludeWords}
@@ -659,7 +661,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
               <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>
                 Results <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-muted)' }}>{wordFreqs.length} words</span>
               </span>
-              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportCsv}>Export CSV</button>
+              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportCsv}>{t('analysis.exportCsv')}</button>
             </div>
             <div style={{ maxHeight: 350, overflowY: 'auto' }}>
               <table style={{ borderCollapse: 'collapse', fontSize: 11, width: '100%' }}>
@@ -685,7 +687,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
           <div className="analysis-section" style={{ flex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, gap: 6 }}>
               <SegmentedControl
-                label="View"
+                label={t('analysis.view')}
                 value={vizMode}
                 onChange={setVizMode}
                 options={[
@@ -699,7 +701,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
                     style={{ width: 50, marginLeft: 4 }}
                   />
                 </label>
-                <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportChart}>Export SVG</button>
+                <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportChart}>{t('analysis.exportSvg')}</button>
               </div>
             </div>
 

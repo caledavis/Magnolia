@@ -51,6 +51,7 @@ import { SegmentedControl } from './SegmentedControl'
 import { buildWordTree, connectedNodes, flattenWordTree, layoutWordTree, type TreeLayout } from './word-tree'
 import { useThemeSvgColors, SVG_FONT_FAMILY } from '../../utils/use-theme-svg-colors'
 import { buildPhraseNetwork, layoutPhraseNetwork, linkTitle, neighbours, LABEL_GAP, type NetworkLayout } from './phrase-network'
+import { useTranslation } from 'react-i18next'
 
 export type CombinationsView = 'phrases' | 'associations' | 'tree'
 /** How Phrases are shown. */
@@ -250,6 +251,7 @@ const thStyle: React.CSSProperties = { padding: '3px 6px', borderBottom: '1px so
 const tdStyle: React.CSSProperties = { padding: '2px 6px', borderBottom: '1px solid var(--border-color)' }
 
 export function WordCombinations({ data: propData, savedConfig, inTab }: Props) {
+  const { t } = useTranslation()
   const initial = useMemo((): WordCombinationsConfig => {
     const { guid: _guid, name: _name, ...saved } = savedConfig ?? { guid: '', name: '' }
     return { ...defaultCombinationsConfig(), ...saved }
@@ -451,11 +453,11 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
         </h2>
         <div style={{ flex: 1 }} />
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={() => inTab ? inTab.onClose() : window.close()}>
-          Close
+          {t('common.close')}
         </button>
         {isExisting && dirty && (
           <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleDiscard}>
-            Discard Changes
+            {t('common.discardChanges')}
           </button>
         )}
         {isExisting ? (
@@ -464,11 +466,11 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
             disabled={!dirty}
             onClick={() => { handleSave(analysisName) }}
           >
-            {dirty ? 'Update Analysis' : 'Saved'}
+            {dirty ? t('analysis.update') : t('analysis.saved')}
           </button>
         ) : (
           <button style={{ fontSize: 11, padding: '4px 14px' }} onClick={() => setShowSaveDialog(true)}>
-            Save Analysis
+            {t('analysis.save')}
           </button>
         )}
         {/* Clearance for the floating MemoFab. */}
@@ -478,24 +480,24 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
       {showSaveDialog && (
         <div className="modal-overlay">
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Save Analysis</h2>
+            <h2>{t('analysis.save')}</h2>
             <input
               autoFocus
               type="text"
               defaultValue={analysisName}
-              placeholder="Analysis name"
+              placeholder={t('analysis.namePlaceholder')}
               style={{ width: '100%' }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSave((e.target as HTMLInputElement).value.trim() || 'Untitled')
+                if (e.key === 'Enter') handleSave((e.target as HTMLInputElement).value.trim() || t('common.untitled'))
                 if (e.key === 'Escape') setShowSaveDialog(false)
               }}
             />
             <div className="modal-actions">
-              <button className="secondary" onClick={() => setShowSaveDialog(false)}>Cancel</button>
+              <button className="secondary" onClick={() => setShowSaveDialog(false)}>{t('common.cancel')}</button>
               <button onClick={(e) => {
                 const input = (e.target as HTMLElement).parentElement!.parentElement!.querySelector('input') as HTMLInputElement
-                handleSave(input.value.trim() || 'Untitled')
-              }}>Save</button>
+                handleSave(input.value.trim() || t('common.untitled'))
+              }}>{t('common.save')}</button>
             </div>
           </div>
         </div>
@@ -528,17 +530,17 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
             every word so its branches read as sentences. */}
         {view !== 'tree' && <div style={{ display: 'flex', gap: 14, marginBottom: 14 }}>
           <div className="analysis-section" style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>Only these words</div>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>{t('analysis.onlyTheseWords')}</div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>Leave empty to include all words. Otherwise, phrases must contain, and associations must be, one of these words</div>
             <textarea
               value={includeWords}
               onChange={(e) => setIncludeWords(e.target.value)}
-              placeholder="word1, word2, ..."
+              placeholder={t('analysis.wordsPlaceholder')}
               style={{ width: '100%', height: 60, resize: 'vertical' }}
             />
           </div>
           <div className="analysis-section" style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>Leave out these words</div>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>{t('analysis.leaveOutWords')}</div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>Phrases can't start or end with these words, and they aren't shown as associations. Common English stop words are left out by default</div>
             <textarea
               value={excludeWords}
@@ -552,9 +554,9 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
         <div className="analysis-section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, gap: 10, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Results</span>
+              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>{t('analysis.results')}</span>
               <SegmentedControl
-                label="View"
+                label={t('analysis.view')}
                 value={view}
                 onChange={setView}
                 options={[
@@ -610,9 +612,9 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
               )}
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportCsv}>Export CSV</button>
+              <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportCsv}>{t('analysis.exportCsv')}</button>
               {((view === 'tree' && treeLayout) || (networkShown && networkLayout)) && (
-                <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportSvg}>Export SVG</button>
+                <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportSvg}>{t('analysis.exportSvg')}</button>
               )}
             </div>
           </div>

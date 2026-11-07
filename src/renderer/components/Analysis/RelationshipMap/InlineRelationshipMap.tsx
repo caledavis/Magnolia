@@ -43,6 +43,7 @@ import { useRegisterToolSave } from '../../../hooks/use-register-tool-save'
 import { buildExportSvg } from './svg-export'
 import { buildExportSvgFromDom } from './dom-svg-export'
 import { EditableTitleSuffix } from '../../EditableTitleSuffix'
+import { useTranslation } from 'react-i18next'
 
 function ToolbarBtn({ active, disabled, onClick, title, children }: {
   active?: boolean; disabled?: boolean; onClick: () => void; title?: string; children: React.ReactNode
@@ -74,6 +75,7 @@ interface Props {
 }
 
 export function InlineRelationshipMap({ mapGuid }: Props) {
+  const { t } = useTranslation()
   const map = useRelationshipMapStore((s) => s.maps[mapGuid])
   const setElementsStore = useRelationshipMapStore((s) => s.setElements)
   const setFreeTextsStore = useRelationshipMapStore((s) => s.setFreeTexts)
@@ -645,14 +647,14 @@ export function InlineRelationshipMap({ mapGuid }: Props) {
             }}
             title="Export as SVG"
           >
-            Export SVG
+            {t('analysis.exportSvg')}
           </button>
           <button
             className="secondary"
             style={{ fontSize: 11, padding: '4px 14px' }}
             onClick={handleCloseTab}
           >
-            Close
+            {t('common.close')}
           </button>
           {isExisting && dirty && (
             <button
@@ -660,7 +662,7 @@ export function InlineRelationshipMap({ mapGuid }: Props) {
               style={{ fontSize: 11, padding: '4px 14px' }}
               onClick={handleDiscardChanges}
             >
-              Discard Changes
+              {t('common.discardChanges')}
             </button>
           )}
           <button
@@ -682,12 +684,12 @@ export function InlineRelationshipMap({ mapGuid }: Props) {
         {showSaveDialog && (
           <div className="modal-overlay">
             <div className="modal" onClick={(e) => e.stopPropagation()}>
-              <h2>Save Analysis</h2>
+              <h2>{t('analysis.save')}</h2>
               <input
                 autoFocus
                 type="text"
                 defaultValue={map.name?.trim() ?? ''}
-                placeholder="Analysis name"
+                placeholder={t('analysis.namePlaceholder')}
                 style={{ width: '100%' }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleConfirmSave((e.target as HTMLInputElement).value)
@@ -695,11 +697,11 @@ export function InlineRelationshipMap({ mapGuid }: Props) {
                 }}
               />
               <div className="modal-actions">
-                <button className="secondary" onClick={() => setShowSaveDialog(false)}>Cancel</button>
+                <button className="secondary" onClick={() => setShowSaveDialog(false)}>{t('common.cancel')}</button>
                 <button onClick={(e) => {
                   const input = (e.target as HTMLElement).parentElement!.parentElement!.querySelector('input') as HTMLInputElement
                   handleConfirmSave(input.value)
-                }}>Save</button>
+                }}>{t('common.save')}</button>
               </div>
             </div>
           </div>
