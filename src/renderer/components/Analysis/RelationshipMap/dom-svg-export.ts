@@ -26,6 +26,7 @@
  *    file paths depend on the viewer.
  */
 import type { MapElement, FreeTextElement } from './types'
+import { t } from '../../../i18n'
 
 interface BBox {
   minX: number
@@ -366,7 +367,7 @@ export function buildExportSvgFromDom(
 ): string {
   const bbox = computeContentBBox(elements, freeTexts)
   if (!bbox) {
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300"><rect width="400" height="300" fill="#ffffff"/><text x="200" y="150" text-anchor="middle" fill="#999" font-family="-apple-system, BlinkMacSystemFont, sans-serif">Empty relationship map</text></svg>'
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300"><rect width="400" height="300" fill="#ffffff"/><text x="200" y="150" text-anchor="middle" fill="#999" font-family="-apple-system, BlinkMacSystemFont, sans-serif">${t('map.empty').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</text></svg>`
   }
 
   const PAD = 40

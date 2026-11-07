@@ -248,7 +248,7 @@ export function RelationshipMap({ data, savedConfig }: Props) {
       const k = kind as MapElementKind
       const baseDims = ELEMENT_DIMS[k] || { w: 140, h: 44 }
       // For documents, estimate height from label length (header=18 + padding=6 + ~16px per line)
-      const label = dropData.label || 'Untitled'
+      const label = dropData.label || t('common.untitled')
       const charsPerLine = Math.floor((baseDims.w - 16) / 7) // ~7px per char at 12px font
       const lines = Math.ceil(label.length / charsPerLine)
       const estimatedH = k === 'document' ? 18 + 6 + Math.max(1, lines) * 16 : baseDims.h
@@ -271,7 +271,7 @@ export function RelationshipMap({ data, savedConfig }: Props) {
       const newEl: MapElement = {
         id: generateGuid(),
         kind: k,
-        label: dropData.label || 'Untitled',
+        label: dropData.label || t('common.untitled'),
         entityGuid: dropData.entityGuid,
         codeColor: dropData.codeColor,
         snippet: dropData.snippet,
@@ -519,7 +519,7 @@ export function RelationshipMap({ data, savedConfig }: Props) {
   // Fire-and-forget save. Used by the manual Save button and the
   // first-save dialog. Saves are explicit only — no auto-save.
   const handleSave = useCallback(() => {
-    const name = saveName.trim() || 'Relationship Map'
+    const name = saveName.trim() || t('app.relationshipMap')
     const config: RelationshipMapConfig = { elements, freeTexts, connections, pan }
     window.api.sendAnalysisAction('save-analysis', {
       guid: analysisGuid,
@@ -620,7 +620,7 @@ export function RelationshipMap({ data, savedConfig }: Props) {
         }}
       >
         {/* Palette toggle */}
-        <ToolbarBtn active={sidebarVisible} onClick={() => setSidebarVisible(!sidebarVisible)} title="Toggle palette">
+        <ToolbarBtn active={sidebarVisible} onClick={() => setSidebarVisible(!sidebarVisible)} title={t('map.togglePalette')}>
           <Icon icon={faBars} style={{ fontSize: 13 }} />
         </ToolbarBtn>
 
@@ -630,7 +630,7 @@ export function RelationshipMap({ data, savedConfig }: Props) {
         <ToolbarBtn
           active={addTextMode}
           onClick={() => setAddTextMode(!addTextMode)}
-          title="Add Text — click canvas to place text"
+          title={t('map.addText')}
         >
           <Icon icon={faFont} style={{ fontSize: 13 }} />
         </ToolbarBtn>
@@ -638,46 +638,46 @@ export function RelationshipMap({ data, savedConfig }: Props) {
         <ToolbarDivider />
 
         {/* Text formatting (mirrors MarkdownEditor toolbar) — active when editing text */}
-        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('paragraph')} onClick={() => { activeEditor?.chain().focus().setParagraph().run() }} title="Paragraph (body text)">
+        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('paragraph')} onClick={() => { activeEditor?.chain().focus().setParagraph().run() }} title={t('editor.paragraph')}>
           <Icon icon={faParagraph} style={{ fontSize: 11 }} />
         </ToolbarBtn>
-        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('heading', { level: 1 })} onClick={() => { activeEditor?.chain().focus().toggleHeading({ level: 1 }).run() }} title="Heading 1">
+        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('heading', { level: 1 })} onClick={() => { activeEditor?.chain().focus().toggleHeading({ level: 1 }).run() }} title={t('editor.heading1')}>
           <Icon icon={faHeading1} style={{ fontSize: 14 }} />
         </ToolbarBtn>
-        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('heading', { level: 2 })} onClick={() => { activeEditor?.chain().focus().toggleHeading({ level: 2 }).run() }} title="Heading 2">
+        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('heading', { level: 2 })} onClick={() => { activeEditor?.chain().focus().toggleHeading({ level: 2 }).run() }} title={t('editor.heading2')}>
           <Icon icon={faHeading2} style={{ fontSize: 14 }} />
         </ToolbarBtn>
         <ToolbarDivider />
-        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('bold')} onClick={() => { activeEditor?.chain().focus().toggleBold().run() }} title="Bold">
+        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('bold')} onClick={() => { activeEditor?.chain().focus().toggleBold().run() }} title={t('editor.bold')}>
           <Icon icon={faBold} style={{ fontSize: 14 }} />
         </ToolbarBtn>
-        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('italic')} onClick={() => { activeEditor?.chain().focus().toggleItalic().run() }} title="Italic">
+        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('italic')} onClick={() => { activeEditor?.chain().focus().toggleItalic().run() }} title={t('editor.italic')}>
           <Icon icon={faItalic} style={{ fontSize: 14 }} />
         </ToolbarBtn>
-        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('underline')} onClick={() => { activeEditor?.chain().focus().toggleUnderline().run() }} title="Underline">
+        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('underline')} onClick={() => { activeEditor?.chain().focus().toggleUnderline().run() }} title={t('editor.underline')}>
           <Icon icon={faUnderline} style={{ fontSize: 14 }} />
         </ToolbarBtn>
         <ToolbarDivider />
-        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('bulletList')} onClick={() => { activeEditor?.chain().focus().toggleBulletList().run() }} title="Bullet List">
+        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('bulletList')} onClick={() => { activeEditor?.chain().focus().toggleBulletList().run() }} title={t('editor.bulletList')}>
           <Icon icon={faListUl} style={{ fontSize: 14 }} />
         </ToolbarBtn>
-        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('orderedList')} onClick={() => { activeEditor?.chain().focus().toggleOrderedList().run() }} title="Numbered List">
+        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive('orderedList')} onClick={() => { activeEditor?.chain().focus().toggleOrderedList().run() }} title={t('editor.numberedList')}>
           <Icon icon={faListOl} style={{ fontSize: 14 }} />
         </ToolbarBtn>
         <ToolbarDivider />
         {/* Text alignment */}
-        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive({ textAlign: 'left' })} onClick={() => { activeEditor?.chain().focus().setTextAlign('left').run() }} title="Align Left">
+        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive({ textAlign: 'left' })} onClick={() => { activeEditor?.chain().focus().setTextAlign('left').run() }} title={t('editor.alignLeft')}>
           <Icon icon={faAlignLeft} style={{ fontSize: 14 }} />
         </ToolbarBtn>
-        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive({ textAlign: 'center' })} onClick={() => { activeEditor?.chain().focus().setTextAlign('center').run() }} title="Align Center">
+        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive({ textAlign: 'center' })} onClick={() => { activeEditor?.chain().focus().setTextAlign('center').run() }} title={t('editor.alignCenter')}>
           <Icon icon={faAlignCenter} style={{ fontSize: 14 }} />
         </ToolbarBtn>
-        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive({ textAlign: 'right' })} onClick={() => { activeEditor?.chain().focus().setTextAlign('right').run() }} title="Align Right">
+        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive({ textAlign: 'right' })} onClick={() => { activeEditor?.chain().focus().setTextAlign('right').run() }} title={t('editor.alignRight')}>
           <Icon icon={faAlignRight} style={{ fontSize: 14 }} />
         </ToolbarBtn>
         <ToolbarDivider />
         <ColourSwatchButton
-          title="Font colour"
+          title={t('editor.fontColour')}
           disabled={!activeEditor}
           value={activeEditor?.getAttributes('textStyle')?.color}
           onChange={(hex) => { activeEditor?.chain().focus().setColor(hex).run() }}
@@ -687,7 +687,7 @@ export function RelationshipMap({ data, savedConfig }: Props) {
 
         <div style={{ flex: 1 }} />
         {/* Pop back in — closing the window also pops back in. */}
-        <ToolbarBtn onClick={() => window.close()} title="Pop back into the main window">
+        <ToolbarBtn onClick={() => window.close()} title={t('map.popBack')}>
           <Icon icon={faDownLeftAndUpRightToCenter} style={{ fontSize: 12 }} />
         </ToolbarBtn>
 
@@ -766,11 +766,11 @@ export function RelationshipMap({ data, savedConfig }: Props) {
             disabled={!dirty}
             onClick={handleSave}
           >
-            {dirty ? 'Save' : 'Saved'}
+            {dirty ? t('common.save') : t('analysis.saved')}
           </button>
         ) : (
           <button style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleSaveNew}>
-            Save
+            {t('common.save')}
           </button>
         )}
       </div>
@@ -782,19 +782,19 @@ export function RelationshipMap({ data, savedConfig }: Props) {
           onClick={() => setShowCloseDialog(false)}
         >
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ minWidth: 360 }}>
-            <h2>Unsaved changes</h2>
+            <h2>{t('tabs.unsavedChanges')}</h2>
             <p style={{ margin: '8px 0 16px', color: 'var(--text-secondary)' }}>
-              This map has unsaved changes. What would you like to do?
+              {t('map.unsavedText')}
             </p>
             <div className="modal-actions">
               <button className="secondary" onClick={() => setShowCloseDialog(false)}>
-                Cancel
+                {t('common.cancel')}
               </button>
               <button className="secondary" onClick={handleDiscardAndClose}>
-                Discard
+                {t('common.discard')}
               </button>
               <button onClick={handleSaveFromCloseDialog}>
-                Save
+                {t('common.save')}
               </button>
             </div>
           </div>
@@ -805,7 +805,7 @@ export function RelationshipMap({ data, savedConfig }: Props) {
       {showSaveDialog && (
         <div className="modal-overlay">
           <div className="modal" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Escape') setShowSaveDialog(false) }} style={{ minWidth: 320 }}>
-            <h2>Save Relationship Map</h2>
+            <h2>{t('map.saveTitle')}</h2>
             <input
               value={saveName}
               onChange={(e) => setSaveName(e.target.value)}
@@ -816,10 +816,10 @@ export function RelationshipMap({ data, savedConfig }: Props) {
             />
             <div className="modal-actions">
               <button className="secondary" onClick={() => setShowSaveDialog(false)}>
-                Cancel
+                {t('common.cancel')}
               </button>
               <button onClick={handleConfirmFirstSave}>
-                Save
+                {t('common.save')}
               </button>
             </div>
           </div>

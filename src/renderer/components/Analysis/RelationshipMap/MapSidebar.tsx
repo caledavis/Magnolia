@@ -19,6 +19,8 @@ import {
 } from '../../Icon'
 import { buildCellText } from '../../../utils/survey/cell-text'
 import { TOOL_REGISTRY } from '../../../utils/tool-registry'
+import { useTranslation } from 'react-i18next'
+import { t } from '../../../i18n'
 
 interface Props {
   data: AnalysisInitData
@@ -154,7 +156,7 @@ function DraggableItem({ kind, data, label, depth = 0, icon, iconColor, colorPip
   )
 }
 
-const EMPTY = <div style={{ fontSize: 11, color: 'var(--text-muted)', padding: '4px 8px 4px 24px' }}>None</div>
+const EMPTY = <div style={{ fontSize: 11, color: 'var(--text-muted)', padding: '4px 8px 4px 24px' }}>{t('map.none')}</div>
 
 /* ── Code tree (recursive) ─────────────────────────────────── */
 
@@ -297,6 +299,7 @@ function FolderItems({ folders, allFolders, sources, sourceFolder, depth, filter
 /* ── Main sidebar ──────────────────────────────────────────── */
 
 export function MapSidebar({ data, visible }: Props) {
+  const { t } = useTranslation()
   const [filter, setFilter] = useState('')
   const lower = filter.toLowerCase()
 
@@ -426,7 +429,7 @@ export function MapSidebar({ data, visible }: Props) {
       <div style={{ padding: 8, borderBottom: '1px solid var(--border-color, #e0e0e0)' }}>
         <input
           value={filter} onChange={(e) => setFilter(e.target.value)}
-          placeholder="Filter..."
+          placeholder={t('map.filterPlaceholder')}
           style={{
             width: '100%', padding: '5px 8px', fontSize: 12,
             border: '1px solid var(--border-color, #d0d0d0)', borderRadius: 6,
@@ -438,7 +441,7 @@ export function MapSidebar({ data, visible }: Props) {
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {/* Documents with folder nesting, plus tags */}
-        <Section title={`Documents (${data.sources.length})`} defaultOpen>
+        <Section title={t('map.sectionDocuments', { count: data.sources.length })} defaultOpen>
           <DocumentTree
             sources={data.sources}
             folders={data.folders}
@@ -449,7 +452,7 @@ export function MapSidebar({ data, visible }: Props) {
           {data.sources.length === 0 && EMPTY}
           {/* Tags nested under Documents */}
           {filteredTags.length > 0 && (
-            <TreeNode label={<><Icon icon={faTags} style={{ fontSize: 10, marginRight: 4 }} />Tags</>} depth={1} defaultOpen={false}>
+            <TreeNode label={<><Icon icon={faTags} style={{ fontSize: 10, marginRight: 4 }} />{t('tags.heading')}</>} depth={1} defaultOpen={false}>
               {tagCategories.map((cat) => {
                 const catTags = filteredTags.filter((t) => t.categoryGuid === cat.guid)
                 if (catTags.length === 0) return null
@@ -486,14 +489,14 @@ export function MapSidebar({ data, visible }: Props) {
             .filter((s) => !lower || s.name.toLowerCase().includes(lower))
           if (surveys.length === 0) return null
           return (
-            <Section title={`Surveys (${surveys.length})`}>
+            <Section title={t('map.sectionSurveys', { count: surveys.length })}>
               {surveys.map((s) => {
                 const respondents = s.survey.respondents
                 const questions = s.survey.questions
                 return (
                   <TreeNode key={s.guid} label={s.name} depth={1} defaultOpen={!!lower}>
                     {respondents.length > 0 && (
-                      <TreeNode label={`Respondents (${respondents.length})`} depth={2} defaultOpen={!!lower}>
+                      <TreeNode label={t('map.sectionRespondents', { count: respondents.length })} depth={2} defaultOpen={!!lower}>
                         {respondents
                           .filter((r) => !lower || r.displayName.toLowerCase().includes(lower))
                           .map((r) => (
@@ -514,7 +517,7 @@ export function MapSidebar({ data, visible }: Props) {
                       </TreeNode>
                     )}
                     {questions.length > 0 && (
-                      <TreeNode label={`Questions (${questions.length})`} depth={2} defaultOpen={!!lower}>
+                      <TreeNode label={t('map.sectionQuestions', { count: questions.length })} depth={2} defaultOpen={!!lower}>
                         {questions
                           .filter((q) => !lower || q.text.toLowerCase().includes(lower))
                           .map((q) => (
@@ -538,7 +541,7 @@ export function MapSidebar({ data, visible }: Props) {
                         leaf is a draggable answer for one (respondent,
                         question) pair. */}
                     {questions.length > 0 && respondents.length > 0 && (
-                      <TreeNode label="Cells" depth={2} defaultOpen={false}>
+                      <TreeNode label={t('map.cells')} depth={2} defaultOpen={false}>
                         {questions.map((q) => {
                           const cells = respondents
                             .map((r) => {
@@ -589,13 +592,13 @@ export function MapSidebar({ data, visible }: Props) {
         })()}
 
         {/* Codes with hierarchy */}
-        <Section title={`Codes (${data.codes.length})`} defaultOpen>
+        <Section title={t('map.sectionCodes', { count: data.codes.length })} defaultOpen>
           <CodeTreeItems nodes={codeTree} depth={1} filter={lower} />
           {data.codes.length === 0 && EMPTY}
         </Section>
 
         {/* Queries */}
-        <Section title={`Queries (${filteredQueries.length})`}>
+        <Section title={t('map.sectionQueries', { count: filteredQueries.length })}>
           {filteredQueries.map((q) => (
             <DraggableItem key={q.guid} kind="query" data={{ entityGuid: q.guid, label: q.name }} label={q.name} icon={faMagnifyingGlass} iconColor="#D06828" depth={1} />
           ))}
@@ -603,7 +606,7 @@ export function MapSidebar({ data, visible }: Props) {
         </Section>
 
         {/* Analyses */}
-        <Section title={`Analyses (${filteredAnalyses.length})`}>
+        <Section title={t('map.sectionAnalyses', { count: filteredAnalyses.length })}>
           {filteredAnalyses.map((a) => (
             <DraggableItem key={a.guid} kind="analysis" data={{ entityGuid: a.guid, label: a.name, toolType: a.toolType }} label={a.name} icon={TOOL_REGISTRY[a.toolType]?.icon || faCircleNodes} iconColor={TOOL_REGISTRY[a.toolType]?.color || '#8e8e93'} depth={1} />
           ))}
@@ -611,16 +614,16 @@ export function MapSidebar({ data, visible }: Props) {
         </Section>
 
         {/* Memos nested under type/document */}
-        <Section title={`Memos (${memos.length})`}>
+        <Section title={t('map.sectionMemos', { count: memos.length })}>
           {projectMemos.length > 0 && (
-            <TreeNode label="Project" depth={1} defaultOpen>
+            <TreeNode label={t('map.project')} depth={1} defaultOpen>
               {projectMemos.map((m) => (
                 <DraggableItem key={m.guid} kind="memo" data={{ entityGuid: m.guid, label: m.title, snippet: m.content }} label={m.title} icon={MEMO_RANGED_ICON} iconColor="#8e8e93" depth={2} />
               ))}
             </TreeNode>
           )}
           {[...memosBySource.entries()].map(([srcGuid, srcMemos]) => {
-            const srcName = sourceNameMap.get(srcGuid) || 'Unlinked'
+            const srcName = sourceNameMap.get(srcGuid) || t('map.unlinked')
             return (
               <TreeNode key={srcGuid} label={srcName} depth={1} defaultOpen>
                 {srcMemos.map((m) => (
@@ -630,7 +633,7 @@ export function MapSidebar({ data, visible }: Props) {
             )
           })}
           {analysisMemos.length > 0 && (
-            <TreeNode label="Analysis" depth={1} defaultOpen>
+            <TreeNode label={t('map.analysis')} depth={1} defaultOpen>
               {analysisMemos.map((m) => (
                 <DraggableItem key={m.guid} kind="memo" data={{ entityGuid: m.guid, label: m.title, snippet: m.content }} label={m.title} icon={MEMO_RANGED_ICON} iconColor="#8e8e93" depth={2} />
               ))}
@@ -640,13 +643,13 @@ export function MapSidebar({ data, visible }: Props) {
         </Section>
 
         {/* Quotes */}
-        <Section title={`Quotes (${filteredQuotes.length})`}>
+        <Section title={t('map.sectionQuotes', { count: filteredQuotes.length })}>
           {filteredQuotes.map((q) => (
             <DraggableItem
               key={q.guid}
               kind="quote"
               data={{ entityGuid: q.guid, label: q.sourceName, snippet: stripFormatting(q.text, sourceTypeFromFilename(q.sourceName)), sourceGuid: q.sourceGuid, startPosition: q.startPosition, endPosition: q.endPosition }}
-              label={(() => { const t = stripFormatting(q.text, sourceTypeFromFilename(q.sourceName)); return `"${t.slice(0, 50)}${t.length > 50 ? '...' : ''}"` })()}
+              label={(() => { const text = stripFormatting(q.text, sourceTypeFromFilename(q.sourceName)); return `"${text.slice(0, 50)}${text.length > 50 ? '...' : ''}"` })()}
               icon={QUOTE_ICON}
               iconColor="var(--quote-icon-color)"
               depth={1}

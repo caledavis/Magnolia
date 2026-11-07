@@ -28,22 +28,11 @@ import {
 } from '../../Icon'
 import { useRef, useEffect } from 'react'
 import type { IconComponent } from '../../Icon'
+import { useTranslation } from 'react-i18next'
+import { t } from '../../../i18n'
 
-const KIND_LABELS: Record<MapElementKind, string> = {
-  document: 'DOC',
-  code: 'CODE',
-  query: 'QRY',
-  'query-result': 'RESULT',
-  memo: 'MEMO',
-  analysis: 'ANL',
-  tag: 'TAG',
-  'tag-category': 'CATEGORY',
-  quote: 'QUOTE',
-  folder: 'FOLDER',
-  'survey-respondent': 'RESP',
-  'survey-question': 'QUESTION',
-  'survey-cell': 'ANSWER'
-}
+/** An element's kind badge (map.kind.<kind>), e.g. DOC, CODE. */
+export const kindBadge = (kind: MapElementKind): string => t(`map.kind.${kind}`)
 
 const KIND_ICONS: Record<MapElementKind, IconComponent | null> = {
   document: faFile,
@@ -131,6 +120,7 @@ const CHIP_KINDS: Set<MapElementKind> = new Set([
 ])
 
 export function MapElement({ element, selected, onHeaderMouseDown, onBodyMouseDown, onDoubleClick, onRenderedHeight, dimmed, onHoverChange }: Props) {
+  const { t } = useTranslation()
   const divRef = useRef<HTMLDivElement>(null)
   const pdfFilePaths = useContext(PdfFilePathsContext)
   const color = getElementColor(element)
@@ -273,7 +263,7 @@ export function MapElement({ element, selected, onHeaderMouseDown, onBodyMouseDo
   // Left 3px colored bar; top row (title/source) is the move handle, the
   // snippet area draws a connection wire.
   const title = isMemo
-    ? element.label || 'Untitled memo'
+    ? element.label || t('map.untitledMemo')
     : element.label /* source name for quote/result */
 
   return (
@@ -349,7 +339,7 @@ export function MapElement({ element, selected, onHeaderMouseDown, onBodyMouseDo
           }}
         >
           {icon && <Icon icon={icon} style={{ fontSize: 10, color }} />}
-          {KIND_LABELS[element.kind]}
+          {kindBadge(element.kind)}
         </span>
       </div>
       {/* Snippet / thumbnail — drag to draw link */}

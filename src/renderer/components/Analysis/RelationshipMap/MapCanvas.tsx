@@ -6,6 +6,7 @@ import { MapElement } from './MapElement'
 import { MapConnectionComponent } from './MapConnection'
 import { FreeTextNode } from './FreeTextNode'
 import { Icon, MEMO_RANGED_ICON } from '../../Icon'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   elements: MapElementType[]
@@ -97,6 +98,7 @@ export function MapCanvas({
   onOpenAttachedMemo,
   panWrapperRef
 }: Props) {
+  const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const wireRef = useRef<SVGPathElement>(null)
   const [drag, setDrag] = useState<DragState>(null)
@@ -574,25 +576,25 @@ export function MapCanvas({
         <div className="zoom-strip">
           <button
             onClick={() => onZoomChange(Math.max(0.25, zoom * 0.9))}
-            title="Zoom out"
+            title={t('map.zoomOut')}
           >
             −
           </button>
-          <button onClick={() => onZoomChange(1)} title="Reset to 100%">
+          <button onClick={() => onZoomChange(1)} title={t('map.resetZoom')}>
             100%
           </button>
           <button
             onClick={() => onZoomChange(Math.min(3, zoom * 1.1))}
-            title="Zoom in"
+            title={t('map.zoomIn')}
           >
             +
           </button>
-          <button onClick={handleRecentre} title="Re-centre map on content">
-            Re-centre
+          <button onClick={handleRecentre} title={t('map.recentreTitle')}>
+            {t('queryBuilder.recentre')}
           </button>
         </div>
         <span className="viewer-spacer" />
-        <span className="viewer-meta">Map</span>
+        <span className="viewer-meta">{t('map.map')}</span>
       </div>
     <div
       ref={containerRef}
@@ -714,7 +716,7 @@ export function MapCanvas({
             return (
               <div
                 key={`memo-badge-${el.id}`}
-                title="Open attached memo"
+                title={t('map.openMemo')}
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation()
@@ -817,7 +819,7 @@ export function MapCanvas({
               setContextMenu(null)
             }}
           >
-            Add Memo
+            {t('common.addMemo')}
           </div>
         </div>
       )}

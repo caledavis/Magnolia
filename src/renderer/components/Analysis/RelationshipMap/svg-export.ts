@@ -2,6 +2,7 @@ import type { MapElement, MapConnection, FreeTextElement, MapElementKind } from 
 import { ELEMENT_COLORS, ANALYSIS_TOOL_COLORS } from './types'
 import { parseBezPath, bezierPoint } from './bezier-utils'
 import { computeConnectionPath } from './MapConnection'
+import { t } from '../../../i18n'
 
 function escapeXml(str: string): string {
   return str
@@ -198,7 +199,7 @@ function elementSvg(el: MapElement): string {
   }
 
   // Kind label text
-  parts.push(`<text x="${hx}" y="${hy + 3.5}" font-size="9" font-weight="700" fill="#fff" letter-spacing="0.5">${escapeXml(el.kind.toUpperCase())}</text>`)
+  parts.push(`<text x="${hx}" y="${hy + 3.5}" font-size="9" font-weight="700" fill="#fff" letter-spacing="0.5">${escapeXml(t(`map.kind.${el.kind}`))}</text>`)
 
   // Body label text
   if (isDoc) {
@@ -250,7 +251,7 @@ export function buildExportSvg(
   ]
 
   if (allItems.length === 0) {
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><text x="200" y="150" text-anchor="middle" fill="#999">Empty relationship map</text></svg>'
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><text x="200" y="150" text-anchor="middle" fill="#999">${escapeXml(t('map.empty'))}</text></svg>`
   }
 
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity

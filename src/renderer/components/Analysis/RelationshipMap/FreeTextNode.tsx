@@ -7,6 +7,7 @@ import { TextStyle } from '@tiptap/extension-text-style'
 import { Color } from '@tiptap/extension-color'
 import type { FreeTextElement } from './types'
 import { FREE_TEXT_DEFAULT_WIDTH, FREE_TEXT_DEFAULT_HEIGHT } from './types'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   freeText: FreeTextElement
@@ -77,6 +78,7 @@ function ResizeHandle({ position, onResizeStart }: {
 const ALL_HANDLES: HandlePos[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']
 
 export function FreeTextNode({ freeText, selected, focused, zoom, onMouseDown, onConnectorMouseDown, onFocus, onUpdate, onEditorReady, onResize }: Props) {
+  const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const resizingRef = useRef<{
     pos: HandlePos
@@ -350,7 +352,7 @@ export function FreeTextNode({ freeText, selected, focused, zoom, onMouseDown, o
       />
       {!focused && !freeText.content && (
         <div style={{ position: 'absolute', inset: 4, fontSize: 12, color: 'var(--text-muted, #8e8e93)', pointerEvents: 'none' }}>
-          Double-click to edit
+          {t('map.doubleClickToEdit')}
         </div>
       )}
       {showHandles && ALL_HANDLES.map((pos) => (
@@ -369,8 +371,8 @@ export function FreeTextNode({ freeText, selected, focused, zoom, onMouseDown, o
             e.preventDefault()
             onConnectorMouseDown(e, freeText.id)
           }}
-          title="Drag to connect"
-          aria-label="Drag to connect this text to another node"
+          title={t('map.dragToConnect')}
+          aria-label={t('map.dragToConnectLabel')}
           style={{
             position: 'absolute',
             right: -16,
