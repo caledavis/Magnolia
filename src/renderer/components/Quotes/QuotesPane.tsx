@@ -10,6 +10,7 @@ import { renderPdfRegionThumbnail } from '../../utils/pdf-thumbnail'
 import { renderImageRegionThumbnail } from '../../utils/image-thumbnail'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 import { isSelectionDrag, requestSelectionDrop } from '../../utils/selection-drag'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   onClose?: () => void
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
+  const { t } = useTranslation()
   // Enforced checkout lock: browsing/opening quotes stays live; removing
   // one is disabled while someone else holds the lock.
   const lockedBy = useCheckoutLockedBy()
@@ -189,8 +191,8 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Escape') closeSearch() }}
-            placeholder="Filter quotes..."
-            aria-label="Filter quotes"
+            placeholder={t('quotes.filterPlaceholder')}
+            aria-label={t('quotes.filter')}
             autoFocus
             style={{
               flex: 1,
@@ -208,27 +210,27 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
             }}
           />
         ) : (
-          <span style={{ flex: 1 }}>Saved Quotes</span>
+          <span style={{ flex: 1 }}>{t('panes.quotes')}</span>
         )}
         {quotes.length > 0 && (
           <button
             className="panel-header-search"
             onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
-            title={searchOpen ? 'Close search' : 'Filter quotes'}
-            aria-label={searchOpen ? 'Close search' : 'Filter quotes'}
+            title={searchOpen ? t('common.closeSearch') : t('quotes.filter')}
+            aria-label={searchOpen ? t('common.closeSearch') : t('quotes.filter')}
           >
             <Icon icon={searchOpen ? faXmark : faMagnifyingGlass} />
           </button>
         )}
-        {onPopOut && <button className="panel-header-popout" onClick={onPopOut} title={isPoppedOut ? "Pop back in" : "Pop out"} aria-label={isPoppedOut ? "Pop pane back into main window" : "Pop pane out into its own window"}><Icon icon={isPoppedOut ? faDownLeftAndUpRightToCenter : faUpRightFromSquare} /></button>}
-        {onClose && <button className="panel-header-close" onClick={onClose} title="Close panel" aria-label="Close panel"><Icon icon={faXmark} /></button>}
+        {onPopOut && <button className="panel-header-popout" onClick={onPopOut} title={isPoppedOut ? t('panel.popIn') : t('panel.popOut')} aria-label={isPoppedOut ? t('panel.popInLabel') : t('panel.popOutLabel')}><Icon icon={isPoppedOut ? faDownLeftAndUpRightToCenter : faUpRightFromSquare} /></button>}
+        {onClose && <button className="panel-header-close" onClick={onClose} title={t('panel.close')} aria-label={t('panel.close')}><Icon icon={faXmark} /></button>}
       </div>
       <div className="panel-content">
         {quotes.length === 0 && (
           <div className="empty-state" style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-            No quotes yet.
+            {t('quotes.empty')}
             <br />
-            Right-click a selection in a document and choose "Add as Quote", or drag the selection's grab handle here.
+            {t('quotes.emptyHint')}
           </div>
         )}
         {quotes.length > 0 && filteredGroups.length === 0 && (
@@ -370,7 +372,7 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
               setContextMenu(null)
             }}
           >
-            Copy Quote
+            {t('quotes.copy')}
           </div>
           <div className="context-menu-separator" />
           <div
@@ -383,7 +385,7 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
               removeQuote(contextMenu.guid)
             }}
           >
-            Delete Quote
+            {t('quotes.delete')}
           </div>
         </div>
       )}

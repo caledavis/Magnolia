@@ -9,6 +9,7 @@ import { isToolTab } from '../../utils/tab-ids'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import type { Memo, MemoType, MemoEditInitData } from '../../models/types'
 import { showMemoLocation } from '../../utils/show-memo'
+import { useTranslation } from 'react-i18next'
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
@@ -40,6 +41,7 @@ function MemoItem({
    *  to 8 px (top-level / single-section position). */
   indent?: number
 }) {
+  const { t } = useTranslation()
   return (
     <div
       style={{
@@ -78,7 +80,7 @@ function MemoItem({
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap'
         }}>
-          {memo.title || 'Untitled Memo'}
+          {memo.title || t('memos.untitled')}
         </span>
       </div>
       <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
@@ -189,6 +191,7 @@ function AnalysisMemoGroups({
   onDragStart: (e: React.DragEvent, memo: Memo) => void
   isFirst?: boolean
 }) {
+  const { t } = useTranslation()
   const [sectionExpanded, setSectionExpanded] = useState(true)
   const total = groups.reduce((n, g) => n + g.memos.length, 0) + unattached.length
 
@@ -212,7 +215,7 @@ function AnalysisMemoGroups({
         <span style={{ fontSize: 10, width: 12, textAlign: 'center', opacity: 0.6 }}>
           <Icon icon={sectionExpanded ? faChevronDown : faChevronRight} />
         </span>
-        <span style={{ flex: 1 }}>Analysis Memos</span>
+        <span style={{ flex: 1 }}>{t('memos.analysisMemos')}</span>
         <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{total}</span>
       </div>
       {sectionExpanded && groups.map((g) => (
@@ -309,6 +312,7 @@ interface Props {
 }
 
 export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
+  const { t } = useTranslation()
   // Enforced checkout lock: reading existing memos stays live; the
   // controls for creating, editing, and deleting stay clickable but
   // intercept and prompt (Take Over / Create a Copy / Cancel) while
@@ -344,7 +348,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
     (list: Memo[]) => {
       if (!trimmedSearch) return list
       const q = trimmedSearch.toLowerCase()
-      return list.filter((m) => (m.title || 'Untitled Memo').toLowerCase().includes(q))
+      return list.filter((m) => (m.title || t('memos.untitled')).toLowerCase().includes(q))
     },
     [trimmedSearch]
   )
@@ -390,7 +394,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
       }
     }
     const nameFor = (guid: string): string =>
-      savedAnalyses.find((a) => a.guid === guid)?.name?.trim() || 'Untitled map'
+      savedAnalyses.find((a) => a.guid === guid)?.name?.trim() || t('memos.untitledMap')
     const groups = Array.from(byAnalysis.entries())
       .map(([guid, list]) => ({ guid, name: nameFor(guid), memos: list }))
       .sort((a, b) => a.name.localeCompare(b.name))
@@ -546,7 +550,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
     const memo = findMemo(guid)
     if (!memo || memo.type === 'project') return
     if (memo.type === 'document' || memo.type === 'content') {
-      if (!confirm(`Moving this memo to Project Memos will break its link to the document. Continue?`)) return
+      if (!confirm(t('memos.moveToProjectConfirm'))) return
     }
     changeMemoType(guid, 'project', { sourceGuids: undefined, sourceGuid: undefined, startPosition: undefined, endPosition: undefined })
   }, [findMemo, changeMemoType])
@@ -560,8 +564,8 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Escape') closeSearch() }}
-            placeholder="Filter memos..."
-            aria-label="Filter memos"
+            placeholder={t('memos.filterPlaceholder')}
+            aria-label={t('memos.filter')}
             autoFocus
             style={{
               flex: 1,
@@ -579,14 +583,14 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
             }}
           />
         ) : (
-          <span style={{ flex: 1 }}>Saved Memos</span>
+          <span style={{ flex: 1 }}>{t('panes.memos')}</span>
         )}
         {memos.length > 0 && (
           <button
             className="panel-header-search"
             onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
-            title={searchOpen ? 'Close search' : 'Filter memos'}
-            aria-label={searchOpen ? 'Close search' : 'Filter memos'}
+            title={searchOpen ? t('common.closeSearch') : t('memos.filter')}
+            aria-label={searchOpen ? t('common.closeSearch') : t('memos.filter')}
           >
             <Icon icon={searchOpen ? faXmark : faMagnifyingGlass} />
           </button>
@@ -594,8 +598,8 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
         <button
           className="panel-header-add"
           onClick={handleNewMemoClick}
-          title={lockedBy ? checkoutLockedTitle(lockedBy) : 'Add memo'}
-          aria-label="Add memo"
+          title={lockedBy ? checkoutLockedTitle(lockedBy) : t('memos.add')}
+          aria-label={t('memos.add')}
           style={lockedBy ? { opacity: 0.4 } : undefined}
         >
           <Icon icon={faPlus} />
@@ -620,19 +624,19 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
               }}
             >
               <div className="context-menu-item" onClick={() => handleCreateMemo('project')}>
-                Project Memo
+                {t('memos.projectMemo')}
               </div>
               {viewedDocumentGuid && (
                 <div className="context-menu-item" onClick={() => handleCreateMemo('document')}>
-                  Document Memo
+                  {t('memos.documentMemo')}
                 </div>
               )}
             </div>
           </>,
           document.body
         )}
-        {onPopOut && <button className="panel-header-popout" onClick={onPopOut} title={isPoppedOut ? "Pop back in" : "Pop out"} aria-label={isPoppedOut ? "Pop pane back into main window" : "Pop pane out into its own window"}><Icon icon={isPoppedOut ? faDownLeftAndUpRightToCenter : faUpRightFromSquare} /></button>}
-        {onClose && <button className="panel-header-close" onClick={onClose} title="Close panel" aria-label="Close panel"><Icon icon={faXmark} /></button>}
+        {onPopOut && <button className="panel-header-popout" onClick={onPopOut} title={isPoppedOut ? t('panel.popIn') : t('panel.popOut')} aria-label={isPoppedOut ? t('panel.popInLabel') : t('panel.popOutLabel')}><Icon icon={isPoppedOut ? faDownLeftAndUpRightToCenter : faUpRightFromSquare} /></button>}
+        {onClose && <button className="panel-header-close" onClick={onClose} title={t('panel.close')} aria-label={t('panel.close')}><Icon icon={faXmark} /></button>}
       </div>
 
       <div className="panel-content">
@@ -658,9 +662,9 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
             <>
               {firstShown === null && !trimmedSearch && (
                 <div className="empty-state" style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                  No memos yet.
+                  {t('memos.empty')}
                   <br />
-                  Click the + button above, or right-click a selection in a document and choose "Add Memo".
+                  {t('memos.emptyHint')}
                 </div>
               )}
               {firstShown === null && trimmedSearch && (
@@ -670,7 +674,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
               )}
               {showProject && (
                 <MemoSection
-                  title="Project Memos"
+                  title={t('memos.projectMemos')}
                   memos={visibleProject}
                   selectedGuids={selectedGuids}
                   onItemClick={handleItemClick}
@@ -686,7 +690,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
               )}
               {showDocument && (
                 <MemoSection
-                  title="Document Memos"
+                  title={t('memos.documentMemos')}
                   memos={visibleDocument}
                   selectedGuids={selectedGuids}
                   onItemClick={handleItemClick}
@@ -701,7 +705,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
               )}
               {showContent && (
                 <MemoSection
-                  title="Selection Memos"
+                  title={t('memos.selectionMemos')}
                   memos={visibleContent}
                   selectedGuids={selectedGuids}
                   onItemClick={handleItemClick}
@@ -755,7 +759,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
                   openMemoEdit(memoContextMenu.target.guid)
                 }}
               >
-                Edit Memo
+                {t('memos.edit')}
               </div>
             )}
             {selectedGuids.size <= 1 && <div className="context-menu-separator" />}
@@ -768,7 +772,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
                 bulkDelete()
               }}
             >
-              {selectedGuids.size > 1 ? `Delete ${selectedGuids.size} memos` : 'Delete Memo'}
+              {selectedGuids.size > 1 ? t('memos.deleteCount', { count: selectedGuids.size }) : t('memos.deleteOne')}
             </div>
           </div>
         </>
@@ -783,16 +787,16 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
         >
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2 style={{ margin: '0 0 12px' }}>
-              {bulkDeleteConfirm.length > 1 ? `Delete ${bulkDeleteConfirm.length} memos` : 'Delete Memo'}
+              {bulkDeleteConfirm.length > 1 ? t('memos.deleteCount', { count: bulkDeleteConfirm.length }) : t('memos.deleteOne')}
             </h2>
             <p style={{ margin: '0 0 16px', fontSize: 'var(--font-size-sm)' }}>
               {bulkDeleteConfirm.length > 1
-                ? `Delete ${bulkDeleteConfirm.length} memos? This cannot be undone.`
-                : `Delete "${bulkDeleteConfirm[0].title || 'Untitled Memo'}"? This cannot be undone.`}
+                ? t('memos.deleteCountConfirm', { count: bulkDeleteConfirm.length })
+                : t('memos.deleteOneConfirm', { title: bulkDeleteConfirm[0].title || t('memos.untitled') })}
             </p>
             <div className="modal-actions">
-              <button className="secondary" onClick={() => setBulkDeleteConfirm(null)}>Cancel</button>
-              <button style={{ background: 'var(--danger)' }} onClick={confirmBulkDelete}>Delete</button>
+              <button className="secondary" onClick={() => setBulkDeleteConfirm(null)}>{t('common.cancel')}</button>
+              <button style={{ background: 'var(--danger)' }} onClick={confirmBulkDelete}>{t('common.delete')}</button>
             </div>
           </div>
         </div>
