@@ -3,6 +3,7 @@
 
 mod automation;
 mod commands;
+mod i18n;
 mod menu;
 mod print;
 mod state;
@@ -133,6 +134,7 @@ pub fn run() {
             commands::load_preferences,
             commands::save_preferences,
             commands::preferences_update,
+            i18n::set_native_language,
             commands::get_app_version,
             updater::get_update_badge,
             updater::update_install,
@@ -149,6 +151,7 @@ pub fn run() {
         ])
         .setup(|app| {
             storage::init(app.handle());
+            i18n::init_from_preferences(&storage::load_preferences());
             updater::preview_at_launch(app.handle());
             menu::rebuild(app.handle());
             // Launched by double-clicking a project (or with a path argument):

@@ -1,0 +1,120 @@
+{
+  "language": {
+    "name": {
+      "en": "English",
+      "es": "Español",
+      "nl": "Nederlands",
+      "pt-BR": "Português (Brasil)"
+    },
+    "system": "Same as the computer ({{language}})"
+  },
+  "preferences": {
+    "language": {
+      "heading": "Language",
+      "description": "The language of Magnolia's menus, windows and exports. Your projects aren't changed: codes, documents and memos stay as you wrote them."
+    }
+  },
+  "native": {
+    "menu": {
+      "about": "About Magnolia",
+      "checkUpdates": "Check for Updates…",
+      "acknowledgements": "Acknowledgements",
+      "preferences": "Preferences...",
+      "services": "Services",
+      "hide": "Hide Magnolia",
+      "hideOthers": "Hide Others",
+      "showAll": "Show All",
+      "quit": "Quit Magnolia",
+      "file": "File",
+      "newProject": "New Project",
+      "openProject": "Open Project...",
+      "saveProject": "Save Project",
+      "saveProjectAs": "Save Project As...",
+      "projectDetails": "Project Details...",
+      "importDocument": "Import Document...",
+      "closeTab": "Close Tab",
+      "edit": "Edit",
+      "undo": "Undo",
+      "redo": "Redo",
+      "cut": "Cut",
+      "copy": "Copy",
+      "paste": "Paste",
+      "selectAll": "Select All",
+      "codes": "Codes",
+      "newCode": "New Code",
+      "codebook": "Codebook",
+      "importCodebook": "Import Codebook (.qdc)...",
+      "exportCodebook": "Export Codebook (.qdc)...",
+      "documents": "Documents",
+      "newFolder": "New Folder",
+      "manageDocumentTags": "Manage Document Tags...",
+      "view": "View",
+      "previousTab": "Show Previous Tab",
+      "nextTab": "Show Next Tab",
+      "showRibbon": "Show Ribbon",
+      "panelDocuments": "Documents",
+      "panelCodes": "Codes",
+      "panelQueries": "Queries",
+      "panelMemos": "Saved Memos",
+      "panelQuotes": "Saved Quotes",
+      "panelAnalyses": "Saved Analyses",
+      "reload": "Reload",
+      "devtools": "Toggle Developer Tools",
+      "help": "Help",
+      "github": "Magnolia on GitHub",
+      "sponsor": "Sponsor Magnolia…",
+      "aboutCredits": "Free and open-source qualitative data analysis.",
+      "aboutBuiltWith": "Built with Tauri, Rust, React, TipTap and PDF.js. Icons by Lucide."
+    },
+    "dialog": {
+      "openProject": "Open QDPX Project",
+      "qdpxProjects": "QDPX Projects",
+      "saveProject": "Save QDPX Project",
+      "saveProjectAs": "Save QDPX Project As",
+      "createProject": "Create New Project",
+      "untitled": "Untitled",
+      "createProjectFailed": "Failed to create project",
+      "openProjectFailed": "Failed to open project",
+      "projectNotFound": "Project not found",
+      "projectNotFoundMessage": "\"{{path}}\" no longer exists. It has been removed from Recent Projects.",
+      "importDocument": "Import Document",
+      "reimportDocument": "Re-import Document",
+      "supportedDocuments": "Supported Documents",
+      "importTranscript": "Import Transcript",
+      "textFiles": "Text Files",
+      "export": "Export",
+      "exportCodebook": "Export Codebook",
+      "codebookFileName": "Codebook",
+      "importCodebook": "Import Codebook",
+      "qdcCodebook": "REFI-QDA Codebook"
+    },
+    "import": {
+      "legacyDoc": "Legacy Microsoft Word .doc files aren't supported. Please open the file in Word and save it as .docx.",
+      "folder": "Folders can't be imported. Drop the files inside it instead.",
+      "noExtension": "Files without an extension can't be imported.",
+      "unsupported": "Magnolia can't import .{{ext}} files."
+    },
+    "window": {
+      "codes": "Codes",
+      "logbook": "Logbook",
+      "memos": "Memos",
+      "queries": "Queries",
+      "memo": "Memo",
+      "softwareUpdate": "Software Update",
+      "magnoliaUpdate": "Magnolia Update"
+    },
+    "update": {
+      "checkFailed": "Could not check for updates",
+      "downloadFailed": "Could not download the update",
+      "installFailed": "Could not install the update",
+      "installFailedMessage": "Magnolia {{version}} will reopen when you close this message, and will offer the update again. The error was: {{error}}",
+      "notificationTitle": "Magnolia update available",
+      "notificationBody": "Version {{version}} is available."
+    },
+    "print": {
+      "didNotStart": "Printing did not start",
+      "timedOut": "Timed out loading the document to print",
+      "webview2Failed": "WebView2 could not print the document"
+    }
+  }
+}

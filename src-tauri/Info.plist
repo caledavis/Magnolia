@@ -5,6 +5,16 @@
      icon option); the .icns files are copied in via bundle.macOS.files. -->
 <plist version="1.0">
 <dict>
+  <!-- The interface languages (src/renderer/locales), so macOS shows its
+       own panels and menu items (open and save dialogs, Edit menu extras)
+       in them too. -->
+  <key>CFBundleLocalizations</key>
+  <array>
+    <string>en</string>
+    <string>es</string>
+    <string>nl</string>
+    <string>pt-BR</string>
+  </array>
   <key>CFBundleDocumentTypes</key>
   <array>
     <dict>

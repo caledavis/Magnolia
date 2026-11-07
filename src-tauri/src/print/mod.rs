@@ -154,7 +154,7 @@ fn render(
     let result = (|| {
         loaded_rx
             .recv_timeout(Duration::from_secs(60))
-            .map_err(|_| "Timed out loading the document to print".to_string())?;
+            .map_err(|_| crate::i18n::t("print.timedOut"))?;
         // Let image decodes settle.
         std::thread::sleep(Duration::from_millis(300));
         print_to_file(app, &window, out, opts)?;

@@ -13,6 +13,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { normaliseThemeId, type ThemeId } from '../../utils/theme-id'
 import { Icon, faGear } from '../Icon'
 import { COLOURFUL_INTERFACE_ENABLED, colourfulInterfaceFromSaved } from '../../utils/colourful-interface'
+import { useTranslation } from 'react-i18next'
+import { LANGUAGE_IDS, normaliseLanguagePreference, resolveLanguage, setLanguagePreference, type LanguagePreference } from '../../i18n'
 
 interface FootPedalMappings {
   playPause: string
@@ -43,6 +45,8 @@ interface Preferences {
   toolbarStyle: ToolbarStyle
   /** Dark toolbar plus colour-coded icons. */
   colourfulInterface: boolean
+  /** The interface language, or "system" to follow the computer's. */
+  language: LanguagePreference
 }
 
 const DEFAULT_PREFS: Preferences = {
@@ -64,7 +68,8 @@ const DEFAULT_PREFS: Preferences = {
   interfaceScale: 1,
   userName: '',
   toolbarStyle: 'ribbon',
-  colourfulInterface: COLOURFUL_INTERFACE_ENABLED
+  colourfulInterface: COLOURFUL_INTERFACE_ENABLED,
+  language: 'system'
 }
 
 const TOOLBAR_STYLE_OPTIONS: { id: ToolbarStyle; label: string }[] = [
@@ -312,13 +317,33 @@ function AppearanceSettings({
 
 function GeneralSettings({
   prefs,
-  save
+  save,
+  onLanguageChange
 }: {
   prefs: Preferences
   save: (updated: Preferences) => void
+  onLanguageChange: (language: LanguagePreference) => void
 }) {
+  const { t } = useTranslation()
+  const systemLanguage = resolveLanguage('system', navigator.languages ?? [navigator.language])
   return (
     <div style={{ marginBottom: 24 }}>
+      <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>{t('preferences.language.heading')}</h3>
+      <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.5 }}>
+        {t('preferences.language.description')}
+      </p>
+      <select
+        value={prefs.language}
+        onChange={(e) => onLanguageChange(e.target.value as LanguagePreference)}
+        aria-label={t('preferences.language.heading')}
+        style={{ fontSize: 12, padding: '3px 6px', marginBottom: 24 }}
+      >
+        <option value="system">{t('language.system', { language: t(`language.name.${systemLanguage}`) })}</option>
+        {LANGUAGE_IDS.map((id) => (
+          <option key={id} value={id}>{t(`language.name.${id}`)}</option>
+        ))}
+      </select>
+
       <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>Your Name</h3>
       <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.5 }}>
         Your name allows colleagues to identify your changes to a project when merging different versions, and is saved into the project file itself whenever you're the last person to edit it.
@@ -695,6 +720,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
           interfaceScale: typeof data.interfaceScale === 'number' ? data.interfaceScale : DEFAULT_PREFS.interfaceScale,
           toolbarStyle: (data.toolbarStyle === 'icons' || data.toolbarStyle === 'ribbon') ? data.toolbarStyle : DEFAULT_PREFS.toolbarStyle,
           colourfulInterface: colourfulInterfaceFromSaved(data.colourfulInterface),
+          language: normaliseLanguagePreference(data.language),
           footPedalMappings: { ...DEFAULT_PREFS.footPedalMappings, ...(data.footPedalMappings || {}) }
         })
       }
@@ -731,6 +757,12 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
     // Apply locally and broadcast so every other open window rezooms too.
     window.api.setZoomFactor(interfaceScale)
     window.api.broadcastZoomFactor(interfaceScale)
+  }, [prefs, save])
+
+  const setLanguage = useCallback((language: LanguagePreference) => {
+    save({ ...prefs, language })
+    // Switch this window, the others and the backend's menus.
+    setLanguagePreference(language)
   }, [prefs, save])
 
   const setToolbarStyle = useCallback((toolbarStyle: ToolbarStyle) => {
@@ -816,7 +848,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
         {/* Selected category's settings */}
         <div style={{ flex: 1, padding: '14px 20px', overflow: 'auto' }}>
           {selected.id === 'general' && (
-            <GeneralSettings prefs={prefs} save={save} />
+            <GeneralSettings prefs={prefs} save={save} onLanguageChange={setLanguage} />
           )}
           {selected.id === 'appearance' && (
             <AppearanceSettings

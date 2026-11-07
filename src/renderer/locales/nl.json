@@ -1,0 +1,120 @@
+{
+  "language": {
+    "name": {
+      "en": "English",
+      "es": "Español",
+      "nl": "Nederlands",
+      "pt-BR": "Português (Brasil)"
+    },
+    "system": "Hetzelfde als de computer ({{language}})"
+  },
+  "preferences": {
+    "language": {
+      "heading": "Taal",
+      "description": "De taal van de menu's, vensters en exports van Magnolia. Je projecten veranderen niet: codes, documenten en memo's blijven zoals je ze hebt geschreven."
+    }
+  },
+  "native": {
+    "menu": {
+      "about": "Over Magnolia",
+      "checkUpdates": "Zoek naar updates…",
+      "acknowledgements": "Dankbetuigingen",
+      "preferences": "Voorkeuren...",
+      "services": "Voorzieningen",
+      "hide": "Verberg Magnolia",
+      "hideOthers": "Verberg andere",
+      "showAll": "Toon alles",
+      "quit": "Stop Magnolia",
+      "file": "Bestand",
+      "newProject": "Nieuw project",
+      "openProject": "Open project...",
+      "saveProject": "Bewaar project",
+      "saveProjectAs": "Bewaar project als...",
+      "projectDetails": "Projectgegevens...",
+      "importDocument": "Importeer document...",
+      "closeTab": "Sluit tabblad",
+      "edit": "Wijzig",
+      "undo": "Herstel",
+      "redo": "Opnieuw",
+      "cut": "Knip",
+      "copy": "Kopieer",
+      "paste": "Plak",
+      "selectAll": "Selecteer alles",
+      "codes": "Codes",
+      "newCode": "Nieuwe code",
+      "codebook": "Codeboek",
+      "importCodebook": "Importeer codeboek (.qdc)...",
+      "exportCodebook": "Exporteer codeboek (.qdc)...",
+      "documents": "Documenten",
+      "newFolder": "Nieuwe map",
+      "manageDocumentTags": "Beheer documenttags...",
+      "view": "Weergave",
+      "previousTab": "Toon vorige tabblad",
+      "nextTab": "Toon volgende tabblad",
+      "showRibbon": "Toon lint",
+      "panelDocuments": "Documenten",
+      "panelCodes": "Codes",
+      "panelQueries": "Query's",
+      "panelMemos": "Bewaarde memo's",
+      "panelQuotes": "Bewaarde citaten",
+      "panelAnalyses": "Bewaarde analyses",
+      "reload": "Laad opnieuw",
+      "devtools": "Toon of verberg ontwikkelaarstools",
+      "help": "Help",
+      "github": "Magnolia op GitHub",
+      "sponsor": "Sponsor Magnolia…",
+      "aboutCredits": "Vrije en opensource kwalitatieve data-analyse.",
+      "aboutBuiltWith": "Gemaakt met Tauri, Rust, React, TipTap en PDF.js. Pictogrammen van Lucide."
+    },
+    "dialog": {
+      "openProject": "Open QDPX-project",
+      "qdpxProjects": "QDPX-projecten",
+      "saveProject": "Bewaar QDPX-project",
+      "saveProjectAs": "Bewaar QDPX-project als",
+      "createProject": "Maak nieuw project",
+      "untitled": "Naamloos",
+      "createProjectFailed": "Kan het project niet aanmaken",
+      "openProjectFailed": "Kan het project niet openen",
+      "projectNotFound": "Project niet gevonden",
+      "projectNotFoundMessage": "\"{{path}}\" bestaat niet meer. Het is verwijderd uit Recente projecten.",
+      "importDocument": "Importeer document",
+      "reimportDocument": "Importeer document opnieuw",
+      "supportedDocuments": "Ondersteunde documenten",
+      "importTranscript": "Importeer transcript",
+      "textFiles": "Tekstbestanden",
+      "export": "Exporteer",
+      "exportCodebook": "Exporteer codeboek",
+      "codebookFileName": "Codeboek",
+      "importCodebook": "Importeer codeboek",
+      "qdcCodebook": "REFI-QDA-codeboek"
+    },
+    "import": {
+      "legacyDoc": "Oude Microsoft Word-bestanden (.doc) worden niet ondersteund. Open het bestand in Word en bewaar het als .docx.",
+      "folder": "Mappen kunnen niet worden geïmporteerd. Sleep in plaats daarvan de bestanden die erin staan.",
+      "noExtension": "Bestanden zonder extensie kunnen niet worden geïmporteerd.",
+      "unsupported": "Magnolia kan geen .{{ext}}-bestanden importeren."
+    },
+    "window": {
+      "codes": "Codes",
+      "logbook": "Logboek",
+      "memos": "Memo's",
+      "queries": "Query's",
+      "memo": "Memo",
+      "softwareUpdate": "Software-update",
+      "magnoliaUpdate": "Magnolia-update"
+    },
+    "update": {
+      "checkFailed": "Kan niet zoeken naar updates",
+      "downloadFailed": "Kan de update niet downloaden",
+      "installFailed": "Kan de update niet installeren",
+      "installFailedMessage": "Magnolia {{version}} wordt weer geopend als je dit bericht sluit en biedt de update dan opnieuw aan. De fout was: {{error}}",
+      "notificationTitle": "Er is een update van Magnolia beschikbaar",
+      "notificationBody": "Versie {{version}} is beschikbaar."
+    },
+    "print": {
+      "didNotStart": "Het afdrukken is niet gestart",
+      "timedOut": "Het laden van het document om af te drukken duurde te lang",
+      "webview2Failed": "WebView2 kon het document niet afdrukken"
+    }
+  }
+}

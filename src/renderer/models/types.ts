@@ -652,6 +652,12 @@ export interface MagnoliaAPI {
   setZoomFactor: (factor: number) => void
   broadcastZoomFactor: (factor: number) => void
   onZoomFactorChanged: (callback: (factor: number) => void) => () => void
+  /** The interface language, sent to every other window when it changes. */
+  broadcastLanguage: (language: string) => void
+  onLanguageChanged: (callback: (language: string) => void) => () => void
+  /** Tell the backend the interface language, for its menus and dialogs,
+   *  and the preference it came from (a language id, or "system"). */
+  setNativeLanguage: (language: string, preference: string) => void
   // Codebook window
   openCodebookWindow: (data: CodebookInitData) => void
   getCodebookData: () => Promise<CodebookInitData>

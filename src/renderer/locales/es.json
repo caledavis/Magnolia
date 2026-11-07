@@ -1,0 +1,120 @@
+{
+  "language": {
+    "name": {
+      "en": "English",
+      "es": "Español",
+      "nl": "Nederlands",
+      "pt-BR": "Português (Brasil)"
+    },
+    "system": "Igual que el sistema ({{language}})"
+  },
+  "preferences": {
+    "language": {
+      "heading": "Idioma",
+      "description": "El idioma de los menús, las ventanas y las exportaciones de Magnolia. Tus proyectos no cambian: los códigos, los documentos y los memos se quedan tal como los escribiste."
+    }
+  },
+  "native": {
+    "menu": {
+      "about": "Acerca de Magnolia",
+      "checkUpdates": "Buscar actualizaciones…",
+      "acknowledgements": "Agradecimientos",
+      "preferences": "Preferencias...",
+      "services": "Servicios",
+      "hide": "Ocultar Magnolia",
+      "hideOthers": "Ocultar otros",
+      "showAll": "Mostrar todo",
+      "quit": "Salir de Magnolia",
+      "file": "Archivo",
+      "newProject": "Nuevo proyecto",
+      "openProject": "Abrir proyecto...",
+      "saveProject": "Guardar proyecto",
+      "saveProjectAs": "Guardar proyecto como...",
+      "projectDetails": "Detalles del proyecto...",
+      "importDocument": "Importar documento...",
+      "closeTab": "Cerrar pestaña",
+      "edit": "Edición",
+      "undo": "Deshacer",
+      "redo": "Rehacer",
+      "cut": "Cortar",
+      "copy": "Copiar",
+      "paste": "Pegar",
+      "selectAll": "Seleccionar todo",
+      "codes": "Códigos",
+      "newCode": "Nuevo código",
+      "codebook": "Libro de códigos",
+      "importCodebook": "Importar libro de códigos (.qdc)...",
+      "exportCodebook": "Exportar libro de códigos (.qdc)...",
+      "documents": "Documentos",
+      "newFolder": "Nueva carpeta",
+      "manageDocumentTags": "Gestionar etiquetas de documentos...",
+      "view": "Visualización",
+      "previousTab": "Mostrar pestaña anterior",
+      "nextTab": "Mostrar pestaña siguiente",
+      "showRibbon": "Mostrar cinta",
+      "panelDocuments": "Documentos",
+      "panelCodes": "Códigos",
+      "panelQueries": "Consultas",
+      "panelMemos": "Memos guardados",
+      "panelQuotes": "Citas guardadas",
+      "panelAnalyses": "Análisis guardados",
+      "reload": "Recargar",
+      "devtools": "Mostrar u ocultar herramientas de desarrollo",
+      "help": "Ayuda",
+      "github": "Magnolia en GitHub",
+      "sponsor": "Patrocinar Magnolia…",
+      "aboutCredits": "Análisis cualitativo de datos libre y de código abierto.",
+      "aboutBuiltWith": "Hecho con Tauri, Rust, React, TipTap y PDF.js. Iconos de Lucide."
+    },
+    "dialog": {
+      "openProject": "Abrir proyecto QDPX",
+      "qdpxProjects": "Proyectos QDPX",
+      "saveProject": "Guardar proyecto QDPX",
+      "saveProjectAs": "Guardar proyecto QDPX como",
+      "createProject": "Crear proyecto nuevo",
+      "untitled": "Sin título",
+      "createProjectFailed": "No se pudo crear el proyecto",
+      "openProjectFailed": "No se pudo abrir el proyecto",
+      "projectNotFound": "No se encontró el proyecto",
+      "projectNotFoundMessage": "«{{path}}» ya no existe. Se ha quitado de Proyectos recientes.",
+      "importDocument": "Importar documento",
+      "reimportDocument": "Volver a importar documento",
+      "supportedDocuments": "Documentos compatibles",
+      "importTranscript": "Importar transcripción",
+      "textFiles": "Archivos de texto",
+      "export": "Exportar",
+      "exportCodebook": "Exportar libro de códigos",
+      "codebookFileName": "Libro de códigos",
+      "importCodebook": "Importar libro de códigos",
+      "qdcCodebook": "Libro de códigos REFI-QDA"
+    },
+    "import": {
+      "legacyDoc": "No se admiten los archivos .doc antiguos de Microsoft Word. Abre el archivo en Word y guárdalo como .docx.",
+      "folder": "No se pueden importar carpetas. Suelta en su lugar los archivos que contiene.",
+      "noExtension": "No se pueden importar archivos sin extensión.",
+      "unsupported": "Magnolia no puede importar archivos .{{ext}}."
+    },
+    "window": {
+      "codes": "Códigos",
+      "logbook": "Bitácora",
+      "memos": "Memos",
+      "queries": "Consultas",
+      "memo": "Memo",
+      "softwareUpdate": "Actualización de software",
+      "magnoliaUpdate": "Actualización de Magnolia"
+    },
+    "update": {
+      "checkFailed": "No se pudo buscar actualizaciones",
+      "downloadFailed": "No se pudo descargar la actualización",
+      "installFailed": "No se pudo instalar la actualización",
+      "installFailedMessage": "Magnolia {{version}} se volverá a abrir cuando cierres este mensaje y te ofrecerá de nuevo la actualización. El error fue: {{error}}",
+      "notificationTitle": "Hay una actualización de Magnolia",
+      "notificationBody": "La versión {{version}} está disponible."
+    },
+    "print": {
+      "didNotStart": "No se inició la impresión",
+      "timedOut": "Se agotó el tiempo al cargar el documento para imprimirlo",
+      "webview2Failed": "WebView2 no pudo imprimir el documento"
+    }
+  }
+}

@@ -3,6 +3,7 @@
 //! query results), plus the
 //! flush-on-close handshake and quitting.
 
+use crate::i18n;
 use crate::menu;
 use crate::state::AppState;
 use serde_json::{Value, json};
@@ -439,9 +440,8 @@ pub fn show_update_window(app: &AppHandle, prompt: bool) {
         let _ = w.set_focus();
         return;
     }
-    let title = if cfg!(target_os = "macos") { "Software Update" } else { "Magnolia Update" };
     let b = base_builder(app, UPDATE, "update.html")
-        .title(title)
+        .title(update_window_title())
         .inner_size(width, height)
         .resizable(prompt)
         .minimizable(false)
@@ -489,8 +489,34 @@ pub fn close_update_window(app: &AppHandle) {
 
 // ── Child windows ──
 
+/// The update window's title: Software Update on macOS, as in other Mac apps.
+fn update_window_title() -> String {
+    i18n::t(if cfg!(target_os = "macos") { "window.softwareUpdate" } else { "window.magnoliaUpdate" })
+}
+
+/// Retitle the open windows whose titles Magnolia sets (the language
+/// changed). The main window's title is the project's, set by its page.
+pub fn retitle(app: &AppHandle) {
+    for (label, w) in app.webview_windows() {
+        let key = match label.as_str() {
+            CODEBOOK => "window.codes",
+            LOGBOOK => "window.logbook",
+            MEMOS => "window.memos",
+            QUERY_RESULTS => "window.queries",
+            UPDATE => {
+                let _ = w.set_title(&update_window_title());
+                continue;
+            }
+            l if l.starts_with(MEMO_PREFIX) => "window.memo",
+            _ => continue,
+        };
+        let _ = w.set_title(&i18n::t(key));
+    }
+}
+
 struct ChildSpec {
     page: &'static str,
+    /// The window title's key in the catalogues' `native` section.
     title: &'static str,
     size: (f64, f64),
     min: (f64, f64),
@@ -510,7 +536,7 @@ fn open_child(app: &AppHandle, label: &str, spec: ChildSpec, data: Value) {
         return;
     }
     let b = base_builder(app, label, spec.page)
-        .title(spec.title)
+        .title(i18n::t(spec.title))
         .inner_size(spec.size.0, spec.size.1)
         .min_inner_size(spec.min.0, spec.min.1);
     // A transparent title bar shows the window's background colour, which
@@ -540,7 +566,7 @@ fn open_child(app: &AppHandle, label: &str, spec: ChildSpec, data: Value) {
 pub fn open_codebook(app: &AppHandle, data: Value) {
     let spec = ChildSpec {
         page: "codebook.html",
-        title: "Codes",
+        title: "window.codes",
         size: (650.0, 700.0),
         min: (450.0, 400.0),
         init_event: "codebook-init-data",
@@ -551,7 +577,7 @@ pub fn open_codebook(app: &AppHandle, data: Value) {
 pub fn open_logbook(app: &AppHandle, data: Value) {
     let spec = ChildSpec {
         page: "logbook.html",
-        title: "Logbook",
+        title: "window.logbook",
         size: (650.0, 700.0),
         min: (450.0, 400.0),
         init_event: "logbook-init-data",
@@ -562,7 +588,7 @@ pub fn open_logbook(app: &AppHandle, data: Value) {
 pub fn open_memos(app: &AppHandle, data: Value) {
     let spec = ChildSpec {
         page: "memos.html",
-        title: "Memos",
+        title: "window.memos",
         size: (760.0, 700.0),
         min: (500.0, 400.0),
         init_event: "memos-init-data",
@@ -587,7 +613,7 @@ pub fn update_memos(app: &AppHandle, data: Value) {
 pub fn open_query_results(app: &AppHandle, data: Value) {
     let spec = ChildSpec {
         page: "query-results.html",
-        title: "Queries",
+        title: "window.queries",
         size: (900.0, 600.0),
         min: (500.0, 300.0),
         init_event: "query-results-init-data",
@@ -626,7 +652,7 @@ pub fn open_memo(app: &AppHandle, data: Value) {
     let label = format!("{MEMO_PREFIX}{safe}");
     let spec = ChildSpec {
         page: "memo-edit.html",
-        title: "Memo",
+        title: "window.memo",
         size: (550.0, 500.0),
         min: (400.0, 350.0),
         init_event: "memo-edit-init-data",

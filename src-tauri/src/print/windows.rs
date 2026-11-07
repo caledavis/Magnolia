@@ -47,7 +47,7 @@ pub fn print(
                         let _ = done.send(match (hr, ok) {
                             (Ok(()), true) => Ok(()),
                             (Err(e), _) => Err(e.to_string()),
-                            _ => Err("WebView2 could not print the document".into()),
+                            _ => Err(crate::i18n::t("print.webview2Failed")),
                         });
                         Ok(())
                     }));

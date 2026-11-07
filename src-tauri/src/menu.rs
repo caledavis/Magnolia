@@ -3,6 +3,7 @@
 //! windows open/close (the View menu lists them) and when panel or ribbon
 //! visibility changes (checkbox state).
 
+use crate::i18n::t;
 use crate::state::AppState;
 use crate::windows::{self, MAIN, WELCOME};
 use serde_json::Value;
@@ -55,114 +56,114 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
         let app_menu = SubmenuBuilder::new(app, "Magnolia")
             .item(&PredefinedMenuItem::about(
                 app,
-                Some("About Magnolia"),
+                Some(t("menu.about").as_str()),
                 Some(about_metadata(app)),
             )?)
-            .item(&item(app, "check-updates", "Check for Updates…", None)?)
-            .item(&item(app, "acknowledgements", "Acknowledgements", None)?)
+            .item(&item(app, "check-updates", &t("menu.checkUpdates"), None)?)
+            .item(&item(app, "acknowledgements", &t("menu.acknowledgements"), None)?)
             .item(&sep()?)
-            .item(&item(app, "preferences", "Preferences...", Some("Cmd+,"))?)
+            .item(&item(app, "preferences", &t("menu.preferences"), Some("Cmd+,"))?)
             .item(&sep()?)
-            .item(&PredefinedMenuItem::services(app, None)?)
+            .item(&PredefinedMenuItem::services(app, Some(&t("menu.services")))?)
             .item(&sep()?)
-            .item(&PredefinedMenuItem::hide(app, None)?)
-            .item(&PredefinedMenuItem::hide_others(app, None)?)
-            .item(&PredefinedMenuItem::show_all(app, None)?)
+            .item(&PredefinedMenuItem::hide(app, Some(&t("menu.hide")))?)
+            .item(&PredefinedMenuItem::hide_others(app, Some(&t("menu.hideOthers")))?)
+            .item(&PredefinedMenuItem::show_all(app, Some(&t("menu.showAll")))?)
             .item(&sep()?)
-            .item(&item(app, "quit", "Quit Magnolia", Some("Cmd+Q"))?)
+            .item(&item(app, "quit", &t("menu.quit"), Some("Cmd+Q"))?)
             .build()?;
         menu = menu.item(&app_menu);
     }
 
-    let mut file = SubmenuBuilder::new(app, "File")
-        .item(&action(app, "new-project", "New Project", None)?)
+    let mut file = SubmenuBuilder::new(app, t("menu.file"))
+        .item(&action(app, "new-project", &t("menu.newProject"), None)?)
         .item(&item(
             app,
             "open-project",
-            "Open Project...",
+            &t("menu.openProject"),
             Some("CmdOrCtrl+O"),
         )?)
         .item(&action(
             app,
             "save-project",
-            "Save Project",
+            &t("menu.saveProject"),
             Some("CmdOrCtrl+S"),
         )?)
         .item(&action(
             app,
             "save-project-as",
-            "Save Project As...",
+            &t("menu.saveProjectAs"),
             Some("CmdOrCtrl+Shift+S"),
         )?)
         .item(&sep()?)
         .item(&action(
             app,
             "open-project-details",
-            "Project Details...",
+            &t("menu.projectDetails"),
             None,
         )?)
         .item(&sep()?)
         .item(&action(
             app,
             "import-document",
-            "Import Document...",
+            &t("menu.importDocument"),
             Some("CmdOrCtrl+I"),
         )?)
         .item(&sep()?);
     file = if mac {
         // Cmd+W closes a pop-out window, but in the main window closes the
         // active document tab instead.
-        file.item(&item(app, "close-tab", "Close Tab", Some("Cmd+W"))?)
+        file.item(&item(app, "close-tab", &t("menu.closeTab"), Some("Cmd+W"))?)
     } else {
-        file.item(&item(app, "quit", "Quit Magnolia", Some("Ctrl+Q"))?)
+        file.item(&item(app, "quit", &t("menu.quit"), Some("Ctrl+Q"))?)
     };
     menu = menu.item(&file.build()?);
 
-    let edit = SubmenuBuilder::new(app, "Edit")
-        .item(&PredefinedMenuItem::undo(app, None)?)
-        .item(&PredefinedMenuItem::redo(app, None)?)
+    let edit = SubmenuBuilder::new(app, t("menu.edit"))
+        .item(&PredefinedMenuItem::undo(app, Some(&t("menu.undo")))?)
+        .item(&PredefinedMenuItem::redo(app, Some(&t("menu.redo")))?)
         .item(&sep()?)
-        .item(&PredefinedMenuItem::cut(app, None)?)
-        .item(&PredefinedMenuItem::copy(app, None)?)
-        .item(&PredefinedMenuItem::paste(app, None)?)
-        .item(&PredefinedMenuItem::select_all(app, None)?)
+        .item(&PredefinedMenuItem::cut(app, Some(&t("menu.cut")))?)
+        .item(&PredefinedMenuItem::copy(app, Some(&t("menu.copy")))?)
+        .item(&PredefinedMenuItem::paste(app, Some(&t("menu.paste")))?)
+        .item(&PredefinedMenuItem::select_all(app, Some(&t("menu.selectAll")))?)
         .build()?;
     menu = menu.item(&edit);
 
-    let codes = SubmenuBuilder::new(app, "Codes")
-        .item(&action(app, "new-code", "New Code", Some("CmdOrCtrl+N"))?)
+    let codes = SubmenuBuilder::new(app, t("menu.codes"))
+        .item(&action(app, "new-code", &t("menu.newCode"), Some("CmdOrCtrl+N"))?)
         .item(&sep()?)
-        .item(&action(app, "show-codebook", "Codebook", None)?)
+        .item(&action(app, "show-codebook", &t("menu.codebook"), None)?)
         .item(&sep()?)
         .item(&action(
             app,
             "import-codebook",
-            "Import Codebook (.qdc)...",
+            &t("menu.importCodebook"),
             None,
         )?)
         .item(&action(
             app,
             "export-codebook",
-            "Export Codebook (.qdc)...",
+            &t("menu.exportCodebook"),
             None,
         )?)
         .build()?;
     menu = menu.item(&codes);
 
-    let documents = SubmenuBuilder::new(app, "Documents")
+    let documents = SubmenuBuilder::new(app, t("menu.documents"))
         .item(&action(
             app,
             "import-document-docs",
-            "Import Document...",
+            &t("menu.importDocument"),
             None,
         )?)
         .item(&sep()?)
-        .item(&action(app, "new-doc-folder", "New Folder", None)?)
+        .item(&action(app, "new-doc-folder", &t("menu.newFolder"), None)?)
         .item(&sep()?)
         .item(&action(
             app,
             "manage-doc-tags",
-            "Manage Document Tags...",
+            &t("menu.manageDocumentTags"),
             None,
         )?)
         .build()?;
@@ -171,9 +172,9 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     // The standard tab-switching shortcuts (as in Safari and every
     // browser). The renderer also takes Cmd+Shift+] / [ on macOS and
     // Ctrl+PageDown / PageUp elsewhere; a menu item holds only one.
-    let mut view = SubmenuBuilder::new(app, "View")
-        .item(&item(app, "previous-tab", "Show Previous Tab", Some("Ctrl+Shift+Tab"))?)
-        .item(&item(app, "next-tab", "Show Next Tab", Some("Ctrl+Tab"))?)
+    let mut view = SubmenuBuilder::new(app, t("menu.view"))
+        .item(&item(app, "previous-tab", &t("menu.previousTab"), Some("Ctrl+Shift+Tab"))?)
+        .item(&item(app, "next-tab", &t("menu.nextTab"), Some("Ctrl+Tab"))?)
         .item(&sep()?);
     // Shows or collapses the ribbon's buttons (the renderer reports
     // "ribbon": true/false with the panel visibility). Greyed out when the
@@ -181,35 +182,35 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     let ribbon = visibility.get("ribbon").and_then(Value::as_bool);
     view = view
         .item(
-            &CheckMenuItemBuilder::with_id(format!("{ACTION}toggle-ribbon"), "Show Ribbon")
+            &CheckMenuItemBuilder::with_id(format!("{ACTION}toggle-ribbon"), t("menu.showRibbon"))
                 .checked(ribbon.unwrap_or(false))
                 .enabled(ribbon.is_some())
                 .build(app)?,
         )
         .item(&sep()?);
     for (key, label) in [
-        ("documents", "Documents"),
-        ("codes", "Codes"),
-        ("queries", "Queries"),
-        ("memos", "Saved Memos"),
-        ("quotes", "Saved Quotes"),
-        ("analyses", "Saved Analyses"),
+        ("documents", "menu.panelDocuments"),
+        ("codes", "menu.panelCodes"),
+        ("queries", "menu.panelQueries"),
+        ("memos", "menu.panelMemos"),
+        ("quotes", "menu.panelQuotes"),
+        ("analyses", "menu.panelAnalyses"),
     ] {
-        let check = CheckMenuItemBuilder::with_id(format!("{ACTION}toggle-panel-{key}"), label)
+        let check = CheckMenuItemBuilder::with_id(format!("{ACTION}toggle-panel-{key}"), t(label))
             .checked(shown(key))
             .build(app)?;
         view = view.item(&check);
     }
     view = view
         .item(&sep()?)
-        .item(&item(app, "reload", "Reload", Some("CmdOrCtrl+R"))?);
+        .item(&item(app, "reload", &t("menu.reload"), Some("CmdOrCtrl+R"))?);
     // Release builds have no devtools (tauri's `devtools` feature is off).
     #[cfg(debug_assertions)]
     {
         view = view.item(&item(
             app,
             "devtools",
-            "Toggle Developer Tools",
+            &t("menu.devtools"),
             Some(if mac { "Alt+Cmd+I" } else { "Ctrl+Shift+I" }),
         )?);
     }
@@ -230,17 +231,17 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     }
     menu = menu.item(&view.build()?);
 
-    let mut help = SubmenuBuilder::new(app, "Help")
-        .item(&item(app, "github", "Magnolia on GitHub", None)?)
-        .item(&item(app, "sponsor", "Sponsor Magnolia…", None)?);
+    let mut help = SubmenuBuilder::new(app, t("menu.help"))
+        .item(&item(app, "github", &t("menu.github"), None)?)
+        .item(&item(app, "sponsor", &t("menu.sponsor"), None)?);
     if !mac {
         help = help
             .item(&sep()?)
-            .item(&item(app, "check-updates", "Check for Updates…", None)?)
-            .item(&item(app, "acknowledgements", "Acknowledgements", None)?)
+            .item(&item(app, "check-updates", &t("menu.checkUpdates"), None)?)
+            .item(&item(app, "acknowledgements", &t("menu.acknowledgements"), None)?)
             .item(&PredefinedMenuItem::about(
                 app,
-                Some("About Magnolia"),
+                Some(t("menu.about").as_str()),
                 Some(about_metadata(app)),
             )?);
     }
@@ -254,7 +255,7 @@ fn about_metadata(app: &AppHandle) -> tauri::menu::AboutMetadata<'static> {
         version: Some(app.package_info().version.to_string()),
         copyright: Some("© 2026 Cale Davis".into()),
         credits: Some(
-            "Free and open-source qualitative data analysis.\n\nhttps://github.com/caledavis/Magnolia\n\nBuilt with Tauri, Rust, React, TipTap, and PDF.js. Icons by Lucide.".into(),
+            format!("{}\n\nhttps://github.com/caledavis/Magnolia\n\n{}", t("menu.aboutCredits"), t("menu.aboutBuiltWith")),
         ),
         license: Some("EUPL-1.2".into()),
         website: Some("https://github.com/caledavis/Magnolia".into()),
@@ -284,7 +285,7 @@ fn window_list(app: &AppHandle) -> Vec<(String, String)> {
 /// rebuild that wouldn't change it is skipped.
 fn contents_key(app: &AppHandle) -> String {
     let visibility = app.state::<AppState>().ui.lock().unwrap().panel_visibility.clone();
-    format!("{visibility:?}|{:?}|{}", window_list(app), app.get_webview_window(MAIN).is_some())
+    format!("{visibility:?}|{:?}|{}|{}", window_list(app), app.get_webview_window(MAIN).is_some(), crate::i18n::language())
 }
 
 static INSTALLED: std::sync::Mutex<Option<String>> = std::sync::Mutex::new(None);

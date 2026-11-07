@@ -10,10 +10,12 @@
     "rootDir": ".",
     "strict": true,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
     "target": "ESNext",
     "types": ["vite/client"]
   },
   "include": [
-    "src/renderer/**/*"
+    "src/renderer/**/*",
+    "src/renderer/locales/*.json"
   ]
 }

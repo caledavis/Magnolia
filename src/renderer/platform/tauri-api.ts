@@ -325,6 +325,12 @@ const api: MagnoliaAPI = {
     on<{ factor: number; from: string }>('zoom-factor-changed', (p) => {
       if (p.from !== current.label) callback(p.factor)
     }),
+  broadcastLanguage: (language) => void emit('language-changed', { language, from: current.label }),
+  onLanguageChanged: (callback) =>
+    on<{ language: string; from: string }>('language-changed', (p) => {
+      if (p.from !== current.label) callback(p.language)
+    }),
+  setNativeLanguage: (language, preference) => void invoke('set_native_language', { language, preference }),
 
   // Codebook window
   openCodebookWindow: (data) => void invoke('open_child_window', { kind: 'codebook', data }),

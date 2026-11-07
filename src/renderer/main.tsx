@@ -1,5 +1,6 @@
 // Must load first: installs window.api for everything below.
 import './platform/tauri-api'
+import { initLanguage } from './i18n'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
@@ -23,6 +24,9 @@ installAppearanceListeners()
 
 // data-platform on <html> (the toolbar's traffic-light indent hangs off
 // it) is stamped by platform/tauri-api.ts, for every window.
+
+// The first frame is already in the user's language (see i18n/index.ts).
+await initLanguage()
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

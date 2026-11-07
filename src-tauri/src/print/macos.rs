@@ -39,7 +39,7 @@ pub fn print(
         })
         .map_err(|e| e.to_string())?;
     rx.recv_timeout(Duration::from_secs(30))
-        .map_err(|_| "Printing did not start".to_string())??;
+        .map_err(|_| crate::i18n::t("print.didNotStart"))??;
     wait_for_completion(app, out)
 }
 

@@ -7,6 +7,7 @@
 
 use crate::print;
 use crate::state::AppState;
+use crate::i18n::{t, t_with};
 use crate::storage;
 use crate::windows::{self, MAIN};
 use base64::Engine;
@@ -47,8 +48,8 @@ fn to_path(p: tauri_plugin_dialog::FilePath) -> Option<PathBuf> {
 }
 
 pub fn pick_qdpx(app: &AppHandle, parent: Option<&WebviewWindow>) -> Option<String> {
-    dialog(app, parent, "Open QDPX Project")
-        .add_filter("QDPX Projects", &["qdpx"])
+    dialog(app, parent, &t("dialog.openProject"))
+        .add_filter(t("dialog.qdpxProjects"), &["qdpx"])
         .blocking_pick_file()
         .and_then(to_path)
         .map(|p| p.to_string_lossy().into_owned())
@@ -307,14 +308,15 @@ pub async fn save_project(
                 data.project
                     .get("name")
                     .and_then(Value::as_str)
-                    .unwrap_or("Untitled")
+                    .map(str::to_string)
+                    .unwrap_or_else(|| t("dialog.untitled"))
             );
             match save_dialog(
                 &app,
                 &window,
-                "Save QDPX Project",
+                &t("dialog.saveProject"),
                 &name,
-                ("QDPX Projects", &["qdpx"]),
+                (&t("dialog.qdpxProjects"), &["qdpx"]),
             ) {
                 Some(p) => p,
                 None => return Ok(Value::Null),
@@ -349,14 +351,15 @@ pub async fn save_project_as(
         data.project
             .get("name")
             .and_then(Value::as_str)
-            .unwrap_or("Untitled")
+            .map(str::to_string)
+            .unwrap_or_else(|| t("dialog.untitled"))
     );
     let Some(path) = save_dialog(
         &app,
         &window,
-        "Save QDPX Project As",
+        &t("dialog.saveProjectAs"),
         &name,
-        ("QDPX Projects", &["qdpx"]),
+        (&t("dialog.qdpxProjects"), &["qdpx"]),
     ) else {
         return Ok(Value::Null);
     };
@@ -418,16 +421,16 @@ fn new_project_file(
     let Some(path) = save_dialog(
         app,
         parent,
-        "Create New Project",
-        "Untitled.qdpx",
-        ("QDPX Projects", &["qdpx"]),
+        &t("dialog.createProject"),
+        &format!("{}.qdpx", t("dialog.untitled")),
+        (&t("dialog.qdpxProjects"), &["qdpx"]),
     ) else {
         return Ok(None);
     };
     match writer::create_empty_project_file(&path, &app_version(app), &storage::editor_name()) {
         Ok(name) => Ok(Some((path_str(&path), name))),
         Err(e) => {
-            error_box(app, "Failed to create project", &e.to_string());
+            error_box(app, &t("dialog.createProjectFailed"), &e.to_string());
             Ok(None)
         }
     }
@@ -533,7 +536,7 @@ fn read_document(
         "docx" => office_pdf(convert::docx::docx_to_html(&bytes)),
         "rtf" => office_pdf(convert::rtf::rtf_to_html(&bytes)),
         "odt" => office_pdf(convert::odt::odt_to_html(&bytes)),
-        "doc" => Err("Legacy Microsoft Word .doc files aren't supported. Please open the file in Word and save it as .docx.".into()),
+        "doc" => Err(t("import.legacyDoc")),
         // CSV for the survey importer; the extension stays xlsx so the
         // renderer routes it through the survey import.
         "xlsx" => Ok(json!({ "name": name, "content": convert::xlsx::xlsx_to_csv(&bytes)?, "extension": "xlsx" })),
@@ -591,13 +594,13 @@ fn read_document_path(app: &AppHandle, state: &AppState, path: &Path) -> Value {
 /// Why a dropped path can't be imported, if it can't.
 fn reject_reason(path: &Path) -> Option<String> {
     if path.is_dir() {
-        return Some("Folders can't be imported. Drop the files inside it instead.".into());
+        return Some(t("import.folder"));
     }
     let ext = ext_of(&file_name(path));
     if ext.is_empty() {
-        return Some("Files without an extension can't be imported.".into());
+        return Some(t("import.noExtension"));
     }
-    (!SUPPORTED.contains(&ext.as_str())).then(|| format!("Magnolia can't import .{ext} files."))
+    (!SUPPORTED.contains(&ext.as_str())).then(|| t_with("import.unsupported", &[("ext", &ext)]))
 }
 
 #[tauri::command]
@@ -608,7 +611,7 @@ pub async fn import_text_file(
 ) -> CmdResult<Value> {
     let project = state.store.active_project_path();
     let mut d =
-        dialog(&app, Some(&window), "Import Document").add_filter("Supported Documents", SUPPORTED);
+        dialog(&app, Some(&window), &t("dialog.importDocument")).add_filter(t("dialog.supportedDocuments"), SUPPORTED);
     if let Some(dir) = storage::last_import_dir(project.as_deref()) {
         d = d.set_directory(dir);
     }
@@ -665,12 +668,12 @@ pub async fn read_dropped_file(
     let ext = ext_of(&name);
     if ext.is_empty() {
         return Ok(
-            json!({ "name": name, "error": "Files without an extension can't be imported." }),
+            json!({ "name": name, "error": t("import.noExtension") }),
         );
     }
     if !SUPPORTED.contains(&ext.as_str()) {
         return Ok(
-            json!({ "name": name, "error": format!("Magnolia can't import .{ext} files.") }),
+            json!({ "name": name, "error": t_with("import.unsupported", &[("ext", &ext)]) }),
         );
     }
     let bytes = match request.body() {
@@ -701,7 +704,7 @@ pub async fn reimport_document(
     };
     let project = state.store.active_project_path();
     let mut d =
-        dialog(&app, Some(&window), "Re-import Document").add_filter("Supported Documents", &exts);
+        dialog(&app, Some(&window), &t("dialog.reimportDocument")).add_filter(t("dialog.supportedDocuments"), &exts);
     if let Some(dir) = storage::last_import_dir(project.as_deref()) {
         d = d.set_directory(dir);
     }
@@ -738,8 +741,8 @@ pub async fn import_transcript(
     state: State<'_, AppState>,
 ) -> CmdResult<Value> {
     let project = state.store.active_project_path();
-    let mut d = dialog(&app, Some(&window), "Import Transcript").add_filter(
-        "Text Files",
+    let mut d = dialog(&app, Some(&window), &t("dialog.importTranscript")).add_filter(
+        t("dialog.textFiles"),
         &["txt", "md", "markdown", "srt", "vtt", "html", "htm"],
     );
     if let Some(dir) = storage::last_import_dir(project.as_deref()) {
@@ -794,7 +797,7 @@ async fn export_text(
     default_name: &str,
     filter: (&str, &[&str]),
 ) -> CmdResult<Option<String>> {
-    let Some(path) = save_dialog(app, window, "Export", default_name, filter) else {
+    let Some(path) = save_dialog(app, window, &t("dialog.export"), default_name, filter) else {
         return Ok(None);
     };
     std::fs::write(&path, content).map_err(|e| e.to_string())?;
@@ -831,9 +834,9 @@ pub async fn export_codebook(
     let Some(path) = save_dialog(
         &app,
         &window,
-        "Export Codebook",
-        "Codebook.qdc",
-        ("REFI-QDA Codebook", &["qdc"]),
+        &t("dialog.exportCodebook"),
+        &format!("{}.qdc", t("dialog.codebookFileName")),
+        (&t("dialog.qdcCodebook"), &["qdc"]),
     ) else {
         return Ok(None);
     };
@@ -846,8 +849,8 @@ pub async fn import_codebook(
     app: AppHandle,
     window: WebviewWindow,
 ) -> CmdResult<Option<Vec<Value>>> {
-    let Some(path) = dialog(&app, Some(&window), "Import Codebook")
-        .add_filter("REFI-QDA Codebook", &["qdc"])
+    let Some(path) = dialog(&app, Some(&window), &t("dialog.importCodebook"))
+        .add_filter(t("dialog.qdcCodebook"), &["qdc"])
         .blocking_pick_file()
         .and_then(to_path)
     else {
@@ -1021,7 +1024,7 @@ pub async fn welcome_action(
                 // Validate before leaving the welcome screen.
                 match reader::read_qdpx(Path::new(&path), None) {
                     Ok(_) => windows::open_project_in_main(&app, &path),
-                    Err(e) => error_box(&app, "Failed to open project", &e),
+                    Err(e) => error_box(&app, &t("dialog.openProjectFailed"), &e),
                 }
             }
         }
@@ -1033,10 +1036,8 @@ pub async fn welcome_action(
                 windows::emit_to(&app, window.label(), "recent-projects-changed", ());
                 error_box(
                     &app,
-                    "Project not found",
-                    &format!(
-                        "\"{path}\" no longer exists. It has been removed from Recent Projects."
-                    ),
+                    &t("dialog.projectNotFound"),
+                    &t_with("dialog.projectNotFoundMessage", &[("path", path)]),
                 );
             } else {
                 windows::open_project_in_main(&app, path);

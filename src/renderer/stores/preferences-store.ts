@@ -5,6 +5,7 @@
 import { create } from 'zustand'
 import { normaliseThemeId, type ThemeId } from '../utils/theme-id'
 import { COLOURFUL_INTERFACE_ENABLED, colourfulInterfaceFromSaved } from '../utils/colourful-interface'
+import { normaliseLanguagePreference, type LanguagePreference } from '../i18n'
 
 export interface FootPedalMappings {
   playPause: string       // e.g. "F5", "Ctrl+Space"
@@ -39,6 +40,9 @@ export interface Preferences {
   /** Dark toolbar plus colour-coded icons (see the
    *  [data-colourful] rules in global.css). */
   colourfulInterface: boolean
+  /** The interface language, or "system" to follow the computer's (see
+   *  i18n/index.ts). */
+  language: LanguagePreference
 }
 
 const DEFAULT_PREFERENCES: Preferences = {
@@ -55,7 +59,8 @@ const DEFAULT_PREFERENCES: Preferences = {
   interfaceScale: 1,
   userName: '',
   toolbarStyle: 'ribbon',
-  colourfulInterface: COLOURFUL_INTERFACE_ENABLED
+  colourfulInterface: COLOURFUL_INTERFACE_ENABLED,
+  language: 'system'
 }
 
 interface PreferencesState extends Preferences {
@@ -88,6 +93,7 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
           userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
           toolbarStyle: (prefs.toolbarStyle === 'icons' || prefs.toolbarStyle === 'ribbon') ? prefs.toolbarStyle : DEFAULT_PREFERENCES.toolbarStyle,
           colourfulInterface: colourfulInterfaceFromSaved(prefs.colourfulInterface),
+          language: normaliseLanguagePreference(prefs.language),
           loaded: true
         })
       } else {
@@ -99,9 +105,9 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   },
 
   save: async () => {
-    const { footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle, colourfulInterface } = get()
+    const { footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle, colourfulInterface, language } = get()
     try {
-      await window.api.savePreferences({ footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle, colourfulInterface })
+      await window.api.savePreferences({ footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle, colourfulInterface, language })
     } catch { /* ignore */ }
   },
 
@@ -169,6 +175,7 @@ if (typeof window !== 'undefined' && window.api?.onPreferencesUpdate) {
       userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
       toolbarStyle: (prefs.toolbarStyle === 'icons' || prefs.toolbarStyle === 'ribbon') ? prefs.toolbarStyle : DEFAULT_PREFERENCES.toolbarStyle,
       colourfulInterface: colourfulInterfaceFromSaved(prefs.colourfulInterface),
+      language: normaliseLanguagePreference(prefs.language),
       loaded: true
     })
   })

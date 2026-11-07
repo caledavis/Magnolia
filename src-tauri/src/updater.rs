@@ -36,6 +36,7 @@
 //!
 //! Publishing is described in RELEASING.md.
 
+use crate::i18n::{t, t_with};
 use crate::storage;
 use crate::windows::{self, MAIN, UPDATE};
 use serde_json::{Value, json};
@@ -341,7 +342,7 @@ async fn run_check(app: &AppHandle, source: Source) {
             if source == Source::Preferences {
                 send_status(app, "error", None, Some(&e));
             }
-            report(app, error_view("Could not check for updates", &e));
+            report(app, error_view(&t("update.checkFailed"), &e));
             return;
         }
     };
@@ -394,10 +395,10 @@ fn present(app: &AppHandle, source: Source, view: Value) {
         let _ = app
             .notification()
             .builder()
-            .title("Magnolia update available")
-            .body(format!(
-                "Version {} is available.",
-                view["version"].as_str().unwrap_or_default()
+            .title(t("update.notificationTitle"))
+            .body(t_with(
+                "update.notificationBody",
+                &[("version", view["version"].as_str().unwrap_or_default())],
             ))
             .show();
     }
@@ -446,7 +447,7 @@ async fn download(app: &AppHandle) {
         }
         Err(e) => {
             log::error!("[auto-update] download failed: {e}");
-            show(app, error_view("Could not download the update", &e.to_string()));
+            show(app, error_view(&t("update.downloadFailed"), &e.to_string()));
         }
     }
 }
@@ -470,11 +471,11 @@ pub fn install_pending_and_relaunch(app: &AppHandle) {
         Err(e) => {
             log::error!("[auto-update] install failed: {e}");
             RELAUNCH_ON_CLOSE.store(true, Ordering::SeqCst);
-            let message = format!(
-                "Magnolia {} will reopen when you close this message, and will offer the update again. The error was: {e}",
-                current_version(app)
+            let message = t_with(
+                "update.installFailedMessage",
+                &[("version", &current_version(app)), ("error", &e.to_string())],
             );
-            show(app, error_view("Could not install the update", &message));
+            show(app, error_view(&t("update.installFailed"), &message));
         }
     }
 }
@@ -529,7 +530,7 @@ async fn fake_check(app: &AppHandle, source: Source, mode: &str) {
             if source == Source::Preferences {
                 send_status(app, "error", None, Some(e));
             }
-            return report(app, error_view("Could not check for updates", e));
+            return report(app, error_view(&t("update.checkFailed"), e));
         }
         _ => {}
     }
