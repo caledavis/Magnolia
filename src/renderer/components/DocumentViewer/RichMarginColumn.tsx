@@ -16,6 +16,7 @@ import { layoutIcons, buildIconItems, iconRoomAt, ICON_COL_W, LABEL_TO_ICON_GAP,
 import { MemoQuoteIcons } from './MemoQuoteIcons'
 import { useMemoStore } from '../../stores/memo-store'
 import { measureLabelWidth } from '../../utils/measure-text'
+import { useTranslation } from 'react-i18next'
 
 interface CpRange { startCp: number; endCp: number }
 
@@ -235,6 +236,7 @@ function getPdfRegionYBounds(
 }
 
 export function RichMarginColumn({ contentRef, containerRef, selections, codes, contentMemos, quotes, rendered, onMemoClick, onMemoPopup, onHoverRange, onHoverSelectionGuid, onHoverRegion, onLockRange, lockedRange, onContextMenu, onQuoteClick, alignRight, viewportRef }: Props) {
+  const { t } = useTranslation()
   const [brackets, setBrackets] = useState<CodeBracket[]>([])
   // This column's own root div — measured against viewportRef so labels
   // know how far they can paint into blank space beyond the column's own
@@ -461,7 +463,7 @@ export function RichMarginColumn({ contentRef, containerRef, selections, codes, 
           onContextMenu?.(e, {
             overlappingMemos: memos.map((m) => ({
               guid: m.guid,
-              title: m.title || 'Untitled Memo',
+              title: m.title || t('memos.untitled'),
               startCp: m.startPosition ?? 0,
               endCp: m.endPosition ?? m.startPosition ?? 0
             }))

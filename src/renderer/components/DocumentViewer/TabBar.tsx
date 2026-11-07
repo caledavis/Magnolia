@@ -8,6 +8,7 @@ import { useToolSaveRegistry } from '../../stores/tool-save-registry'
 import { TOOL_REGISTRY } from '../../utils/tool-registry'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
 import { useIconTint, iconTintKindForSourceType, PALETTE_ICON_CLASS } from '../../utils/icon-tint'
+import { useTranslation } from 'react-i18next'
 
 interface TabBarProps {
   openTabs: string[]
@@ -19,6 +20,7 @@ interface TabBarProps {
 }
 
 export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, onReorderTabs }: TabBarProps) {
+  const { t } = useTranslation()
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
   const dragGuidRef = useRef<string | null>(null)
   const maps = useRelationshipMapStore((s) => s.maps)
@@ -82,15 +84,15 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
     if (isMapTab(tabId)) {
       const guid = mapGuidFromTabId(tabId)
       const map = guid ? maps[guid] : undefined
-      return map?.name?.trim() || 'Untitled map'
+      return map?.name?.trim() || t('tabs.untitledMap')
     }
     if (isAnalysisTab(tabId) || isQueryBuilderTab(tabId)) {
       const inst = analysisTabs[tabId]
-      return inst?.title?.trim() || (isQueryBuilderTab(tabId) ? 'Query Builder' : 'Analysis')
+      return inst?.title?.trim() || (isQueryBuilderTab(tabId) ? t('tabs.queryBuilder') : t('tabs.analysis'))
     }
-    if (isPreferencesTab(tabId)) return 'Preferences'
-    if (isMergeTab(tabId)) return 'Merge Projects'
-    return sourceMap.get(tabId)?.name || 'Document'
+    if (isPreferencesTab(tabId)) return t('tabs.preferences')
+    if (isMergeTab(tabId)) return t('tabs.mergeProjects')
+    return sourceMap.get(tabId)?.name || t('common.document')
   }
 
   // Per-tab leading icon. Tool tabs reuse the glyph their toolbar
@@ -249,12 +251,12 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
                 onChange={(e) => setEditName(e.target.value)}
                 onClick={(e) => e.stopPropagation()}
                 onBlur={() => {
-                  if (mapGuid) setMapName(mapGuid, editName.trim() || 'Untitled map')
+                  if (mapGuid) setMapName(mapGuid, editName.trim() || t('tabs.untitledMap'))
                   setEditingMapGuid(null)
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    if (mapGuid) setMapName(mapGuid, editName.trim() || 'Untitled map')
+                    if (mapGuid) setMapName(mapGuid, editName.trim() || t('tabs.untitledMap'))
                     setEditingMapGuid(null)
                   } else if (e.key === 'Escape') {
                     setEditingMapGuid(null)
@@ -272,8 +274,8 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
                 {dirty && (
                   <span
                     className="tab-dirty-marker"
-                    title="Unsaved changes"
-                    aria-label="Unsaved changes"
+                    title={t('tabs.unsavedChanges')}
+                    aria-label={t('tabs.unsavedChanges')}
                   >
                     •&nbsp;
                   </span>
@@ -284,7 +286,7 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
             <span
               className="tab-close"
               onClick={(e) => { e.stopPropagation(); requestClose(guid) }}
-              title="Close tab"
+              title={t('tabs.closeTab')}
             >
               <Icon icon={faXmark} />
             </span>
@@ -294,19 +296,19 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
       {pendingCloseTabId && (
         <div className="modal-overlay" onClick={handleDialogCancel}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ minWidth: 360 }}>
-            <h2>Unsaved changes</h2>
+            <h2>{t('tabs.unsavedChanges')}</h2>
             <p style={{ margin: '8px 0 16px', color: 'var(--text-secondary)' }}>
-              "{labelFor(pendingCloseTabId)}" has unsaved changes. What would you like to do?
+              {t('tabs.unsavedQuestion', { name: labelFor(pendingCloseTabId) })}
             </p>
             <div className="modal-actions">
               <button className="secondary" onClick={handleDialogCancel}>
-                Cancel
+                {t('common.cancel')}
               </button>
               <button className="secondary" onClick={handleDialogDiscard}>
-                Discard
+                {t('common.discard')}
               </button>
               <button onClick={handleDialogSave}>
-                Save
+                {t('common.save')}
               </button>
             </div>
           </div>

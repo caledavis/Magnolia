@@ -56,13 +56,16 @@ function renderToolTab(tabId: string): React.ReactNode {
 import { InlineRelationshipMap } from '../Analysis/RelationshipMap/InlineRelationshipMap'
 import { MemoFab } from '../Memos/MemoFab'
 import { Icon, faSquareSplitVertical } from '../Icon'
+import { useTranslation } from 'react-i18next'
+import { t } from '../../i18n'
 
 /** Header button that splits the document into two halves, or joins them
  *  again. Styled to match the memo button beside it. */
 function SplitToggle({ split, onToggle }: { split: boolean; onToggle: () => void }) {
+  const { t } = useTranslation()
   const [hovered, setHovered] = useState(false)
   const color = split ? 'var(--accent)' : hovered ? 'var(--text-muted)' : 'var(--border-color)'
-  const label = split ? 'Remove split' : 'Split into two views'
+  const label = split ? t('viewer.removeSplit') : t('viewer.splitIntoTwo')
   return (
     <button
       onClick={onToggle}
@@ -102,7 +105,7 @@ class ViewerErrorBoundary extends Component<{ children: ReactNode }, { error: Er
     if (this.state.error) {
       return (
         <div style={{ padding: 20, color: 'var(--danger)', fontSize: 'var(--font-size-sm)' }}>
-          <strong>Error loading document:</strong> {this.state.error.message}
+          <strong>{t('viewer.errorLoading')}</strong> {this.state.error.message}
         </div>
       )
     }
@@ -111,6 +114,7 @@ class ViewerErrorBoundary extends Component<{ children: ReactNode }, { error: Er
 }
 
 export function DocumentViewer() {
+  const { t } = useTranslation()
   const selectedGuid = useDocumentStore((s) => s.viewedDocumentGuid)
   const openTabs = useDocumentStore((s) => s.openTabs)
   // Display-only: while Merge is the active tab, hide every other tab from
@@ -252,7 +256,7 @@ export function DocumentViewer() {
         />
       ) : (
         <div className="panel-header">
-          <span style={{ flex: 1 }}>Viewer</span>
+          <span style={{ flex: 1 }}>{t('viewer.heading')}</span>
         </div>
       )}
       {/* Persistent tool-tab mounts — only the active one is visible.
@@ -320,10 +324,10 @@ export function DocumentViewer() {
         <div className="viewer-toolbar">
           <span className="viewer-meta">
             {(() => {
-              const t = effectiveSourceType
-              const label = t === 'note' ? 'Note' : t === 'markdown' ? 'Markdown' : t === 'audio' ? 'Audio transcript' : t === 'video' ? 'Video transcript' : 'Plain text'
+              const st = effectiveSourceType
+              const type = t(`viewer.type.${st === 'note' || st === 'markdown' || st === 'audio' || st === 'video' ? st : 'text'}`)
               const wc = (content.match(/\S+/g) || []).length
-              return `${label} · ${wc.toLocaleString()} words`
+              return t('viewer.wordCount', { type, count: wc, formatParams: { count: { useGrouping: true } } })
             })()}
           </span>
           <span className="viewer-spacer" />
@@ -346,7 +350,7 @@ export function DocumentViewer() {
                   <div
                     role="separator"
                     aria-orientation="horizontal"
-                    title="Drag to resize · drag to an edge or double-click to remove the split"
+                    title={t('viewer.splitDividerTitle')}
                     onMouseDown={startDividerDrag}
                     onDoubleClick={toggleSplit}
                     style={{

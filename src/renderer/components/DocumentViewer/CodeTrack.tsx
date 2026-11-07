@@ -33,6 +33,7 @@ import {
   LANE_GAP,
   TRACK_TOP_PADDING
 } from './video-time-utils'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   sourceGuid: string
@@ -111,6 +112,7 @@ export function CodeTrack({
   onSeek,
   onZoomChange
 }: Props) {
+  const { t } = useTranslation()
   const viewportRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const [viewportWidth, setViewportWidth] = useState(800)
@@ -447,7 +449,7 @@ export function CodeTrack({
                 e.stopPropagation()
                 setCtxMenu({ x: e.clientX, y: e.clientY, selGuid: sel.guid })
               }}
-              title={`${code?.name ?? 'Code'} — ${formatTimeDecimal(sel.timeRange!.startTime)} to ${formatTimeDecimal(sel.timeRange!.endTime)}`}
+              title={t('viewer.codeTimeRange', { code: code?.name ?? t('viewer.code'), start: formatTimeDecimal(sel.timeRange!.startTime), end: formatTimeDecimal(sel.timeRange!.endTime) })}
             >
               <span
                 data-handle="start"
@@ -552,7 +554,7 @@ export function CodeTrack({
             style={{ left: ctxMenu.x, top: ctxMenu.y, position: 'fixed', zIndex: 1000 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Remove Code</div>
+            <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{t('viewer.removeCode')}</div>
             {sel.codings.map((c) => {
               const code = findCode(codes, c.codeGuid)
               return (
@@ -567,7 +569,7 @@ export function CodeTrack({
                   }}
                 >
                   <span className="color-pip" style={{ background: code?.color || '#888' }} />
-                  {code?.name ?? 'Unknown'}
+                  {code?.name ?? t('common.unknown')}
                 </div>
               )
             })}
@@ -579,7 +581,7 @@ export function CodeTrack({
                 setCtxMenu(null)
               }}
             >
-              Remove Selection
+              {t('viewer.removeSelection')}
             </div>
           </div>
         )

@@ -12,6 +12,7 @@ import { Icon, faPlay, faPause, faBackward, faForward, faVolumeHigh, faVolumeLow
 import { decodePeaks } from '../../utils/waveform-peaks'
 import { useRememberedPlayhead } from '../../utils/use-remembered-playhead'
 import type { TextSource } from '../../models/types'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   source: TextSource
@@ -58,6 +59,7 @@ function keyComboFromEvent(e: KeyboardEvent): string {
 }
 
 export function AudioDocumentViewer({ source, content }: Props) {
+  const { t } = useTranslation()
   const audioRef = useRef<HTMLAudioElement>(null)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -275,7 +277,7 @@ export function AudioDocumentViewer({ source, content }: Props) {
           onMouseDown={() => startHold(() => rewind(2))}
           onMouseUp={stopHold}
           onMouseLeave={stopHold}
-          title="Rewind (hold to repeat)"
+          title={t('media.rewind')}
         >
           <Icon icon={faBackward} />
         </button>
@@ -284,7 +286,7 @@ export function AudioDocumentViewer({ source, content }: Props) {
         <button
           style={transportBtnStyle(isPlaying)}
           onClick={togglePlayPause}
-          title={isPlaying ? 'Pause' : 'Play'}
+          title={isPlaying ? t('media.pause') : t('media.play')}
         >
           <Icon icon={isPlaying ? faPause : faPlay} />
         </button>
@@ -295,7 +297,7 @@ export function AudioDocumentViewer({ source, content }: Props) {
           onMouseDown={() => startHold(() => fastForward(2))}
           onMouseUp={stopHold}
           onMouseLeave={stopHold}
-          title="Fast Forward (hold to repeat)"
+          title={t('media.fastForward')}
         >
           <Icon icon={faForward} />
         </button>
@@ -322,7 +324,7 @@ export function AudioDocumentViewer({ source, content }: Props) {
         <button
           style={transportBtnStyle(false)}
           onClick={() => setMuted((m) => !m)}
-          title={muted ? 'Unmute' : 'Mute'}
+          title={muted ? t('media.unmute') : t('media.mute')}
         >
           <Icon icon={faVolumeXmark} />
         </button>
@@ -335,7 +337,7 @@ export function AudioDocumentViewer({ source, content }: Props) {
             setVolume((v) => Math.max(0, v - 0.1))
             if (muted) setMuted(false)
           }}
-          title="Volume down"
+          title={t('media.volumeDown')}
         >
           <Icon icon={faVolumeLow} />
         </button>
@@ -351,7 +353,7 @@ export function AudioDocumentViewer({ source, content }: Props) {
             if (muted && parseFloat(e.target.value) > 0) setMuted(false)
           }}
           style={{ width: 70, flexShrink: 0, ['--filled' as any]: `${(muted ? 0 : volume) * 100}%` }}
-          title="Volume"
+          title={t('media.volume')}
         />
         <button
           style={{ ...transportBtnStyle(false), border: 'none', background: 'transparent', width: 20 }}
@@ -359,7 +361,7 @@ export function AudioDocumentViewer({ source, content }: Props) {
             setVolume((v) => Math.min(1, v + 0.1))
             if (muted) setMuted(false)
           }}
-          title="Volume up"
+          title={t('media.volumeUp')}
         >
           <Icon icon={faVolumeHigh} />
         </button>

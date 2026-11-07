@@ -7,8 +7,10 @@ import { useDocumentStore } from '../../stores/document-store'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 import { noteData, toDateTimeLocal, fromDateTimeLocal } from '../../utils/notes'
 import type { TextSource } from '../../models/types'
+import { useTranslation } from 'react-i18next'
 
 export function NoteHeader({ source }: { source: TextSource }) {
+  const { t } = useTranslation()
   const lockedBy = useCheckoutLockedBy()
   const updateNote = useDocumentStore((s) => s.updateNote)
   const { title, noteDateTime } = noteData(source)
@@ -29,8 +31,8 @@ export function NoteHeader({ source }: { source: TextSource }) {
         type="text"
         className="note-title-input"
         value={title}
-        placeholder="Untitled note"
-        aria-label="Note title"
+        placeholder={t('notes.untitled')}
+        aria-label={t('notes.titleLabel')}
         onChange={(e) => updateNote(source.guid, { title: e.target.value })}
         onKeyDown={(e) => {
           // Enter moves on to writing the note.
@@ -45,8 +47,8 @@ export function NoteHeader({ source }: { source: TextSource }) {
         type="datetime-local"
         className="note-datetime-input"
         value={toDateTimeLocal(noteDateTime)}
-        aria-label="Date and time of the observation"
-        title={lockedBy ? checkoutLockedTitle(lockedBy) : 'Date and time of the observation'}
+        aria-label={t('notes.dateTime')}
+        title={lockedBy ? checkoutLockedTitle(lockedBy) : t('notes.dateTime')}
         onChange={(e) => {
           const iso = fromDateTimeLocal(e.target.value)
           if (iso) updateNote(source.guid, { noteDateTime: iso })

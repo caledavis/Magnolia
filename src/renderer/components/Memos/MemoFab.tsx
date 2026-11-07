@@ -3,6 +3,7 @@ import { useMemoStore } from '../../stores/memo-store'
 import { Icon, MEMO_ICON } from '../Icon'
 import { generateGuid } from '../../utils/guid'
 import type { Memo, MemoEditInitData } from '../../models/types'
+import { useTranslation } from 'react-i18next'
 
 /** Layout variant shared by every FAB kind. */
 interface BaseProps {
@@ -83,6 +84,7 @@ type Props =
  * sidebars.
  */
 export function MemoFab(props: Props) {
+  const { t } = useTranslation()
   const { kind, variant = 'absolute', defaultTitle } = props
   const memos = useMemoStore((s) => s.memos)
 
@@ -196,8 +198,7 @@ export function MemoFab(props: Props) {
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (isUnsaved) {
-      const what = kind === 'saved-query' ? 'query' : 'analysis'
-      window.alert(`Save the ${what} first to attach a memo.`)
+      window.alert(t(kind === 'saved-query' ? 'memoFab.saveFirst.query' : 'memoFab.saveFirst.analysis'))
       return
     }
     if (memo) {
@@ -270,12 +271,12 @@ export function MemoFab(props: Props) {
       onMouseLeave={() => setHovered(false)}
       title={
         isUnsaved
-          ? `Save the ${kind === 'saved-query' ? 'query' : 'analysis'} to attach a memo`
+          ? t(kind === 'saved-query' ? 'memoFab.saveToAttach.query' : 'memoFab.saveToAttach.analysis')
           : hasMemo
-            ? 'Open memo'
-            : 'Add memo'
+            ? t('common.openMemo')
+            : t('memos.add')
       }
-      aria-label={hasMemo ? 'Open memo' : 'Add memo'}
+      aria-label={hasMemo ? t('common.openMemo') : t('memos.add')}
       style={{
         ...(variant === 'absolute' ? {
           position: 'absolute' as const,

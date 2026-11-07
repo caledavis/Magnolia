@@ -14,6 +14,7 @@ import type { CSSProperties } from 'react'
 import { Icon, MEMO_RANGED_ICON, MEMO_POINT_ICON, QUOTE_ICON } from '../Icon'
 import { ICON_COL_W, type IconGroup } from './iconLayout'
 import type { Memo, PdfRegionSelection } from '../../models/types'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   groups: IconGroup[]
@@ -92,6 +93,7 @@ export function MemoQuoteIcons({
   lockedRange,
   onQuoteClick
 }: Props) {
+  const { t } = useTranslation()
   const quoteGroups = groups.filter((g) => g.type === 'quote')
   const memoGroups = groups.filter((g) => g.type === 'memo')
 
@@ -118,7 +120,7 @@ export function MemoQuoteIcons({
               color: 'var(--quote-icon-color)',
               position: 'relative'
             }}
-            title={`${g.items.length} quote${g.items.length > 1 ? 's' : ''}`}
+            title={t('viewer.quoteCount', { count: g.items.length })}
             onMouseEnter={() => {
               if (g.items.length === 1) {
                 const it = g.items[0]
@@ -159,7 +161,7 @@ export function MemoQuoteIcons({
           quote sits at the same Y so they stack side-by-side. */}
       {memoGroups.map((g, i) => {
         const firstItem = g.items[0]
-        const titles = g.items.map((it) => it.title || 'Selection Memo').join(', ')
+        const titles = g.items.map((it) => it.title || t('viewer.selectionMemo')).join(', ')
         const isRanged = !!firstItem.isRanged
         return (
           <div

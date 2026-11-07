@@ -14,6 +14,7 @@ import type React from 'react'
 import { createPortal } from 'react-dom'
 import { Icon, faHand } from '../Icon'
 import { startSelectionDrag } from '../../utils/selection-drag'
+import { useTranslation } from 'react-i18next'
 
 const SIZE = 18
 
@@ -104,6 +105,7 @@ interface Props {
 }
 
 export function SelectionDragHandle({ containerRef, sourceGuid, anchor, label }: Props): React.ReactElement {
+  const { t } = useTranslation()
   const handleRef = useRef<HTMLDivElement>(null)
   /** Held still from mousedown to drop: pressing a draggable element
    *  clears the text selection for a frame (install-drag-selection-keeper
@@ -164,7 +166,7 @@ export function SelectionDragHandle({ containerRef, sourceGuid, anchor, label }:
       ref={handleRef}
       draggable
       data-selection-handle
-      title="Drag onto a code to code this selection"
+      title={t('viewer.dragToCode')}
       onMouseDown={(e) => { e.stopPropagation(); grabbingRef.current = true }}
       onMouseUp={stop}
       onClick={stop}
@@ -172,7 +174,7 @@ export function SelectionDragHandle({ containerRef, sourceGuid, anchor, label }:
       onContextMenu={(e) => { e.preventDefault(); e.stopPropagation() }}
       onDragStart={(e) => {
         e.stopPropagation()
-        const text = label ?? (window.getSelection()?.toString() || 'Selection')
+        const text = label ?? (window.getSelection()?.toString() || t('viewer.selection'))
         startSelectionDrag(e, sourceGuid, text)
         setDragPreview(e, text)
       }}

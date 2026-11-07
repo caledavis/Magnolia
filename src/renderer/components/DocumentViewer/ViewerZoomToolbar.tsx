@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 /**
  * ViewerZoomToolbar — small floating zoom-control buttons shared by the
  * PDF and image viewers. Mirrors the "100%" button styling in the
@@ -32,6 +33,7 @@ const buttonStyle: React.CSSProperties = {
 }
 
 export function ViewerZoomToolbar({ zoom, onZoomChange, onFit, epsilon = 0.001 }: Props) {
+  const { t } = useTranslation()
   const showReset = Math.abs(zoom - 1) >= epsilon
   if (!showReset && !onFit) return null
   return (
@@ -39,7 +41,7 @@ export function ViewerZoomToolbar({ zoom, onZoomChange, onFit, epsilon = 0.001 }
       {showReset && (
         <button
           onClick={() => onZoomChange(1)}
-          title="Reset zoom to 100%"
+          title={t('viewer.resetZoomTitle')}
           style={buttonStyle}
         >
           100%
@@ -48,10 +50,10 @@ export function ViewerZoomToolbar({ zoom, onZoomChange, onFit, epsilon = 0.001 }
       {onFit && (
         <button
           onClick={onFit}
-          title="Fit to window"
+          title={t('viewer.fitWindow')}
           style={buttonStyle}
         >
-          To Fit
+          {t('viewer.toFit')}
         </button>
       )}
     </div>

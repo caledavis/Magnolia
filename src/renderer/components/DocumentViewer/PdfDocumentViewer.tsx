@@ -23,6 +23,7 @@ import { onSelectionDrop } from '../../utils/selection-drag'
 import { SelectionDragHandle, boxSelectionAnchor, textSelectionAnchor } from './SelectionDragHandle'
 import { modKey } from '../../utils/platform'
 import { roundRegionToWholePixels } from '../../utils/region-rounding'
+import { useTranslation } from 'react-i18next'
 
 function flattenCodes(codes: Code[], depth = 0): { code: Code; depth: number }[] {
   const result: { code: Code; depth: number }[] = []
@@ -93,6 +94,7 @@ interface Props {
 }
 
 export function PdfDocumentViewer({ source, content, pane = 'primary', active = true, onActivate }: Props) {
+  const { t } = useTranslation()
   const addSelection = useDocumentStore((s) => s.addSelection)
   const addCodingToSelection = useDocumentStore((s) => s.addCodingToSelection)
   const removeCoding = useDocumentStore((s) => s.removeCoding)
@@ -379,7 +381,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
           addCodingToSelection(source.guid, existingSel.guid, codeGuid)
         }
       } else {
-        const name = `Region p${region.page}`
+        const name = t('viewer.regionPage', { page: region.page })
         const selGuid = addSelection(source.guid, 0, 0, name, region)
         addCodingToSelection(source.guid, selGuid, codeGuid)
       }
@@ -422,7 +424,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
       const r = pendingBoxSelection.pdfRegion
       ps = {
         startCp: 0, endCp: 0,
-        selectedText: `Region p${r.page}`,
+        selectedText: t('viewer.regionPage', { page: r.page }),
         pdfRegion: r
       }
     }
@@ -476,7 +478,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
       // same region as the existing coding.
       if (!ps && boxCandidates.length > 0) {
         const r = boxCandidates[0].pdfRegion!
-        ps = { startCp: 0, endCp: 0, selectedText: `Region p${r.page}`, pdfRegion: r }
+        ps = { startCp: 0, endCp: 0, selectedText: t('viewer.regionPage', { page: r.page }), pdfRegion: r }
       }
       for (const sel2 of boxCandidates) {
         for (const coding of sel2.codings) {
@@ -690,7 +692,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
       quote: () => {
         if (pendingBoxSelection) {
           const r = pendingBoxSelection.pdfRegion
-          useQuoteStore.getState().addQuote(source.guid, source.name, 0, 0, `Region p${r.page}`, r)
+          useQuoteStore.getState().addQuote(source.guid, source.name, 0, 0, t('viewer.regionPage', { page: r.page }), r)
           setPendingBoxSelection(null)
         } else if (pendingSelection) {
           useQuoteStore.getState().addQuote(source.guid, source.name, pendingSelection.startCp, pendingSelection.endCp, pendingSelection.selectedText)
@@ -725,34 +727,34 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
       }}
     >
       {pendingSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={textSelectionAnchor} />}
-      {pendingBoxSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={boxSelectionAnchor} label={`Box selection on page ${pendingBoxSelection.pdfRegion.page}`} />}
+      {pendingBoxSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={boxSelectionAnchor} label={t('viewer.boxSelectionPage', { page: pendingBoxSelection.pdfRegion.page })} />}
       {/* Top control bar — zoom strip + selection-mode toggle. Mirrors
           the mockup's connected button group. */}
       <div className="viewer-toolbar">
         <div className="zoom-strip">
-          <button onClick={() => setZoom((z) => Math.max(0.25, z * 0.9))} title="Zoom out">−</button>
-          <button onClick={() => setZoom(1)} title="Reset to 100%">100%</button>
-          <button onClick={() => setZoom((z) => Math.min(4, z * 1.1))} title="Zoom in">+</button>
-          <button onClick={handleFit} title="Fit to window">Fit</button>
+          <button onClick={() => setZoom((z) => Math.max(0.25, z * 0.9))} title={t('viewer.zoomOut')}>−</button>
+          <button onClick={() => setZoom(1)} title={t('viewer.resetZoom')}>100%</button>
+          <button onClick={() => setZoom((z) => Math.min(4, z * 1.1))} title={t('viewer.zoomIn')}>+</button>
+          <button onClick={handleFit} title={t('viewer.fitWindow')}>{t('viewer.fit')}</button>
         </div>
         <div className="zoom-strip" style={{ marginLeft: 6 }}>
           <button
             onClick={() => { setSelectionMode('text'); setPendingBoxSelection(null); setBoxDrag(null) }}
-            title="Text selection"
+            title={t('viewer.textSelection')}
             className={selectionMode === 'text' ? 'active' : ''}
           >
             <Icon icon={faICursor} />
           </button>
           <button
             onClick={() => { setSelectionMode('box'); setPendingSelection(null) }}
-            title="Box selection"
+            title={t('viewer.boxSelection')}
             className={selectionMode === 'box' ? 'active' : ''}
           >
             <Icon icon={faCrosshairs} />
           </button>
         </div>
         <span className="viewer-spacer" />
-        <span className="viewer-meta">PDF</span>
+        <span className="viewer-meta">{t('viewer.pdf')}</span>
       </div>
       <div
         ref={scrollContainerRef}
@@ -834,7 +836,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
           {/* PDF pages — takes available space */}
           <div ref={pagesContentRef} style={{ flexShrink: 0 }}>
             {!pdfDocument && (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>Loading PDF...</div>
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>{t('viewer.loadingPdf')}</div>
             )}
             {pdfDocument && Array.from({ length: numPages }, (_, i) => (
               <PdfPageRenderer
@@ -918,7 +920,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
             const items = qs.map((q) => ({
               guid: q.guid,
               type: 'content' as const,
-              title: 'Quote',
+              title: t('viewer.quote'),
               content: '',
               createdDateTime: '',
               startPosition: q.startCp,
@@ -942,14 +944,14 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
             useNewCodeTriggerStore.getState().request()
             setContextMenu(null); setMenuHighlight(null)
           }}>
-            New Code
+            {t('viewer.newCode')}
           </div>
           <div className="context-menu-separator" />
           {contextMenu.context.pendingSelection && (
             <>
-              <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>Apply Code</div>
+              <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>{t('viewer.applyCode')}</div>
               <div style={{ padding: '0 14px 6px', fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4, maxWidth: 220, userSelect: 'none' }}>
-                To apply any code, select content and drag the code from the Code Browser to the selection.
+                {t('viewer.applyHint')}
               </div>
               {hotkeyCodes.map(({ code }) => (
                 <div key={code.guid} className="context-menu-item" onClick={() => handleApplyCode(code.guid)}>
@@ -959,14 +961,14 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
                 </div>
               ))}
               {hotkeyCodes.length === 0 && (
-                <div className="context-menu-item" style={{ color: 'var(--menu-fg-muted)', pointerEvents: 'none' }}>No hotkeys assigned</div>
+                <div className="context-menu-item" style={{ color: 'var(--menu-fg-muted)', pointerEvents: 'none' }}>{t('viewer.noHotkeysShort')}</div>
               )}
             </>
           )}
           {contextMenu.context.pendingSelection && contextMenu.context.existingCodings.length > 0 && <div className="context-menu-separator" />}
           {contextMenu.context.existingCodings.length > 0 && (
             <>
-              <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>Remove Code</div>
+              <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>{t('viewer.removeCode')}</div>
               {contextMenu.context.existingCodings.map((ec) => {
                 const code = findCode(ec.codeGuid)
                 return (
@@ -976,7 +978,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
                     onMouseLeave={() => setMenuHighlight(null)}
                   >
                     <span className="color-pip" style={{ background: code?.color || '#888' }} />
-                    {code?.name ?? 'Unknown'}
+                    {code?.name ?? t('common.unknown')}
                   </div>
                 )
               })}
@@ -990,7 +992,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
                 useQuoteStore.getState().addQuote(source.guid, source.name, ps.startCp, ps.endCp, ps.selectedText, ps.pdfRegion)
                 setPendingBoxSelection(null)
                 setContextMenu(null)
-              }}>Add as Quote</div>
+              }}>{t('viewer.addAsQuote')}</div>
             </>
           )}
           {(contextMenu.context.pendingSelection || contextMenu.context.existingCodings.length > 0) && <div className="context-menu-separator" />}
@@ -1008,18 +1010,18 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
               const p = contextMenu.context.pdfPoint
               handleCreateMemo(0, 0, { page: p.page, x: p.x, y: p.y, width: 0, height: 0 })
             }
-          }}>Add Selection Memo</div>
+          }}>{t('viewer.addSelectionMemo')}</div>
           {contextMenu.context.overlappingMemos && contextMenu.context.overlappingMemos.length > 0 && (
             <>
               <div className="context-menu-separator" />
-              <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>Delete Memo</div>
+              <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>{t('viewer.deleteMemo')}</div>
               {contextMenu.context.overlappingMemos.map((m) => (
                 <div key={m.guid} className="context-menu-item" style={{ color: 'var(--menu-fg-danger)' }}
                   onMouseEnter={() => setHoveredRange({ startCp: m.startCp, endCp: m.endCp })}
                   onMouseLeave={() => setHoveredRange(null)}
                   onClick={() => { removeMemo(m.guid); setContextMenu(null); setMenuHighlight(null) }}
                 >
-                  {m.title || 'Untitled Memo'}
+                  {m.title || t('memos.untitled')}
                 </div>
               ))}
             </>
@@ -1068,7 +1070,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
                   icon={memoPopup.isQuote ? QUOTE_ICON : (m.startPosition === m.endPosition ? MEMO_POINT_ICON : MEMO_RANGED_ICON)}
                   style={{ marginRight: 6, fontSize: 10, color: memoPopup.isQuote ? 'var(--quote-icon-color)' : undefined }}
                 />
-                <span style={{ flex: 1 }}>{m.title || (memoPopup.isQuote ? 'Quote' : 'Untitled Memo')}</span>
+                <span style={{ flex: 1 }}>{m.title || (memoPopup.isQuote ? t('viewer.quote') : t('memos.untitled'))}</span>
               </div>
             ))}
             {/* Delete options for quotes (right-click only) */}
@@ -1092,7 +1094,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
                       setHoveredRange(null)
                     }}
                   >
-                    Delete "{(m.title || 'Quote').slice(0, 20)}"
+                    {t('viewer.deleteNamed', { name: (m.title || t('viewer.quote')).slice(0, 20) })}
                   </div>
                 ))}
               </>

@@ -23,6 +23,7 @@ import { SelectionDragHandle, textSelectionAnchor } from './SelectionDragHandle'
 import { modKey } from '../../utils/platform'
 import { CodedTextView, type CodingRightClickContext } from './CodedTextView'
 import type { Code, MemoEditInitData, SourceType, TextSource } from '../../models/types'
+import { useTranslation } from 'react-i18next'
 
 /** After a long jump, how many frames the target must stay put, and how
  *  long to keep re-centring it at most. */
@@ -50,6 +51,7 @@ interface Props {
 }
 
 export function TextDocumentPane({ source, content, sourceType, pane, active, onActivate }: Props) {
+  const { t } = useTranslation()
   // Enforced checkout lock: reading/scrolling/searching documents stays
   // live; the right-click menu's mutations (New Code, apply/remove a
   // code, add a quote, add/delete a selection memo), the drag-a-code-here
@@ -478,7 +480,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
             editable={!lockedBy}
             onTextEdit={(next) => applyTranscriptEdit(sourceGuid, next)}
             onSelectionCleared={() => setPendingSelection(null)}
-            placeholder="Write your observation…"
+            placeholder={t('notes.placeholder')}
             autoFocus={content === ''}
           />
         ) : content && (
@@ -509,7 +511,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
             }}
           >
             <span style={{ color: 'var(--accent)', fontWeight: 600, fontSize: 14 }}>
-              Drop code to apply to selection
+              {t('viewer.dropToApply')}
             </span>
           </div>
         )}
@@ -527,7 +529,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
             }}
           >
             <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-              Select text first, then drag a code onto it
+              {t('viewer.selectFirst')}
             </span>
           </div>
         )}
@@ -551,7 +553,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
               useNewCodeTriggerStore.getState().request()
             }}
           >
-            New Code
+            {t('viewer.newCode')}
           </div>
           <div className="context-menu-separator" />
           {/* If there's a pending text selection, show hotkeyed codes for quick apply */}
@@ -566,7 +568,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
                   userSelect: 'none'
                 }}
               >
-                Apply Code
+                {t('viewer.applyCode')}
               </div>
               <div
                 style={{
@@ -578,7 +580,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
                   userSelect: 'none'
                 }}
               >
-                To apply any code, select content and drag the code from the Code Browser to the selection.
+                {t('viewer.applyHint')}
               </div>
               {hotkeyCodes.map(({ code }) => (
                 <div
@@ -605,7 +607,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
                   className="context-menu-item"
                   style={{ color: 'var(--text-muted)', pointerEvents: 'none' }}
                 >
-                  No hotkeys assigned — right-click a code to assign one
+                  {t('viewer.noHotkeys')}
                 </div>
               )}
             </>
@@ -629,7 +631,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
                   userSelect: 'none'
                 }}
               >
-                Remove Code
+                {t('viewer.removeCode')}
               </div>
               {contextMenu.context.existingCodings.map((ec) => {
                 const code = findCode(ec.codeGuid)
@@ -650,7 +652,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
                       className="color-pip"
                       style={{ background: code?.color || '#888' }}
                     />
-                    {code?.name ?? 'Unknown'}
+                    {code?.name ?? t('common.unknown')}
                   </div>
                 )
               })}
@@ -671,7 +673,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
                   useQuoteStore.getState().addQuote(sourceGuid, source.name, ps.startCp, ps.endCp, ps.selectedText)
                 }}
               >
-                Add as Quote
+                {t('viewer.addAsQuote')}
               </div>
             </>
           )}
@@ -694,7 +696,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
                   )
                 }}
               >
-                Add Selection Memo
+                {t('viewer.addSelectionMemo')}
               </div>
             </>
           )}
@@ -712,7 +714,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
                   userSelect: 'none'
                 }}
               >
-                Delete Memo
+                {t('viewer.deleteMemo')}
               </div>
               {contextMenu.context.overlappingMemos.map((m) => (
                 <div

@@ -16,6 +16,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { PlainTextSelection, Code, Memo } from '../../models/types'
 import { Icon, MEMO_POINT_ICON } from '../Icon'
+import { useTranslation } from 'react-i18next'
 
 const MEMO_WAVE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='2.25'%3E%3Cpath d='M0 2.25 L3 0 L6 2.25 L9 0 L12 2.25' fill='none' stroke='%234a90d9' stroke-width='1'/%3E%3C/svg%3E")`
 const MEMO_WAVE_V = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2.25' height='12'%3E%3Cpath d='M2.25 0 L0 3 L2.25 6 L0 9 L2.25 12' fill='none' stroke='%234a90d9' stroke-width='1'/%3E%3C/svg%3E")`
@@ -50,6 +51,7 @@ export function ImagePageRenderer({
   imageUrl, scale, selections, codeMap, contentMemos, hoveredSelGuid, hoveredRegion, pulseRegion,
   boxDragPreview, pendingBoxRegion, onMemoDoubleClick, onMemoMove, onLoad
 }: Props) {
+  const { t } = useTranslation()
   const imgRef = useRef<HTMLImageElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
   const [naturalSize, setNaturalSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 })
@@ -311,7 +313,7 @@ export function ImagePageRenderer({
         return (
           <div
             key={`pt-memo-${m.guid}`}
-            title={m.title || 'Memo'}
+            title={m.title || t('viewer.memo')}
             onMouseDown={(e) => {
               if (e.button !== 0) return
               e.stopPropagation()

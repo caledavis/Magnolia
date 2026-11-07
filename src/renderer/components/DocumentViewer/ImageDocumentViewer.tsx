@@ -30,6 +30,7 @@ import { getViewSetting, setViewSetting } from '../../stores/view-position-store
 import { useRememberedScroll } from '../../utils/use-remembered-scroll'
 import { onSelectionDrop } from '../../utils/selection-drag'
 import { SelectionDragHandle, boxSelectionAnchor } from './SelectionDragHandle'
+import { useTranslation } from 'react-i18next'
 
 // Horizontal space the right-hand RichMarginColumn + its 8-px gap actually
 // occupy in the flex row. The margin column has flex-basis 260 plus an 8-px
@@ -64,6 +65,7 @@ interface Props {
 }
 
 export function ImageDocumentViewer({ source }: Props) {
+  const { t } = useTranslation()
   const addSelection = useDocumentStore((s) => s.addSelection)
   const addCodingToSelection = useDocumentStore((s) => s.addCodingToSelection)
   const removeCoding = useDocumentStore((s) => s.removeCoding)
@@ -304,7 +306,7 @@ export function ImageDocumentViewer({ source }: Props) {
           addCodingToSelection(source.guid, existingSel.guid, codeGuid)
         }
       } else {
-        const name = `Region`
+        const name = t('viewer.region')
         const selGuid = addSelection(source.guid, 0, 0, name, region)
         addCodingToSelection(source.guid, selGuid, codeGuid)
       }
@@ -317,7 +319,7 @@ export function ImageDocumentViewer({ source }: Props) {
     let ps: CodingRightClickContext['pendingSelection'] | undefined
     if (pendingBoxSelection) {
       const r = pendingBoxSelection.pdfRegion
-      ps = { startCp: 0, endCp: 0, selectedText: 'Region', pdfRegion: r }
+      ps = { startCp: 0, endCp: 0, selectedText: t('viewer.region'), pdfRegion: r }
     }
 
     // Box hit-test — find any coded OR memo region under the click point.
@@ -342,7 +344,7 @@ export function ImageDocumentViewer({ source }: Props) {
       // same region as the existing coding.
       if (!ps && boxCandidates.length > 0) {
         const r = boxCandidates[0].pdfRegion!
-        ps = { startCp: 0, endCp: 0, selectedText: 'Region', pdfRegion: r }
+        ps = { startCp: 0, endCp: 0, selectedText: t('viewer.region'), pdfRegion: r }
       }
       for (const sel2 of boxCandidates) {
         for (const coding of sel2.codings) {
@@ -467,7 +469,7 @@ export function ImageDocumentViewer({ source }: Props) {
       },
       quote: () => {
         if (!pendingBoxSelection) return
-        useQuoteStore.getState().addQuote(source.guid, source.name, 0, 0, 'Region', pendingBoxSelection.pdfRegion)
+        useQuoteStore.getState().addQuote(source.guid, source.name, 0, 0, t('viewer.region'), pendingBoxSelection.pdfRegion)
         setPendingBoxSelection(null)
       }
     })
@@ -496,18 +498,18 @@ export function ImageDocumentViewer({ source }: Props) {
         }
       }}
     >
-      {pendingBoxSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={boxSelectionAnchor} label="Box selection" />}
+      {pendingBoxSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={boxSelectionAnchor} label={t('viewer.boxSelection')} />}
       {/* Top control bar — connected zoom strip mirroring the PDF viewer
           and the mockup's button group. */}
       <div className="viewer-toolbar">
         <div className="zoom-strip">
-          <button onClick={() => setZoom((z) => Math.max(0.1, z * 0.9))} title="Zoom out">−</button>
-          <button onClick={() => setZoom(1)} title="Reset to 100%">100%</button>
-          <button onClick={() => setZoom((z) => Math.min(6, z * 1.1))} title="Zoom in">+</button>
-          <button onClick={handleFit} title="Fit to window">Fit</button>
+          <button onClick={() => setZoom((z) => Math.max(0.1, z * 0.9))} title={t('viewer.zoomOut')}>−</button>
+          <button onClick={() => setZoom(1)} title={t('viewer.resetZoom')}>100%</button>
+          <button onClick={() => setZoom((z) => Math.min(6, z * 1.1))} title={t('viewer.zoomIn')}>+</button>
+          <button onClick={handleFit} title={t('viewer.fitWindow')}>{t('viewer.fit')}</button>
         </div>
         <span className="viewer-spacer" />
-        <span className="viewer-meta">Image</span>
+        <span className="viewer-meta">{t('viewer.image')}</span>
       </div>
       <div
         ref={scrollContainerRef}
@@ -594,7 +596,7 @@ export function ImageDocumentViewer({ source }: Props) {
           <div style={{ flexGrow: 1, flexShrink: 0, flexBasis: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center', minWidth: 0 }}>
           <div ref={pagesContentRef} style={{ flexShrink: 0 }}>
             {!imageUrl && (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>Loading image…</div>
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>{t('viewer.loadingImage')}</div>
             )}
             {imageUrl && (
               <ImagePageRenderer
@@ -664,7 +666,7 @@ export function ImageDocumentViewer({ source }: Props) {
                 const items = qs.map((q) => ({
                   guid: q.guid,
                   type: 'content' as const,
-                  title: 'Quote',
+                  title: t('viewer.quote'),
                   content: '',
                   createdDateTime: '',
                   startPosition: q.startCp,
@@ -687,14 +689,14 @@ export function ImageDocumentViewer({ source }: Props) {
             useNewCodeTriggerStore.getState().request()
             setContextMenu(null); setMenuHighlight(null)
           }}>
-            New Code
+            {t('viewer.newCode')}
           </div>
           <div className="context-menu-separator" />
           {contextMenu.context.pendingSelection && (
             <>
-              <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>Apply Code</div>
+              <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>{t('viewer.applyCode')}</div>
               <div style={{ padding: '0 14px 6px', fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4, maxWidth: 220, userSelect: 'none' }}>
-                To apply any code, select content and drag the code from the Code Browser to the selection.
+                {t('viewer.applyHint')}
               </div>
               {hotkeyCodes.map(({ code }) => (
                 <div key={code.guid} className="context-menu-item" onClick={() => handleApplyCode(code.guid)}>
@@ -704,14 +706,14 @@ export function ImageDocumentViewer({ source }: Props) {
                 </div>
               ))}
               {hotkeyCodes.length === 0 && (
-                <div className="context-menu-item" style={{ color: 'var(--menu-fg-muted)', pointerEvents: 'none' }}>No hotkeys assigned</div>
+                <div className="context-menu-item" style={{ color: 'var(--menu-fg-muted)', pointerEvents: 'none' }}>{t('viewer.noHotkeysShort')}</div>
               )}
             </>
           )}
           {contextMenu.context.pendingSelection && contextMenu.context.existingCodings.length > 0 && <div className="context-menu-separator" />}
           {contextMenu.context.existingCodings.length > 0 && (
             <>
-              <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>Remove Code</div>
+              <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>{t('viewer.removeCode')}</div>
               {contextMenu.context.existingCodings.map((ec) => {
                 const code = findCode(ec.codeGuid)
                 return (
@@ -721,7 +723,7 @@ export function ImageDocumentViewer({ source }: Props) {
                     onMouseLeave={() => setMenuHighlight(null)}
                   >
                     <span className="color-pip" style={{ background: code?.color || '#888' }} />
-                    {code?.name ?? 'Unknown'}
+                    {code?.name ?? t('common.unknown')}
                   </div>
                 )
               })}
@@ -735,7 +737,7 @@ export function ImageDocumentViewer({ source }: Props) {
                 useQuoteStore.getState().addQuote(source.guid, source.name, ps.startCp, ps.endCp, ps.selectedText, ps.pdfRegion)
                 setPendingBoxSelection(null)
                 setContextMenu(null)
-              }}>Add as Quote</div>
+              }}>{t('viewer.addAsQuote')}</div>
             </>
           )}
           {(contextMenu.context.pendingSelection || contextMenu.context.existingCodings.length > 0) && <div className="context-menu-separator" />}
@@ -751,18 +753,18 @@ export function ImageDocumentViewer({ source }: Props) {
               const p = contextMenu.context.pdfPoint
               handleCreateMemo(0, 0, { page: p.page, x: p.x, y: p.y, width: 0, height: 0 })
             }
-          }}>Add Selection Memo</div>
+          }}>{t('viewer.addSelectionMemo')}</div>
           {contextMenu.context.overlappingMemos && contextMenu.context.overlappingMemos.length > 0 && (
             <>
               <div className="context-menu-separator" />
-              <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>Delete Memo</div>
+              <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>{t('viewer.deleteMemo')}</div>
               {contextMenu.context.overlappingMemos.map((m) => (
                 <div key={m.guid} className="context-menu-item" style={{ color: 'var(--menu-fg-danger)' }}
                   onMouseEnter={() => setHoveredRange({ startCp: m.startCp, endCp: m.endCp })}
                   onMouseLeave={() => setHoveredRange(null)}
                   onClick={() => { removeMemo(m.guid); setContextMenu(null); setMenuHighlight(null) }}
                 >
-                  {m.title || 'Untitled Memo'}
+                  {m.title || t('memos.untitled')}
                 </div>
               ))}
             </>
@@ -810,7 +812,7 @@ export function ImageDocumentViewer({ source }: Props) {
                   icon={memoPopup.isQuote ? QUOTE_ICON : (m.startPosition === m.endPosition ? MEMO_POINT_ICON : MEMO_RANGED_ICON)}
                   style={{ marginRight: 6, fontSize: 10, color: memoPopup.isQuote ? 'var(--quote-icon-color)' : undefined }}
                 />
-                <span style={{ flex: 1 }}>{m.title || (memoPopup.isQuote ? 'Quote' : 'Untitled Memo')}</span>
+                <span style={{ flex: 1 }}>{m.title || (memoPopup.isQuote ? t('viewer.quote') : t('memos.untitled'))}</span>
               </div>
             ))}
             {memoPopup.isQuote && memoPopup.showDelete && (
@@ -833,7 +835,7 @@ export function ImageDocumentViewer({ source }: Props) {
                       setHoveredRange(null)
                     }}
                   >
-                    Delete "{(m.title || 'Quote').slice(0, 20)}"
+                    {t('viewer.deleteNamed', { name: (m.title || t('viewer.quote')).slice(0, 20) })}
                   </div>
                 ))}
               </>
