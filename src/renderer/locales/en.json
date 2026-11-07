@@ -1130,5 +1130,74 @@
     "noneSelected": "No documents selected. Connect nodes to Result.",
     "survey": "Survey",
     "statusHint": "Drag documents & tags onto canvas · Connect nodes to Result · Drag survey questions & respondents here to choose them"
+  },
+  "prefs": {
+    "cat": {
+      "general": "General",
+      "appearance": "Appearance",
+      "mediaPlayback": "Media Playback",
+      "paperSize": "Paper Size",
+      "updates": "Updates",
+      "support": "Support Magnolia"
+    },
+    "toolbarStyle": {
+      "ribbon": "Ribbon",
+      "icons": "Icons"
+    },
+    "theme": {
+      "magnolia": "Magnolia",
+      "magnoliaDark": "Magnolia Dark",
+      "highContrast": "High Contrast"
+    },
+    "pressKey": "Press a key...",
+    "themeHeading": "Theme",
+    "default": "(default)",
+    "interfaceScale": "Interface Scale",
+    "toolbarStyleHeading": "Toolbar Style",
+    "colour": "Colour",
+    "colourful": "Colourful interface",
+    "yourName": "Your Name",
+    "yourNameText": "Your name allows colleagues to identify your changes to a project when merging different versions, and is saved into the project file itself whenever you're the last person to edit it.",
+    "enterName": "Enter your name",
+    "keyMappings": "Audio Playback Key Mappings",
+    "keyMappingsText": "Map keyboard keys or foot pedal buttons to audio playback controls. Click an input field and press the desired key combination.",
+    "playPause": "Play / Pause",
+    "rewind": "Rewind",
+    "fastForward": "Fast Forward",
+    "rewindSeconds": "Rewind seconds",
+    "forwardSeconds": "Forward seconds",
+    "defaultSpeed": "Default Playback Speed",
+    "paperSizeText": "Page size for PDFs Magnolia exports (coded documents, query results, codebooks, the logbook, and survey summaries).",
+    "paper": {
+      "A4": "A4",
+      "A3": "A3",
+      "A5": "A5",
+      "Letter": "Letter",
+      "Legal": "Legal",
+      "Tabloid": "Tabloid"
+    },
+    "status": {
+      "checking": "Checking for updates…",
+      "upToDate": "You're up to date.",
+      "upToDateVersion": "You're up to date (version {{version}}).",
+      "available": "Update available. The update window has the details.",
+      "availableVersion": "Update available — version {{version}}. The update window has the details.",
+      "error": "Couldn't check for updates: {{message}}",
+      "unknownError": "unknown error",
+      "devDisabled": "Update checks are disabled in development builds."
+    },
+    "softwareUpdates": "Software Updates",
+    "updatesText": "Magnolia checks for updates automatically in the background. If that doesn't work on your computer (for example on a managed or restricted machine), you can check for a new version here at any time.",
+    "currentVersion": "Current version",
+    "newVersion": "A new version is available",
+    "newVersionNumbered": "A new version ({{version}}) is available",
+    "updateItself": "If Magnolia doesn't update itself, download the latest version from the releases page.",
+    "downloadLatest": "Download latest version",
+    "checking": "Checking…",
+    "checkForUpdates": "Check for Updates",
+    "supportText1": "Magnolia is free and open-source, with no ads, subscriptions, or cloud lock-in. It's built and maintained independently. If it's useful in your work, sponsoring its development helps keep it free and funds new features, fixes, and ongoing support.",
+    "supportText2": "You can sponsor monthly or make a one-off contribution through GitHub Sponsors. The link opens in your browser.",
+    "createdBy": "Magnolia was created by and is maintained by Dr Cale Davis.",
+    "sponsorOnGithub": "Sponsor Magnolia on GitHub"
   }
 }

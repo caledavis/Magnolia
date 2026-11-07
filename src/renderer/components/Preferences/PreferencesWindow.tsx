@@ -72,9 +72,9 @@ const DEFAULT_PREFS: Preferences = {
   language: 'system'
 }
 
-const TOOLBAR_STYLE_OPTIONS: { id: ToolbarStyle; label: string }[] = [
-  { id: 'ribbon', label: 'Ribbon' },
-  { id: 'icons', label: 'Icons' }
+const TOOLBAR_STYLE_OPTIONS: { id: ToolbarStyle; labelKey: string }[] = [
+  { id: 'ribbon', labelKey: 'prefs.toolbarStyle.ribbon' },
+  { id: 'icons', labelKey: 'prefs.toolbarStyle.icons' }
 ]
 
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2]
@@ -85,31 +85,31 @@ const INTERFACE_SCALE_OPTIONS = [1, 1.25, 1.5, 2]
 
 interface ThemeOption {
   id: ThemeId
-  label: string
+  labelKey: string
   /** Three swatch colors used to render a small preview of the palette. */
   swatch: { bg: string; surface: string; accent: string }
 }
 
 const THEME_OPTIONS: ThemeOption[] = [
-  { id: 'magnolia',      label: 'Magnolia',      swatch: { bg: '#E9EDF3', surface: '#FFFFFF', accent: '#2563EB' } },
-  { id: 'magnolia-dark', label: 'Magnolia Dark', swatch: { bg: '#14181E', surface: '#252B35', accent: '#5B8FFF' } },
-  { id: 'high-contrast', label: 'High Contrast', swatch: { bg: '#000000', surface: '#ffffff', accent: '#ffff00' } }
+  { id: 'magnolia',      labelKey: 'prefs.theme.magnolia',      swatch: { bg: '#E9EDF3', surface: '#FFFFFF', accent: '#2563EB' } },
+  { id: 'magnolia-dark', labelKey: 'prefs.theme.magnoliaDark', swatch: { bg: '#14181E', surface: '#252B35', accent: '#5B8FFF' } },
+  { id: 'high-contrast', labelKey: 'prefs.theme.highContrast', swatch: { bg: '#000000', surface: '#ffffff', accent: '#ffff00' } }
 ]
 
 type CategoryId = 'appearance' | 'general' | 'media-playback' | 'paper-size' | 'updates' | 'support'
 
 interface Category {
   id: CategoryId
-  label: string
+  labelKey: string
 }
 
 const CATEGORIES: Category[] = [
-  { id: 'general',        label: 'General' },
-  { id: 'appearance',     label: 'Appearance' },
-  { id: 'media-playback', label: 'Media Playback' },
-  { id: 'paper-size',     label: 'Paper Size' },
-  { id: 'updates',        label: 'Updates' },
-  { id: 'support',        label: 'Support Magnolia' }
+  { id: 'general',        labelKey: 'prefs.cat.general' },
+  { id: 'appearance',     labelKey: 'prefs.cat.appearance' },
+  { id: 'media-playback', labelKey: 'prefs.cat.mediaPlayback' },
+  { id: 'paper-size',     labelKey: 'prefs.cat.paperSize' },
+  { id: 'updates',        labelKey: 'prefs.cat.updates' },
+  { id: 'support',        labelKey: 'prefs.cat.support' }
 ]
 
 // Lets callers outside this module (e.g. the toolbar wordmark, when it's
@@ -154,6 +154,7 @@ function keyComboFromEvent(e: KeyboardEvent): string {
 }
 
 function KeyCaptureInput({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
+  const { t } = useTranslation()
   const [capturing, setCapturing] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -178,7 +179,7 @@ function KeyCaptureInput({ value, onChange, label }: { value: string; onChange: 
       <input
         ref={inputRef}
         readOnly
-        value={capturing ? 'Press a key...' : value}
+        value={capturing ? t('prefs.pressKey') : value}
         onClick={() => setCapturing(true)}
         onBlur={() => setCapturing(false)}
         style={{
@@ -218,9 +219,10 @@ function AppearanceSettings({
   colourful: boolean
   onColourfulChange: (v: boolean) => void
 }) {
+  const { t } = useTranslation()
   return (
     <div style={{ marginBottom: 24 }}>
-      <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14, color: 'var(--text-secondary)' }}>Theme</h3>
+      <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14, color: 'var(--text-secondary)' }}>{t('prefs.themeHeading')}</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {THEME_OPTIONS.map((opt) => {
           const selected = opt.id === value
@@ -256,9 +258,9 @@ function AppearanceSettings({
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {opt.label}
+                  {t(opt.labelKey)}
                   {opt.id === 'magnolia' && (
-                    <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, marginLeft: 6 }}>(default)</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, marginLeft: 6 }}>{t('prefs.default')}</span>
                   )}
                 </div>
               </div>
@@ -270,7 +272,7 @@ function AppearanceSettings({
         })}
       </div>
 
-      <h3 style={{ fontSize: 13, fontWeight: 600, marginTop: 24, marginBottom: 10, color: 'var(--text-secondary)' }}>Interface Scale</h3>
+      <h3 style={{ fontSize: 13, fontWeight: 600, marginTop: 24, marginBottom: 10, color: 'var(--text-secondary)' }}>{t('prefs.interfaceScale')}</h3>
       <select
         value={scale}
         onChange={(e) => onScaleChange(parseFloat(e.target.value))}
@@ -285,7 +287,7 @@ function AppearanceSettings({
         ))}
       </select>
 
-      <h3 style={{ fontSize: 13, fontWeight: 600, marginTop: 24, marginBottom: 10, color: 'var(--text-secondary)' }}>Toolbar Style</h3>
+      <h3 style={{ fontSize: 13, fontWeight: 600, marginTop: 24, marginBottom: 10, color: 'var(--text-secondary)' }}>{t('prefs.toolbarStyleHeading')}</h3>
       <select
         value={toolbarStyle}
         onChange={(e) => onToolbarStyleChange(e.target.value as ToolbarStyle)}
@@ -296,7 +298,7 @@ function AppearanceSettings({
         }}
       >
         {TOOLBAR_STYLE_OPTIONS.map((opt) => (
-          <option key={opt.id} value={opt.id}>{opt.label}</option>
+          <option key={opt.id} value={opt.id}>{t(opt.labelKey)}</option>
         ))}
       </select>
 
@@ -304,10 +306,10 @@ function AppearanceSettings({
           COLOURFUL_INTERFACE_ENABLED in utils/colourful-interface.ts. */}
       {COLOURFUL_INTERFACE_ENABLED && (
         <>
-          <h3 style={{ fontSize: 13, fontWeight: 600, marginTop: 24, marginBottom: 10, color: 'var(--text-secondary)' }}>Colour</h3>
+          <h3 style={{ fontSize: 13, fontWeight: 600, marginTop: 24, marginBottom: 10, color: 'var(--text-secondary)' }}>{t('prefs.colour')}</h3>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-primary)', cursor: 'pointer' }}>
             <input type="checkbox" checked={colourful} onChange={(e) => onColourfulChange(e.target.checked)} />
-            Colourful interface
+            {t('prefs.colourful')}
           </label>
         </>
       )}
@@ -344,14 +346,14 @@ function GeneralSettings({
         ))}
       </select>
 
-      <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>Your Name</h3>
+      <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>{t('prefs.yourName')}</h3>
       <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.5 }}>
-        Your name allows colleagues to identify your changes to a project when merging different versions, and is saved into the project file itself whenever you're the last person to edit it.
+        {t('prefs.yourNameText')}
       </p>
       <input
         type="text"
         value={prefs.userName}
-        placeholder="Enter your name"
+        placeholder={t('prefs.enterName')}
         onChange={(e) => save({ ...prefs, userName: e.target.value })}
         style={{
           width: 240, padding: '4px 8px', fontSize: 12,
@@ -372,35 +374,35 @@ function MediaPlaybackSettings({
   updateMapping: (key: keyof FootPedalMappings, value: string | number) => void
   save: (updated: Preferences) => void
 }) {
+  const { t } = useTranslation()
   return (
     <>
       {/* Foot Pedal / Key Mappings */}
       <div style={{ marginBottom: 24 }}>
         <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>
-          Audio Playback Key Mappings
+          {t('prefs.keyMappings')}
         </h3>
         <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.5 }}>
-          Map keyboard keys or foot pedal buttons to audio playback controls.
-          Click an input field and press the desired key combination.
+          {t('prefs.keyMappingsText')}
         </p>
         <KeyCaptureInput
-          label="Play / Pause"
+          label={t('prefs.playPause')}
           value={prefs.footPedalMappings.playPause}
           onChange={(v) => updateMapping('playPause', v)}
         />
         <KeyCaptureInput
-          label="Rewind"
+          label={t('prefs.rewind')}
           value={prefs.footPedalMappings.rewind}
           onChange={(v) => updateMapping('rewind', v)}
         />
         <KeyCaptureInput
-          label="Fast Forward"
+          label={t('prefs.fastForward')}
           value={prefs.footPedalMappings.fastForward}
           onChange={(v) => updateMapping('fastForward', v)}
         />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, marginTop: 12 }}>
-          <label style={{ width: 120, fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>Rewind seconds</label>
+          <label style={{ width: 120, fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>{t('prefs.rewindSeconds')}</label>
           <input
             type="number"
             min={1}
@@ -416,7 +418,7 @@ function MediaPlaybackSettings({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <label style={{ width: 120, fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>Forward seconds</label>
+          <label style={{ width: 120, fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>{t('prefs.forwardSeconds')}</label>
           <input
             type="number"
             min={1}
@@ -434,7 +436,7 @@ function MediaPlaybackSettings({
 
       {/* Default playback speed */}
       <div style={{ marginBottom: 24 }}>
-        <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>Default Playback Speed</h3>
+        <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>{t('prefs.defaultSpeed')}</h3>
         <select
           value={prefs.defaultPlaybackSpeed}
           onChange={(e) => save({ ...prefs, defaultPlaybackSpeed: parseFloat(e.target.value) })}
@@ -462,11 +464,12 @@ function PaperSizeSettings({
   prefs: Preferences
   save: (updated: Preferences) => void
 }) {
+  const { t } = useTranslation()
   return (
     <div style={{ marginBottom: 24 }}>
-      <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>Paper Size</h3>
+      <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>{t('prefs.cat.paperSize')}</h3>
       <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.5 }}>
-        Page size for PDFs Magnolia exports (coded documents, query results, codebooks, the logbook, and survey summaries).
+        {t('prefs.paperSizeText')}
       </p>
       <select
         value={prefs.paperSize}
@@ -478,7 +481,7 @@ function PaperSizeSettings({
         }}
       >
         {PAPER_SIZE_OPTIONS.map((s) => (
-          <option key={s} value={s}>{s}</option>
+          <option key={s} value={s}>{t(`prefs.paper.${s}`)}</option>
         ))}
       </select>
     </div>
@@ -494,18 +497,20 @@ type UpdateStatus = {
 /** Render the inline result of a manual update check. Colour and wording
  *  track the state reported by the main process over 'update:status'. */
 function UpdateStatusLine({ status }: { status: UpdateStatus }) {
+  const { t } = useTranslation()
   const map: Record<UpdateStatus['state'], { color: string; text: string }> = {
-    checking:      { color: 'var(--text-muted)',   text: 'Checking for updates…' },
-    'up-to-date':  { color: 'var(--success)',      text: `You're up to date${status.version ? ` (version ${status.version})` : ''}.` },
-    available:     { color: 'var(--accent)',       text: `Update available${status.version ? ` — version ${status.version}` : ''}. The update window has the details.` },
-    error:         { color: 'var(--danger)',       text: `Couldn't check for updates: ${status.message ?? 'unknown error'}` },
-    'dev-disabled':{ color: 'var(--text-muted)',   text: 'Update checks are disabled in development builds.' }
+    checking:      { color: 'var(--text-muted)',   text: t('prefs.status.checking') },
+    'up-to-date':  { color: 'var(--success)',      text: status.version ? t('prefs.status.upToDateVersion', { version: status.version }) : t('prefs.status.upToDate') },
+    available:     { color: 'var(--accent)',       text: status.version ? t('prefs.status.availableVersion', { version: status.version }) : t('prefs.status.available') },
+    error:         { color: 'var(--danger)',       text: t('prefs.status.error', { message: status.message ?? t('prefs.status.unknownError') }) },
+    'dev-disabled':{ color: 'var(--text-muted)',   text: t('prefs.status.devDisabled') }
   }
   const { color, text } = map[status.state]
   return <div style={{ fontSize: 11.5, color, marginTop: 12, lineHeight: 1.5 }}>{text}</div>
 }
 
 function UpdatesSettings() {
+  const { t } = useTranslation()
   const [version, setVersion] = useState<string | null>(null)
   const [checking, setChecking] = useState(false)
   const [status, setStatus] = useState<UpdateStatus | null>(null)
@@ -554,15 +559,13 @@ function UpdatesSettings() {
 
   return (
     <div style={{ marginBottom: 24 }}>
-      <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>Software Updates</h3>
+      <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>{t('prefs.softwareUpdates')}</h3>
       <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.5 }}>
-        Magnolia checks for updates automatically in the background. If that
-        doesn't work on your computer (for example on a managed or restricted
-        machine), you can check for a new version here at any time.
+        {t('prefs.updatesText')}
       </p>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>Current version</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>{t('prefs.currentVersion')}</span>
         <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>
           {version ?? '…'}
         </span>
@@ -583,11 +586,10 @@ function UpdatesSettings() {
           }}
         >
           <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
-            A new version{badge.latestVersion ? ` (${badge.latestVersion})` : ''} is available
+            {badge.latestVersion ? t('prefs.newVersionNumbered', { version: badge.latestVersion }) : t('prefs.newVersion')}
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10, lineHeight: 1.5 }}>
-            If Magnolia doesn't update itself, download the latest version from the
-            releases page.
+            {t('prefs.updateItself')}
           </div>
           <a
             href={RELEASES_URL}
@@ -604,7 +606,7 @@ function UpdatesSettings() {
               textDecoration: 'none'
             }}
           >
-            Download latest version
+            {t('prefs.downloadLatest')}
           </a>
         </div>
       )}
@@ -615,7 +617,7 @@ function UpdatesSettings() {
         onClick={check}
         style={{ fontSize: 12, padding: '6px 16px' }}
       >
-        {checking ? 'Checking…' : 'Check for Updates'}
+        {checking ? t('prefs.checking') : t('prefs.checkForUpdates')}
       </button>
 
       {checking
@@ -626,24 +628,21 @@ function UpdatesSettings() {
 }
 
 function SupportSettings() {
+  const { t } = useTranslation()
   return (
     <div style={{ marginBottom: 24 }}>
       <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>
-        Support Magnolia
+        {t('prefs.cat.support')}
       </h3>
       <p style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginBottom: 12, lineHeight: 1.6 }}>
-        Magnolia is free and open-source, with no ads, subscriptions, or cloud
-        lock-in. It's built and maintained independently. If it's useful in your
-        work, sponsoring its development helps keep it free and funds new
-        features, fixes, and ongoing support.
+        {t('prefs.supportText1')}
       </p>
       <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 16, lineHeight: 1.6 }}>
-        You can sponsor monthly or make a one-off contribution through GitHub
-        Sponsors. The link opens in your browser.
+        {t('prefs.supportText2')}
       </p>
 
       <p style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.6 }}>
-        Magnolia was created by and is maintained by Dr Cale Davis.
+        {t('prefs.createdBy')}
       </p>
 
       {/* The main window's setWindowOpenHandler routes target=_blank links
@@ -666,7 +665,7 @@ function SupportSettings() {
         }}
       >
         <span aria-hidden style={{ fontSize: 13 }}>♥</span>
-        Sponsor Magnolia on GitHub
+        {t('prefs.sponsorOnGithub')}
       </a>
 
       <p style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 14, fontFamily: 'var(--font-mono)' }}>
@@ -683,6 +682,7 @@ interface PreferencesWindowProps {
 }
 
 export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
+  const { t } = useTranslation()
   const [prefs, setPrefs] = useState<Preferences>(DEFAULT_PREFS)
   const [loaded, setLoaded] = useState(false)
   // Open to a category requested before mount (e.g. the wordmark badge asking
@@ -776,7 +776,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
     document.documentElement.toggleAttribute('data-colourful', colourfulInterface)
   }, [prefs, save])
 
-  if (!loaded) return <div style={{ padding: 20, color: 'var(--text-muted)' }}>Loading...</div>
+  if (!loaded) return <div style={{ padding: 20, color: 'var(--text-muted)' }}>{t('common.loading')}</div>
 
   const selected = CATEGORIES.find((c) => c.id === selectedCategory) ?? CATEGORIES[0]
 
@@ -800,7 +800,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
       <div style={{ padding: '14px 20px 6px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
         <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
           <Icon icon={faGear} className="analysis-header-icon" style={{ fontSize: 16 }} />
-          Preferences
+          {t('toolbar.preferences')}
         </h2>
         <div style={{ flex: 1 }} />
         <button
@@ -808,7 +808,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
           style={{ fontSize: 11, padding: '4px 14px' }}
           onClick={() => (onClose ? onClose() : window.close())}
         >
-          Close
+          {t('common.close')}
         </button>
       </div>
 
@@ -839,7 +839,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
                   userSelect: 'none'
                 }}
               >
-                {cat.label}
+                {t(cat.labelKey)}
               </div>
             )
           })}

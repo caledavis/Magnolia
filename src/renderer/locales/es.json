@@ -1168,5 +1168,74 @@
     "noneSelected": "No hay documentos seleccionados. Conecta los nodos a Resultado.",
     "survey": "Encuesta",
     "statusHint": "Arrastra documentos y etiquetas al lienzo · Conecta los nodos a Resultado · Arrastra aquí preguntas y encuestados para elegirlos"
+  },
+  "prefs": {
+    "cat": {
+      "general": "General",
+      "appearance": "Apariencia",
+      "mediaPlayback": "Reproducción multimedia",
+      "paperSize": "Tamaño del papel",
+      "updates": "Actualizaciones",
+      "support": "Apoya a Magnolia"
+    },
+    "toolbarStyle": {
+      "ribbon": "Cinta",
+      "icons": "Iconos"
+    },
+    "theme": {
+      "magnolia": "Magnolia",
+      "magnoliaDark": "Magnolia oscuro",
+      "highContrast": "Alto contraste"
+    },
+    "pressKey": "Pulsa una tecla...",
+    "themeHeading": "Tema",
+    "default": "(predeterminado)",
+    "interfaceScale": "Escala de la interfaz",
+    "toolbarStyleHeading": "Estilo de la barra de herramientas",
+    "colour": "Color",
+    "colourful": "Interfaz en color",
+    "yourName": "Tu nombre",
+    "yourNameText": "Tu nombre permite a tus compañeros identificar tus cambios en un proyecto al combinar distintas versiones, y se guarda en el propio archivo del proyecto cuando eres la última persona que lo edita.",
+    "enterName": "Escribe tu nombre",
+    "keyMappings": "Teclas de reproducción de audio",
+    "keyMappingsText": "Asigna teclas del teclado o botones del pedal a los controles de reproducción de audio. Haz clic en un campo y pulsa la combinación de teclas que quieras.",
+    "playPause": "Reproducir / pausa",
+    "rewind": "Retroceder",
+    "fastForward": "Avanzar",
+    "rewindSeconds": "Segundos de retroceso",
+    "forwardSeconds": "Segundos de avance",
+    "defaultSpeed": "Velocidad de reproducción predeterminada",
+    "paperSizeText": "Tamaño de página de los PDF que exporta Magnolia (documentos codificados, resultados de consultas, libros de códigos, la bitácora y resúmenes de encuestas).",
+    "paper": {
+      "A4": "A4",
+      "A3": "A3",
+      "A5": "A5",
+      "Letter": "Carta",
+      "Legal": "Oficio",
+      "Tabloid": "Tabloide"
+    },
+    "status": {
+      "checking": "Buscando actualizaciones…",
+      "upToDate": "Tienes la versión más reciente.",
+      "upToDateVersion": "Tienes la versión más reciente ({{version}}).",
+      "available": "Hay una actualización. Los detalles están en la ventana de actualización.",
+      "availableVersion": "Hay una actualización: la versión {{version}}. Los detalles están en la ventana de actualización.",
+      "error": "No se pudo buscar actualizaciones: {{message}}",
+      "unknownError": "error desconocido",
+      "devDisabled": "La búsqueda de actualizaciones está desactivada en las versiones de desarrollo."
+    },
+    "softwareUpdates": "Actualizaciones de software",
+    "updatesText": "Magnolia busca actualizaciones automáticamente en segundo plano. Si eso no funciona en tu ordenador (por ejemplo, en un equipo gestionado o restringido), puedes buscar una versión nueva aquí cuando quieras.",
+    "currentVersion": "Versión actual",
+    "newVersion": "Hay una versión nueva",
+    "newVersionNumbered": "Hay una versión nueva ({{version}})",
+    "updateItself": "Si Magnolia no se actualiza solo, descarga la versión más reciente de la página de versiones.",
+    "downloadLatest": "Descargar la versión más reciente",
+    "checking": "Buscando…",
+    "checkForUpdates": "Buscar actualizaciones",
+    "supportText1": "Magnolia es libre y de código abierto, sin anuncios, suscripciones ni dependencia de la nube. Se crea y mantiene de forma independiente. Si te resulta útil en tu trabajo, patrocinar su desarrollo ayuda a que siga siendo gratis y financia funciones nuevas, correcciones y soporte continuo.",
+    "supportText2": "Puedes patrocinar cada mes o hacer una aportación única a través de GitHub Sponsors. El enlace se abre en tu navegador.",
+    "createdBy": "Magnolia lo creó y lo mantiene el Dr. Cale Davis.",
+    "sponsorOnGithub": "Patrocina Magnolia en GitHub"
   }
 }

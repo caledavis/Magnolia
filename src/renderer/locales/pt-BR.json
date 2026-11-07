@@ -1168,5 +1168,74 @@
     "noneSelected": "Nenhum documento selecionado. Conecte os nós a Resultado.",
     "survey": "Pesquisa",
     "statusHint": "Arraste documentos e etiquetas para a tela · Conecte os nós a Resultado · Arraste perguntas e respondentes para cá para escolhê-los"
+  },
+  "prefs": {
+    "cat": {
+      "general": "Geral",
+      "appearance": "Aparência",
+      "mediaPlayback": "Reprodução de mídia",
+      "paperSize": "Tamanho do papel",
+      "updates": "Atualizações",
+      "support": "Apoie o Magnolia"
+    },
+    "toolbarStyle": {
+      "ribbon": "Faixa de opções",
+      "icons": "Ícones"
+    },
+    "theme": {
+      "magnolia": "Magnolia",
+      "magnoliaDark": "Magnolia escuro",
+      "highContrast": "Alto contraste"
+    },
+    "pressKey": "Pressione uma tecla...",
+    "themeHeading": "Tema",
+    "default": "(padrão)",
+    "interfaceScale": "Escala da interface",
+    "toolbarStyleHeading": "Estilo da barra de ferramentas",
+    "colour": "Cor",
+    "colourful": "Interface colorida",
+    "yourName": "Seu nome",
+    "yourNameText": "Seu nome permite que os colegas identifiquem suas alterações em um projeto ao mesclar versões diferentes, e é salvo no próprio arquivo do projeto sempre que você for a última pessoa a editá-lo.",
+    "enterName": "Digite seu nome",
+    "keyMappings": "Teclas de reprodução de áudio",
+    "keyMappingsText": "Associe teclas do teclado ou botões do pedal aos controles de reprodução de áudio. Clique em um campo e pressione a combinação de teclas desejada.",
+    "playPause": "Reproduzir / pausar",
+    "rewind": "Retroceder",
+    "fastForward": "Avançar",
+    "rewindSeconds": "Segundos para retroceder",
+    "forwardSeconds": "Segundos para avançar",
+    "defaultSpeed": "Velocidade de reprodução padrão",
+    "paperSizeText": "Tamanho de página dos PDFs que o Magnolia exporta (documentos codificados, resultados de consultas, livros de códigos, o diário de bordo e resumos de pesquisas).",
+    "paper": {
+      "A4": "A4",
+      "A3": "A3",
+      "A5": "A5",
+      "Letter": "Carta",
+      "Legal": "Ofício",
+      "Tabloid": "Tabloide"
+    },
+    "status": {
+      "checking": "Buscando atualizações…",
+      "upToDate": "Você está com a versão mais recente.",
+      "upToDateVersion": "Você está com a versão mais recente ({{version}}).",
+      "available": "Há uma atualização disponível. Os detalhes estão na janela de atualização.",
+      "availableVersion": "Há uma atualização disponível: a versão {{version}}. Os detalhes estão na janela de atualização.",
+      "error": "Não foi possível buscar atualizações: {{message}}",
+      "unknownError": "erro desconhecido",
+      "devDisabled": "A busca de atualizações está desativada nas versões de desenvolvimento."
+    },
+    "softwareUpdates": "Atualizações de software",
+    "updatesText": "O Magnolia busca atualizações automaticamente em segundo plano. Se isso não funcionar no seu computador (por exemplo, em uma máquina gerenciada ou restrita), você pode buscar uma nova versão aqui a qualquer momento.",
+    "currentVersion": "Versão atual",
+    "newVersion": "Há uma nova versão disponível",
+    "newVersionNumbered": "Há uma nova versão ({{version}}) disponível",
+    "updateItself": "Se o Magnolia não se atualizar sozinho, baixe a versão mais recente na página de versões.",
+    "downloadLatest": "Baixar a versão mais recente",
+    "checking": "Buscando…",
+    "checkForUpdates": "Buscar atualizações",
+    "supportText1": "O Magnolia é livre e de código aberto, sem anúncios, assinaturas ou dependência da nuvem. Ele é criado e mantido de forma independente. Se ele for útil no seu trabalho, patrocinar o desenvolvimento ajuda a mantê-lo gratuito e financia novos recursos, correções e suporte contínuo.",
+    "supportText2": "Você pode patrocinar mensalmente ou fazer uma contribuição única pelo GitHub Sponsors. O link abre no navegador.",
+    "createdBy": "O Magnolia foi criado e é mantido pelo Dr. Cale Davis.",
+    "sponsorOnGithub": "Patrocine o Magnolia no GitHub"
   }
 }

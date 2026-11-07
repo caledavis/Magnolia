@@ -1130,5 +1130,74 @@
     "noneSelected": "Geen documenten geselecteerd. Verbind de knooppunten met Resultaat.",
     "survey": "Enquête",
     "statusHint": "Sleep documenten en tags naar het canvas · Verbind de knooppunten met Resultaat · Sleep enquêtevragen en respondenten hierheen om ze te kiezen"
+  },
+  "prefs": {
+    "cat": {
+      "general": "Algemeen",
+      "appearance": "Weergave",
+      "mediaPlayback": "Media afspelen",
+      "paperSize": "Papierformaat",
+      "updates": "Updates",
+      "support": "Steun Magnolia"
+    },
+    "toolbarStyle": {
+      "ribbon": "Lint",
+      "icons": "Pictogrammen"
+    },
+    "theme": {
+      "magnolia": "Magnolia",
+      "magnoliaDark": "Magnolia donker",
+      "highContrast": "Hoog contrast"
+    },
+    "pressKey": "Druk op een toets...",
+    "themeHeading": "Thema",
+    "default": "(standaard)",
+    "interfaceScale": "Schaal van de interface",
+    "toolbarStyleHeading": "Stijl van de werkbalk",
+    "colour": "Kleur",
+    "colourful": "Kleurrijke interface",
+    "yourName": "Je naam",
+    "yourNameText": "Aan je naam herkennen collega's jouw wijzigingen in een project als ze verschillende versies samenvoegen. Je naam wordt in het projectbestand zelf bewaard als jij het als laatste hebt bewerkt.",
+    "enterName": "Vul je naam in",
+    "keyMappings": "Toetsen voor audio afspelen",
+    "keyMappingsText": "Koppel toetsen of knoppen van een voetpedaal aan de bediening van het afspelen. Klik in een veld en druk op de gewenste toetscombinatie.",
+    "playPause": "Afspelen / pauzeren",
+    "rewind": "Terugspoelen",
+    "fastForward": "Vooruitspoelen",
+    "rewindSeconds": "Seconden terugspoelen",
+    "forwardSeconds": "Seconden vooruitspoelen",
+    "defaultSpeed": "Standaard afspeelsnelheid",
+    "paperSizeText": "Paginaformaat van de pdf's die Magnolia exporteert (gecodeerde documenten, queryresultaten, codeboeken, het logboek en enquêteoverzichten).",
+    "paper": {
+      "A4": "A4",
+      "A3": "A3",
+      "A5": "A5",
+      "Letter": "Letter",
+      "Legal": "Legal",
+      "Tabloid": "Tabloid"
+    },
+    "status": {
+      "checking": "Zoeken naar updates…",
+      "upToDate": "Je bent helemaal bij.",
+      "upToDateVersion": "Je bent helemaal bij (versie {{version}}).",
+      "available": "Er is een update beschikbaar. Het updatevenster bevat de details.",
+      "availableVersion": "Er is een update beschikbaar: versie {{version}}. Het updatevenster bevat de details.",
+      "error": "Kan niet zoeken naar updates: {{message}}",
+      "unknownError": "onbekende fout",
+      "devDisabled": "Zoeken naar updates is uitgeschakeld in ontwikkelversies."
+    },
+    "softwareUpdates": "Software-updates",
+    "updatesText": "Magnolia zoekt automatisch op de achtergrond naar updates. Als dat op je computer niet werkt (bijvoorbeeld op een beheerde of beperkte computer), kun je hier op elk moment naar een nieuwe versie zoeken.",
+    "currentVersion": "Huidige versie",
+    "newVersion": "Er is een nieuwe versie beschikbaar",
+    "newVersionNumbered": "Er is een nieuwe versie ({{version}}) beschikbaar",
+    "updateItself": "Als Magnolia zichzelf niet bijwerkt, download dan de nieuwste versie van de releasepagina.",
+    "downloadLatest": "Nieuwste versie downloaden",
+    "checking": "Zoeken…",
+    "checkForUpdates": "Zoeken naar updates",
+    "supportText1": "Magnolia is vrij en opensource, zonder advertenties, abonnementen of afhankelijkheid van de cloud. Het wordt onafhankelijk gemaakt en onderhouden. Heb je er iets aan in je werk, dan helpt sponsoring van de ontwikkeling om het gratis te houden en betaalt het nieuwe functies, oplossingen en doorlopende ondersteuning.",
+    "supportText2": "Je kunt maandelijks sponsoren of een eenmalige bijdrage doen via GitHub Sponsors. De link wordt in je browser geopend.",
+    "createdBy": "Magnolia is gemaakt en wordt onderhouden door dr. Cale Davis.",
+    "sponsorOnGithub": "Sponsor Magnolia op GitHub"
   }
 }
