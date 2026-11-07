@@ -92,8 +92,7 @@ If a passage was coded with both codes, it keeps a single coding after the merge
 
 1. Select the text you wish to code in the Viewer. Then:
    1. Drag the code from the Code Browser to the Viewer; or,
-   2. Drag the grab handle on the end of the selection onto the code in the Code Browser. The code you are dropping onto is highlighted in blue; or,
-   3. Press the hotkey assigned to the code.
+   2. Press the hotkey assigned to the code.
 
 2. Your code is assigned to the selection.
 
@@ -108,8 +107,7 @@ If a passage was coded with both codes, it keeps a single coding after the merge
 
 1. Click and drag on the image to create a selection. Then:
    1. Drag the code from the Code Browser to the Viewer; or,
-   2. Drag the grab handle at the bottom-right corner of the selection onto the code in the Code Browser; or,
-   3. Press the hotkey assigned to the code.
+   2. Press the hotkey assigned to the code.
 
 2. Your code is assigned to the selection.
 

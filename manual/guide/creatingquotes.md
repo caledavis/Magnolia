@@ -4,9 +4,7 @@ To create a quote:
 
 1. Select the text or the part of the image you wish to quote.
 
-2. Then:
-   1. Right-click on the selection and choose "Add as quote"; or,
-   2. Drag the grab handle on the selection into the Saved Quotes Panel. The panel is outlined in blue as you drag over it.
+2. Right-click on the selection and choose "Add as quote".
 
    <figure>
      <img src="./images/QuoteRightClick.png" alt="Adding a quote.">
