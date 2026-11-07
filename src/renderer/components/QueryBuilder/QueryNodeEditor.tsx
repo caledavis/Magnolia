@@ -4,6 +4,8 @@ import { validateCondition } from '../../utils/query-engine'
 import { Icon, faExclamationTriangle, faCircle, faXmark } from '../Icon'
 import { PaletteGroup, PaletteDivider, PaletteButton } from '../NodePalette'
 import { modKey, altClickHint } from '../../utils/platform'
+import { useTranslation } from 'react-i18next'
+import { t } from '../../i18n'
 
 /* ═══════════════════════════════════════════════════
    Types
@@ -79,19 +81,8 @@ const KIND_COLOR: Record<NodeKind, string> = {
   result: '#8b5cf6'
 }
 
-const KIND_LABEL: Record<NodeKind, string> = {
-  code: '',
-  any: 'Any code',
-  text: 'Text',
-  logical: 'Logical',
-  overlap: 'Overlapping',
-  inside: 'Inside',
-  outside: 'Outside',
-  before: 'Before',
-  followedBy: 'Followed by',
-  sameSentence: 'Same sentence',
-  result: 'Result'
-}
+/** A node kind's name (queryBuilder.kind.<kind>); code nodes show their code instead. */
+const kindLabel = (kind: NodeKind): string => (kind === 'code' ? '' : t(`queryBuilder.kind.${kind}`))
 
 const LOGICAL_OP_LABEL: Record<LogicalOp, string> = {
   and: 'AND',
@@ -107,12 +98,7 @@ const LOGICAL_OP_COLOR: Record<LogicalOp, string> = {
   xor: '#0ea5e9'
 }
 
-const LOGICAL_OP_TOOLTIP: Record<LogicalOp, string> = {
-  and: 'AND — all inputs must be true for the same selection',
-  or: 'OR — at least one input must be true',
-  not: 'NOT — inverts the input (all segments that do NOT match)',
-  xor: 'XOR — exactly one input must be true, but not both'
-}
+const logicalOpTooltip = (op: LogicalOp): string => t(`queryBuilder.op.${op}`)
 
 /** How many input slots each operator accepts */
 const LOGICAL_OP_SLOTS: Record<LogicalOp, { min: number; max: number }> = {
@@ -125,19 +111,8 @@ const LOGICAL_OP_SLOTS: Record<LogicalOp, { min: number; max: number }> = {
 const SPATIAL_KINDS: NodeKind[] = ['overlap', 'inside', 'outside', 'before', 'followedBy', 'sameSentence']
 const DUAL_CODE_KINDS: NodeKind[] = ['logical', ...SPATIAL_KINDS]
 
-const KIND_TOOLTIP: Record<NodeKind, string> = {
-  code: '',
-  any: 'Matches any coded selection (wildcard)',
-  text: 'Search for a word or phrase in the document text',
-  logical: 'Combine inputs with AND, OR, NOT, or XOR',
-  overlap: 'The text where a Code 1 selection and a Code 2 selection physically overlap',
-  inside: 'Code 1 selections that are fully contained within a Code 2 selection',
-  outside: 'Code 1 selections that do not overlap with any Code 2 selection',
-  before: 'Input 1 selections that end before an Input 2 selection starts, with no overlap between them',
-  followedBy: 'Input 1 selections that start after an Input 2 selection ends, with no overlap between them',
-  sameSentence: 'The sentences that contain both an Input 1 selection and an Input 2 selection. Connect it straight to Result',
-  result: 'The final query output'
-}
+/** What a node kind does (queryBuilder.tip.<kind>). */
+const kindTooltip = (kind: NodeKind): string => (kind === 'code' ? '' : t(`queryBuilder.tip.${kind}`))
 
 /* ═══════════════════════════════════════════════════
    Helpers
@@ -221,7 +196,7 @@ function inputSlots(n: GNode): number {
 
 function nodeH(n: GNode): number {
   if (n.kind === 'any') return CODE_H
-  if (n.kind === 'code') return CODE_H + codeLabelLineHeight(n.codeName || 'Code')
+  if (n.kind === 'code') return CODE_H + codeLabelLineHeight(n.codeName || t('queryBuilder.code'))
   if (n.kind === 'text') return TEXT_H
   if (n.kind === 'result') return RESULT_H
   if (n.kind === 'logical') {
@@ -421,7 +396,7 @@ function conditionToGraph(
         x: col * COL_W,
         y,
         codeGuid: c.codeGuid,
-        codeName: code?.name || 'Code',
+        codeName: code?.name || t('queryBuilder.code'),
         codeColor: code?.color,
         // Restore the "And subcodes" checkbox straight from the condition
         // (new compact form). Legacy OR-expanded queries are handled by the
@@ -496,7 +471,7 @@ function conditionToGraph(
             x: col * COL_W,
             y,
             codeGuid: parentGuid,
-            codeName: code?.name || 'Code',
+            codeName: code?.name || t('queryBuilder.code'),
             codeColor: code?.color,
             includeSubcodes: true
           })
@@ -594,6 +569,7 @@ interface Props {
 }
 
 export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, initialGraphLayout, codes }: Props) {
+  const { t } = useTranslation()
   const canvasRef = useRef<HTMLDivElement>(null)
   const wireRef = useRef<SVGPathElement>(null)
 
@@ -1150,24 +1126,24 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
           flexWrap: 'wrap'
         }}
       >
-        <PaletteGroup label="Logical">
+        <PaletteGroup label={kindLabel('logical')}>
           <PaletteButton
             kind="logical"
-            label={KIND_LABEL.logical}
+            label={kindLabel('logical')}
             color={KIND_COLOR.logical}
-            tooltip={KIND_TOOLTIP.logical}
+            tooltip={kindTooltip('logical')}
             onClick={() => addOp('logical')}
           />
         </PaletteGroup>
 
         <PaletteDivider />
 
-        <PaletteGroup label="Input">
+        <PaletteGroup label={t('queryBuilder.paletteInput')}>
           <PaletteButton
             kind="text"
-            label={KIND_LABEL.text}
+            label={kindLabel('text')}
             color={KIND_COLOR.text}
-            tooltip={KIND_TOOLTIP.text}
+            tooltip={kindTooltip('text')}
             onClick={() => {
               setNodes((p) => [
                 ...p,
@@ -1183,9 +1159,9 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
           />
           <PaletteButton
             kind="any"
-            label={KIND_LABEL.any}
+            label={kindLabel('any')}
             color={KIND_COLOR.any}
-            tooltip="Any code — matches any coded selection"
+            tooltip={t('queryBuilder.anyCodeTooltip')}
             onClick={() => {
               setNodes((p) => [
                 ...p,
@@ -1202,14 +1178,14 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
 
         <PaletteDivider />
 
-        <PaletteGroup label="Spatial">
+        <PaletteGroup label={t('queryBuilder.paletteSpatial')}>
           {SPATIAL_KINDS.map((k) => (
             <PaletteButton
               key={k}
               kind={k}
-              label={KIND_LABEL[k]}
+              label={kindLabel(k)}
               color={KIND_COLOR[k]}
-              tooltip={KIND_TOOLTIP[k]}
+              tooltip={kindTooltip(k)}
               onClick={() => addOp(k)}
             />
           ))}
@@ -1338,18 +1314,18 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
             if (!conn) return null
             const src = nodes.find((n) => n.id === conn.from)
             if (!src) return null
-            if (src.kind === 'code') return src.codeName || 'Code'
-            if (src.kind === 'any') return 'Any Code'
-            if (src.kind === 'text') return src.searchText ? `"${src.searchText}"` : 'Text'
-            if (src.kind === 'logical') return 'LOGICAL input'
-            if (SPATIAL_KINDS.includes(src.kind)) return KIND_LABEL[src.kind] + ' input'
-            return 'Input'
+            if (src.kind === 'code') return src.codeName || t('queryBuilder.code')
+            if (src.kind === 'any') return t('queryBuilder.anyCode')
+            if (src.kind === 'text') return src.searchText ? `"${src.searchText}"` : kindLabel('text')
+            if (src.kind === 'logical') return t('queryBuilder.logicalInput')
+            if (SPATIAL_KINDS.includes(src.kind)) return t('queryBuilder.kindInput', { kind: kindLabel(src.kind) })
+            return t('queryBuilder.input')
           }
 
           return (
             <div
               key={node.id}
-              title={KIND_TOOLTIP[node.kind] || undefined}
+              title={kindTooltip(node.kind) || undefined}
               onMouseDown={(e) => nodeDown(e, node.id)}
               onClick={(e) => e.stopPropagation()}
               style={{
@@ -1417,14 +1393,14 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                 {node.kind === 'code'
                   ? (
                     <span style={{ flex: 1, minWidth: 0, wordBreak: 'break-word', lineHeight: '14px' }}>
-                      {node.codeName || 'Code'}
+                      {node.codeName || t('queryBuilder.code')}
                     </span>
                   )
                   : node.kind === 'any'
-                    ? 'Any Code'
+                    ? t('queryBuilder.anyCode')
                     : node.kind === 'text'
-                      ? 'TEXT'
-                      : KIND_LABEL[node.kind]}
+                      ? t('queryBuilder.textUpper')
+                      : kindLabel(node.kind)}
                 {/* Inline NOT toggle button */}
                 {node.kind !== 'logical' && node.kind !== 'result' && (
                   <button
@@ -1433,7 +1409,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                       e.stopPropagation()
                       setNodes((p) => p.map((nd) => nd.id === node.id ? { ...nd, isNegated: !nd.isNegated } : nd))
                     }}
-                    title={node.isNegated ? 'Remove NOT (click to un-negate)' : 'Apply NOT (click to negate)'}
+                    title={node.isNegated ? t('queryBuilder.removeNot') : t('queryBuilder.applyNot')}
                     style={{
                       marginLeft: 'auto',
                       fontSize: 7,
@@ -1470,7 +1446,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                     }}
                     style={{ margin: 0, width: 10, height: 10 }}
                   />
-                  And subcodes
+                  {t('queryBuilder.andSubcodes')}
                 </label>
               )}
 
@@ -1480,7 +1456,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                   <input
                     type="text"
                     value={node.searchText || ''}
-                    placeholder="word or phrase..."
+                    placeholder={t('find.placeholder')}
                     onChange={(e) => {
                       const val = e.target.value
                       setNodes((p) =>
@@ -1530,7 +1506,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                       }}
                       style={{ margin: 0, width: 10, height: 10 }}
                     />
-                    Case sensitive
+                    {t('find.caseSensitive')}
                   </label>
                   <label
                     onMouseDown={(e) => e.stopPropagation()}
@@ -1559,7 +1535,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                       }}
                       style={{ margin: 0, width: 10, height: 10 }}
                     />
-                    Whole word
+                    {t('find.wholeWord')}
                   </label>
                 </div>
               )}
@@ -1593,7 +1569,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                           const maxPort = LOGICAL_OP_SLOTS[newOp].max
                           setConns((p) => p.filter((c) => !(c.to === node.id && c.toPort >= maxPort)))
                         }}
-                        title={op ? LOGICAL_OP_TOOLTIP[op] : 'Select an operator'}
+                        title={op ? logicalOpTooltip(op) : t('queryBuilder.selectOperator')}
                         onMouseDown={(e) => e.stopPropagation()}
                         onClick={(e) => e.stopPropagation()}
                         style={{
@@ -1608,7 +1584,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                           outline: 'none'
                         }}
                       >
-                        <option value="" disabled>Operator...</option>
+                        <option value="" disabled>{t('queryBuilder.operatorPlaceholder')}</option>
                         <option value="and">AND</option>
                         <option value="or">OR</option>
                         <option value="not">NOT</option>
@@ -1636,7 +1612,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                             position: 'relative'
                           }}
                         >
-                          {name || `Input ${i + 1}`}
+                          {name || t('queryBuilder.inputN', { n: i + 1 })}
                           {canRemove && (
                             <span
                               onMouseDown={(ev) => ev.stopPropagation()}
@@ -1669,7 +1645,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                                 pointerEvents: 'auto',
                                 opacity: 0.5
                               }}
-                              title="Remove this input"
+                              title={t('queryBuilder.removeInput')}
                             >
                               <Icon icon={faXmark} />
                             </span>
@@ -1724,7 +1700,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {portLabel(0) || 'Input 1'}
+                    {portLabel(0) || t('queryBuilder.inputN', { n: 1 })}
                   </div>
                   <div
                     style={{
@@ -1737,7 +1713,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                       letterSpacing: 0.5
                     }}
                   >
-                    {KIND_LABEL[node.kind]}
+                    {kindLabel(node.kind)}
                   </div>
                   <div
                     style={{
@@ -1752,7 +1728,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {portLabel(1) || 'Input 2'}
+                    {portLabel(1) || t('queryBuilder.inputN', { n: 2 })}
                   </div>
                 </div>
               )}
@@ -1919,7 +1895,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
               opacity: 0.85
             }}
           >
-            Re-centre
+            {t('queryBuilder.recentre')}
           </button>
         )}
       </div>
@@ -1937,8 +1913,8 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
       >
         <span>
           {selNodes.size > 1
-            ? `${selNodes.size} selected — ${modKey('C')} copy · ${modKey('V')} paste · Delete to remove`
-            : `Drag codes & operators onto canvas · Drag to select · ${altClickHint} to multi-select`}
+            ? t('queryBuilder.statusSelected', { count: selNodes.size, copy: modKey('C'), paste: modKey('V') })
+            : t('queryBuilder.statusHint', { altClick: altClickHint })}
         </span>
         <span
           style={{
@@ -1949,8 +1925,8 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
           }}
         >
           {condition
-            ? (validationError ? <><Icon icon={faCircle} style={{ fontSize: 6, marginRight: 4 }} />Error</> : <><Icon icon={faCircle} style={{ fontSize: 6, marginRight: 4 }} />Query ready</>)
-            : <><Icon icon={faCircle} style={{ fontSize: 6, marginRight: 4 }} />Connect nodes to Result</>}
+            ? (validationError ? <><Icon icon={faCircle} style={{ fontSize: 6, marginRight: 4 }} />{t('queryBuilder.statusError')}</> : <><Icon icon={faCircle} style={{ fontSize: 6, marginRight: 4 }} />{t('queryBuilder.statusReady')}</>)
+            : <><Icon icon={faCircle} style={{ fontSize: 6, marginRight: 4 }} />{t('queryBuilder.statusConnect')}</>}
         </span>
       </div>
     </div>

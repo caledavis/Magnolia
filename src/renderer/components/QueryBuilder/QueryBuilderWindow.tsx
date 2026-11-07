@@ -20,6 +20,8 @@ import { useQueryStore } from '../../stores/query-store'
 import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { generateGuid } from '../../utils/guid'
+import { useTranslation } from 'react-i18next'
+import { t } from '../../i18n'
 
 function describeDocFilter(
   df: Query['documentFilter'],
@@ -40,7 +42,7 @@ function describeDocFilter(
     : df.sourceGuids ?? []
   if (docGuids.length > 0) {
     const names = docGuids.map((g) => sources.find((s) => s.guid === g)?.name).filter(Boolean) as string[]
-    if (names.length > 0) parts.push(names.length <= 2 ? names.join(', ') : `${names.length} docs`)
+    if (names.length > 0) parts.push(names.length <= 2 ? names.join(', ') : t('queryDesc.docs', { count: names.length }))
   }
   if (df.tagGuids && df.tagGuids.length > 0) {
     const tagNames = df.tagGuids.map((g) => tags.find((tg) => tg.guid === g)?.name).filter(Boolean) as string[]
@@ -48,39 +50,41 @@ function describeDocFilter(
   }
   if (df.tagExcludeGuids && df.tagExcludeGuids.length > 0) {
     const exNames = df.tagExcludeGuids.map((g) => tags.find((tg) => tg.guid === g)?.name).filter(Boolean) as string[]
-    if (exNames.length > 0) parts.push('NOT ' + exNames.join(', '))
+    if (exNames.length > 0) parts.push(t('queryDesc.not', { names: exNames.join(', ') }))
   }
-  const describeScope = (scope: SurveyEntityRef[] | undefined, kind: 'questions' | 'respondents', noun: string) => {
+  const describeScope = (scope: SurveyEntityRef[] | undefined, kind: 'questions' | 'respondents') => {
     if (!scope || scope.length === 0) return
     const chosen = chosenEntries(scope)
-    if (chosen.length === 0) { parts.push(`no ${noun}s`); return }
+    if (chosen.length === 0) { parts.push(t(kind === 'questions' ? 'queryDesc.noQuestions' : 'queryDesc.noRespondents')); return }
     const names = chosen.map((r) => surveyEntityLabels?.[r.sourceGuid]?.[kind]?.[r.id]).filter(Boolean) as string[]
-    parts.push(names.length > 0 && names.length <= 2 ? names.join(', ') : `${chosen.length} ${noun}${chosen.length > 1 ? 's' : ''}`)
+    parts.push(names.length > 0 && names.length <= 2
+      ? names.join(', ')
+      : t(kind === 'questions' ? 'survey.questionCount' : 'survey.respondentCount', { count: chosen.length }))
   }
-  describeScope(df.questionScope, 'questions', 'question')
-  describeScope(df.respondentScope, 'respondents', 'respondent')
-  return parts.length > 0 ? ' IN ' + parts.join(', ') : ''
+  describeScope(df.questionScope, 'questions')
+  describeScope(df.respondentScope, 'respondents')
+  return parts.length > 0 ? ' ' + t('queryDesc.in', { scope: parts.join(', ') }) : ''
 }
 
 function describeCondition(cond: CodeCondition, codes: { guid: string; name: string }[]): string {
   const findName = (guid: string): string => {
     const c = codes.find((c) => c.guid === guid)
-    return c?.name || 'Code'
+    return c?.name || t('queryBuilder.code')
   }
   switch (cond.type) {
-    case 'code': return findName(cond.codeGuid) + (cond.includeSubcodes ? ' (incl. subcodes)' : '')
+    case 'code': return cond.includeSubcodes ? t('queryDesc.inclSubcodes', { name: findName(cond.codeGuid) }) : findName(cond.codeGuid)
     case 'text': return `"${cond.searchText}"`
     case 'and': return cond.conditions.map((c) => describeCondition(c, codes)).join(' AND ')
     case 'or': return cond.conditions.map((c) => describeCondition(c, codes)).join(' OR ')
     case 'xor': return cond.conditions.map((c) => describeCondition(c, codes)).join(' XOR ')
-    case 'not': return 'NOT ' + describeCondition(cond.condition, codes)
-    case 'overlap': return `${describeCondition(cond.condition1, codes)} overlapping ${describeCondition(cond.condition2, codes)}`
-    case 'inside': return `${describeCondition(cond.condition1, codes)} inside ${describeCondition(cond.condition2, codes)}`
-    case 'outside': return `${describeCondition(cond.condition1, codes)} outside ${describeCondition(cond.condition2, codes)}`
-    case 'before': return `${describeCondition(cond.condition1, codes)} before ${describeCondition(cond.condition2, codes)}`
-    case 'followedBy': return `${describeCondition(cond.condition1, codes)} followed by ${describeCondition(cond.condition2, codes)}`
-    case 'sameSentence': return `${describeCondition(cond.condition1, codes)} in the same sentence as ${describeCondition(cond.condition2, codes)}`
-    default: return 'Query'
+    case 'not': return t('queryDesc.not', { names: describeCondition(cond.condition, codes) })
+    case 'overlap': return t('queryDesc.overlap', { a: describeCondition(cond.condition1, codes), b: describeCondition(cond.condition2, codes) })
+    case 'inside': return t('queryDesc.inside', { a: describeCondition(cond.condition1, codes), b: describeCondition(cond.condition2, codes) })
+    case 'outside': return t('queryDesc.outside', { a: describeCondition(cond.condition1, codes), b: describeCondition(cond.condition2, codes) })
+    case 'before': return t('queryDesc.before', { a: describeCondition(cond.condition1, codes), b: describeCondition(cond.condition2, codes) })
+    case 'followedBy': return t('queryDesc.followedBy', { a: describeCondition(cond.condition1, codes), b: describeCondition(cond.condition2, codes) })
+    case 'sameSentence': return t('queryDesc.sameSentence', { a: describeCondition(cond.condition1, codes), b: describeCondition(cond.condition2, codes) })
+    default: return t('queryDesc.query')
   }
 }
 
@@ -118,6 +122,7 @@ interface Props {
 const NO_REFS: SurveyEntityRef[] = []
 
 export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
+  const { t } = useTranslation()
   // In tab mode `initData` is provided synchronously as a prop, so the
   // edit-related state below initializes from it on the very first
   // render. Without this, QueryNodeEditor mounts seeing
@@ -478,7 +483,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
           color: 'var(--text-muted)'
         }}
       >
-        Loading project data...
+        {t('queryBuilder.loading')}
       </div>
     )
   }
@@ -519,11 +524,11 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
         </h2>
         <div style={{ flex: 1 }} />
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleClose}>
-          Close
+          {t('common.close')}
         </button>
         {editGuid && dirty && (
           <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleDiscard}>
-            Discard Changes
+            {t('queryBuilder.discard')}
           </button>
         )}
         <button
@@ -544,7 +549,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
             }
           }}
         >
-          {editGuid ? (dirty ? 'Update Query' : 'Saved') : 'Save Query'}
+          {editGuid ? (dirty ? t('queryBuilder.update') : t('queryBuilder.saved')) : t('queryBuilder.save')}
         </button>
         {/* Clearance for the floating MemoFab. */}
         <div style={{ width: 36, flexShrink: 0 }} />
@@ -578,7 +583,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
                     color: 'var(--text-secondary)'
                   }}
                 >
-                  From these documents
+                  {t('queryBuilder.fromDocuments')}
                 </span>
                 <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>
                   {documentsSummary(docCount, data.sources.length, docFilter)}
@@ -615,7 +620,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
                   marginBottom: 10
                 }}
               >
-                Find this content
+                {t('queryBuilder.findContent')}
               </div>
 
               <QueryNodeEditor
@@ -633,7 +638,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
       {showSaveDialog && (
         <div className="modal-overlay">
           <div className="modal" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Escape') setShowSaveDialog(false) }}>
-            <h2>Save Query</h2>
+            <h2>{t('queryBuilder.save')}</h2>
             <div style={{ marginBottom: 12 }}>
               <input
                 type="text"
@@ -642,17 +647,17 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') confirmNewQuerySave()
                 }}
-                placeholder="Query name..."
+                placeholder={t('queryBuilder.namePlaceholder')}
                 autoFocus
                 style={{ width: '100%' }}
               />
             </div>
             <div className="modal-actions">
               <button className="secondary" onClick={() => setShowSaveDialog(false)}>
-                Cancel
+                {t('common.cancel')}
               </button>
               <button onClick={confirmNewQuerySave}>
-                Save
+                {t('common.save')}
               </button>
             </div>
           </div>

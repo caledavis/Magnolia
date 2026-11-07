@@ -27,6 +27,7 @@ one word for each idea; change a term here first, then everywhere.
 | Buttons and tooltips | Infinitive: "Importar" | Infinitive, as in Office: "Importeren" | Infinitive: "Importar" |
 | Quotation marks | « » | " " | " " |
 | The app's name | Magnolia | Magnolia | o Magnolia (masculine, like "o aplicativo") |
+| Query operators | AND, OR, NOT, XOR stay in English, as query syntax; their explanations are translated | same | same |
 
 ## Terms
 
