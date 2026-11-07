@@ -77,6 +77,8 @@ import { MemoFab } from '../Memos/MemoFab'
 import { cleanCellText, buildCellText } from '../../utils/survey/cell-text'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { modKey } from '../../utils/platform'
+import { onSelectionDrop } from '../../utils/selection-drag'
+import { SelectionDragHandle, textSelectionAnchor } from '../DocumentViewer/SelectionDragHandle'
 
 interface Props {
   source: TextSource
@@ -2511,8 +2513,25 @@ export function SurveyViewer({ source }: Props) {
       applyCodeToPending(match.code.guid)
     }
     window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [isActive, hotkeyCodes, pending, applyCodeToPending])
+    // The selection dragged by its grab handle onto a code in the Code
+    // Browser (as its hotkey) or into Saved Quotes (as "Add as Quote": one
+    // quote per answer).
+    const stopSelectionDrop = onSelectionDrop(source.guid, {
+      code: (codeGuid) => {
+        if (pending) applyCodeToPending(codeGuid)
+      },
+      quote: () => {
+        for (const cell of pending?.cells ?? []) {
+          useQuoteStore.getState().addQuote(source.guid, source.name, cell.start, cell.end, cell.selectedText, undefined,
+            { respondentId: cell.respondentId, questionId: cell.questionId })
+        }
+      }
+    })
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      stopSelectionDrop()
+    }
+  }, [isActive, hotkeyCodes, pending, applyCodeToPending, source.guid, source.name])
 
   // ArrowUp / ArrowDown → flick between sub-items of the same kind.
   // Only fires when this survey is the active source AND the user
@@ -2819,6 +2838,7 @@ export function SurveyViewer({ source }: Props) {
       }}
       onDrop={handleDrop}
     >
+      {pending && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={textSelectionAnchor} />}
       <div ref={surveyScrollRef} onScroll={rememberScroll} style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-panel)', padding: '0 20px 24px 20px' }}>
         {view.mode === 'summary' && (
           <SummaryView

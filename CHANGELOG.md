@@ -4,6 +4,9 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+- **Drag a selection onto a code to code it.** As well as dragging a code onto the text you've selected, you can now drag the selection onto a code in the Code Browser. When you finish selecting, a small grab handle appears on the end of the selected text, or at the bottom-right corner of a box selection in a PDF or an image. Drag the handle onto a code: the code highlights as you drag over it, and the selection is coded just as the code's hotkey would code it. It works in text documents, notes, transcripts, PDFs, images and survey answers. Drag the handle into the Saved Quotes pane instead to save the selection as a quote.
+
 ## [2.0.1]
 
 ### Fixed

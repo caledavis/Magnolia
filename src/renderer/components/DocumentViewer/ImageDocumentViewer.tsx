@@ -28,6 +28,8 @@ import { modKey } from '../../utils/platform'
 import { roundRegionToWholePixels } from '../../utils/region-rounding'
 import { getViewSetting, setViewSetting } from '../../stores/view-position-store'
 import { useRememberedScroll } from '../../utils/use-remembered-scroll'
+import { onSelectionDrop } from '../../utils/selection-drag'
+import { SelectionDragHandle, boxSelectionAnchor } from './SelectionDragHandle'
 
 // Horizontal space the right-hand RichMarginColumn + its 8-px gap actually
 // occupy in the flex row. The margin column has flex-basis 260 plus an 8-px
@@ -457,8 +459,23 @@ export function ImageDocumentViewer({ source }: Props) {
       }
     }
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [hotkeyMap, pendingBoxSelection, applyCodingToRegion, boxDrag, contextMenu])
+    // The box dragged by its grab handle onto a code in the Code Browser
+    // (as its hotkey) or into Saved Quotes (as "Add as Quote").
+    const stopSelectionDrop = onSelectionDrop(source.guid, {
+      code: (codeGuid) => {
+        if (pendingBoxSelection) applyCodingToRegion(codeGuid, pendingBoxSelection.pdfRegion)
+      },
+      quote: () => {
+        if (!pendingBoxSelection) return
+        useQuoteStore.getState().addQuote(source.guid, source.name, 0, 0, 'Region', pendingBoxSelection.pdfRegion)
+        setPendingBoxSelection(null)
+      }
+    })
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      stopSelectionDrop()
+    }
+  }, [hotkeyMap, pendingBoxSelection, applyCodingToRegion, boxDrag, contextMenu, source.guid, source.name])
 
   return (
     <div
@@ -479,6 +496,7 @@ export function ImageDocumentViewer({ source }: Props) {
         }
       }}
     >
+      {pendingBoxSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={boxSelectionAnchor} label="Box selection" />}
       {/* Top control bar — connected zoom strip mirroring the PDF viewer
           and the mockup's button group. */}
       <div className="viewer-toolbar">

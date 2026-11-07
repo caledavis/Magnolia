@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useQuoteStore } from '../../stores/quote-store'
 import { useDocumentStore } from '../../stores/document-store'
 import { Icon, QUOTE_ICON, faChevronDown, faChevronRight, faXmark, faUpRightFromSquare, faDownLeftAndUpRightToCenter, faMagnifyingGlass } from '../Icon'
@@ -9,6 +9,7 @@ import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { renderPdfRegionThumbnail } from '../../utils/pdf-thumbnail'
 import { renderImageRegionThumbnail } from '../../utils/image-thumbnail'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
+import { isSelectionDrag, requestSelectionDrop } from '../../utils/selection-drag'
 
 interface Props {
   onClose?: () => void
@@ -26,6 +27,9 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
   const viewDocumentAt = useDocumentStore((s) => s.viewDocumentAt)
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; guid: string } | null>(null)
+  /** A selection is being dragged over the pane by its grab handle. */
+  const [isSelectionOver, setIsSelectionOver] = useState(false)
+  const dragCounterRef = useRef(0)
   const menuPos = useClampedMenuPosition(contextMenu)
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
   const [searchOpen, setSearchOpen] = useState(false)
@@ -147,7 +151,37 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
   }
 
   return (
-    <div className="panel">
+    <div
+      className="panel"
+      style={isSelectionOver ? { outline: '2px dashed var(--accent)', outlineOffset: -2 } : undefined}
+      onDragEnter={(e) => {
+        if (!isSelectionDrag(e)) return
+        e.preventDefault()
+        dragCounterRef.current++
+        setIsSelectionOver(true)
+      }}
+      onDragOver={(e) => {
+        if (!isSelectionDrag(e)) return
+        e.preventDefault()
+        e.dataTransfer.dropEffect = 'copy'
+      }}
+      onDragLeave={() => {
+        dragCounterRef.current--
+        if (dragCounterRef.current <= 0) {
+          dragCounterRef.current = 0
+          setIsSelectionOver(false)
+        }
+      }}
+      onDrop={(e) => {
+        if (!isSelectionDrag(e)) return
+        e.preventDefault()
+        dragCounterRef.current = 0
+        setIsSelectionOver(false)
+        // A selection dragged here by its grab handle: save it as a quote.
+        if (lockedBy) { useProjectStore.getState().promptCheckoutConflict(); return }
+        requestSelectionDrop(e, { kind: 'quote' })
+      }}
+    >
       <div className="panel-header">
         {searchOpen ? (
           <input
@@ -194,7 +228,7 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
           <div className="empty-state" style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
             No quotes yet.
             <br />
-            Right-click a selection in a document and choose "Add as Quote".
+            Right-click a selection in a document and choose "Add as Quote", or drag the selection's grab handle here.
           </div>
         )}
         {quotes.length > 0 && filteredGroups.length === 0 && (

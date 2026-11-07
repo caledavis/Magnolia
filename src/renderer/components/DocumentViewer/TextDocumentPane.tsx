@@ -18,6 +18,8 @@ import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 import { useRememberedScroll } from '../../utils/use-remembered-scroll'
 import { paneScrollKey, type SplitPane } from '../../utils/split-view'
+import { onSelectionDrop } from '../../utils/selection-drag'
+import { SelectionDragHandle, textSelectionAnchor } from './SelectionDragHandle'
 import { modKey } from '../../utils/platform'
 import { CodedTextView, type CodingRightClickContext } from './CodedTextView'
 import type { Code, MemoEditInitData, SourceType, TextSource } from '../../models/types'
@@ -372,8 +374,22 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
       applyCodingToRange(code.guid, startCp, endCp, selectedText)
     }
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [active, hotkeyMap, pendingSelection, applyCodingToRange, lockedBy])
+    // The selection dragged by its grab handle onto a code in the Code
+    // Browser (as its hotkey) or into Saved Quotes (as "Add as Quote").
+    // Both have already checked the checkout lock.
+    const stopSelectionDrop = onSelectionDrop(sourceGuid, {
+      code: (codeGuid) => {
+        if (pendingSelection) applyCodingToRange(codeGuid, pendingSelection.startCp, pendingSelection.endCp, pendingSelection.selectedText)
+      },
+      quote: () => {
+        if (pendingSelection) useQuoteStore.getState().addQuote(sourceGuid, source.name, pendingSelection.startCp, pendingSelection.endCp, pendingSelection.selectedText)
+      }
+    })
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      stopSelectionDrop()
+    }
+  }, [active, hotkeyMap, pendingSelection, applyCodingToRange, lockedBy, sourceGuid, source.name])
 
   const openMemo = (memoGuid: string) => {
     const memo = useMemoStore.getState().findMemo(memoGuid)
@@ -445,6 +461,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
           }
         }}
       >
+        {pendingSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={sourceGuid} anchor={textSelectionAnchor} />}
         {isNote ? (
           <CodedTextView
             text={content}

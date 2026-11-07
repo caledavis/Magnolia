@@ -812,7 +812,7 @@ export function PdfPageRenderer({
         const w = pendingBoxRegion.width * scale
         const h = pendingBoxRegion.height * scale
         return (
-          <div style={{
+          <div data-pending-box style={{
             position: 'absolute', left: x, top: y, width: w, height: h,
             border: '2px solid rgba(60, 100, 240, 0.6)',
             background: 'rgba(60, 100, 240, 0.06)',

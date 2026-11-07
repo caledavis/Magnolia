@@ -25,6 +25,8 @@ import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { modKey } from '../../utils/platform'
 import { useRememberedScroll } from '../../utils/use-remembered-scroll'
+import { onSelectionDrop } from '../../utils/selection-drag'
+import { SelectionDragHandle, textSelectionAnchor } from './SelectionDragHandle'
 
 interface Props {
   sourceGuid: string
@@ -336,8 +338,23 @@ export function TranscriptEditor({
       applyCodingToRange(code.guid, pendingSelection.startCp, pendingSelection.endCp, pendingSelection.selectedText)
     }
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isTranscribing, hotkeyMap, pendingSelection, applyCodingToRange])
+    // The selection dragged by its grab handle onto a code in the Code
+    // Browser (as its hotkey) or into Saved Quotes (as "Add as Quote").
+    const stopSelectionDrop = onSelectionDrop(sourceGuid, {
+      code: (codeGuid) => {
+        if (pendingSelection) applyCodingToRange(codeGuid, pendingSelection.startCp, pendingSelection.endCp, pendingSelection.selectedText)
+      },
+      quote: () => {
+        if (!pendingSelection) return
+        const name = useDocumentStore.getState().sources.find((s) => s.guid === sourceGuid)?.name || ''
+        useQuoteStore.getState().addQuote(sourceGuid, name, pendingSelection.startCp, pendingSelection.endCp, pendingSelection.selectedText)
+      }
+    })
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      stopSelectionDrop()
+    }
+  }, [isTranscribing, hotkeyMap, pendingSelection, applyCodingToRange, sourceGuid])
 
   // Clear coding state when switching modes
   const toggleMode = useCallback(() => {
@@ -551,6 +568,7 @@ export function TranscriptEditor({
             if (data) { try { handleDrop([JSON.parse(data).guid]) } catch {} }
           }}
         >
+          {pendingSelection && <SelectionDragHandle containerRef={codingAreaRef} sourceGuid={sourceGuid} anchor={textSelectionAnchor} />}
           {content ? (
             <CodedTextView
               text={content}

@@ -14,6 +14,7 @@
  */
 import {
   Folder,
+  Hand,
   FolderPlus,
   File,
   FileText,
@@ -173,6 +174,7 @@ export const faFile = File
 export const faFileAlt = FileText
 export const faTags = Tags
 export const faTag = Tag
+export const faHand = Hand
 export const faPaperclip = Paperclip
 export const faThumbtack = Pin
 export const faStickyNote = StickyNote

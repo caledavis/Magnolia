@@ -66,8 +66,9 @@ You code a respondent's answers just as you would any other text. See [Coding yo
 2. Select the text you wish to code. A selection can run across several answers.
 
 3. Drag a code from the Code Browser onto the selection; or,
-4. Press the code's hotkey; or,
-5. Right-click the selection and choose a code under `Apply Code`.
+4. Drag the grab handle on the end of the selection onto a code in the Code Browser; or,
+5. Press the code's hotkey; or,
+6. Right-click the selection and choose a code under `Apply Code`.
 
 When a selection runs across several answers, each answer is coded separately, so that every coded passage still belongs to one respondent.
 

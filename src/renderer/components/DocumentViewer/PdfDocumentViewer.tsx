@@ -19,6 +19,8 @@ import { usePendingSelectionStore } from '../../stores/pending-selection-store'
 import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
 import { useRememberedScroll } from '../../utils/use-remembered-scroll'
 import { paneScrollKey, type SplitPane } from '../../utils/split-view'
+import { onSelectionDrop } from '../../utils/selection-drag'
+import { SelectionDragHandle, boxSelectionAnchor, textSelectionAnchor } from './SelectionDragHandle'
 import { modKey } from '../../utils/platform'
 import { roundRegionToWholePixels } from '../../utils/region-rounding'
 
@@ -677,8 +679,29 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
       }
     }
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [active, hotkeyMap, pendingSelection, pendingBoxSelection, applyCodingToRange, applyCodingToRegion, boxDrag, contextMenu])
+    // The selection or box dragged by its grab handle onto a code in the
+    // Code Browser (as its hotkey) or into Saved Quotes (as "Add as
+    // Quote"), box first.
+    const stopSelectionDrop = onSelectionDrop(source.guid, {
+      code: (codeGuid) => {
+        if (pendingBoxSelection) applyCodingToRegion(codeGuid, pendingBoxSelection.pdfRegion)
+        else if (pendingSelection) applyCodingToRange(codeGuid, pendingSelection.startCp, pendingSelection.endCp, pendingSelection.selectedText)
+      },
+      quote: () => {
+        if (pendingBoxSelection) {
+          const r = pendingBoxSelection.pdfRegion
+          useQuoteStore.getState().addQuote(source.guid, source.name, 0, 0, `Region p${r.page}`, r)
+          setPendingBoxSelection(null)
+        } else if (pendingSelection) {
+          useQuoteStore.getState().addQuote(source.guid, source.name, pendingSelection.startCp, pendingSelection.endCp, pendingSelection.selectedText)
+        }
+      }
+    })
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      stopSelectionDrop()
+    }
+  }, [active, hotkeyMap, pendingSelection, pendingBoxSelection, applyCodingToRange, applyCodingToRegion, boxDrag, contextMenu, source.guid, source.name])
 
   return (
     <div
@@ -701,6 +724,8 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
         }
       }}
     >
+      {pendingSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={textSelectionAnchor} />}
+      {pendingBoxSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={boxSelectionAnchor} label={`Box selection on page ${pendingBoxSelection.pdfRegion.page}`} />}
       {/* Top control bar — zoom strip + selection-mode toggle. Mirrors
           the mockup's connected button group. */}
       <div className="viewer-toolbar">
