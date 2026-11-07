@@ -1620,5 +1620,9 @@
   "queryValidate": {
     "sameSentence": "Same sentence must connect straight to Result: the sentences it finds can't be used as an input to another box or negated with NOT.",
     "textOnlyOr": "Text-only inputs can only be combined with the OR operator. AND, EITHER/OR, and BUT NOT are not valid for multiple text inputs."
+  },
+  "platform": {
+    "altClickMac": "⌥-click",
+    "altClick": "Alt-click"
   }
 }

@@ -1676,5 +1676,9 @@
   "queryValidate": {
     "sameSentence": "Misma oración debe conectarse directamente a Resultado: las oraciones que encuentra no pueden usarse como entrada de otro cuadro ni negarse con NOT.",
     "textOnlyOr": "Las entradas solo de texto solo se pueden combinar con el operador OR. AND, XOR y NOT no son válidos para varias entradas de texto."
+  },
+  "platform": {
+    "altClickMac": "⌥+clic",
+    "altClick": "Alt+clic"
   }
 }

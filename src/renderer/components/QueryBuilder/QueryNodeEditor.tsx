@@ -1914,7 +1914,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
         <span>
           {selNodes.size > 1
             ? t('queryBuilder.statusSelected', { count: selNodes.size, copy: modKey('C'), paste: modKey('V') })
-            : t('queryBuilder.statusHint', { altClick: altClickHint })}
+            : t('queryBuilder.statusHint', { altClick: altClickHint() })}
         </span>
         <span
           style={{

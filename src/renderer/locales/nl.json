@@ -1620,5 +1620,9 @@
   "queryValidate": {
     "sameSentence": "Dezelfde zin moet direct met Resultaat verbonden zijn: de zinnen die het vindt, kunnen geen invoer voor een ander vak zijn en niet met NOT worden ontkend.",
     "textOnlyOr": "Invoer met alleen tekst kan alleen met de operator OR worden gecombineerd. AND, XOR en NOT zijn niet geldig voor meerdere tekstinvoeren."
+  },
+  "platform": {
+    "altClickMac": "⌥-klik",
+    "altClick": "Alt-klik"
   }
 }

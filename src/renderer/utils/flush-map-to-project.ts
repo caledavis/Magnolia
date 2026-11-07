@@ -6,6 +6,7 @@
  */
 import { useProjectStore } from '../stores/project-store'
 import type { MapInstance } from '../stores/relationship-map-store'
+import { t } from '../i18n'
 
 export function flushMapToProject(map: MapInstance): void {
   const ps = useProjectStore.getState()
@@ -15,7 +16,7 @@ export function flushMapToProject(map: MapInstance): void {
   const entry = {
     guid: map.guid,
     toolType: 'relationship-map' as any,
-    name: map.name?.trim() || 'Relationship Map',
+    name: map.name?.trim() || t('app.relationshipMap'),
     config: {
       elements: map.elements,
       freeTexts: map.freeTexts,
