@@ -1,3 +1,4 @@
+import { formatDateTime, currentLanguage } from '../../i18n'
 /**
  * The Memos window: every memo in the project, wherever it is attached.
  * The Saved Memos pane shows only project memos and the memos of the
@@ -22,9 +23,10 @@ import type { Memo, MemosWindowData, MemosWindowAction } from '../../models/type
 import { groupMemos, memoMatches, type MemoPlace } from '../../utils/memo-places'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
+import { useTranslation } from 'react-i18next'
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleDateString(currentLanguage(), { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 function MemoRow({ memo, place, selected, onClick, onDoubleClick, onContextMenu }: {
@@ -35,6 +37,7 @@ function MemoRow({ memo, place, selected, onClick, onDoubleClick, onContextMenu 
   onDoubleClick: () => void
   onContextMenu: (e: React.MouseEvent) => void
 }) {
+  const { t } = useTranslation()
   return (
     <div
       className="codebook-entry"
@@ -44,7 +47,7 @@ function MemoRow({ memo, place, selected, onClick, onDoubleClick, onContextMenu 
       onContextMenu={(e) => { e.preventDefault(); onContextMenu(e) }}
     >
       <div style={{ fontWeight: 500, fontSize: 'var(--font-size-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {memo.title || 'Untitled Memo'}
+        {memo.title || t('memos.untitled')}
       </div>
       <div style={{ fontSize: 10, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {place && place.groupKey !== 'project' ? `${place.detail} · ` : ''}{formatDate(memo.modifiedDateTime ?? memo.createdDateTime)}
@@ -59,20 +62,21 @@ function MemoDetail({ memo, place, onEdit, onShow }: {
   onEdit: () => void
   onShow: () => void
 }) {
+  const { t } = useTranslation()
   if (!memo) {
     return (
       <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-        Select a memo to read it.
+        {t('memos.selectToRead')}
       </div>
     )
   }
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
-        <div style={{ flex: 1, fontWeight: 600, fontSize: 'var(--font-size-lg)' }}>{memo.title || 'Untitled Memo'}</div>
-        {place?.canShow && <button className="secondary" style={{ fontSize: 11, padding: '2px 10px' }} onClick={onShow} title="Show where this memo is attached, in the main window">Show</button>}
+        <div style={{ flex: 1, fontWeight: 600, fontSize: 'var(--font-size-lg)' }}>{memo.title || t('memos.untitled')}</div>
+        {place?.canShow && <button className="secondary" style={{ fontSize: 11, padding: '2px 10px' }} onClick={onShow} title={t('memos.showTitle')}>{t('common.show')}</button>}
         {/* A transparent border, so it matches Show's 1px border. */}
-        <button style={{ fontSize: 11, padding: '2px 10px', border: '1px solid transparent' }} onClick={onEdit}>Edit</button>
+        <button style={{ fontSize: 11, padding: '2px 10px', border: '1px solid transparent' }} onClick={onEdit}>{t('common.edit')}</button>
       </div>
       {place && (
         <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 2 }}>
@@ -86,13 +90,14 @@ function MemoDetail({ memo, place, onEdit, onShow }: {
       {memo.content ? (
         <Markdown text={memo.content} style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }} />
       ) : (
-        <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-muted)', fontStyle: 'italic' }}>No content</div>
+        <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-muted)', fontStyle: 'italic' }}>{t('common.noContent')}</div>
       )}
     </div>
   )
 }
 
 export function MemosWindow() {
+  const { t } = useTranslation()
   const [data, setData] = useState<MemosWindowData>({ memos: [], places: {}, lockedBy: null, theme: '' })
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [anchor, setAnchor] = useState<string | null>(null)
@@ -171,10 +176,10 @@ export function MemosWindow() {
         const place = data.places[m.guid]
         const where = place && place.groupKey !== 'project' ? `<div class="memo-where">${escHtml(place.detail)}</div>` : ''
         return `<div class="memo">
-          <div class="memo-title">${escHtml(m.title || 'Untitled Memo')}</div>
+          <div class="memo-title">${escHtml(m.title || t('memos.untitled'))}</div>
           ${where}
-          <div class="memo-date">${escHtml(formatDate(m.createdDateTime))}${m.modifiedDateTime ? ` · edited ${escHtml(formatDate(m.modifiedDateTime))}` : ''}</div>
-          <div class="memo-content">${m.content ? markdownToHtml(m.content) : '<em>No content</em>'}</div>
+          <div class="memo-date">${escHtml(formatDate(m.createdDateTime))}${m.modifiedDateTime ? ` · ${escHtml(t('common.editedOn', { date: formatDate(m.modifiedDateTime) }))}` : ''}</div>
+          <div class="memo-content">${m.content ? markdownToHtml(m.content) : `<em>${escHtml(t('common.noContent'))}</em>`}</div>
         </div>`
       }).join('')}`).join('')
     const extraCss = `
@@ -188,12 +193,12 @@ export function MemosWindow() {
   .memo-content ul, .memo-content ol { margin: 0 0 6px; padding-left: 18px; }
 `
     const html = buildPdfDocument({
-      title: 'Memos',
-      subtitle: `${data.memos.length} memo${data.memos.length === 1 ? '' : 's'} &mdash; exported ${escHtml(new Date().toLocaleString())}`,
+      title: t('memos.windowTitle'),
+      subtitle: escHtml(t('memos.pdfSubtitle', { count: data.memos.length, date: formatDateTime(new Date()) })),
       body,
       extraCss
     })
-    await exportPdfWithHeader(html, 'Memos')
+    await exportPdfWithHeader(html, t('memos.windowTitle'))
   }, [data])
 
   const toggleGroup = (key: string) => setCollapsed((prev) => {
@@ -209,13 +214,13 @@ export function MemosWindow() {
         <Panel defaultSize={42} minSize={25} maxSize={70}>
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div className="panel-header">
-              <span style={{ flex: 1 }}>Memos</span>
+              <span style={{ flex: 1 }}>{t('memos.windowTitle')}</span>
               <span style={{ fontWeight: 400, letterSpacing: 0 }}>{data.memos.length}</span>
               <button
                 className="panel-header-add"
                 onClick={() => send('new')}
-                title="New project memo"
-                aria-label="New project memo"
+                title={t('memos.newProjectMemo')}
+                aria-label={t('memos.newProjectMemo')}
                 style={data.lockedBy ? { opacity: 0.4 } : undefined}
               >
                 <Icon icon={faPlus} />
@@ -228,12 +233,12 @@ export function MemosWindow() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Escape') setSearch('') }}
-                placeholder="Search memos"
-                aria-label="Search memos"
+                placeholder={t('memos.searchPlaceholder')}
+                aria-label={t('memos.searchPlaceholder')}
                 style={{ flex: 1, minWidth: 0 }}
               />
               {search && (
-                <button className="panel-header-close" onClick={() => setSearch('')} title="Clear search" aria-label="Clear search">
+                <button className="panel-header-close" onClick={() => setSearch('')} title={t('common.clearSearch')} aria-label={t('common.clearSearch')}>
                   <Icon icon={faXmark} />
                 </button>
               )}
@@ -241,7 +246,7 @@ export function MemosWindow() {
             <div className="panel-content">
               {data.memos.length === 0 ? (
                 <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                  No memos yet. Click + to write a project memo, or right-click a selection in a document and choose "Add Memo".
+                  {t('memos.windowEmpty')}
                 </div>
               ) : groups.length === 0 ? (
                 <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
@@ -287,15 +292,15 @@ export function MemosWindow() {
         <Panel defaultSize={58} minSize={30}>
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div className="panel-header">
-              <span style={{ flex: 1 }}>Memo</span>
+              <span style={{ flex: 1 }}>{t('memos.memoHeading')}</span>
               <button
                 className="secondary"
                 style={{ fontSize: 11, padding: '2px 8px', textTransform: 'none', letterSpacing: 0 }}
                 onClick={handleExportPdf}
                 disabled={data.memos.length === 0}
-                title="Export every memo as a PDF"
+                title={t('memos.exportAllTitle')}
               >
-                Export PDF
+                {t('common.exportPdf')}
               </button>
             </div>
             <div className="panel-content">
@@ -322,9 +327,9 @@ export function MemosWindow() {
           <div ref={menuPos.ref} className="context-menu" style={{ position: 'fixed', left: menuPos.x, top: menuPos.y, zIndex: 100 }}>
             {selectedMemos.length === 1 && (
               <>
-                <div className="context-menu-item" onClick={() => { setMenu(null); send('edit', selectedMemos[0].guid) }}>Edit Memo</div>
+                <div className="context-menu-item" onClick={() => { setMenu(null); send('edit', selectedMemos[0].guid) }}>{t('memos.edit')}</div>
                 {data.places[selectedMemos[0].guid]?.canShow && (
-                  <div className="context-menu-item" onClick={() => { setMenu(null); send('show', selectedMemos[0].guid) }}>Show in Document</div>
+                  <div className="context-menu-item" onClick={() => { setMenu(null); send('show', selectedMemos[0].guid) }}>{t('memos.showInDocument')}</div>
                 )}
                 <div className="context-menu-separator" />
               </>
@@ -338,7 +343,7 @@ export function MemosWindow() {
                 setDeleteConfirm(selectedMemos)
               }}
             >
-              {selectedMemos.length > 1 ? `Delete ${selectedMemos.length} Memos` : 'Delete Memo'}
+              {selectedMemos.length > 1 ? t('memos.deleteCountTitle', { count: selectedMemos.length }) : t('memos.deleteOne')}
             </div>
           </div>
         </>
@@ -347,19 +352,19 @@ export function MemosWindow() {
       {deleteConfirm && (
         <div className="modal-overlay" onClick={() => setDeleteConfirm(null)} style={{ position: 'fixed' }}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ margin: '0 0 12px' }}>{deleteConfirm.length > 1 ? `Delete ${deleteConfirm.length} Memos` : 'Delete Memo'}</h2>
+            <h2 style={{ margin: '0 0 12px' }}>{deleteConfirm.length > 1 ? t('memos.deleteCountTitle', { count: deleteConfirm.length }) : t('memos.deleteOne')}</h2>
             <p style={{ margin: '0 0 16px', fontSize: 'var(--font-size-sm)' }}>
               {deleteConfirm.length > 1
-                ? `Delete ${deleteConfirm.length} memos? This cannot be undone.`
-                : `Delete "${deleteConfirm[0].title || 'Untitled Memo'}"? This cannot be undone.`}
+                ? t('memos.deleteCountConfirm', { count: deleteConfirm.length })
+                : t('memos.deleteOneConfirm', { title: deleteConfirm[0].title || t('memos.untitled') })}
             </p>
             <div className="modal-actions">
-              <button className="secondary" onClick={() => setDeleteConfirm(null)}>Cancel</button>
+              <button className="secondary" onClick={() => setDeleteConfirm(null)}>{t('common.cancel')}</button>
               <button
                 style={{ background: 'var(--danger)' }}
                 onClick={() => { send('delete', deleteConfirm.map((m) => m.guid)); setDeleteConfirm(null) }}
               >
-                Delete
+                {t('common.delete')}
               </button>
             </div>
           </div>

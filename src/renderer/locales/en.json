@@ -288,7 +288,14 @@
     "dismiss": "Dismiss",
     "untitled": "Untitled",
     "loading": "Loading...",
-    "clickToRename": "Click to rename"
+    "clickToRename": "Click to rename",
+    "exportPdf": "Export PDF",
+    "show": "Show",
+    "edit": "Edit",
+    "noContent": "No content",
+    "editedOn": "edited {{date}}",
+    "clearSearch": "Clear search",
+    "doubleClickToEdit": "Double-click to edit"
   },
   "panel": {
     "popIn": "Pop back in",
@@ -518,7 +525,20 @@
     "deleteCount_other": "Delete {{count}} memos",
     "deleteCountConfirm_one": "Delete {{count}} memo? This cannot be undone.",
     "deleteCountConfirm_other": "Delete {{count}} memos? This cannot be undone.",
-    "deleteOneConfirm": "Delete \"{{title}}\"? This cannot be undone."
+    "deleteOneConfirm": "Delete \"{{title}}\"? This cannot be undone.",
+    "windowTitle": "Memos",
+    "selectToRead": "Select a memo to read it.",
+    "showTitle": "Show where this memo is attached, in the main window",
+    "pdfSubtitle_one": "{{count}} memo — exported {{date}}",
+    "pdfSubtitle_other": "{{count}} memos — exported {{date}}",
+    "newProjectMemo": "New project memo",
+    "searchPlaceholder": "Search memos",
+    "windowEmpty": "No memos yet. Click + to write a project memo, or right-click a selection in a document and choose \"Add Memo\".",
+    "memoHeading": "Memo",
+    "exportAllTitle": "Export every memo as a PDF",
+    "showInDocument": "Show in Document",
+    "deleteCountTitle_one": "Delete {{count}} Memo",
+    "deleteCountTitle_other": "Delete {{count}} Memos"
   },
   "analyses": {
     "filterPlaceholder": "Filter analyses...",
@@ -760,5 +780,34 @@
     "underline": "Underline",
     "bulletList": "Bullet List",
     "numberedList": "Numbered List"
+  },
+  "codebook": {
+    "title": "Codebook",
+    "noMemo": "No memo",
+    "pdfSubtitle_one": "{{count}} code — exported {{date}}",
+    "pdfSubtitle_other": "{{count}} codes — exported {{date}}",
+    "selectCode": "Select a code to see its details.",
+    "importQdc": "Import QDC",
+    "importQdcTitle": "Import codes from a .qdc codebook",
+    "exportQdc": "Export QDC",
+    "exportQdcTitle": "Export the codebook as a .qdc file",
+    "exportPdfTitle": "Export the codebook as a PDF"
+  },
+  "logbook": {
+    "title": "Logbook",
+    "untitledEntry": "Untitled Entry",
+    "editEntry": "Edit Entry",
+    "newEntry": "New Entry",
+    "titlePlaceholder": "Entry title...",
+    "content": "Content",
+    "selectEntry": "Select an entry to see its details.",
+    "pdfSubtitle_one": "{{count}} entry — exported {{date}}",
+    "pdfSubtitle_other": "{{count}} entries — exported {{date}}",
+    "entries": "Entries",
+    "newEntryTitle": "New entry",
+    "empty": "No entries yet. Click + to create one.",
+    "exportPdfTitle": "Export the logbook as a PDF",
+    "deleteEntry": "Delete Entry",
+    "deleteConfirm": "Are you sure you want to delete this logbook entry? This cannot be undone."
   }
 }

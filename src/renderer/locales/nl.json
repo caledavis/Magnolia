@@ -288,7 +288,14 @@
     "dismiss": "Sluiten",
     "untitled": "Naamloos",
     "loading": "Laden...",
-    "clickToRename": "Klik om de naam te wijzigen"
+    "clickToRename": "Klik om de naam te wijzigen",
+    "exportPdf": "Pdf exporteren",
+    "show": "Tonen",
+    "edit": "Bewerken",
+    "noContent": "Geen inhoud",
+    "editedOn": "bewerkt op {{date}}",
+    "clearSearch": "Zoekopdracht wissen",
+    "doubleClickToEdit": "Dubbelklik om te bewerken"
   },
   "panel": {
     "popIn": "Terugzetten",
@@ -518,7 +525,20 @@
     "deleteCount_other": "{{count}} memo's verwijderen",
     "deleteCountConfirm_one": "{{count}} memo verwijderen? Dit kan niet ongedaan worden gemaakt.",
     "deleteCountConfirm_other": "{{count}} memo's verwijderen? Dit kan niet ongedaan worden gemaakt.",
-    "deleteOneConfirm": "\"{{title}}\" verwijderen? Dit kan niet ongedaan worden gemaakt."
+    "deleteOneConfirm": "\"{{title}}\" verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    "windowTitle": "Memo's",
+    "selectToRead": "Selecteer een memo om die te lezen.",
+    "showTitle": "In het hoofdvenster tonen waar deze memo aan gekoppeld is",
+    "pdfSubtitle_one": "{{count}} memo — geëxporteerd op {{date}}",
+    "pdfSubtitle_other": "{{count}} memo's — geëxporteerd op {{date}}",
+    "newProjectMemo": "Nieuwe projectmemo",
+    "searchPlaceholder": "Memo's zoeken",
+    "windowEmpty": "Nog geen memo's. Klik op + om een projectmemo te schrijven, of klik met de rechtermuisknop op een selectie in een document en kies \"Memo toevoegen\".",
+    "memoHeading": "Memo",
+    "exportAllTitle": "Alle memo's exporteren als pdf",
+    "showInDocument": "Tonen in document",
+    "deleteCountTitle_one": "{{count}} memo verwijderen",
+    "deleteCountTitle_other": "{{count}} memo's verwijderen"
   },
   "analyses": {
     "filterPlaceholder": "Analyses filteren...",
@@ -760,5 +780,34 @@
     "underline": "Onderstrepen",
     "bulletList": "Lijst met opsommingstekens",
     "numberedList": "Genummerde lijst"
+  },
+  "codebook": {
+    "title": "Codeboek",
+    "noMemo": "Geen memo",
+    "pdfSubtitle_one": "{{count}} code — geëxporteerd op {{date}}",
+    "pdfSubtitle_other": "{{count}} codes — geëxporteerd op {{date}}",
+    "selectCode": "Selecteer een code om de details te zien.",
+    "importQdc": "QDC importeren",
+    "importQdcTitle": "Codes importeren uit een .qdc-codeboek",
+    "exportQdc": "QDC exporteren",
+    "exportQdcTitle": "Het codeboek exporteren als .qdc-bestand",
+    "exportPdfTitle": "Het codeboek exporteren als pdf"
+  },
+  "logbook": {
+    "title": "Logboek",
+    "untitledEntry": "Naamloze notitie",
+    "editEntry": "Notitie bewerken",
+    "newEntry": "Nieuwe notitie",
+    "titlePlaceholder": "Titel van de notitie...",
+    "content": "Inhoud",
+    "selectEntry": "Selecteer een notitie om de details te zien.",
+    "pdfSubtitle_one": "{{count}} notitie — geëxporteerd op {{date}}",
+    "pdfSubtitle_other": "{{count}} notities — geëxporteerd op {{date}}",
+    "entries": "Notities",
+    "newEntryTitle": "Nieuwe notitie",
+    "empty": "Nog geen notities. Klik op + om er een te maken.",
+    "exportPdfTitle": "Het logboek exporteren als pdf",
+    "deleteEntry": "Notitie verwijderen",
+    "deleteConfirm": "Weet je zeker dat je deze logboeknotitie wilt verwijderen? Dit kan niet ongedaan worden gemaakt."
   }
 }

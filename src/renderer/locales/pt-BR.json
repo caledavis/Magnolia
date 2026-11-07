@@ -288,7 +288,14 @@
     "dismiss": "Dispensar",
     "untitled": "Sem título",
     "loading": "Carregando...",
-    "clickToRename": "Clique para renomear"
+    "clickToRename": "Clique para renomear",
+    "exportPdf": "Exportar PDF",
+    "show": "Mostrar",
+    "edit": "Editar",
+    "noContent": "Sem conteúdo",
+    "editedOn": "editado em {{date}}",
+    "clearSearch": "Limpar a busca",
+    "doubleClickToEdit": "Clique duas vezes para editar"
   },
   "panel": {
     "popIn": "Encaixar de volta",
@@ -531,7 +538,22 @@
     "deleteCountConfirm_one": "Excluir {{count}} memo? Não é possível desfazer.",
     "deleteCountConfirm_many": "Excluir {{count}} memos? Não é possível desfazer.",
     "deleteCountConfirm_other": "Excluir {{count}} memos? Não é possível desfazer.",
-    "deleteOneConfirm": "Excluir \"{{title}}\"? Não é possível desfazer."
+    "deleteOneConfirm": "Excluir \"{{title}}\"? Não é possível desfazer.",
+    "windowTitle": "Memos",
+    "selectToRead": "Selecione um memo para lê-lo.",
+    "showTitle": "Mostrar na janela principal onde este memo está anexado",
+    "pdfSubtitle_one": "{{count}} memo — exportado em {{date}}",
+    "pdfSubtitle_many": "{{count}} memos — exportados em {{date}}",
+    "pdfSubtitle_other": "{{count}} memos — exportados em {{date}}",
+    "newProjectMemo": "Novo memo do projeto",
+    "searchPlaceholder": "Buscar memos",
+    "windowEmpty": "Nenhum memo ainda. Clique em + para escrever um memo do projeto ou clique com o botão direito em uma seleção em um documento e escolha \"Adicionar memo\".",
+    "memoHeading": "Memo",
+    "exportAllTitle": "Exportar todos os memos como PDF",
+    "showInDocument": "Mostrar no documento",
+    "deleteCountTitle_one": "Excluir {{count}} memo",
+    "deleteCountTitle_many": "Excluir {{count}} memos",
+    "deleteCountTitle_other": "Excluir {{count}} memos"
   },
   "analyses": {
     "filterPlaceholder": "Filtrar análises...",
@@ -783,5 +805,36 @@
     "underline": "Sublinhado",
     "bulletList": "Lista com marcadores",
     "numberedList": "Lista numerada"
+  },
+  "codebook": {
+    "title": "Livro de códigos",
+    "noMemo": "Sem memo",
+    "pdfSubtitle_one": "{{count}} código — exportado em {{date}}",
+    "pdfSubtitle_many": "{{count}} códigos — exportado em {{date}}",
+    "pdfSubtitle_other": "{{count}} códigos — exportado em {{date}}",
+    "selectCode": "Selecione um código para ver os detalhes.",
+    "importQdc": "Importar QDC",
+    "importQdcTitle": "Importar códigos de um livro de códigos .qdc",
+    "exportQdc": "Exportar QDC",
+    "exportQdcTitle": "Exportar o livro de códigos como arquivo .qdc",
+    "exportPdfTitle": "Exportar o livro de códigos como PDF"
+  },
+  "logbook": {
+    "title": "Diário de bordo",
+    "untitledEntry": "Registro sem título",
+    "editEntry": "Editar registro",
+    "newEntry": "Novo registro",
+    "titlePlaceholder": "Título do registro...",
+    "content": "Conteúdo",
+    "selectEntry": "Selecione um registro para ver os detalhes.",
+    "pdfSubtitle_one": "{{count}} registro — exportado em {{date}}",
+    "pdfSubtitle_many": "{{count}} registros — exportados em {{date}}",
+    "pdfSubtitle_other": "{{count}} registros — exportados em {{date}}",
+    "entries": "Registros",
+    "newEntryTitle": "Novo registro",
+    "empty": "Nenhum registro ainda. Clique em + para criar um.",
+    "exportPdfTitle": "Exportar o diário de bordo como PDF",
+    "deleteEntry": "Excluir registro",
+    "deleteConfirm": "Tem certeza de que deseja excluir este registro do diário de bordo? Não é possível desfazer."
   }
 }

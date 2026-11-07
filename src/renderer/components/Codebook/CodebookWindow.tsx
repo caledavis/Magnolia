@@ -8,6 +8,8 @@ import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-
 import { modKey, isMac } from '../../utils/platform'
 import { useCodeColourPresets } from '../../utils/code-colours'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
+import { useTranslation } from 'react-i18next'
+import { t, formatDateTime } from '../../i18n'
 
 function flattenCodes(codes: Code[]): Code[] {
   const result: Code[] = []
@@ -46,6 +48,7 @@ function CompactCodeEntry({
   onRename: (guid: string, name: string) => void
   onStopRenaming: () => void
 }) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(true)
   const count = codeCounts[code.guid] || 0
   const renaming = renamingGuid === code.guid
@@ -81,7 +84,7 @@ function CompactCodeEntry({
           onSelectCode(code.guid)
           onContextMenu(code.guid, e.clientX, e.clientY)
         }}
-        title="Double-click to edit"
+        title={t('common.doubleClickToEdit')}
       >
         <span
           onClick={code.children.length > 0 ? (e) => {
@@ -158,6 +161,7 @@ function EditCodeDialog({
   onSave: (name: string, color: string, description: string, hotkey: number | undefined) => void
   onClose: () => void
 }) {
+  const { t } = useTranslation()
   const [name, setName] = useState(code.name)
   const [color, setColor] = useState(code.color || '#888888')
   const [memo, setMemo] = useState(code.description || '')
@@ -168,7 +172,7 @@ function EditCodeDialog({
   return (
     <div className="modal-overlay" onClick={onClose} style={{ position: 'fixed' }}>
       <div className="modal" onClick={(e) => e.stopPropagation()} style={{ minWidth: 420 }}>
-        <h2 style={{ margin: '0 0 12px' }}>Edit Code</h2>
+        <h2 style={{ margin: '0 0 12px' }}>{t('codes.editCode')}</h2>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
           <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -183,7 +187,7 @@ function EditCodeDialog({
                 border: '2px solid var(--border-color)',
                 boxSizing: 'border-box'
               }}
-              title="Choose color"
+              title={t('codes.chooseColor')}
             />
             {showColorPicker && (
               <div
@@ -222,7 +226,7 @@ function EditCodeDialog({
                   />
                 ))}
                 <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                  <label style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Custom:</label>
+                  <label style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('codes.custom')}</label>
                   <input
                     type="color"
                     value={color}
@@ -246,7 +250,7 @@ function EditCodeDialog({
                 onSave(name.trim(), color, memo, hk)
               }
             }}
-            placeholder="Code name..."
+            placeholder={t('codes.namePlaceholder')}
             autoFocus
             style={{ flex: 1 }}
           />
@@ -255,7 +259,7 @@ function EditCodeDialog({
         {/* Description */}
         <div style={{ marginBottom: 10 }}>
           <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
-            Description
+            {t('codes.description')}
           </label>
           <MarkdownEditor
             value={memo}
@@ -280,12 +284,12 @@ function EditCodeDialog({
             style={{ width: 40, textAlign: 'center' }}
           />
           <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-            Hotkey for quick coding
+            {t('codes.hotkeyHint')}
           </span>
         </div>
 
         <div className="modal-actions">
-          <button className="secondary" onClick={onClose}>Cancel</button>
+          <button className="secondary" onClick={onClose}>{t('common.cancel')}</button>
           <button
             onClick={() => {
               if (name.trim()) {
@@ -294,7 +298,7 @@ function EditCodeDialog({
               }
             }}
           >
-            Save
+            {t('common.save')}
           </button>
         </div>
       </div>
@@ -303,14 +307,14 @@ function EditCodeDialog({
 }
 
 function buildCodebookHtml(codes: Code[]): string {
-  const now = new Date().toLocaleString()
+  const now = formatDateTime(new Date())
   const allCodes = flattenCodes(codes)
 
   const renderCode = (code: Code, depth: number): string => {
     const indent = depth * 20
     const memoHtml = code.description
       ? `<div class="memo">${markdownToHtml(code.description)}</div>`
-      : `<div class="no-memo">No memo</div>`
+      : `<div class="no-memo">${escHtml(t('codebook.noMemo'))}</div>`
     const children = code.children.map((c) => renderCode(c, depth + 1)).join('')
     return `<div class="code-entry" style="padding-left:${indent}px">
       <div class="code-header">
@@ -339,8 +343,8 @@ function buildCodebookHtml(codes: Code[]): string {
 `
 
   return buildPdfDocument({
-    title: 'Codebook',
-    subtitle: `${allCodes.length} code${allCodes.length !== 1 ? 's' : ''} &mdash; exported ${escHtml(now)}`,
+    title: t('codebook.title'),
+    subtitle: escHtml(t('codebook.pdfSubtitle', { count: allCodes.length, date: now })),
     body,
     extraCss
   })
@@ -348,10 +352,11 @@ function buildCodebookHtml(codes: Code[]): string {
 
 // Detail pane: shows the selected code's full info
 function CodeDetailPane({ code }: { code: Code | null }) {
+  const { t } = useTranslation()
   if (!code) {
     return (
       <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-        Select a code to see its details.
+        {t('codebook.selectCode')}
       </div>
     )
   }
@@ -368,7 +373,7 @@ function CodeDetailPane({ code }: { code: Code | null }) {
         />
       ) : (
         <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-          No memo
+          {t('codebook.noMemo')}
         </div>
       )}
     </div>
@@ -379,6 +384,7 @@ function CodeDetailPane({ code }: { code: Code | null }) {
 const HEADER_BUTTON: React.CSSProperties = { fontSize: 11, padding: '2px 8px', textTransform: 'none', letterSpacing: 0 }
 
 export function CodebookWindow() {
+  const { t } = useTranslation()
   const [codes, setCodes] = useState<Code[]>([])
   const [codeCounts, setCodeCounts] = useState<Record<string, number>>({})
   // The right-click menu, the code being renamed in place and the code
@@ -437,7 +443,7 @@ export function CodebookWindow() {
 
   const handleExportPdf = useCallback(async () => {
     const html = buildCodebookHtml(codes)
-    await exportPdfWithHeader(html, 'Codebook')
+    await exportPdfWithHeader(html, t('codebook.title'))
   }, [codes])
 
   const handleExportQdc = useCallback(async () => {
@@ -467,13 +473,13 @@ export function CodebookWindow() {
         <Panel defaultSize={45} minSize={25} maxSize={70}>
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div className="panel-header">
-              <span style={{ flex: 1 }}>Codes</span>
+              <span style={{ flex: 1 }}>{t('panes.codes')}</span>
               <span style={{ fontWeight: 400, letterSpacing: 0 }}>{allCodes.length}</span>
             </div>
             <div className="panel-content">
               {codes.length === 0 ? (
                 <div className="empty-state" style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                  No codes yet.
+                  {t('codes.empty')}
                 </div>
               ) : (
                 codes.map((code) => (
@@ -499,15 +505,15 @@ export function CodebookWindow() {
         <Panel defaultSize={55} minSize={30}>
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div className="panel-header">
-              <span style={{ flex: 1 }}>Codebook</span>
-              <button className="secondary" style={HEADER_BUTTON} onClick={handleImportQdc} title="Import codes from a .qdc codebook">
-                Import QDC
+              <span style={{ flex: 1 }}>{t('codebook.title')}</span>
+              <button className="secondary" style={HEADER_BUTTON} onClick={handleImportQdc} title={t('codebook.importQdcTitle')}>
+                {t('codebook.importQdc')}
               </button>
-              <button className="secondary" style={HEADER_BUTTON} onClick={handleExportQdc} title="Export the codebook as a .qdc file">
-                Export QDC
+              <button className="secondary" style={HEADER_BUTTON} onClick={handleExportQdc} title={t('codebook.exportQdcTitle')}>
+                {t('codebook.exportQdc')}
               </button>
-              <button className="secondary" style={HEADER_BUTTON} onClick={handleExportPdf} title="Export the codebook as a PDF">
-                Export PDF
+              <button className="secondary" style={HEADER_BUTTON} onClick={handleExportPdf} title={t('codebook.exportPdfTitle')}>
+                {t('common.exportPdf')}
               </button>
             </div>
             <div className="panel-content">
@@ -527,17 +533,17 @@ export function CodebookWindow() {
           <>
             <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setContextMenu(null)} onContextMenu={(e) => { e.preventDefault(); setContextMenu(null) }} />
             <div ref={menuPos.ref} className="context-menu" style={{ left: menuPos.x, top: menuPos.y, zIndex: 100 }} onClick={(e) => e.stopPropagation()}>
-              <div className="context-menu-item" onClick={() => { setContextMenu(null); setRenamingGuid(guid) }}>Rename</div>
-              <div className="context-menu-item" onClick={() => { setContextMenu(null); setColourGuid(guid) }}>Change Color</div>
-              <div className="context-menu-item" onClick={() => { setContextMenu(null); setEditingCodeGuid(guid) }}>Edit Code</div>
+              <div className="context-menu-item" onClick={() => { setContextMenu(null); setRenamingGuid(guid) }}>{t('common.rename')}</div>
+              <div className="context-menu-item" onClick={() => { setContextMenu(null); setColourGuid(guid) }}>{t('codes.changeColor')}</div>
+              <div className="context-menu-item" onClick={() => { setContextMenu(null); setEditingCodeGuid(guid) }}>{t('codes.editCode')}</div>
               <div className="context-menu-separator" />
-              <div className="context-menu-item" onClick={() => send('show-in-all-documents')}>Show in All Documents</div>
-              <div className="context-menu-item" onClick={() => send('show-in-active-document')}>Show in Active Document</div>
+              <div className="context-menu-item" onClick={() => send('show-in-all-documents')}>{t('codes.showInAll')}</div>
+              <div className="context-menu-item" onClick={() => send('show-in-active-document')}>{t('codes.showInActive')}</div>
               <div className="context-menu-separator" />
-              <div className="context-menu-item" onClick={() => send('add-child-code')}>Add Child Code</div>
-              <div className="context-menu-item" onClick={() => send('move-code-to-top')}>Move to Top Level</div>
+              <div className="context-menu-item" onClick={() => send('add-child-code')}>{t('codes.addChild')}</div>
+              <div className="context-menu-item" onClick={() => send('move-code-to-top')}>{t('codes.moveToTop')}</div>
               <div className="context-menu-separator" />
-              <div className="context-menu-item" style={{ color: 'var(--menu-fg-danger)' }} onClick={() => send('delete-code')}>Delete</div>
+              <div className="context-menu-item" style={{ color: 'var(--menu-fg-danger)' }} onClick={() => send('delete-code')}>{t('common.delete')}</div>
             </div>
           </>
         )
@@ -550,7 +556,7 @@ export function CodebookWindow() {
         return (
           <div className="modal-overlay" onClick={() => setColourGuid(null)} style={{ position: 'fixed' }}>
             <div className="modal" onClick={(e) => e.stopPropagation()} style={{ minWidth: 250 }}>
-              <h2>Choose Color</h2>
+              <h2>{t('codes.chooseColorHeading')}</h2>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
                 {colourPresets.map((c) => (
                   <div
@@ -568,7 +574,7 @@ export function CodebookWindow() {
                 ))}
               </div>
               <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
-                <label style={{ fontSize: 12 }}>Custom:</label>
+                <label style={{ fontSize: 12 }}>{t('codes.custom')}</label>
                 <input type="color" defaultValue={code.color || '#888888'} onChange={(e) => recolor(e.target.value)} />
               </div>
             </div>

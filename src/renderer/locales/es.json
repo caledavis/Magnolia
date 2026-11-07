@@ -288,7 +288,14 @@
     "dismiss": "Descartar",
     "untitled": "Sin título",
     "loading": "Cargando...",
-    "clickToRename": "Haz clic para cambiar el nombre"
+    "clickToRename": "Haz clic para cambiar el nombre",
+    "exportPdf": "Exportar PDF",
+    "show": "Mostrar",
+    "edit": "Editar",
+    "noContent": "Sin contenido",
+    "editedOn": "editado el {{date}}",
+    "clearSearch": "Borrar la búsqueda",
+    "doubleClickToEdit": "Haz doble clic para editar"
   },
   "panel": {
     "popIn": "Volver a acoplar",
@@ -531,7 +538,22 @@
     "deleteCountConfirm_one": "¿Eliminar {{count}} memo? No se puede deshacer.",
     "deleteCountConfirm_many": "¿Eliminar {{count}} memos? No se puede deshacer.",
     "deleteCountConfirm_other": "¿Eliminar {{count}} memos? No se puede deshacer.",
-    "deleteOneConfirm": "¿Eliminar «{{title}}»? No se puede deshacer."
+    "deleteOneConfirm": "¿Eliminar «{{title}}»? No se puede deshacer.",
+    "windowTitle": "Memos",
+    "selectToRead": "Selecciona un memo para leerlo.",
+    "showTitle": "Mostrar en la ventana principal dónde está añadido este memo",
+    "pdfSubtitle_one": "{{count}} memo — exportado el {{date}}",
+    "pdfSubtitle_many": "{{count}} memos — exportados el {{date}}",
+    "pdfSubtitle_other": "{{count}} memos — exportados el {{date}}",
+    "newProjectMemo": "Nuevo memo del proyecto",
+    "searchPlaceholder": "Buscar memos",
+    "windowEmpty": "Todavía no hay memos. Haz clic en + para escribir un memo del proyecto, o haz clic con el botón derecho en una selección de un documento y elige «Añadir memo».",
+    "memoHeading": "Memo",
+    "exportAllTitle": "Exportar todos los memos como PDF",
+    "showInDocument": "Mostrar en el documento",
+    "deleteCountTitle_one": "Eliminar {{count}} memo",
+    "deleteCountTitle_many": "Eliminar {{count}} memos",
+    "deleteCountTitle_other": "Eliminar {{count}} memos"
   },
   "analyses": {
     "filterPlaceholder": "Filtrar análisis...",
@@ -783,5 +805,36 @@
     "underline": "Subrayado",
     "bulletList": "Lista con viñetas",
     "numberedList": "Lista numerada"
+  },
+  "codebook": {
+    "title": "Libro de códigos",
+    "noMemo": "Sin memo",
+    "pdfSubtitle_one": "{{count}} código — exportado el {{date}}",
+    "pdfSubtitle_many": "{{count}} códigos — exportado el {{date}}",
+    "pdfSubtitle_other": "{{count}} códigos — exportado el {{date}}",
+    "selectCode": "Selecciona un código para ver sus detalles.",
+    "importQdc": "Importar QDC",
+    "importQdcTitle": "Importar códigos de un libro de códigos .qdc",
+    "exportQdc": "Exportar QDC",
+    "exportQdcTitle": "Exportar el libro de códigos como archivo .qdc",
+    "exportPdfTitle": "Exportar el libro de códigos como PDF"
+  },
+  "logbook": {
+    "title": "Bitácora",
+    "untitledEntry": "Entrada sin título",
+    "editEntry": "Editar entrada",
+    "newEntry": "Entrada nueva",
+    "titlePlaceholder": "Título de la entrada...",
+    "content": "Contenido",
+    "selectEntry": "Selecciona una entrada para ver sus detalles.",
+    "pdfSubtitle_one": "{{count}} entrada — exportada el {{date}}",
+    "pdfSubtitle_many": "{{count}} entradas — exportadas el {{date}}",
+    "pdfSubtitle_other": "{{count}} entradas — exportadas el {{date}}",
+    "entries": "Entradas",
+    "newEntryTitle": "Entrada nueva",
+    "empty": "Todavía no hay entradas. Haz clic en + para crear una.",
+    "exportPdfTitle": "Exportar la bitácora como PDF",
+    "deleteEntry": "Eliminar entrada",
+    "deleteConfirm": "¿Seguro que quieres eliminar esta entrada de la bitácora? No se puede deshacer."
   }
 }

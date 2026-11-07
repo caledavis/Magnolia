@@ -1,3 +1,4 @@
+import { formatDateTime, currentLanguage } from '../../i18n'
 import { useState, useCallback, useEffect } from 'react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { Icon, faPlus } from '../Icon'
@@ -6,10 +7,11 @@ import { MarkdownEditor } from '../MarkdownEditor'
 import type { LogbookEntry, LogbookInitData } from '../../models/types'
 import { generateGuid } from '../../utils/guid'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
+import { useTranslation } from 'react-i18next'
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
-  return d.toLocaleDateString(undefined, {
+  return d.toLocaleDateString(currentLanguage(), {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -29,6 +31,7 @@ function EntryRow({
   onClick: () => void
   onDoubleClick: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <div
       style={{
@@ -48,7 +51,7 @@ function EntryRow({
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap'
       }}>
-        {entry.title || 'Untitled Entry'}
+        {entry.title || t('logbook.untitledEntry')}
       </div>
       <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
         {formatDate(entry.createdDateTime)}
@@ -69,13 +72,14 @@ function EditEntryDialog({
   onSave: (title: string, content: string) => void
   onClose: () => void
 }) {
+  const { t } = useTranslation()
   const [title, setTitle] = useState(entry?.title || '')
   const [content, setContent] = useState(entry?.content || '')
 
   return (
     <div className="modal-overlay" style={{ position: 'fixed' }}>
       <div className="modal" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Escape') onClose() }} style={{ minWidth: 480 }}>
-        <h2 style={{ margin: '0 0 12px' }}>{entry ? 'Edit Entry' : 'New Entry'}</h2>
+        <h2 style={{ margin: '0 0 12px' }}>{entry ? t('logbook.editEntry') : t('logbook.newEntry')}</h2>
 
         <div style={{ marginBottom: 10 }}>
           <input
@@ -85,7 +89,7 @@ function EditEntryDialog({
             onKeyDown={(e) => {
               if (e.key === 'Enter' && title.trim()) onSave(title.trim(), content)
             }}
-            placeholder="Entry title..."
+            placeholder={t('logbook.titlePlaceholder')}
             autoFocus
             style={{ width: '100%' }}
           />
@@ -93,7 +97,7 @@ function EditEntryDialog({
 
         <div style={{ marginBottom: 12 }}>
           <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
-            Content
+            {t('logbook.content')}
           </label>
           <MarkdownEditor
             value={content}
@@ -102,13 +106,13 @@ function EditEntryDialog({
         </div>
 
         <div className="modal-actions">
-          <button className="secondary" onClick={onClose}>Cancel</button>
+          <button className="secondary" onClick={onClose}>{t('common.cancel')}</button>
           <button
             onClick={() => {
               if (title.trim()) onSave(title.trim(), content)
             }}
           >
-            Save
+            {t('common.save')}
           </button>
         </div>
       </div>
@@ -117,17 +121,18 @@ function EditEntryDialog({
 }
 
 function EntryDetailPane({ entry }: { entry: LogbookEntry | null }) {
+  const { t } = useTranslation()
   if (!entry) {
     return (
       <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-        Select an entry to see its details.
+        {t('logbook.selectEntry')}
       </div>
     )
   }
   return (
     <div style={{ padding: 12 }}>
       <div style={{ fontWeight: 600, fontSize: 'var(--font-size-lg)', marginBottom: 4 }}>
-        {entry.title || 'Untitled Entry'}
+        {entry.title || t('logbook.untitledEntry')}
       </div>
       <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>
         Created {formatDate(entry.createdDateTime)}
@@ -142,7 +147,7 @@ function EntryDetailPane({ entry }: { entry: LogbookEntry | null }) {
         />
       ) : (
         <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-          No content
+          {t('common.noContent')}
         </div>
       )}
     </div>
@@ -150,6 +155,7 @@ function EntryDetailPane({ entry }: { entry: LogbookEntry | null }) {
 }
 
 export function LogbookWindow() {
+  const { t } = useTranslation()
   const [entries, setEntries] = useState<LogbookEntry[]>([])
   const [selectedGuid, setSelectedGuid] = useState<string | null>(null)
   const [editingEntry, setEditingEntry] = useState<LogbookEntry | null | 'new'>(null)
@@ -206,14 +212,14 @@ export function LogbookWindow() {
   }, [selectedGuid])
 
   const handleExportPdf = useCallback(async () => {
-    const now = new Date().toLocaleString()
+    const now = formatDateTime(new Date())
     const { markdownToHtml } = await import('../Markdown')
 
     const body = entries.map((e) => {
-      const contentHtml = e.content ? markdownToHtml(e.content) : '<em>No content</em>'
+      const contentHtml = e.content ? markdownToHtml(e.content) : `<em>${escHtml(t('common.noContent'))}</em>`
       return `<div class="entry">
-        <div class="entry-title">${escHtml(e.title || 'Untitled Entry')}</div>
-        <div class="entry-date">${escHtml(formatDate(e.createdDateTime))}${e.modifiedDateTime ? ` · edited ${escHtml(formatDate(e.modifiedDateTime))}` : ''}</div>
+        <div class="entry-title">${escHtml(e.title || t('logbook.untitledEntry'))}</div>
+        <div class="entry-date">${escHtml(formatDate(e.createdDateTime))}${e.modifiedDateTime ? ` · ${escHtml(t('common.editedOn', { date: formatDate(e.modifiedDateTime) }))}` : ''}</div>
         <div class="entry-content">${contentHtml}</div>
       </div>`
     }).join('')
@@ -231,13 +237,13 @@ export function LogbookWindow() {
 `
 
     const html = buildPdfDocument({
-      title: 'Logbook',
-      subtitle: `${entries.length} entr${entries.length !== 1 ? 'ies' : 'y'} &mdash; exported ${escHtml(now)}`,
+      title: t('logbook.title'),
+      subtitle: escHtml(t('logbook.pdfSubtitle', { count: entries.length, date: now })),
       body,
       extraCss
     })
 
-    await exportPdfWithHeader(html, 'Logbook')
+    await exportPdfWithHeader(html, t('logbook.title'))
   }, [entries])
 
   const selectedEntry = selectedGuid ? entries.find((e) => e.guid === selectedGuid) ?? null : null
@@ -251,16 +257,16 @@ export function LogbookWindow() {
         <Panel defaultSize={40} minSize={25} maxSize={70}>
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div className="panel-header">
-              <span style={{ flex: 1 }}>Entries</span>
+              <span style={{ flex: 1 }}>{t('logbook.entries')}</span>
               <span style={{ fontWeight: 400, letterSpacing: 0 }}>{entries.length}</span>
-              <button className="panel-header-add" onClick={handleNewEntry} title="New entry" aria-label="New entry">
+              <button className="panel-header-add" onClick={handleNewEntry} title={t('logbook.newEntryTitle')} aria-label={t('logbook.newEntryTitle')}>
                 <Icon icon={faPlus} />
               </button>
             </div>
             <div className="panel-content">
               {entries.length === 0 ? (
                 <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                  No entries yet. Click + to create one.
+                  {t('logbook.empty')}
                 </div>
               ) : (
                 <>
@@ -290,14 +296,14 @@ export function LogbookWindow() {
         <Panel defaultSize={60} minSize={30}>
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div className="panel-header">
-              <span style={{ flex: 1 }}>Logbook</span>
+              <span style={{ flex: 1 }}>{t('logbook.title')}</span>
               <button
                 className="secondary"
                 style={{ fontSize: 11, padding: '2px 8px', textTransform: 'none', letterSpacing: 0 }}
                 onClick={handleExportPdf}
-                title="Export the logbook as a PDF"
+                title={t('logbook.exportPdfTitle')}
               >
-                Export PDF
+                {t('common.exportPdf')}
               </button>
             </div>
             <div className="panel-content">
@@ -329,7 +335,7 @@ export function LogbookWindow() {
               setEntryContextMenu(null)
               if (entry) setEditingEntry(entry)
             }}>
-              Edit Entry
+              {t('logbook.editEntry')}
             </div>
             <div className="context-menu-separator" />
             <div
@@ -340,7 +346,7 @@ export function LogbookWindow() {
                 setEntryContextMenu(null)
               }}
             >
-              Delete Entry
+              {t('logbook.deleteEntry')}
             </div>
           </div>
         </>
@@ -350,17 +356,17 @@ export function LogbookWindow() {
       {deleteConfirm && (
         <div className="modal-overlay" onClick={() => setDeleteConfirm(null)} style={{ position: 'fixed' }}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ margin: '0 0 12px' }}>Delete Entry</h2>
+            <h2 style={{ margin: '0 0 12px' }}>{t('logbook.deleteEntry')}</h2>
             <p style={{ margin: '0 0 16px', fontSize: 'var(--font-size-sm)' }}>
-              Are you sure you want to delete this logbook entry? This cannot be undone.
+              {t('logbook.deleteConfirm')}
             </p>
             <div className="modal-actions">
-              <button className="secondary" onClick={() => setDeleteConfirm(null)}>Cancel</button>
+              <button className="secondary" onClick={() => setDeleteConfirm(null)}>{t('common.cancel')}</button>
               <button
                 style={{ background: 'var(--danger)' }}
                 onClick={() => handleDeleteEntry(deleteConfirm)}
               >
-                Delete
+                {t('common.delete')}
               </button>
             </div>
           </div>
