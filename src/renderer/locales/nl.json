@@ -994,7 +994,9 @@
     "before": "{{a}} voor {{b}}",
     "followedBy": "{{a}} gevolgd door {{b}}",
     "sameSentence": "{{a}} in dezelfde zin als {{b}}",
-    "query": "Query"
+    "query": "Query",
+    "within_one": "binnen de resultaten van {{count}} query",
+    "within_other": "binnen de resultaten van {{count}} query's"
   },
   "results": {
     "title": "Queryresultaten",
@@ -1199,5 +1201,30 @@
     "supportText2": "Je kunt maandelijks sponsoren of een eenmalige bijdrage doen via GitHub Sponsors. De link wordt in je browser geopend.",
     "createdBy": "Magnolia is gemaakt en wordt onderhouden door dr. Cale Davis.",
     "sponsorOnGithub": "Sponsor Magnolia op GitHub"
+  },
+  "app": {
+    "report": "Rapport",
+    "relationshipMap": "Relatiekaart",
+    "parseFailed": "Kan {{name}} niet verwerken:\n\n{{error}}",
+    "opening": "Project openen…",
+    "releasing": "Controle vrijgeven…",
+    "populating": "{{what}} laden",
+    "step": {
+      "projectMetadata": "projectmetadata",
+      "documents": "documenten",
+      "folders": "mappen",
+      "codes": "codes",
+      "tags": "tags",
+      "queries": "query's",
+      "logbook": "logboek",
+      "memos": "memo's",
+      "quotes": "citaten",
+      "tabs": "tabbladen"
+    },
+    "mergeBlocks": "Rond de samenvoeging af of annuleer die om andere panelen te gebruiken",
+    "noCodesInReport": "Codes kunnen niet aan een rapport worden toegevoegd",
+    "noQuotesInQuery": "Citaten kunnen niet aan een query worden toegevoegd",
+    "noAnalysesInQuery": "Analyses kunnen niet aan een query worden toegevoegd",
+    "projectInfo": "Projectinformatie"
   }
 }

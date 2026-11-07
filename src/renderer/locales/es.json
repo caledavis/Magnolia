@@ -1027,7 +1027,10 @@
     "before": "{{a}} antes de {{b}}",
     "followedBy": "{{a}} seguido de {{b}}",
     "sameSentence": "{{a}} en la misma oración que {{b}}",
-    "query": "Consulta"
+    "query": "Consulta",
+    "within_one": "dentro de los resultados de {{count}} consulta",
+    "within_many": "dentro de los resultados de {{count}} consultas",
+    "within_other": "dentro de los resultados de {{count}} consultas"
   },
   "results": {
     "title": "Resultados de la consulta",
@@ -1237,5 +1240,30 @@
     "supportText2": "Puedes patrocinar cada mes o hacer una aportación única a través de GitHub Sponsors. El enlace se abre en tu navegador.",
     "createdBy": "Magnolia lo creó y lo mantiene el Dr. Cale Davis.",
     "sponsorOnGithub": "Patrocina Magnolia en GitHub"
+  },
+  "app": {
+    "report": "Informe",
+    "relationshipMap": "Mapa de relaciones",
+    "parseFailed": "No se pudo procesar {{name}}:\n\n{{error}}",
+    "opening": "Abriendo el proyecto…",
+    "releasing": "Liberando el control…",
+    "populating": "Cargando {{what}}",
+    "step": {
+      "projectMetadata": "metadatos del proyecto",
+      "documents": "documentos",
+      "folders": "carpetas",
+      "codes": "códigos",
+      "tags": "etiquetas",
+      "queries": "consultas",
+      "logbook": "bitácora",
+      "memos": "memos",
+      "quotes": "citas",
+      "tabs": "pestañas"
+    },
+    "mergeBlocks": "Termina o cancela la combinación para usar los demás paneles",
+    "noCodesInReport": "No se pueden añadir códigos a un informe",
+    "noQuotesInQuery": "No se pueden añadir citas a una consulta",
+    "noAnalysesInQuery": "No se pueden añadir análisis a una consulta",
+    "projectInfo": "Información del proyecto"
   }
 }

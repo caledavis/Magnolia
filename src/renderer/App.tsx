@@ -29,18 +29,11 @@ import { SurveyImportDialog } from './components/SurveyImportDialog'
 import type { SurveyData, SurveyFormatData } from './models/types'
 import type { CodebookInitData, QueryResultsInitData } from './models/types'
 
-/** Human-readable tool names — used for the per-tool ad-hoc tab titles
- *  ("Code Frequencies (3)") and elsewhere. */
-const ANALYSIS_TOOL_TITLES: Record<string, string> = {
-  'code-cooccurrences': 'Code Co-Occurrences',
-  'codes-in-documents': 'Codes in Documents',
-  'framework-matrix': 'Framework Matrix',
-  'results-in-documents': 'Results in Documents',
-  'code-frequencies': 'Code Frequencies',
-  'code-orders': 'Code Orders',
-  'word-frequencies': 'Word Frequencies',
-  'word-combinations': 'Word Combinations',
-  'reports': 'Report'
+/** A tool's name for its ad-hoc tab titles ("Code Frequencies (3)"); a
+ *  report tab is "Report". */
+function analysisToolTitle(toolType: string): string | undefined {
+  if (toolType === 'reports') return t('app.report')
+  return toolType === 'relationship-map' ? undefined : TOOL_REGISTRY[toolType]?.label
 }
 
 /** Flatten a code tree, tagging each code with its parent guid */
@@ -104,6 +97,7 @@ import { WindowControls } from './components/Toolbar/WindowControls'
 import type { Project, Query, CodeCondition, Code, TextSource, QDASet, LogbookInitData, AnalysisInitData, AnalysisToolType, PlainTextSelection, Memo, MemoEditInitData, MemosWindowData, SurveyCellScopeArgs } from './models/types'
 import { buildSurveyEntityLabels } from './utils/survey/survey-labels'
 import { useTranslation } from 'react-i18next'
+import { t } from './i18n'
 
 /** Fold the survey-cell scope carried by an analysis cell-click into the
  *  documentFilter of the Query being generated, so it re-runs against the
@@ -125,12 +119,12 @@ function applySurveyScopeToFilter(
 
 function describeCondition(cond: CodeCondition, findCode: (guid: string) => Code | undefined, depth?: number): string {
   const d = depth ?? 0
-  const codeName = (guid: string) => findCode(guid)?.name ?? 'Code'
+  const codeName = (guid: string) => findCode(guid)?.name ?? t('queryBuilder.code')
   switch (cond.type) {
     case 'code':
-      return codeName(cond.codeGuid) + (cond.includeSubcodes ? ' (incl. subcodes)' : '')
+      return cond.includeSubcodes ? t('queryDesc.inclSubcodes', { name: codeName(cond.codeGuid) }) : codeName(cond.codeGuid)
     case 'text':
-      return cond.searchText ? `"${cond.searchText}"` : 'Text'
+      return cond.searchText ? `"${cond.searchText}"` : t('queryBuilder.kind.text')
     case 'and':
       return cond.conditions.map((c) => describeCondition(c, findCode, d + 1)).join(' AND ')
     case 'or':
@@ -138,21 +132,21 @@ function describeCondition(cond: CodeCondition, findCode: (guid: string) => Code
     case 'xor':
       return cond.conditions.map((c) => describeCondition(c, findCode, d + 1)).join(' XOR ')
     case 'not':
-      return 'NOT ' + describeCondition(cond.condition, findCode, d + 1)
+      return t('queryDesc.not', { names: describeCondition(cond.condition, findCode, d + 1) })
     case 'overlap':
-      return `(${describeCondition(cond.condition1, findCode, d + 1)}) overlapping (${describeCondition(cond.condition2, findCode, d + 1)})`
+      return t('queryDesc.overlap', { a: `(${describeCondition(cond.condition1, findCode, d + 1)})`, b: `(${describeCondition(cond.condition2, findCode, d + 1)})` })
     case 'inside':
-      return `(${describeCondition(cond.condition1, findCode, d + 1)}) inside (${describeCondition(cond.condition2, findCode, d + 1)})`
+      return t('queryDesc.inside', { a: `(${describeCondition(cond.condition1, findCode, d + 1)})`, b: `(${describeCondition(cond.condition2, findCode, d + 1)})` })
     case 'outside':
-      return `(${describeCondition(cond.condition1, findCode, d + 1)}) outside (${describeCondition(cond.condition2, findCode, d + 1)})`
+      return t('queryDesc.outside', { a: `(${describeCondition(cond.condition1, findCode, d + 1)})`, b: `(${describeCondition(cond.condition2, findCode, d + 1)})` })
     case 'before':
-      return `(${describeCondition(cond.condition1, findCode, d + 1)}) before (${describeCondition(cond.condition2, findCode, d + 1)})`
+      return t('queryDesc.before', { a: `(${describeCondition(cond.condition1, findCode, d + 1)})`, b: `(${describeCondition(cond.condition2, findCode, d + 1)})` })
     case 'followedBy':
-      return `(${describeCondition(cond.condition1, findCode, d + 1)}) followed by (${describeCondition(cond.condition2, findCode, d + 1)})`
+      return t('queryDesc.followedBy', { a: `(${describeCondition(cond.condition1, findCode, d + 1)})`, b: `(${describeCondition(cond.condition2, findCode, d + 1)})` })
     case 'sameSentence':
-      return `(${describeCondition(cond.condition1, findCode, d + 1)}) in the same sentence as (${describeCondition(cond.condition2, findCode, d + 1)})`
+      return t('queryDesc.sameSentence', { a: `(${describeCondition(cond.condition1, findCode, d + 1)})`, b: `(${describeCondition(cond.condition2, findCode, d + 1)})` })
     default:
-      return 'Query'
+      return t('queryDesc.query')
   }
 }
 
@@ -190,7 +184,7 @@ function describeQuery(
     const names = docGuids
       .map((g) => sources.find((s) => s.guid === g)?.name)
       .filter(Boolean) as string[]
-    if (names.length > 0) parts.push(names.length <= 2 ? names.join(', ') : `${names.length} docs`)
+    if (names.length > 0) parts.push(names.length <= 2 ? names.join(', ') : t('queryDesc.docs', { count: names.length }))
   }
   if (df.tagGuids && df.tagGuids.length > 0) {
     const tagNames = df.tagGuids
@@ -202,22 +196,22 @@ function describeQuery(
     const excludeNames = df.tagExcludeGuids
       .map((g) => tags.find((tg) => tg.guid === g)?.name)
       .filter(Boolean) as string[]
-    if (excludeNames.length > 0) parts.push('NOT ' + excludeNames.join(', '))
+    if (excludeNames.length > 0) parts.push(t('queryDesc.not', { names: excludeNames.join(', ') }))
   }
   if (df.questionScope?.length || df.respondentScope?.length) {
     // Resolve respondent/question display names from the survey sources.
     const labels = buildSurveyEntityLabels(sources)
     if (df.questionScope?.length) {
       const names = df.questionScope.map((r) => labels?.[r.sourceGuid]?.questions?.[r.id]).filter(Boolean) as string[]
-      parts.push(names.length > 0 && names.length <= 2 ? names.join(', ') : `${df.questionScope.length} question${df.questionScope.length > 1 ? 's' : ''}`)
+      parts.push(names.length > 0 && names.length <= 2 ? names.join(', ') : t('survey.questionCount', { count: df.questionScope.length }))
     }
     if (df.respondentScope?.length) {
       const names = df.respondentScope.map((r) => labels?.[r.sourceGuid]?.respondents?.[r.id]).filter(Boolean) as string[]
-      parts.push(names.length > 0 && names.length <= 2 ? names.join(', ') : `${df.respondentScope.length} respondent${df.respondentScope.length > 1 ? 's' : ''}`)
+      parts.push(names.length > 0 && names.length <= 2 ? names.join(', ') : t('survey.respondentCount', { count: df.respondentScope.length }))
     }
   }
-  if (parts.length > 0) name += ' IN ' + parts.join(', ')
-  if (query.within) name += ` inside the results of ${query.within.length === 1 ? '1 query' : `${query.within.length} queries`}`
+  if (parts.length > 0) name += ' ' + t('queryDesc.in', { scope: parts.join(', ') })
+  if (query.within) name += ' ' + t('queryDesc.within', { count: query.within.length })
   return name
 }
 
@@ -352,7 +346,7 @@ function App() {
           }
         ])
       } catch (err: any) {
-        window.alert(`Could not parse ${suggestedName}:\n\n${err?.message || String(err)}`)
+        window.alert(t('app.parseFailed', { name: suggestedName, error: err?.message || String(err) }))
       }
     },
     []
@@ -529,7 +523,7 @@ function App() {
     const instanceId = generateGuid()
     const tabId = makeAnalysisTabId(toolType, instanceId)
     const counter = ats.nextCounter(toolType)
-    const title = `${ANALYSIS_TOOL_TITLES[toolType] ?? 'Analysis'} (${counter})`
+    const title = `${analysisToolTitle(toolType) ?? t('tabs.analysis')} (${counter})`
     ats.add(tabId, {
       toolType: toolType as any,
       title,
@@ -543,7 +537,7 @@ function App() {
     // Saved relationship maps open as a tab.
     if (toolType === 'relationship-map') {
       const guid = savedConfig?.guid
-      const name = savedConfig?.name ?? 'Relationship Map'
+      const name = savedConfig?.name ?? t('app.relationshipMap')
       if (guid) {
         const rmStore = useRelationshipMapStore.getState()
         rmStore.loadSavedMap(guid, name, {
@@ -578,7 +572,7 @@ function App() {
     ats.add(tabId, {
       toolType: toolType as any,
       savedAnalysisGuid: savedGuid,
-      title: savedConfig?.name ?? 'Analysis',
+      title: savedConfig?.name ?? t('tabs.analysis'),
       config: savedConfig,
       poppedOut: false
     })
@@ -871,7 +865,7 @@ function App() {
     if (!filePath) return
     loadInProgressRef.current = true
     cancelPendingAutoSave()
-    setLoadProgress({ stage: 'Opening project…', current: 0, total: 0 })
+    setLoadProgress({ stage: t('app.opening'), current: 0, total: 0 })
     try {
       setMissingBinaries([])
       const data = await window.api.openProjectPath(filePath)
@@ -890,7 +884,7 @@ function App() {
       const { sourceContents, ...project } = data
       const steps: { label: string; run: () => void }[] = [
         {
-          label: 'Project metadata',
+          label: t('app.step.projectMetadata'),
           run: () =>
             projectStore.loadProject({
               name: project.name,
@@ -905,32 +899,32 @@ function App() {
               savedAnalyses: project.savedAnalyses
             })
         },
-        { label: 'Documents', run: () => documentStore.setSources(project.sources, sourceContents) },
-        { label: 'Folders', run: () => documentStore.setFolders((project as any).folders ?? [], (project as any).sourceFolder ?? {}) },
-        { label: 'Codes', run: () => codeStore.setCodes(project.codes) },
+        { label: t('app.step.documents'), run: () => documentStore.setSources(project.sources, sourceContents) },
+        { label: t('app.step.folders'), run: () => documentStore.setFolders((project as any).folders ?? [], (project as any).sourceFolder ?? {}) },
+        { label: t('app.step.codes'), run: () => codeStore.setCodes(project.codes) },
         {
-          label: 'Tags',
+          label: t('app.step.tags'),
           run: () => {
             tagStore.setTags(project.sets)
             tagStore.setCategories(project.tagCategories ?? [])
           }
         },
         {
-          label: 'Queries',
+          label: t('app.step.queries'),
           run: () => {
             queryStore.clearQuery()
             queryStore.setSavedQueries(project.savedQueries ?? [])
           }
         },
-        { label: 'Logbook', run: () => logbookStore.setEntries(project.logbookEntries ?? []) },
-        { label: 'Memos', run: () => memoStore.setMemos(project.memos ?? []) },
-        { label: 'Quotes', run: () => useQuoteStore.getState().setQuotes(project.quotes ?? []) },
+        { label: t('app.step.logbook'), run: () => logbookStore.setEntries(project.logbookEntries ?? []) },
+        { label: t('app.step.memos'), run: () => memoStore.setMemos(project.memos ?? []) },
+        { label: t('app.step.quotes'), run: () => useQuoteStore.getState().setQuotes(project.quotes ?? []) },
         // Tabs runs LAST so it can validate ids against every store
         // populated above (sources, savedAnalyses, etc.).
-        { label: 'Tabs', run: () => restoreTabState((project as any).tabState) }
+        { label: t('app.step.tabs'), run: () => restoreTabState((project as any).tabState) }
       ]
       for (let i = 0; i < steps.length; i++) {
-        setLoadProgress({ stage: `Populating ${steps[i].label}`, current: i + 1, total: steps.length })
+        setLoadProgress({ stage: t('app.populating', { what: steps[i].label }), current: i + 1, total: steps.length })
         // Yield so React paints the progress bar update and browser repaints
         // before the synchronous store-set triggers a heavy re-render.
         await new Promise((r) => setTimeout(r, 0))
@@ -1397,7 +1391,7 @@ function App() {
       addedDirect = true
     }
     if (errors.length > 0) {
-      window.alert(`Could not import ${errors.length} file${errors.length > 1 ? 's' : ''}:\n\n${errors.join('\n')}`)
+      window.alert(t('documents.importFailed', { count: errors.length, errors: errors.join('\n') }))
     }
     flushImportSave(addedDirect)
   }, [documentStore, queueSurveyImport, flushImportSave, checkoutLockedBy, setCheckoutConflict])
@@ -1447,7 +1441,7 @@ function App() {
       addedDirect = true
     }
     if (errors.length > 0) {
-      window.alert(`Could not import ${errors.length} file${errors.length > 1 ? 's' : ''}:\n\n${errors.join('\n')}`)
+      window.alert(t('documents.importFailed', { count: errors.length, errors: errors.join('\n') }))
     }
     flushImportSave(addedDirect)
   }, [documentStore, queueSurveyImport, flushImportSave, checkoutLockedBy, setCheckoutConflict])
@@ -1472,7 +1466,7 @@ function App() {
       ats.add(tabId, {
         toolType: 'query-builder',
         savedAnalysisGuid: editSavedQueryGuid,
-        title: sq?.name ?? 'Query Builder',
+        title: sq?.name ?? t('tabs.queryBuilder'),
         config: { editSavedQueryGuid },
         poppedOut: false
       })
@@ -1493,7 +1487,7 @@ function App() {
     const counter = ats.nextCounter('query-builder')
     ats.add(tabId, {
       toolType: 'query-builder',
-      title: `Query Builder (${counter})`,
+      title: `${t('tabs.queryBuilder')} (${counter})`,
       config: editCurrentQuery ? { editCurrentQuery: true } : undefined,
       poppedOut: false
     })
@@ -1694,7 +1688,7 @@ function App() {
             ds.addCodingToSelection(ps.sourceGuid, existingSel.guid, guid)
           }
         } else {
-          const selGuid = ds.addSelection(ps.sourceGuid, 0, 0, `Region p${r.page}`, r)
+          const selGuid = ds.addSelection(ps.sourceGuid, 0, 0, t('viewer.regionPage', { page: r.page }), r)
           ds.addCodingToSelection(ps.sourceGuid, selGuid, guid)
         }
       }
@@ -1730,7 +1724,7 @@ function App() {
           handleNewCode()
           break
         case 'new-doc-folder':
-          documentStore.addFolder('New Folder')
+          documentStore.addFolder(t('documents.defaultFolderName'))
           break
         case 'manage-doc-tags':
           setShowManageDocTags(true)
@@ -2179,7 +2173,7 @@ function App() {
     const unsub = window.api.onOpenRecentProject(async (filePath) => {
       loadInProgressRef.current = true
       cancelPendingAutoSave()
-      setLoadProgress({ stage: 'Opening project…', current: 0, total: 0 })
+      setLoadProgress({ stage: t('app.opening'), current: 0, total: 0 })
       setMissingBinaries([])
       try {
         const data = await window.api.openProjectPath(filePath)
@@ -2194,7 +2188,7 @@ function App() {
         const { sourceContents, ...project } = data
         const steps: { label: string; run: () => void }[] = [
           {
-            label: 'Project metadata',
+            label: t('app.step.projectMetadata'),
             run: () =>
               useProjectStore.getState().loadProject({
                 name: project.name,
@@ -2209,30 +2203,30 @@ function App() {
                 savedAnalyses: project.savedAnalyses
               })
           },
-          { label: 'Documents', run: () => useDocumentStore.getState().setSources(project.sources, sourceContents) },
-          { label: 'Folders', run: () => useDocumentStore.getState().setFolders((project as any).folders ?? [], (project as any).sourceFolder ?? {}) },
-          { label: 'Codes', run: () => useCodeStore.getState().setCodes(project.codes) },
+          { label: t('app.step.documents'), run: () => useDocumentStore.getState().setSources(project.sources, sourceContents) },
+          { label: t('app.step.folders'), run: () => useDocumentStore.getState().setFolders((project as any).folders ?? [], (project as any).sourceFolder ?? {}) },
+          { label: t('app.step.codes'), run: () => useCodeStore.getState().setCodes(project.codes) },
           {
-            label: 'Tags',
+            label: t('app.step.tags'),
             run: () => {
               useTagStore.getState().setTags(project.sets)
               useTagStore.getState().setCategories(project.tagCategories ?? [])
             }
           },
           {
-            label: 'Queries',
+            label: t('app.step.queries'),
             run: () => {
               useQueryStore.getState().clearQuery()
               useQueryStore.getState().setSavedQueries(project.savedQueries ?? [])
             }
           },
-          { label: 'Logbook', run: () => useLogbookStore.getState().setEntries(project.logbookEntries ?? []) },
-          { label: 'Memos', run: () => useMemoStore.getState().setMemos(project.memos ?? []) },
-          { label: 'Quotes', run: () => useQuoteStore.getState().setQuotes(project.quotes ?? []) },
-          { label: 'Tabs', run: () => restoreTabState((project as any).tabState) }
+          { label: t('app.step.logbook'), run: () => useLogbookStore.getState().setEntries(project.logbookEntries ?? []) },
+          { label: t('app.step.memos'), run: () => useMemoStore.getState().setMemos(project.memos ?? []) },
+          { label: t('app.step.quotes'), run: () => useQuoteStore.getState().setQuotes(project.quotes ?? []) },
+          { label: t('app.step.tabs'), run: () => restoreTabState((project as any).tabState) }
         ]
         for (let i = 0; i < steps.length; i++) {
-          setLoadProgress({ stage: `Populating ${steps[i].label}`, current: i + 1, total: steps.length })
+          setLoadProgress({ stage: t('app.populating', { what: steps[i].label }), current: i + 1, total: steps.length })
           await new Promise((r) => setTimeout(r, 0))
           steps[i].run()
         }
@@ -2314,7 +2308,7 @@ function App() {
       const myName = usePreferencesStore.getState().userName.trim()
       const currentMarker = ps.filePath ? await window.api.readCheckoutMarker(ps.filePath) : null
       if (currentMarker && myName && currentMarker.userName === myName && ps.filePath) {
-        setLoadProgress({ stage: 'Releasing control…', current: 0, total: 0 })
+        setLoadProgress({ stage: t('app.releasing'), current: 0, total: 0 })
         try {
           await Promise.all([
             window.api.checkInProject(ps.filePath, myName),
@@ -2406,7 +2400,7 @@ function App() {
           const [parentGuid] = args
           const parent = cs.findCode(parentGuid)
           const color = parent?.color || codeColourPresetsFor(usePreferencesStore.getState())[0]
-          const guid = cs.addCode('New Code', color, parentGuid)
+          const guid = cs.addCode(t('codes.defaultName'), color, parentGuid)
           sendCodebookData(guid)
           break
         }
@@ -2617,7 +2611,7 @@ function App() {
             ? saved.name
             : describeQuery(qs.currentQuery!, codeStore.findCode, documentStore.sources, tagStore.tags)
         })()
-      : 'Query Results'
+      : t('results.title')
     const isUnsaved = qs.isActive && qs.currentQuery
       ? !qs.savedQueries.some((sq) => JSON.stringify(sq.query) === JSON.stringify(qs.currentQuery))
       : false
@@ -2927,7 +2921,7 @@ function App() {
           <button
             type="button"
             className="app-toolbar-btn"
-            title="Project info"
+            title={t('app.projectInfo')}
             onClick={() => setShowProjectDetails(true)}
             style={{
               border: 'none',
@@ -3285,7 +3279,7 @@ function App() {
                     if (panels.length > 0) panels.push(<PanelResizeHandle key="rh-d" style={rh} />)
                     panels.push(
                       <Panel key="documents" defaultSize={35} minSize={15}>
-                        <div style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? 'Finish or cancel the merge to use other panels' : undefined} onMouseDown={() => setActivePanel('documents')}>
+                        <div style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : undefined} onMouseDown={() => setActivePanel('documents')}>
                           <DocumentBrowser
                             onImport={handleImportDocument}
                             onSurveyImport={queueSurveyImport}
@@ -3302,7 +3296,7 @@ function App() {
                     if (panels.length > 0) panels.push(<PanelResizeHandle key="rh-c" style={rh} />)
                     panels.push(
                       <Panel key="codes" defaultSize={35} minSize={15}>
-                        <div style={{ height: '100%', opacity: (reportsToolActive || mergeActive) ? 0.62 : 1, pointerEvents: (reportsToolActive || mergeActive) ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? 'Finish or cancel the merge to use other panels' : reportsToolActive ? 'Codes can’t be added to a report' : undefined} onMouseDown={() => setActivePanel('codes')}>
+                        <div style={{ height: '100%', opacity: (reportsToolActive || mergeActive) ? 0.62 : 1, pointerEvents: (reportsToolActive || mergeActive) ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : reportsToolActive ? t('app.noCodesInReport') : undefined} onMouseDown={() => setActivePanel('codes')}>
                           <CodeBrowser onNewCode={handleNewCode} onClose={() => closePanel('codes')} />
                         </div>
                       </Panel>
@@ -3345,7 +3339,7 @@ function App() {
                     if (panels.length > 0) panels.push(<PanelResizeHandle key="rh-m" style={rh} />)
                     panels.push(
                       <Panel key="memos" defaultSize={33} minSize={15}>
-                        <div style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? 'Finish or cancel the merge to use other panels' : undefined}>
+                        <div style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : undefined}>
                           <MemosPane onClose={() => closePanel('memos')} />
                         </div>
                       </Panel>
@@ -3355,7 +3349,7 @@ function App() {
                     if (panels.length > 0) panels.push(<PanelResizeHandle key="rh-qt" style={rh} />)
                     panels.push(
                       <Panel key="quotes" defaultSize={33} minSize={15}>
-                        <div style={{ height: '100%', opacity: (queryBuilderActive || mergeActive) ? 0.62 : 1, pointerEvents: (queryBuilderActive || mergeActive) ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? 'Finish or cancel the merge to use other panels' : queryBuilderActive ? 'Quotes can’t be added to a query' : undefined}>
+                        <div style={{ height: '100%', opacity: (queryBuilderActive || mergeActive) ? 0.62 : 1, pointerEvents: (queryBuilderActive || mergeActive) ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : queryBuilderActive ? t('app.noQuotesInQuery') : undefined}>
                           <QuotesPane onClose={() => closePanel('quotes')} />
                         </div>
                       </Panel>
@@ -3365,7 +3359,7 @@ function App() {
                     if (panels.length > 0) panels.push(<PanelResizeHandle key="rh-a" style={rh} />)
                     panels.push(
                       <Panel key="analyses" defaultSize={34} minSize={15}>
-                        <div style={{ height: '100%', opacity: (queryBuilderActive || mergeActive) ? 0.62 : 1, pointerEvents: (queryBuilderActive || mergeActive) ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? 'Finish or cancel the merge to use other panels' : queryBuilderActive ? 'Analyses can’t be added to a query' : undefined}>
+                        <div style={{ height: '100%', opacity: (queryBuilderActive || mergeActive) ? 0.62 : 1, pointerEvents: (queryBuilderActive || mergeActive) ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : queryBuilderActive ? t('app.noAnalysesInQuery') : undefined}>
                           <SavedAnalyses
                             onOpen={openSavedAnalysis}
                             onClose={() => closePanel('analyses')}
@@ -3393,7 +3387,7 @@ function App() {
         )}
         {!queryResultsHidden && (
           <Panel defaultSize={30} minSize={10} collapsible>
-          <div style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? 'Finish or cancel the merge to use other panels' : undefined}>
+          <div style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : undefined}>
           <QueryResultViewer
             sidebar={
               <SavedQueries
@@ -3488,7 +3482,7 @@ function App() {
       {showSaveQueryDialog && (
         <div className="modal-overlay" onClick={() => setShowSaveQueryDialog(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Save Query</h2>
+            <h2>{t('queryBuilder.save')}</h2>
             <div style={{ marginBottom: 12 }}>
               <input
                 type="text"
@@ -3500,14 +3494,14 @@ function App() {
                     setShowSaveQueryDialog(false)
                   }
                 }}
-                placeholder="Query name..."
+                placeholder={t('queryBuilder.namePlaceholder')}
                 autoFocus
                 style={{ width: '100%' }}
               />
             </div>
             <div className="modal-actions">
               <button className="secondary" onClick={() => setShowSaveQueryDialog(false)}>
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={() => {
@@ -3517,7 +3511,7 @@ function App() {
                   }
                 }}
               >
-                Save
+                {t('common.save')}
               </button>
             </div>
           </div>

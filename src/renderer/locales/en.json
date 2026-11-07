@@ -994,7 +994,9 @@
     "before": "{{a}} before {{b}}",
     "followedBy": "{{a}} followed by {{b}}",
     "sameSentence": "{{a}} in the same sentence as {{b}}",
-    "query": "Query"
+    "query": "Query",
+    "within_one": "inside the results of {{count}} query",
+    "within_other": "inside the results of {{count}} queries"
   },
   "results": {
     "title": "Query Results",
@@ -1199,5 +1201,30 @@
     "supportText2": "You can sponsor monthly or make a one-off contribution through GitHub Sponsors. The link opens in your browser.",
     "createdBy": "Magnolia was created by and is maintained by Dr Cale Davis.",
     "sponsorOnGithub": "Sponsor Magnolia on GitHub"
+  },
+  "app": {
+    "report": "Report",
+    "relationshipMap": "Relationship Map",
+    "parseFailed": "Could not parse {{name}}:\n\n{{error}}",
+    "opening": "Opening project…",
+    "releasing": "Releasing control…",
+    "populating": "Populating {{what}}",
+    "step": {
+      "projectMetadata": "Project metadata",
+      "documents": "Documents",
+      "folders": "Folders",
+      "codes": "Codes",
+      "tags": "Tags",
+      "queries": "Queries",
+      "logbook": "Logbook",
+      "memos": "Memos",
+      "quotes": "Quotes",
+      "tabs": "Tabs"
+    },
+    "mergeBlocks": "Finish or cancel the merge to use other panels",
+    "noCodesInReport": "Codes can’t be added to a report",
+    "noQuotesInQuery": "Quotes can’t be added to a query",
+    "noAnalysesInQuery": "Analyses can’t be added to a query",
+    "projectInfo": "Project info"
   }
 }
