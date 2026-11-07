@@ -1373,5 +1373,22 @@
     "binaryTitle": "Mostra cada célula como 1 (a consulta corresponde) ou 0 (sem correspondência); os totais contam as células.",
     "dropHint": "Arraste consultas salvas do painel Consultas para montar a grade",
     "removeQuery": "Remover consulta"
+  },
+  "codeFreq": {
+    "howCalculated": "Como esses percentuais são calculados?",
+    "howHeading": "Como as frequências são calculadas",
+    "howIntro": "Cada célula mostra a proporção de uma fonte coberta por um código, em porcentagem. O denominador depende do tipo de fonte:",
+    "howText": "<b>Texto / Markdown:</b> % de caracteres cobertos (codificações sobrepostas contam uma vez).",
+    "howMedia": "<b>Áudio / vídeo:</b> % da duração coberta pela união das codificações de intervalos de tempo.",
+    "howPdfText": "<b>PDF (codificações de texto):</b> % de caracteres do texto extraído cobertos.",
+    "howPdfRegion": "<b>PDF (codificações de regiões):</b> % de seleções de regiões codificadas com este código.",
+    "howPdfMixed": "<b>PDF (misto):</b> média ponderada dos dois acima, pelo número de seleções de cada tipo na fonte.",
+    "howImage": "<b>Imagem:</b> % de seleções de regiões codificadas com este código.",
+    "chart": "Gráfico",
+    "barTitle": "{{code}}: {{value}}% em {{column}}"
+  },
+  "codeOrders": {
+    "dragCodes": "Arraste códigos do painel Códigos para montar a visualização",
+    "selectDocuments": "Selecione documentos com o seletor de documentos acima"
   }
 }

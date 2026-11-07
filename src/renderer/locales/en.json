@@ -1325,5 +1325,22 @@
     "binaryTitle": "Show each cell as 1 (query matched) or 0 (no match); totals count the cells.",
     "dropHint": "Drag saved queries from the Queries panel to build the grid",
     "removeQuery": "Remove query"
+  },
+  "codeFreq": {
+    "howCalculated": "How are these percentages calculated?",
+    "howHeading": "How frequencies are calculated",
+    "howIntro": "Each cell shows the proportion of one source covered by one code, expressed as a percentage. The denominator depends on the source kind:",
+    "howText": "<b>Text / Markdown:</b> % of characters covered (overlapping codings counted once).",
+    "howMedia": "<b>Audio / Video:</b> % of duration covered by the union of time-range codings.",
+    "howPdfText": "<b>PDF (text codings):</b> % of extracted-text characters covered.",
+    "howPdfRegion": "<b>PDF (region codings):</b> % of region selections coded with this code.",
+    "howPdfMixed": "<b>PDF (mixed):</b> weighted average of the two above, by the count of each kind of selection in the source.",
+    "howImage": "<b>Image:</b> % of region selections coded with this code.",
+    "chart": "Chart",
+    "barTitle": "{{code}}: {{value}}% in {{column}}"
+  },
+  "codeOrders": {
+    "dragCodes": "Drag codes from the Code Browser to build the visualisation",
+    "selectDocuments": "Select documents using the Document Selector above"
   }
 }

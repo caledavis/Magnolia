@@ -1373,5 +1373,22 @@
     "binaryTitle": "Muestra cada celda como 1 (la consulta coincide) o 0 (sin coincidencias); los totales cuentan las celdas.",
     "dropHint": "Arrastra consultas guardadas desde el panel Consultas para crear la cuadrícula",
     "removeQuery": "Quitar consulta"
+  },
+  "codeFreq": {
+    "howCalculated": "¿Cómo se calculan estos porcentajes?",
+    "howHeading": "Cómo se calculan las frecuencias",
+    "howIntro": "Cada celda muestra qué proporción de una fuente cubre un código, en porcentaje. El denominador depende del tipo de fuente:",
+    "howText": "<b>Texto / Markdown:</b> % de caracteres cubiertos (las codificaciones superpuestas cuentan una vez).",
+    "howMedia": "<b>Audio / vídeo:</b> % de la duración cubierta por la unión de las codificaciones de intervalos de tiempo.",
+    "howPdfText": "<b>PDF (codificaciones de texto):</b> % de caracteres del texto extraído cubiertos.",
+    "howPdfRegion": "<b>PDF (codificaciones de regiones):</b> % de selecciones de regiones codificadas con este código.",
+    "howPdfMixed": "<b>PDF (mixto):</b> media ponderada de los dos anteriores, según el número de selecciones de cada tipo en la fuente.",
+    "howImage": "<b>Imagen:</b> % de selecciones de regiones codificadas con este código.",
+    "chart": "Gráfico",
+    "barTitle": "{{code}}: {{value}} % en {{column}}"
+  },
+  "codeOrders": {
+    "dragCodes": "Arrastra códigos desde el panel Códigos para crear la visualización",
+    "selectDocuments": "Selecciona documentos con el selector de documentos de arriba"
   }
 }

@@ -600,8 +600,8 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
           {codeGuids.length === 0 || rows.length === 0 ? (
             <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)', position: 'relative', zIndex: 1 }}>
               {codeGuids.length === 0
-                ? 'Drag codes from the Code Browser to build the visualisation'
-                : 'Select documents using the Document Selector above'}
+                ? t('codeOrders.dragCodes')
+                : t('codeOrders.selectDocuments')}
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>

@@ -1,3 +1,4 @@
+import { Trans } from 'react-i18next'
 import { useState, useMemo, useCallback, useRef } from 'react'
 import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
 import { Icon, faChartBar, faCircleInfo } from '../Icon'
@@ -202,7 +203,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
 
   const handleExportCsv = useCallback(() => {
     const colNames = columns.map((c) => c.label)
-    const rows: string[][] = [['Code', ...colNames]]
+    const rows: string[][] = [[t('analysis.code'), ...colNames]]
     for (let i = 0; i < codeGuids.length; i++) {
       rows.push([codeMap.get(codeGuids[i])?.name || '', ...grid[i].map((v) => v.toFixed(1) + '%')])
     }
@@ -472,8 +473,8 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
               </button>
               <button
                 onClick={() => setShowInfo((v) => !v)}
-                title="How are these percentages calculated?"
-                aria-label="How are these percentages calculated?"
+                title={t('codeFreq.howCalculated')}
+                aria-label={t('codeFreq.howCalculated')}
                 style={{
                   background: 'none', border: 'none', padding: 2,
                   color: showInfo ? 'var(--accent)' : 'var(--text-muted)',
@@ -504,17 +505,17 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 6 }}>How frequencies are calculated</div>
+                    <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 6 }}>{t('codeFreq.howHeading')}</div>
                     <div style={{ color: 'var(--text-secondary)', marginBottom: 8 }}>
-                      Each cell shows the proportion of one source covered by one code, expressed as a percentage. The denominator depends on the source kind:
+                      {t('codeFreq.howIntro')}
                     </div>
                     <ul style={{ margin: '0 0 8px 16px', padding: 0, color: 'var(--text-secondary)' }}>
-                      <li style={{ marginBottom: 4 }}><strong>Text / Markdown:</strong> % of characters covered (overlapping codings counted once).</li>
-                      <li style={{ marginBottom: 4 }}><strong>Audio / Video:</strong> % of duration covered by the union of time-range codings.</li>
-                      <li style={{ marginBottom: 4 }}><strong>PDF (text codings):</strong> % of extracted-text characters covered.</li>
-                      <li style={{ marginBottom: 4 }}><strong>PDF (region codings):</strong> % of region selections coded with this code.</li>
-                      <li style={{ marginBottom: 4 }}><strong>PDF (mixed):</strong> weighted average of the two above, by the count of each kind of selection in the source.</li>
-                      <li><strong>Image:</strong> % of region selections coded with this code.</li>
+                      <li style={{ marginBottom: 4 }}><Trans i18nKey="codeFreq.howText" components={{ b: <strong /> }} /></li>
+                      <li style={{ marginBottom: 4 }}><Trans i18nKey="codeFreq.howMedia" components={{ b: <strong /> }} /></li>
+                      <li style={{ marginBottom: 4 }}><Trans i18nKey="codeFreq.howPdfText" components={{ b: <strong /> }} /></li>
+                      <li style={{ marginBottom: 4 }}><Trans i18nKey="codeFreq.howPdfRegion" components={{ b: <strong /> }} /></li>
+                      <li style={{ marginBottom: 4 }}><Trans i18nKey="codeFreq.howPdfMixed" components={{ b: <strong /> }} /></li>
+                      <li><Trans i18nKey="codeFreq.howImage" components={{ b: <strong /> }} /></li>
                     </ul>
                   </div>
                 </>
@@ -626,7 +627,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
         {codeGuids.length > 0 && columns.length > 0 && (
           <div className="analysis-section">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>Chart</span>
+              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>{t('codeFreq.chart')}</span>
               <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportChart}>
                 {t('analysis.exportSvg')}
               </button>
@@ -694,7 +695,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                               }
                             }}
                           >
-                            <title>{`${codeMap.get(codeGuid)?.name}: ${val.toFixed(1)}% in ${col.label}`}</title>
+                            <title>{t('codeFreq.barTitle', { code: codeMap.get(codeGuid)?.name, value: val.toFixed(1), column: col.label })}</title>
                           </rect>
                         )
                       })}
