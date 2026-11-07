@@ -86,7 +86,8 @@
       "exportCodebook": "Exportar livro de códigos",
       "codebookFileName": "Livro de códigos",
       "importCodebook": "Importar livro de códigos",
-      "qdcCodebook": "Livro de códigos REFI-QDA"
+      "qdcCodebook": "Livro de códigos REFI-QDA",
+      "exportPdf": "Exportar como PDF"
     },
     "import": {
       "legacyDoc": "Arquivos .doc antigos do Microsoft Word não são compatíveis. Abra o arquivo no Word e salve-o como .docx.",
@@ -114,7 +115,10 @@
     "print": {
       "didNotStart": "A impressão não foi iniciada",
       "timedOut": "O tempo para carregar o documento para impressão se esgotou",
-      "webview2Failed": "O WebView2 não conseguiu imprimir o documento"
+      "webview2Failed": "O WebView2 não conseguiu imprimir o documento",
+      "pdfTimedOut": "O tempo esgotou ao imprimir em PDF",
+      "noWindow": "Não foi possível criar a janela de impressão: {{detail}}",
+      "noPdf": "A impressão não gerou nenhum PDF: {{detail}}"
     },
     "core": {
       "stage": {

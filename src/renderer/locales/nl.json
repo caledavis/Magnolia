@@ -86,7 +86,8 @@
       "exportCodebook": "Exporteer codeboek",
       "codebookFileName": "Codeboek",
       "importCodebook": "Importeer codeboek",
-      "qdcCodebook": "REFI-QDA-codeboek"
+      "qdcCodebook": "REFI-QDA-codeboek",
+      "exportPdf": "Exporteren als pdf"
     },
     "import": {
       "legacyDoc": "Oude Microsoft Word-bestanden (.doc) worden niet ondersteund. Open het bestand in Word en bewaar het als .docx.",
@@ -114,7 +115,10 @@
     "print": {
       "didNotStart": "Het afdrukken is niet gestart",
       "timedOut": "Het laden van het document om af te drukken duurde te lang",
-      "webview2Failed": "WebView2 kon het document niet afdrukken"
+      "webview2Failed": "WebView2 kon het document niet afdrukken",
+      "pdfTimedOut": "Er is een time-out opgetreden bij het afdrukken naar pdf",
+      "noWindow": "Kan het afdrukvenster niet maken: {{detail}}",
+      "noPdf": "Het afdrukken leverde geen pdf op: {{detail}}"
     },
     "core": {
       "stage": {

@@ -99,7 +99,7 @@ fn wait_for_completion(app: &AppHandle, out: &Path) -> Result<(), String> {
     loop {
         std::thread::sleep(Duration::from_millis(150));
         if Instant::now() > deadline {
-            return Err("Timed out while printing to PDF".into());
+            return Err(crate::i18n::t("print.pdfTimedOut"));
         }
         let size = std::fs::metadata(out)
             .ok()

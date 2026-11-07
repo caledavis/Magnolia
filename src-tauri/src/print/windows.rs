@@ -60,5 +60,5 @@ pub fn print(
         })
         .map_err(|e| e.to_string())?;
     rx.recv_timeout(Duration::from_secs(300))
-        .map_err(|_| "Timed out while printing to PDF".to_string())?
+        .map_err(|_| crate::i18n::t("print.pdfTimedOut"))?
 }

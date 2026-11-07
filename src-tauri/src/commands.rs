@@ -770,7 +770,7 @@ pub async fn export_pdf(
     header_template: Option<String>,
     footer_template: Option<String>,
 ) -> CmdResult<Option<String>> {
-    let title = dialog_title.unwrap_or_else(|| "Export as PDF".into());
+    let title = dialog_title.unwrap_or_else(|| t("dialog.exportPdf"));
     let Some(path) = save_dialog(
         &app,
         &window,

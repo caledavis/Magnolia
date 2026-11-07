@@ -86,7 +86,8 @@
       "exportCodebook": "Export Codebook",
       "codebookFileName": "Codebook",
       "importCodebook": "Import Codebook",
-      "qdcCodebook": "REFI-QDA Codebook"
+      "qdcCodebook": "REFI-QDA Codebook",
+      "exportPdf": "Export as PDF"
     },
     "import": {
       "legacyDoc": "Legacy Microsoft Word .doc files aren't supported. Please open the file in Word and save it as .docx.",
@@ -114,7 +115,10 @@
     "print": {
       "didNotStart": "Printing did not start",
       "timedOut": "Timed out loading the document to print",
-      "webview2Failed": "WebView2 could not print the document"
+      "webview2Failed": "WebView2 could not print the document",
+      "pdfTimedOut": "Timed out while printing to PDF",
+      "noWindow": "Could not create print window: {{detail}}",
+      "noPdf": "Printing produced no PDF: {{detail}}"
     },
     "core": {
       "stage": {

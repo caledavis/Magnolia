@@ -150,7 +150,7 @@ fn render(
             }
         })
         .build()
-        .map_err(|e| format!("Could not create print window: {e}"))?;
+        .map_err(|e| crate::i18n::t_with("print.noWindow", &[("detail", &e.to_string())]))?;
     let result = (|| {
         loaded_rx
             .recv_timeout(Duration::from_secs(60))
@@ -158,7 +158,7 @@ fn render(
         // Let image decodes settle.
         std::thread::sleep(Duration::from_millis(300));
         print_to_file(app, &window, out, opts)?;
-        std::fs::read(out).map_err(|e| format!("Printing produced no PDF: {e}"))
+        std::fs::read(out).map_err(|e| crate::i18n::t_with("print.noPdf", &[("detail", &e.to_string())]))
     })();
     let _ = window.destroy();
     result
