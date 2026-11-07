@@ -1479,5 +1479,32 @@
     "pctOfSentencesTitle": "Proporção das frases com \"{{word}}\" que também contêm esta palavra",
     "g2Title": "Log-verossimilhança: quão improvável é que as palavras apareçam juntas em tantas frases por acaso",
     "findSentences": "Encontrar as frases com \"{{a}}\" e \"{{b}}\""
+  },
+  "framework": {
+    "confirmRemoveRow": "Remover \"{{name}}\"? Os resumos escritos para ele serão excluídos.",
+    "confirmRemoveColumn": "Remover a coluna \"{{name}}\"? Os resumos escritos para ela serão excluídos.",
+    "code": "código",
+    "group": "Grupo",
+    "row": "Linha",
+    "intro": "Arraste documentos, etiquetas, categorias, pastas ou respondentes e perguntas de pesquisas para adicionar linhas, e códigos para adicionar colunas. Clique em uma célula para ver os segmentos codificados dela em Resultados da consulta e escrever um resumo.",
+    "dropHint": "Arraste documentos ou etiquetas para cá para as linhas, e códigos para as colunas",
+    "dropRows": "Arraste documentos ou etiquetas para cá",
+    "dropCodes": "Arraste códigos para cá",
+    "deletedCode": "Código excluído",
+    "removeColumn": "Remover coluna",
+    "discardRow": "Descartar esta linha",
+    "removeRow": "Remover linha",
+    "segments_one": "{{count}} segmento codificado",
+    "segments_many": "{{count}} segmentos codificados",
+    "segments_other": "{{count}} segmentos codificados",
+    "orphan": {
+      "tag": "Não tem mais esta etiqueta",
+      "category": "Não tem mais nenhuma etiqueta desta categoria",
+      "folder": "Não está mais nesta pasta"
+    },
+    "deletedDocument": "Documento excluído",
+    "deletedTag": "Etiqueta excluída",
+    "deletedCategory": "Categoria excluída",
+    "deletedFolder": "Pasta excluída"
   }
 }

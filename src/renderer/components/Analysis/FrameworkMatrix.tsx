@@ -287,8 +287,8 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
 
   useEffect(() => {
     if (!dirty || !savedRef.current) return
-    const t = setTimeout(() => persistSaved(nameRef.current.trim() || 'Untitled'), 800)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => persistSaved(nameRef.current.trim() || t('common.untitled')), 800)
+    return () => clearTimeout(timer)
   }, [dirty, persistSaved])
 
   // Collapse state isn't part of `dirty`, so the auto-save above never
@@ -296,7 +296,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
   const collapseMountRef = useRef(true)
   useEffect(() => {
     if (collapseMountRef.current) { collapseMountRef.current = false; return }
-    if (savedRef.current) persistSaved(nameRef.current.trim() || 'Untitled')
+    if (savedRef.current) persistSaved(nameRef.current.trim() || t('common.untitled'))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [collapsed])
 
@@ -456,14 +456,13 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
     return out
   }, [data, codeGuids])
 
-  const confirmLoss = (what: string) =>
-    window.confirm(`Remove ${what}? The summaries written for it will be deleted.`)
+  const confirmLoss = (message: string) => window.confirm(message)
 
   const removeEntry = useCallback((row: DisplayRow) => {
     if (row.entryIndex === undefined) return
     const nextRows = rows.filter((_, i) => i !== row.entryIndex)
     const nextSummaries = pruneSummaries(nextRows, summaries)
-    if (Object.keys(nextSummaries).length < Object.keys(summaries).length && !confirmLoss(`“${row.label}”`)) return
+    if (Object.keys(nextSummaries).length < Object.keys(summaries).length && !confirmLoss(t('framework.confirmRemoveRow', { name: row.label }))) return
     setRows(nextRows)
     setSummaries(nextSummaries)
     setCollapsed((prev) => prev.filter((p) => p !== row.path && !p.startsWith(row.path + '/')))
@@ -477,14 +476,14 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
         : entry
     )
     const nextSummaries = pruneSummaries(nextRows, summaries)
-    if (Object.keys(nextSummaries).length < Object.keys(summaries).length && !confirmLoss(`“${row.label}”`)) return
+    if (Object.keys(nextSummaries).length < Object.keys(summaries).length && !confirmLoss(t('framework.confirmRemoveRow', { name: row.label }))) return
     setRows(nextRows)
     setSummaries(nextSummaries)
   }, [rows, summaries, pruneSummaries])
 
   const removeCode = useCallback((codeGuid: string) => {
     const hasText = Object.entries(summaries).some(([k, v]) => k.endsWith(`|${codeGuid}`) && v.trim() !== '')
-    if (hasText && !confirmLoss(`the “${codeMap.get(codeGuid)?.name ?? 'code'}” column`)) return
+    if (hasText && !confirmLoss(t('framework.confirmRemoveColumn', { name: codeMap.get(codeGuid)?.name ?? t('framework.code') }))) return
     setCodeGuids((prev) => prev.filter((g) => g !== codeGuid))
     setSummaries((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => !k.endsWith(`|${codeGuid}`))))
   }, [summaries, codeMap])
@@ -493,7 +492,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
 
   const handleExportCsv = useCallback(() => {
     const all = buildDisplayRows(data, { rows, codeGuids, summaries, collapsed }, { expandAll: true })
-    const out: string[][] = [['Group', 'Row', ...codeGuids.map((g) => codeMap.get(g)?.name ?? '')]]
+    const out: string[][] = [[t('framework.group'), t('framework.row'), ...codeGuids.map((g) => codeMap.get(g)?.name ?? '')]]
     const chain: string[] = []
     for (const r of all) {
       chain.length = r.depth
@@ -533,7 +532,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
           {t('analysis.exportCsv')}
         </button>
         {savedRef.current ? (
-          <button style={{ fontSize: 11, padding: '4px 14px' }} disabled={!dirty} onClick={() => handleSave(nameRef.current.trim() || 'Untitled')}>
+          <button style={{ fontSize: 11, padding: '4px 14px' }} disabled={!dirty} onClick={() => handleSave(nameRef.current.trim() || t('common.untitled'))}>
             {dirty ? t('analysis.update') : t('analysis.saved')}
           </button>
         ) : (
@@ -572,7 +571,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
       )}
 
       <div style={{ padding: '4px 20px 8px', fontSize: 11, color: 'var(--text-muted)', flexShrink: 0 }}>
-        Drag documents, tags, categories, folders, or survey respondents and questions in to add rows, and codes to add columns. Click a cell to see its coded segments in Query Results and write a summary.
+        {t('framework.intro')}
       </div>
 
       {/* The whole matrix area is the drop target and the scroll
@@ -606,7 +605,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
       >
         {isEmpty ? (
           <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-            Drag documents or tags here for rows, and codes for columns
+            {t('framework.dropHint')}
           </div>
         ) : (
           <table ref={tableRef} style={{ borderCollapse: 'separate', borderSpacing: 0, tableLayout: 'fixed', fontSize: 12, width: LABEL_W + CELL_W * Math.max(1, codeGuids.length) }}>
@@ -617,10 +616,10 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
             <thead>
               <tr>
                 <th style={{ ...stickyHeadStyle, left: 0, zIndex: 3, textAlign: 'left' }}>
-                  {rows.length === 0 ? 'Drag documents or tags here' : 'Documents'}
+                  {rows.length === 0 ? t('framework.dropRows') : t('analysis.documents')}
                 </th>
                 {codeGuids.length === 0 ? (
-                  <th style={{ ...stickyHeadStyle, fontWeight: 400, color: 'var(--text-muted)', textAlign: 'left' }}>Drag codes here</th>
+                  <th style={{ ...stickyHeadStyle, fontWeight: 400, color: 'var(--text-muted)', textAlign: 'left' }}>{t('framework.dropCodes')}</th>
                 ) : codeGuids.map((cg, colIndex) => {
                   const code = codeMap.get(cg)
                   return (
@@ -632,8 +631,8 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
                           onDragEnd={endReorder}
                         />
                         <span style={{ width: 8, height: 8, borderRadius: '50%', background: code?.color || '#888', flexShrink: 0 }} />
-                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{code?.name ?? 'Deleted code'}</span>
-                        <span onClick={() => removeCode(cg)} title="Remove column" style={{ cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex' }}>
+                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{code?.name ?? t('framework.deletedCode')}</span>
+                        <span onClick={() => removeCode(cg)} title={t('framework.removeColumn')} style={{ cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex' }}>
                           <Icon icon={faXmark} style={{ fontSize: 10 }} />
                         </span>
                       </div>
@@ -691,7 +690,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
                       {(row.entryIndex !== undefined || row.orphanOf) && (
                         <span
                           onClick={() => (row.orphanOf ? discardOrphan(row) : removeEntry(row))}
-                          title={row.orphanOf ? 'Discard this row' : 'Remove row'}
+                          title={row.orphanOf ? t('framework.discardRow') : t('framework.removeRow')}
                           style={{ cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex', flexShrink: 0 }}
                         >
                           <Icon icon={faXmark} style={{ fontSize: 10 }} />
@@ -749,7 +748,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
                             } as React.CSSProperties}
                           />
                           <span
-                            title={`${count} coded segment${count === 1 ? '' : 's'}`}
+                            title={t('framework.segments', { count })}
                             style={{
                               position: 'absolute', top: 5, right: 6, pointerEvents: 'none',
                               fontSize: 9, fontWeight: 600, lineHeight: '14px', minWidth: 14, padding: '0 4px', textAlign: 'center',

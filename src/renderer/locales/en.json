@@ -1426,5 +1426,31 @@
     "pctOfSentencesTitle": "Share of the sentences with “{{word}}” that also contain this word",
     "g2Title": "Log-likelihood: how unlikely it is that the words share this many sentences by chance",
     "findSentences": "Find the sentences with “{{a}}” and “{{b}}”"
+  },
+  "framework": {
+    "confirmRemoveRow": "Remove “{{name}}”? The summaries written for it will be deleted.",
+    "confirmRemoveColumn": "Remove the “{{name}}” column? The summaries written for it will be deleted.",
+    "code": "code",
+    "group": "Group",
+    "row": "Row",
+    "intro": "Drag documents, tags, categories, folders, or survey respondents and questions in to add rows, and codes to add columns. Click a cell to see its coded segments in Query Results and write a summary.",
+    "dropHint": "Drag documents or tags here for rows, and codes for columns",
+    "dropRows": "Drag documents or tags here",
+    "dropCodes": "Drag codes here",
+    "deletedCode": "Deleted code",
+    "removeColumn": "Remove column",
+    "discardRow": "Discard this row",
+    "removeRow": "Remove row",
+    "segments_one": "{{count}} coded segment",
+    "segments_other": "{{count}} coded segments",
+    "orphan": {
+      "tag": "No longer has this tag",
+      "category": "No longer has a tag in this category",
+      "folder": "No longer in this folder"
+    },
+    "deletedDocument": "Deleted document",
+    "deletedTag": "Deleted tag",
+    "deletedCategory": "Deleted category",
+    "deletedFolder": "Deleted folder"
   }
 }

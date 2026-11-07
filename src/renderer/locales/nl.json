@@ -1426,5 +1426,31 @@
     "pctOfSentencesTitle": "Aandeel van de zinnen met \"{{word}}\" dat ook dit woord bevat",
     "g2Title": "Log-likelihood: hoe onwaarschijnlijk het is dat de woorden toevallig in zoveel zinnen samen staan",
     "findSentences": "De zinnen met \"{{a}}\" en \"{{b}}\" zoeken"
+  },
+  "framework": {
+    "confirmRemoveRow": "“{{name}}” verwijderen? De samenvattingen die ervoor geschreven zijn, worden verwijderd.",
+    "confirmRemoveColumn": "De kolom “{{name}}” verwijderen? De samenvattingen die ervoor geschreven zijn, worden verwijderd.",
+    "code": "code",
+    "group": "Groep",
+    "row": "Rij",
+    "intro": "Sleep documenten, tags, categorieën, mappen of enquêterespondenten en -vragen hierheen om rijen toe te voegen, en codes om kolommen toe te voegen. Klik op een cel om de gecodeerde segmenten ervan in Queryresultaten te zien en een samenvatting te schrijven.",
+    "dropHint": "Sleep hier documenten of tags naartoe voor rijen, en codes voor kolommen",
+    "dropRows": "Sleep documenten of tags hierheen",
+    "dropCodes": "Sleep codes hierheen",
+    "deletedCode": "Verwijderde code",
+    "removeColumn": "Kolom verwijderen",
+    "discardRow": "Deze rij verwerpen",
+    "removeRow": "Rij verwijderen",
+    "segments_one": "{{count}} gecodeerd segment",
+    "segments_other": "{{count}} gecodeerde segmenten",
+    "orphan": {
+      "tag": "Heeft deze tag niet meer",
+      "category": "Heeft geen tag in deze categorie meer",
+      "folder": "Staat niet meer in deze map"
+    },
+    "deletedDocument": "Verwijderd document",
+    "deletedTag": "Verwijderde tag",
+    "deletedCategory": "Verwijderde categorie",
+    "deletedFolder": "Verwijderde map"
   }
 }

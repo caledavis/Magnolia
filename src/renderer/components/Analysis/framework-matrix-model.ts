@@ -17,6 +17,7 @@
  * stays in the group as an orphaned row instead of silently vanishing.
  */
 import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
+import { t } from '../../i18n'
 
 /** One thing the user dropped into the rows area. A group's
  *  `sourceGuids`, when set, limits it to those documents — set when the
@@ -93,9 +94,9 @@ export type SummaryData = Pick<
 /** Shown on orphaned rows, worded for the kind of group they left. */
 export function orphanNote(kind: GroupKind): string {
   switch (kind) {
-    case 'tag': return 'No longer has this tag'
-    case 'category': return 'No longer has a tag in this category'
-    case 'folder': return 'No longer in this folder'
+    case 'tag': return t('framework.orphan.tag')
+    case 'category': return t('framework.orphan.category')
+    case 'folder': return t('framework.orphan.folder')
   }
 }
 
@@ -172,11 +173,11 @@ interface Leaf {
 }
 
 function respondentLabel(data: SummaryData, sourceGuid: string, respondentId: string, fallback?: string): string {
-  return data.surveyEntityLabels?.[sourceGuid]?.respondents?.[respondentId] || fallback || 'Respondent'
+  return data.surveyEntityLabels?.[sourceGuid]?.respondents?.[respondentId] || fallback || t('docSelector.respondent')
 }
 
 function questionLabel(data: SummaryData, sourceGuid: string, questionId: string, fallback?: string): string {
-  return data.surveyEntityLabels?.[sourceGuid]?.questions?.[questionId] || fallback || 'Question'
+  return data.surveyEntityLabels?.[sourceGuid]?.questions?.[questionId] || fallback || t('docSelector.question')
 }
 
 function respondentLeaf(data: SummaryData, sourceNames: Map<string, string>, sourceGuid: string, respondentId: string, fallback?: string): Leaf {
@@ -214,7 +215,7 @@ function leafFromKey(data: SummaryData, sourceNames: Map<string, string>, key: s
   }
   const sourceGuid = key.slice('doc:'.length)
   const name = sourceNames.get(sourceGuid)
-  return { key, label: name ?? 'Deleted document', icon: 'doc', scope: docScope(sourceGuid), missing: name === undefined }
+  return { key, label: name ?? t('framework.deletedDocument'), icon: 'doc', scope: docScope(sourceGuid), missing: name === undefined }
 }
 
 /** A tag's members as leaves, in Document Browser order: whole
@@ -339,7 +340,7 @@ export function buildDisplayRows(
         const name = sourceNames.get(entry.sourceGuid)
         out.push({
           path, key, depth: 0, entryIndex,
-          label: name ?? entry.name ?? 'Deleted document',
+          label: name ?? entry.name ?? t('framework.deletedDocument'),
           icon: 'doc', isGroup: false, missing: name === undefined,
           scope: docScope(entry.sourceGuid)
         })
@@ -359,7 +360,7 @@ export function buildDisplayRows(
         const orphans = orphansFor(entry, new Set(leaves.map((l) => l.key)))
         out.push({
           path, key, depth: 0, entryIndex,
-          label: tag ? (tag.value || tag.name) : (entry.name ?? 'Deleted tag'),
+          label: tag ? (tag.value || tag.name) : (entry.name ?? t('framework.deletedTag')),
           icon: 'tag', isGroup: true, memberCount: leaves.length, missing: !tag,
           scope: unionScopes(leaves.map((l) => l.scope), [entry.tagGuid])
         })
@@ -376,7 +377,7 @@ export function buildDisplayRows(
         const orphans = orphansFor(entry, new Set(allLeaves.map((l) => l.key)))
         out.push({
           path, key, depth: 0, entryIndex,
-          label: cat?.name ?? entry.name ?? 'Deleted category',
+          label: cat?.name ?? entry.name ?? t('framework.deletedCategory'),
           icon: 'category', isGroup: true, memberCount: new Set(allLeaves.map((l) => l.key)).size, missing: !cat,
           scope: unionScopes(allLeaves.map((l) => l.scope), childTags.map((t) => t.guid))
         })
@@ -399,7 +400,7 @@ export function buildDisplayRows(
         const orphans = orphansFor(entry, new Set(leaves.map((l) => l.key)))
         out.push({
           path, key, depth: 0, entryIndex,
-          label: folder?.name ?? entry.name ?? 'Deleted folder',
+          label: folder?.name ?? entry.name ?? t('framework.deletedFolder'),
           icon: 'folder', isGroup: true, memberCount: leaves.length, missing: !folder,
           scope: unionScopes(leaves.map((l) => l.scope))
         })

@@ -1479,5 +1479,32 @@
     "pctOfSentencesTitle": "Proporción de las oraciones con «{{word}}» que también contienen esta palabra",
     "g2Title": "Log-verosimilitud: lo improbable que es que las palabras compartan tantas oraciones por azar",
     "findSentences": "Buscar las oraciones con «{{a}}» y «{{b}}»"
+  },
+  "framework": {
+    "confirmRemoveRow": "¿Quitar «{{name}}»? Se eliminarán los resúmenes escritos para él.",
+    "confirmRemoveColumn": "¿Quitar la columna «{{name}}»? Se eliminarán los resúmenes escritos para ella.",
+    "code": "código",
+    "group": "Grupo",
+    "row": "Fila",
+    "intro": "Arrastra documentos, etiquetas, categorías, carpetas, o encuestados y preguntas de encuestas para añadir filas, y códigos para añadir columnas. Haz clic en una celda para ver sus segmentos codificados en Resultados de la consulta y escribir un resumen.",
+    "dropHint": "Arrastra aquí documentos o etiquetas para las filas, y códigos para las columnas",
+    "dropRows": "Arrastra documentos o etiquetas aquí",
+    "dropCodes": "Arrastra códigos aquí",
+    "deletedCode": "Código eliminado",
+    "removeColumn": "Quitar columna",
+    "discardRow": "Descartar esta fila",
+    "removeRow": "Quitar fila",
+    "segments_one": "{{count}} segmento codificado",
+    "segments_many": "{{count}} segmentos codificados",
+    "segments_other": "{{count}} segmentos codificados",
+    "orphan": {
+      "tag": "Ya no tiene esta etiqueta",
+      "category": "Ya no tiene ninguna etiqueta de esta categoría",
+      "folder": "Ya no está en esta carpeta"
+    },
+    "deletedDocument": "Documento eliminado",
+    "deletedTag": "Etiqueta eliminada",
+    "deletedCategory": "Categoría eliminada",
+    "deletedFolder": "Carpeta eliminada"
   }
 }
