@@ -116,5 +116,116 @@
       "timedOut": "Het laden van het document om af te drukken duurde te lang",
       "webview2Failed": "WebView2 kon het document niet afdrukken"
     }
+  },
+  "tools": {
+    "queryBuilder": {
+      "label": "Querybouwer",
+      "description": "Stel een query op codes of tekst samen"
+    },
+    "codesInDocuments": {
+      "label": "Codes in documenten",
+      "description": "Bekijk welke documenten welke codes bevatten"
+    },
+    "frameworkMatrix": {
+      "label": "Frameworkmatrix",
+      "description": "Vat elke code in elk document samen"
+    },
+    "resultsInDocuments": {
+      "label": "Resultaten in documenten",
+      "description": "Bekijk welke documenten welke queryresultaten bevatten"
+    },
+    "codeCooccurrences": {
+      "label": "Code-co-occurrences",
+      "description": "Bekijk welke codes elkaar overlappen"
+    },
+    "codeFrequencies": {
+      "label": "Codefrequenties",
+      "description": "Bekijk hoeveel van elk document elke code beslaat"
+    },
+    "codeOrders": {
+      "label": "Codevolgorde",
+      "description": "Bekijk in welke volgorde codes in elk document voorkomen"
+    },
+    "wordFrequencies": {
+      "label": "Woordfrequenties",
+      "description": "Bekijk welke woorden vaak voorkomen"
+    },
+    "wordCombinations": {
+      "label": "Woordcombinaties",
+      "description": "Bekijk welke woorden samengaan"
+    },
+    "relationshipMap": {
+      "label": "Relaties",
+      "description": "Breng relaties tussen verschillende dingen in kaart"
+    },
+    "reports": {
+      "label": "Rapporten",
+      "description": "Bundel resultaten in een exporteerbaar pdf-rapport"
+    }
+  },
+  "panes": {
+    "documents": "Documenten",
+    "codes": "Codes",
+    "queries": "Query's",
+    "memos": "Bewaarde memo's",
+    "quotes": "Bewaarde citaten",
+    "analyses": "Bewaarde analyses"
+  },
+  "toolbar": {
+    "label": "Werkbalk",
+    "showRibbon": "Het lint tonen",
+    "hideRibbon": "Het lint verbergen",
+    "tabHome": "Start",
+    "tabAnalyse": "Analyseren",
+    "tabView": "Beeld",
+    "tabHelp": "Help",
+    "groupProject": "Project",
+    "groupOrganise": "Ordenen",
+    "groupQuery": "Query",
+    "groupCodes": "Codes",
+    "groupQueriesWords": "Query's en woorden",
+    "groupRelationshipsReports": "Relaties en rapporten",
+    "groupPanes": "Panelen",
+    "groupMagnolia": "Magnolia",
+    "projectDetails": "Projectgegevens",
+    "import": "Importeren",
+    "importTitle": "Documenten importeren",
+    "merge": "Samenvoegen",
+    "mergeTitle": "Een ander project met dit project samenvoegen",
+    "preferences": "Voorkeuren",
+    "updateAvailableTitle": "Er is een nieuwe versie: open Voorkeuren → Updates",
+    "openPreferences": "Voorkeuren openen",
+    "openPreferencesUpdate": "Voorkeuren openen: update beschikbaar",
+    "codebook": "Codeboek",
+    "logbook": "Logboek",
+    "memos": "Memo's",
+    "memosTitle": "Alle memo's in het project bekijken",
+    "tags": "Tags",
+    "tagsTitle": "Tags beheren",
+    "query": "Query",
+    "hidePane": "Het paneel {{pane}} verbergen",
+    "showPane": "Het paneel {{pane}} tonen",
+    "manual": "Handleiding",
+    "manualDescription": "Open de gebruikershandleiding van Magnolia in je browser.",
+    "licence": "Licentie",
+    "licenceAttributions": "Licentie en vermeldingen",
+    "licenceDescription": "De licentie van Magnolia (EUPL-1.2) en de vermeldingen voor meegeleverde bibliotheken.",
+    "donate": "Doneren",
+    "donateDescription": "Magnolia is gratis, maar het maken ervan kost mij geld. Heb je er iets aan, overweeg dan een donatie om mijn kosten te dekken.",
+    "help": "Help",
+    "analyse": "Analyseren",
+    "analysisTools": "Analysehulpmiddelen",
+    "studio": "Studio",
+    "studioTitle": "Werkruimtepanelen tonen of verbergen",
+    "panels": "Panelen",
+    "locked": "Vergrendeld",
+    "lockedTitle": "{{name}} werkt sinds {{time}} aan dit bestand: jij hebt geen controle. Klik om het over te nemen.",
+    "minimise": "Minimaliseren",
+    "maximise": "Maximaliseren",
+    "restore": "Herstellen",
+    "close": "Sluiten"
+  },
+  "project": {
+    "lockedTitle": "{{name}} werkt aan dit bestand: neem het over of maak een kopie om te bewerken"
   }
 }

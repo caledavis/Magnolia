@@ -1,6 +1,8 @@
 import { Icon, faExclamationTriangle } from '../Icon'
 import { useProjectStore } from '../../stores/project-store'
 import { usePreferencesStore } from '../../stores/preferences-store'
+import { useTranslation } from 'react-i18next'
+import { formatDateTime } from '../../i18n'
 
 /** Toolbar checkout-lock alert. Checkout itself is now automatic (first
  *  edit auto-claims the lock — see App.tsx's dirty-transition effect) and
@@ -14,6 +16,7 @@ import { usePreferencesStore } from '../../stores/preferences-store'
  *  (triggered via promptCheckoutConflict, same as every other locked
  *  control) rather than owning a separate dialog instance here. */
 export function CheckOutButton(): JSX.Element | null {
+  const { t } = useTranslation()
   const marker = useProjectStore((s) => s.checkoutMarker)
   const promptCheckoutConflict = useProjectStore((s) => s.promptCheckoutConflict)
   const userName = usePreferencesStore((s) => s.userName)
@@ -21,7 +24,7 @@ export function CheckOutButton(): JSX.Element | null {
   const lockedByOther = !!marker && marker.userName !== userName.trim()
   if (!lockedByOther) return null
 
-  const title = `${marker!.userName} is working on this file since ${new Date(marker!.checkedOutAt).toLocaleString()} — you don't have control. Click to take over.`
+  const title = t('toolbar.lockedTitle', { name: marker!.userName, time: formatDateTime(marker!.checkedOutAt) })
 
   return (
     <div className="app-toolbar-pill checkout-pill checkout-pill--other" style={{ display: 'flex', alignItems: 'center' }}>
@@ -41,7 +44,7 @@ export function CheckOutButton(): JSX.Element | null {
         }}
       >
         <Icon icon={faExclamationTriangle} />
-        <span className="toolbar-label" style={{ whiteSpace: 'nowrap' }}>Locked</span>
+        <span className="toolbar-label" style={{ whiteSpace: 'nowrap' }}>{t('toolbar.locked')}</span>
       </button>
     </div>
   )

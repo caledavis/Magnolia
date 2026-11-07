@@ -18,6 +18,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Icon, faChevronUp, faChevronDown, type IconComponent } from '../Icon'
 import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
+import { useTranslation } from 'react-i18next'
 
 export interface RibbonButtonDef {
   id: string
@@ -102,6 +103,7 @@ export function useRibbon(tabs: RibbonTabDef[]) {
 type RibbonState = ReturnType<typeof useRibbon>
 
 export function RibbonTabs({ ribbon }: { ribbon: RibbonState }) {
+  const { t } = useTranslation()
   const { tabs, active, collapsed, peek, selectTab, toggleCollapsed } = ribbon
   const onKeyDown = (e: React.KeyboardEvent, index: number) => {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
@@ -112,7 +114,7 @@ export function RibbonTabs({ ribbon }: { ribbon: RibbonState }) {
     strip?.querySelectorAll<HTMLButtonElement>('.ribbon-tab')[next]?.focus()
   }
   return (
-    <div className={`ribbon-tabs${collapsed && !peek ? ' ribbon-collapsed' : ''}`} role="tablist" aria-label="Toolbar">
+    <div className={`ribbon-tabs${collapsed && !peek ? ' ribbon-collapsed' : ''}`} role="tablist" aria-label={t('toolbar.label')}>
       {tabs.map((tab, index) => (
         <button
           key={tab.id}
@@ -132,8 +134,8 @@ export function RibbonTabs({ ribbon }: { ribbon: RibbonState }) {
         type="button"
         className="ribbon-collapse"
         onClick={toggleCollapsed}
-        title={collapsed ? 'Show the ribbon' : 'Hide the ribbon'}
-        aria-label={collapsed ? 'Show the ribbon' : 'Hide the ribbon'}
+        title={collapsed ? t('toolbar.showRibbon') : t('toolbar.hideRibbon')}
+        aria-label={collapsed ? t('toolbar.showRibbon') : t('toolbar.hideRibbon')}
       >
         <Icon icon={collapsed ? faChevronDown : faChevronUp} />
       </button>

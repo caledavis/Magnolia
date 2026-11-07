@@ -24,6 +24,7 @@ one word for each idea; change a term here first, then everywhere.
 | Address the user as | *tú* | *je* | *você* |
 | Capitalisation | Sentence case | Sentence case | Sentence case |
 | Menu commands | Infinitive: "Guardar proyecto" | Imperative, as on macOS: "Bewaar project" | Infinitive: "Salvar projeto" |
+| Buttons and tooltips | Infinitive: "Importar" | Infinitive, as in Office: "Importeren" | Infinitive: "Importar" |
 | Quotation marks | « » | " " | " " |
 | The app's name | Magnolia | Magnolia | o Magnolia (masculine, like "o aplicativo") |
 

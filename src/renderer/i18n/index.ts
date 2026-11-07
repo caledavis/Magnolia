@@ -68,6 +68,15 @@ export { i18n }
 /** The language the interface is in now. */
 export const currentLanguage = (): LanguageId => (isLanguageId(i18n.language) ? i18n.language : 'en')
 
+/** A date and time, a date, or a number, as the interface language writes
+ *  them. */
+export const formatDateTime = (d: Date | string | number, options?: Intl.DateTimeFormatOptions): string =>
+  new Date(d).toLocaleString(currentLanguage(), options)
+export const formatDate = (d: Date | string | number, options?: Intl.DateTimeFormatOptions): string =>
+  new Date(d).toLocaleDateString(currentLanguage(), options)
+export const formatNumber = (n: number, options?: Intl.NumberFormatOptions): string =>
+  n.toLocaleString(currentLanguage(), options)
+
 const systemLanguages = (): readonly string[] =>
   typeof navigator !== 'undefined' ? navigator.languages ?? [navigator.language] : []
 

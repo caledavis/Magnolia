@@ -26,6 +26,7 @@ import { createPortal } from 'react-dom'
 import { Icon, faAppWindow, faCheck } from '../Icon'
 import { PANE_ICONS, type PaneIconId } from '../../utils/pane-icons'
 import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
+import { useTranslation } from 'react-i18next'
 
 export interface StudioPanelToggle {
   /** Stable key the host switches on in `onToggle`; also picks the
@@ -46,6 +47,7 @@ const POPOVER_W = 220
 const EDGE_PAD = 8
 
 export function StudioPopover({ panels, onToggle }: Props) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
@@ -111,7 +113,7 @@ export function StudioPopover({ panels, onToggle }: Props) {
         ref={buttonRef}
         type="button"
         className="app-toolbar-btn"
-        title="Show or hide workspace panels"
+        title={t('toolbar.studioTitle')}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
@@ -138,7 +140,7 @@ export function StudioPopover({ panels, onToggle }: Props) {
         }}
       >
         <Icon icon={faAppWindow} style={{ fontSize: 20 }} />
-        <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400, color: 'var(--text-secondary)', transition: 'color 0.12s' }}>Studio</span>
+        <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400, color: 'var(--text-secondary)', transition: 'color 0.12s' }}>{t('toolbar.studio')}</span>
       </button>
 
       {open && pos && createPortal(
@@ -149,7 +151,7 @@ export function StudioPopover({ panels, onToggle }: Props) {
           style={{ position: 'fixed', top: pos.top, left: pos.left, transform: 'none', zIndex: 10000 }}
         >
           <div className="analysis-popover-arrow" style={{ left: pos.arrowLeft, transform: 'rotate(45deg)' }} />
-          <div className="analysis-popover-title">Panels</div>
+          <div className="analysis-popover-title">{t('toolbar.panels')}</div>
           <div className="studio-popover-list">
             {panels.map((panel) => (
               <button

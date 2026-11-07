@@ -17,6 +17,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon, faCircleQuestion, faScale, faFileAlt, faHeart, type IconComponent } from '../Icon'
 import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
+import { useTranslation } from 'react-i18next'
 
 /** GitHub Sponsors page for funding Magnolia's development — same link
  *  as Preferences → Support Magnolia and the Welcome screen's ♥. */
@@ -44,6 +45,7 @@ const POPOVER_W = 480
 const EDGE_PAD = 8
 
 export function HelpPopover({ onShowLicence }: Props) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
@@ -106,20 +108,20 @@ export function HelpPopover({ onShowLicence }: Props) {
   const rows: HelpRow[] = [
     {
       icon: HELP_ICONS.licence,
-      name: 'Licence & Attributions',
-      description: "Magnolia's licence (EUPL-1.2) and credits for bundled libraries.",
+      name: t('toolbar.licenceAttributions'),
+      description: t('toolbar.licenceDescription'),
       action: onShowLicence
     },
     {
       icon: HELP_ICONS.manual,
-      name: 'Manual',
-      description: "Open Magnolia's user manual in your browser.",
+      name: t('toolbar.manual'),
+      description: t('toolbar.manualDescription'),
       action: () => window.open(MANUAL_URL, '_blank')
     },
     {
       icon: HELP_ICONS.donate,
-      name: 'Donate',
-      description: 'Magnolia is free to use, but costs me money to make. If it is useful, please consider donating to cover my costs.',
+      name: t('toolbar.donate'),
+      description: t('toolbar.donateDescription'),
       action: () => window.open(SPONSOR_URL, '_blank')
     }
   ]
@@ -135,7 +137,7 @@ export function HelpPopover({ onShowLicence }: Props) {
         ref={buttonRef}
         type="button"
         className="app-toolbar-btn"
-        title="Help"
+        title={t('toolbar.help')}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
@@ -163,7 +165,7 @@ export function HelpPopover({ onShowLicence }: Props) {
         }}
       >
         <Icon icon={faCircleQuestion} style={{ fontSize: 20 }} />
-        <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>Help</span>
+        <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>{t('toolbar.help')}</span>
       </button>
 
       {open && pos && createPortal(
@@ -174,7 +176,7 @@ export function HelpPopover({ onShowLicence }: Props) {
           style={{ position: 'fixed', top: pos.top, left: pos.left, transform: 'none', zIndex: 10000 }}
         >
           <div className="analysis-popover-arrow" style={{ left: pos.arrowLeft, transform: 'rotate(45deg)' }} />
-          <div className="analysis-popover-title">Help</div>
+          <div className="analysis-popover-title">{t('toolbar.help')}</div>
           <div className="help-popover-grid">
             {rows.map((row) => (
               <button

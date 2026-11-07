@@ -16,6 +16,18 @@ import {
   faNotebookTabs
 } from '../components/Icon'
 import type { IconComponent } from '../components/Icon'
+import { t } from '../i18n'
+
+/** A tool whose label and description are read from the catalogues
+ *  (tools.<key>.label / .description) each time, in the current language. */
+function tool(key: string, icon: IconComponent, color: string): ToolDef {
+  return {
+    icon,
+    color,
+    get label() { return t(`tools.${key}.label`) },
+    get description() { return t(`tools.${key}.description`) }
+  }
+}
 
 export interface ToolDef {
   icon: IconComponent
@@ -32,25 +44,21 @@ export interface ToolDef {
  * otherwise-unused rose hue.
  * Order matches the toolbar layout (left to right).
  *
- * Labels are full-name versions ("Code Frequencies", "Word Frequencies"
- * — not the old "Code Freq.", "Word Freq." abbreviations). The
- * abbreviated forms only made sense in the old stacked-button toolbar
- * where horizontal space was tight; everywhere they're surfaced now
- * (Saved Analyses pane headings, the toolbar Analysis popover tiles)
- * the full name reads better.
+ * Labels are full names ("Code Frequencies", not "Code Freq."), in the
+ * catalogues under tools.<key>.
  */
 export const TOOL_REGISTRY: Record<string, ToolDef> = {
-  queryBuilder:            { icon: faMagnifyingGlass,  label: 'Query Builder',        color: '#D06828', description: 'Build a code / text query' },                              // burnt orange
-  'codes-in-documents':    { icon: faFileCodeCorner,   label: 'Codes in Documents',   color: '#C0A010', description: 'See which documents contain which codes' },                // golden
-  'framework-matrix':      { icon: faFrame,            label: 'Framework Matrix',     color: '#C8407A', description: 'Summarise each code in each document' },                   // rose
-  'results-in-documents':  { icon: faFileSearchCorner, label: 'Results in Documents', color: '#78B020', description: 'See which documents contain which query results' },        // yellow-green
-  'code-cooccurrences':    { icon: faSquaresIntersect, label: 'Code Co-Occurrences',  color: '#20A848', description: 'See which codes overlap with each other' },                // green
-  'code-frequencies':      { icon: faChartColumn,      label: 'Code Frequencies',     color: '#10A0A0', description: 'See how much of each document is covered by each code' }, // teal
-  'code-orders':           { icon: faBarsStaggered,    label: 'Code Orders',          color: '#2080D8', description: 'See the order in which codes appear in each document' },  // blue
-  'word-frequencies':      { icon: faFont,             label: 'Word Frequencies',     color: '#6848E0', description: 'See which words often appear' },                           // indigo
-  'word-combinations':     { icon: faWholeWord,        label: 'Word Combinations',    color: '#C83C3C', description: 'See which words go together' },                            // crimson
-  'relationship-map':      { icon: faCircleNodes,      label: 'Relationships',        color: '#A830D0', description: 'Map relationships between different things' },             // violet
-  'reports':               { icon: faNotebookTabs,     label: 'Reports',              color: '#607080', description: 'Compile results into an exportable PDF report' },          // slate
+  queryBuilder:            tool('queryBuilder',       faMagnifyingGlass,  '#D06828'), // burnt orange
+  'codes-in-documents':    tool('codesInDocuments',   faFileCodeCorner,   '#C0A010'), // golden
+  'framework-matrix':      tool('frameworkMatrix',    faFrame,            '#C8407A'), // rose
+  'results-in-documents':  tool('resultsInDocuments', faFileSearchCorner, '#78B020'), // yellow-green
+  'code-cooccurrences':    tool('codeCooccurrences',  faSquaresIntersect, '#20A848'), // green
+  'code-frequencies':      tool('codeFrequencies',    faChartColumn,      '#10A0A0'), // teal
+  'code-orders':           tool('codeOrders',         faBarsStaggered,    '#2080D8'), // blue
+  'word-frequencies':      tool('wordFrequencies',    faFont,             '#6848E0'), // indigo
+  'word-combinations':     tool('wordCombinations',   faWholeWord,        '#C83C3C'), // crimson
+  'relationship-map':      tool('relationshipMap',    faCircleNodes,      '#A830D0'), // violet
+  'reports':               tool('reports',            faNotebookTabs,     '#607080'), // slate
 }
 
 /** Backward-compatible color map (used by many components) */

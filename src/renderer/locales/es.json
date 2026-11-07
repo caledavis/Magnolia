@@ -116,5 +116,116 @@
       "timedOut": "Se agotó el tiempo al cargar el documento para imprimirlo",
       "webview2Failed": "WebView2 no pudo imprimir el documento"
     }
+  },
+  "tools": {
+    "queryBuilder": {
+      "label": "Generador de consultas",
+      "description": "Crea una consulta de códigos o de texto"
+    },
+    "codesInDocuments": {
+      "label": "Códigos en documentos",
+      "description": "Mira qué documentos contienen qué códigos"
+    },
+    "frameworkMatrix": {
+      "label": "Matriz de marco",
+      "description": "Resume cada código en cada documento"
+    },
+    "resultsInDocuments": {
+      "label": "Resultados en documentos",
+      "description": "Mira qué documentos contienen qué resultados de consultas"
+    },
+    "codeCooccurrences": {
+      "label": "Coocurrencias de códigos",
+      "description": "Mira qué códigos se superponen entre sí"
+    },
+    "codeFrequencies": {
+      "label": "Frecuencias de códigos",
+      "description": "Mira cuánto de cada documento cubre cada código"
+    },
+    "codeOrders": {
+      "label": "Orden de los códigos",
+      "description": "Mira en qué orden aparecen los códigos en cada documento"
+    },
+    "wordFrequencies": {
+      "label": "Frecuencias de palabras",
+      "description": "Mira qué palabras aparecen a menudo"
+    },
+    "wordCombinations": {
+      "label": "Combinaciones de palabras",
+      "description": "Mira qué palabras van juntas"
+    },
+    "relationshipMap": {
+      "label": "Relaciones",
+      "description": "Traza relaciones entre distintos elementos"
+    },
+    "reports": {
+      "label": "Informes",
+      "description": "Reúne resultados en un informe PDF exportable"
+    }
+  },
+  "panes": {
+    "documents": "Documentos",
+    "codes": "Códigos",
+    "queries": "Consultas",
+    "memos": "Memos guardados",
+    "quotes": "Citas guardadas",
+    "analyses": "Análisis guardados"
+  },
+  "toolbar": {
+    "label": "Barra de herramientas",
+    "showRibbon": "Mostrar la cinta",
+    "hideRibbon": "Ocultar la cinta",
+    "tabHome": "Inicio",
+    "tabAnalyse": "Analizar",
+    "tabView": "Ver",
+    "tabHelp": "Ayuda",
+    "groupProject": "Proyecto",
+    "groupOrganise": "Organizar",
+    "groupQuery": "Consulta",
+    "groupCodes": "Códigos",
+    "groupQueriesWords": "Consultas y palabras",
+    "groupRelationshipsReports": "Relaciones e informes",
+    "groupPanes": "Paneles",
+    "groupMagnolia": "Magnolia",
+    "projectDetails": "Detalles del proyecto",
+    "import": "Importar",
+    "importTitle": "Importar documentos",
+    "merge": "Combinar",
+    "mergeTitle": "Combinar otro proyecto con este",
+    "preferences": "Preferencias",
+    "updateAvailableTitle": "Hay una versión nueva: abre Preferencias → Actualizaciones",
+    "openPreferences": "Abrir Preferencias",
+    "openPreferencesUpdate": "Abrir Preferencias: hay una actualización",
+    "codebook": "Libro de códigos",
+    "logbook": "Bitácora",
+    "memos": "Memos",
+    "memosTitle": "Ver todos los memos del proyecto",
+    "tags": "Etiquetas",
+    "tagsTitle": "Gestionar etiquetas",
+    "query": "Consulta",
+    "hidePane": "Ocultar el panel {{pane}}",
+    "showPane": "Mostrar el panel {{pane}}",
+    "manual": "Manual",
+    "manualDescription": "Abre el manual de usuario de Magnolia en tu navegador.",
+    "licence": "Licencia",
+    "licenceAttributions": "Licencia y atribuciones",
+    "licenceDescription": "La licencia de Magnolia (EUPL-1.2) y los créditos de las bibliotecas que incluye.",
+    "donate": "Donar",
+    "donateDescription": "Magnolia es gratis, pero hacerlo me cuesta dinero. Si te resulta útil, considera hacer una donación para cubrir mis costes.",
+    "help": "Ayuda",
+    "analyse": "Analizar",
+    "analysisTools": "Herramientas de análisis",
+    "studio": "Estudio",
+    "studioTitle": "Mostrar u ocultar los paneles del espacio de trabajo",
+    "panels": "Paneles",
+    "locked": "Bloqueado",
+    "lockedTitle": "{{name}} está trabajando en este archivo desde {{time}}: no tienes el control. Haz clic para tomarlo.",
+    "minimise": "Minimizar",
+    "maximise": "Maximizar",
+    "restore": "Restaurar",
+    "close": "Cerrar"
+  },
+  "project": {
+    "lockedTitle": "{{name}} está trabajando en este archivo: toma el control o crea una copia para editarlo"
   }
 }

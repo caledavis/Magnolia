@@ -26,6 +26,7 @@ import { Icon, faLightbulb, type IconComponent } from '../Icon'
 import type { AnalysisToolType } from '../../models/types'
 import { TOOL_REGISTRY } from '../../utils/tool-registry'
 import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
+import { useTranslation } from 'react-i18next'
 
 /** Tools the popover surfaces, in the order they appear in the grid.
  *  Query Builder is intentionally NOT in this list — it stays on the
@@ -53,6 +54,7 @@ interface Props {
 }
 
 export function AnalysisPopover({ onSelect }: Props) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
@@ -123,7 +125,7 @@ export function AnalysisPopover({ onSelect }: Props) {
         ref={buttonRef}
         type="button"
         className="app-toolbar-btn"
-        title="Analysis tools"
+        title={t('toolbar.analysisTools')}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
@@ -150,7 +152,7 @@ export function AnalysisPopover({ onSelect }: Props) {
         }}
       >
         <Icon icon={faLightbulb} style={{ fontSize: 20 }} />
-        <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400, color: 'var(--text-secondary)', transition: 'color 0.12s' }}>Analyse</span>
+        <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400, color: 'var(--text-secondary)', transition: 'color 0.12s' }}>{t('toolbar.analyse')}</span>
       </button>
 
       {open && pos && createPortal(
@@ -161,7 +163,7 @@ export function AnalysisPopover({ onSelect }: Props) {
           style={{ position: 'fixed', top: pos.top, left: pos.left, transform: 'none', zIndex: 10000 }}
         >
           <div className="analysis-popover-arrow" style={{ left: pos.arrowLeft, transform: 'rotate(45deg)' }} />
-          <div className="analysis-popover-title">Analysis tools</div>
+          <div className="analysis-popover-title">{t('toolbar.analysisTools')}</div>
           <div className="analysis-popover-grid">
             {ANALYSIS_TOOL_ORDER.map((toolType) => {
               const def = TOOL_REGISTRY[toolType]

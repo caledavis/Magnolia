@@ -103,6 +103,7 @@ import { TOOL_REGISTRY } from './utils/tool-registry'
 import { WindowControls } from './components/Toolbar/WindowControls'
 import type { Project, Query, CodeCondition, Code, TextSource, QDASet, LogbookInitData, AnalysisInitData, AnalysisToolType, PlainTextSelection, Memo, MemoEditInitData, MemosWindowData, SurveyCellScopeArgs } from './models/types'
 import { buildSurveyEntityLabels } from './utils/survey/survey-labels'
+import { useTranslation } from 'react-i18next'
 
 /** Fold the survey-cell scope carried by an analysis cell-click into the
  *  documentFilter of the Query being generated, so it re-runs against the
@@ -301,6 +302,7 @@ function openMemoEditor(memo: Memo, isNew = false): void {
 }
 
 function App() {
+  const { t } = useTranslation()
   const [showNewCodeDialog, setShowNewCodeDialog] = useState(false)
   const [pendingCodeAllNewCode, setPendingCodeAllNewCode] = useState(false)
   const [showManageDocTags, setShowManageDocTags] = useState(false)
@@ -2720,29 +2722,29 @@ function App() {
     const def = TOOL_REGISTRY[toolType]
     return { id: toolType, label: def.label, title: def.description, icon: def.icon, onClick: () => openAnalysis(toolType) }
   }
-  const panelButton = (id: PanelId | 'queries', label: string, icon: RibbonButtonDef['icon'], visible: boolean): RibbonButtonDef => ({
-    id: `panel-${id}`, label, icon, pressed: visible,
-    title: visible ? `Hide the ${label} pane` : `Show the ${label} pane`,
+  const panelButton = (id: PanelId | 'queries', icon: RibbonButtonDef['icon'], visible: boolean): RibbonButtonDef => ({
+    id: `panel-${id}`, label: t(`panes.${id}`), icon, pressed: visible,
+    title: visible ? t('toolbar.hidePane', { pane: t(`panes.${id}`) }) : t('toolbar.showPane', { pane: t(`panes.${id}`) }),
     onClick: () => (id === 'queries' ? setQueryResultsClosed((prev) => !prev) : togglePanel(id))
   })
   const ribbonTabs: RibbonTabDef[] = [
     {
       id: 'home',
-      label: 'Home',
+      label: t('toolbar.tabHome'),
       groups: [
         {
-          label: 'Project',
+          label: t('toolbar.groupProject'),
           buttons: [
             {
-              id: 'project-details', label: 'Project Details', title: 'Project details',
+              id: 'project-details', label: t('toolbar.projectDetails'), title: t('toolbar.projectDetails'),
               glyph: <span className="ribbon-magnolia" aria-hidden style={{ WebkitMaskImage: `url("${magnoliaIconUrl}")`, maskImage: `url("${magnoliaIconUrl}")` }} />,
               onClick: () => setShowProjectDetails(true)
             },
-            { id: 'import', label: 'Import', title: 'Import documents', icon: faSquareArrowRightEnter, disabledReason: lockedReason, onClick: () => handleImportDocument() },
-            { id: 'merge', label: 'Merge', title: 'Merge a project into this one', icon: faGitMerge, iconStyle: { transform: 'scale(-1, -1)' }, onClick: () => handleMergeProject() },
+            { id: 'import', label: t('toolbar.import'), title: t('toolbar.importTitle'), icon: faSquareArrowRightEnter, disabledReason: lockedReason, onClick: () => handleImportDocument() },
+            { id: 'merge', label: t('toolbar.merge'), title: t('toolbar.mergeTitle'), icon: faGitMerge, iconStyle: { transform: 'scale(-1, -1)' }, onClick: () => handleMergeProject() },
             {
-              id: 'preferences', label: 'Preferences', icon: faGear, badge: updateBadgeAvailable,
-              title: updateBadgeAvailable ? 'A new version is available — open Preferences → Updates' : 'Preferences',
+              id: 'preferences', label: t('toolbar.preferences'), icon: faGear, badge: updateBadgeAvailable,
+              title: updateBadgeAvailable ? t('toolbar.updateAvailableTitle') : t('toolbar.preferences'),
               onClick: () => {
                 if (updateBadgeAvailable) requestPreferencesCategory('updates')
                 useDocumentStore.getState().openToolTab(PREFERENCES_TAB_ID)
@@ -2751,58 +2753,58 @@ function App() {
           ]
         },
         {
-          label: 'Organise',
+          label: t('toolbar.groupOrganise'),
           buttons: [
-            { id: 'codebook', label: 'Codebook', icon: faBook, onClick: () => openCodebook() },
-            { id: 'logbook', label: 'Logbook', icon: faNotebookPen, onClick: () => openLogbook() },
-            { id: 'memos', label: 'Memos', title: 'See every memo in the project', icon: PANE_ICONS.memos, onClick: () => openMemos() },
-            { id: 'tags', label: 'Tags', title: 'Manage tags', icon: faTags, onClick: () => setShowManageDocTags(true) }
+            { id: 'codebook', label: t('toolbar.codebook'), icon: faBook, onClick: () => openCodebook() },
+            { id: 'logbook', label: t('toolbar.logbook'), icon: faNotebookPen, onClick: () => openLogbook() },
+            { id: 'memos', label: t('toolbar.memos'), title: t('toolbar.memosTitle'), icon: PANE_ICONS.memos, onClick: () => openMemos() },
+            { id: 'tags', label: t('toolbar.tags'), title: t('toolbar.tagsTitle'), icon: faTags, onClick: () => setShowManageDocTags(true) }
           ]
         },
         {
-          label: 'Query',
+          label: t('toolbar.groupQuery'),
           buttons: [
-            { id: 'query', label: 'Query', title: TOOL_REGISTRY.queryBuilder.description, icon: faMagnifyingGlass, onClick: () => openQueryBuilder() }
+            { id: 'query', label: t('toolbar.query'), title: TOOL_REGISTRY.queryBuilder.description, icon: faMagnifyingGlass, onClick: () => openQueryBuilder() }
           ]
         }
       ]
     },
     {
       id: 'analyse',
-      label: 'Analyse',
+      label: t('toolbar.tabAnalyse'),
       groups: [
-        { label: 'Codes', buttons: (['codes-in-documents', 'framework-matrix', 'code-cooccurrences', 'code-orders', 'code-frequencies'] as AnalysisToolType[]).map(toolButton) },
-        { label: 'Queries and words', buttons: (['results-in-documents', 'word-frequencies', 'word-combinations'] as AnalysisToolType[]).map(toolButton) },
-        { label: 'Relationships and reports', buttons: (['relationship-map', 'reports'] as AnalysisToolType[]).map(toolButton) }
+        { label: t('toolbar.groupCodes'), buttons: (['codes-in-documents', 'framework-matrix', 'code-cooccurrences', 'code-orders', 'code-frequencies'] as AnalysisToolType[]).map(toolButton) },
+        { label: t('toolbar.groupQueriesWords'), buttons: (['results-in-documents', 'word-frequencies', 'word-combinations'] as AnalysisToolType[]).map(toolButton) },
+        { label: t('toolbar.groupRelationshipsReports'), buttons: (['relationship-map', 'reports'] as AnalysisToolType[]).map(toolButton) }
       ]
     },
     {
       id: 'view',
-      label: 'View',
+      label: t('toolbar.tabView'),
       groups: [
         {
-          label: 'Panes',
+          label: t('toolbar.groupPanes'),
           buttons: [
-            panelButton('documents', 'Documents', PANE_ICONS.documents, panelVisibility.documents),
-            panelButton('codes', 'Codes', PANE_ICONS.codes, panelVisibility.codes),
-            panelButton('queries', 'Queries', PANE_ICONS.queries, !queryResultsClosed),
-            panelButton('memos', 'Saved Memos', PANE_ICONS.memos, panelVisibility.memos),
-            panelButton('quotes', 'Saved Quotes', PANE_ICONS.quotes, panelVisibility.quotes),
-            panelButton('analyses', 'Saved Analyses', PANE_ICONS.analyses, panelVisibility.analyses)
+            panelButton('documents', PANE_ICONS.documents, panelVisibility.documents),
+            panelButton('codes', PANE_ICONS.codes, panelVisibility.codes),
+            panelButton('queries', PANE_ICONS.queries, !queryResultsClosed),
+            panelButton('memos', PANE_ICONS.memos, panelVisibility.memos),
+            panelButton('quotes', PANE_ICONS.quotes, panelVisibility.quotes),
+            panelButton('analyses', PANE_ICONS.analyses, panelVisibility.analyses)
           ]
         }
       ]
     },
     {
       id: 'help',
-      label: 'Help',
+      label: t('toolbar.tabHelp'),
       groups: [
         {
-          label: 'Magnolia',
+          label: t('toolbar.groupMagnolia'),
           buttons: [
-            { id: 'manual', label: 'Manual', title: "Open Magnolia's user manual in your browser", icon: HELP_ICONS.manual, onClick: () => window.open(MANUAL_URL, '_blank') },
-            { id: 'licence', label: 'Licence', title: 'Licence & Attributions', icon: HELP_ICONS.licence, onClick: () => setShowLicenceDialog(true) },
-            { id: 'donate', label: 'Donate', title: 'Magnolia is free to use, but costs me money to make. If it is useful, please consider donating to cover my costs.', icon: HELP_ICONS.donate, onClick: () => window.open(SPONSOR_URL, '_blank') }
+            { id: 'manual', label: t('toolbar.manual'), title: t('toolbar.manualDescription'), icon: HELP_ICONS.manual, onClick: () => window.open(MANUAL_URL, '_blank') },
+            { id: 'licence', label: t('toolbar.licence'), title: t('toolbar.licenceAttributions'), icon: HELP_ICONS.licence, onClick: () => setShowLicenceDialog(true) },
+            { id: 'donate', label: t('toolbar.donate'), title: t('toolbar.donateDescription'), icon: HELP_ICONS.donate, onClick: () => window.open(SPONSOR_URL, '_blank') }
           ]
         }
       ]
@@ -3009,17 +3011,17 @@ function App() {
           <div className="app-toolbar-scroll-inner" style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 auto' }}>
           <div className="app-toolbar-pill" style={TOOLBAR_PILL_STYLE}>
           {[
-            { icon: faSquareArrowRightEnter, label: 'Import', action: () => handleImportDocument(), locks: true },
-            { icon: faBook, label: 'Codebook', action: () => openCodebook() },
-            { icon: faNotebookPen, label: 'Logbook', action: () => openLogbook() },
-            { icon: PANE_ICONS.memos, label: 'Memos', action: () => openMemos() },
-            { icon: faTags, label: 'Tags', action: () => setShowManageDocTags(true) }
+            { id: 'import', icon: faSquareArrowRightEnter, label: t('toolbar.import'), action: () => handleImportDocument(), locks: true },
+            { id: 'codebook', icon: faBook, label: t('toolbar.codebook'), action: () => openCodebook() },
+            { id: 'logbook', icon: faNotebookPen, label: t('toolbar.logbook'), action: () => openLogbook() },
+            { id: 'memos', icon: PANE_ICONS.memos, label: t('toolbar.memos'), action: () => openMemos() },
+            { id: 'tags', icon: faTags, label: t('toolbar.tags'), action: () => setShowManageDocTags(true) }
           ].map((item, idx) => {
             const itemLocked = !!(item as { locks?: boolean }).locks && !!checkoutLockedBy
             return [
-            idx > 0 ? <ToolbarDivider key={`${item.label}-divider`} /> : null,
+            idx > 0 ? <ToolbarDivider key={`${item.id}-divider`} /> : null,
             <button
-              key={item.label}
+              key={item.id}
               className="app-toolbar-btn"
               title={itemLocked ? checkoutLockedTitle(checkoutLockedBy!) : (item as { title?: string }).title ?? item.label}
               onClick={item.action}
@@ -3062,7 +3064,7 @@ function App() {
           <div className="app-toolbar-pill" style={TOOLBAR_PILL_STYLE}>
             <button
               className="app-toolbar-btn"
-              title="Merge a project into this one"
+              title={t('toolbar.mergeTitle')}
               onClick={() => handleMergeProject()}
               style={{
                 display: 'flex',
@@ -3091,7 +3093,7 @@ function App() {
                   "merge" toward the currently-open project, the reverse
                   direction of a git merge arrow, hence the flip. */}
               <Icon icon={faGitMerge} style={{ fontSize: 20, transform: 'scale(-1, -1)' }} />
-              <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>Merge</span>
+              <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>{t('toolbar.merge')}</span>
             </button>
           </div>
 
@@ -3103,7 +3105,7 @@ function App() {
               wrong. */}
           <button
             className="app-toolbar-btn"
-            title="Query"
+            title={t('toolbar.query')}
             onClick={() => openQueryBuilder()}
             style={{
               display: 'flex',
@@ -3128,7 +3130,7 @@ function App() {
             }}
           >
             <Icon icon={faMagnifyingGlass} style={{ fontSize: 20 }} />
-            <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400, transition: 'color 0.12s' }}>Query</span>
+            <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400, transition: 'color 0.12s' }}>{t('toolbar.query')}</span>
           </button>
 
           <ToolbarDivider />
@@ -3148,12 +3150,12 @@ function App() {
               without this a closed panel could never be reopened. */}
           <StudioPopover
             panels={[
-              { id: 'documents', label: 'Documents', visible: panelVisibility.documents },
-              { id: 'codes', label: 'Codes', visible: panelVisibility.codes },
-              { id: 'queries', label: 'Queries', visible: !queryResultsClosed },
-              { id: 'memos', label: 'Saved Memos', visible: panelVisibility.memos },
-              { id: 'quotes', label: 'Saved Quotes', visible: panelVisibility.quotes },
-              { id: 'analyses', label: 'Saved Analyses', visible: panelVisibility.analyses },
+              { id: 'documents', label: t('panes.documents'), visible: panelVisibility.documents },
+              { id: 'codes', label: t('panes.codes'), visible: panelVisibility.codes },
+              { id: 'queries', label: t('panes.queries'), visible: !queryResultsClosed },
+              { id: 'memos', label: t('panes.memos'), visible: panelVisibility.memos },
+              { id: 'quotes', label: t('panes.quotes'), visible: panelVisibility.quotes },
+              { id: 'analyses', label: t('panes.analyses'), visible: panelVisibility.analyses },
             ]}
             onToggle={(id) => {
               if (id === 'queries') setQueryResultsClosed((prev) => !prev)
@@ -3166,8 +3168,8 @@ function App() {
               nudge dot (jumps straight to Settings → Updates when set). */}
           <button
             className="app-toolbar-btn"
-            title={updateBadgeAvailable ? 'A new version is available — open Preferences → Updates' : 'Preferences'}
-            aria-label={updateBadgeAvailable ? 'Open Preferences — update available' : 'Open Preferences'}
+            title={updateBadgeAvailable ? t('toolbar.updateAvailableTitle') : t('toolbar.preferences')}
+            aria-label={updateBadgeAvailable ? t('toolbar.openPreferencesUpdate') : t('toolbar.openPreferences')}
             onClick={() => {
               if (updateBadgeAvailable) requestPreferencesCategory('updates')
               useDocumentStore.getState().openToolTab(PREFERENCES_TAB_ID)
@@ -3197,7 +3199,7 @@ function App() {
             }}
           >
             <Icon icon={faGear} style={{ fontSize: 20 }} />
-            <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>Preferences</span>
+            <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>{t('toolbar.preferences')}</span>
             {updateBadgeAvailable && (
               // Update-available nudge dot, anchored to the Settings button.
               <span

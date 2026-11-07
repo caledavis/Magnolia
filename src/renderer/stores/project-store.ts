@@ -3,6 +3,7 @@ import type { User, SavedAnalysis, CheckoutMarker } from '../models/types'
 import { generateGuid } from '../utils/guid'
 import { makeHmrSafe } from './hmr-preserve'
 import { usePreferencesStore } from './preferences-store'
+import { t } from '../i18n'
 
 /** Strip directory and .qdpx extension from a file path. */
 function deriveNameFromPath(filePath: string): string {
@@ -191,5 +192,5 @@ export function useCheckoutLockedBy(): string | null {
 
 /** Standard tooltip/title text for a control disabled by useCheckoutLockedBy. */
 export function checkoutLockedTitle(lockedBy: string): string {
-  return `${lockedBy} is working on this file — take over or create a copy to edit`
+  return t('project.lockedTitle', { name: lockedBy })
 }
