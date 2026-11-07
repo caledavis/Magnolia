@@ -631,7 +631,7 @@ fn fmt_eq(a: &CharFmt, b: &CharFmt) -> bool {
 
 pub fn rtf_to_html(bytes: &[u8]) -> Result<String, String> {
     if !bytes.starts_with(b"{\\rtf") {
-        return Err("Not an RTF document.".into());
+        return Err(crate::message::tr("notRtf", "Not an RTF document.", &[]));
     }
     let mut r = Rtf::new(bytes);
     r.run();

@@ -189,17 +189,43 @@ pub fn read_qdpx(path: &Path, progress: Option<Progress>) -> Result<Value, Strin
             p(s, c, t)
         }
     };
-    report("Reading file", 0, 0);
-    let mut zip = Archive::open(path).map_err(|e| format!("Could not open project: {e}"))?;
-    report("Unpacking archive", 0, 0);
+    report(
+        &crate::message::tr("stage.readingFile", "Reading file", &[]),
+        0,
+        0,
+    );
+    let mut zip = Archive::open(path).map_err(|e| {
+        crate::message::tr(
+            "openProject",
+            "Could not open project: {{detail}}",
+            &[("detail", &e.to_string())],
+        )
+    })?;
+    report(
+        &crate::message::tr("stage.unpacking", "Unpacking archive", &[]),
+        0,
+        0,
+    );
     let sources_dir = zip.sources_dir();
-    let qde = zip
-        .qde_name()
-        .ok_or("Invalid QDPX file: missing project.qde")?;
-    report("Parsing project", 0, 0);
-    let xml = zip
-        .read_utf8(&qde)
-        .ok_or("Invalid QDPX file: unreadable project.qde")?;
+    let qde = zip.qde_name().ok_or_else(|| {
+        crate::message::tr(
+            "qdpxNoProject",
+            "Invalid QDPX file: missing project.qde",
+            &[],
+        )
+    })?;
+    report(
+        &crate::message::tr("stage.parsing", "Parsing project", &[]),
+        0,
+        0,
+    );
+    let xml = zip.read_utf8(&qde).ok_or_else(|| {
+        crate::message::tr(
+            "qdpxUnreadableProject",
+            "Invalid QDPX file: unreadable project.qde",
+            &[],
+        )
+    })?;
     let mut project = deserialize_project(&xml)?;
     let in_sources = |name: &str| format!("{sources_dir}/{name}");
 
@@ -240,6 +266,7 @@ pub fn read_qdpx(path: &Path, progress: Option<Progress>) -> Result<Value, Strin
         .and_then(|v| v.as_array().cloned())
         .unwrap_or_default();
     let total = sources.len();
+    let loading = crate::message::tr("stage.loadingDocuments", "Loading documents", &[]);
     for (done, source) in sources.iter_mut().enumerate() {
         load_source(
             source,
@@ -248,7 +275,7 @@ pub fn read_qdpx(path: &Path, progress: Option<Progress>) -> Result<Value, Strin
             &origin,
             &mut source_contents,
         );
-        report("Loading documents", done + 1, total);
+        report(&loading, done + 1, total);
     }
     project["sources"] = sources.into();
 

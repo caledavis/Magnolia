@@ -404,7 +404,7 @@ fn failed_save_keeps_the_overlay_buffer() {
         &contents_for(GUID),
         &opts(Some(&store), ""),
     ) {
-        Err(WriteError::Guard(m)) => assert!(m.contains("could not be located")),
+        Err(WriteError::Guard(m)) => assert!(m.contains("couldn’t be found")),
         other => panic!("expected guard, got {other:?}"),
     }
     assert!(store.overlay_bytes(&handle).is_some());

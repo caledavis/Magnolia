@@ -4,6 +4,7 @@
 
 pub mod binary_store;
 pub mod convert;
+pub mod message;
 pub mod pdf_info;
 pub mod qdpx;
 pub mod util;

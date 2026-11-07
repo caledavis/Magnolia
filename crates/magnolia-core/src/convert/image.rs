@@ -15,8 +15,13 @@ fn encode_png(img: RgbaImage) -> Result<Vec<u8>, String> {
 }
 
 pub fn tiff_to_png(bytes: &[u8]) -> Result<Vec<u8>, String> {
-    let img = image::load_from_memory_with_format(bytes, ImageFormat::Tiff)
-        .map_err(|e| format!("Could not decode TIFF: {e}"))?;
+    let img = image::load_from_memory_with_format(bytes, ImageFormat::Tiff).map_err(|e| {
+        crate::message::tr(
+            "decodeTiff",
+            "Could not decode TIFF: {{detail}}",
+            &[("detail", &e.to_string())],
+        )
+    })?;
     encode_png(img.to_rgba8())
 }
 
@@ -25,9 +30,13 @@ pub fn heic_to_png(bytes: &[u8]) -> Result<Vec<u8>, String> {
     use zune_heic::zune_core::bytestream::ZCursor;
     use zune_heic::zune_core::colorspace::ColorSpace;
     let mut dec = HeifDecoder::new(ZCursor::new(bytes));
-    let pixels = dec
-        .decode()
-        .map_err(|e| format!("Could not decode HEIC: {e:?}"))?;
+    let pixels = dec.decode().map_err(|e| {
+        crate::message::tr(
+            "decodeHeic",
+            "Could not decode HEIC: {{detail}}",
+            &[("detail", &format!("{e:?}"))],
+        )
+    })?;
     let (w, h) = (
         dec.width().unwrap_or(0) as u32,
         dec.height().unwrap_or(0) as u32,
@@ -47,8 +56,20 @@ pub fn heic_to_png(bytes: &[u8]) -> Result<Vec<u8>, String> {
             .iter()
             .flat_map(|p| [p[0], p[0], p[0], p[1]])
             .collect(),
-        other => return Err(format!("Unsupported HEIC colour space {other:?}")),
+        other => {
+            return Err(crate::message::tr(
+                "heicColourSpace",
+                "Unsupported HEIC colour space {{detail}}",
+                &[("detail", &format!("{other:?}"))],
+            ));
+        }
     };
-    let img = RgbaImage::from_raw(w, h, rgba).ok_or("HEIC decoder returned a malformed image")?;
+    let img = RgbaImage::from_raw(w, h, rgba).ok_or_else(|| {
+        crate::message::tr(
+            "heicMalformed",
+            "HEIC decoder returned a malformed image",
+            &[],
+        )
+    })?;
     encode_png(img)
 }

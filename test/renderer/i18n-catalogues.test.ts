@@ -101,6 +101,27 @@ describe('keys the app uses', () => {
     for (const key of used) expect(keys.has(`native.${key}`), `native.${key}`).toBe(true)
   })
 
+  it('match the English of the core\'s messages (native.core.*)', () => {
+    // tr("key", "English", ...) and tr_count("key", "one", "other", ...);
+    // the English at the call site is what shows without a translator.
+    const unescape = (s: string): string => s.replace(/\\(.)/g, '$1')
+    let found = 0
+    for (const file of filesUnder('crates/magnolia-core/src', ['.rs'])) {
+      if (file.endsWith('message.rs')) continue // its own tests use made-up keys
+      const text = readFileSync(file, 'utf-8')
+      for (const m of text.matchAll(/\btr\(\s*"([\w.]+)",\s*"((?:[^"\\]|\\.)*)"/g)) {
+        found++
+        expect(english.get(`native.core.${m[1]}`)?.get(''), `${m[1]} (${file})`).toBe(unescape(m[2]))
+      }
+      for (const m of text.matchAll(/\btr_count\(\s*"([\w.]+)",\s*"((?:[^"\\]|\\.)*)",\s*"((?:[^"\\]|\\.)*)"/g)) {
+        found++
+        expect(english.get(`native.core.${m[1]}`)?.get('one'), `${m[1]}_one (${file})`).toBe(unescape(m[2]))
+        expect(english.get(`native.core.${m[1]}`)?.get('other'), `${m[1]}_other (${file})`).toBe(unescape(m[3]))
+      }
+    }
+    expect(found).toBeGreaterThan(20)
+  })
+
   it('exist for the renderer', () => {
     for (const file of filesUnder('src/renderer', ['.ts', '.tsx', '.html'])) {
       // t('key'), t("key"), i18nKey="key" and data-i18n="key"; keys built

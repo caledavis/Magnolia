@@ -115,6 +115,47 @@
       "didNotStart": "No se inició la impresión",
       "timedOut": "Se agotó el tiempo al cargar el documento para imprimirlo",
       "webview2Failed": "WebView2 no pudo imprimir el documento"
+    },
+    "core": {
+      "stage": {
+        "readingFile": "Leyendo el archivo",
+        "unpacking": "Descomprimiendo el archivo",
+        "parsing": "Analizando el proyecto",
+        "loadingDocuments": "Cargando documentos"
+      },
+      "openProject": "No se pudo abrir el proyecto: {{detail}}",
+      "qdpxNoProject": "Archivo QDPX no válido: falta project.qde",
+      "qdpxUnreadableProject": "Archivo QDPX no válido: no se puede leer project.qde",
+      "invalidProjectXml": "XML del proyecto no válido: {{detail}}",
+      "notAProject": "XML del proyecto no válido: el elemento raíz no es <Project>",
+      "invalidCodebookXml": "XML del libro de códigos no válido: {{detail}}",
+      "invalidDocx": "DOCX no válido: {{detail}}",
+      "docxNoDocument": "DOCX no válido: falta word/document.xml",
+      "invalidDocxDocument": "Documento DOCX no válido: {{detail}}",
+      "docxNoBody": "DOCX no válido: no tiene cuerpo",
+      "invalidOdt": "ODT no válido: {{detail}}",
+      "odtNoContent": "ODT no válido: falta content.xml",
+      "invalidOdtContent": "Contenido ODT no válido: {{detail}}",
+      "notRtf": "No es un documento RTF.",
+      "readSpreadsheet": "No se pudo leer la hoja de cálculo: {{detail}}",
+      "xlsxNoWorksheets": "El archivo XLSX no tiene hojas.",
+      "readWorksheet": "No se pudo leer la hoja: {{detail}}",
+      "decodeTiff": "No se pudo descodificar el TIFF: {{detail}}",
+      "decodeHeic": "No se pudo descodificar el HEIC: {{detail}}",
+      "heicColourSpace": "Espacio de color HEIC no admitido: {{detail}}",
+      "heicMalformed": "El descodificador HEIC devolvió una imagen dañada",
+      "guard": {
+        "noSources_one": "Magnolia no sobrescribirá «{{file}}»: este proyecto no tiene documentos, pero el archivo contiene {{count}} documento. Suele significar que un fallo vació los documentos después de abrir el archivo. Si de verdad quieres guardar un proyecto vacío, usa Guardar proyecto como para guardarlo en un archivo nuevo.",
+        "noSources_many": "Magnolia no sobrescribirá «{{file}}»: este proyecto no tiene documentos, pero el archivo contiene {{count}} documentos. Suele significar que un fallo vació los documentos después de abrir el archivo. Si de verdad quieres guardar un proyecto vacío, usa Guardar proyecto como para guardarlo en un archivo nuevo.",
+        "noSources_other": "Magnolia no sobrescribirá «{{file}}»: este proyecto no tiene documentos, pero el archivo contiene {{count}} documentos. Suele significar que un fallo vació los documentos después de abrir el archivo. Si de verdad quieres guardar un proyecto vacío, usa Guardar proyecto como para guardarlo en un archivo nuevo.",
+        "emptyProject": "Magnolia no sobrescribirá «{{file}}» ({{size}} bytes) con un proyecto vacío. Si de verdad quieres guardar un proyecto vacío, usa Guardar proyecto como.",
+        "noText_one": "Magnolia no sobrescribirá «{{file}}»: el proyecto tiene {{count}} documento, pero su texto no está cargado. Suele significar que el proyecto no se abrió por completo, y guardar ahora borraría el texto del documento. Vuelve a abrir el proyecto y, si el problema continúa, restáuralo desde una copia de seguridad.",
+        "noText_many": "Magnolia no sobrescribirá «{{file}}»: el proyecto tiene {{count}} documentos, pero no hay texto cargado de ninguno. Suele significar que el proyecto no se abrió por completo, y guardar ahora borraría el texto de los documentos. Vuelve a abrir el proyecto y, si el problema continúa, restáuralo desde una copia de seguridad.",
+        "noText_other": "Magnolia no sobrescribirá «{{file}}»: el proyecto tiene {{count}} documentos, pero no hay texto cargado de ninguno. Suele significar que el proyecto no se abrió por completo, y guardar ahora borraría el texto de los documentos. Vuelve a abrir el proyecto y, si el problema continúa, restáuralo desde una copia de seguridad.",
+        "missingFiles_one": "Magnolia no guardará «{{file}}»: no se encontró el contenido de {{count}} documento importado ({{names}}). No estaba en la memoria, en la caché temporal ni en el archivo del proyecto, así que guardar ahora lo dejaría vacío. Vuelve a importar el documento e inténtalo de nuevo.",
+        "missingFiles_many": "Magnolia no guardará «{{file}}»: no se encontró el contenido de {{count}} documentos importados ({{names}}). No estaban en la memoria, en la caché temporal ni en el archivo del proyecto, así que guardar ahora los dejaría vacíos. Vuelve a importar los documentos e inténtalo de nuevo.",
+        "missingFiles_other": "Magnolia no guardará «{{file}}»: no se encontró el contenido de {{count}} documentos importados ({{names}}). No estaban en la memoria, en la caché temporal ni en el archivo del proyecto, así que guardar ahora los dejaría vacíos. Vuelve a importar los documentos e inténtalo de nuevo."
+      }
     }
   },
   "tools": {

@@ -115,6 +115,44 @@
       "didNotStart": "Printing did not start",
       "timedOut": "Timed out loading the document to print",
       "webview2Failed": "WebView2 could not print the document"
+    },
+    "core": {
+      "stage": {
+        "readingFile": "Reading file",
+        "unpacking": "Unpacking archive",
+        "parsing": "Parsing project",
+        "loadingDocuments": "Loading documents"
+      },
+      "openProject": "Could not open project: {{detail}}",
+      "qdpxNoProject": "Invalid QDPX file: missing project.qde",
+      "qdpxUnreadableProject": "Invalid QDPX file: unreadable project.qde",
+      "invalidProjectXml": "Invalid project XML: {{detail}}",
+      "notAProject": "Invalid project XML: root element is not <Project>",
+      "invalidCodebookXml": "Invalid codebook XML: {{detail}}",
+      "invalidDocx": "Invalid DOCX: {{detail}}",
+      "docxNoDocument": "Invalid DOCX: no word/document.xml",
+      "invalidDocxDocument": "Invalid DOCX document: {{detail}}",
+      "docxNoBody": "Invalid DOCX: no body",
+      "invalidOdt": "Invalid ODT: {{detail}}",
+      "odtNoContent": "Invalid ODT: no content.xml",
+      "invalidOdtContent": "Invalid ODT content: {{detail}}",
+      "notRtf": "Not an RTF document.",
+      "readSpreadsheet": "Could not read spreadsheet: {{detail}}",
+      "xlsxNoWorksheets": "XLSX file has no worksheets.",
+      "readWorksheet": "Could not read worksheet: {{detail}}",
+      "decodeTiff": "Could not decode TIFF: {{detail}}",
+      "decodeHeic": "Could not decode HEIC: {{detail}}",
+      "heicColourSpace": "Unsupported HEIC colour space {{detail}}",
+      "heicMalformed": "HEIC decoder returned a malformed image",
+      "guard": {
+        "noSources_one": "Refusing to overwrite “{{file}}”: this project has no documents, but the file holds {{count}} document. This usually means a fault cleared the documents after the file was opened. Use Save Project As to save it to a new file if you really want to save an empty project.",
+        "noSources_other": "Refusing to overwrite “{{file}}”: this project has no documents, but the file holds {{count}} documents. This usually means a fault cleared the documents after the file was opened. Use Save Project As to save it to a new file if you really want to save an empty project.",
+        "emptyProject": "Refusing to overwrite “{{file}}” ({{size}} bytes) with an empty project. Use Save Project As if you really want to save an empty project.",
+        "noText_one": "Refusing to overwrite “{{file}}”: the project has {{count}} document, but its text isn’t loaded. This usually means the project didn’t open fully, and saving now would erase the document’s text. Reopen the project, and if the problem persists, restore it from a backup.",
+        "noText_other": "Refusing to overwrite “{{file}}”: the project has {{count}} documents, but none of their text is loaded. This usually means the project didn’t open fully, and saving now would erase the documents’ text. Reopen the project, and if the problem persists, restore it from a backup.",
+        "missingFiles_one": "Refusing to save “{{file}}”: the contents of {{count}} imported document couldn’t be found ({{names}}). They weren’t in memory, the temporary cache or the existing project file, so saving now would save it empty. Import the document again and try again.",
+        "missingFiles_other": "Refusing to save “{{file}}”: the contents of {{count}} imported documents couldn’t be found ({{names}}). They weren’t in memory, the temporary cache or the existing project file, so saving now would save them empty. Import the documents again and try again."
+      }
     }
   },
   "tools": {

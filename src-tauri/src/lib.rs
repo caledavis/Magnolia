@@ -152,6 +152,7 @@ pub fn run() {
         .setup(|app| {
             storage::init(app.handle());
             i18n::init_from_preferences(&storage::load_preferences());
+            i18n::install_core_translator();
             updater::preview_at_launch(app.handle());
             menu::rebuild(app.handle());
             // Launched by double-clicking a project (or with a path argument):

@@ -48,7 +48,13 @@ fn parse_code(n: roxmltree::Node) -> Value {
 
 pub fn deserialize_codebook(xml: &str) -> Result<Vec<Value>, String> {
     let xml = crate::xml_read::repair_if_needed(xml);
-    let doc = crate::xml_read::parse(&xml).map_err(|e| format!("Invalid codebook XML: {e}"))?;
+    let doc = crate::xml_read::parse(&xml).map_err(|e| {
+        crate::message::tr(
+            "invalidCodebookXml",
+            "Invalid codebook XML: {{detail}}",
+            &[("detail", &e.to_string())],
+        )
+    })?;
     let root = doc.root_element();
     if root.tag_name().name() != "CodeBook" {
         return Ok(vec![]);

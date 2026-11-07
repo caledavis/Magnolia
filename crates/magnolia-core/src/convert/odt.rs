@@ -261,15 +261,21 @@ fn render(n: Node, ctx: &mut Ctx) -> String {
 }
 
 pub fn odt_to_html(bytes: &[u8]) -> Result<String, String> {
-    let mut zip =
-        zip::ZipArchive::new(Cursor::new(bytes)).map_err(|e| format!("Invalid ODT: {e}"))?;
+    let mut zip = zip::ZipArchive::new(Cursor::new(bytes)).map_err(|e| {
+        crate::message::tr(
+            "invalidOdt",
+            "Invalid ODT: {{detail}}",
+            &[("detail", &e.to_string())],
+        )
+    })?;
     let mut read = |name: &str| -> Option<Vec<u8>> {
         let mut f = zip.by_name(name).ok()?;
         let mut b = Vec::new();
         f.read_to_end(&mut b).ok()?;
         Some(b)
     };
-    let content = read("content.xml").ok_or("Invalid ODT: no content.xml")?;
+    let content = read("content.xml")
+        .ok_or_else(|| crate::message::tr("odtNoContent", "Invalid ODT: no content.xml", &[]))?;
     let styles = read("styles.xml");
 
     let mut pictures = HashMap::new();
@@ -304,8 +310,13 @@ pub fn odt_to_html(bytes: &[u8]) -> Result<String, String> {
         collect_styles(doc.root(), &mut table);
     }
     let content_text = String::from_utf8_lossy(&content).into_owned();
-    let doc =
-        crate::xml_read::parse(&content_text).map_err(|e| format!("Invalid ODT content: {e}"))?;
+    let doc = crate::xml_read::parse(&content_text).map_err(|e| {
+        crate::message::tr(
+            "invalidOdtContent",
+            "Invalid ODT content: {{detail}}",
+            &[("detail", &e.to_string())],
+        )
+    })?;
     collect_styles(doc.root(), &mut table);
 
     let mut ctx = Ctx {

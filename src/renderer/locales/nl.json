@@ -115,6 +115,44 @@
       "didNotStart": "Het afdrukken is niet gestart",
       "timedOut": "Het laden van het document om af te drukken duurde te lang",
       "webview2Failed": "WebView2 kon het document niet afdrukken"
+    },
+    "core": {
+      "stage": {
+        "readingFile": "Bestand lezen",
+        "unpacking": "Archief uitpakken",
+        "parsing": "Project verwerken",
+        "loadingDocuments": "Documenten laden"
+      },
+      "openProject": "Kan het project niet openen: {{detail}}",
+      "qdpxNoProject": "Ongeldig QDPX-bestand: project.qde ontbreekt",
+      "qdpxUnreadableProject": "Ongeldig QDPX-bestand: project.qde is onleesbaar",
+      "invalidProjectXml": "Ongeldige project-XML: {{detail}}",
+      "notAProject": "Ongeldige project-XML: het hoofdelement is niet <Project>",
+      "invalidCodebookXml": "Ongeldige codeboek-XML: {{detail}}",
+      "invalidDocx": "Ongeldig DOCX-bestand: {{detail}}",
+      "docxNoDocument": "Ongeldig DOCX-bestand: word/document.xml ontbreekt",
+      "invalidDocxDocument": "Ongeldig DOCX-document: {{detail}}",
+      "docxNoBody": "Ongeldig DOCX-bestand: geen hoofdtekst",
+      "invalidOdt": "Ongeldig ODT-bestand: {{detail}}",
+      "odtNoContent": "Ongeldig ODT-bestand: content.xml ontbreekt",
+      "invalidOdtContent": "Ongeldige ODT-inhoud: {{detail}}",
+      "notRtf": "Dit is geen RTF-document.",
+      "readSpreadsheet": "Kan de spreadsheet niet lezen: {{detail}}",
+      "xlsxNoWorksheets": "Het XLSX-bestand heeft geen werkbladen.",
+      "readWorksheet": "Kan het werkblad niet lezen: {{detail}}",
+      "decodeTiff": "Kan de TIFF niet decoderen: {{detail}}",
+      "decodeHeic": "Kan de HEIC niet decoderen: {{detail}}",
+      "heicColourSpace": "Niet-ondersteunde HEIC-kleurruimte: {{detail}}",
+      "heicMalformed": "De HEIC-decoder gaf een beschadigde afbeelding terug",
+      "guard": {
+        "noSources_one": "Magnolia overschrijft “{{file}}” niet: dit project heeft geen documenten, maar het bestand bevat {{count}} document. Meestal betekent dit dat een fout de documenten heeft gewist nadat het bestand was geopend. Wil je echt een leeg project bewaren, bewaar het dan met Bewaar project als in een nieuw bestand.",
+        "noSources_other": "Magnolia overschrijft “{{file}}” niet: dit project heeft geen documenten, maar het bestand bevat {{count}} documenten. Meestal betekent dit dat een fout de documenten heeft gewist nadat het bestand was geopend. Wil je echt een leeg project bewaren, bewaar het dan met Bewaar project als in een nieuw bestand.",
+        "emptyProject": "Magnolia overschrijft “{{file}}” ({{size}} bytes) niet met een leeg project. Wil je echt een leeg project bewaren, gebruik dan Bewaar project als.",
+        "noText_one": "Magnolia overschrijft “{{file}}” niet: het project heeft {{count}} document, maar de tekst ervan is niet geladen. Meestal betekent dit dat het project niet volledig is geopend, en nu bewaren zou de tekst van het document wissen. Open het project opnieuw en zet het terug vanuit een back-up als het probleem blijft.",
+        "noText_other": "Magnolia overschrijft “{{file}}” niet: het project heeft {{count}} documenten, maar van geen ervan is de tekst geladen. Meestal betekent dit dat het project niet volledig is geopend, en nu bewaren zou de tekst van de documenten wissen. Open het project opnieuw en zet het terug vanuit een back-up als het probleem blijft.",
+        "missingFiles_one": "Magnolia bewaart “{{file}}” niet: de inhoud van {{count}} geïmporteerd document is niet gevonden ({{names}}). Die stond niet in het geheugen, de tijdelijke cache of het bestaande projectbestand, dus nu bewaren zou het leeg bewaren. Importeer het document opnieuw en probeer het nog eens.",
+        "missingFiles_other": "Magnolia bewaart “{{file}}” niet: de inhoud van {{count}} geïmporteerde documenten is niet gevonden ({{names}}). Die stond niet in het geheugen, de tijdelijke cache of het bestaande projectbestand, dus nu bewaren zou ze leeg bewaren. Importeer de documenten opnieuw en probeer het nog eens."
+      }
     }
   },
   "tools": {

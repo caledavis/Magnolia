@@ -8,16 +8,23 @@ use calamine::{Data, Reader, open_workbook_auto_from_rs};
 use std::io::Cursor;
 
 pub fn xlsx_to_csv(bytes: &[u8]) -> Result<String, String> {
-    let mut wb = open_workbook_auto_from_rs(Cursor::new(bytes.to_vec()))
-        .map_err(|e| format!("Could not read spreadsheet: {e}"))?;
-    let first = wb
-        .sheet_names()
-        .first()
-        .cloned()
-        .ok_or("XLSX file has no worksheets.")?;
-    let range = wb
-        .worksheet_range(&first)
-        .map_err(|e| format!("Could not read worksheet: {e}"))?;
+    let mut wb = open_workbook_auto_from_rs(Cursor::new(bytes.to_vec())).map_err(|e| {
+        crate::message::tr(
+            "readSpreadsheet",
+            "Could not read spreadsheet: {{detail}}",
+            &[("detail", &e.to_string())],
+        )
+    })?;
+    let first = wb.sheet_names().first().cloned().ok_or_else(|| {
+        crate::message::tr("xlsxNoWorksheets", "XLSX file has no worksheets.", &[])
+    })?;
+    let range = wb.worksheet_range(&first).map_err(|e| {
+        crate::message::tr(
+            "readWorksheet",
+            "Could not read worksheet: {{detail}}",
+            &[("detail", &e.to_string())],
+        )
+    })?;
     let Some((end_r, end_c)) = range.end() else {
         return Ok(String::new());
     };

@@ -15,7 +15,10 @@ const CATALOGUES: &[(&str, &str)] = &[
     ("en", include_str!("../../src/renderer/locales/en.json")),
     ("es", include_str!("../../src/renderer/locales/es.json")),
     ("nl", include_str!("../../src/renderer/locales/nl.json")),
-    ("pt-BR", include_str!("../../src/renderer/locales/pt-BR.json")),
+    (
+        "pt-BR",
+        include_str!("../../src/renderer/locales/pt-BR.json"),
+    ),
 ];
 
 static LANGUAGE: RwLock<String> = RwLock::new(String::new());
@@ -48,7 +51,11 @@ pub fn language() -> String {
 /// Switch language; an id Magnolia doesn't have means English. Returns
 /// whether the language changed.
 fn set_language(language: &str) -> bool {
-    let id = if catalogues().iter().any(|(id, _)| *id == language) { language } else { "en" };
+    let id = if catalogues().iter().any(|(id, _)| *id == language) {
+        language
+    } else {
+        "en"
+    };
     let mut current = LANGUAGE.write().unwrap();
     if current.as_str() == id {
         return false;
@@ -71,6 +78,35 @@ pub fn t_with(key: &str, vars: &[(&str, &str)]) -> String {
         text = text.replace(&format!("{{{{{name}}}}}"), value);
     }
     text
+}
+
+/// The CLDR plural category of a whole number in `language`, as i18next
+/// names it in the catalogues' key suffixes.
+fn plural_category(language: &str, n: usize) -> &'static str {
+    match language {
+        // Spanish and Portuguese use "many" for exact millions.
+        "es" | "pt-BR" if n != 0 && n.is_multiple_of(1_000_000) => "many",
+        "pt-BR" if n <= 1 => "one",
+        _ if n == 1 => "one",
+        _ => "other",
+    }
+}
+
+/// The core's translator (`magnolia_core::message`): `native.core.<key>`
+/// in the current language, with the plural form for `count`. None leaves
+/// the core's own English.
+fn core_message(key: &str, count: Option<usize>) -> Option<String> {
+    let language = language();
+    let key = match count {
+        Some(n) => format!("core.{key}_{}", plural_category(&language, n)),
+        None => format!("core.{key}"),
+    };
+    lookup(&language, &key)
+}
+
+/// Give the core this module's translations.
+pub fn install_core_translator() {
+    magnolia_core::message::set_translator(core_message);
 }
 
 /// At launch: the language chosen in Preferences, if it isn't "system"
@@ -134,7 +170,22 @@ mod tests {
         assert_eq!(lookup("en", "menu.file").as_deref(), Some("File"));
         assert_eq!(lookup("es", "menu.file").as_deref(), Some("Archivo"));
         assert_eq!(lookup("en", "no.such.key"), None);
-        let text = lookup("en", "import.unsupported").unwrap().replace("{{ext}}", "xyz");
+        let text = lookup("en", "import.unsupported")
+            .unwrap()
+            .replace("{{ext}}", "xyz");
         assert_eq!(text, "Magnolia can't import .xyz files.");
+    }
+
+    #[test]
+    fn plural_categories() {
+        assert_eq!(plural_category("en", 1), "one");
+        assert_eq!(plural_category("en", 0), "other");
+        assert_eq!(plural_category("nl", 2), "other");
+        assert_eq!(plural_category("es", 1), "one");
+        assert_eq!(plural_category("es", 0), "other");
+        assert_eq!(plural_category("es", 1_000_000), "many");
+        assert_eq!(plural_category("pt-BR", 0), "one");
+        assert_eq!(plural_category("pt-BR", 2), "other");
+        assert_eq!(plural_category("pt-BR", 2_000_000), "many");
     }
 }

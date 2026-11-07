@@ -435,10 +435,20 @@ fn scan_note_refs(src: Node, anchors: &mut Map<String, Value>) {
 
 pub fn deserialize_project(xml: &str) -> Result<Value, String> {
     let xml = crate::xml_read::repair_if_needed(xml);
-    let doc = crate::xml_read::parse(&xml).map_err(|e| format!("Invalid project XML: {e}"))?;
+    let doc = crate::xml_read::parse(&xml).map_err(|e| {
+        crate::message::tr(
+            "invalidProjectXml",
+            "Invalid project XML: {{detail}}",
+            &[("detail", &e.to_string())],
+        )
+    })?;
     let proj = doc.root_element();
     if proj.tag_name().name() != "Project" {
-        return Err("Invalid project XML: root element is not <Project>".into());
+        return Err(crate::message::tr(
+            "notAProject",
+            "Invalid project XML: root element is not <Project>",
+            &[],
+        ));
     }
 
     let users: Vec<Value> = list(proj, &["Users", "User"])

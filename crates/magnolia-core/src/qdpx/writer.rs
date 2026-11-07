@@ -10,6 +10,7 @@ use super::checkout::{EDITOR_ENTRY, LOCK_ENTRY, PROJECT_ID_ENTRY};
 use super::serializer::{audio_extension_for, representation_guid_for, serialize_project};
 use super::transcript_refi::build_transcript;
 use crate::binary_store::BinaryStore;
+use crate::message::{tr, tr_count};
 use crate::util::{Obj, get_arr, get_nonempty, get_str, has, now_iso, truthy};
 use base64::Engine;
 use serde_json::{Map, Value, json};
@@ -117,11 +118,12 @@ pub fn write_qdpx(
     if sources.is_empty() {
         let on_disk = existing_source_count_on_disk(path);
         if on_disk > 0 {
-            return Err(WriteError::Guard(format!(
-                "Refusing to overwrite \"{}\" — incoming payload has 0 sources but the file currently contains {on_disk}. \
-                 This usually means a bug reset the document store after the file was opened. Use Save As to a new path if \
-                 you really want to save an empty project.",
-                path.display()
+            return Err(WriteError::Guard(tr_count(
+                "guard.noSources",
+                "Refusing to overwrite “{{file}}”: this project has no documents, but the file holds {{count}} document. This usually means a fault cleared the documents after the file was opened. Use Save Project As to save it to a new file if you really want to save an empty project.",
+                "Refusing to overwrite “{{file}}”: this project has no documents, but the file holds {{count}} documents. This usually means a fault cleared the documents after the file was opened. Use Save Project As to save it to a new file if you really want to save an empty project.",
+                on_disk,
+                &[("file", &path.display().to_string())],
             )));
         }
     }
@@ -129,9 +131,13 @@ pub fn write_qdpx(
     if is_payload_empty(project)
         && let Some(size) = file_size(path).filter(|s| *s > 2048)
     {
-        return Err(WriteError::Guard(format!(
-            "Refusing to overwrite \"{}\" ({size} bytes) with an empty project. Use Save As if you really want to save an empty project.",
-            path.display()
+        return Err(WriteError::Guard(tr(
+            "guard.emptyProject",
+            "Refusing to overwrite “{{file}}” ({{size}} bytes) with an empty project. Use Save Project As if you really want to save an empty project.",
+            &[
+                ("file", &path.display().to_string()),
+                ("size", &size.to_string()),
+            ],
         )));
     }
     // Content-loss guard: sources present but no text loaded at all means
@@ -141,11 +147,12 @@ pub fn write_qdpx(
         .filter(|s| get_str(s, "sourceType") != Some("image"))
         .count();
     if text_bearing > 0 && contents.is_empty() && file_size(path).is_some_and(|s| s > 2048) {
-        return Err(WriteError::Guard(format!(
-            "Refusing to overwrite \"{}\" — the project has {text_bearing} document(s) but no text content is loaded for any of them. \
-             This usually means the project did not open fully; saving now would erase the document text. Reopen the project, \
-             and if the problem persists restore from a backup.",
-            path.display()
+        return Err(WriteError::Guard(tr_count(
+            "guard.noText",
+            "Refusing to overwrite “{{file}}”: the project has {{count}} document, but its text isn’t loaded. This usually means the project didn’t open fully, and saving now would erase the document’s text. Reopen the project, and if the problem persists, restore it from a backup.",
+            "Refusing to overwrite “{{file}}”: the project has {{count}} documents, but none of their text is loaded. This usually means the project didn’t open fully, and saving now would erase the documents’ text. Reopen the project, and if the problem persists, restore it from a backup.",
+            text_bearing,
+            &[("file", &path.display().to_string())],
         )));
     }
 
@@ -463,13 +470,15 @@ pub fn write_qdpx(
         })
         .collect();
     if !dropped.is_empty() {
-        return Err(WriteError::Guard(format!(
-            "Refusing to save \"{}\" — the binary content for {} imported document(s) could not be located ({}). Their bytes \
-             were not in memory, the temp cache, or the existing project file, so saving now would write them out empty. \
-             Re-import the affected document(s) and try again.",
-            path.display(),
+        return Err(WriteError::Guard(tr_count(
+            "guard.missingFiles",
+            "Refusing to save “{{file}}”: the contents of {{count}} imported document couldn’t be found ({{names}}). They weren’t in memory, the temporary cache or the existing project file, so saving now would save it empty. Import the document again and try again.",
+            "Refusing to save “{{file}}”: the contents of {{count}} imported documents couldn’t be found ({{names}}). They weren’t in memory, the temporary cache or the existing project file, so saving now would save them empty. Import the documents again and try again.",
             dropped.len(),
-            dropped.join(", ")
+            &[
+                ("file", &path.display().to_string()),
+                ("names", &dropped.join(", ")),
+            ],
         )));
     }
 
