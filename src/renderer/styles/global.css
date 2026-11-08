@@ -2345,3 +2345,15 @@ div:hover > .folder-row-add,
 :root[data-theme="magnolia"]:has(.app-toolbar[data-toolbar-style="ribbon"]) .app-main-panels {
   padding-top: var(--pane-half-gap);
 }
+
+/* The user's own text (documents, transcripts, survey answers, memos and
+ * notes, query results, anything typed into a text box) reads in its own
+ * direction, whatever the interface's: each paragraph takes the
+ * direction of its first letter, so an Arabic paragraph runs and aligns
+ * right to left and an English one left to right, in the same document.
+ * The query results and reports set this in their own stylesheets. */
+.user-text,
+.ProseMirror :is(p, li, h1, h2, h3, h4, h5, h6, blockquote, td, th),
+textarea {
+  unicode-bidi: plaintext;
+}

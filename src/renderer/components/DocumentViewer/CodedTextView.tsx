@@ -1602,7 +1602,7 @@ function CodedTextViewImpl({
         {body}
         {needsTrailingLine && (
           <div key={`${editEpoch}-end`} style={{ ...TRANSCRIPT_ROW_STYLE, minHeight: 22, lineHeight: '22px' }}>
-            <span data-cpoffset={len} style={{ flex: 1, whiteSpace: 'pre-wrap' }}><br /></span>
+            <span data-cpoffset={len} className="user-text" style={{ flex: 1, whiteSpace: 'pre-wrap' }}><br /></span>
           </div>
         )}
         {text === '' && placeholder && (
@@ -1779,7 +1779,7 @@ function CodedTextViewImpl({
             )}
             {/* Line content */}
             <span
-              className={fmtBlockClass || undefined}
+              className={fmtBlockClass ? `user-text ${fmtBlockClass}` : 'user-text'}
               style={{
                 flex: 1,
                 whiteSpace: 'pre-wrap',

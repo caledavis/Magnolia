@@ -98,7 +98,7 @@ function buildTranscriptHtml(
   .line { display: flex; padding: 2px 0; border-bottom: 1px solid #f0f0f0; }
   .line:last-child { border-bottom: none; }
   .ts { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 10px; color: #888; width: 72px; min-width: 72px; flex-shrink: 0; padding-right: 12px; text-align: right; }
-  .text { flex: 1; white-space: pre-wrap; word-break: break-word; }
+  .text { flex: 1; white-space: pre-wrap; word-break: break-word; unicode-bidi: plaintext; }
 `
 
   return buildPdfDocument({

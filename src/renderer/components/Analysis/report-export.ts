@@ -247,7 +247,7 @@ const EXPORT_CSS = `
      the surrounding items (no forced page break), but may still break
      across pages so a long open-ended question isn't trapped on one. */
   .report-survey-inline { break-inside: auto; page-break-inside: auto; }
-  .report-document .doc-content { font-size: 11px; color: #222; white-space: pre-wrap; }
+  .report-document .doc-content { font-size: 11px; color: #222; white-space: pre-wrap; unicode-bidi: plaintext; }
   .report-survey-sub { font-size: 10px; color: #888; margin: 0 0 8px; }
   /* Embedded media (image source / video first frame). Width/height caps
      that scale each to fit the page are injected per-export (they depend

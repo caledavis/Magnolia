@@ -1832,7 +1832,7 @@ export const SURVEY_SUMMARY_CSS = `
   .survey-summary .sv-q-head { font-size: 11.5px; font-weight: 600; color: #222; margin: 0 0 4px; }
   .survey-summary .sv-q-num { color: #888; font-weight: 600; margin-right: 4px; font-variant-numeric: tabular-nums; }
   .survey-summary .sv-q-ans { padding-left: 4px; }
-  .survey-summary .sv-ans-text { font-size: 11px; color: #222; white-space: pre-wrap; }
+  .survey-summary .sv-ans-text { font-size: 11px; color: #222; white-space: pre-wrap; unicode-bidi: plaintext; }
   .survey-summary .dist-single { display: flex; align-items: flex-start; gap: 12px; }
   .survey-summary .dist-single .dist-legend { flex: 1; min-width: 0; }
   /* Contents "Show answers" link → jumps to the question's answers in

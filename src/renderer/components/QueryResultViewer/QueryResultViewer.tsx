@@ -267,7 +267,7 @@ export function QueryResultViewer({ onSaveQuery, onEditQuery, queryName, onCodeA
   .result { padding: 5px 8px 5px 14px; border-bottom: 1px solid #eee; }
   .codes { margin-bottom: 3px; }
   .code-badge { display: inline-block; font-size: 10px; padding: 1px 6px; margin-right: 4px; background: #f3f4f6; border-radius: 3px; }
-  .context { white-space: pre-wrap; }
+  .context { white-space: pre-wrap; unicode-bidi: plaintext; }
   mark { border-radius: 2px; padding: 1px 2px; font-weight: 600; }
   .region-thumb { display: block; max-width: 380px; max-height: 260px; border: 1px solid #ddd; border-radius: 3px; }
   .region-caption { font-size: 10px; color: #888; margin-top: 2px; }

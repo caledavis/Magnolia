@@ -22,7 +22,7 @@ export const REPORT_QUERY_CSS = `
   .report-query .q-cite { font-size: 9.5px; color: #888; margin-bottom: 3px; }
   .report-query .codes { margin-bottom: 3px; }
   .report-query .code-badge { display: inline-block; font-size: 9px; padding: 1px 6px; margin-right: 4px; background: #f3f4f6; border-radius: 3px; }
-  .report-query .context { white-space: pre-wrap; font-size: 10.5px; }
+  .report-query .context { white-space: pre-wrap; font-size: 10.5px; unicode-bidi: plaintext; }
   .report-query .match { color: #222; }
 `
 
