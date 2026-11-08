@@ -33,6 +33,17 @@ Frequencies and Word Combinations leave out) in
 `src/renderer/components/Analysis/stop-words.ts`. Keep to the terms below so the interface uses
 one word for each idea; change a term here first, then everywhere.
 
+## Reviewing a language
+
+`npm run i18n:review-export -- <lang|all>` makes a spreadsheet per language
+in `translation-review/` for a native speaker: every string with where it
+appears, the English, the current translation, and columns for their
+correction and comments, plus this glossary's terms, the language's stop
+words and its questions below. `npm run i18n:review-import -- <lang>
+<file.xlsx>` applies the corrections whose placeholders match the English,
+reports the rest, and lists comments and stop-word changes to make by
+hand. Then run `npm test`.
+
 ## Conventions
 
 | | Spanish | Dutch | Portuguese (Brazil) | Arabic | French | Russian | Chinese (Simplified) | Italian | Hindi | Portuguese (Portugal) |

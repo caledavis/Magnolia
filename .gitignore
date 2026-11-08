@@ -25,3 +25,6 @@ graphic_files/app_and_file_icons/.DS_Store
 # Local / scratch / working materials — kept on disk, never tracked or uploaded
 .claude/
 working_materials/
+
+# Review spreadsheets made by scripts/translation-review.mjs
+translation-review/

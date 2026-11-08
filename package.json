@@ -30,7 +30,9 @@
     "release:mac": "node scripts/release.mjs release mac",
     "release:win": "node scripts/release.mjs release win",
     "release:linux": "node scripts/release.mjs release linux",
-    "release:finish": "node scripts/release.mjs finish"
+    "release:finish": "node scripts/release.mjs finish",
+    "i18n:review-export": "node scripts/translation-review.mjs export",
+    "i18n:review-import": "node scripts/translation-review.mjs import"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.4",
