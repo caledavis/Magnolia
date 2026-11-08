@@ -16,6 +16,15 @@ pub fn active() -> bool {
     cfg!(debug_assertions) && std::env::var_os("MAGNOLIA_AUTOMATION").is_some()
 }
 
+/// Where an automated run writes an export instead of asking with a save
+/// dialog: `MAGNOLIA_AUTOMATION_EXPORTS=<dir>`, as `<dir>/<name>`.
+pub fn export_path(name: &str) -> Option<std::path::PathBuf> {
+    if !active() {
+        return None;
+    }
+    std::env::var_os("MAGNOLIA_AUTOMATION_EXPORTS").map(|d| std::path::PathBuf::from(d).join(name))
+}
+
 /// The script to run in the main window, if this is an automated run.
 pub fn script() -> Option<String> {
     if !active() {
@@ -104,6 +113,15 @@ pub fn automation_eval(app: tauri::AppHandle, label: String, script: String) -> 
 }
 
 /// Print a line to the terminal running the automation.
+/// Render `html` to a PDF at `path` as Export PDF does, without the save
+/// dialog, so a script can check what exports look like.
+#[tauri::command]
+pub async fn automation_pdf(app: AppHandle, html: String, path: String) -> Result<(), String> {
+    check()?;
+    let pdf = crate::print::html_to_pdf(&app, &html, &crate::print::PdfOptions::export("A4", None, None))?;
+    std::fs::write(&path, pdf).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 pub fn automation_log(message: String) -> Result<(), String> {
     check()?;

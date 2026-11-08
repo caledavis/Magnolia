@@ -341,7 +341,7 @@ export function QueryResultViewer({ onSaveQuery, onEditQuery, queryName, onCodeA
                   disabled={isLoading}
                   title={t('results.applyCodeTitle', { count: results.length })}
                 >
-                  Code All ({results.length})
+                  {t('results.codeAll', { count: results.length })}
                 </button>
 
                 {codeAllMenu && popoverPos && createPortal(

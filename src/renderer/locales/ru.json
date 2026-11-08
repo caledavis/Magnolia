@@ -1185,7 +1185,8 @@
     "missingDocs_one": "Этот запрос ссылается на {{count}} документ, которого больше нет в проекте.",
     "missingDocs_few": "Этот запрос ссылается на {{count}} документа, которых больше нет в проекте.",
     "missingDocs_many": "Этот запрос ссылается на {{count}} документов, которых больше нет в проекте.",
-    "missingDocs_other": "Этот запрос ссылается на {{count}} документа, которых больше нет в проекте."
+    "missingDocs_other": "Этот запрос ссылается на {{count}} документа, которых больше нет в проекте.",
+    "codeAll": "Закодировать все ({{count}})"
   },
   "scope": {
     "all": {
@@ -1441,7 +1442,11 @@
     "documents": "Документы",
     "queries": "Запросы",
     "query": "Запрос",
-    "item": "Элемент"
+    "item": "Элемент",
+    "sankeyHidden_one": "{{count}} элемент без результатов не показан",
+    "sankeyHidden_few": "{{count}} элемента без результатов не показаны",
+    "sankeyHidden_many": "{{count}} элементов без результатов не показаны",
+    "sankeyHidden_other": "{{count}} элемента без результатов не показаны"
   },
   "words": {
     "countIn": "Считать слова в",
@@ -1483,7 +1488,11 @@
     "cloudTitle": "{{word}}: {{count}} — нажмите, чтобы найти",
     "stopWordsLanguage": "Стоп-слова:",
     "stopWordsCustom": "Свои",
-    "stopWordsNone": "Нет"
+    "stopWordsNone": "Нет",
+    "wordsCount_one": "{{count}} слово",
+    "wordsCount_few": "{{count}} слова",
+    "wordsCount_many": "{{count}} слов",
+    "wordsCount_other": "{{count}} слова"
   },
   "codesInDocs": {
     "sankeyTitle": "Показать сетку как диаграмму Санки: коды, перетекающие в документы.",

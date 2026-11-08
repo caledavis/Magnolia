@@ -1142,7 +1142,8 @@
     "matchesInDocs": "{{matches}} em {{documents}}",
     "missingDocs_one": "Esta consulta faz referência a {{count}} documento que não está mais no projeto.",
     "missingDocs_many": "Esta consulta faz referência a {{count}} de documentos que não estão mais no projeto.",
-    "missingDocs_other": "Esta consulta faz referência a {{count}} documentos que não estão mais no projeto."
+    "missingDocs_other": "Esta consulta faz referência a {{count}} documentos que não estão mais no projeto.",
+    "codeAll": "Codificar tudo ({{count}})"
   },
   "scope": {
     "all": {
@@ -1394,7 +1395,10 @@
     "documents": "Documentos",
     "queries": "Consultas",
     "query": "Consulta",
-    "item": "Item"
+    "item": "Item",
+    "sankeyHidden_one": "{{count}} item sem resultados não mostrado",
+    "sankeyHidden_many": "{{count}} de itens sem resultados não mostrados",
+    "sankeyHidden_other": "{{count}} itens sem resultados não mostrados"
   },
   "words": {
     "countIn": "Contar palavras em",
@@ -1434,7 +1438,10 @@
     "cloudTitle": "{{word}}: {{count}} — clique para procurar",
     "stopWordsLanguage": "Palavras vazias:",
     "stopWordsCustom": "Personalizadas",
-    "stopWordsNone": "Nenhuma"
+    "stopWordsNone": "Nenhuma",
+    "wordsCount_one": "{{count}} palavra",
+    "wordsCount_many": "{{count}} de palavras",
+    "wordsCount_other": "{{count}} palavras"
   },
   "codesInDocs": {
     "sankeyTitle": "Mostra a grade como um diagrama de Sankey dos códigos fluindo para os documentos.",

@@ -1056,7 +1056,8 @@
     "openDocument": "打开文档",
     "copy": "拷贝结果",
     "matchesInDocs": "{{matches}}，来自 {{documents}}",
-    "missingDocs_other": "此查询引用的 {{count}} 个文档已不在项目中。"
+    "missingDocs_other": "此查询引用的 {{count}} 个文档已不在项目中。",
+    "codeAll": "全部编码（{{count}}）"
   },
   "scope": {
     "all": {
@@ -1300,7 +1301,8 @@
     "documents": "文档",
     "queries": "查询",
     "query": "查询",
-    "item": "项目"
+    "item": "项目",
+    "sankeyHidden_other": "{{count}} 个没有结果的项目未显示"
   },
   "words": {
     "countIn": "统计词语的范围",
@@ -1336,7 +1338,8 @@
     "cloudTitle": "{{word}}：{{count}}——点按以搜索",
     "stopWordsLanguage": "停用词：",
     "stopWordsCustom": "自定义",
-    "stopWordsNone": "无"
+    "stopWordsNone": "无",
+    "wordsCount_other": "{{count}} 个词"
   },
   "codesInDocs": {
     "sankeyTitle": "将网格显示为代码流向文档的桑基图。",

@@ -1099,7 +1099,8 @@
     "copy": "Copy Result",
     "matchesInDocs": "{{matches}} in {{documents}}",
     "missingDocs_one": "This query references {{count}} document no longer in the project.",
-    "missingDocs_other": "This query references {{count}} documents no longer in the project."
+    "missingDocs_other": "This query references {{count}} documents no longer in the project.",
+    "codeAll": "Code All ({{count}})"
   },
   "scope": {
     "all": {
@@ -1347,7 +1348,9 @@
     "documents": "Documents",
     "queries": "Queries",
     "query": "Query",
-    "item": "Item"
+    "item": "Item",
+    "sankeyHidden_one": "{{count}} item with no results not shown",
+    "sankeyHidden_other": "{{count}} items with no results not shown"
   },
   "words": {
     "countIn": "Count words in",
@@ -1385,7 +1388,9 @@
     "cloudTitle": "{{word}}: {{count}} — click to search",
     "stopWordsLanguage": "Stop words:",
     "stopWordsCustom": "Custom",
-    "stopWordsNone": "None"
+    "stopWordsNone": "None",
+    "wordsCount_one": "{{count}} word",
+    "wordsCount_other": "{{count}} words"
   },
   "codesInDocs": {
     "sankeyTitle": "Show the grid as a Sankey diagram of codes flowing into documents.",

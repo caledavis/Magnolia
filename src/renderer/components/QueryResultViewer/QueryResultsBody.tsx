@@ -569,7 +569,7 @@ export function QueryResultsBody({
                 {group.sourceName}
               </span>
               <span style={{ fontSize: 10, color: 'var(--text-muted)', flexShrink: 0 }}>
-                {group.results.length} match{group.results.length !== 1 ? 'es' : ''}
+                {t('results.matchCount', { count: group.results.length })}
               </span>
             </div>
 

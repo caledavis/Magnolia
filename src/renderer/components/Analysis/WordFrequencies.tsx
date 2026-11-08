@@ -663,7 +663,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
           <div className="analysis-section" style={{ width: 260, flexShrink: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                Results <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-muted)' }}>{wordFreqs.length} words</span>
+                {t('analysis.results')} <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-muted)' }}>{t('words.wordsCount', { count: wordFreqs.length })}</span>
               </span>
               <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportCsv}>{t('analysis.exportCsv')}</button>
             </div>

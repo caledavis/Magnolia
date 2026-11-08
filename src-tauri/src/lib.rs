@@ -148,6 +148,7 @@ pub fn run() {
             automation::automation_capture,
             automation::automation_eval,
             automation::automation_log,
+            automation::automation_pdf,
             automation::automation_quit,
         ])
         .setup(|app| {

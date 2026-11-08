@@ -1142,7 +1142,8 @@
     "matchesInDocs": "{{matches}} dans {{documents}}",
     "missingDocs_one": "Cette requête fait référence à {{count}} document qui n’est plus dans le projet.",
     "missingDocs_many": "Cette requête fait référence à {{count}} de documents qui ne sont plus dans le projet.",
-    "missingDocs_other": "Cette requête fait référence à {{count}} documents qui ne sont plus dans le projet."
+    "missingDocs_other": "Cette requête fait référence à {{count}} documents qui ne sont plus dans le projet.",
+    "codeAll": "Tout coder ({{count}})"
   },
   "scope": {
     "all": {
@@ -1394,7 +1395,10 @@
     "documents": "Documents",
     "queries": "Requêtes",
     "query": "Requête",
-    "item": "Élément"
+    "item": "Élément",
+    "sankeyHidden_one": "{{count}} élément sans résultat non affiché",
+    "sankeyHidden_many": "{{count}} d’éléments sans résultat non affichés",
+    "sankeyHidden_other": "{{count}} éléments sans résultat non affichés"
   },
   "words": {
     "countIn": "Compter les mots dans",
@@ -1434,7 +1438,10 @@
     "cloudTitle": "{{word}} : {{count}} — cliquez pour rechercher",
     "stopWordsLanguage": "Mots vides :",
     "stopWordsCustom": "Personnalisés",
-    "stopWordsNone": "Aucun"
+    "stopWordsNone": "Aucun",
+    "wordsCount_one": "{{count}} mot",
+    "wordsCount_many": "{{count}} de mots",
+    "wordsCount_other": "{{count}} mots"
   },
   "codesInDocs": {
     "sankeyTitle": "Afficher la grille comme un diagramme de Sankey des codes allant vers les documents.",

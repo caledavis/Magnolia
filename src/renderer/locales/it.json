@@ -1142,7 +1142,8 @@
     "matchesInDocs": "{{matches}} in {{documents}}",
     "missingDocs_one": "Questa query fa riferimento a {{count}} documento che non è più nel progetto.",
     "missingDocs_many": "Questa query fa riferimento a {{count}} di documenti che non sono più nel progetto.",
-    "missingDocs_other": "Questa query fa riferimento a {{count}} documenti che non sono più nel progetto."
+    "missingDocs_other": "Questa query fa riferimento a {{count}} documenti che non sono più nel progetto.",
+    "codeAll": "Codifica tutto ({{count}})"
   },
   "scope": {
     "all": {
@@ -1394,7 +1395,10 @@
     "documents": "Documenti",
     "queries": "Query",
     "query": "Query",
-    "item": "Elemento"
+    "item": "Elemento",
+    "sankeyHidden_one": "{{count}} elemento senza risultati non mostrato",
+    "sankeyHidden_many": "{{count}} di elementi senza risultati non mostrati",
+    "sankeyHidden_other": "{{count}} elementi senza risultati non mostrati"
   },
   "words": {
     "countIn": "Conta le parole in",
@@ -1434,7 +1438,10 @@
     "cloudTitle": "{{word}}: {{count}} — fai clic per cercare",
     "stopWordsLanguage": "Parole vuote:",
     "stopWordsCustom": "Personalizzate",
-    "stopWordsNone": "Nessuna"
+    "stopWordsNone": "Nessuna",
+    "wordsCount_one": "{{count}} parola",
+    "wordsCount_many": "{{count}} di parole",
+    "wordsCount_other": "{{count}} parole"
   },
   "codesInDocs": {
     "sankeyTitle": "Mostra la griglia come diagramma di Sankey dei codici che confluiscono nei documenti.",

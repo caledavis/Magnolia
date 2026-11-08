@@ -359,7 +359,7 @@ export function QueryResultsWindow() {
                 disabled={data.isLoading}
                 title={t('results.applyCodeTitle', { count: data.results.length })}
               >
-                Code All ({data.results.length})
+                {t('results.codeAll', { count: data.results.length })}
               </button>
 
               {codeAllMenu && popoverPos && createPortal(

@@ -17,6 +17,7 @@ import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import type { MagnoliaAPI } from '../models/types'
 import { base64ToBytes, extractPdfText } from './pdf-text'
 import { t } from '../i18n'
+import { withDocumentLanguage } from '../utils/document-language'
 
 const current = getCurrentWebviewWindow()
 const MAIN = 'main'
@@ -288,8 +289,9 @@ const api: MagnoliaAPI = {
   readImageFile: readMedia,
   readVideoFile: readMedia,
   importTranscript: () => invoke('import_transcript'),
+  // Every PDF export: in the interface's language and direction.
   exportPdf: (html, defaultName, dialogTitle, headerTemplate, footerTemplate) =>
-    invoke('export_pdf', { html, defaultName, dialogTitle, headerTemplate, footerTemplate }),
+    invoke('export_pdf', { html: withDocumentLanguage(html), defaultName, dialogTitle, headerTemplate, footerTemplate }),
   exportCodebook: (codes) => invoke('export_codebook', { codes }),
   importCodebook: () => invoke('import_codebook'),
   showNewQueryDialog: () => {},

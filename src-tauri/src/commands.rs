@@ -771,13 +771,10 @@ pub async fn export_pdf(
     footer_template: Option<String>,
 ) -> CmdResult<Option<String>> {
     let title = dialog_title.unwrap_or_else(|| t("dialog.exportPdf"));
-    let Some(path) = save_dialog(
-        &app,
-        &window,
-        &title,
-        &format!("{default_name}.pdf"),
-        ("PDF Documents", &["pdf"]),
-    ) else {
+    let file_name = format!("{default_name}.pdf");
+    let Some(path) = crate::automation::export_path(&file_name)
+        .or_else(|| save_dialog(&app, &window, &title, &file_name, ("PDF Documents", &["pdf"])))
+    else {
         return Ok(None);
     };
     let opts = print::PdfOptions::export(
@@ -797,7 +794,9 @@ async fn export_text(
     default_name: &str,
     filter: (&str, &[&str]),
 ) -> CmdResult<Option<String>> {
-    let Some(path) = save_dialog(app, window, &t("dialog.export"), default_name, filter) else {
+    let Some(path) = crate::automation::export_path(default_name)
+        .or_else(|| save_dialog(app, window, &t("dialog.export"), default_name, filter))
+    else {
         return Ok(None);
     };
     std::fs::write(&path, content).map_err(|e| e.to_string())?;
@@ -811,7 +810,19 @@ pub async fn export_csv(
     content: String,
     default_name: String,
 ) -> CmdResult<Option<String>> {
-    export_text(&app, &window, &content, &default_name, ("CSV", &["csv"])).await
+    export_text(&app, &window, &with_bom(&content), &default_name, ("CSV", &["csv"])).await
+}
+
+/// CSV text with a UTF-8 byte-order mark in front, which Excel needs to
+/// read it as UTF-8: without one it guesses the system's legacy encoding
+/// and garbles anything beyond Latin letters (Arabic, Chinese, Cyrillic).
+/// Other spreadsheets, R and pandas all accept the mark.
+fn with_bom(content: &str) -> String {
+    if content.starts_with('\u{FEFF}') {
+        content.to_string()
+    } else {
+        format!("\u{FEFF}{content}")
+    }
 }
 
 #[tauri::command]
@@ -1072,4 +1083,13 @@ pub async fn preferences_update(app: AppHandle, prefs: Value) -> CmdResult<()> {
 #[tauri::command]
 pub async fn get_app_version(app: AppHandle) -> CmdResult<String> {
     Ok(app_version(&app))
+}
+
+#[cfg(test)]
+mod csv_tests {
+    #[test]
+    fn csv_starts_with_one_bom() {
+        assert_eq!(super::with_bom("a,b"), "\u{FEFF}a,b");
+        assert_eq!(super::with_bom("\u{FEFF}a,b"), "\u{FEFF}a,b");
+    }
 }

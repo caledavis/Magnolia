@@ -1271,7 +1271,8 @@
     "missingDocs_two": "يشير هذا الاستعلام إلى مستندين لم يعودا في المشروع.",
     "missingDocs_few": "يشير هذا الاستعلام إلى {{count}} مستندات لم تعد في المشروع.",
     "missingDocs_many": "يشير هذا الاستعلام إلى {{count}} مستندًا لم تعد في المشروع.",
-    "missingDocs_other": "يشير هذا الاستعلام إلى {{count}} مستند لم تعد في المشروع."
+    "missingDocs_other": "يشير هذا الاستعلام إلى {{count}} مستند لم تعد في المشروع.",
+    "codeAll": "ترميز الكل ({{count}})"
   },
   "scope": {
     "all": {
@@ -1535,7 +1536,13 @@
     "documents": "المستندات",
     "queries": "الاستعلامات",
     "query": "الاستعلام",
-    "item": "العنصر"
+    "item": "العنصر",
+    "sankeyHidden_zero": "لا توجد عناصر مخفية",
+    "sankeyHidden_one": "لا يُعرض عنصر واحد بلا نتائج",
+    "sankeyHidden_two": "لا يُعرض عنصران بلا نتائج",
+    "sankeyHidden_few": "لا تُعرض {{count}} عناصر بلا نتائج",
+    "sankeyHidden_many": "لا يُعرض {{count}} عنصرًا بلا نتائج",
+    "sankeyHidden_other": "لا يُعرض {{count}} عنصر بلا نتائج"
   },
   "words": {
     "countIn": "عدّ الكلمات في",
@@ -1581,7 +1588,13 @@
     "cloudTitle": "{{word}}: {{count}} — انقر للبحث",
     "stopWordsLanguage": "كلمات التوقف:",
     "stopWordsCustom": "مخصصة",
-    "stopWordsNone": "لا شيء"
+    "stopWordsNone": "لا شيء",
+    "wordsCount_zero": "لا توجد كلمات",
+    "wordsCount_one": "كلمة واحدة",
+    "wordsCount_two": "كلمتان",
+    "wordsCount_few": "{{count}} كلمات",
+    "wordsCount_many": "{{count}} كلمةً",
+    "wordsCount_other": "{{count}} كلمة"
   },
   "codesInDocs": {
     "sankeyTitle": "عرض الشبكة كمخطط سانكي للرموز المتدفقة إلى المستندات.",

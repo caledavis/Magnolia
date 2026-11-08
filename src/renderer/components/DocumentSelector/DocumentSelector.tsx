@@ -1369,7 +1369,7 @@ export function DocumentSelector({
                   ))}
                   {(node.docGuids?.length || 0) > MAX_VISIBLE_DOCS && (
                     <div style={{ fontSize: 8, color: 'var(--text-muted)', padding: '0 6px', height: 14, lineHeight: '14px' }}>
-                      +{(node.docGuids?.length || 0) - MAX_VISIBLE_DOCS} more
+                      {t('docSelector.more', { count: (node.docGuids?.length || 0) - MAX_VISIBLE_DOCS })}
                     </div>
                   )}
                   <div
@@ -1898,7 +1898,7 @@ export function DocumentSelector({
                 )
               })}
               <div style={{ padding: '4px 6px', fontSize: 9, color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', marginTop: 4 }}>
-                {resolvedGuids.length} document{resolvedGuids.length !== 1 ? 's' : ''}
+                {t('results.documentCount', { count: resolvedGuids.length })}
               </div>
             </>
           )}

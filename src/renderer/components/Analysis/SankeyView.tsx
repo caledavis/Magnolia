@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { truncate } from './analysis-helpers'
 import { layoutSankey, sankeyLinkPath, type SankeyLinkLayout, type SankeyNodeLayout } from './sankey-layout'
 import { formatNumber } from '../../i18n'
+import { useTranslation } from 'react-i18next'
 
 export interface SankeyItem {
   id: string
@@ -48,6 +49,7 @@ const FALLBACK_RIGHT = 'var(--text-muted)'
  * so drag-and-drop onto the section keeps adding rows/columns.
  */
 export function SankeyView({ left, right, values, leftTitle, rightTitle, excludeRight, onLinkClick, onLeftClick, onRightClick }: Props) {
+  const { t } = useTranslation()
   const wrapRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(640)
   const [hover, setHover] = useState<Hover>(null)
@@ -165,7 +167,7 @@ export function SankeyView({ left, right, values, leftTitle, rightTitle, exclude
       )}
       {hiddenCount > 0 && (
         <div style={{ marginTop: 6, fontSize: 10, color: 'var(--text-muted)' }}>
-          {hiddenCount} item{hiddenCount !== 1 ? 's' : ''} with no results not shown
+          {t('analysis.sankeyHidden', { count: hiddenCount })}
         </div>
       )}
       {tip && (
