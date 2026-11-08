@@ -254,7 +254,7 @@ function PhraseNetworkChart({ layout, svgRef, onSearch, onWord }: {
   )
 }
 
-const thStyle: React.CSSProperties = { padding: '3px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'left' }
+const thStyle: React.CSSProperties = { padding: '3px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'start' }
 const tdStyle: React.CSSProperties = { padding: '2px 6px', borderBottom: '1px solid var(--border-color)' }
 
 export function WordCombinations({ data: propData, savedConfig, inTab }: Props) {
@@ -606,13 +606,13 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                   <label style={{ fontSize: 10, color: 'var(--text-muted)' }}>Word:
                     <input type="text" value={focusWord} onChange={(e) => setFocusWord(e.target.value)}
                       placeholder={focus && !focusWord.trim() ? focus : 'word'}
-                      style={{ width: 120, marginLeft: 4 }}
+                      style={{ width: 120, marginInlineStart: 4 }}
                     />
                   </label>
                   {view === 'associations' && (
                     <label style={{ fontSize: 10, color: 'var(--text-muted)' }} title={t('combos.minTogetherTitle')}>{t('combos.minTogether')}
                       <input type="number" min={1} max={100} value={minTogether} onChange={(e) => setMinTogether(Number(e.target.value))}
-                        style={{ width: 50, marginLeft: 4 }}
+                        style={{ width: 50, marginInlineStart: 4 }}
                       />
                     </label>
                   )}
@@ -655,14 +655,14 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                     <thead>
                       <tr>
                         <th style={thStyle}>{t('combos.phrase')}</th>
-                        <th style={{ ...thStyle, textAlign: 'right' }}>{t('words.count')}</th>
+                        <th style={{ ...thStyle, textAlign: 'end' }}>{t('words.count')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {phrases.slice(0, PHRASE_ROWS).map(({ phrase, count }) => (
                         <tr key={phrase} onClick={() => searchFor(phrase)} style={{ cursor: 'pointer' }} title={t('words.search', { word: phrase })}>
                           <td style={tdStyle}>{phrase}</td>
-                          <td style={{ ...tdStyle, textAlign: 'right' }}>{formatNumber(count)}</td>
+                          <td style={{ ...tdStyle, textAlign: 'end' }}>{formatNumber(count)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -703,18 +703,18 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                   <thead>
                     <tr>
                       <th style={thStyle}>{t('words.word')}</th>
-                      <th style={{ ...thStyle, textAlign: 'right' }} title={t('combos.togetherTitle', { word: focus })}>{t('combos.together')}</th>
-                      <th style={{ ...thStyle, textAlign: 'right' }} title={t('combos.pctOfSentencesTitle', { word: focus })}>{t('combos.pctOfSentences')}</th>
-                      <th style={{ ...thStyle, textAlign: 'right' }} title={t('combos.g2Title')}>G²</th>
+                      <th style={{ ...thStyle, textAlign: 'end' }} title={t('combos.togetherTitle', { word: focus })}>{t('combos.together')}</th>
+                      <th style={{ ...thStyle, textAlign: 'end' }} title={t('combos.pctOfSentencesTitle', { word: focus })}>{t('combos.pctOfSentences')}</th>
+                      <th style={{ ...thStyle, textAlign: 'end' }} title={t('combos.g2Title')}>G²</th>
                     </tr>
                   </thead>
                   <tbody>
                     {associations.rows.slice(0, ASSOCIATION_ROWS).map((r) => (
                       <tr key={r.word} onClick={() => searchSentences(r.word)} style={{ cursor: 'pointer' }} title={t('combos.findSentences', { a: focus, b: r.word })}>
                         <td style={tdStyle}>{r.word}</td>
-                        <td style={{ ...tdStyle, textAlign: 'right' }}>{r.together}</td>
-                        <td style={{ ...tdStyle, textAlign: 'right' }}>{formatPercent(r.share * 100)}</td>
-                        <td style={{ ...tdStyle, textAlign: 'right', color: r.g2 < 3.84 ? 'var(--text-muted)' : undefined }}>{formatFixed(r.g2, 1)}</td>
+                        <td style={{ ...tdStyle, textAlign: 'end' }}>{r.together}</td>
+                        <td style={{ ...tdStyle, textAlign: 'end' }}>{formatPercent(r.share * 100)}</td>
+                        <td style={{ ...tdStyle, textAlign: 'end', color: r.g2 < 3.84 ? 'var(--text-muted)' : undefined }}>{formatFixed(r.g2, 1)}</td>
                       </tr>
                     ))}
                   </tbody>

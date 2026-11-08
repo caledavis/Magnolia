@@ -270,7 +270,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
   const labelFontSize = Math.min(13, Math.max(8, Math.round(chartH / 30)))
   const labelMaxChars = Math.min(20, Math.max(10, Math.round(chartH / 22)))
 
-  const marginLeft = 40
+  const marginInlineStart = 40
   // Reserve enough room below the x-axis for the (possibly larger)
   // code label text. `max(40, …)` keeps the original spacing on
   // small charts while still growing for taller fonts.
@@ -493,7 +493,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                   />
                   <div
                     style={{
-                      position: 'absolute', top: '100%', right: 0, marginTop: 6,
+                      position: 'absolute', top: '100%', insetInlineEnd: 0, marginTop: 6,
                       width: 360, padding: '12px 14px',
                       background: 'var(--bg-panel)',
                       border: '1px solid var(--border-color)',
@@ -557,7 +557,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                     </tr>
                   )}
                   <tr>
-                    <th style={{ padding: 4, borderBottom: '1px solid var(--border-color)', textAlign: 'left', minWidth: 100, verticalAlign: 'bottom' }}>{t('analysis.code')}</th>
+                    <th style={{ padding: 4, borderBottom: '1px solid var(--border-color)', textAlign: 'start', minWidth: 100, verticalAlign: 'bottom' }}>{t('analysis.code')}</th>
                     {columns.map((col, j) => (
                       <th
                         key={col.id}
@@ -579,9 +579,9 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                   {codeGuids.map((codeGuid, i) => (
                     <tr key={codeGuid}>
                       <td style={{ padding: '4px 6px', borderBottom: '1px solid var(--border-color)', fontWeight: 600, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: codeMap.get(codeGuid)?.color || '#888', marginRight: 4, verticalAlign: 'middle' }} />
+                        <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: codeMap.get(codeGuid)?.color || '#888', marginInlineEnd: 4, verticalAlign: 'middle' }} />
                         {truncate(codeMap.get(codeGuid)?.name || '', 16)}
-                        <span onClick={() => setCodeGuids((p) => p.filter((g) => g !== codeGuid))} style={{ marginLeft: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>x</span>
+                        <span onClick={() => setCodeGuids((p) => p.filter((g) => g !== codeGuid))} style={{ marginInlineStart: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>x</span>
                       </td>
                       {columns.map((col, j) => {
                         const val = grid[i][j]
@@ -647,22 +647,22 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
             <div style={{ overflowX: 'auto' }}>
               <svg ref={chartRef} width={chartW} height={chartH} style={{ background: 'var(--bg-primary)', borderRadius: 'var(--radius-sm)' }}>
                 {/* Y axis */}
-                <line x1={marginLeft} y1={5} x2={marginLeft} y2={chartH - marginBottom} stroke={themeColors.borderColor} />
+                <line x1={marginInlineStart} y1={5} x2={marginInlineStart} y2={chartH - marginBottom} stroke={themeColors.borderColor} />
                 {[0, 25, 50, 75, 100].map((pct) => {
                   const y = chartH - marginBottom - (pct / Math.max(maxPct, 100)) * barMaxH
                   return (
                     <g key={pct}>
-                      <line x1={marginLeft - 4} y1={y} x2={marginLeft} y2={y} stroke={themeColors.textMuted} />
-                      <text x={marginLeft - 6} y={y + Math.round(axisFontSize * 0.35)} textAnchor="end" fontSize={axisFontSize} fontFamily={SVG_FONT_FAMILY} fill={themeColors.textMuted}>{pct}%</text>
+                      <line x1={marginInlineStart - 4} y1={y} x2={marginInlineStart} y2={y} stroke={themeColors.textMuted} />
+                      <text x={marginInlineStart - 6} y={y + Math.round(axisFontSize * 0.35)} textAnchor="end" fontSize={axisFontSize} fontFamily={SVG_FONT_FAMILY} fill={themeColors.textMuted}>{pct}%</text>
                     </g>
                   )
                 })}
                 {/* X axis */}
-                <line x1={marginLeft} y1={chartH - marginBottom} x2={chartW} y2={chartH - marginBottom} stroke={themeColors.borderColor} />
+                <line x1={marginInlineStart} y1={chartH - marginBottom} x2={chartW} y2={chartH - marginBottom} stroke={themeColors.borderColor} />
                 {/* Bars */}
                 {codeGuids.map((codeGuid, ci) => {
                   const groupW = columns.length * 14 + 10
-                  const groupX = marginLeft + 20 + ci * (groupW + 16)
+                  const groupX = marginInlineStart + 20 + ci * (groupW + 16)
                   return (
                     <g key={codeGuid}>
                       {columns.map((col, si) => {

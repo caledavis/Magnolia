@@ -97,7 +97,7 @@ function buildTranscriptHtml(
   const extraCss = `
   .line { display: flex; padding: 2px 0; border-bottom: 1px solid #f0f0f0; }
   .line:last-child { border-bottom: none; }
-  .ts { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 10px; color: #888; width: 72px; min-width: 72px; flex-shrink: 0; padding-right: 12px; text-align: right; }
+  .ts { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 10px; color: #888; width: 72px; min-width: 72px; flex-shrink: 0; padding-inline-end: 12px; text-align: end; }
   .text { flex: 1; white-space: pre-wrap; word-break: break-word; unicode-bidi: plaintext; }
 `
 
@@ -636,7 +636,7 @@ export function TranscriptEditor({
                 <div key={code.guid} className="context-menu-item" onClick={() => handleApplyCode(code.guid)}>
                   <span className="color-pip" style={{ background: code.color || '#888' }} />
                   <span style={{ flex: 1 }}>{code.name}</span>
-                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginLeft: 12 }}>{modKey(code.hotkey!)}</span>
+                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginInlineStart: 12 }}>{modKey(code.hotkey!)}</span>
                 </div>
               ))}
               {hotkeyCodes.length === 0 && (

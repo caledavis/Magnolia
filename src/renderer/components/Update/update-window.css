@@ -219,7 +219,7 @@ h1 {
 .update-notes ul,
 .update-notes ol {
   margin: 4px 0 10px;
-  padding-left: 20px;
+  padding-inline-start: 20px;
 }
 
 .update-notes li {

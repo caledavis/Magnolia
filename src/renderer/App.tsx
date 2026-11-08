@@ -91,7 +91,7 @@ import { HelpPopover, MANUAL_URL, SPONSOR_URL, HELP_ICONS } from './components/T
 import { PANE_ICONS } from './utils/pane-icons'
 import { memoPlacer, type MemoPlace } from './utils/memo-places'
 import { showMemoLocation } from './utils/show-memo'
-import { RibbonTabs, RibbonBody, useRibbon, type RibbonButtonDef, type RibbonTabDef } from './components/Toolbar/Ribbon'
+import { RibbonTabs, RibbonBody, useRibbon, scrollRoom, type RibbonButtonDef, type RibbonTabDef } from './components/Toolbar/Ribbon'
 import { TOOL_REGISTRY } from './utils/tool-registry'
 import { WindowControls } from './components/Toolbar/WindowControls'
 import type { Project, Query, CodeCondition, Code, TextSource, QDASet, LogbookInitData, AnalysisInitData, AnalysisToolType, PlainTextSelection, Memo, MemoEditInitData, MemosWindowData, SurveyCellScopeArgs } from './models/types'
@@ -444,8 +444,10 @@ function App() {
   const updateToolbarScrollFade = useCallback(() => {
     const el = toolbarScrollRef.current
     if (!el) return
-    setToolbarCanScrollLeft(el.scrollLeft > 1)
-    setToolbarCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1)
+    // Start and end: the gutters swap sides in a right-to-left page.
+    const { start, end } = scrollRoom(el)
+    setToolbarCanScrollLeft(start > 1)
+    setToolbarCanScrollRight(end > 1)
   }, [])
   useEffect(() => {
     const el = toolbarScrollRef.current
@@ -2871,7 +2873,7 @@ function App() {
         <div
           style={{
             flexShrink: 0,
-            marginRight: 12,
+            marginInlineEnd: 12,
             padding: '4px 6px',
             display: 'flex',
             alignItems: 'center',
@@ -3203,7 +3205,7 @@ function App() {
                 style={{
                   position: 'absolute',
                   top: 2,
-                  right: 2,
+                  insetInlineEnd: 2,
                   width: 8,
                   height: 8,
                   borderRadius: '50%',

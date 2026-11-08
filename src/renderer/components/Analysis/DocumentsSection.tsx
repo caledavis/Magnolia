@@ -45,7 +45,7 @@ export function DocumentsSection({ data, filter, onChange, filteredSourceGuids }
       <div onClick={() => setOpen(!open)} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
         <Icon icon={open ? faChevronDown : faChevronRight} style={{ fontSize: 12, color: 'var(--text-muted)' }} />
         <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>{t('analysis.fromDocuments')}</span>
-        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginInlineStart: 'auto' }}>
           {documentsSummary(filteredSourceGuids.length, data.sources.length, filter)}
         </span>
       </div>

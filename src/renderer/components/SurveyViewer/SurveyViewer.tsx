@@ -567,7 +567,7 @@ function QuestionTypeBadge({
     >
       {t(TYPE_KEY[question.type])}
       {isClickable && (
-        <span style={{ fontSize: 8, lineHeight: 1, marginLeft: 1 }}>▾</span>
+        <span style={{ fontSize: 8, lineHeight: 1, marginInlineStart: 1 }}>▾</span>
       )}
       {open && (
         <div
@@ -575,7 +575,7 @@ function QuestionTypeBadge({
           style={{
             position: 'absolute',
             top: '100%',
-            left: 0,
+            insetInlineStart: 0,
             marginTop: 4,
             zIndex: 1000,
             minWidth: 140,
@@ -1822,16 +1822,16 @@ export const SURVEY_SUMMARY_CSS = `
   .survey-summary ul.options { list-style: none; padding: 0; margin: 0; }
   .survey-summary ul.options li { display: flex; align-items: center; gap: 6px; padding: 1px 0; font-size: 11px; color: #333; }
   .survey-summary ul.options li .opt-label { flex: 1; }
-  .survey-summary ul.options li .opt-pct { color: #888; font-variant-numeric: tabular-nums; min-width: 32px; text-align: right; font-size: 10px; }
+  .survey-summary ul.options li .opt-pct { color: #888; font-variant-numeric: tabular-nums; min-width: 32px; text-align: end; font-size: 10px; }
   .survey-summary ul.options li .opt-swatch { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; display: inline-block; }
   /* Respondent / single-cell embeds: the chosen option is bold with a tick. */
   .survey-summary ul.options li.chosen { font-weight: 700; color: #111; }
-  .survey-summary ul.options li .opt-chosen { color: #007AFF; margin-left: 4px; }
+  .survey-summary ul.options li .opt-chosen { color: #007AFF; margin-inline-start: 4px; }
   /* A respondent's per-question answer blocks. */
   .survey-summary .sv-q { margin: 0 0 14px; break-inside: avoid; page-break-inside: avoid; }
   .survey-summary .sv-q-head { font-size: 11.5px; font-weight: 600; color: #222; margin: 0 0 4px; }
-  .survey-summary .sv-q-num { color: #888; font-weight: 600; margin-right: 4px; font-variant-numeric: tabular-nums; }
-  .survey-summary .sv-q-ans { padding-left: 4px; }
+  .survey-summary .sv-q-num { color: #888; font-weight: 600; margin-inline-end: 4px; font-variant-numeric: tabular-nums; }
+  .survey-summary .sv-q-ans { padding-inline-start: 4px; }
   .survey-summary .sv-ans-text { font-size: 11px; color: #222; white-space: pre-wrap; unicode-bidi: plaintext; }
   .survey-summary .dist-single { display: flex; align-items: flex-start; gap: 12px; }
   .survey-summary .dist-single .dist-legend { flex: 1; min-width: 0; }
@@ -1850,7 +1850,7 @@ export const SURVEY_SUMMARY_CSS = `
   .survey-summary tr.oe-answers { break-inside: auto; page-break-inside: auto; }
   .survey-summary ul.answers { list-style: none; padding: 0; margin: 0; }
   .survey-summary ul.answers li { padding: 3px 0; font-size: 10.5px; line-height: 1.45; color: #222; }
-  .survey-summary ul.answers li .who { font-weight: 600; color: #444; margin-right: 2px; }
+  .survey-summary ul.answers li .who { font-weight: 600; color: #444; margin-inline-end: 2px; }
   .survey-summary .resp-pct { display: flex; align-items: center; gap: 8px; }
   .survey-summary .resp-bar { width: 120px; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; flex-shrink: 0; }
   .survey-summary .resp-bar-fill { height: 100%; background: #888; }
@@ -2072,7 +2072,7 @@ const summaryTableStyle: React.CSSProperties = {
   fontSize: 12
 }
 const summaryThStyle: React.CSSProperties = {
-  textAlign: 'left',
+  textAlign: 'start',
   padding: '6px 10px',
   borderBottom: '1px solid var(--border-color)',
   fontWeight: 600,
@@ -2935,7 +2935,7 @@ export function SurveyViewer({ source }: Props) {
                 >
                   <span className="color-pip" style={{ background: code.color || '#888' }} />
                   <span style={{ flex: 1 }}>{code.name}</span>
-                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginLeft: 12 }}>
+                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginInlineStart: 12 }}>
                     {modKey(code.hotkey!)}
                   </span>
                 </div>
@@ -3033,10 +3033,10 @@ const headerStyle: React.CSSProperties = {
   // Padding matches the DocumentViewer's header (14px 20px 12px 20px)
   // so the heading bar reads as the same component across viewers.
   background: 'var(--bg-panel)',
-  marginLeft: -20,
-  marginRight: -20,
-  paddingLeft: 20,
-  paddingRight: 20,
+  marginInlineStart: -20,
+  marginInlineEnd: -20,
+  paddingInlineStart: 20,
+  paddingInlineEnd: 20,
   paddingTop: 14,
   paddingBottom: 12,
   marginBottom: 24,
@@ -3062,7 +3062,7 @@ const sectionHeadingStyle: React.CSSProperties = {
 }
 
 const indentedAnswerStyle: React.CSSProperties = {
-  paddingLeft: 16
+  paddingInlineStart: 16
 }
 
 const emptyAnswerStyle: React.CSSProperties = {

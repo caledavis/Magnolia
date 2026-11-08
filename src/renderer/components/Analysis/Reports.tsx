@@ -457,7 +457,7 @@ export function Reports({ savedConfig, inTab }: Props) {
 
       {/* Tool toolbar: draggable Section / Text blocks. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 20px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-panel)', flexShrink: 0 }}>
-        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginRight: 4 }}>{t('reports.dragToAdd')}</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginInlineEnd: 4 }}>{t('reports.dragToAdd')}</span>
         <PaletteChip block="section" icon={faHeading1} label={t('reports.section')} />
         <PaletteChip block="text" icon={faFont} label={t('reports.text')} />
       </div>
@@ -592,7 +592,7 @@ function ReportRow({
         const snippet = resolveItemSnippet(item)
         if (!snippet) return null
         return (
-          <div style={{ marginTop: 6, paddingLeft: 28, fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'pre-wrap', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          <div style={{ marginTop: 6, paddingInlineStart: 28, fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'pre-wrap', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
             {item.kind === 'quote' ? `“${snippet}”` : snippet}
           </div>
         )
@@ -635,7 +635,7 @@ function ReportRow({
 
       {/* Analysis: display options. */}
       {item.kind === 'analysis' && (caps.totalsOnly || caps.binary || caps.visual || caps.barChart || caps.wordCloud) && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 8, paddingLeft: 28, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 8, paddingInlineStart: 28, flexWrap: 'wrap' }}>
           {caps.totalsOnly && (
             <OptionToggle label={t('reports.totalsOnly')} checked={!!item.options.totalsOnly} onChange={(v) => onSetOption('totalsOnly', v)} />
           )}

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { i18n, t, formatPercent, formatFixed, formatNumber, compareText } from '../../src/renderer/i18n'
+import { i18n, t, formatPercent, formatFixed, formatNumber, compareText, isRtlLanguage } from '../../src/renderer/i18n'
+import { sentencesOf } from '../../src/renderer/components/Analysis/word-counts'
 
 afterEach(() => { void i18n.changeLanguage('en') })
 
@@ -31,5 +32,17 @@ describe('numbers in the interface language', () => {
 
   it('sorts names in the language\'s alphabetical order', () => {
     expect(['b', 'Á', 'a', 'item 10', 'item 2'].sort(compareText)).toEqual(['a', 'Á', 'b', 'item 2', 'item 10'])
+  })
+})
+
+describe('writing direction and sentences', () => {
+  it('knows which languages are written right to left', () => {
+    for (const l of ['ar', 'fa', 'he', 'ur', 'ar-EG']) expect(isRtlLanguage(l), l).toBe(true)
+    for (const l of ['en', 'zh-Hans', 'ru', 'hi', 'pt-BR', 'nonsense!']) expect(isRtlLanguage(l), l).toBe(false)
+  })
+
+  it('ends sentences at Arabic and Devanagari marks', () => {
+    expect(sentencesOf('هل هذا كافٍ؟ نعم.')).toEqual(['هل هذا كافٍ؟', 'نعم.'])
+    expect(sentencesOf('यह अच्छा है। वह भी।')).toEqual(['यह अच्छा है।', 'वह भी।'])
   })
 })

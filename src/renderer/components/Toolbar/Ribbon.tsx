@@ -26,7 +26,8 @@
  * even that doesn't fit (a narrow window, or a tab with many buttons),
  * the buttons scroll sideways, between chevrons like the Icons and Text
  * toolbar's that fade in while there's more that way; clicking one
- * scrolls a page.
+ * scrolls a page. The chevrons are the start and end ones (left and
+ * right, or the other way round in a right-to-left language).
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Icon, faChevronUp, faChevronDown, faChevronsLeft, faChevronsRight, type IconComponent } from '../Icon'
@@ -164,14 +165,15 @@ function useRibbonFit(active: RibbonTabDef, shown: boolean) {
   const bodyRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [overflow, setOverflow] = useState(false)
-  const [canLeft, setCanLeft] = useState(false)
-  const [canRight, setCanRight] = useState(false)
+  const [canStart, setCanStart] = useState(false)
+  const [canEnd, setCanEnd] = useState(false)
 
   const updateChevrons = useCallback(() => {
     const el = scrollRef.current
     if (!el) return
-    setCanLeft(el.scrollLeft > 1)
-    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1)
+    const { start, end } = scrollRoom(el)
+    setCanStart(start > 1)
+    setCanEnd(end > 1)
   }, [])
 
   useLayoutEffect(() => {
@@ -182,7 +184,7 @@ function useRibbonFit(active: RibbonTabDef, shown: boolean) {
       // Room inside the body's padding, whether or not the chevrons are
       // taking some of it now.
       const style = getComputedStyle(body)
-      const room = body.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+      const room = body.clientWidth - parseFloat(style.paddingInlineStart) - parseFloat(style.paddingInlineEnd)
       const fits = (): boolean => scroller.scrollWidth <= room + 1
       body.removeAttribute('data-tight')
       for (const stage of ['words', 'all']) {
@@ -218,20 +220,33 @@ function useRibbonFit(active: RibbonTabDef, shown: boolean) {
   // The chevrons take room when they appear, so recheck which show then.
   useLayoutEffect(updateChevrons, [overflow, updateChevrons])
 
-  const scrollPage = (direction: 1 | -1): void => {
+  /** Scroll a page towards the end (1) or the start (-1). */
+  const scrollPage = (towards: 1 | -1): void => {
     const el = scrollRef.current
-    el?.scrollBy({ left: direction * el.clientWidth * 0.8, behavior: 'smooth' })
+    if (!el) return
+    const rtl = getComputedStyle(el).direction === 'rtl'
+    el.scrollBy({ left: towards * (rtl ? -1 : 1) * el.clientWidth * 0.8, behavior: 'smooth' })
   }
-  return { bodyRef, scrollRef, overflow, canLeft, canRight, updateChevrons, scrollPage }
+  return { bodyRef, scrollRef, overflow, canStart, canEnd, updateChevrons, scrollPage }
+}
+
+/** How far `el` can scroll towards its start and its end. In a
+ *  right-to-left element scrollLeft runs from 0 down to negative values,
+ *  so the distance from the start is its size either way. */
+export function scrollRoom(el: HTMLElement): { start: number; end: number } {
+  const fromStart = Math.abs(el.scrollLeft)
+  return { start: fromStart, end: el.scrollWidth - el.clientWidth - fromStart }
 }
 
 /** A chevron beside the scrolling buttons, for mouse users without a
  *  sideways scroll. Hidden from keyboards and screen readers, which reach
  *  every button by Tab (and the focused button scrolls into view). */
-function ScrollChevron({ side, shown, onClick }: { side: 'left' | 'right'; shown: boolean; onClick: () => void }) {
+function ScrollChevron({ side, shown, onClick }: { side: 'start' | 'end'; shown: boolean; onClick: () => void }) {
+  // Left- and right-pointing in a left-to-right page; mirrored (with the
+  // other direction-giving icons) in a right-to-left one.
   return (
     <button type="button" className="ribbon-scroll-hint" data-shown={shown || undefined} tabIndex={-1} aria-hidden onClick={onClick}>
-      <Icon icon={side === 'left' ? faChevronsLeft : faChevronsRight} />
+      <Icon icon={side === 'start' ? faChevronsLeft : faChevronsRight} />
     </button>
   )
 }
@@ -242,7 +257,7 @@ export function RibbonBody({ ribbon }: { ribbon: RibbonState }) {
   if (collapsed && !peek) return null
   const body = (
     <div ref={fit.bodyRef} className="ribbon-body" role="tabpanel" aria-label={active.label}>
-      {fit.overflow && <ScrollChevron side="left" shown={fit.canLeft} onClick={() => fit.scrollPage(-1)} />}
+      {fit.overflow && <ScrollChevron side="start" shown={fit.canStart} onClick={() => fit.scrollPage(-1)} />}
       <div ref={fit.scrollRef} className="ribbon-scroll" onScroll={fit.updateChevrons}>
         {active.groups.map((group) => (
           <div key={group.label} className="ribbon-group" role="group" aria-label={group.label}>
@@ -253,7 +268,7 @@ export function RibbonBody({ ribbon }: { ribbon: RibbonState }) {
           </div>
         ))}
       </div>
-      {fit.overflow && <ScrollChevron side="right" shown={fit.canRight} onClick={() => fit.scrollPage(1)} />}
+      {fit.overflow && <ScrollChevron side="end" shown={fit.canEnd} onClick={() => fit.scrollPage(1)} />}
     </div>
   )
   // Peeking from a collapsed ribbon: float over the panels below.

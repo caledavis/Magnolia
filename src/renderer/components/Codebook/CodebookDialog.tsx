@@ -27,7 +27,7 @@ function CodebookEntry({
         className="codebook-entry"
         style={{
           padding: '10px 14px',
-          paddingLeft: 14 + depth * 20,
+          paddingInlineStart: 14 + depth * 20,
           borderBottom: '1px solid var(--border-color)',
           cursor: 'pointer',
           transition: 'background 0.1s'
@@ -50,7 +50,7 @@ function CodebookEntry({
             style={{
               fontSize: 'var(--font-size-sm)',
               color: 'var(--text-secondary)',
-              paddingLeft: 18
+              paddingInlineStart: 18
             }}
           />
         ) : (
@@ -59,7 +59,7 @@ function CodebookEntry({
               fontSize: 'var(--font-size-sm)',
               color: 'var(--text-muted)',
               fontStyle: 'italic',
-              paddingLeft: 18
+              paddingInlineStart: 18
             }}
           >
             No memo
@@ -123,7 +123,7 @@ function EditCodeDialog({
                 style={{
                   position: 'absolute',
                   top: 28,
-                  left: 0,
+                  insetInlineStart: 0,
                   zIndex: 10,
                   background: 'var(--bg-secondary)',
                   border: '1px solid var(--border-color)',
@@ -261,7 +261,7 @@ function buildCodebookHtml(codes: Code[]): string {
       ? `<div class="memo">${markdownToHtml(code.description)}</div>`
       : `<div class="no-memo">No memo</div>`
     const children = code.children.map((c) => renderCode(c, depth + 1)).join('')
-    return `<div class="code-entry" style="padding-left:${indent}px">
+    return `<div class="code-entry" style="padding-inline-start:${indent}px">
       <div class="code-header">
         <span class="pip" style="background:${code.color || '#888'}"></span>
         <span class="code-name">${escHtml(code.name)}</span>
@@ -282,15 +282,15 @@ function buildCodebookHtml(codes: Code[]): string {
   .code-header { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
   .pip { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
   .code-name { font-weight: 600; font-size: 12px; }
-  .memo { font-size: 11px; color: #444; padding-left: 18px; line-height: 1.6; }
+  .memo { font-size: 11px; color: #444; padding-inline-start: 18px; line-height: 1.6; }
   .memo p { margin: 0 0 6px; }
   .memo p:last-child { margin-bottom: 0; }
-  .memo ul, .memo ol { margin: 0 0 6px; padding-left: 18px; }
+  .memo ul, .memo ol { margin: 0 0 6px; padding-inline-start: 18px; }
   .memo strong { font-weight: 600; }
   .memo table { width: auto; margin: 0 0 6px; }
   .memo th, .memo td { border: 1px solid #ddd; padding: 3px 6px; }
   .memo th { background: #f3f4f6; }
-  .no-memo { font-size: 11px; color: #aaa; font-style: italic; padding-left: 18px; }
+  .no-memo { font-size: 11px; color: #aaa; font-style: italic; padding-inline-start: 18px; }
 `
 
   return buildPdfDocument({
@@ -348,12 +348,12 @@ export function CodebookDialog({ onClose }: Props) {
       >
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
           <h2 style={{ flex: 1, margin: 0 }}>Codebook</h2>
-          <span style={{ fontSize: 11, color: 'var(--text-muted)', marginRight: 12 }}>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', marginInlineEnd: 12 }}>
             {allCodes.length} code{allCodes.length !== 1 ? 's' : ''}
           </span>
           <button
             className="secondary"
-            style={{ fontSize: 11, padding: '3px 10px', marginRight: 4 }}
+            style={{ fontSize: 11, padding: '3px 10px', marginInlineEnd: 4 }}
             onClick={handleImportQdc}
             title="Import a REFI-QDA Codebook (.qdc) file"
           >
@@ -361,7 +361,7 @@ export function CodebookDialog({ onClose }: Props) {
           </button>
           <button
             className="secondary"
-            style={{ fontSize: 11, padding: '3px 10px', marginRight: 4 }}
+            style={{ fontSize: 11, padding: '3px 10px', marginInlineEnd: 4 }}
             onClick={handleExportQdc}
             title="Export codebook as REFI-QDA Codebook (.qdc) file"
           >

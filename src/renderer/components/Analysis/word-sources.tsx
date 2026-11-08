@@ -215,7 +215,7 @@ export function CodesSection({ codes, codeSets, onChangeCodes, includeSubcodes, 
             </span>
           )
         })}
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-secondary)', cursor: 'pointer', marginLeft: codeSets.size > 0 ? 6 : 0 }}>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-secondary)', cursor: 'pointer', marginInlineStart: codeSets.size > 0 ? 6 : 0 }}>
           <input type="checkbox" checked={includeSubcodes} onChange={(e) => onChangeIncludeSubcodes(e.target.checked)} style={{ margin: 0 }} />
           {t('queryBuilder.andSubcodes')}
         </label>

@@ -597,7 +597,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
                     style={{ background: code.color || '#888' }}
                   />
                   <span style={{ flex: 1 }}>{code.name}</span>
-                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginLeft: 12 }}>
+                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginInlineStart: 12 }}>
                     {modKey(code.hotkey!)}
                   </span>
                 </div>

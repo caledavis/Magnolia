@@ -63,7 +63,7 @@ function Badge({ count, color }: { count: number; color: string }) {
       style={{
         position: 'absolute',
         top: -3,
-        right: -3,
+        insetInlineEnd: -3,
         fontSize: 7,
         fontWeight: 700,
         background: color,
@@ -109,7 +109,7 @@ export function MemoQuoteIcons({
           style={{
             ...colStyle,
             position: 'absolute',
-            ...(g.leftX !== undefined ? { left: g.leftX } : { right: ICON_COL_W }),
+            ...(g.leftX !== undefined ? { insetInlineStart: g.leftX } : { insetInlineEnd: ICON_COL_W }),
             top: g.top + 1,
             pointerEvents: 'auto'
           }}
@@ -170,7 +170,7 @@ export function MemoQuoteIcons({
             style={{
               ...colStyle,
               position: 'absolute',
-              ...(g.leftX !== undefined ? { left: g.leftX } : { right: 0 }),
+              ...(g.leftX !== undefined ? { insetInlineStart: g.leftX } : { insetInlineEnd: 0 }),
               top: g.top + 1,
               pointerEvents: 'auto'
             }}

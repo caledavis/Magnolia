@@ -214,7 +214,7 @@ export function WelcomeScreen() {
       <div style={{
         position: 'absolute',
         bottom: 10,
-        right: 14,
+        insetInlineEnd: 14,
         fontSize: 11,
         fontWeight: 500,
         color: 'rgba(255, 255, 255, 0.9)',

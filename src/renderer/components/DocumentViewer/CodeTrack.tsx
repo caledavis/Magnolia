@@ -372,7 +372,7 @@ export function CodeTrack({
               left: t * pxPerSecond,
               top: 0,
               bottom: 0,
-              borderLeft: '1px solid var(--border-color)',
+              borderInlineStart: '1px solid var(--border-color)',
               opacity: 0.55,
               pointerEvents: 'none'
             }}
@@ -419,8 +419,8 @@ export function CodeTrack({
                 borderRadius: 2,
                 display: 'flex',
                 alignItems: 'center',
-                paddingLeft: 6,
-                paddingRight: 6,
+                paddingInlineStart: 6,
+                paddingInlineEnd: 6,
                 color: '#fff',
                 fontSize: 10,
                 fontWeight: 600,
@@ -537,8 +537,8 @@ export function CodeTrack({
             top: 0,
             width: 0,
             height: 0,
-            borderLeft: '5px solid transparent',
-            borderRight: '5px solid transparent',
+            borderInlineStart: '5px solid transparent',
+            borderInlineEnd: '5px solid transparent',
             borderTop: '8px solid var(--danger)'
           }}
         />

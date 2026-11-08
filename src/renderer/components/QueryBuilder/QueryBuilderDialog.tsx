@@ -124,7 +124,7 @@ export function QueryBuilderDialog({ onClose }: Props) {
         <h2>Build Query</h2>
 
         {/* Scrollable body */}
-        <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
+        <div style={{ flex: 1, overflowY: 'auto', paddingInlineEnd: 4 }}>
           {/* ── Part 1: Search these documents (collapsible) ── */}
           <div className="analysis-section" style={{ marginBottom: 14 }}>
             <div
@@ -153,7 +153,7 @@ export function QueryBuilderDialog({ onClose }: Props) {
                   color: hasDocFilters
                     ? 'var(--status-success)'
                     : 'var(--text-muted)',
-                  marginLeft: 'auto'
+                  marginInlineStart: 'auto'
                 }}
               >
                 {hasDocFilters ? 'Filtered' : 'All documents'}

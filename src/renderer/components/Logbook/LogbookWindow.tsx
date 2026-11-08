@@ -233,7 +233,7 @@ export function LogbookWindow() {
   .entry-date { font-size: 10px; color: #888; margin-bottom: 6px; }
   .entry-content { font-size: 11px; color: #444; }
   .entry-content p { margin: 0 0 6px; } .entry-content p:last-child { margin-bottom: 0; }
-  .entry-content ul, .entry-content ol { margin: 0 0 6px; padding-left: 18px; }
+  .entry-content ul, .entry-content ol { margin: 0 0 6px; padding-inline-start: 18px; }
 `
 
     const html = buildPdfDocument({

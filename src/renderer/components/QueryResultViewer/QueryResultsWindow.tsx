@@ -224,7 +224,7 @@ export function QueryResultsWindow() {
       body += `<h2>${escHtml(group.sourceName)} <span class="count">(${escHtml(t('results.matchCount', { count: group.results.length }))})</span></h2>`
       for (const r of group.results) {
         const codes = r.matchedCodes.map((c) =>
-          `<span class="code-badge" style="border-left:3px solid ${c.color || '#888'}">${escHtml(c.name)}</span>`
+          `<span class="code-badge" style="border-inline-start:3px solid ${c.color || '#888'}">${escHtml(c.name)}</span>`
         ).join(' ')
         const highlight = r.matchedCodes[0]?.color
           ? `background:${r.matchedCodes[0].color}40`
@@ -262,7 +262,7 @@ export function QueryResultsWindow() {
   h2 .count { font-weight: 400; color: #888; font-size: 11px; }
   .result { padding: 5px 8px 5px 14px; border-bottom: 1px solid #eee; }
   .codes { margin-bottom: 3px; }
-  .code-badge { display: inline-block; font-size: 10px; padding: 1px 6px; margin-right: 4px; background: #f3f4f6; border-radius: 3px; }
+  .code-badge { display: inline-block; font-size: 10px; padding: 1px 6px; margin-inline-end: 4px; background: #f3f4f6; border-radius: 3px; }
   .context { white-space: pre-wrap; unicode-bidi: plaintext; }
   mark { border-radius: 2px; padding: 1px 2px; font-weight: 600; }
   .region-thumb { display: block; max-width: 380px; max-height: 260px; border: 1px solid #ddd; border-radius: 3px; }
@@ -328,7 +328,7 @@ export function QueryResultsWindow() {
           plus ": <name>" while a saved query is running. */}
       <span>Query{activeSavedQuery ? ':' : ''}</span>
       {activeSavedQuery && (
-        <span style={{ marginLeft: 4 }}>
+        <span style={{ marginInlineStart: 4 }}>
           <EditableTitleSuffix
             name={activeSavedQuery.name}
             onRename={(newName) => handleRenameActiveQuery(activeSavedQuery.guid, newName)}
@@ -341,7 +341,7 @@ export function QueryResultsWindow() {
           {data.results.length > 0 && (
             <button
               className="secondary"
-              style={{ fontSize: 11, padding: '2px 8px', marginRight: 4 }}
+              style={{ fontSize: 11, padding: '2px 8px', marginInlineEnd: 4 }}
               onClick={handleSelectDocuments}
               disabled={data.isLoading}
               title={t('results.selectDocsTitle')}
@@ -350,7 +350,7 @@ export function QueryResultsWindow() {
             </button>
           )}
           {data.results.length > 0 && (
-            <div style={{ marginRight: 4 }}>
+            <div style={{ marginInlineEnd: 4 }}>
               <button
                 ref={codeAllBtnRef}
                 className="secondary"
@@ -450,14 +450,14 @@ export function QueryResultsWindow() {
             </div>
           )}
           <button
-            style={{ fontSize: 11, padding: '2px 8px', marginRight: 4 }}
+            style={{ fontSize: 11, padding: '2px 8px', marginInlineEnd: 4 }}
             className="secondary"
             onClick={() => window.api.sendQueryResultsAction('edit-query')}
           >
             {t('queries.edit')}
           </button>
           <button
-            style={{ fontSize: 11, padding: '2px 8px', marginRight: 4 }}
+            style={{ fontSize: 11, padding: '2px 8px', marginInlineEnd: 4 }}
             className="secondary"
             onClick={handleExportPdf}
             disabled={data.isLoading}
@@ -466,7 +466,7 @@ export function QueryResultsWindow() {
             {t('common.exportPdf')}
           </button>
           <button
-            style={{ fontSize: 11, padding: '2px 8px', marginRight: 4 }}
+            style={{ fontSize: 11, padding: '2px 8px', marginInlineEnd: 4 }}
             className="secondary"
             onClick={() => window.api.sendQueryResultsAction('clear-query')}
           >
@@ -474,7 +474,7 @@ export function QueryResultsWindow() {
           </button>
           {data.isUnsaved && (
             <button
-              style={{ fontSize: 11, padding: '2px 8px', marginRight: 4 }}
+              style={{ fontSize: 11, padding: '2px 8px', marginInlineEnd: 4 }}
               onClick={() => window.api.sendQueryResultsAction('save-query')}
             >
               {t('queryBuilder.save')}

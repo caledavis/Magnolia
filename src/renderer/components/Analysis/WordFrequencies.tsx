@@ -671,15 +671,15 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
               <table style={{ borderCollapse: 'collapse', fontSize: 11, width: '100%' }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: '3px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>{t('words.word')}</th>
-                    <th style={{ padding: '3px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'right' }}>{t('words.count')}</th>
+                    <th style={{ padding: '3px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'start' }}>{t('words.word')}</th>
+                    <th style={{ padding: '3px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'end' }}>{t('words.count')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {wordFreqs.slice(0, 200).map(([word, count]) => (
                     <tr key={word} onClick={() => handleWordClick(word)} style={{ cursor: 'pointer' }} title={coded ? t('words.searchCoded', { word }) : byQuery ? t('words.searchQuery', { word }) : t('words.search', { word })}>
                       <td style={{ padding: '2px 6px', borderBottom: '1px solid var(--border-color)' }}>{word}</td>
-                      <td style={{ padding: '2px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'right' }}>{formatNumber(count)}</td>
+                      <td style={{ padding: '2px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'end' }}>{formatNumber(count)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -702,7 +702,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 <label style={{ fontSize: 10, color: 'var(--text-muted)' }}>Show:
                   <input type="number" min={5} max={200} value={wordCount} onChange={(e) => setWordCount(Number(e.target.value))}
-                    style={{ width: 50, marginLeft: 4 }}
+                    style={{ width: 50, marginInlineStart: 4 }}
                   />
                 </label>
                 <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportChart}>{t('analysis.exportSvg')}</button>
@@ -720,7 +720,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
                   for (const g of seriesGroups) {
                     if (g.label) {
                       items.push(
-                        <span key={`band:${g.id}`} style={{ fontSize: 10, fontWeight: 700, fontStyle: 'italic', color: 'var(--text-secondary)', marginLeft: items.length === 0 ? 0 : 8 }}>
+                        <span key={`band:${g.id}`} style={{ fontSize: 10, fontWeight: 700, fontStyle: 'italic', color: 'var(--text-secondary)', marginInlineStart: items.length === 0 ? 0 : 8 }}>
                           {g.label}:
                         </span>
                       )

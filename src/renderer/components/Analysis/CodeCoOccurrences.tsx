@@ -359,7 +359,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)', marginRight: 4 }}>{t('analysis.results')}</span>
+              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)', marginInlineEnd: 4 }}>{t('analysis.results')}</span>
               <SegmentedControl
                 label={t('analysis.view')}
                 value={view}
@@ -423,7 +423,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
               <table style={{ borderCollapse: 'collapse', fontSize: 11 }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: 4, borderBottom: '1px solid var(--border-color)', textAlign: 'left', minWidth: 100 }} />
+                    <th style={{ padding: 4, borderBottom: '1px solid var(--border-color)', textAlign: 'start', minWidth: 100 }} />
                     {colCodeGuids.map((g) => (
                       <th key={g} style={{ width: 50, minWidth: 50, maxWidth: 50, borderBottom: '1px solid var(--border-color)', verticalAlign: 'bottom', height: 80, padding: 0, position: 'relative' }}>
                         <div style={{ position: 'absolute', bottom: 6, left: '50%', transformOrigin: 'bottom left', transform: 'rotate(-20deg)', whiteSpace: 'nowrap', fontSize: 10, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130, display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -451,10 +451,10 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                     }
                     return (
                     <tr key={rowGuid}>
-                      <td style={{ padding: '4px 6px', paddingLeft: 6 + depth * 14, borderBottom: '1px solid var(--border-color)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>
-                        <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: codeMap.get(rowGuid)?.color || '#888', marginRight: 4, verticalAlign: 'middle' }} />
+                      <td style={{ padding: '4px 6px', paddingInlineStart: 6 + depth * 14, borderBottom: '1px solid var(--border-color)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>
+                        <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: codeMap.get(rowGuid)?.color || '#888', marginInlineEnd: 4, verticalAlign: 'middle' }} />
                         {truncate(codeMap.get(rowGuid)?.name || '', 14)}
-                        <span onClick={() => setRowCodeGuids((p) => p.filter((x) => x !== rowGuid))} style={{ marginLeft: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>x</span>
+                        <span onClick={() => setRowCodeGuids((p) => p.filter((x) => x !== rowGuid))} style={{ marginInlineStart: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>x</span>
                       </td>
                       {colCodeGuids.map((colGuid, j) => {
                         const val = showMatrix[i][j]
@@ -492,7 +492,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                       <td onClick={() => handleRowTotalClick(i)} style={{
                         width: 50, minWidth: 50, maxWidth: 50, height: 32,
                         borderBottom: '1px solid var(--border-color)',
-                        borderLeft: '2px solid var(--border-color)',
+                        borderInlineStart: '2px solid var(--border-color)',
                         textAlign: 'center',
                         fontWeight: 700,
                         cursor: showRowTotals[i] > 0 ? 'pointer' : 'default',
@@ -532,7 +532,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                     <td onClick={handleGrandTotalClick} style={{
                       width: 50, minWidth: 50, maxWidth: 50, height: 32,
                       borderTop: '2px solid var(--border-color)',
-                      borderLeft: '2px solid var(--border-color)',
+                      borderInlineStart: '2px solid var(--border-color)',
                       textAlign: 'center',
                       fontWeight: 700,
                       cursor: showGrandTotal > 0 ? 'pointer' : 'default',

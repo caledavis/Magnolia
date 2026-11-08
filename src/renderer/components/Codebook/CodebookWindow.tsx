@@ -66,7 +66,7 @@ function CompactCodeEntry({
           alignItems: 'center',
           gap: 6,
           padding: '3px 8px',
-          paddingLeft: 8 + depth * 16,
+          paddingInlineStart: 8 + depth * 16,
           cursor: 'pointer',
           borderRadius: 'var(--radius-sm)',
           background: selectedGuid === code.guid ? 'var(--selection-bg)' : 'transparent',
@@ -126,10 +126,10 @@ function CompactCodeEntry({
             {code.name}
           </span>
         )}
-        <span style={{ width: isMac ? 24 : 40, minWidth: isMac ? 24 : 40, flexShrink: 0, fontSize: 10, color: 'var(--text-muted)', textAlign: 'right' }}>
+        <span style={{ width: isMac ? 24 : 40, minWidth: isMac ? 24 : 40, flexShrink: 0, fontSize: 10, color: 'var(--text-muted)', textAlign: 'end' }}>
           {code.hotkey !== undefined ? modKey(code.hotkey) : ''}
         </span>
-        <span style={{ width: 28, minWidth: 28, flexShrink: 0, fontSize: 10, color: 'var(--text-muted)', textAlign: 'right' }}>
+        <span style={{ width: 28, minWidth: 28, flexShrink: 0, fontSize: 10, color: 'var(--text-muted)', textAlign: 'end' }}>
           {count > 0 ? count : ''}
         </span>
       </div>
@@ -194,7 +194,7 @@ function EditCodeDialog({
                 style={{
                   position: 'absolute',
                   top: 28,
-                  left: 0,
+                  insetInlineStart: 0,
                   zIndex: 10,
                   background: 'var(--bg-secondary)',
                   border: '1px solid var(--border-color)',
@@ -316,7 +316,7 @@ function buildCodebookHtml(codes: Code[]): string {
       ? `<div class="memo">${markdownToHtml(code.description)}</div>`
       : `<div class="no-memo">${escHtml(t('codebook.noMemo'))}</div>`
     const children = code.children.map((c) => renderCode(c, depth + 1)).join('')
-    return `<div class="code-entry" style="padding-left:${indent}px">
+    return `<div class="code-entry" style="padding-inline-start:${indent}px">
       <div class="code-header">
         <span class="pip" style="background:${code.color || '#888'}"></span>
         <span class="code-name">${escHtml(code.name)}</span>
@@ -335,11 +335,11 @@ function buildCodebookHtml(codes: Code[]): string {
   .code-header { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
   .pip { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
   .code-name { font-weight: 600; font-size: 12px; }
-  .memo { font-size: 11px; color: #444; padding-left: 18px; line-height: 1.6; }
+  .memo { font-size: 11px; color: #444; padding-inline-start: 18px; line-height: 1.6; }
   .memo p { margin: 0 0 6px; } .memo p:last-child { margin-bottom: 0; }
-  .memo ul, .memo ol { margin: 0 0 6px; padding-left: 18px; }
+  .memo ul, .memo ol { margin: 0 0 6px; padding-inline-start: 18px; }
   .memo strong { font-weight: 600; }
-  .no-memo { font-size: 11px; color: #aaa; font-style: italic; padding-left: 18px; }
+  .no-memo { font-size: 11px; color: #aaa; font-style: italic; padding-inline-start: 18px; }
 `
 
   return buildPdfDocument({

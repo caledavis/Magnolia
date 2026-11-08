@@ -228,7 +228,7 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
               if (e.button === 1) { e.preventDefault(); requestClose(guid) }
             }}
             style={{
-              borderLeft: dragOverIdx === i ? '2px solid var(--accent)' : undefined,
+              borderInlineStart: dragOverIdx === i ? '2px solid var(--accent)' : undefined,
             }}
           >
             {tabIcon && (

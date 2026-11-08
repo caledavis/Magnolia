@@ -1337,9 +1337,9 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                 minHeight: node.kind === 'code' ? h : undefined,
                 borderRadius: 'var(--radius-sm)',
                 borderTop: `3px solid ${color}`,
-                borderRight: `1.5px solid ${selected ? color : 'var(--border-color)'}`,
+                borderInlineEnd: `1.5px solid ${selected ? color : 'var(--border-color)'}`,
                 borderBottom: `1.5px solid ${selected ? color : 'var(--border-color)'}`,
-                borderLeft: `1.5px solid ${selected ? color : 'var(--border-color)'}`,
+                borderInlineStart: `1.5px solid ${selected ? color : 'var(--border-color)'}`,
                 background: 'var(--bg-panel)',
                 boxShadow: selected
                   ? `0 0 0 2px ${color}44, 0 2px 8px rgba(0,0,0,0.15)`
@@ -1411,7 +1411,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                     }}
                     title={node.isNegated ? t('queryBuilder.removeNot') : t('queryBuilder.applyNot')}
                     style={{
-                      marginLeft: 'auto',
+                      marginInlineStart: 'auto',
                       fontSize: 7,
                       fontWeight: 700,
                       padding: '1px 4px',
@@ -1600,8 +1600,8 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                           style={{
                             height: SLOT_H,
                             lineHeight: `${SLOT_H}px`,
-                            paddingLeft: PORT_R + 6,
-                            paddingRight: canRemove ? 16 : 0,
+                            paddingInlineStart: PORT_R + 6,
+                            paddingInlineEnd: canRemove ? 16 : 0,
                             fontSize: 9,
                             color: name ? 'var(--text-primary)' : 'var(--text-secondary)',
                             fontWeight: name ? 600 : 400,
@@ -1636,7 +1636,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                               }}
                               style={{
                                 position: 'absolute',
-                                right: 4,
+                                insetInlineEnd: 4,
                                 top: 0,
                                 fontSize: 10,
                                 color: 'var(--text-muted)',
@@ -1691,7 +1691,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                     style={{
                       height: SLOT_H,
                       lineHeight: `${SLOT_H}px`,
-                      paddingLeft: PORT_R + 6,
+                      paddingInlineStart: PORT_R + 6,
                       fontSize: 9,
                       color: portLabel(0) ? 'var(--text-primary)' : 'var(--text-secondary)',
                       fontWeight: portLabel(0) ? 600 : 400,
@@ -1706,7 +1706,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                     style={{
                       height: LABEL_H,
                       lineHeight: `${LABEL_H}px`,
-                      paddingLeft: PORT_R + 6,
+                      paddingInlineStart: PORT_R + 6,
                       fontSize: 8,
                       fontWeight: 700,
                       color: KIND_COLOR[node.kind],
@@ -1719,7 +1719,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                     style={{
                       height: SLOT_H,
                       lineHeight: `${SLOT_H}px`,
-                      paddingLeft: PORT_R + 6,
+                      paddingInlineStart: PORT_R + 6,
                       fontSize: 9,
                       color: portLabel(1) ? 'var(--text-primary)' : 'var(--text-secondary)',
                       fontWeight: portLabel(1) ? 600 : 400,
@@ -1828,7 +1828,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                     zIndex: 20
                   }}
                 >
-                  <Icon icon={faExclamationTriangle} style={{ marginRight: 4 }} />{validationError}
+                  <Icon icon={faExclamationTriangle} style={{ marginInlineEnd: 4 }} />{validationError}
                 </div>
               )}
             </div>
@@ -1883,7 +1883,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
             style={{
               position: 'absolute',
               top: 6,
-              right: 6,
+              insetInlineEnd: 6,
               zIndex: 70,
               fontSize: 10,
               padding: '3px 8px',
@@ -1925,8 +1925,8 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
           }}
         >
           {condition
-            ? (validationError ? <><Icon icon={faCircle} style={{ fontSize: 6, marginRight: 4 }} />{t('queryBuilder.statusError')}</> : <><Icon icon={faCircle} style={{ fontSize: 6, marginRight: 4 }} />{t('queryBuilder.statusReady')}</>)
-            : <><Icon icon={faCircle} style={{ fontSize: 6, marginRight: 4 }} />{t('queryBuilder.statusConnect')}</>}
+            ? (validationError ? <><Icon icon={faCircle} style={{ fontSize: 6, marginInlineEnd: 4 }} />{t('queryBuilder.statusError')}</> : <><Icon icon={faCircle} style={{ fontSize: 6, marginInlineEnd: 4 }} />{t('queryBuilder.statusReady')}</>)
+            : <><Icon icon={faCircle} style={{ fontSize: 6, marginInlineEnd: 4 }} />{t('queryBuilder.statusConnect')}</>}
         </span>
       </div>
     </div>

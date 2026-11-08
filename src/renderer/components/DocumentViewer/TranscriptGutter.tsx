@@ -50,9 +50,9 @@ export function TranscriptGutter({ text, active, onClick, title, invisible, widt
       style={{
         width,
         minWidth: width,
-        textAlign: 'right',
-        paddingLeft: 12,
-        paddingRight: 12,
+        textAlign: 'end',
+        paddingInlineStart: 12,
+        paddingInlineEnd: 12,
         fontFamily: 'var(--font-mono)',
         fontSize: 10,
         color: invisible ? 'transparent' : active ? 'var(--accent)' : 'var(--text-muted)',

@@ -34,7 +34,7 @@ import { useTranslation } from 'react-i18next'
 
 // Horizontal space the right-hand RichMarginColumn + its 8-px gap actually
 // occupy in the flex row. The margin column has flex-basis 260 plus an 8-px
-// marginLeft, so 268 is the real footprint.
+// marginInlineStart, so 268 is the real footprint.
 const MARGIN_COL_RESERVED_W = 268
 const SCROLL_PADDING = 16
 // Don't upscale tiny images past 1.0 on auto-fit — large QDA detail is
@@ -627,7 +627,7 @@ export function ImageDocumentViewer({ source }: Props) {
             )}
           </div>
           </div>
-          <div style={{ flexShrink: 1, flexGrow: 0, flexBasis: 260, position: 'relative', marginLeft: 8, alignSelf: 'stretch', minWidth: 180 }}>
+          <div style={{ flexShrink: 1, flexGrow: 0, flexBasis: 260, position: 'relative', marginInlineStart: 8, alignSelf: 'stretch', minWidth: 180 }}>
             <RichMarginColumn
               contentRef={pagesContentRef}
               containerRef={flexRowRef}
@@ -702,7 +702,7 @@ export function ImageDocumentViewer({ source }: Props) {
                 <div key={code.guid} className="context-menu-item" onClick={() => handleApplyCode(code.guid)}>
                   <span className="color-pip" style={{ background: code.color || '#888' }} />
                   <span style={{ flex: 1 }}>{code.name}</span>
-                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginLeft: 12 }}>{modKey(code.hotkey!)}</span>
+                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginInlineStart: 12 }}>{modKey(code.hotkey!)}</span>
                 </div>
               ))}
               {hotkeyCodes.length === 0 && (
@@ -810,7 +810,7 @@ export function ImageDocumentViewer({ source }: Props) {
               >
                 <Icon
                   icon={memoPopup.isQuote ? QUOTE_ICON : (m.startPosition === m.endPosition ? MEMO_POINT_ICON : MEMO_RANGED_ICON)}
-                  style={{ marginRight: 6, fontSize: 10, color: memoPopup.isQuote ? 'var(--quote-icon-color)' : undefined }}
+                  style={{ marginInlineEnd: 6, fontSize: 10, color: memoPopup.isQuote ? 'var(--quote-icon-color)' : undefined }}
                 />
                 <span style={{ flex: 1 }}>{m.title || (memoPopup.isQuote ? t('viewer.quote') : t('memos.untitled'))}</span>
               </div>

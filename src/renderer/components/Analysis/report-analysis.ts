@@ -41,20 +41,20 @@ import { t, formatPercent, formatFixed, formatNumber } from '../../i18n'
 export const REPORT_TABLE_CSS = `
   table.report-table { width: auto; border-collapse: collapse; font-size: 10px; margin: 2px 0 6px 0; }
   table.report-table th, table.report-table td { border: 1px solid #ddd; padding: 3px 6px; text-align: center; white-space: nowrap; }
-  table.report-table th.rowhead, table.report-table td.rowhead { text-align: left; font-weight: 600; }
+  table.report-table th.rowhead, table.report-table td.rowhead { text-align: start; font-weight: 600; }
   table.report-table th { background: #f3f4f6; color: #555; font-size: 9px; font-weight: 600; }
   table.report-table td.zero { color: #bbb; }
   .report-note { font-size: 10px; color: #555; margin: 2px 0 4px 0; }
-  table.report-co td.co-seq { text-align: left; white-space: normal; line-height: 1.8; }
+  table.report-co td.co-seq { text-align: start; white-space: normal; line-height: 1.8; }
   .co-chip { display: inline-block; white-space: nowrap; }
-  .co-chip .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 3px; vertical-align: middle; }
+  .co-chip .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-inline-end: 3px; vertical-align: middle; }
   .co-arrow { color: #aaa; margin: 0 5px; }
   /* Grid tables, matching the on-screen Codes-in-Documents / Results-in-
      Documents / Co-Occurrences look: rotated headers, fixed 50x32 cells,
      subtotal / band tints, and (in Visual mode) sized colour boxes. */
   table.report-grid { border-collapse: collapse; font-size: 10px; margin: 4px 0 12px 0; }
   table.report-grid th, table.report-grid td { border: 1px solid #dde2e8; }
-  table.report-grid th.corner { text-align: left; vertical-align: bottom; padding: 5px 8px; font-weight: 700; color: #444; font-size: 10px; background: #f4f6f8; }
+  table.report-grid th.corner { text-align: start; vertical-align: bottom; padding: 5px 8px; font-weight: 700; color: #444; font-size: 10px; background: #f4f6f8; }
   table.report-grid th.col { width: 30px; min-width: 30px; max-width: 30px; vertical-align: bottom; padding: 6px 0 5px; background: #f4f6f8; }
   /* Vertical headers (read bottom-to-top) keep long document / respondent
      names from overflowing the way the on-screen diagonal labels would in
@@ -66,20 +66,20 @@ export const REPORT_TABLE_CSS = `
   table.report-grid th.col.totalhead { background: #e9edf2; }
   table.report-grid th.col.totalhead .vlabel { font-weight: 700; color: #2a3340; }
   table.report-grid th.band-label { text-align: center; font-size: 9px; font-weight: 700; color: #3a4a60; background: #eef2f6; padding: 3px 4px; white-space: nowrap; overflow: hidden; }
-  table.report-grid td.rowname { text-align: left; font-weight: 600; padding: 4px 8px; max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #222; }
+  table.report-grid td.rowname { text-align: start; font-weight: 600; padding: 4px 8px; max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #222; }
   table.report-grid td.cell { width: 30px; height: 26px; padding: 0; text-align: center; color: #333; }
   table.report-grid td.cell.sub { background: #eef1f6; font-weight: 700; }
   table.report-grid td.cell.band { background: #f6f8fb; }
   table.report-grid td.cell.zero { color: #c8cdd4; }
-  table.report-grid td.totalcell { min-width: 32px; height: 26px; padding: 0 6px; text-align: center; vertical-align: middle; font-weight: 700; border-left: 2px solid #c4ccd6; color: #222; }
+  table.report-grid td.totalcell { min-width: 32px; height: 26px; padding: 0 6px; text-align: center; vertical-align: middle; font-weight: 700; border-inline-start: 2px solid #c4ccd6; color: #222; }
   table.report-grid td.pctcell { min-width: 42px; height: 26px; padding: 0 6px; text-align: center; vertical-align: middle; font-style: italic; font-size: 9px; color: #6a7b90; background: #f7f9fb; }
   table.report-grid tr.total td { border-top: 2px solid #aab4c0; font-weight: 700; background: #eef1f5; }
   .cw { height: 26px; display: flex; align-items: center; justify-content: center; }
   /* Framework Matrix: wrapped free-text cells across the page width. */
   table.report-summary { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5px; margin: 4px 0 12px 0; }
-  table.report-summary th, table.report-summary td { border: 1px solid #dde2e8; padding: 4px 6px; text-align: left; vertical-align: top; white-space: pre-wrap; overflow-wrap: anywhere; }
+  table.report-summary th, table.report-summary td { border: 1px solid #dde2e8; padding: 4px 6px; text-align: start; vertical-align: top; white-space: pre-wrap; overflow-wrap: anywhere; }
   table.report-summary th { background: #f4f6f8; color: #444; font-weight: 700; }
-  table.report-summary th .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+  table.report-summary th .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-inline-end: 4px; vertical-align: middle; }
   table.report-summary td.rowname { font-weight: 600; color: #222; }
   table.report-summary tr.group td { background: #f3f5f8; }
   table.report-summary tr.group td.rowname { font-weight: 700; }
@@ -736,7 +736,7 @@ function summaryMatrixHtml(config: any): string {
     .map((r) => {
       const cells = codeGuids.map((cg) => `<td>${escHtml(summaries[summaryKey(r.key, cg)] ?? '')}</td>`).join('')
       // Indent with padding (not a spacer) so wrapped labels stay indented.
-      return `<tr${r.isGroup ? ' class="group"' : ''}><td class="rowname${r.orphanOf ? ' orphan' : ''}" style="padding-left:${6 + r.depth * 14}px">${escHtml(fullLabel(r))}</td>${cells}</tr>`
+      return `<tr${r.isGroup ? ' class="group"' : ''}><td class="rowname${r.orphanOf ? ' orphan' : ''}" style="padding-inline-start:${6 + r.depth * 14}px">${escHtml(fullLabel(r))}</td>${cells}</tr>`
     })
     .join('')
   return `<table class="report-summary"><thead>${head}</thead><tbody>${body}</tbody></table>`

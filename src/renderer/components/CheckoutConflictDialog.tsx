@@ -45,7 +45,7 @@ export function CheckoutConflictDialog({
         {onWorkOnCopy && (
           <div style={{ margin: '0 0 16px', color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)', lineHeight: 1.5 }}>
             <p style={{ margin: '0 0 4px' }}>{t('checkout.viewOnly')}</p>
-            <ul style={{ margin: 0, paddingLeft: 20 }}>
+            <ul style={{ margin: 0, paddingInlineStart: 20 }}>
               <li><Trans i18nKey="checkout.optionTakeControl" values={{ name: marker.userName }} components={{ b: <strong /> }} /></li>
               <li><Trans i18nKey="checkout.optionCopy" values={{ name: marker.userName }} components={{ b: <strong /> }} /></li>
             </ul>

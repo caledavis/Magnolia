@@ -196,7 +196,7 @@ function FolderItem({
           alignItems: 'center',
           gap: 6,
           padding: '3px 8px',
-          paddingLeft: 8 + depth * 16,
+          paddingInlineStart: 8 + depth * 16,
           cursor: 'pointer',
           borderRadius: 'var(--radius-sm)',
           background: isDragOver ? 'var(--accent)' : 'transparent',
@@ -554,7 +554,7 @@ function DocItem({
         // When a document is inside a folder (depth > 0) bump the indent
         // by an extra 16 px so the doc icon sits under the folder name,
         // not aligned with the folder's chevron/icon column.
-        paddingLeft: 8 + depth * 16 + (depth > 0 ? 16 : 0),
+        paddingInlineStart: 8 + depth * 16 + (depth > 0 ? 16 : 0),
         cursor: 'pointer',
         borderRadius: 'var(--radius-sm)',
         background: isTagDragOver ? 'var(--accent)' : isSelected ? 'var(--selection-bg)' : 'transparent',
@@ -580,8 +580,8 @@ function DocItem({
         <div
           style={{
             position: 'absolute',
-            left: 8 + depth * 16 + (depth > 0 ? 16 : 0),
-            right: 8,
+            insetInlineStart: 8 + depth * 16 + (depth > 0 ? 16 : 0),
+            insetInlineEnd: 8,
             height: 2,
             background: 'var(--accent)',
             borderRadius: 1,
@@ -866,7 +866,7 @@ function SurveyItem({
 
   const rowStyle = (extraIndent: number, viewed: boolean): React.CSSProperties => ({
     padding: '3px 8px',
-    paddingLeft: baseIndent + extraIndent,
+    paddingInlineStart: baseIndent + extraIndent,
     cursor: 'pointer',
     borderRadius: 'var(--radius-sm)',
     background: viewed ? 'var(--selection-bg)' : 'transparent',
@@ -1114,7 +1114,7 @@ function SurveyItem({
                       style={{ ...rowStyle(60, false), cursor: 'pointer' }}
                       title={`${q.text}\n\n${text}`}
                     >
-                      <span style={{ flexShrink: 0, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums', marginRight: 4, minWidth: 14, fontSize: 10 }}>
+                      <span style={{ flexShrink: 0, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums', marginInlineEnd: 4, minWidth: 14, fontSize: 10 }}>
                         {qIdx + 1}
                       </span>
                       <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-secondary)', fontSize: 11 }}>
@@ -1177,7 +1177,7 @@ function SurveyItem({
               >
                 <span style={{ width: 12, flexShrink: 0 }} />
                 <Icon className={PALETTE_ICON_CLASS} icon={SURVEY_QUESTION_ICON} style={{ fontSize: 13, color: 'var(--text-muted)', flexShrink: 0, width: 14, ...tint('question') }} />
-                <span style={{ flexShrink: 0, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums', marginRight: 2, minWidth: 14 }}>
+                <span style={{ flexShrink: 0, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums', marginInlineEnd: 2, minWidth: 14 }}>
                   {i + 1}
                 </span>
                 <div style={{ flex: 1, minWidth: 0, color: 'var(--text-primary)' }}>
@@ -1252,7 +1252,7 @@ function TagItem({
       }}
       style={{
         padding: '3px 8px',
-        paddingLeft: 8 + depth * 16,
+        paddingInlineStart: 8 + depth * 16,
         // Shift-click range select would otherwise also extend a text
         // selection across the rows.
         userSelect: 'none',
@@ -1341,7 +1341,7 @@ function TagCategoryItem({
           alignItems: 'center',
           gap: 6,
           padding: '3px 8px',
-          paddingLeft: 24,
+          paddingInlineStart: 24,
           cursor: 'pointer',
           fontSize: 'var(--font-size-sm)',
           fontWeight: 600,
@@ -1561,7 +1561,7 @@ function ApplyDocumentTagsDialog({
                 )}
 
                 {!isCollapsed && cat.type === 'list' && (
-                  <div style={{ maxHeight: 150, overflowY: 'auto', paddingRight: 4 }}>
+                  <div style={{ maxHeight: 150, overflowY: 'auto', paddingInlineEnd: 4 }}>
                     {sortListOptions(cat.listOptions).map((opt) => {
                       const tag = catTags.find((t) => t.value === opt)
                       const assigned = tag ? isAssigned(tag) : false
@@ -3242,7 +3242,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
                     moveSourceToFolder(contextMenu.sourceGuid!, f.guid)
                   }}
                 >
-                  <Icon icon={menuIsNote ? faNotebookPen : faFolder} style={{ fontSize: 10, opacity: 0.7, marginRight: 4 }} />{f.name}
+                  <Icon icon={menuIsNote ? faNotebookPen : faFolder} style={{ fontSize: 10, opacity: 0.7, marginInlineEnd: 4 }} />{f.name}
                 </div>
               ))}
             </>

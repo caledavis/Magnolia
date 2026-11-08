@@ -383,7 +383,7 @@ export function DocumentViewer() {
                         position: 'absolute',
                         top: 0,
                         bottom: 0,
-                        left: 0,
+                        insetInlineStart: 0,
                         width: 3,
                         background: 'var(--accent)',
                         zIndex: 20,

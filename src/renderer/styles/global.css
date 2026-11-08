@@ -850,7 +850,7 @@ div:hover > .folder-row-add,
   cursor: pointer;
   white-space: nowrap;
   max-width: 180px;
-  border-right: 1px solid var(--border-color);
+  border-inline-end: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
   user-select: none;
   flex-shrink: 0;
@@ -913,7 +913,7 @@ div:hover > .folder-row-add,
 .tab-item .panel-header-popout {
   opacity: 0;
   padding: 2px 2px;
-  margin-right: -2px;
+  margin-inline-end: -2px;
   transition: opacity 0.1s, color 0.15s;
 }
 .tab-item:hover .panel-header-popout,
@@ -958,8 +958,8 @@ div:hover > .folder-row-add,
 .md-heading-4 { font-size: 1.05em; font-weight: 600; margin-top: 0.2em; }
 .md-heading-5 { font-size: 1.0em; font-weight: 600; }
 .md-heading-6 { font-size: 0.95em; font-weight: 600; color: var(--text-secondary); }
-.md-blockquote { border-left: 3px solid var(--border-color); padding-left: 12px; color: var(--text-secondary); }
-.md-list-item { padding-left: 12px; }
+.md-blockquote { border-inline-start: 3px solid var(--border-color); padding-inline-start: 12px; color: var(--text-secondary); }
+.md-list-item { padding-inline-start: 12px; }
 .md-code-block { font-family: var(--font-mono); font-size: 0.9em; background: var(--bg-tertiary); border-radius: 3px; padding: 0 4px; }
 .md-hr { border-bottom: 1px solid var(--border-color); min-height: 0.3em; }
 .md-table-header { font-weight: 700; }
@@ -1080,7 +1080,7 @@ div:hover > .folder-row-add,
 .zoom-strip > button {
   background: transparent;
   border: none;
-  border-left: 1px solid var(--border-color);
+  border-inline-start: 1px solid var(--border-color);
   border-radius: 0;
   padding: 0 8px;
   font-size: 11px;
@@ -1092,7 +1092,7 @@ div:hover > .folder-row-add,
   min-width: 24px;
   height: 100%;
 }
-.zoom-strip > button:first-child { border-left: none; }
+.zoom-strip > button:first-child { border-inline-start: none; }
 .zoom-strip > button:hover { background: var(--bg-tertiary); color: var(--text-primary); }
 .zoom-strip > button.active {
   background: var(--accent);
@@ -1113,14 +1113,14 @@ div:hover > .folder-row-add,
 .segmented > button {
   background: transparent;
   border: none;
-  border-left: 1px solid var(--border-color);
+  border-inline-start: 1px solid var(--border-color);
   border-radius: 0;
   padding: 3px 9px;
   font-size: 10px;
   color: var(--text-secondary);
   cursor: pointer;
 }
-.segmented > button:first-child { border-left: none; }
+.segmented > button:first-child { border-inline-start: none; }
 .segmented > button:hover:not(.active) { background: var(--bg-tertiary); color: var(--text-primary); }
 .segmented > button.active {
   background: var(--accent);
@@ -1342,7 +1342,7 @@ div:hover > .folder-row-add,
   background: transparent;
   font: inherit;
   color: var(--text-primary);
-  text-align: left;
+  text-align: start;
   transition: background 0.12s, border-color 0.12s;
 }
 .analysis-popover-tile:hover,
@@ -1393,7 +1393,7 @@ div:hover > .folder-row-add,
   background: transparent;
   font: inherit;
   color: var(--text-primary);
-  text-align: left;
+  text-align: start;
   transition: background 0.12s, border-color 0.12s;
 }
 .studio-popover-row:hover,
@@ -1615,7 +1615,7 @@ div:hover > .folder-row-add,
   width: 18px;
   height: 18px;
   padding: 0;
-  margin-right: -6px;
+  margin-inline-end: -6px;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -1636,7 +1636,7 @@ div:hover > .folder-row-add,
 .markdown-content { line-height: 1.6; }
 .markdown-content p { margin: 0 0 8px; }
 .markdown-content p:last-child { margin-bottom: 0; }
-.markdown-content ul, .markdown-content ol { margin: 0 0 8px; padding-left: 20px; }
+.markdown-content ul, .markdown-content ol { margin: 0 0 8px; padding-inline-start: 20px; }
 .markdown-content li { margin-bottom: 2px; }
 .markdown-content h1, .markdown-content h2, .markdown-content h3,
 .markdown-content h4, .markdown-content h5, .markdown-content h6 {
@@ -1662,7 +1662,7 @@ div:hover > .folder-row-add,
 }
 .markdown-content pre code { background: none; padding: 0; }
 .markdown-content blockquote {
-  border-left: 3px solid var(--border-color);
+  border-inline-start: 3px solid var(--border-color);
   margin: 0 0 8px;
   padding: 2px 0 2px 12px;
   color: var(--text-secondary);
@@ -1703,7 +1703,7 @@ div:hover > .folder-row-add,
 }
 .markdown-editor .tiptap p { margin: 0 0 8px; }
 .markdown-editor .tiptap p:last-child { margin-bottom: 0; }
-.markdown-editor .tiptap ul, .markdown-editor .tiptap ol { margin: 0 0 8px; padding-left: 20px; }
+.markdown-editor .tiptap ul, .markdown-editor .tiptap ol { margin: 0 0 8px; padding-inline-start: 20px; }
 .markdown-editor .tiptap li { margin-bottom: 2px; }
 .markdown-editor .tiptap li p { margin: 0; }
 .markdown-editor .tiptap h1, .markdown-editor .tiptap h2, .markdown-editor .tiptap h3 {
@@ -1729,7 +1729,7 @@ div:hover > .folder-row-add,
 }
 .markdown-editor .tiptap pre code { background: none; padding: 0; }
 .markdown-editor .tiptap blockquote {
-  border-left: 3px solid var(--border-color);
+  border-inline-start: 3px solid var(--border-color);
   margin: 0 0 8px;
   padding: 2px 0 2px 12px;
   color: var(--text-secondary);
@@ -1743,7 +1743,7 @@ div:hover > .folder-row-add,
   color: var(--text-muted);
   font-style: italic;
   pointer-events: none;
-  float: left;
+  float: inline-start;
   height: 0;
 }
 .markdown-editor .tiptap .is-empty::before {
@@ -1751,7 +1751,7 @@ div:hover > .folder-row-add,
   color: var(--text-muted);
   font-style: italic;
   pointer-events: none;
-  float: left;
+  float: inline-start;
   height: 0;
 }
 
@@ -2096,7 +2096,7 @@ div:hover > .folder-row-add,
   gap: 2px;
   flex: 1;
   min-width: 0;
-  padding-left: 4px;
+  padding-inline-start: 4px;
 }
 /* Plain text tabs. The selected one is underlined in the accent; a
  * hovered one gets a faint underline rather than a box, since a box
@@ -2133,7 +2133,7 @@ div:hover > .folder-row-add,
 .ribbon-tabs:not(.ribbon-collapsed) .ribbon-tab[aria-selected="true"]::after { background: var(--accent); }
 .ribbon-collapse {
   align-self: center;
-  margin-left: 4px;
+  margin-inline-start: 4px;
   width: 26px;
   height: 24px;
   padding: 0;
@@ -2219,10 +2219,10 @@ div:hover > .folder-row-add,
   flex-direction: column;
   align-items: center;
   padding: 0 10px;
-  border-right: 1px solid var(--border-color);
+  border-inline-end: 1px solid var(--border-color);
   flex-shrink: 0;
 }
-.ribbon-group:last-child { border-right: none; }
+.ribbon-group:last-child { border-inline-end: none; }
 .ribbon-group-buttons { display: flex; gap: 2px; flex: 1; }
 .ribbon-group-label {
   font-size: 11px;
@@ -2321,7 +2321,7 @@ div:hover > .folder-row-add,
 .ribbon-badge {
   position: absolute;
   top: 0;
-  right: 0;
+  inset-inline-end: 0;
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -2357,3 +2357,23 @@ div:hover > .folder-row-add,
 textarea {
   unicode-bidi: plaintext;
 }
+
+/* Icons that point a direction (chevrons, arrows) point the other way in
+ * a right-to-left language. `scale` rather than `transform`, so it
+ * combines with the rotations tree chevrons use for expanded. */
+[dir="rtl"] :is(
+  svg.lucide-chevron-left, svg.lucide-chevron-right,
+  svg.lucide-chevrons-left, svg.lucide-chevrons-right,
+  svg.lucide-arrow-left, svg.lucide-arrow-right,
+  svg.lucide-chevron-first, svg.lucide-chevron-last,
+  svg.lucide-panel-left, svg.lucide-panel-right,
+  svg.lucide-undo, svg.lucide-redo, svg.lucide-undo-2, svg.lucide-redo-2,
+  svg.lucide-list-indent-increase, svg.lucide-list-indent-decrease
+) {
+  scale: -1 1;
+}
+
+/* The coding margin in a right-to-left interface: its positions run from
+ * the start edge (the right), and the bracket layers are flipped so each
+ * bracket opens towards the text (CodedTextView, RichMarginColumn). */
+[dir="rtl"] [data-bracket-overlay] { transform: scaleX(-1); }

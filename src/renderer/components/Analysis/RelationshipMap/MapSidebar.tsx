@@ -64,7 +64,7 @@ function TreeNode({ label, depth, defaultOpen = false, children }: {
       <div
         onClick={() => hasChildren && setOpen(!open)}
         style={{
-          paddingLeft: 8 + depth * 16, paddingRight: 8, paddingTop: 2, paddingBottom: 2,
+          paddingInlineStart: 8 + depth * 16, paddingInlineEnd: 8, paddingTop: 2, paddingBottom: 2,
           fontSize: 12, cursor: hasChildren ? 'pointer' : 'default',
           display: 'flex', alignItems: 'center', gap: 4, userSelect: 'none',
           color: 'var(--text-muted, #8e8e93)', fontWeight: 600, fontStyle: 'italic'
@@ -134,7 +134,7 @@ function DraggableItem({ kind, data, label, depth = 0, icon, iconColor, colorPip
         e.dataTransfer.effectAllowed = 'copy'
       }}
       style={{
-        paddingLeft: 8 + depth * 16, paddingRight: 8, paddingTop: 4, paddingBottom: 4,
+        paddingInlineStart: 8 + depth * 16, paddingInlineEnd: 8, paddingTop: 4, paddingBottom: 4,
         fontSize: 12, cursor: 'grab', borderRadius: 4,
         display: 'flex', alignItems: 'center', gap: 6,
         background: isSelected ? 'var(--selection-bg)' : 'transparent',
@@ -422,7 +422,7 @@ export function MapSidebar({ data, visible }: Props) {
   return (
     <SelectionContext.Provider value={selectionCtxValue}>
     <div style={{
-      width: 240, borderRight: '1px solid var(--border-color, #e0e0e0)',
+      width: 240, borderInlineEnd: '1px solid var(--border-color, #e0e0e0)',
       display: 'flex', flexDirection: 'column',
       background: 'var(--bg-secondary, #fafafa)', flexShrink: 0, overflow: 'hidden'
     }}>
@@ -452,7 +452,7 @@ export function MapSidebar({ data, visible }: Props) {
           {data.sources.length === 0 && EMPTY}
           {/* Tags nested under Documents */}
           {filteredTags.length > 0 && (
-            <TreeNode label={<><Icon icon={faTags} style={{ fontSize: 10, marginRight: 4 }} />{t('tags.heading')}</>} depth={1} defaultOpen={false}>
+            <TreeNode label={<><Icon icon={faTags} style={{ fontSize: 10, marginInlineEnd: 4 }} />{t('tags.heading')}</>} depth={1} defaultOpen={false}>
               {tagCategories.map((cat) => {
                 const catTags = filteredTags.filter((t) => t.categoryGuid === cat.guid)
                 if (catTags.length === 0) return null

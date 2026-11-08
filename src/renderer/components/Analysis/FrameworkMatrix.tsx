@@ -616,15 +616,15 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
             </colgroup>
             <thead>
               <tr>
-                <th style={{ ...stickyHeadStyle, left: 0, zIndex: 3, textAlign: 'left' }}>
+                <th style={{ ...stickyHeadStyle, insetInlineStart: 0, zIndex: 3, textAlign: 'start' }}>
                   {rows.length === 0 ? t('framework.dropRows') : t('analysis.documents')}
                 </th>
                 {codeGuids.length === 0 ? (
-                  <th style={{ ...stickyHeadStyle, fontWeight: 400, color: 'var(--text-muted)', textAlign: 'left' }}>{t('framework.dropCodes')}</th>
+                  <th style={{ ...stickyHeadStyle, fontWeight: 400, color: 'var(--text-muted)', textAlign: 'start' }}>{t('framework.dropCodes')}</th>
                 ) : codeGuids.map((cg, colIndex) => {
                   const code = codeMap.get(cg)
                   return (
-                    <th key={cg} data-col={colIndex} style={{ ...stickyHeadStyle, textAlign: 'left' }} title={code?.name}>
+                    <th key={cg} data-col={colIndex} style={{ ...stickyHeadStyle, textAlign: 'start' }} title={code?.name}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <DragHandle
                           title={t('analysis.dragToReorder')}
@@ -647,10 +647,10 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
                 <tr key={row.path} data-entry={entryIndexByKey.get(row.path.split('/')[0])}>
                   <td
                     style={{
-                      position: 'sticky', left: 0, zIndex: 1,
+                      position: 'sticky', insetInlineStart: 0, zIndex: 1,
                       background: row.isGroup ? GROUP_TINT : 'var(--bg-panel)',
-                      borderRight: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)',
-                      padding: '6px 8px', paddingLeft: 8 + row.depth * 16, verticalAlign: 'top'
+                      borderInlineEnd: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)',
+                      padding: '6px 8px', paddingInlineStart: 8 + row.depth * 16, verticalAlign: 'top'
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
@@ -724,7 +724,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
                           }}
                           style={{
                             position: 'relative', padding: 0, verticalAlign: 'top', cursor: 'text',
-                            borderRight: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)',
+                            borderInlineEnd: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)',
                             background: row.isGroup ? GROUP_TINT : count === 0 ? EMPTY_TINT : undefined,
                             boxShadow: isSel ? 'inset 0 0 0 2px var(--accent)' : undefined
                           }}
@@ -751,7 +751,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
                           <span
                             title={t('framework.segments', { count })}
                             style={{
-                              position: 'absolute', top: 5, right: 6, pointerEvents: 'none',
+                              position: 'absolute', top: 5, insetInlineEnd: 6, pointerEvents: 'none',
                               fontSize: 9, fontWeight: 600, lineHeight: '14px', minWidth: 14, padding: '0 4px', textAlign: 'center',
                               borderRadius: 7, background: 'var(--bg-tertiary)',
                               color: count === 0 ? 'var(--text-muted)' : 'var(--text-secondary)',
@@ -816,13 +816,13 @@ function DragHandle({ title, onDragStart, onDragEnd }: {
  *  indented to line up with the label text. */
 const subLineStyle: React.CSSProperties = {
   // handle + chevron + icon, each followed by the 6px row gap
-  fontSize: 10, color: 'var(--text-muted)', marginTop: 2, paddingLeft: HANDLE_W + 6 + 10 + 6 + 13 + 6
+  fontSize: 10, color: 'var(--text-muted)', marginTop: 2, paddingInlineStart: HANDLE_W + 6 + 10 + 6 + 13 + 6
 }
 
 const stickyHeadStyle: React.CSSProperties = {
   position: 'sticky', top: 0, zIndex: 2,
   background: 'var(--bg-secondary)',
-  borderRight: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)',
+  borderInlineEnd: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)',
   padding: '8px', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)',
   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
 }

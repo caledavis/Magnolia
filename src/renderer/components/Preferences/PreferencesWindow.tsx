@@ -260,7 +260,7 @@ function AppearanceSettings({
                 <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)' }}>
                   {t(opt.labelKey)}
                   {opt.id === 'magnolia' && (
-                    <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, marginLeft: 6 }}>{t('prefs.default')}</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, marginInlineStart: 6 }}>{t('prefs.default')}</span>
                   )}
                 </div>
               </div>
@@ -819,7 +819,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
         <div style={{
           width: 180,
           flexShrink: 0,
-          borderRight: '1px solid var(--border-color)',
+          borderInlineEnd: '1px solid var(--border-color)',
           padding: '8px 0',
           overflow: 'auto'
         }}>

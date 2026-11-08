@@ -307,10 +307,10 @@ export function SurveyImportDialog({
             <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
               {t('surveyImport.sourceFormat')}
               {detectionConfident && format === detectedFormat && (
-                <span style={{ marginLeft: 4, color: 'var(--text-muted)' }}>{t('surveyImport.autoDetected')}</span>
+                <span style={{ marginInlineStart: 4, color: 'var(--text-muted)' }}>{t('surveyImport.autoDetected')}</span>
               )}
               {!detectionConfident && (
-                <span style={{ marginLeft: 4, color: 'var(--text-muted)' }}>{t('surveyImport.pleaseConfirm')}</span>
+                <span style={{ marginInlineStart: 4, color: 'var(--text-muted)' }}>{t('surveyImport.pleaseConfirm')}</span>
               )}
             </span>
             <select
@@ -408,7 +408,7 @@ export function SurveyImportDialog({
 }
 
 const thStyle: React.CSSProperties = {
-  textAlign: 'left',
+  textAlign: 'start',
   padding: '6px 10px',
   borderBottom: '1px solid var(--border-color)',
   fontWeight: 600,

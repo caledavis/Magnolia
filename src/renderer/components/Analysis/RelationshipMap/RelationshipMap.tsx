@@ -666,13 +666,13 @@ export function RelationshipMap({ data, savedConfig }: Props) {
         </ToolbarBtn>
         <ToolbarDivider />
         {/* Text alignment */}
-        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive({ textAlign: 'left' })} onClick={() => { activeEditor?.chain().focus().setTextAlign('left').run() }} title={t('editor.alignLeft')}>
+        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive({ textAlign: 'start' })} onClick={() => { activeEditor?.chain().focus().setTextAlign('left').run() }} title={t('editor.alignLeft')}>
           <Icon icon={faAlignLeft} style={{ fontSize: 14 }} />
         </ToolbarBtn>
         <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive({ textAlign: 'center' })} onClick={() => { activeEditor?.chain().focus().setTextAlign('center').run() }} title={t('editor.alignCenter')}>
           <Icon icon={faAlignCenter} style={{ fontSize: 14 }} />
         </ToolbarBtn>
-        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive({ textAlign: 'right' })} onClick={() => { activeEditor?.chain().focus().setTextAlign('right').run() }} title={t('editor.alignRight')}>
+        <ToolbarBtn disabled={!activeEditor} active={!!activeEditor?.isActive({ textAlign: 'end' })} onClick={() => { activeEditor?.chain().focus().setTextAlign('right').run() }} title={t('editor.alignRight')}>
           <Icon icon={faAlignRight} style={{ fontSize: 14 }} />
         </ToolbarBtn>
         <ToolbarDivider />

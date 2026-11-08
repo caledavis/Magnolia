@@ -123,9 +123,25 @@ function formatInterpolated(value: unknown, _format: string | undefined, lng: st
 const systemLanguages = (): readonly string[] =>
   typeof navigator !== 'undefined' ? navigator.languages ?? [navigator.language] : []
 
+/** Whether a language is written right to left, by its usual script
+ *  (from CLDR's likely subtags: "ar" → Arab), so a new right-to-left
+ *  language needs no list here. */
+export function isRtlLanguage(language: string): boolean {
+  try {
+    const script = new Intl.Locale(language).maximize().script
+    return !!script && RTL_SCRIPTS.has(script)
+  } catch {
+    return false
+  }
+}
+const RTL_SCRIPTS = new Set(['Arab', 'Hebr', 'Syrc', 'Thaa', 'Nkoo', 'Adlm', 'Rohg', 'Mand', 'Samr'])
+
 function apply(language: LanguageId): void {
   void i18n.changeLanguage(language)
   document.documentElement.lang = language
+  // The whole interface mirrors for a right-to-left language (the
+  // stylesheets use start/end, not left/right, wherever that matters).
+  document.documentElement.dir = isRtlLanguage(language) ? 'rtl' : 'ltr'
   // A window whose page names its title by key (a data-i18n attribute on <title>)
   // takes it in this language. The main window's title is the project's.
   const key = document.querySelector('title')?.dataset.i18n

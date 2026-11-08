@@ -21,7 +21,7 @@ export const REPORT_QUERY_CSS = `
   .report-query .q-result { padding: 4px 8px 4px 14px; border-bottom: 1px solid #eee; break-inside: avoid; page-break-inside: avoid; }
   .report-query .q-cite { font-size: 9.5px; color: #888; margin-bottom: 3px; }
   .report-query .codes { margin-bottom: 3px; }
-  .report-query .code-badge { display: inline-block; font-size: 9px; padding: 1px 6px; margin-right: 4px; background: #f3f4f6; border-radius: 3px; }
+  .report-query .code-badge { display: inline-block; font-size: 9px; padding: 1px 6px; margin-inline-end: 4px; background: #f3f4f6; border-radius: 3px; }
   .report-query .context { white-space: pre-wrap; font-size: 10.5px; unicode-bidi: plaintext; }
   .report-query .match { color: #222; }
 `
@@ -69,7 +69,7 @@ export function renderQueryItemHtml(refGuid: string, anchor: string, prefix = ''
     body += `<div class="doc-group"><h3 class="q-doc">${escHtml(group.sourceName)} <span class="count">(${escHtml(t('results.matchCount', { count: group.results.length }))})</span></h3>`
     for (const r of group.results) {
       const codes = r.matchedCodes
-        .map((c) => `<span class="code-badge" style="border-left:3px solid ${c.color || '#888'}">${escHtml(c.name)}</span>`)
+        .map((c) => `<span class="code-badge" style="border-inline-start:3px solid ${c.color || '#888'}">${escHtml(c.name)}</span>`)
         .join(' ')
       body += '<div class="q-result">'
       if (r.surveyCell) {

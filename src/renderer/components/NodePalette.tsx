@@ -78,7 +78,7 @@ export function PaletteButton({
       style={{
         fontSize: 11,
         padding: '3px 10px',
-        borderLeft: `3px solid ${color}`,
+        borderInlineStart: `3px solid ${color}`,
         cursor: 'grab',
         // Match the canvas surface so a chip dropped onto the canvas
         // visually "lands" on the same colour. Overrides the

@@ -277,12 +277,12 @@ export function MapElement({ element, selected, onHeaderMouseDown, onBodyMouseDo
         minHeight: element.height,
         background: 'var(--bg-primary, #fff)',
         // Avoid the `border` shorthand: in inline styles it can clobber
-        // borderLeft on subsequent re-renders (select/deselect cycles),
+        // borderInlineStart on subsequent re-renders (select/deselect cycles),
         // which made the edge colour appear to vanish.
         borderTop: `1px solid ${selected ? '#3b82f6' : 'var(--border-color, #e0e0e0)'}`,
-        borderRight: `1px solid ${selected ? '#3b82f6' : 'var(--border-color, #e0e0e0)'}`,
+        borderInlineEnd: `1px solid ${selected ? '#3b82f6' : 'var(--border-color, #e0e0e0)'}`,
         borderBottom: `1px solid ${selected ? '#3b82f6' : 'var(--border-color, #e0e0e0)'}`,
-        borderLeft: `3px solid ${color}`,
+        borderInlineStart: `3px solid ${color}`,
         borderRadius: 6,
         userSelect: 'none',
         display: 'flex',

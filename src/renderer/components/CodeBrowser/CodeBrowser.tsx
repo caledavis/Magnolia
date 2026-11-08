@@ -331,7 +331,7 @@ function CodeTreeItem({
           alignItems: 'center',
           gap: 6,
           padding: '3px 8px',
-          paddingLeft: 8 + depth * 16,
+          paddingInlineStart: 8 + depth * 16,
           cursor: 'grab',
           borderRadius: 'var(--radius-sm)',
           position: 'relative',
@@ -360,8 +360,8 @@ function CodeTreeItem({
         {isDragOver && dropPosition !== 'child' && (
           <div style={{
             position: 'absolute',
-            left: 8 + depth * 16,
-            right: 8,
+            insetInlineStart: 8 + depth * 16,
+            insetInlineEnd: 8,
             [dropPosition === 'before' ? 'top' : 'bottom']: -1,
             height: 2,
             background: 'var(--accent)',
@@ -371,7 +371,7 @@ function CodeTreeItem({
           }}>
             <div style={{
               position: 'absolute',
-              left: -3,
+              insetInlineStart: -3,
               top: -2,
               width: 6,
               height: 6,
@@ -477,16 +477,16 @@ function CodeTreeItem({
                   borderRadius: 'var(--radius-sm)',
                   transition: 'background 0.15s',
                   cursor: 'pointer',
-                  marginRight: 2
+                  marginInlineEnd: 2
                 }}
               >
                 {t('codes.mergeDroplet')}
               </span>
             )}
-            <span style={{ width: isMac ? 24 : 40, minWidth: isMac ? 24 : 40, flexShrink: 0, fontSize: 10, color: 'var(--text-muted)', textAlign: 'right' }}>
+            <span style={{ width: isMac ? 24 : 40, minWidth: isMac ? 24 : 40, flexShrink: 0, fontSize: 10, color: 'var(--text-muted)', textAlign: 'end' }}>
               {code.hotkey !== undefined ? modKey(code.hotkey) : ''}
             </span>
-            <span style={{ width: 28, minWidth: 28, flexShrink: 0, fontSize: 10, color: 'var(--text-muted)', textAlign: 'right' }}>
+            <span style={{ width: 28, minWidth: 28, flexShrink: 0, fontSize: 10, color: 'var(--text-muted)', textAlign: 'end' }}>
               {count > 0 ? count : ''}
             </span>
           </>

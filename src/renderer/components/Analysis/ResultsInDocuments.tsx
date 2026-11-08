@@ -596,7 +596,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)', marginRight: 4 }}>{t('analysis.results')}</span>
+              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)', marginInlineEnd: 4 }}>{t('analysis.results')}</span>
               <SegmentedControl
                 label={t('analysis.view')}
                 value={view}
@@ -656,7 +656,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                       style={{
                         padding: 4,
                         borderBottom: '1px solid var(--border-color)',
-                        textAlign: 'left',
+                        textAlign: 'start',
                         minWidth: hasGroupedHeader ? 240 : 140
                       }}
                     />
@@ -675,7 +675,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                           onClick={() => setQueryGuids((p) => p.filter((g) => g !== qGuid))}
                           title={t('resultsInDocs.removeQuery')}
                           style={{
-                            position: 'absolute', top: 2, right: 2,
+                            position: 'absolute', top: 2, insetInlineEnd: 2,
                             fontSize: 9, color: 'var(--text-muted)',
                             cursor: 'pointer', padding: '0 3px',
                             opacity: 0.5,
@@ -737,7 +737,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                                   style={{
                                     padding: '4px 6px',
                                     borderBottom: '1px solid var(--border-color)',
-                                    borderRight: '1px solid var(--border-color)',
+                                    borderInlineEnd: '1px solid var(--border-color)',
                                     fontWeight: 700,
                                     fontSize: 10,
                                     color: 'var(--text-secondary)',
@@ -831,7 +831,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                         <td onClick={() => handleColTotalClick(j)} style={{
                           width: 50, minWidth: 50, maxWidth: 50, height: 32,
                           borderBottom: '1px solid var(--border-color)',
-                          borderLeft: '2px solid var(--border-color)',
+                          borderInlineStart: '2px solid var(--border-color)',
                           borderTop: col.isSubtotal ? '1px solid var(--border-color)' : undefined,
                           background: col.isSubtotal ? 'color-mix(in srgb, var(--text-secondary) 6%, transparent)' : undefined,
                           textAlign: 'center',
@@ -863,7 +863,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                       style={{ padding: '4px 6px', borderTop: '2px solid var(--border-color)', fontWeight: 700 }}
                     >
                       {t('analysis.total')}
-                      <span style={{ marginLeft: 6, fontWeight: 400, fontSize: 11, color: 'var(--text-secondary)' }}>
+                      <span style={{ marginInlineStart: 6, fontWeight: 400, fontSize: 11, color: 'var(--text-secondary)' }}>
                         ({resultDocLabel})
                       </span>
                     </td>
@@ -883,7 +883,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                     <td onClick={handleGrandTotalClick} style={{
                       width: 50, minWidth: 50, maxWidth: 50, height: 32,
                       borderTop: '2px solid var(--border-color)',
-                      borderLeft: '2px solid var(--border-color)',
+                      borderInlineStart: '2px solid var(--border-color)',
                       textAlign: 'center',
                       fontWeight: 700,
                       cursor: showGrandTotal > 0 ? 'pointer' : 'default',

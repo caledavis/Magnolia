@@ -737,7 +737,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
           <button onClick={() => setZoom((z) => Math.min(4, z * 1.1))} title={t('viewer.zoomIn')}>+</button>
           <button onClick={handleFit} title={t('viewer.fitWindow')}>{t('viewer.fit')}</button>
         </div>
-        <div className="zoom-strip" style={{ marginLeft: 6 }}>
+        <div className="zoom-strip" style={{ marginInlineStart: 6 }}>
           <button
             onClick={() => { setSelectionMode('text'); setPendingBoxSelection(null); setBoxDrag(null) }}
             title={t('viewer.textSelection')}
@@ -881,7 +881,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
           {/* Margin column — inline to the right, shrinks gracefully before overlapping.
               Min-width reserves enough room for a readable code label even when
               the bracket zone grows with many overlapping codings. */}
-          <div style={{ flexShrink: 1, flexGrow: 0, flexBasis: 260, position: 'relative', marginLeft: 8, alignSelf: 'stretch', minWidth: 180 }}>
+          <div style={{ flexShrink: 1, flexGrow: 0, flexBasis: 260, position: 'relative', marginInlineStart: 8, alignSelf: 'stretch', minWidth: 180 }}>
             <RichMarginColumn
           contentRef={pagesContentRef}
           containerRef={pagesContentRef}
@@ -957,7 +957,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
                 <div key={code.guid} className="context-menu-item" onClick={() => handleApplyCode(code.guid)}>
                   <span className="color-pip" style={{ background: code.color || '#888' }} />
                   <span style={{ flex: 1 }}>{code.name}</span>
-                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginLeft: 12 }}>{modKey(code.hotkey!)}</span>
+                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginInlineStart: 12 }}>{modKey(code.hotkey!)}</span>
                 </div>
               ))}
               {hotkeyCodes.length === 0 && (
@@ -1068,7 +1068,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
               >
                 <Icon
                   icon={memoPopup.isQuote ? QUOTE_ICON : (m.startPosition === m.endPosition ? MEMO_POINT_ICON : MEMO_RANGED_ICON)}
-                  style={{ marginRight: 6, fontSize: 10, color: memoPopup.isQuote ? 'var(--quote-icon-color)' : undefined }}
+                  style={{ marginInlineEnd: 6, fontSize: 10, color: memoPopup.isQuote ? 'var(--quote-icon-color)' : undefined }}
                 />
                 <span style={{ flex: 1 }}>{m.title || (memoPopup.isQuote ? t('viewer.quote') : t('memos.untitled'))}</span>
               </div>

@@ -293,7 +293,7 @@ export function MemoFab(props: Props) {
           // scrollbar gutter the inner scroll area reserves when it
           // overflows; without it the FAB would sit 8 px right of
           // the section edges as soon as the scrollbar appears.
-          right: 20 + scrollbarGutter,
+          insetInlineEnd: 20 + scrollbarGutter,
           zIndex: 5
         } : {
           // Inline variant — caller controls placement via the

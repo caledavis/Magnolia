@@ -585,7 +585,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
                 >
                   {t('queryBuilder.fromDocuments')}
                 </span>
-                <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', marginInlineStart: 'auto' }}>
                   {documentsSummary(docCount, data.sources.length, docFilter)}
                 </span>
               </div>

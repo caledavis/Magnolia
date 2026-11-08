@@ -489,7 +489,7 @@ function CodingsPane({ diff }: { diff: MergeDiff }): JSX.Element {
                     onChange={() => toggleCoding(key)}
                     label={<CodingLabel code={code} suffix={reconciling ? t('merge.codingTheirsReconciling', who) : t('merge.codingTheirs', who)} />}
                   />
-                  <div style={{ marginLeft: 22 }}>
+                  <div style={{ marginInlineStart: 22 }}>
                     <CodingPreview sourceGuid={c.sourceGuid} instance={inst} findCode={findCode} />
                   </div>
                 </div>
@@ -509,7 +509,7 @@ function CodingsPane({ diff }: { diff: MergeDiff }): JSX.Element {
                     onChange={() => toggleCoding(key)}
                     label={<CodingLabel code={code} suffix={reconciling ? t('merge.codingMineReconciling') : t('merge.codingMine')} />}
                   />
-                  <div style={{ marginLeft: 22 }}>
+                  <div style={{ marginInlineStart: 22 }}>
                     <CodingPreview sourceGuid={c.sourceGuid} instance={inst} findCode={findCode} />
                   </div>
                 </div>
@@ -832,7 +832,7 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
       </div>
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        <div style={{ width: 180, flexShrink: 0, borderRight: '1px solid var(--border-color)', overflowY: 'auto', padding: '10px 0' }}>
+        <div style={{ width: 180, flexShrink: 0, borderInlineEnd: '1px solid var(--border-color)', overflowY: 'auto', padding: '10px 0' }}>
           {allCategories.map((cat) => {
             const count = categoryCount(cat.id)
             const reviewed = approvedCount(cat.id)

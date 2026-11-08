@@ -556,7 +556,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)', marginRight: 4 }}>{t('analysis.results')}</span>
+              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)', marginInlineEnd: 4 }}>{t('analysis.results')}</span>
               <SegmentedControl
                 label={t('analysis.view')}
                 value={view}
@@ -637,7 +637,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                     </tr>
                   )}
                   <tr>
-                    <th style={{ padding: 4, borderBottom: '1px solid var(--border-color)', textAlign: 'left', minWidth: 100, verticalAlign: 'bottom' }}>{t('analysis.code')}</th>
+                    <th style={{ padding: 4, borderBottom: '1px solid var(--border-color)', textAlign: 'start', minWidth: 100, verticalAlign: 'bottom' }}>{t('analysis.code')}</th>
                     {columns.map((col, j) => (
                       <Fragment key={col.id}>
                         <th
@@ -686,10 +686,10 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                     }
                     return (
                     <tr key={codeGuid}>
-                      <td style={{ padding: '4px 6px', paddingLeft: 6 + depth * 14, borderBottom: '1px solid var(--border-color)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>
-                        <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: codeMap.get(codeGuid)?.color || '#888', marginRight: 4, verticalAlign: 'middle' }} />
+                      <td style={{ padding: '4px 6px', paddingInlineStart: 6 + depth * 14, borderBottom: '1px solid var(--border-color)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>
+                        <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: codeMap.get(codeGuid)?.color || '#888', marginInlineEnd: 4, verticalAlign: 'middle' }} />
                         {truncate(codeMap.get(codeGuid)?.name || '', 16)}
-                        <span onClick={() => setCodeGuids((p) => p.filter((g) => g !== codeGuid))} style={{ marginLeft: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>x</span>
+                        <span onClick={() => setCodeGuids((p) => p.filter((g) => g !== codeGuid))} style={{ marginInlineStart: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>x</span>
                       </td>
                       {columns.map((col, j) => {
                         const val = showGrid[i][j]
@@ -751,7 +751,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                       <td onClick={() => handleRowTotalClick(i)} style={{
                         width: 50, minWidth: 50, maxWidth: 50, height: 32,
                         borderBottom: '1px solid var(--border-color)',
-                        borderLeft: '2px solid var(--border-color)',
+                        borderInlineStart: '2px solid var(--border-color)',
                         textAlign: 'center',
                         fontWeight: 700,
                         cursor: showRowTotals[i] > 0 ? 'pointer' : 'default',
@@ -805,7 +805,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                     <td onClick={handleGrandTotalClick} style={{
                       width: 50, minWidth: 50, maxWidth: 50, height: 32,
                       borderTop: '2px solid var(--border-color)',
-                      borderLeft: '2px solid var(--border-color)',
+                      borderInlineStart: '2px solid var(--border-color)',
                       textAlign: 'center',
                       fontWeight: 700,
                       cursor: showGrandTotal > 0 ? 'pointer' : 'default',

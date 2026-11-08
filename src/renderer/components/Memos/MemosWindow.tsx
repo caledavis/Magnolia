@@ -190,7 +190,7 @@ export function MemosWindow() {
   .memo-date { font-size: 10px; color: #888; margin-bottom: 6px; }
   .memo-content { font-size: 11px; color: #444; }
   .memo-content p { margin: 0 0 6px; } .memo-content p:last-child { margin-bottom: 0; }
-  .memo-content ul, .memo-content ol { margin: 0 0 6px; padding-left: 18px; }
+  .memo-content ul, .memo-content ol { margin: 0 0 6px; padding-inline-start: 18px; }
 `
     const html = buildPdfDocument({
       title: t('memos.windowTitle'),

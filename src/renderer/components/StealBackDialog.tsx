@@ -44,7 +44,7 @@ export function StealBackDialog({
         </p>
         <div style={{ margin: '0 0 16px', color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)', lineHeight: 1.5 }}>
           <p style={{ margin: '0 0 4px' }}>{t('stealBack.youCan')}</p>
-          <ul style={{ margin: 0, paddingLeft: 20 }}>
+          <ul style={{ margin: 0, paddingInlineStart: 20 }}>
             <li><Trans i18nKey="stealBack.optionTakeControl" values={{ name: marker.userName }} components={{ b: <strong /> }} /></li>
             <li><Trans i18nKey="stealBack.optionCopy" components={{ b: <strong /> }} /></li>
           </ul>

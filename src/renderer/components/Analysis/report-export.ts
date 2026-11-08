@@ -217,9 +217,9 @@ const EXPORT_CSS = `
   .report-toc .toc-list { margin-top: 6px; }
   .report-toc .toc-entry { display: flex; align-items: baseline; text-decoration: none; color: #1155cc; font-size: 11px; margin: 2px 0; }
   .report-toc .toc-l0 { font-weight: 600; margin-top: 7px; }
-  .report-toc .toc-l1 { padding-left: 18px; }
-  .report-toc .toc-l2 { padding-left: 36px; font-size: 10.5px; }
-  .report-toc .toc-num { flex-shrink: 0; margin-right: 7px; font-variant-numeric: tabular-nums; }
+  .report-toc .toc-l1 { padding-inline-start: 18px; }
+  .report-toc .toc-l2 { padding-inline-start: 36px; font-size: 10.5px; }
+  .report-toc .toc-num { flex-shrink: 0; margin-inline-end: 7px; font-variant-numeric: tabular-nums; }
   .report-toc .toc-label { flex-shrink: 1; }
   .report-toc .toc-dots { flex: 1 1 auto; min-width: 14px; border-bottom: 1px dotted #bbb; margin: 0 5px; position: relative; top: -3px; }
   .report-toc .toc-page { flex-shrink: 0; color: #555; }
@@ -232,11 +232,11 @@ const EXPORT_CSS = `
      sentence case — not the old grey all-caps. */
   .report-item-head { font-size: 12px; font-weight: 600; color: #333; margin: 0 0 7px 0; }
   /* The Contents number echoed on each body heading so the two agree. */
-  .report-item-num { color: #888; font-weight: 600; font-variant-numeric: tabular-nums; margin-right: 3px; }
+  .report-item-num { color: #888; font-weight: 600; font-variant-numeric: tabular-nums; margin-inline-end: 3px; }
   .report-text { font-size: 11px; color: #222; }
   .report-text p { margin: 0 0 6px 0; }
   .report-text u { text-decoration: underline; }
-  .report-quote { border-left: 3px solid #ccc; padding: 2px 0 2px 12px; margin: 0; color: #333; }
+  .report-quote { border-inline-start: 3px solid #ccc; padding: 2px 0 2px 12px; margin: 0; color: #333; }
   .report-quote .src { display: block; font-style: normal; font-size: 10px; color: #888; margin-top: 4px; }
   .report-memo .memo-content { font-size: 11px; color: #222; }
   /* Every document starts on a fresh page, and — unlike the other blocks,

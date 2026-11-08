@@ -50,7 +50,9 @@ export function CodeLabel({
       data-margin-label="1"
       style={{
         position: 'absolute',
-        left,
+        // From the margin's start edge (its right in a right-to-left
+        // interface; see CodedTextView's margin overlay).
+        insetInlineStart: left,
         top,
         maxWidth,
         fontFamily: 'var(--font-mono)',

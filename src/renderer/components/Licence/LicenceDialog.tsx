@@ -50,7 +50,7 @@ export function LicenceDialog({ open, onClose }: Props) {
       >
         <h2 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 600 }}>{t('toolbar.licenceAttributions')}</h2>
 
-        <div style={{ overflowY: 'auto', flex: 1, paddingRight: 4 }}>
+        <div style={{ overflowY: 'auto', flex: 1, paddingInlineEnd: 4 }}>
           <p style={{ margin: '0 0 8px', fontSize: 'var(--font-size-base)', lineHeight: 1.5 }}>
             <strong>{t('licence.free')}</strong>
           </p>

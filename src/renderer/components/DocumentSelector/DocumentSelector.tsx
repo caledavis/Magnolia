@@ -1308,9 +1308,9 @@ export function DocumentSelector({
                 height: h,
                 borderRadius: 'var(--radius-sm)',
                 borderTop: `3px solid ${color}`,
-                borderRight: `1.5px solid ${selected ? color : 'var(--border-color)'}`,
+                borderInlineEnd: `1.5px solid ${selected ? color : 'var(--border-color)'}`,
                 borderBottom: `1.5px solid ${selected ? color : 'var(--border-color)'}`,
-                borderLeft: `1.5px solid ${selected ? color : 'var(--border-color)'}`,
+                borderInlineStart: `1.5px solid ${selected ? color : 'var(--border-color)'}`,
                 background: 'var(--bg-panel)',
                 boxShadow: selected
                   ? `0 0 0 2px ${color}44, 0 2px 8px rgba(0,0,0,0.15)`
@@ -1361,7 +1361,7 @@ export function DocumentSelector({
                               : nd
                           ))
                         }}
-                        style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer', flexShrink: 0, marginLeft: 2 }}
+                        style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer', flexShrink: 0, marginInlineStart: 2 }}
                       >
                         <Icon icon={faXmark} />
                       </span>
@@ -1633,7 +1633,7 @@ export function DocumentSelector({
                       key={`slot-${i}`}
                       style={{
                         height: SLOT_H, lineHeight: `${SLOT_H}px`,
-                        paddingLeft: PORT_R + 6, fontSize: 9,
+                        paddingInlineStart: PORT_R + 6, fontSize: 9,
                         color: name ? 'var(--text-primary)' : 'var(--text-secondary)',
                         fontWeight: name ? 600 : 400,
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
@@ -1803,7 +1803,7 @@ export function DocumentSelector({
           style={{
             position: 'absolute',
             top: 6,
-            right: 6,
+            insetInlineEnd: 6,
             zIndex: 70,
             fontSize: 10,
             padding: '3px 8px',
@@ -1880,7 +1880,7 @@ export function DocumentSelector({
                           <div>
                             <div style={{ fontWeight: 600 }}>Respondents ({scope!.respondents.length}):</div>
                             {scopeListItems(scope!.respondents).map((label, i) => (
-                              <div key={i} style={{ paddingLeft: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>• {label}</div>
+                              <div key={i} style={{ paddingInlineStart: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>• {label}</div>
                             ))}
                           </div>
                         )}
@@ -1888,7 +1888,7 @@ export function DocumentSelector({
                           <div style={{ marginTop: scope!.respondents.length > 0 ? 2 : 0 }}>
                             <div style={{ fontWeight: 600 }}>Questions ({scope!.questions.length}):</div>
                             {scopeListItems(scope!.questions).map((label, i) => (
-                              <div key={i} style={{ paddingLeft: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>• {label}</div>
+                              <div key={i} style={{ paddingInlineStart: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>• {label}</div>
                             ))}
                           </div>
                         )}

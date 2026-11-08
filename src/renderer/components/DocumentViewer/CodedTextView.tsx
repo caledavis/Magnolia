@@ -1019,10 +1019,18 @@ function CodedTextViewImpl({
       // mounted). Text can never render past this, since it's bounded by
       // the same flex box.
       const firstMarginDiv = container.querySelector<HTMLDivElement>('[data-margin-col]')
+      // Horizontal positions in the margin are distances from the
+      // container's start edge: its left, or its right in a right-to-left
+      // interface, where the margin's layers are mirrored to match (the
+      // bracket layer flipped by CSS, the labels and icons placed from the
+      // start edge).
+      const rtl = getComputedStyle(container).direction === 'rtl'
       let marginCeilingPx = containerRect.width - (MARGIN_LABEL_W + bracketZoneW + 14)
       if (firstMarginDiv) {
         const rect = firstMarginDiv.getBoundingClientRect()
-        marginCeilingPx = rect.left - containerRect.left + container.scrollLeft
+        marginCeilingPx = rtl
+          ? containerRect.right - rect.right + Math.abs(container.scrollLeft)
+          : rect.left - containerRect.left + container.scrollLeft
       }
 
       // Build span data once, tracking the furthest-right extent of any
@@ -1040,7 +1048,7 @@ function CodedTextViewImpl({
           const r = clientRects[i]
           if (r.height > 0 && r.width > 0) {
             rects.push(r)
-            maxContentRight = Math.max(maxContentRight, r.right - containerRect.left)
+            maxContentRight = Math.max(maxContentRight, rtl ? containerRect.right - r.left : r.right - containerRect.left)
           }
         }
         if (rects.length > 0) spanPositions.push({ cpStart, cpEnd, rects })
@@ -1597,7 +1605,7 @@ function CodedTextViewImpl({
           if (range.start === range.end) onSelectionCleared?.()
           else onTextSelected(range.start, range.end, [...text].slice(range.start, range.end).join(''))
         }}
-        style={{ outline: 'none', position: 'relative', minHeight: 22 * 4, paddingLeft: 20 }}
+        style={{ outline: 'none', position: 'relative', minHeight: 22 * 4, paddingInlineStart: 20 }}
       >
         {body}
         {needsTrailingLine && (
@@ -1608,7 +1616,7 @@ function CodedTextViewImpl({
         {text === '' && placeholder && (
           <div
             contentEditable={false}
-            style={{ position: 'absolute', top: 0, left: 20, lineHeight: '22px', color: 'var(--text-muted)', pointerEvents: 'none', userSelect: 'none' }}
+            style={{ position: 'absolute', top: 0, insetInlineStart: 20, lineHeight: '22px', color: 'var(--text-muted)', pointerEvents: 'none', userSelect: 'none' }}
           >
             {placeholder}
           </div>
@@ -1633,7 +1641,7 @@ function CodedTextViewImpl({
       }}
     >
       {/* Bracket overlay — positioned by DOM measurement, independent of line wrapping */}
-      <div ref={bracketOverlayRef} data-coding-overlay="1" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', userSelect: 'none', WebkitUserSelect: 'none', zIndex: 1 }} />
+      <div ref={bracketOverlayRef} data-coding-overlay="1" data-bracket-overlay="1" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', userSelect: 'none', WebkitUserSelect: 'none', zIndex: 1 }} />
       {/* Label overlay — React-rendered so mouseenter/click handlers
           persist across overlay rebuilds. Labels live in their own layer
           so the imperative bracket-shapes layer can be freely cleared.
@@ -1987,7 +1995,7 @@ function CodedTextViewImpl({
                   alignSelf: 'stretch',
                   position: 'relative',
                   userSelect: 'none',
-                  marginLeft: 8
+                  marginInlineStart: 8
                 }}
               >
                 {/* Per-line bracket/label rendering removed — overlay handles this */}
@@ -2002,8 +2010,8 @@ function CodedTextViewImpl({
               style={{
                 display: 'flex',
                 flexShrink: 0,
-                paddingLeft: 2,
-                paddingRight: 4,
+                paddingInlineStart: 2,
+                paddingInlineEnd: 4,
                 width: 18 * 2 + 2 + 4,
                 minWidth: 18 * 2 + 2 + 4
               }}
@@ -2050,7 +2058,7 @@ function CodedTextViewImpl({
               >
                 <Icon
                   icon={memoPopup.isQuote ? QUOTE_ICON : (m.startPosition === m.endPosition ? MEMO_POINT_ICON : MEMO_RANGED_ICON)}
-                  style={{ marginRight: 6, fontSize: 10, color: memoPopup.isQuote ? '#d94a4a' : undefined }}
+                  style={{ marginInlineEnd: 6, fontSize: 10, color: memoPopup.isQuote ? '#d94a4a' : undefined }}
                 />
                 <span style={{ flex: 1 }}>{m.title || (memoPopup.isQuote ? t('viewer.quote') : t('memos.untitled'))}</span>
               </div>

@@ -117,13 +117,13 @@ const BASE_PDF_CSS = `
   .subtitle { font-size: 11px; color: #888; margin-bottom: 20px; }
   .section-heading { font-size: 12px; font-weight: 600; color: #555; margin: 24px 0 8px 0; }
   table { width: 100%; border-collapse: collapse; font-size: 11px; }
-  th { text-align: left; padding: 6px 10px; border-bottom: 1px solid #ccc; font-weight: 600; font-size: 10px; color: #888; }
+  th { text-align: start; padding: 6px 10px; border-bottom: 1px solid #ccc; font-weight: 600; font-size: 10px; color: #888; }
   td { padding: 8px 10px; border-bottom: 1px solid #eee; vertical-align: top; color: #222; word-wrap: break-word; }
   tr { break-inside: avoid; page-break-inside: avoid; }
   code { font-size: 0.92em; background: #f3f4f6; padding: 1px 3px; border-radius: 2px; }
   pre { background: #f3f4f6; padding: 6px; border-radius: 3px; overflow-x: auto; margin: 0 0 6px; }
   pre code { background: none; padding: 0; }
-  blockquote { border-left: 2px solid #ddd; margin: 0 0 6px; padding: 2px 0 2px 10px; color: #666; }
+  blockquote { border-inline-start: 2px solid #ddd; margin: 0 0 6px; padding: 2px 0 2px 10px; color: #666; }
   .muted { color: #888; }
   .empty { color: #aaa; font-style: italic; font-size: 10.5px; }
 `
