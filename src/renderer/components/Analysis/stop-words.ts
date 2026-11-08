@@ -145,7 +145,44 @@ const LISTS = {
     उनका उन्हें तरह उस उसे उसका उसकी उसके आदि रहा रही रहे पे मैं मुझे
     मेरा मेरी मेरे हम हमारे हमारी हमें तुम तुम्हारे भी तब क्या क्यों
     कैसे कहाँ यहाँ वहाँ लेकिन मगर क्योंकि इसलिए फिर अब जी हाँ गए गई
-    होगा होगी होंगे एक`
+    होगा होगी होंगे एक`,
+  de: `
+    aber alle allem allen aller alles als also am an andere anderen auch
+    auf aus bei beim bin bis bist da dabei damit dann das dass dein deine
+    dem den denn der des dessen die dies diese diesem diesen dieser dieses
+    doch dort du durch ein eine einem einen einer eines er es etwas euch
+    euer für gegen gewesen hab habe haben hat hatte hatten hier hin hinter
+    ich ihm ihn ihnen ihr ihre ihrem ihren ihrer im in indem ins ist ja
+    jede jedem jeden jeder jedes jetzt kann kannst kein keine keinem
+    keinen keiner können könnte machen man manche mehr mein meine meinem
+    meinen meiner mich mir mit muss musste nach nicht nichts noch nun nur
+    ob oder ohne schon sehr sein seine seinem seinen seiner selbst sich
+    sie sind so solche soll sollte sondern sonst über um und uns unser
+    unsere unter viel vom von vor wann war waren warum was weil weiter
+    welche welchem welchen welcher wenn wer werde werden wie wieder will
+    wir wird wirst wo wollen wollte würde würden zu zum zur zwar zwischen`,
+  fi: `
+    ei eikä emme en enkä et ette että he heidän heille heillä heiltä
+    heissä heistä heitä hän häneen hänelle hänellä häneltä hänen hänessä
+    hänestä hänet häntä itse ja johon joiden joihin joille joilla joilta
+    joina joissa joista joita joka joksi jolla jolle jolta jona jonka jos
+    jossa josta jota jotka kanssa keiden keihin keille keillä keiltä keinä
+    keissä keistä keitä keneen keneksi kenelle kenellä keneltä kenen
+    kenenä kenessä kenestä kenet ketkä ketä koska kuin kuka kun me meidän
+    meille meillä meiltä meissä meistä meitä mihin mikä miksi mille millä
+    miltä minkä minua minulla minulle minulta minun minussa minusta minut
+    minä missä mistä mitkä mitä mukaan mutta ne niiden niihin niille
+    niillä niiltä niin niinä niissä niistä niitä noiden noihin noille
+    noilla noilta noin noina noissa noista noita nuo nyt näiden näihin
+    näille näillä näiltä näinä näissä näistä näitä nämä ole olemme olen
+    olet olette oli olimme olin olisi olisimme olisin olisit olisitte
+    olisivat olit olitte olivat olla olleet ollut on ovat se sekä sen
+    siihen siinä siitä siksi sille sillä siltä sinua sinulla sinulle
+    sinulta sinun sinussa sinusta sinut sinä sitä tai te teidän teille
+    teillä teiltä teissä teistä teitä tuo tuohon tuoksi tuolla tuolle
+    tuolta tuon tuona tuossa tuosta tuota tähän täksi tälle tällä tältä
+    tämä tämän tänä tässä tästä tätä vaan vai vaikka yli myös vain jo
+    hyvin aina sitten kuitenkin`
 } satisfies Record<LanguageId, string> & Record<string, string>
 
 /** The languages with stop words: the interface languages, and others. */

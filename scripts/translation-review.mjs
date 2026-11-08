@@ -126,7 +126,7 @@ function notesFor(english) {
 
 const LANGUAGE_NAMES = {
   es: 'Spanish', nl: 'Dutch', 'pt-BR': 'Portuguese (Brazil)', 'pt-PT': 'Portuguese (Portugal)', ar: 'Arabic',
-  fr: 'French', ru: 'Russian', 'zh-Hans': 'Chinese (Simplified)', it: 'Italian', hi: 'Hindi'
+  fr: 'French', ru: 'Russian', 'zh-Hans': 'Chinese (Simplified)', it: 'Italian', hi: 'Hindi', de: 'German', fi: 'Finnish'
 }
 
 /** The rows of a markdown table under `heading` in GLOSSARY.md. */

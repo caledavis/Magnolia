@@ -29,10 +29,12 @@ import zhHans from '../locales/zh-Hans.json'
 import it from '../locales/it.json'
 import hi from '../locales/hi.json'
 import ptPT from '../locales/pt-PT.json'
+import de from '../locales/de.json'
+import fi from '../locales/fi.json'
 
 /** Every catalogue, by language id. Adding a language: see "Adding a
  *  language" in locales/GLOSSARY.md (the tests name anything missed). */
-const CATALOGUES = { en, es, nl, 'pt-BR': ptBR, ar, fr, ru, 'zh-Hans': zhHans, it, hi, 'pt-PT': ptPT }
+const CATALOGUES = { en, es, nl, 'pt-BR': ptBR, ar, fr, ru, 'zh-Hans': zhHans, it, hi, 'pt-PT': ptPT, de, fi }
 
 export type LanguageId = keyof typeof CATALOGUES
 export const LANGUAGE_IDS = Object.keys(CATALOGUES) as readonly LanguageId[]

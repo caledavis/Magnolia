@@ -11,7 +11,9 @@
       "zh-Hans": "简体中文",
       "it": "Italiano",
       "hi": "हिन्दी",
-      "pt-PT": "Português (Portugal)"
+      "pt-PT": "Português (Portugal)",
+      "de": "Deutsch",
+      "fi": "Suomi"
     },
     "system": "Как на компьютере ({{language}})"
   },
