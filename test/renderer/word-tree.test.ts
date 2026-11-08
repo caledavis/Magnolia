@@ -92,6 +92,13 @@ describe('whole-word search in other scripts', () => {
   const source = { guid: 'doc', name: 'Doc.txt', plainTextContent: content, selections: [] } as unknown as TextSource
   const find = (text: string) => executeQuery({ documentFilter: {}, codeCondition: wordCondition(text) }, [source], {}, [], [])
 
+  it('finds a Chinese word where the dictionary breaks words', () => {
+    const zh = { guid: 'zh', name: 'zh.txt', plainTextContent: '我们的学生很喜欢大学生活。', selections: [] } as unknown as TextSource
+    const findZh = (text: string) => executeQuery({ documentFilter: {}, codeCondition: wordCondition(text) }, [zh], {}, [], [])
+    expect(findZh('学生')).toHaveLength(1)
+    expect(findZh('我们')).toHaveLength(1)
+  })
+
   it('finds an Arabic word only as a whole word', () => {
     expect(find('يحب')).toHaveLength(1)
     expect(find('المدرسة')).toHaveLength(2)

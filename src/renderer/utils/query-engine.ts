@@ -14,7 +14,7 @@ import { buildCellText } from './survey/cell-text'
 import { sentenceSpans } from './sentences'
 import { resolveTagCellScope, tagMembershipFromTags, type TagCellScope } from './survey-cell-scope'
 import { t } from '../i18n'
-import { isWordBoundary } from './words'
+import { isWordBoundary, isWordEdge } from './words'
 
 /** Resolve the text a selection actually points into.
  *
@@ -506,9 +506,9 @@ function nextTextMatch(haystack: string, needle: string, wholeWord: boolean | un
   while (true) {
     const idx = haystack.indexOf(needle, pos)
     if (idx === -1 || !wholeWord) return idx
-    const charBefore = idx > 0 ? haystack[idx - 1] : undefined
-    const charAfter = idx + needle.length < haystack.length ? haystack[idx + needle.length] : undefined
-    if ((!startsInWord || isWordBoundary(charBefore)) && (!endsInWord || isWordBoundary(charAfter))) return idx
+    // A word edge: beside a space or punctuation, or a dictionary word
+    // break in a script written without spaces (Chinese, Thai).
+    if ((!startsInWord || isWordEdge(haystack, idx)) && (!endsInWord || isWordEdge(haystack, idx + needle.length))) return idx
     pos = idx + 1
   }
 }

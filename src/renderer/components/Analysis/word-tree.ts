@@ -12,11 +12,8 @@
 import { sentencesOf, type SourceText } from './word-counts'
 import { measureTextWidth } from '../../utils/measure-text'
 import { SVG_FONT_FAMILY } from '../../utils/use-theme-svg-colors'
-import { WORD_CHAR, isRtlText } from '../../utils/words'
+import { wordAndMarkTokens, isRtlText } from '../../utils/words'
 
-/** Words (letters and digits in any script, with inner apostrophes) and
- *  single punctuation marks, so branches can run on past a comma. */
-const TREE_TOKEN_RE = new RegExp(`[${WORD_CHAR}]+(?:['’][${WORD_CHAR}]+)*|[^\\s]`, 'gu')
 
 /** How far a branch reaches from the word, in words and marks. */
 export const TREE_DEPTH = 12
@@ -127,7 +124,8 @@ export function buildWordTree(passages: Iterable<SourceText>, focus: string): Wo
   for (const p of passages) {
     for (const sentence of sentencesOf(p.text)) {
       const toks: Token[] = []
-      for (const m of sentence.matchAll(TREE_TOKEN_RE)) toks.push({ key: m[0].toLowerCase(), start: m.index!, end: m.index! + m[0].length })
+      // Words and single punctuation marks, so branches run on past a comma.
+      for (const t of wordAndMarkTokens(sentence)) toks.push({ key: t.word.toLowerCase(), start: t.start, end: t.end })
       for (let i = 0; i < toks.length; i++) {
         if (toks[i].key !== target) continue
         insert(after, toks, i, 1, sentence, count)

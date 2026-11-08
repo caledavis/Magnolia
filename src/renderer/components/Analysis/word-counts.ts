@@ -14,7 +14,7 @@ import { stripFormatting } from '../../utils/strip-formatting'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
 import { sentenceRanges } from '../../utils/sentences'
 import { compareText } from '../../i18n'
-import { LETTER, WORD_CHAR } from '../../utils/words'
+import { wordTokens, type WordToken } from '../../utils/words'
 
 export interface WordFilter {
   exclude: Set<string>
@@ -36,10 +36,8 @@ export function wordFilter(includeWords: string, excludeWords: string): WordFilt
 /** Add the words of `texts` to `freq` (a new map when omitted). */
 export function countWords(texts: Iterable<string>, filter: WordFilter, freq = new Map<string, number>()): Map<string, number> {
   for (const text of texts) {
-    // Words as text search finds them (TOKEN_RE below), so accented
-    // letters belong to their word.
-    const words = text.toLowerCase().match(TOKEN_RE) || []
-    for (const w of words) {
+    // Words as text search finds them (utils/words), in any script.
+    for (const { word: w } of wordTokens(text.toLowerCase())) {
       if (w.length < 2) continue
       if (filter.exclude.has(w)) continue
       if (filter.include && !filter.include.has(w)) continue
@@ -217,18 +215,28 @@ export function codeSet(codes: AnalysisInitData['codes'], codeGuid: string, with
 }
 
 // ── Word combinations ──────────────────────────────────────────────
-// Phrases and associations read words the way text search does, so a
-// phrase found here is found again when the user clicks it: letters in
-// any script (with their marks) and inner apostrophes, bounded by
-// anything that isn't a letter, digit or straight apostrophe (see
-// utils/words).
+// Phrases and associations read words the way text search does (see
+// utils/words), so a phrase found here is found again when the user
+// clicks it.
 
-const TOKEN = `(?<![${WORD_CHAR}'])[${LETTER}]+(?:['\u2019][${LETTER}]+)*(?![${WORD_CHAR}'])`
-const TOKEN_RE = new RegExp(TOKEN, 'gu')
-/** Runs of words joined by single spaces. A phrase never spans
- *  punctuation, a line break or a double space, so its text appears
- *  verbatim in the document. */
-const RUN_RE = new RegExp(`${TOKEN}(?: ${TOKEN})*`, 'gu')
+/** Runs of words joined by a single space, or by nothing in a script
+ *  written without spaces. A phrase never spans punctuation, a line break
+ *  or a double space, so its text appears verbatim in the document. */
+function wordRuns(text: string): WordToken[][] {
+  const runs: WordToken[][] = []
+  let run: WordToken[] = []
+  for (const tok of wordTokens(text)) {
+    const prev = run[run.length - 1]
+    const gap = prev ? text.slice(prev.end, tok.start) : ''
+    if (prev && gap !== ' ' && gap !== '') {
+      runs.push(run)
+      run = []
+    }
+    run.push(tok)
+  }
+  if (run.length) runs.push(run)
+  return runs
+}
 
 export interface PhraseRow {
   phrase: string
@@ -241,14 +249,15 @@ export interface PhraseRow {
  *  of the included words. */
 export function countPhrases(texts: Iterable<string>, length: number, filter: WordFilter, minCount: number): PhraseRow[] {
   const counts = new Map<string, number>()
-  for (const text of texts) {
-    for (const run of text.toLowerCase().match(RUN_RE) || []) {
-      const words = run.split(' ')
-      for (let i = 0; i + length <= words.length; i++) {
-        const gram = words.slice(i, i + length)
+  for (const raw of texts) {
+    const text = raw.toLowerCase()
+    for (const run of wordRuns(text)) {
+      for (let i = 0; i + length <= run.length; i++) {
+        const toks = run.slice(i, i + length)
+        const gram = toks.map((t) => t.word)
         if (filter.exclude.has(gram[0]) || filter.exclude.has(gram[length - 1])) continue
         if (filter.include && !gram.some((w) => filter.include!.has(w))) continue
-        const phrase = gram.join(' ')
+        const phrase = text.slice(toks[0].start, toks[length - 1].end)
         counts.set(phrase, (counts.get(phrase) || 0) + 1)
       }
     }
@@ -266,7 +275,7 @@ export function sentencesOf(text: string): string[] {
 
 /** The distinct words of a sentence, lower-cased. */
 function sentenceWords(sentence: string): Set<string> {
-  return new Set(sentence.toLowerCase().match(TOKEN_RE) || [])
+  return new Set(wordTokens(sentence.toLowerCase()).map((t) => t.word))
 }
 
 export interface AssociationRow {
