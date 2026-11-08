@@ -89,3 +89,10 @@ CLDR (the browser's `Intl` in the renderer, ICU4X in the backend), so no
 code is needed for them. `npm test` and `cargo test` fail until every step
 is done, and list the plural forms the language needs (French, for
 instance, adds `_many`).
+
+## Questions for reviewers
+
+- **Arabic:** word counts treat words with and without vowel marks
+  ("كَتَبَ", "كتب"), and the alef variants (أ, إ, آ, ا), as different
+  words. Should Word Frequencies, Word Combinations and text search treat
+  them as the same word (normalise them), always or as an option?
