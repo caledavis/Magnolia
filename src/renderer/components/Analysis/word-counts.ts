@@ -14,6 +14,7 @@ import { stripFormatting } from '../../utils/strip-formatting'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
 import { sentenceRanges } from '../../utils/sentences'
 import { compareText } from '../../i18n'
+import { LETTER, WORD_CHAR } from '../../utils/words'
 
 export interface WordFilter {
   exclude: Set<string>
@@ -217,17 +218,17 @@ export function codeSet(codes: AnalysisInitData['codes'], codeGuid: string, with
 
 // ── Word combinations ──────────────────────────────────────────────
 // Phrases and associations read words the way text search does, so a
-// phrase found here is found again when the user clicks it: letters
-// (with accents) and inner apostrophes, bounded by anything that isn't
-// a letter, digit or straight apostrophe (query-engine isWordBoundary).
+// phrase found here is found again when the user clicks it: letters in
+// any script (with their marks) and inner apostrophes, bounded by
+// anything that isn't a letter, digit or straight apostrophe (see
+// utils/words).
 
-const LETTER = 'a-z\\u00C0-\\u024F'
-const TOKEN = `(?<![${LETTER}'\\d])[${LETTER}]+(?:['\u2019][${LETTER}]+)*(?![${LETTER}'\\d])`
-const TOKEN_RE = new RegExp(TOKEN, 'g')
+const TOKEN = `(?<![${WORD_CHAR}'])[${LETTER}]+(?:['\u2019][${LETTER}]+)*(?![${WORD_CHAR}'])`
+const TOKEN_RE = new RegExp(TOKEN, 'gu')
 /** Runs of words joined by single spaces. A phrase never spans
  *  punctuation, a line break or a double space, so its text appears
  *  verbatim in the document. */
-const RUN_RE = new RegExp(`${TOKEN}(?: ${TOKEN})*`, 'g')
+const RUN_RE = new RegExp(`${TOKEN}(?: ${TOKEN})*`, 'gu')
 
 export interface PhraseRow {
   phrase: string

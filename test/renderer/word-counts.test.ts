@@ -157,6 +157,11 @@ describe('countWords', () => {
     const words = [...countWords(['Café, élève; één geïnteresseerd não está. Don\'t'], wordFilter('', '')).keys()]
     expect(words).toEqual(['café', 'élève', 'één', 'geïnteresseerd', 'não', 'está', "don't"])
   })
+
+  it('reads words in other scripts, with their marks', () => {
+    const words = [...countWords(['الطلاب يَدرُسون، والمدرسة؟ Студенты учатся.'], wordFilter('', '')).keys()]
+    expect(words).toEqual(['الطلاب', 'يَدرُسون', 'والمدرسة', 'студенты', 'учатся'])
+  })
 })
 
 describe('wordCondition', () => {

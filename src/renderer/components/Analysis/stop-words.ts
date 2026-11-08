@@ -4,13 +4,15 @@
  * interface language's list, and the Leave out box can switch to another
  * language's, since the texts needn't be in the interface language.
  *
- * Every interface language must have a list (the type requires it). Words
- * are lower case; accented words are also listed without their accents
- * where people often type them that way (Portuguese "nao", "voce").
+ * Every interface language must have a list (the `satisfies` below
+ * requires it), and there can be lists for languages the interface isn't
+ * in yet. Words are lower case; accented words are also listed without
+ * their accents where people often type them that way (Portuguese "nao",
+ * Arabic "انه" for "أنه").
  */
 import type { LanguageId } from '../../i18n'
 
-const LISTS: Record<LanguageId, string> = {
+const LISTS = {
   en: `
     the be to of and a in that have i it for not on with he as you do at
     this but his by from they we say her she or an will my one all would
@@ -67,22 +69,40 @@ const LISTS: Record<LanguageId, string> = {
     quem são se seja sem sempre ser seu seus sido sim só sobre somos sou
     sua suas ta tá também tambem tanto tão te tem têm temos tenho ter teve
     ti tinha tinham toda todas todo todos tu tua tudo um uma umas uns vai
-    vão vc você vocês voce vou vez vezes`
-}
+    vão vc você vocês voce vou vez vezes`,
+  ar: `
+    في من على إلى الى عن مع هذا هذه ذلك تلك هؤلاء أولئك هذان هاتان الذي
+    التي الذين اللذان اللتان اللواتي اللاتي ما ماذا لماذا كيف أين اين متى
+    هل لا لم لن ليس ليست ليسوا كان كانت كانوا كنت كنا يكون تكون يكونون
+    أن إن ان أنه إنه انه أنها إنها انها أنهم انهم قد لقد كل بعض غير بين
+    عند عندما حتى ثم أو او أم بل لكن لكنه ولكن إذا اذا إذ لو لولا كما
+    مثل أي اي أيضا ايضا هو هي هم هن هما أنا انا نحن أنت انت أنتم انتم
+    له لها لهم لنا لي لك لكم به بها بهم فيه فيها فيهم منه منها منهم
+    عليه عليها عليهم إليه اليه إليها اليها عنه عنها هناك هنا الآن الان
+    جدا فقط كذلك ذات ذو يا و ف ب ل ك وفي ومن وعلى وإلى والى وهو وهي وهم
+    وكان وقد ولا وما وأن وان فإن فان وهذا وهذه حيث حين بعد قبل خلال تحت
+    فوق أمام امام دون نحو منذ لدى لدي يمكن أصبح اصبح صار سوف أكثر اكثر
+    أقل اقل كثير كثيرا قليل شيء شي أحد احد كلها كله جميع معظم أيضاً
+    عليها لأن لان لأنه لانه أنني انني إنني انني ولم ولن`
+} satisfies Record<LanguageId, string> & Record<string, string>
+
+/** The languages with stop words: the interface languages, and others. */
+export type StopWordLanguage = keyof typeof LISTS
+export const STOP_WORD_LANGUAGES = Object.keys(LISTS) as StopWordLanguage[]
 
 /** A language's stop words, in the order the Leave out box shows them. */
-export function stopWords(language: LanguageId): string[] {
+export function stopWords(language: StopWordLanguage): string[] {
   return [...new Set(LISTS[language].trim().split(/\s+/))]
 }
 
 /** A language's stop words as the Leave out box holds them. */
-export function stopWordsText(language: LanguageId): string {
+export function stopWordsText(language: StopWordLanguage): string {
   return stopWords(language).join(', ')
 }
 
 /** The language whose stop words `text` (a Leave out box) holds exactly,
  *  in any order; null once the user has edited the list. */
-export function stopWordsLanguageOf(text: string, languages: readonly LanguageId[]): LanguageId | null {
+export function stopWordsLanguageOf(text: string, languages: readonly StopWordLanguage[] = STOP_WORD_LANGUAGES): StopWordLanguage | null {
   const words = new Set(text.split(/[,\n]+/).map((w) => w.trim().toLowerCase()).filter(Boolean))
   return languages.find((id) => {
     const list = stopWords(id)

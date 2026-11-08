@@ -50,7 +50,7 @@ import { renameSavedAnalysis } from '../../utils/rename-saved-analysis'
 import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { SegmentedControl } from './SegmentedControl'
-import { buildWordTree, connectedNodes, flattenWordTree, layoutWordTree, type TreeLayout } from './word-tree'
+import { buildWordTree, connectedNodes, flattenWordTree, layoutWordTree, svgTextDirection, type TreeLayout } from './word-tree'
 import { useThemeSvgColors, SVG_FONT_FAMILY } from '../../utils/use-theme-svg-colors'
 import { buildPhraseNetwork, layoutPhraseNetwork, linkTitle, neighbours, LABEL_GAP, type NetworkLayout } from './phrase-network'
 import { useTranslation } from 'react-i18next'
@@ -165,12 +165,14 @@ function WordTreeChart({ layout, svgRef, onSearch }: {
       {layout.nodes.map((n, i) => {
         const b = n.branch
         const phrase = b ? b.phrase : n.text
+        const { anchor, direction } = svgTextDirection(layout, n)
         return (
           <text
             key={i}
             x={n.x}
             y={n.y}
-            textAnchor={n.anchor}
+            textAnchor={anchor}
+            direction={direction}
             dominantBaseline="middle"
             fontSize={n.fontSize}
             fontWeight={n.fontWeight}

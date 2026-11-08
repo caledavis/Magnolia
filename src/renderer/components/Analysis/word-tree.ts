@@ -1,8 +1,9 @@
 /**
  * Word Tree: every context a word appears in, drawn as a tree. The words
- * that come after it branch to the right and the words before it branch
- * to the left, so shared phrasings merge into one branch and the tree
- * reads as sentences.
+ * that come after it branch the way the text reads (to the right, or to
+ * the left for a word in a right-to-left script such as Arabic) and the
+ * words before it the other way, so shared phrasings merge into one
+ * branch and the tree reads as sentences.
  *
  * Built here as data and a layout, then drawn by the Word Combinations
  * tool (as React, so branches are clickable) and by reports (as an SVG
@@ -11,10 +12,11 @@
 import { sentencesOf, type SourceText } from './word-counts'
 import { measureTextWidth } from '../../utils/measure-text'
 import { SVG_FONT_FAMILY } from '../../utils/use-theme-svg-colors'
+import { WORD_CHAR, isRtlText } from '../../utils/words'
 
-/** Words (letters and digits, with inner apostrophes) and single
- *  punctuation marks, so branches can run on past a comma. */
-const TREE_TOKEN_RE = /[a-zÀ-ɏ\d]+(?:['’][a-zÀ-ɏ\d]+)*|[^\s]/giu
+/** Words (letters and digits in any script, with inner apostrophes) and
+ *  single punctuation marks, so branches can run on past a comma. */
+const TREE_TOKEN_RE = new RegExp(`[${WORD_CHAR}]+(?:['’][${WORD_CHAR}]+)*|[^\\s]`, 'gu')
 
 /** How far a branch reaches from the word, in words and marks. */
 export const TREE_DEPTH = 12
@@ -169,6 +171,9 @@ export interface TreeLayoutNode {
 }
 
 export interface TreeLayout {
+  /** The word is in a right-to-left script: the tree is mirrored, and its
+   *  labels are drawn right to left (see svgTextDirection). */
+  rtl: boolean
   width: number
   height: number
   nodes: TreeLayoutNode[]
@@ -231,8 +236,12 @@ export function layoutWordTree(tree: WordTree, rootLabel = tree.focus): TreeLayo
   const mid = height / 2
   const rootW = measureTextWidth(rootLabel, fontFor(FONT_SIZE, 400))
   nodes.push({ text: rootLabel, x: 0, y: mid, anchor: 'middle', fontSize: FONT_SIZE, fontWeight: 400, branch: null, edge: -1 })
-  place(tree.after, rootW / 2 + GAP, (height - hAfter) / 2, 1, { x: rootW / 2 + PAD, y: mid })
-  place(tree.before, -(rootW / 2 + GAP), (height - hBefore) / 2, -1, { x: -(rootW / 2 + PAD), y: mid })
+  // The words after the word go the way the text reads.
+  const rtl = isRtlText(tree.focus)
+  const ahead: 1 | -1 = rtl ? -1 : 1
+  const behind: 1 | -1 = rtl ? 1 : -1
+  place(tree.after, ahead * (rootW / 2 + GAP), (height - hAfter) / 2, ahead, { x: ahead * (rootW / 2 + PAD), y: mid })
+  place(tree.before, behind * (rootW / 2 + GAP), (height - hBefore) / 2, behind, { x: behind * (rootW / 2 + PAD), y: mid })
 
   // Shift everything right so the leftmost label starts at the margin.
   let minX = -rootW / 2
@@ -254,7 +263,7 @@ export function layoutWordTree(tree: WordTree, rootLabel = tree.focus): TreeLayo
     const mx = (x1 + x2) / 2
     return `M${f(x1)},${f(y1)} C${f(mx)},${f(y1)} ${f(mx)},${f(y2)} ${f(x2)},${f(y2)}`
   })
-  return { width: maxX - minX + MARGIN * 2, height: height + MARGIN * 2, nodes, edges }
+  return { rtl, width: maxX - minX + MARGIN * 2, height: height + MARGIN * 2, nodes, edges }
 }
 
 /** The nodes in the sentences running through node `i`: on its own side,
@@ -273,6 +282,15 @@ export function connectedNodes(layout: TreeLayout, i: number): Set<number> {
   return out
 }
 
+/** A node's SVG text-anchor and direction. Layout anchors name the label's
+ *  left (start) or right (end) edge; a right-to-left label is drawn with
+ *  direction rtl, where those names swap, so its "…" falls at its end. */
+export function svgTextDirection(layout: TreeLayout, n: TreeLayoutNode): { anchor: TreeLayoutNode['anchor']; direction: 'ltr' | 'rtl' } {
+  if (!layout.rtl) return { anchor: n.anchor, direction: 'ltr' }
+  const anchor = n.anchor === 'start' ? 'end' : n.anchor === 'end' ? 'start' : 'middle'
+  return { anchor, direction: 'rtl' }
+}
+
 function escXml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
@@ -280,9 +298,10 @@ function escXml(s: string): string {
 /** The layout as a standalone SVG, for reports. */
 export function wordTreeSvg(layout: TreeLayout, colors: { text: string; line: string }): string {
   const lines = layout.edges.map((d) => `<path d="${d}" fill="none" stroke="${colors.line}" stroke-width="1"/>`).join('')
-  const labels = layout.nodes.map((n) =>
-    `<text x="${n.x.toFixed(1)}" y="${n.y.toFixed(1)}" text-anchor="${n.anchor}" dominant-baseline="middle" font-size="${n.fontSize.toFixed(1)}" font-weight="${n.fontWeight}" fill="${colors.text}">${escXml(n.text)}</text>`
-  ).join('')
+  const labels = layout.nodes.map((n) => {
+    const { anchor, direction } = svgTextDirection(layout, n)
+    return `<text x="${n.x.toFixed(1)}" y="${n.y.toFixed(1)}" text-anchor="${anchor}" direction="${direction}" dominant-baseline="middle" font-size="${n.fontSize.toFixed(1)}" font-weight="${n.fontWeight}" fill="${colors.text}">${escXml(n.text)}</text>`
+  }).join('')
   const w = layout.width.toFixed(0)
   const h = layout.height.toFixed(0)
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="100%" style="max-width:${w}px;height:auto" font-family="${escXml(SVG_FONT_FAMILY)}">${lines}${labels}</svg>`

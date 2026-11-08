@@ -73,6 +73,29 @@ describe('layoutWordTree', () => {
     expect(layout.edges).toHaveLength(layout.nodes.length - 1)
     expect(Math.min(...layout.nodes.map((n) => n.y))).toBeGreaterThan(0)
   })
+
+  it('mirrors for a word in a right-to-left script', () => {
+    const tree = buildWordTree(passages('أنا أثق بالمعلمين. نحن أثق بالجميع.'), 'أثق')
+    const layout = layoutWordTree(tree)
+    expect(layout.rtl).toBe(true)
+    expect(tree.after.map((b) => b.label).sort()).toEqual(['بالجميع.', 'بالمعلمين.'])
+    const root = layout.nodes.find((n) => n.branch === null)!
+    for (const n of layout.nodes) {
+      if (n.branch && tree.after.includes(n.branch)) expect(n.x).toBeLessThan(root.x)
+      if (n.branch && tree.before.includes(n.branch)) expect(n.x).toBeGreaterThan(root.x)
+    }
+  })
+})
+
+describe('whole-word search in other scripts', () => {
+  const content = 'الطلاب يحبون المدرسة. الطالب يحب المدرسة.'
+  const source = { guid: 'doc', name: 'Doc.txt', plainTextContent: content, selections: [] } as unknown as TextSource
+  const find = (text: string) => executeQuery({ documentFilter: {}, codeCondition: wordCondition(text) }, [source], {}, [], [])
+
+  it('finds an Arabic word only as a whole word', () => {
+    expect(find('يحب')).toHaveLength(1)
+    expect(find('المدرسة')).toHaveLength(2)
+  })
 })
 
 describe('whole-word search with punctuation at an end', () => {

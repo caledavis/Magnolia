@@ -14,6 +14,7 @@ import { buildCellText } from './survey/cell-text'
 import { sentenceSpans } from './sentences'
 import { resolveTagCellScope, tagMembershipFromTags, type TagCellScope } from './survey-cell-scope'
 import { t } from '../i18n'
+import { isWordBoundary } from './words'
 
 /** Resolve the text a selection actually points into.
  *
@@ -422,11 +423,6 @@ function withinFilter(
    Text search helpers
    ═══════════════════════════════════════════════════ */
 
-/** Check if a character is a word boundary character */
-function isWordBoundary(ch: string | undefined): boolean {
-  if (!ch) return true // start/end of string
-  return !/[a-zA-Z\u00C0-\u024F'\d]/.test(ch)
-}
 
 /** Search full document for text occurrences */
 function textSearchDocument(
