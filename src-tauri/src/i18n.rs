@@ -19,6 +19,7 @@ const CATALOGUES: &[(&str, &str)] = &[
         "pt-BR",
         include_str!("../../src/renderer/locales/pt-BR.json"),
     ),
+    ("ar", include_str!("../../src/renderer/locales/ar.json")),
 ];
 
 static LANGUAGE: RwLock<String> = RwLock::new(String::new());

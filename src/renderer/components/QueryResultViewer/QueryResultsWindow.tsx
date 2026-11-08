@@ -326,7 +326,7 @@ export function QueryResultsWindow() {
     <div className="panel-header query-results-header">
       {/* Same title as the popped-in pane (QueryResultViewer): "Query",
           plus ": <name>" while a saved query is running. */}
-      <span>Query{activeSavedQuery ? ':' : ''}</span>
+      <span>{t('queryDesc.query')}{activeSavedQuery ? ':' : ''}</span>
       {activeSavedQuery && (
         <span style={{ marginInlineStart: 4 }}>
           <EditableTitleSuffix

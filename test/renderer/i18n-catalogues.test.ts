@@ -89,9 +89,11 @@ describe('translation catalogues', () => {
         if (!source) continue
         const expected = placeholders(source.get('') ?? source.get('other') ?? '')
         for (const [form, text] of versions) {
-          // A singular form may say "one" in words rather than {{count}}.
-          const got = placeholders(text).filter((p) => !(form === 'one' && p === 'count'))
-          const want = expected.filter((p) => !(form === 'one' && p === 'count'))
+          // The zero, one and two forms may say the number in words
+          // rather than {{count}} (Arabic "رمزان", two codes).
+          const inWords = (p: string): boolean => ['zero', 'one', 'two'].includes(form) && p === 'count'
+          const got = placeholders(text).filter((p) => !inWords(p))
+          const want = expected.filter((p) => !inWords(p))
           expect(got, `${language} ${key}${form && '_' + form}`).toEqual(want)
         }
       }

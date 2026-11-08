@@ -311,7 +311,7 @@ export function QueryResultViewer({ onSaveQuery, onEditQuery, queryName, onCodeA
             with click-to-rename. Mirrors the Tool: Name pattern used
             in the analysis tools, Query Builder, and Relationships
             tool. */}
-        <span>Query{activeSavedQuery ? ':' : ''}</span>
+        <span>{t('queryDesc.query')}{activeSavedQuery ? ':' : ''}</span>
         {activeSavedQuery && (
           <span style={{ marginInlineStart: 4 }}>
             <EditableTitleSuffix name={activeSavedQuery.name} onRename={handleRenameQuery} />

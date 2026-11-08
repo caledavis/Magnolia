@@ -7,11 +7,13 @@ i18next (`src/renderer/i18n`); the Rust backend reads the `native` section
 for its menus, file dialogs, window titles and update messages
 (`src-tauri/src/i18n.rs`).
 
-Every key in `en.json` must exist in the other three, with the same
+Every key in `en.json` must exist in the other catalogues, with the same
 `{{placeholders}}` (`test/renderer/i18n-catalogues.test.ts` checks this).
 Plural strings use i18next's suffixes: `_one` and `_other`, plus `_many`
 in Spanish and Portuguese (CLDR uses it for millions, "1 millón de
-códigos").
+códigos"), and all six (`_zero`, `_one`, `_two`, `_few`, `_many`,
+`_other`) in Arabic, whose zero, one and two forms usually name the
+number in words ("رمزان", two codes).
 
 Numbers, percentages, dates and times are written by the code in each
 language's own way (`formatNumber`, `formatPercent`, `formatDateTime` in
@@ -28,48 +30,48 @@ one word for each idea; change a term here first, then everywhere.
 
 ## Conventions
 
-| | Spanish | Dutch | Portuguese (Brazil) |
-|---|---|---|---|
-| Address the user as | *tú* | *je* | *você* |
-| Capitalisation | Sentence case | Sentence case | Sentence case |
-| Menu commands | Infinitive: "Guardar proyecto" | Imperative, as on macOS: "Bewaar project" | Infinitive: "Salvar projeto" |
-| Buttons and tooltips | Infinitive: "Importar" | Infinitive, as in Office: "Importeren" | Infinitive: "Importar" |
-| Quotation marks | « » | " " | " " |
-| The app's name | Magnolia | Magnolia | o Magnolia (masculine, like "o aplicativo") |
-| Query operators | AND, OR, NOT, XOR stay in English, as query syntax; their explanations are translated | same | same |
+| | Spanish | Dutch | Portuguese (Brazil) | Arabic |
+|---|---|---|---|---|
+| Address the user as | *tú* | *je* | *você* | Commands as verbal nouns ("حفظ"), so no gender; sentences in the masculine singular where unavoidable |
+| Capitalisation | Sentence case | Sentence case | Sentence case | — |
+| Menu commands | Infinitive: "Guardar proyecto" | Imperative, as on macOS: "Bewaar project" | Infinitive: "Salvar projeto" | Verbal noun: "حفظ المشروع" |
+| Buttons and tooltips | Infinitive: "Importar" | Infinitive, as in Office: "Importeren" | Infinitive: "Importar" | Verbal noun: "استيراد" |
+| Quotation marks | « » | " " | " " | “ ” (and « » around interface names) |
+| The app's name | Magnolia | Magnolia | o Magnolia (masculine, like "o aplicativo") | Magnolia, in Latin letters |
+| Query operators | AND, OR, NOT, XOR stay in English, as query syntax; their explanations are translated | same | same | same |
 
 ## Terms
 
-| English | Spanish | Dutch | Portuguese (Brazil) |
-|---|---|---|---|
-| analysis (a saved analysis) | análisis | analyse | análise |
-| box selection | selección de recuadro | kaderselectie | seleção de caixa |
-| code (noun) | código | code | código |
-| code (verb), coding | codificar, codificación | coderen, codering | codificar, codificação |
-| coded segment | segmento codificado | gecodeerd segment | segmento codificado |
-| codebook | libro de códigos | codeboek | livro de códigos |
-| document | documento | document | documento |
-| folder | carpeta | map | pasta |
-| logbook | bitácora | logboek | diário de bordo |
-| memo | memo (m.) | memo (pl. memo's) | memo (m.) |
-| note, notebook | nota, cuaderno | notitie, notitieboek | nota, caderno |
-| panel / pane | panel | paneel | painel |
-| project | proyecto | project | projeto |
-| query | consulta | query (pl. query's) | consulta |
-| question (survey) | pregunta | vraag | pergunta |
-| quote | cita | citaat | citação |
-| relationship map | mapa de relaciones | relatiekaart | mapa de relações |
-| report | informe | rapport | relatório |
-| respondent | encuestado | respondent | respondente |
-| ribbon | cinta | lint | faixa de opções |
-| save | guardar | bewaren | salvar |
-| selection | selección | selectie | seleção |
-| subcode | subcódigo | subcode | subcódigo |
-| survey | encuesta | enquête | pesquisa |
-| tab | pestaña | tabblad | aba |
-| tag | etiqueta | tag | etiqueta |
-| transcript | transcripción | transcript | transcrição |
-| Viewer (the document viewer) | visor | viewer | visualizador |
+| English | Spanish | Dutch | Portuguese (Brazil) | Arabic |
+|---|---|---|---|---|
+| analysis (a saved analysis) | análisis | analyse | análise | تحليل |
+| box selection | selección de recuadro | kaderselectie | seleção de caixa | تحديد مربع |
+| code (noun) | código | code | código | رمز (ج. رموز) |
+| code (verb), coding | codificar, codificación | coderen, codering | codificar, codificação | رمّز، ترميز |
+| coded segment | segmento codificado | gecodeerd segment | segmento codificado | مقطع مرمّز |
+| codebook | libro de códigos | codeboek | livro de códigos | دليل الرموز |
+| document | documento | document | documento | مستند |
+| folder | carpeta | map | pasta | مجلد |
+| logbook | bitácora | logboek | diário de bordo | السجل |
+| memo | memo (m.) | memo (pl. memo's) | memo (m.) | مذكرة |
+| note, notebook | nota, cuaderno | notitie, notitieboek | nota, caderno | ملاحظة، دفتر |
+| panel / pane | panel | paneel | painel | لوحة |
+| project | proyecto | project | projeto | مشروع |
+| query | consulta | query (pl. query's) | consulta | استعلام |
+| question (survey) | pregunta | vraag | pergunta | سؤال |
+| quote | cita | citaat | citação | اقتباس |
+| relationship map | mapa de relaciones | relatiekaart | mapa de relações | خريطة العلاقات |
+| report | informe | rapport | relatório | تقرير |
+| respondent | encuestado | respondent | respondente | مستجيب |
+| ribbon | cinta | lint | faixa de opções | الشريط |
+| save | guardar | bewaren | salvar | حفظ |
+| selection | selección | selectie | seleção | تحديد |
+| subcode | subcódigo | subcode | subcódigo | رمز فرعي |
+| survey | encuesta | enquête | pesquisa | استبيان |
+| tab | pestaña | tabblad | aba | علامة تبويب |
+| tag | etiqueta | tag | etiqueta | وسم (ج. وسوم) |
+| transcript | transcripción | transcript | transcrição | تفريغ نصي |
+| Viewer (the document viewer) | visor | viewer | visualizador | العارض |
 
 ## Adding a language
 
