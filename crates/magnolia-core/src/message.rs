@@ -13,11 +13,29 @@ use std::sync::OnceLock;
 /// `count` is given, and the translator picks the plural form itself.
 pub type Translator = fn(key: &str, count: Option<usize>) -> Option<String>;
 
+/// Writes a whole number as the interface language does ("1,234",
+/// "1.234").
+pub type NumberFormatter = fn(n: u64) -> String;
+
 static TRANSLATOR: OnceLock<Translator> = OnceLock::new();
+static NUMBER_FORMATTER: OnceLock<NumberFormatter> = OnceLock::new();
 
 /// Install the translator (once, at launch).
 pub fn set_translator(translator: Translator) {
     let _ = TRANSLATOR.set(translator);
+}
+
+/// Install the number formatter (once, at launch).
+pub fn set_number_formatter(formatter: NumberFormatter) {
+    let _ = NUMBER_FORMATTER.set(formatter);
+}
+
+/// A whole number for a message: as the interface language writes it, or
+/// plain digits without a formatter.
+pub fn number(n: u64) -> String {
+    NUMBER_FORMATTER
+        .get()
+        .map_or_else(|| n.to_string(), |f| f(n))
 }
 
 fn fill(mut text: String, vars: &[(&str, &str)]) -> String {
@@ -44,7 +62,7 @@ pub fn tr_count(key: &str, one: &str, other: &str, count: usize, vars: &[(&str, 
         .get()
         .and_then(|t| t(key, Some(count)))
         .unwrap_or_else(|| if count == 1 { one } else { other }.to_string());
-    let count = count.to_string();
+    let count = number(count as u64);
     let mut all = vec![("count", count.as_str())];
     all.extend_from_slice(vars);
     fill(text, &all)

@@ -384,8 +384,7 @@ export function SurveyImportDialog({
                       </div>
                       {row.kind === 'question' && row.question.type === 'multi-select' && (
                         <div style={{ marginTop: 2, fontSize: 11, color: 'var(--text-muted)' }}>
-                          {row.question.columns.length} options:{' '}
-                          {row.question.columns.map((c) => c.optionLabel).filter(Boolean).join(' · ').slice(0, 200)}
+                          {t('surveyImport.optionsList', { count: row.question.columns.length, options: row.question.columns.map((c) => c.optionLabel).filter(Boolean).join(' · ').slice(0, 200) })}
                         </div>
                       )}
                     </td>

@@ -8,7 +8,7 @@ import {
 } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
-import { truncate, countCodeInSource, toCsv, pctOfTotal, resolveFilteredSources, applySurveyCellScope, binarizeGrid } from './analysis-helpers'
+import { truncate, countCodeInSource, toCsv, pctOfTotal, csvPctOfTotal, resolveFilteredSources, applySurveyCellScope, binarizeGrid } from './analysis-helpers'
 import { generateGuid } from '../../utils/guid'
 import {
   type GroupByEntry,
@@ -35,6 +35,7 @@ import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { visualBoxColour } from '../../utils/code-colours'
 import { useTranslation } from 'react-i18next'
+import { formatNumber } from '../../i18n'
 
 interface Props {
   data: AnalysisInitData
@@ -358,17 +359,17 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
         cells.push(String(showGrid[i][j]))
         // R1 (subtotal as % of row total) is not meaningful in Binary
         // view — see the on-screen guard.
-        if (c.isSubtotal) cells.push(binaryMode ? '' : pctOfTotal(showGrid[i][j], showRowTotals[i]))
+        if (c.isSubtotal) cells.push(binaryMode ? '' : csvPctOfTotal(showGrid[i][j], showRowTotals[i]))
       })
-      cells.push(String(showRowTotals[i]), pctOfTotal(showRowTotals[i], showGrandTotal))
+      cells.push(String(showRowTotals[i]), csvPctOfTotal(showRowTotals[i], showGrandTotal))
       rows.push(cells)
     }
     const totalRow: string[] = [t('analysis.total')]
     columns.forEach((c, j) => {
       totalRow.push(String(showColTotals[j]))
-      if (c.isSubtotal) totalRow.push(binaryMode ? '' : pctOfTotal(showColTotals[j], showGrandTotal))
+      if (c.isSubtotal) totalRow.push(binaryMode ? '' : csvPctOfTotal(showColTotals[j], showGrandTotal))
     })
-    totalRow.push(String(showGrandTotal), pctOfTotal(showGrandTotal, showGrandTotal))
+    totalRow.push(String(showGrandTotal), csvPctOfTotal(showGrandTotal, showGrandTotal))
     rows.push(totalRow)
     window.api.exportCsv(toCsv(rows), 'codes-in-documents.csv')
   }, [columns, codeGuids, showGrid, codeMap, showRowTotals, showColTotals, showGrandTotal, binaryMode])
@@ -725,8 +726,8 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                                 Table ↔ Visual switch. */}
                             <div style={{ height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               {visualMode ? (
-                                <div style={{ width: boxSize, height: boxSize, background: boxColor, borderRadius: 2 }} title={String(val)} />
-                              ) : val}
+                                <div style={{ width: boxSize, height: boxSize, background: boxColor, borderRadius: 2 }} title={formatNumber(val)} />
+                              ) : formatNumber(val)}
                             </div>
                           </td>
                           {col.isSubtotal && (
@@ -757,7 +758,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                         color: showRowTotals[i] === 0 ? 'var(--text-muted)' : undefined,
                         opacity: showRowTotals[i] === 0 ? 0.4 : 1
                       }}>
-                        {showRowTotals[i]}
+                        {formatNumber(showRowTotals[i])}
                       </td>
                       <td style={{
                         width: 50, minWidth: 50, maxWidth: 50, height: 32,
@@ -786,7 +787,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                         color: ct === 0 ? 'var(--text-muted)' : undefined,
                         opacity: ct === 0 ? 0.4 : 1
                       }}>
-                        {ct}
+                        {formatNumber(ct)}
                       </td>
                       {columns[j].isSubtotal && (
                         <td style={{
@@ -811,7 +812,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                       color: showGrandTotal === 0 ? 'var(--text-muted)' : undefined,
                       opacity: showGrandTotal === 0 ? 0.4 : 1
                     }}>
-                      {showGrandTotal}
+                      {formatNumber(showGrandTotal)}
                     </td>
                     <td style={{
                       width: 50, minWidth: 50, maxWidth: 50, height: 32,

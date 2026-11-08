@@ -1,7 +1,7 @@
 import type { AnalysisInitData, SurveyEntityRef } from '../../models/types'
 import type { GroupByEntry, GroupedHeader } from './group-by'
 import { tagColumnSources } from './analysis-helpers'
-import { t } from '../../i18n'
+import { t, compareText } from '../../i18n'
 
 /** One slot produced by the "Respondents" grouping: a single respondent
  *  of a survey, or the whole-survey subtotal. Tools map these into their
@@ -142,7 +142,7 @@ export function buildSurveyAwareColumns(
   for (const nb of notebooks) {
     const notes = candidateSourceGuids
       .filter((g) => data.sourceFolder?.[g] === nb.guid)
-      .sort((a, b) => (sourceMap.get(b) || '').localeCompare(sourceMap.get(a) || ''))
+      .sort((a, b) => compareText(sourceMap.get(b) || '', sourceMap.get(a) || ''))
     if (notes.length === 0) continue
     if (collapsedNotebooks.has(nb.guid)) {
       columns.push({ id: `notebook:${nb.guid}`, label: nb.name, sourceGuids: notes })

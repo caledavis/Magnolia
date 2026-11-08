@@ -603,7 +603,10 @@
     "showInDocument": "Mostrar no documento",
     "deleteCountTitle_one": "Excluir {{count}} memo",
     "deleteCountTitle_many": "Excluir {{count}} memos",
-    "deleteCountTitle_other": "Excluir {{count}} memos"
+    "deleteCountTitle_other": "Excluir {{count}} memos",
+    "nSelected_one": "{{count}} memo selecionado.",
+    "nSelected_many": "{{count}} memos selecionados.",
+    "nSelected_other": "{{count}} memos selecionados."
   },
   "analyses": {
     "filterPlaceholder": "Filtrar análises...",
@@ -1003,7 +1006,10 @@
     "typeSkip": "Ignorar",
     "importRespondents_one": "Importar {{count}} respondente",
     "importRespondents_many": "Importar {{count}} respondentes",
-    "importRespondents_other": "Importar {{count}} respondentes"
+    "importRespondents_other": "Importar {{count}} respondentes",
+    "optionsList_one": "{{count}} opção: {{options}}",
+    "optionsList_many": "{{count}} opções: {{options}}",
+    "optionsList_other": "{{count}} opções: {{options}}"
   },
   "queryBuilder": {
     "kind": {
@@ -1320,7 +1326,8 @@
     "noCodesInReport": "Não é possível adicionar códigos a um relatório",
     "noQuotesInQuery": "Não é possível adicionar citações a uma consulta",
     "noAnalysesInQuery": "Não é possível adicionar análises a uma consulta",
-    "projectInfo": "Informações do projeto"
+    "projectInfo": "Informações do projeto",
+    "progressOf": "{{current}} / {{total}}"
   },
   "analysis": {
     "save": "Salvar análise",
@@ -1459,7 +1466,7 @@
     "howPdfMixed": "<b>PDF (misto):</b> média ponderada dos dois acima, pelo número de seleções de cada tipo na fonte.",
     "howImage": "<b>Imagem:</b> % de seleções de regiões codificadas com este código.",
     "chart": "Gráfico",
-    "barTitle": "{{code}}: {{value}}% em {{column}}"
+    "barTitle": "{{code}}: {{value}} em {{column}}"
   },
   "codeOrders": {
     "dragCodes": "Arraste códigos do painel Códigos para montar a visualização",

@@ -31,6 +31,7 @@ import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { useThemeSvgColors, SVG_FONT_FAMILY } from '../../utils/use-theme-svg-colors'
 import { useTranslation } from 'react-i18next'
+import { formatPercent } from '../../i18n'
 
 interface Props {
   data: AnalysisInitData
@@ -689,7 +690,7 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
                               window.api.sendAnalysisAction('run-code-in-doc-query', seg.codeGuid, row.sourceGuids, filteredSourceGuids, surveyScope(row))
                             }}
                           >
-                            <title>{`${seg.codeName} (${(seg.start * 100).toFixed(0)}%–${(seg.end * 100).toFixed(0)}%)`}</title>
+                            <title>{`${seg.codeName} (${formatPercent(seg.start * 100, 0)}–${formatPercent(seg.end * 100, 0)})`}</title>
                           </rect>
                         )
                       })}

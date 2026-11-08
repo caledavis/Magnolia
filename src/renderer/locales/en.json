@@ -585,7 +585,9 @@
     "exportAllTitle": "Export every memo as a PDF",
     "showInDocument": "Show in Document",
     "deleteCountTitle_one": "Delete {{count}} Memo",
-    "deleteCountTitle_other": "Delete {{count}} Memos"
+    "deleteCountTitle_other": "Delete {{count}} Memos",
+    "nSelected_one": "{{count}} memo selected.",
+    "nSelected_other": "{{count}} memos selected."
   },
   "analyses": {
     "filterPlaceholder": "Filter analyses...",
@@ -968,7 +970,9 @@
     "typeMetadata": "Metadata",
     "typeSkip": "Skip",
     "importRespondents_one": "Import {{count}} Respondent",
-    "importRespondents_other": "Import {{count}} Respondents"
+    "importRespondents_other": "Import {{count}} Respondents",
+    "optionsList_one": "{{count}} option: {{options}}",
+    "optionsList_other": "{{count}} options: {{options}}"
   },
   "queryBuilder": {
     "kind": {
@@ -1278,7 +1282,8 @@
     "noCodesInReport": "Codes can’t be added to a report",
     "noQuotesInQuery": "Quotes can’t be added to a query",
     "noAnalysesInQuery": "Analyses can’t be added to a query",
-    "projectInfo": "Project info"
+    "projectInfo": "Project info",
+    "progressOf": "{{current}} / {{total}}"
   },
   "analysis": {
     "save": "Save Analysis",
@@ -1408,7 +1413,7 @@
     "howPdfMixed": "<b>PDF (mixed):</b> weighted average of the two above, by the count of each kind of selection in the source.",
     "howImage": "<b>Image:</b> % of region selections coded with this code.",
     "chart": "Chart",
-    "barTitle": "{{code}}: {{value}}% in {{column}}"
+    "barTitle": "{{code}}: {{value}} in {{column}}"
   },
   "codeOrders": {
     "dragCodes": "Drag codes from the Code Browser to build the visualisation",

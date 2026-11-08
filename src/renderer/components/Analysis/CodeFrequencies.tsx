@@ -32,6 +32,7 @@ import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { useThemeSvgColors, SVG_FONT_FAMILY } from '../../utils/use-theme-svg-colors'
 import { useTranslation } from 'react-i18next'
+import { formatPercent } from '../../i18n'
 
 interface Props {
   data: AnalysisInitData
@@ -602,7 +603,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                               }
                             }}
                           >
-                            {val.toFixed(1)}%
+                            {formatPercent(val)}
                           </td>
                         )
                       })}
@@ -695,7 +696,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                               }
                             }}
                           >
-                            <title>{t('codeFreq.barTitle', { code: codeMap.get(codeGuid)?.name, value: val.toFixed(1), column: col.label })}</title>
+                            <title>{t('codeFreq.barTitle', { code: codeMap.get(codeGuid)?.name, value: formatPercent(val), column: col.label })}</title>
                           </rect>
                         )
                       })}

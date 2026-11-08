@@ -47,7 +47,18 @@ export function resolveLanguage(pref: LanguagePreference, systemLanguages: reado
   return 'en'
 }
 
-void i18n.use(initReactI18next).init({
+// Every value put into a message passes through this formatter (see
+// formatInterpolated below); no message names a format of its own.
+const numberFormatter = {
+  type: 'formatter' as const,
+  init: (): void => {},
+  add: (): void => {},
+  addCached: (): void => {},
+  format: (value: unknown, format?: string, lng?: string, options?: { interpolationkey?: string }) =>
+    formatInterpolated(value, format, lng, options) as string
+}
+
+void i18n.use(initReactI18next).use(numberFormatter).init({
   resources: {
     en: { translation: en },
     es: { translation: es },
@@ -57,7 +68,7 @@ void i18n.use(initReactI18next).init({
   lng: 'en',
   fallbackLng: 'en',
   // React escapes what it renders; the catalogues hold plain text.
-  interpolation: { escapeValue: false },
+  interpolation: { escapeValue: false, alwaysFormat: true },
   // Resources are bundled, so init and changeLanguage finish synchronously.
   initAsync: false
 })
@@ -76,6 +87,36 @@ export const formatDate = (d: Date | string | number, options?: Intl.DateTimeFor
   new Date(d).toLocaleDateString(currentLanguage(), options)
 export const formatNumber = (n: number, options?: Intl.NumberFormatOptions): string =>
   n.toLocaleString(currentLanguage(), options)
+
+/** A number with exactly `digits` decimal places ("12.5", "12,5"). */
+export const formatFixed = (n: number, digits: number): string =>
+  formatNumber(n, { minimumFractionDigits: digits, maximumFractionDigits: digits })
+
+/** A percentage given out of 100, with `digits` decimal places, as the
+ *  language writes it ("12.5%", "12,5 %"). */
+export const formatPercent = (percent: number, digits = 1): string =>
+  formatNumber(percent / 100, { style: 'percent', minimumFractionDigits: digits, maximumFractionDigits: digits })
+
+/** Compare two pieces of text in the interface language's alphabetical
+ *  order (for sorting names shown to people). */
+export function compareText(a: string, b: string): number {
+  const language = currentLanguage()
+  if (collatorLanguage !== language) {
+    collator = new Intl.Collator(language, { numeric: true })
+    collatorLanguage = language
+  }
+  return collator.compare(a, b)
+}
+let collator = new Intl.Collator('en', { numeric: true })
+let collatorLanguage = 'en'
+
+/** Numbers put into messages are written as the message's language writes
+ *  them (so 1234 reads "1,234" or "1.234"); text is left alone. A
+ *  respondent's id is a label, not a quantity. */
+function formatInterpolated(value: unknown, _format: string | undefined, lng: string | undefined, options?: { interpolationkey?: string }): unknown {
+  if (typeof value !== 'number' || options?.interpolationkey === 'id') return value
+  return value.toLocaleString(lng && isLanguageId(lng) ? lng : currentLanguage(), { maximumFractionDigits: 2 })
+}
 
 const systemLanguages = (): readonly string[] =>
   typeof navigator !== 'undefined' ? navigator.languages ?? [navigator.language] : []

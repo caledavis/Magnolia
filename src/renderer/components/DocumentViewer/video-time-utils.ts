@@ -1,3 +1,5 @@
+import { formatNumber } from '../../i18n'
+
 /**
  * Shared helpers for the video viewer: time formatting, clamping, and
  * the zoom math that maps (time in seconds) ↔ (pixels on the CodeTrack).
@@ -20,7 +22,8 @@ export function formatTimeDecimal(seconds: number): string {
   const h = Math.floor(seconds / 3600)
   const m = Math.floor((seconds % 3600) / 60)
   const s = seconds % 60
-  const secStr = s.toFixed(1).padStart(4, '0')
+  // The decimal separator is the interface language's ("1:02.5", "1:02,5").
+  const secStr = formatNumber(s, { minimumIntegerDigits: 2, minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false })
   if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${secStr}`
   return `${m}:${secStr}`
 }

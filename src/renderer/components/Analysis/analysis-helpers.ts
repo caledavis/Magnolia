@@ -1,5 +1,6 @@
 import type { PlainTextSelection, AnalysisInitData, SurveyEntityRef } from '../../models/types'
 import { resolveTagCellScope } from '../../utils/survey-cell-scope'
+import { formatPercent } from '../../i18n'
 
 /** Build a cell predicate from a list of (survey, entity) refs. A survey
  *  that appears in the list is restricted to its listed entities; a
@@ -28,10 +29,18 @@ export function truncate(s: string, maxLen: number): string {
   return s.length > maxLen ? s.slice(0, maxLen - 1) + '\u2026' : s
 }
 
-/** Format `value` as a percentage of `total` to one decimal place, e.g.
- *  "72.7%". Returns '' when the denominator is zero so callers can fall
- *  back to a muted placeholder (no codings to take a percentage of). */
+/** Format `value` as a percentage of `total` to one decimal place, as
+ *  the interface language writes it ("72.7%", "72,7 %"). Returns '' when
+ *  the denominator is zero so callers can fall back to a muted
+ *  placeholder (no codings to take a percentage of). */
 export function pctOfTotal(value: number, total: number): string {
+  if (!total) return ''
+  return formatPercent((value / total) * 100)
+}
+
+/** `pctOfTotal` for CSV files: always "72.7%", since a decimal comma
+ *  would clash with the CSV's own commas. */
+export function csvPctOfTotal(value: number, total: number): string {
   if (!total) return ''
   return ((value / total) * 100).toFixed(1) + '%'
 }

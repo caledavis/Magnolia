@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { truncate } from './analysis-helpers'
 import { layoutSankey, sankeyLinkPath, type SankeyLinkLayout, type SankeyNodeLayout } from './sankey-layout'
+import { formatNumber } from '../../i18n'
 
 export interface SankeyItem {
   id: string
@@ -120,7 +121,7 @@ export function SankeyView({ left, right, values, leftTitle, rightTitle, exclude
           fill="var(--text-primary)"
         >
           {truncate(item.label, 24)}
-          <tspan fill="var(--text-muted)" dx={4}>{n.total}</tspan>
+          <tspan fill="var(--text-muted)" dx={4}>{formatNumber(n.total)}</tspan>
         </text>
       </g>
     )

@@ -44,6 +44,7 @@ import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { SegmentedControl } from './SegmentedControl'
 import { useTranslation } from 'react-i18next'
+import { formatNumber } from '../../i18n'
 
 interface Props {
   data: AnalysisInitData
@@ -675,7 +676,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
                   {wordFreqs.slice(0, 200).map(([word, count]) => (
                     <tr key={word} onClick={() => handleWordClick(word)} style={{ cursor: 'pointer' }} title={coded ? t('words.searchCoded', { word }) : byQuery ? t('words.searchQuery', { word }) : t('words.search', { word })}>
                       <td style={{ padding: '2px 6px', borderBottom: '1px solid var(--border-color)' }}>{word}</td>
-                      <td style={{ padding: '2px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'right' }}>{count}</td>
+                      <td style={{ padding: '2px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'right' }}>{formatNumber(count)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -847,7 +848,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
                         <line x1={plotLeft - 4} y1={y} x2={plotLeft} y2={y} stroke={themeColors.borderColor} />
                         <line x1={plotLeft} y1={y} x2={plotRight} y2={y} stroke={themeColors.borderColor} opacity={0.15} />
                         <text x={plotLeft - 7} y={y + Math.round(labelFontSize * 0.35)} textAnchor="end" fontSize={labelFontSize} fontFamily={SVG_FONT_FAMILY} fill={themeColors.textPrimary}>
-                          {value}
+                          {formatNumber(value)}
                         </text>
                       </g>
                     ))}

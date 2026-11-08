@@ -1,4 +1,4 @@
-import { formatDateTime, currentLanguage } from '../../i18n'
+import { formatDateTime, currentLanguage, formatNumber } from '../../i18n'
 /**
  * The Memos window: every memo in the project, wherever it is attached.
  * The Saved Memos pane shows only project memos and the memos of the
@@ -215,7 +215,7 @@ export function MemosWindow() {
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div className="panel-header">
               <span style={{ flex: 1 }}>{t('memos.windowTitle')}</span>
-              <span style={{ fontWeight: 400, letterSpacing: 0 }}>{data.memos.length}</span>
+              <span style={{ fontWeight: 400, letterSpacing: 0 }}>{formatNumber(data.memos.length)}</span>
               <button
                 className="panel-header-add"
                 onClick={() => send('new')}
@@ -269,7 +269,7 @@ export function MemosWindow() {
                         <Icon icon={open ? faChevronDown : faChevronRight} />
                       </span>
                       <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.label}</span>
-                      <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 400 }}>{g.memos.length}</span>
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 400 }}>{formatNumber(g.memos.length)}</span>
                     </div>
                     {open && g.memos.map((m) => (
                       <MemoRow
@@ -306,7 +306,7 @@ export function MemosWindow() {
             <div className="panel-content">
               {selectedMemos.length > 1 ? (
                 <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                  {selectedMemos.length} memos selected.
+                  {t('memos.nSelected', { count: selectedMemos.length })}
                 </div>
               ) : (
                 <MemoDetail

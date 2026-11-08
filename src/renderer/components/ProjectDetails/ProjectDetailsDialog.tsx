@@ -100,9 +100,9 @@ export function ProjectDetailsDialog({ open, onClose }: Props) {
           <span style={{ color: 'var(--text-secondary)' }}>{t('projectDetails.file')}</span>
           <span style={{ wordBreak: 'break-all' }}>{filePath ?? <em style={{ color: 'var(--text-secondary)' }}>{t('projectDetails.unsaved')}</em>}</span>
           <span style={{ color: 'var(--text-secondary)' }}>{t('projectDetails.documents')}</span>
-          <span>{docCount}</span>
+          <span>{formatNumber(docCount)}</span>
           <span style={{ color: 'var(--text-secondary)' }}>{t('projectDetails.codes')}</span>
-          <span>{codeCount}</span>
+          <span>{formatNumber(codeCount)}</span>
           <span style={{ color: 'var(--text-secondary)' }}>{t('projectDetails.fileSize')}</span>
           <span>{filePath == null ? '—' : fileSize == null ? '…' : formatBytes(fileSize)}</span>
         </div>

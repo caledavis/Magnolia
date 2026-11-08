@@ -11,6 +11,7 @@ import { toolColors } from '../../utils/tool-colors'
 import { makeMapTabId } from '../../utils/tab-ids'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { useTranslation } from 'react-i18next'
+import { compareText, formatNumber } from '../../i18n'
 
 interface Props {
   onOpen: (toolType: AnalysisToolType, savedConfig: any) => void
@@ -98,7 +99,7 @@ export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemo
     extras.sort()
     orderedKeys.push(...extras)
     return orderedKeys.map((toolType) => {
-      const items = byTool.get(toolType)!.slice().sort((a, b) => a.name.localeCompare(b.name))
+      const items = byTool.get(toolType)!.slice().sort((a, b) => compareText(a.name, b.name))
       return {
         toolType,
         label: TOOL_REGISTRY[toolType]?.label ?? toolType,
@@ -320,7 +321,7 @@ export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemo
                   <Icon icon={group.icon} className={PALETTE_ICON_CLASS} style={{ fontSize: 11, opacity: 0.85, flexShrink: 0, width: 14, textAlign: 'center', color: 'var(--text-secondary)' }} />
                 )}
                 <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{group.label}</span>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500 }}>{group.items.length}</span>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500 }}>{formatNumber(group.items.length)}</span>
               </div>
               {!isCollapsed && group.items.map((sa) => {
                 const isSelected = selectedGuids.has(sa.guid)

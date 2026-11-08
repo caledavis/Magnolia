@@ -15,6 +15,7 @@ import { Icon, MEMO_RANGED_ICON, MEMO_POINT_ICON, QUOTE_ICON } from '../Icon'
 import { ICON_COL_W, type IconGroup } from './iconLayout'
 import type { Memo, PdfRegionSelection } from '../../models/types'
 import { useTranslation } from 'react-i18next'
+import { formatNumber } from '../../i18n'
 
 interface Props {
   groups: IconGroup[]
@@ -76,7 +77,7 @@ function Badge({ count, color }: { count: number; color: string }) {
         lineHeight: 1
       }}
     >
-      {count}
+      {formatNumber(count)}
     </span>
   )
 }

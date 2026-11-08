@@ -585,7 +585,9 @@
     "exportAllTitle": "Alle memo's exporteren als pdf",
     "showInDocument": "Tonen in document",
     "deleteCountTitle_one": "{{count}} memo verwijderen",
-    "deleteCountTitle_other": "{{count}} memo's verwijderen"
+    "deleteCountTitle_other": "{{count}} memo's verwijderen",
+    "nSelected_one": "{{count}} memo geselecteerd.",
+    "nSelected_other": "{{count}} memo's geselecteerd."
   },
   "analyses": {
     "filterPlaceholder": "Analyses filteren...",
@@ -968,7 +970,9 @@
     "typeMetadata": "Metadata",
     "typeSkip": "Overslaan",
     "importRespondents_one": "{{count}} respondent importeren",
-    "importRespondents_other": "{{count}} respondenten importeren"
+    "importRespondents_other": "{{count}} respondenten importeren",
+    "optionsList_one": "{{count}} optie: {{options}}",
+    "optionsList_other": "{{count}} opties: {{options}}"
   },
   "queryBuilder": {
     "kind": {
@@ -1278,7 +1282,8 @@
     "noCodesInReport": "Codes kunnen niet aan een rapport worden toegevoegd",
     "noQuotesInQuery": "Citaten kunnen niet aan een query worden toegevoegd",
     "noAnalysesInQuery": "Analyses kunnen niet aan een query worden toegevoegd",
-    "projectInfo": "Projectinformatie"
+    "projectInfo": "Projectinformatie",
+    "progressOf": "{{current}} / {{total}}"
   },
   "analysis": {
     "save": "Analyse bewaren",
@@ -1408,7 +1413,7 @@
     "howPdfMixed": "<b>Pdf (gemengd):</b> gewogen gemiddelde van de twee hierboven, naar het aantal selecties van elk soort in de bron.",
     "howImage": "<b>Afbeelding:</b> % van de gebiedsselecties die met deze code gecodeerd zijn.",
     "chart": "Grafiek",
-    "barTitle": "{{code}}: {{value}}% in {{column}}"
+    "barTitle": "{{code}}: {{value}} in {{column}}"
   },
   "codeOrders": {
     "dragCodes": "Sleep codes vanuit het paneel Codes om de visualisatie op te bouwen",

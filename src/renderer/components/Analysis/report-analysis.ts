@@ -34,7 +34,7 @@ import { TOOL_REGISTRY } from '../../utils/tool-registry'
 import { useProjectStore } from '../../stores/project-store'
 import type { AnalysisInitData, QueryResult } from '../../models/types'
 import type { AnalysisItemOptions, ReportItem } from './report-export'
-import { t } from '../../i18n'
+import { t, formatPercent, formatFixed, formatNumber } from '../../i18n'
 
 /** CSS for the report's regenerated analysis tables, appended to the
  *  export document's styles. */
@@ -92,7 +92,7 @@ export const REPORT_TABLE_CSS = `
 
 function pctOf(value: number, total: number): string {
   if (!total) return ''
-  return ((value / total) * 100).toFixed(1) + '%'
+  return formatPercent((value / total) * 100)
 }
 
 function trunc(s: string, n: number): string {
@@ -185,25 +185,25 @@ function renderGridTableHtml(
         .map((j) => {
           const v = grid[i][j]
           const zero = v === 0 && !columns[j].isSubtotal
-          const inner = visual ? visualBox(v, maxVal) : String(v)
+          const inner = visual ? visualBox(v, maxVal) : formatNumber(v)
           const cell = `<td class="cell${colCls(j)}${zero ? ' zero' : ''}"><div class="cw">${inner}</div></td>`
           const pctCell = columns[j].isSubtotal ? `<td class="pctcell">${binary ? '–' : pctOf(v, rowTotals[i]) || '–'}</td>` : ''
           return cell + pctCell
         })
         .join('')
-      return `<tr><td class="rowname">${codeIndent(rowDepths?.[i])}${escHtml(name)}</td>${cells}<td class="totalcell">${rowTotals[i]}</td><td class="pctcell">${pctOf(rowTotals[i], grandTotal) || '–'}</td></tr>`
+      return `<tr><td class="rowname">${codeIndent(rowDepths?.[i])}${escHtml(name)}</td>${cells}<td class="totalcell">${formatNumber(rowTotals[i])}</td><td class="pctcell">${pctOf(rowTotals[i], grandTotal) || '–'}</td></tr>`
     })
     .join('')
 
   // Total row is always numeric (the on-screen margins never become boxes).
   const totalCells = visIdx
     .map((j) => {
-      const cell = `<td class="cell${colCls(j)}"><div class="cw">${colTotals[j]}</div></td>`
+      const cell = `<td class="cell${colCls(j)}"><div class="cw">${formatNumber(colTotals[j])}</div></td>`
       const pctCell = columns[j].isSubtotal ? `<td class="pctcell">${binary ? '–' : pctOf(colTotals[j], grandTotal) || '–'}</td>` : ''
       return cell + pctCell
     })
     .join('')
-  const totalRow = `<tr class="total"><td class="rowname">${escHtml(t('analysis.total'))}</td>${totalCells}<td class="totalcell">${grandTotal}</td><td class="pctcell">${grandTotal ? '100.0%' : '–'}</td></tr>`
+  const totalRow = `<tr class="total"><td class="rowname">${escHtml(t('analysis.total'))}</td>${totalCells}<td class="totalcell">${formatNumber(grandTotal)}</td><td class="pctcell">${grandTotal ? formatPercent(100) : '–'}</td></tr>`
 
   const wide = visIdx.length > 12
   return `<div class="report-wide${wide ? ' report-wide-rotate' : ''}"><table class="report-grid">${groupedRow}${headerRow}${body}${totalRow}</table></div>`
@@ -347,7 +347,7 @@ function codeFrequenciesHtml(config: any, options: AnalysisItemOptions): string 
       const cells = columns
         .map((_, j) => {
           const v = grid[i][j]
-          return `<td class="${v === 0 ? 'zero' : ''}">${v.toFixed(1)}%</td>`
+          return `<td class="${v === 0 ? 'zero' : ''}">${formatPercent(v)}</td>`
         })
         .join('')
       return `<tr><td class="rowhead">${codeIndent(depths[i])}${escHtml(codeMap.get(cg)?.name ?? t('analysis.code'))}</td>${cells}</tr>`
@@ -394,16 +394,16 @@ function codeCoOccurrencesHtml(config: any, options: AnalysisItemOptions): strin
             .map((cg, j) => {
               if (rg === cg) return '<td class="cell zero"><div class="cw">—</div></td>'
               const v = matrix[i][j]
-              const inner = visual ? visualBox(v, maxVal) : String(v)
+              const inner = visual ? visualBox(v, maxVal) : formatNumber(v)
               return `<td class="cell${v === 0 ? ' zero' : ''}"><div class="cw">${inner}</div></td>`
             })
             .join('')
-      return `<tr><td class="rowname">${codeIndent(rowDepths[i])}<span style="display:inline-flex;align-items:center;gap:4px">${dot(codeMap.get(rg)?.color)}${escHtml(name)}</span></td>${cells}<td class="totalcell">${rowTotals[i]}</td><td class="pctcell">${pctOf(rowTotals[i], grandTotal) || '–'}</td></tr>`
+      return `<tr><td class="rowname">${codeIndent(rowDepths[i])}<span style="display:inline-flex;align-items:center;gap:4px">${dot(codeMap.get(rg)?.color)}${escHtml(name)}</span></td>${cells}<td class="totalcell">${formatNumber(rowTotals[i])}</td><td class="pctcell">${pctOf(rowTotals[i], grandTotal) || '–'}</td></tr>`
     })
     .join('')
 
-  const totalCells = totalsOnly ? '' : colTotals.map((ct) => `<td class="cell"><div class="cw">${ct}</div></td>`).join('')
-  const totalRow = `<tr class="total"><td class="rowname">${escHtml(t('analysis.total'))}</td>${totalCells}<td class="totalcell">${grandTotal}</td><td class="pctcell">${grandTotal ? '100.0%' : '–'}</td></tr>`
+  const totalCells = totalsOnly ? '' : colTotals.map((ct) => `<td class="cell"><div class="cw">${formatNumber(ct)}</div></td>`).join('')
+  const totalRow = `<tr class="total"><td class="rowname">${escHtml(t('analysis.total'))}</td>${totalCells}<td class="totalcell">${formatNumber(grandTotal)}</td><td class="pctcell">${grandTotal ? formatPercent(100) : '–'}</td></tr>`
 
   const wide = (totalsOnly ? 0 : colCodeGuids.length) > 12
   return `<div class="report-wide${wide ? ' report-wide-rotate' : ''}"><table class="report-grid">${headerRow}${body}${totalRow}</table></div>`
@@ -556,7 +556,7 @@ function wordBarChartSvg(words: [string, number][], series: WordSeries[], series
     const y = xAxisY - (value / yMax) * barMaxH
     parts.push(`<line x1="${plotLeft - 4}" y1="${y}" x2="${plotLeft}" y2="${y}" stroke="${WF_BORDER}"/>`)
     parts.push(`<line x1="${plotLeft}" y1="${y}" x2="${plotRight}" y2="${y}" stroke="${WF_BORDER}" opacity="0.15"/>`)
-    parts.push(`<text x="${plotLeft - 7}" y="${(y + labelFontSize * 0.35).toFixed(1)}" text-anchor="end" font-size="${labelFontSize}" fill="${WF_TEXT}">${value}</text>`)
+    parts.push(`<text x="${plotLeft - 7}" y="${(y + labelFontSize * 0.35).toFixed(1)}" text-anchor="end" font-size="${labelFontSize}" fill="${WF_TEXT}">${formatNumber(value)}</text>`)
   }
   words.forEach(([word], wi) => {
     const groupX = plotLeft + plotPad + wi * step
@@ -634,9 +634,9 @@ function wordFrequenciesHtml(config: any, options: AnalysisItemOptions): string 
     : `<tr><th class="rowhead">${escHtml(t('words.word'))}</th>${series.map((s) => `<th>${escHtml(s.label)}</th>`).join('')}<th>${escHtml(t('analysis.total'))}</th></tr>`
   const body = ranked
     .map(([w, tot]) => {
-      if (single) return `<tr><td class="rowhead">${escHtml(w)}</td><td>${tot}</td></tr>`
-      const cells = series.map((_, j) => { const c = seriesFreqs[j].get(w) || 0; return `<td class="${c === 0 ? 'zero' : ''}">${c}</td>` }).join('')
-      return `<tr><td class="rowhead">${escHtml(w)}</td>${cells}<td>${tot}</td></tr>`
+      if (single) return `<tr><td class="rowhead">${escHtml(w)}</td><td>${formatNumber(tot)}</td></tr>`
+      const cells = series.map((_, j) => { const c = seriesFreqs[j].get(w) || 0; return `<td class="${c === 0 ? 'zero' : ''}">${formatNumber(c)}</td>` }).join('')
+      return `<tr><td class="rowhead">${escHtml(w)}</td>${cells}<td>${formatNumber(tot)}</td></tr>`
     })
     .join('')
   const table = wrapTable(`<thead>${thead}</thead><tbody>${body}</tbody>`, single ? 1 : series.length)
@@ -688,7 +688,7 @@ function wordCombinationsHtml(config: any): string {
     if (result.rows.length === 0) return intro + `<div class="empty">${escHtml(t('reports.noAssociated'))}</div>`
     const body = result.rows
       .slice(0, COMBINATION_ROWS)
-      .map((r) => `<tr><td class="rowhead">${escHtml(r.word)}</td><td>${r.together}</td><td>${(r.share * 100).toFixed(1)}%</td><td>${r.g2.toFixed(1)}</td></tr>`)
+      .map((r) => `<tr><td class="rowhead">${escHtml(r.word)}</td><td>${formatNumber(r.together)}</td><td>${formatPercent(r.share * 100)}</td><td>${formatFixed(r.g2, 1)}</td></tr>`)
       .join('')
     return intro + wrapTable(`<thead><tr><th class="rowhead">${escHtml(t('words.word'))}</th><th>${escHtml(t('combos.together'))}</th><th>${escHtml(t('combos.pctOfSentences'))}</th><th>G\u00B2</th></tr></thead><tbody>${body}</tbody>`, 3)
   }
@@ -709,7 +709,7 @@ function wordCombinationsHtml(config: any): string {
   }
   const body = phrases
     .slice(0, COMBINATION_ROWS)
-    .map((p) => `<tr><td class="rowhead">${escHtml(p.phrase)}</td><td>${p.count}</td></tr>`)
+    .map((p) => `<tr><td class="rowhead">${escHtml(p.phrase)}</td><td>${formatNumber(p.count)}</td></tr>`)
     .join('')
   return wrapTable(`<thead><tr><th class="rowhead">${escHtml(t('combos.phrase'))}</th><th>${escHtml(t('words.count'))}</th></tr></thead><tbody>${body}</tbody>`, 1)
 }

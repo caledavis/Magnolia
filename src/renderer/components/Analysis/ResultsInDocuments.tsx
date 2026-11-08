@@ -3,7 +3,7 @@ import type { AnalysisInitData, Query, QueryResult, SurveyEntityRef, SurveyCellS
 import { Icon, faFileSearchCorner, faChevronDown, faChevronRight, faXmark } from '../Icon'
 import { toolColors } from '../../utils/tool-colors'
 import { runQueryLive } from '../../stores/query-store'
-import { truncate, toCsv, pctOfTotal, binarizeGrid } from './analysis-helpers'
+import { truncate, toCsv, pctOfTotal, csvPctOfTotal, binarizeGrid } from './analysis-helpers'
 import { generateGuid } from '../../utils/guid'
 import {
   parseGroupByDrop,
@@ -25,6 +25,7 @@ import { renameSavedAnalysis } from '../../utils/rename-saved-analysis'
 import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { useTranslation } from 'react-i18next'
+import { formatNumber } from '../../i18n'
 
 /** Each "Group by" entry is one of:
  *   - a single tag → one row in the grid;
@@ -397,12 +398,12 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
       if (hasGroupedHeader) row.push(layout.groupLabel ?? '')
       row.push(col.label)
       for (let i = 0; i < queryGuids.length; i++) row.push(String(showGrid[i][j]))
-      row.push(String(showColTotals[j]), pctOfTotal(showColTotals[j], showGrandTotal))
+      row.push(String(showColTotals[j]), csvPctOfTotal(showColTotals[j], showGrandTotal))
       rows.push(row)
     }
     const totalRow: string[] = []
     if (hasGroupedHeader) totalRow.push('')
-    totalRow.push(t('resultsInDocs.totalWithDocs', { docs: resultDocLabel }), ...showRowTotals.map(String), String(showGrandTotal), pctOfTotal(showGrandTotal, showGrandTotal))
+    totalRow.push(t('resultsInDocs.totalWithDocs', { docs: resultDocLabel }), ...showRowTotals.map(String), String(showGrandTotal), csvPctOfTotal(showGrandTotal, showGrandTotal))
     rows.push(totalRow)
     window.api.exportCsv(toCsv(rows), 'results-in-documents.csv')
   }, [columns, rowLayout, queryGuids, showGrid, queryMap, showRowTotals, showColTotals, showGrandTotal, hasGroupedHeader, resultDocLabel])
@@ -820,8 +821,8 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                                   32 px in both modes — see CodesInDocs. */}
                               <div style={{ height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 {visualMode ? (
-                                  <div style={{ width: boxSize, height: boxSize, background: boxColor, borderRadius: 2 }} title={String(val)} />
-                                ) : val}
+                                  <div style={{ width: boxSize, height: boxSize, background: boxColor, borderRadius: 2 }} title={formatNumber(val)} />
+                                ) : formatNumber(val)}
                               </div>
                             </td>
                           )
@@ -839,7 +840,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                           color: showColTotals[j] === 0 ? 'var(--text-muted)' : undefined,
                           opacity: showColTotals[j] === 0 ? 0.4 : 1
                         }}>
-                          {showColTotals[j]}
+                          {formatNumber(showColTotals[j])}
                         </td>
                         {/* Row total as % of grand total */}
                         <td style={{
@@ -889,7 +890,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                       color: showGrandTotal === 0 ? 'var(--text-muted)' : undefined,
                       opacity: showGrandTotal === 0 ? 0.4 : 1
                     }}>
-                      {showGrandTotal}
+                      {formatNumber(showGrandTotal)}
                     </td>
                     <td style={{
                       width: 50, minWidth: 50, maxWidth: 50, height: 32,

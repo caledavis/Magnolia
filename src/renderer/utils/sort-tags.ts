@@ -14,9 +14,10 @@
  * Returns a new array; the input is not mutated.
  */
 import type { QDASet, TagCategory } from '../models/types'
+import { compareText } from '../i18n'
 
 function alpha(a: QDASet, b: QDASet): number {
-  return (a.value || a.name || '').localeCompare(b.value || b.name || '')
+  return compareText(a.value || a.name || '', b.value || b.name || '')
 }
 
 export function sortTagsForCategory(tags: QDASet[], category: TagCategory | undefined): QDASet[] {
@@ -59,5 +60,5 @@ export function sortTagsForCategory(tags: QDASet[], category: TagCategory | unde
 /** Alphabetical sort for a list-category's listOptions (the strings the
  *  user maintains as the closed set of allowed values). */
 export function sortListOptions(opts: string[] | undefined): string[] {
-  return (opts || []).slice().sort((a, b) => a.localeCompare(b))
+  return (opts || []).slice().sort(compareText)
 }

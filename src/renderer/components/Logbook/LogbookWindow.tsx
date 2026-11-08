@@ -1,4 +1,4 @@
-import { formatDateTime, currentLanguage } from '../../i18n'
+import { formatDateTime, currentLanguage, formatNumber } from '../../i18n'
 import { useState, useCallback, useEffect } from 'react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { Icon, faPlus } from '../Icon'
@@ -258,7 +258,7 @@ export function LogbookWindow() {
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div className="panel-header">
               <span style={{ flex: 1 }}>{t('logbook.entries')}</span>
-              <span style={{ fontWeight: 400, letterSpacing: 0 }}>{entries.length}</span>
+              <span style={{ fontWeight: 400, letterSpacing: 0 }}>{formatNumber(entries.length)}</span>
               <button className="panel-header-add" onClick={handleNewEntry} title={t('logbook.newEntryTitle')} aria-label={t('logbook.newEntryTitle')}>
                 <Icon icon={faPlus} />
               </button>

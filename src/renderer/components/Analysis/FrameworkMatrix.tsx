@@ -64,6 +64,7 @@ import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { useAnalysisTabsStore } from '../../stores/analysis-tabs-store'
 import { useTranslation } from 'react-i18next'
+import { formatNumber } from '../../i18n'
 
 interface Props {
   data: AnalysisInitData
@@ -757,7 +758,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
                               opacity: count === 0 ? 0.6 : 1
                             }}
                           >
-                            {count}
+                            {formatNumber(count)}
                           </span>
                         </td>
                     )

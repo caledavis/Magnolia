@@ -10,10 +10,11 @@ import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import type { Memo, MemoType, MemoEditInitData } from '../../models/types'
 import { showMemoLocation } from '../../utils/show-memo'
 import { useTranslation } from 'react-i18next'
+import { currentLanguage, compareText, formatNumber } from '../../i18n'
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleDateString(currentLanguage(), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 function MemoItem({
@@ -153,7 +154,7 @@ function MemoSection({
           <Icon icon={effectiveExpanded ? faChevronDown : faChevronRight} />
         </span>
         <span style={{ flex: 1 }}>{title}</span>
-        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{memos.length}</span>
+        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{formatNumber(memos.length)}</span>
       </div>
       {effectiveExpanded && memos.map((memo) => (
         <MemoItem
@@ -216,7 +217,7 @@ function AnalysisMemoGroups({
           <Icon icon={sectionExpanded ? faChevronDown : faChevronRight} />
         </span>
         <span style={{ flex: 1 }}>{t('memos.analysisMemos')}</span>
-        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{total}</span>
+        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{formatNumber(total)}</span>
       </div>
       {sectionExpanded && groups.map((g) => (
         <AnalysisMemoMapGroup
@@ -283,7 +284,7 @@ function AnalysisMemoMapGroup({
           <Icon icon={expanded ? faChevronDown : faChevronRight} />
         </span>
         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
-        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{memos.length}</span>
+        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{formatNumber(memos.length)}</span>
       </div>
       {expanded && memos.map((memo) => (
         <MemoItem
@@ -397,7 +398,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
       savedAnalyses.find((a) => a.guid === guid)?.name?.trim() || t('memos.untitledMap')
     const groups = Array.from(byAnalysis.entries())
       .map(([guid, list]) => ({ guid, name: nameFor(guid), memos: list }))
-      .sort((a, b) => a.name.localeCompare(b.name))
+      .sort((a, b) => compareText(a.name, b.name))
     return { groups, unattached }
   }, [analysisMemos, savedAnalyses])
 

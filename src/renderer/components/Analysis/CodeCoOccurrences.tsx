@@ -8,7 +8,7 @@ import {
 } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
-import { truncate, countCoOccurrences, toCsv, pctOfTotal, resolveFilteredSources, applySurveyCellScope, binarizeGrid } from './analysis-helpers'
+import { truncate, countCoOccurrences, toCsv, pctOfTotal, csvPctOfTotal, resolveFilteredSources, applySurveyCellScope, binarizeGrid } from './analysis-helpers'
 import type { QuestionScopeRef } from './survey-grouping'
 import { generateGuid } from '../../utils/guid'
 import { useLiveAnalysisData } from './use-live-analysis-data'
@@ -20,6 +20,7 @@ import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { visualBoxColour } from '../../utils/code-colours'
 import { useTranslation } from 'react-i18next'
+import { formatNumber } from '../../i18n'
 
 interface Props {
   data: AnalysisInitData
@@ -250,9 +251,9 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
     const rowNames = rowCodeGuids.map((g) => codeMap.get(g)?.name || t('analysis.code'))
     const rows: string[][] = [['', ...colNames, t('analysis.total'), t('analysis.pctOfTotal')]]
     for (let i = 0; i < rowCodeGuids.length; i++) {
-      rows.push([rowNames[i], ...showMatrix[i].map(String), String(showRowTotals[i]), pctOfTotal(showRowTotals[i], showGrandTotal)])
+      rows.push([rowNames[i], ...showMatrix[i].map(String), String(showRowTotals[i]), csvPctOfTotal(showRowTotals[i], showGrandTotal)])
     }
-    rows.push([t('analysis.total'), ...showColTotals.map(String), String(showGrandTotal), pctOfTotal(showGrandTotal, showGrandTotal)])
+    rows.push([t('analysis.total'), ...showColTotals.map(String), String(showGrandTotal), csvPctOfTotal(showGrandTotal, showGrandTotal)])
     window.api.exportCsv(toCsv(rows), 'code-cooccurrences.csv')
   }, [rowCodeGuids, colCodeGuids, showMatrix, codeMap, showRowTotals, showColTotals, showGrandTotal])
 
@@ -482,8 +483,8 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                                 32 px in both modes \u2014 see CodesInDocs. */}
                             <div style={{ height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               {isSame ? '\u2014' : visualMode ? (
-                                <div style={{ width: boxSize, height: boxSize, background: boxColor, borderRadius: 2 }} title={String(val)} />
-                              ) : val}
+                                <div style={{ width: boxSize, height: boxSize, background: boxColor, borderRadius: 2 }} title={formatNumber(val)} />
+                              ) : formatNumber(val)}
                             </div>
                           </td>
                         )
@@ -498,7 +499,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                         color: showRowTotals[i] === 0 ? 'var(--text-muted)' : undefined,
                         opacity: showRowTotals[i] === 0 ? 0.4 : 1
                       }}>
-                        {showRowTotals[i]}
+                        {formatNumber(showRowTotals[i])}
                       </td>
                       <td style={{
                         width: 50, minWidth: 50, maxWidth: 50, height: 32,
@@ -525,7 +526,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                         color: ct === 0 ? 'var(--text-muted)' : undefined,
                         opacity: ct === 0 ? 0.4 : 1
                       }}>
-                        {ct}
+                        {formatNumber(ct)}
                       </td>
                     ))}
                     <td onClick={handleGrandTotalClick} style={{
@@ -538,7 +539,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                       color: showGrandTotal === 0 ? 'var(--text-muted)' : undefined,
                       opacity: showGrandTotal === 0 ? 0.4 : 1
                     }}>
-                      {showGrandTotal}
+                      {formatNumber(showGrandTotal)}
                     </td>
                     <td style={{
                       width: 50, minWidth: 50, maxWidth: 50, height: 32,

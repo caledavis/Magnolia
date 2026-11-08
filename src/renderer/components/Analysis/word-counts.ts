@@ -13,6 +13,7 @@ import type { AnalysisInitData, CodeCondition, PlainTextSelection, QueryResult }
 import { stripFormatting } from '../../utils/strip-formatting'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
 import { sentenceRanges } from '../../utils/sentences'
+import { compareText } from '../../i18n'
 
 export interface WordFilter {
   exclude: Set<string>
@@ -252,7 +253,7 @@ export function countPhrases(texts: Iterable<string>, length: number, filter: Wo
   return [...counts.entries()]
     .filter(([, count]) => count >= minCount)
     .map(([phrase, count]) => ({ phrase, count }))
-    .sort((a, b) => b.count - a.count || a.phrase.localeCompare(b.phrase))
+    .sort((a, b) => b.count - a.count || compareText(a.phrase, b.phrase))
 }
 
 /** Split text into sentences: at . ! ? and line breaks. */

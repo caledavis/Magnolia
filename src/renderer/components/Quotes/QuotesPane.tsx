@@ -11,6 +11,7 @@ import { renderImageRegionThumbnail } from '../../utils/image-thumbnail'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 import { isSelectionDrag, requestSelectionDrop } from '../../utils/selection-drag'
 import { useTranslation } from 'react-i18next'
+import { formatNumber } from '../../i18n'
 
 interface Props {
   onClose?: () => void
@@ -267,7 +268,7 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
                 <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {group.sourceName}
                 </span>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{group.quotes.length}</span>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{formatNumber(group.quotes.length)}</span>
               </div>
               {/* Quote items */}
               {!isCollapsed && group.quotes.map((q) => (

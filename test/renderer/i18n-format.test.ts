@@ -1,0 +1,35 @@
+import { afterEach, describe, expect, it } from 'vitest'
+import { i18n, t, formatPercent, formatFixed, formatNumber, compareText } from '../../src/renderer/i18n'
+
+afterEach(() => { void i18n.changeLanguage('en') })
+
+describe('numbers in the interface language', () => {
+  it('writes numbers put into messages as the language does', () => {
+    expect(t('memos.nSelected', { count: 1234 })).toBe('1,234 memos selected.')
+    void i18n.changeLanguage('nl')
+    expect(t('memos.nSelected', { count: 1234 })).toBe("1.234 memo's geselecteerd.")
+    void i18n.changeLanguage('pt-BR')
+    expect(t('memos.nSelected', { count: 1234 })).toBe('1.234 memos selecionados.')
+  })
+
+  it('leaves text and respondent ids alone', () => {
+    void i18n.changeLanguage('nl')
+    expect(t('survey.respondentId', { id: 12345 })).toContain('12345')
+    expect(t('app.progressOf', { current: '1x', total: 2 })).toBe('1x / 2')
+  })
+
+  it('formats percentages and decimals', () => {
+    expect(formatPercent(12.5)).toBe('12.5%')
+    expect(formatFixed(3.14159, 2)).toBe('3.14')
+    void i18n.changeLanguage('es')
+    expect(formatPercent(12.5).replace(/\s/g, ' ')).toBe('12,5 %')
+    expect(formatFixed(3.14159, 2)).toBe('3,14')
+    void i18n.changeLanguage('nl')
+    expect(formatPercent(12.5)).toBe('12,5%')
+    expect(formatNumber(1234567)).toBe('1.234.567')
+  })
+
+  it('sorts names in the language\'s alphabetical order', () => {
+    expect(['b', 'Á', 'a', 'item 10', 'item 2'].sort(compareText)).toEqual(['a', 'Á', 'b', 'item 2', 'item 10'])
+  })
+})

@@ -104,9 +104,36 @@ fn core_message(key: &str, count: Option<usize>) -> Option<String> {
     lookup(&language, &key)
 }
 
-/// Give the core this module's translations.
+/// A whole number with the language's thousands separator. Spanish
+/// groups only from five digits on ("1234", "12.345"), as CLDR has it.
+fn group_digits(language: &str, n: u64) -> String {
+    let digits = n.to_string();
+    let (separator, min_digits) = match language {
+        "en" => (',', 4),
+        "es" => ('.', 5),
+        _ => ('.', 4),
+    };
+    if digits.len() < min_digits {
+        return digits;
+    }
+    let mut out = String::new();
+    for (i, d) in digits.chars().enumerate() {
+        if i > 0 && (digits.len() - i).is_multiple_of(3) {
+            out.push(separator);
+        }
+        out.push(d);
+    }
+    out
+}
+
+fn core_number(n: u64) -> String {
+    group_digits(&language(), n)
+}
+
+/// Give the core this module's translations and number format.
 pub fn install_core_translator() {
     magnolia_core::message::set_translator(core_message);
+    magnolia_core::message::set_number_formatter(core_number);
 }
 
 /// At launch: the language chosen in Preferences, if it isn't "system"
@@ -187,5 +214,16 @@ mod tests {
         assert_eq!(plural_category("pt-BR", 0), "one");
         assert_eq!(plural_category("pt-BR", 2), "other");
         assert_eq!(plural_category("pt-BR", 2_000_000), "many");
+    }
+
+    #[test]
+    fn groups_digits_by_language() {
+        assert_eq!(group_digits("en", 999), "999");
+        assert_eq!(group_digits("en", 1234), "1,234");
+        assert_eq!(group_digits("en", 1_234_567), "1,234,567");
+        assert_eq!(group_digits("nl", 1234), "1.234");
+        assert_eq!(group_digits("pt-BR", 12_345), "12.345");
+        assert_eq!(group_digits("es", 1234), "1234");
+        assert_eq!(group_digits("es", 12_345), "12.345");
     }
 }

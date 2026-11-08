@@ -7,7 +7,7 @@
  * the Memos window has no project stores of its own.
  */
 import type { Memo, SavedAnalysis, SavedQuery, SurveyData, TextSource } from '../models/types'
-import { t } from '../i18n'
+import { t, compareText } from '../i18n'
 
 export interface MemoPlace {
   /** Memos with the same key are listed together. */
@@ -127,7 +127,7 @@ export function groupMemos(memos: Memo[], places: Record<string, MemoPlace>): Me
   }
   const newest = (m: Memo) => m.modifiedDateTime ?? m.createdDateTime
   return [...groups.entries()]
-    .sort(([, a], [, b]) => a.order - b.order || a.label.localeCompare(b.label))
+    .sort(([, a], [, b]) => a.order - b.order || compareText(a.label, b.label))
     .map(([key, g]) => ({ key, label: g.label, memos: g.memos.sort((a, b) => newest(b).localeCompare(newest(a))) }))
 }
 

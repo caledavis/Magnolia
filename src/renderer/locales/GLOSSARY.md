@@ -13,6 +13,13 @@ Plural strings use i18next's suffixes: `_one` and `_other`, plus `_many`
 in Spanish and Portuguese (CLDR uses it for millions, "1 millón de
 códigos").
 
+Numbers, percentages, dates and times are written by the code in each
+language's own way (`formatNumber`, `formatPercent`, `formatDateTime` in
+`src/renderer/i18n`): a number put into a message arrives as "1,234" or
+"1.234", and a percentage arrives with its % sign. So a translation never
+adds a % sign or separators of its own. CSV exports keep plain "12.5"
+decimals, which spreadsheets read in any language.
+
 The translations were drafted by Claude and need review by native
 speakers before release. Keep to the terms below so the interface uses
 one word for each idea; change a term here first, then everywhere.

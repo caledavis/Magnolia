@@ -9,7 +9,7 @@ import { modKey, isMac } from '../../utils/platform'
 import { useCodeColourPresets } from '../../utils/code-colours'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { useTranslation } from 'react-i18next'
-import { t, formatDateTime } from '../../i18n'
+import { t, formatDateTime, formatNumber } from '../../i18n'
 
 function flattenCodes(codes: Code[]): Code[] {
   const result: Code[] = []
@@ -474,7 +474,7 @@ export function CodebookWindow() {
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div className="panel-header">
               <span style={{ flex: 1 }}>{t('panes.codes')}</span>
-              <span style={{ fontWeight: 400, letterSpacing: 0 }}>{allCodes.length}</span>
+              <span style={{ fontWeight: 400, letterSpacing: 0 }}>{formatNumber(allCodes.length)}</span>
             </div>
             <div className="panel-content">
               {codes.length === 0 ? (

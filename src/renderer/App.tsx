@@ -3610,7 +3610,7 @@ function App() {
               <span style={{ fontSize: 13, fontWeight: 500 }}>{loadProgress.stage}</span>
               {loadProgress.total > 0 && (
                 <span style={{ fontSize: 11 }}>
-                  {loadProgress.current} / {loadProgress.total}
+                  {t('app.progressOf', { current: loadProgress.current, total: loadProgress.total })}
                 </span>
               )}
             </div>

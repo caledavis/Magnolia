@@ -136,7 +136,7 @@ pub fn write_qdpx(
             "Refusing to overwrite “{{file}}” ({{size}} bytes) with an empty project. Use Save Project As if you really want to save an empty project.",
             &[
                 ("file", &path.display().to_string()),
-                ("size", &size.to_string()),
+                ("size", &crate::message::number(size)),
             ],
         )));
     }

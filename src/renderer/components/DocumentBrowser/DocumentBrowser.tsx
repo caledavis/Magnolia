@@ -15,6 +15,7 @@ import { RESPONDENTS_GROUP_MIME } from '../Analysis/group-by'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 import { isNotebook, noteData, sortNotes } from '../../utils/notes'
 import { useTranslation } from 'react-i18next'
+import { formatNumber } from '../../i18n'
 
 // Prefer the source's declared type (set on import for audio/video/image/
 // pdf). Only fall back to sniffing the filename for sources whose type is
@@ -677,7 +678,7 @@ function TagCountChip({ tags, onClick }: {
       onDoubleClick={(e) => e.stopPropagation()}
     >
       <Icon icon={faTag} style={{ fontSize: 9 }} />
-      {tags.length}
+      {formatNumber(tags.length)}
     </span>
   )
 }
@@ -994,7 +995,7 @@ function SurveyItem({
               {t('survey.respondents')}
             </span>
             <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-              {survey.respondents.length}
+              {formatNumber(survey.respondents.length)}
             </span>
           </div>
           {respondentsOpen && survey.respondents.map((r) => {
@@ -1138,7 +1139,7 @@ function SurveyItem({
               {t('survey.questions')}
             </span>
             <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-              {survey.questions.length}
+              {formatNumber(survey.questions.length)}
             </span>
           </div>
           {questionsOpen && survey.questions.map((q, i) => {
@@ -1278,7 +1279,7 @@ function TagItem({
         {tag.value || tag.name}
       </span>
       <span style={{ fontSize: 10, color: 'var(--text-muted)', flexShrink: 0 }}>
-        {tag.memberSourceGuids.length}
+        {formatNumber(tag.memberSourceGuids.length)}
       </span>
     </div>
   )

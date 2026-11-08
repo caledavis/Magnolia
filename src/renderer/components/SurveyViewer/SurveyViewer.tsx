@@ -80,7 +80,7 @@ import { modKey } from '../../utils/platform'
 import { onSelectionDrop } from '../../utils/selection-drag'
 import { SelectionDragHandle, textSelectionAnchor } from '../DocumentViewer/SelectionDragHandle'
 import { useTranslation } from 'react-i18next'
-import { t, formatDateTime } from '../../i18n'
+import { t, formatDateTime, formatPercent, formatNumber, compareText } from '../../i18n'
 
 interface Props {
   source: TextSource
@@ -234,11 +234,11 @@ function computeSingleChoiceDistribution(
       const av = ratingValues.get(a.option)
       const bv = ratingValues.get(b.option)
       // Resolved options first, in numeric order.
-      if (av != null && bv != null) return av - bv || a.option.localeCompare(b.option)
+      if (av != null && bv != null) return av - bv || compareText(a.option, b.option)
       if (av != null) return -1
       if (bv != null) return 1
       // Unresolved outliers among themselves: count descending.
-      return b.count - a.count || a.option.localeCompare(b.option)
+      return b.count - a.count || compareText(a.option, b.option)
     })
     // Number-first display: "Never 1" → "1 Never", "Always 5" →
     // "5 Always". Only fires for the embedded-number form — for
@@ -253,7 +253,7 @@ function computeSingleChoiceDistribution(
       if (v != null) t.displayOption = `${v} ${label}`
     }
   } else {
-    arr.sort((a, b) => b.count - a.count || a.option.localeCompare(b.option))
+    arr.sort((a, b) => b.count - a.count || compareText(a.option, b.option))
   }
   return arr
 }
@@ -280,7 +280,7 @@ function computeMultiSelectDistribution(
     }
     out.push({ option: label, count, pct: total > 0 ? count / total : 0 })
   }
-  out.sort((a, b) => b.pct - a.pct || a.option.localeCompare(b.option))
+  out.sort((a, b) => b.pct - a.pct || compareText(a.option, b.option))
   return out
 }
 
@@ -417,15 +417,14 @@ function computeNumericStats(survey: SurveyData, question: SurveyQuestion): Nume
 }
 
 function formatPct(p: number): string {
-  return `${Math.round(p * 100)}%`
+  return formatPercent(p * 100, 0)
 }
 
 /** Display helper: integers stay bare, floats round to 2 dp with
  *  trailing zeros trimmed. Used for the box plot's summary line so
  *  rating-scale numbers ("3", "4") aren't shown as "3.00". */
 function formatStat(n: number): string {
-  if (Number.isInteger(n)) return String(n)
-  return Number(n.toFixed(2)).toString()
+  return formatNumber(n, { maximumFractionDigits: 2 })
 }
 
 /** PlainTextSelections re-projected onto one cell — kept as the
@@ -960,7 +959,7 @@ function NumericBoxPlot({
                 fill="var(--text-muted)"
                 textAnchor="middle"
               >
-                {t}
+                {formatNumber(t)}
               </text>
               {namedLabel && (
                 <text

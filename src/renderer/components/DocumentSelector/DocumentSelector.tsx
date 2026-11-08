@@ -15,7 +15,7 @@ import {
 import type { SurveyEntityRef } from '../../models/types'
 import { SurveyScopeLine, chosenIds, mayBeSurveyEntityDrag, parseSurveyEntityDrop, withSurveyEntity, withSurveyIds } from './SurveyScope'
 import { useTranslation } from 'react-i18next'
-import { t } from '../../i18n'
+import { t, compareText } from '../../i18n'
 
 /** A document category's name (docSelector.category.<category>). */
 const categoryLabel = (category: DocCategory): string => t(`docSelector.category.${category}`)
@@ -1071,7 +1071,7 @@ export function DocumentSelector({
     }
     // Stable per-level sort by name so siblings are alphabetical.
     for (const list of byParent.values()) {
-      list.sort((a, b) => a.name.localeCompare(b.name))
+      list.sort((a, b) => compareText(a.name, b.name))
     }
     const walk = (parent: string | null, depth: number): void => {
       const children = byParent.get(parent) ?? []
@@ -1116,8 +1116,7 @@ export function DocumentSelector({
       for (const r of (respondentTagMembers[tg] || [])) respIds.get(r.sourceGuid)?.delete(r.id)
       for (const q of (questionTagMembers[tg] || [])) questIds.get(q.sourceGuid)?.delete(q.id)
     }
-    const collate = (Intl as any).Collator ? new Intl.Collator(undefined, { numeric: true }) : null
-    const sortNames = (a: string[]) => collate ? a.sort((x, y) => collate.compare(x, y)) : a.sort()
+    const sortNames = (a: string[]) => a.sort(compareText)
     const sgs = new Set<string>([...respIds.keys(), ...questIds.keys()])
     for (const sg of sgs) {
       const labels = surveyEntityLabels[sg] || { respondents: {}, questions: {} }

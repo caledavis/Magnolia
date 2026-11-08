@@ -52,6 +52,7 @@ import { buildWordTree, connectedNodes, flattenWordTree, layoutWordTree, type Tr
 import { useThemeSvgColors, SVG_FONT_FAMILY } from '../../utils/use-theme-svg-colors'
 import { buildPhraseNetwork, layoutPhraseNetwork, linkTitle, neighbours, LABEL_GAP, type NetworkLayout } from './phrase-network'
 import { useTranslation } from 'react-i18next'
+import { formatPercent, formatFixed, formatNumber } from '../../i18n'
 
 export type CombinationsView = 'phrases' | 'associations' | 'tree'
 /** How Phrases are shown. */
@@ -656,7 +657,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                       {phrases.slice(0, PHRASE_ROWS).map(({ phrase, count }) => (
                         <tr key={phrase} onClick={() => searchFor(phrase)} style={{ cursor: 'pointer' }} title={t('words.search', { word: phrase })}>
                           <td style={tdStyle}>{phrase}</td>
-                          <td style={{ ...tdStyle, textAlign: 'right' }}>{count}</td>
+                          <td style={{ ...tdStyle, textAlign: 'right' }}>{formatNumber(count)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -707,8 +708,8 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                       <tr key={r.word} onClick={() => searchSentences(r.word)} style={{ cursor: 'pointer' }} title={t('combos.findSentences', { a: focus, b: r.word })}>
                         <td style={tdStyle}>{r.word}</td>
                         <td style={{ ...tdStyle, textAlign: 'right' }}>{r.together}</td>
-                        <td style={{ ...tdStyle, textAlign: 'right' }}>{(r.share * 100).toFixed(1)}%</td>
-                        <td style={{ ...tdStyle, textAlign: 'right', color: r.g2 < 3.84 ? 'var(--text-muted)' : undefined }}>{r.g2.toFixed(1)}</td>
+                        <td style={{ ...tdStyle, textAlign: 'right' }}>{formatPercent(r.share * 100)}</td>
+                        <td style={{ ...tdStyle, textAlign: 'right', color: r.g2 < 3.84 ? 'var(--text-muted)' : undefined }}>{formatFixed(r.g2, 1)}</td>
                       </tr>
                     ))}
                   </tbody>
