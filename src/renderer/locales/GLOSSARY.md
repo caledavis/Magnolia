@@ -68,3 +68,20 @@ one word for each idea; change a term here first, then everywhere.
 | tag | etiqueta | tag | etiqueta |
 | transcript | transcripción | transcript | transcrição |
 | Viewer (the document viewer) | visor | viewer | visualizador |
+
+## Adding a language
+
+1. Copy `en.json` to `<id>.json`, using the BCP 47 tag macOS uses
+   (`fr`, `de`, `zh-Hans`), and translate it. Add its name to every
+   catalogue as `language.name.<id>`, in that language's own words.
+2. Add it to `CATALOGUES` in `src/renderer/i18n/index.ts` (an import and
+   one entry; the Preferences picker and system-language matching follow).
+3. Add it to `CATALOGUES` in `src-tauri/src/i18n.rs` and to
+   `CFBundleLocalizations` in `src-tauri/Info.plist`.
+4. Add its column to the tables above.
+
+Plural rules, number and date formats and alphabetical order come from
+CLDR (the browser's `Intl` in the renderer, ICU4X in the backend), so no
+code is needed for them. `npm test` and `cargo test` fail until every step
+is done, and list the plural forms the language needs (French, for
+instance, adds `_many`).

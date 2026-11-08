@@ -7,14 +7,17 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
-import en from '../../src/renderer/locales/en.json'
-import es from '../../src/renderer/locales/es.json'
-import nl from '../../src/renderer/locales/nl.json'
-import ptBR from '../../src/renderer/locales/pt-BR.json'
-import { resolveLanguage, normaliseLanguagePreference } from '../../src/renderer/i18n'
+import { resolveLanguage, normaliseLanguagePreference, LANGUAGE_IDS } from '../../src/renderer/i18n'
 
 type Tree = { [key: string]: string | Tree }
-const CATALOGUES: Record<string, Tree> = { en, es, nl, 'pt-BR': ptBR }
+const LOCALES = 'src/renderer/locales'
+/** Every catalogue in the locales folder, by language id. */
+const CATALOGUES: Record<string, Tree> = Object.fromEntries(
+  readdirSync(LOCALES)
+    .filter((f) => f.endsWith('.json'))
+    .map((f) => [f.slice(0, -'.json'.length), JSON.parse(readFileSync(join(LOCALES, f), 'utf-8')) as Tree])
+)
+const en = CATALOGUES.en
 const PLURAL_SUFFIX = /_(zero|one|two|few|many|other)$/
 
 /** Every string in a catalogue, by dotted key. */
@@ -44,6 +47,24 @@ function messages(tree: Tree): Map<string, Map<string, string>> {
 const placeholders = (text: string): string[] => [...text.matchAll(/\{\{\s*(\w+)[^}]*\}\}/g)].map((m) => m[1]).sort()
 
 const english = messages(en)
+
+describe('the list of languages', () => {
+  const ids = Object.keys(CATALOGUES).sort()
+
+  it('offers every catalogue in the language picker (LANGUAGE_IDS)', () => {
+    expect([...LANGUAGE_IDS].sort()).toEqual(ids)
+  })
+
+  it('names every language for the picker', () => {
+    for (const id of ids) expect(flatten(en).has(`language.name.${id}`), `language.name.${id}`).toBe(true)
+  })
+
+  it('declares every language to macOS (Info.plist CFBundleLocalizations)', () => {
+    const plist = readFileSync('src-tauri/Info.plist', 'utf-8')
+    const block = plist.match(/<key>CFBundleLocalizations<\/key>\s*<array>([\s\S]*?)<\/array>/)?.[1] ?? ''
+    expect([...block.matchAll(/<string>([^<]+)<\/string>/g)].map((m) => m[1]).sort()).toEqual(ids)
+  })
+})
 
 describe('translation catalogues', () => {
   for (const [language, tree] of Object.entries(CATALOGUES)) {

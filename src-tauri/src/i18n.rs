@@ -80,15 +80,36 @@ pub fn t_with(key: &str, vars: &[(&str, &str)]) -> String {
     text
 }
 
-/// The CLDR plural category of a whole number in `language`, as i18next
-/// names it in the catalogues' key suffixes.
+/// The language's CLDR locale (English for an id ICU can't parse).
+fn locale(language: &str) -> icu_locale_core::Locale {
+    icu_locale_core::Locale::try_from_str(language).unwrap_or(icu_locale_core::locale!("en"))
+}
+
+/// The language's cardinal plural rules, from the CLDR data built into
+/// ICU4X, so every language gets its own rules without code here.
+fn plural_rules(language: &str) -> Option<icu_plurals::PluralRules> {
+    icu_plurals::PluralRules::try_new_cardinal((&locale(language)).into()).ok()
+}
+
+/// A plural category as i18next names it in the catalogues' key suffixes.
+fn category_name(c: icu_plurals::PluralCategory) -> &'static str {
+    use icu_plurals::PluralCategory::*;
+    match c {
+        Zero => "zero",
+        One => "one",
+        Two => "two",
+        Few => "few",
+        Many => "many",
+        Other => "other",
+    }
+}
+
+/// The CLDR plural category of a whole number in `language`.
 fn plural_category(language: &str, n: usize) -> &'static str {
-    match language {
-        // Spanish and Portuguese use "many" for exact millions.
-        "es" | "pt-BR" if n != 0 && n.is_multiple_of(1_000_000) => "many",
-        "pt-BR" if n <= 1 => "one",
-        _ if n == 1 => "one",
-        _ => "other",
+    match plural_rules(language) {
+        Some(rules) => category_name(rules.category_for(n)),
+        None if n == 1 => "one",
+        None => "other",
     }
 }
 
@@ -104,26 +125,13 @@ fn core_message(key: &str, count: Option<usize>) -> Option<String> {
     lookup(&language, &key)
 }
 
-/// A whole number with the language's thousands separator. Spanish
-/// groups only from five digits on ("1234", "12.345"), as CLDR has it.
+/// A whole number written as `language` writes it (its digits, grouping
+/// separator and where grouping starts, from CLDR via ICU4X).
 fn group_digits(language: &str, n: u64) -> String {
-    let digits = n.to_string();
-    let (separator, min_digits) = match language {
-        "en" => (',', 4),
-        "es" => ('.', 5),
-        _ => ('.', 4),
-    };
-    if digits.len() < min_digits {
-        return digits;
+    match icu_decimal::DecimalFormatter::try_new((&locale(language)).into(), Default::default()) {
+        Ok(f) => f.format(&fixed_decimal::Decimal::from(n)).to_string(),
+        Err(_) => n.to_string(),
     }
-    let mut out = String::new();
-    for (i, d) in digits.chars().enumerate() {
-        if i > 0 && (digits.len() - i).is_multiple_of(3) {
-            out.push(separator);
-        }
-        out.push(d);
-    }
-    out
 }
 
 fn core_number(n: u64) -> String {
@@ -216,6 +224,63 @@ mod tests {
         assert_eq!(plural_category("pt-BR", 2_000_000), "many");
     }
 
+    /// Every catalogue's plural keys have exactly the forms ICU's rules for
+    /// that language produce, so a new language's catalogue can't miss one
+    /// (or carry one the backend never asks for).
+    #[test]
+    fn catalogue_plurals_match_the_language_rules() {
+        fn walk(v: &Value, prefix: &str, out: &mut Vec<String>) {
+            if let Some(map) = v.as_object() {
+                for (k, v) in map {
+                    walk(v, &format!("{prefix}.{k}"), out);
+                }
+            } else {
+                out.push(prefix.to_string());
+            }
+        }
+        for (id, value) in catalogues() {
+            let rules = plural_rules(id).unwrap_or_else(|| panic!("no plural rules for {id}"));
+            let mut want: Vec<&str> = rules.categories().map(category_name).collect();
+            want.sort();
+            let mut keys = Vec::new();
+            walk(&value["native"], "native", &mut keys);
+            let bases: Vec<&str> = keys
+                .iter()
+                .filter_map(|k| k.strip_suffix("_other"))
+                .collect();
+            assert!(!bases.is_empty());
+            for base in bases {
+                let mut got: Vec<&str> = keys
+                    .iter()
+                    .filter_map(|k| k.strip_prefix(base)?.strip_prefix('_'))
+                    .filter(|s| !s.contains('.'))
+                    .collect();
+                got.sort();
+                assert_eq!(got, want, "{id}: {base}");
+            }
+        }
+    }
+
+    /// Every catalogue in src/renderer/locales is embedded here.
+    #[test]
+    fn embeds_every_catalogue() {
+        let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../src/renderer/locales");
+        let mut on_disk: Vec<String> = std::fs::read_dir(dir)
+            .unwrap()
+            .filter_map(|e| {
+                e.ok()?
+                    .file_name()
+                    .to_str()?
+                    .strip_suffix(".json")
+                    .map(str::to_string)
+            })
+            .collect();
+        on_disk.sort();
+        let mut embedded: Vec<&str> = CATALOGUES.iter().map(|(id, _)| *id).collect();
+        embedded.sort();
+        assert_eq!(on_disk, embedded);
+    }
+
     #[test]
     fn groups_digits_by_language() {
         assert_eq!(group_digits("en", 999), "999");
@@ -225,5 +290,8 @@ mod tests {
         assert_eq!(group_digits("pt-BR", 12_345), "12.345");
         assert_eq!(group_digits("es", 1234), "1234");
         assert_eq!(group_digits("es", 12_345), "12.345");
+        // Languages Magnolia doesn't have yet get theirs too.
+        assert_eq!(group_digits("fr", 1234).replace('\u{202f}', " "), "1 234");
+        assert_eq!(plural_category("pl", 3), "few");
     }
 }

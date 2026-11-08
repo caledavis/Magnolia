@@ -31,6 +31,10 @@ log = "0.4"
 lopdf = "0.46"
 resvg = "0.45"
 urlencoding = "2"
+icu_plurals = "2.4"
+icu_decimal = "2.4"
+icu_locale_core = "2.4"
+fixed_decimal = "0.7.3"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"

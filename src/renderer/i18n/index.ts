@@ -23,8 +23,12 @@ import es from '../locales/es.json'
 import nl from '../locales/nl.json'
 import ptBR from '../locales/pt-BR.json'
 
-export const LANGUAGE_IDS = ['en', 'es', 'nl', 'pt-BR'] as const
-export type LanguageId = (typeof LANGUAGE_IDS)[number]
+/** Every catalogue, by language id. Adding a language: see "Adding a
+ *  language" in locales/GLOSSARY.md (the tests name anything missed). */
+const CATALOGUES = { en, es, nl, 'pt-BR': ptBR }
+
+export type LanguageId = keyof typeof CATALOGUES
+export const LANGUAGE_IDS = Object.keys(CATALOGUES) as readonly LanguageId[]
 export type LanguagePreference = 'system' | LanguageId
 
 const isLanguageId = (v: unknown): v is LanguageId => (LANGUAGE_IDS as readonly unknown[]).includes(v)
@@ -35,14 +39,17 @@ export function normaliseLanguagePreference(v: unknown): LanguagePreference {
 }
 
 /** The language for a preference: the one chosen, or for "system" the first
- *  of the computer's languages Magnolia has (any Portuguese gets Brazilian
- *  Portuguese, the only one it has), else English. */
+ *  of the computer's languages Magnolia has, else English. A system
+ *  language matches its own catalogue ("pt-BR"), else one in the same base
+ *  language ("pt-PT" and "pt" get "pt-BR"; "es-MX" gets "es"). */
 export function resolveLanguage(pref: LanguagePreference, systemLanguages: readonly string[]): LanguageId {
   if (pref !== 'system') return pref
+  const baseOf = (tag: string): string => tag.toLowerCase().split(/[-_]/)[0]
   for (const tag of systemLanguages) {
-    const base = tag.toLowerCase().split(/[-_]/)[0]
-    if (base === 'pt') return 'pt-BR'
-    if (isLanguageId(base)) return base
+    const exact = LANGUAGE_IDS.find((id) => id.toLowerCase() === tag.toLowerCase().replace('_', '-'))
+    if (exact) return exact
+    const sameBase = LANGUAGE_IDS.find((id) => baseOf(id) === baseOf(tag))
+    if (sameBase) return sameBase
   }
   return 'en'
 }
@@ -59,12 +66,7 @@ const numberFormatter = {
 }
 
 void i18n.use(initReactI18next).use(numberFormatter).init({
-  resources: {
-    en: { translation: en },
-    es: { translation: es },
-    nl: { translation: nl },
-    'pt-BR': { translation: ptBR }
-  },
+  resources: Object.fromEntries(Object.entries(CATALOGUES).map(([id, translation]) => [id, { translation }])),
   lng: 'en',
   fallbackLng: 'en',
   // React escapes what it renders; the catalogues hold plain text.
