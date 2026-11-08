@@ -12,6 +12,10 @@
     "language": {
       "heading": "Idioma",
       "description": "O idioma dos menus, das janelas e das exportações do Magnolia. Seus projetos não mudam: códigos, documentos e memos continuam como você os escreveu."
+    },
+    "digits": {
+      "heading": "Algarismos",
+      "system": "Igual ao computador ({{sample}})"
     }
   },
   "native": {

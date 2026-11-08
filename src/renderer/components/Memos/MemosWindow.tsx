@@ -1,4 +1,4 @@
-import { formatDateTime, currentLanguage, formatNumber } from '../../i18n'
+import { formatDateTime, formatLocale, formatNumber } from '../../i18n'
 /**
  * The Memos window: every memo in the project, wherever it is attached.
  * The Saved Memos pane shows only project memos and the memos of the
@@ -26,7 +26,7 @@ import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { useTranslation } from 'react-i18next'
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(currentLanguage(), { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleDateString(formatLocale(), { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 function MemoRow({ memo, place, selected, onClick, onDoubleClick, onContextMenu }: {

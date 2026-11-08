@@ -10,11 +10,11 @@ import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import type { Memo, MemoType, MemoEditInitData } from '../../models/types'
 import { showMemoLocation } from '../../utils/show-memo'
 import { useTranslation } from 'react-i18next'
-import { currentLanguage, compareText, formatNumber } from '../../i18n'
+import { formatLocale, compareText, formatNumber } from '../../i18n'
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
-  return d.toLocaleDateString(currentLanguage(), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleDateString(formatLocale(), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 function MemoItem({

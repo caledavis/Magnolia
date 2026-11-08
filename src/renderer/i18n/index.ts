@@ -83,12 +83,20 @@ export const currentLanguage = (): LanguageId => (isLanguageId(i18n.language) ? 
 
 /** A date and time, a date, or a number, as the interface language writes
  *  them. */
+/** The digits numbers and dates are written in, when not the language's
+ *  usual ones (a CLDR numbering system, such as "latn" or "arab"). */
+let numbering: string | null = null
+
+/** The locale numbers and dates are formatted in: the interface language,
+ *  with the chosen digits as a Unicode extension ("ar-u-nu-latn"). */
+export const formatLocale = (): string => (numbering ? `${currentLanguage()}-u-nu-${numbering}` : currentLanguage())
+
 export const formatDateTime = (d: Date | string | number, options?: Intl.DateTimeFormatOptions): string =>
-  new Date(d).toLocaleString(currentLanguage(), options)
+  new Date(d).toLocaleString(formatLocale(), options)
 export const formatDate = (d: Date | string | number, options?: Intl.DateTimeFormatOptions): string =>
-  new Date(d).toLocaleDateString(currentLanguage(), options)
+  new Date(d).toLocaleDateString(formatLocale(), options)
 export const formatNumber = (n: number, options?: Intl.NumberFormatOptions): string =>
-  n.toLocaleString(currentLanguage(), options)
+  n.toLocaleString(formatLocale(), options)
 
 /** A number with exactly `digits` decimal places ("12.5", "12,5"). */
 export const formatFixed = (n: number, digits: number): string =>
@@ -117,7 +125,8 @@ let collatorLanguage = 'en'
  *  respondent's id is a label, not a quantity. */
 function formatInterpolated(value: unknown, _format: string | undefined, lng: string | undefined, options?: { interpolationkey?: string }): unknown {
   if (typeof value !== 'number' || options?.interpolationkey === 'id') return value
-  return value.toLocaleString(lng && isLanguageId(lng) ? lng : currentLanguage(), { maximumFractionDigits: 2 })
+  const locale = lng && isLanguageId(lng) && lng !== currentLanguage() ? lng : formatLocale()
+  return value.toLocaleString(locale, { maximumFractionDigits: 2 })
 }
 
 const systemLanguages = (): readonly string[] =>
@@ -136,7 +145,74 @@ export function isRtlLanguage(language: string): boolean {
 }
 const RTL_SCRIPTS = new Set(['Arab', 'Hebr', 'Syrc', 'Thaa', 'Nkoo', 'Adlm', 'Rohg', 'Mand', 'Samr'])
 
-function apply(language: LanguageId): void {
+// ── Digits ─────────────────────────────────────────────────────────
+// Some languages are written with more than one set of digits (Arabic
+// with Arabic-Indic or Western ones). The Digits preference is "system"
+// (the computer's region decides) or a CLDR numbering system id.
+
+export type DigitsPreference = string
+
+const defaultNumbering = (locale: string): string => new Intl.NumberFormat(locale).resolvedOptions().numberingSystem
+
+/** The digit sets `language` can be written in, its plain default first:
+ *  that, its most likely region's (CLDR's likely subtags: Arabic → Egypt,
+ *  which writes Arabic-Indic digits, though plain Arabic is Western) and
+ *  Western ones. One entry means there's nothing to choose. */
+export function digitChoices(language: string): string[] {
+  const loc = new Intl.Locale(language) as Intl.Locale & { getNumberingSystems?: () => string[]; numberingSystems?: string[] }
+  const listed = loc.getNumberingSystems?.() ?? loc.numberingSystems ?? []
+  // Language and region only: a script subtag ("ar-Arab-EG") loses the
+  // region's digits.
+  const likely = loc.maximize()
+  const regional = likely.region ? defaultNumbering(`${likely.language}-${likely.region}`) : defaultNumbering(language)
+  return [...new Set([defaultNumbering(language), regional, ...listed, 'latn'])]
+}
+
+/** The digits for `language` under a Digits preference, or null for the
+ *  language's usual ones. "system" follows the computer's region
+ *  (`systemLocale`, as macOS gives it: "ar_EG" or "ar_EG@numbers=latn"),
+ *  so Egypt gets Arabic-Indic digits and Morocco Western ones. */
+export function resolveNumbering(language: string, pref: DigitsPreference, systemLocale: string): string | null {
+  const choices = digitChoices(language)
+  if (choices.length < 2) return null
+  let nu: string | undefined
+  if (pref !== 'system' && choices.includes(pref)) nu = pref
+  else {
+    const override = systemLocale.match(/@.*\bnumbers=(\w+)/)?.[1]
+    const region = systemLocale.match(/^[a-z]{2,3}(?:[_-][A-Za-z]{4})?[_-]([A-Z]{2}|\d{3})/)?.[1]
+    if (override && choices.includes(override)) nu = override
+    else if (region) {
+      try { nu = defaultNumbering(`${language}-${region}`) } catch { /* unknown region */ }
+    }
+  }
+  return nu && nu !== choices[0] ? nu : null
+}
+
+/** The interface locale as one tag: the language, with the digits as a
+ *  Unicode extension. It's what windows pass each other and the backend. */
+const localeTag = (language: LanguageId, nu: string | null): string => (nu ? `${language}-u-nu-${nu}` : language)
+
+let digitsPref: DigitsPreference = 'system'
+let systemLocale = ''
+
+/** 1,234.5 as the interface language writes it in digits `nu` (null:
+ *  the computer's choice), for the Digits menu in Preferences. */
+export function digitsSample(nu: string | null): string {
+  const language = currentLanguage()
+  const resolved = nu ?? resolveNumbering(language, 'system', systemLocale)
+  return new Intl.NumberFormat(resolved ? `${language}-u-nu-${resolved}` : language).format(1234.5)
+}
+
+function apply(tag: string): void {
+  let language: string = tag
+  let nu: string | null = null
+  try {
+    const loc = new Intl.Locale(tag)
+    language = loc.baseName
+    nu = loc.numberingSystem ?? null
+  } catch { /* a plain id */ }
+  if (!isLanguageId(language)) return
+  numbering = nu
   void i18n.changeLanguage(language)
   document.documentElement.lang = language
   // The whole interface mirrors for a right-to-left language (the
@@ -153,21 +229,46 @@ function apply(language: LanguageId): void {
 export async function initLanguage(): Promise<void> {
   let pref: LanguagePreference = 'system'
   try {
-    const prefs = await window.api.loadPreferences()
-    pref = normaliseLanguagePreference((prefs as { language?: unknown } | null)?.language)
+    const prefs = (await window.api.loadPreferences()) as { language?: unknown; digits?: unknown } | null
+    pref = normaliseLanguagePreference(prefs?.language)
+    if (typeof prefs?.digits === 'string') digitsPref = prefs.digits
   } catch { /* defaults */ }
-  const language = resolveLanguage(pref, systemLanguages())
-  apply(language)
-  window.api.onLanguageChanged((id) => { if (isLanguageId(id)) apply(id) })
+  try { systemLocale = await window.api.systemLocale() } catch { /* none */ }
+  if (!systemLocale) systemLocale = systemLanguages()[0] ?? ''
+  languagePref = pref
+  const tag = currentTag()
+  apply(tag)
+  window.api.onLanguageChanged((t) => apply(t))
   // The backend builds the menus and dialogs, and learns from the first
   // window to start what "system" means here (it ignores repeats).
-  window.api.setNativeLanguage(language, pref)
+  window.api.setNativeLanguage(tagLanguage(tag), pref, tag)
+}
+
+let languagePref: LanguagePreference = 'system'
+
+/** The tag for the current preferences. */
+function currentTag(): string {
+  const language = resolveLanguage(languagePref, systemLanguages())
+  return localeTag(language, resolveNumbering(language, digitsPref, systemLocale))
+}
+const tagLanguage = (tag: string): string => tag.split('-u-')[0]
+
+/** Put every window and the backend in step with the preferences. */
+function broadcast(): void {
+  const tag = currentTag()
+  apply(tag)
+  window.api.broadcastLanguage(tag)
+  window.api.setNativeLanguage(tagLanguage(tag), languagePref, tag)
 }
 
 /** Switch every window to a newly chosen preference (from Preferences). */
 export function setLanguagePreference(pref: LanguagePreference): void {
-  const language = resolveLanguage(pref, systemLanguages())
-  apply(language)
-  window.api.broadcastLanguage(language)
-  window.api.setNativeLanguage(language, pref)
+  languagePref = pref
+  broadcast()
+}
+
+/** Switch every window to newly chosen digits (from Preferences). */
+export function setDigitsPreference(pref: DigitsPreference): void {
+  digitsPref = pref
+  broadcast()
 }

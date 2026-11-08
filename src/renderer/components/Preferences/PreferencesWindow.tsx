@@ -14,7 +14,7 @@ import { normaliseThemeId, type ThemeId } from '../../utils/theme-id'
 import { Icon, faGear } from '../Icon'
 import { COLOURFUL_INTERFACE_ENABLED, colourfulInterfaceFromSaved } from '../../utils/colourful-interface'
 import { useTranslation } from 'react-i18next'
-import { LANGUAGE_IDS, normaliseLanguagePreference, resolveLanguage, setLanguagePreference, type LanguagePreference } from '../../i18n'
+import { LANGUAGE_IDS, normaliseLanguagePreference, resolveLanguage, setLanguagePreference, setDigitsPreference, digitChoices, digitsSample, type LanguagePreference, type DigitsPreference } from '../../i18n'
 
 interface FootPedalMappings {
   playPause: string
@@ -47,6 +47,9 @@ interface Preferences {
   colourfulInterface: boolean
   /** The interface language, or "system" to follow the computer's. */
   language: LanguagePreference
+  /** The digits numbers are written in, for languages with a choice:
+   *  "system" (the computer's region decides) or a CLDR numbering system. */
+  digits: DigitsPreference
 }
 
 const DEFAULT_PREFS: Preferences = {
@@ -69,7 +72,8 @@ const DEFAULT_PREFS: Preferences = {
   userName: '',
   toolbarStyle: 'ribbon',
   colourfulInterface: COLOURFUL_INTERFACE_ENABLED,
-  language: 'system'
+  language: 'system',
+  digits: 'system'
 }
 
 const TOOLBAR_STYLE_OPTIONS: { id: ToolbarStyle; labelKey: string }[] = [
@@ -320,13 +324,17 @@ function AppearanceSettings({
 function GeneralSettings({
   prefs,
   save,
-  onLanguageChange
+  onLanguageChange,
+  onDigitsChange
 }: {
   prefs: Preferences
   save: (updated: Preferences) => void
   onLanguageChange: (language: LanguagePreference) => void
+  onDigitsChange: (digits: DigitsPreference) => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  // Only for a language written with more than one set of digits.
+  const digits = digitChoices(i18n.language)
   const systemLanguage = resolveLanguage('system', navigator.languages ?? [navigator.language])
   return (
     <div style={{ marginBottom: 24 }}>
@@ -345,6 +353,21 @@ function GeneralSettings({
           <option key={id} value={id}>{t(`language.name.${id}`)}</option>
         ))}
       </select>
+
+      {digits.length > 1 && (
+        <>
+          <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>{t('preferences.digits.heading')}</h3>
+          <select
+            value={digits.includes(prefs.digits) ? prefs.digits : 'system'}
+            onChange={(e) => onDigitsChange(e.target.value)}
+            aria-label={t('preferences.digits.heading')}
+            style={{ fontSize: 12, padding: '3px 6px', marginBottom: 24 }}
+          >
+            <option value="system">{t('preferences.digits.system', { sample: digitsSample(null) })}</option>
+            {digits.map((nu) => <option key={nu} value={nu}>{digitsSample(nu)}</option>)}
+          </select>
+        </>
+      )}
 
       <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>{t('prefs.yourName')}</h3>
       <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.5 }}>
@@ -721,6 +744,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
           toolbarStyle: (data.toolbarStyle === 'icons' || data.toolbarStyle === 'ribbon') ? data.toolbarStyle : DEFAULT_PREFS.toolbarStyle,
           colourfulInterface: colourfulInterfaceFromSaved(data.colourfulInterface),
           language: normaliseLanguagePreference(data.language),
+          digits: typeof data.digits === 'string' ? data.digits : 'system',
           footPedalMappings: { ...DEFAULT_PREFS.footPedalMappings, ...(data.footPedalMappings || {}) }
         })
       }
@@ -763,6 +787,11 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
     save({ ...prefs, language })
     // Switch this window, the others and the backend's menus.
     setLanguagePreference(language)
+  }, [prefs, save])
+
+  const setDigits = useCallback((digits: DigitsPreference) => {
+    save({ ...prefs, digits })
+    setDigitsPreference(digits)
   }, [prefs, save])
 
   const setToolbarStyle = useCallback((toolbarStyle: ToolbarStyle) => {
@@ -848,7 +877,8 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
         {/* Selected category's settings */}
         <div style={{ flex: 1, padding: '14px 20px', overflow: 'auto' }}>
           {selected.id === 'general' && (
-            <GeneralSettings prefs={prefs} save={save} onLanguageChange={setLanguage} />
+            <GeneralSettings prefs={prefs} save={save} onLanguageChange={setLanguage}
+            onDigitsChange={setDigits} />
           )}
           {selected.id === 'appearance' && (
             <AppearanceSettings

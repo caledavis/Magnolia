@@ -135,6 +135,7 @@ pub fn run() {
             commands::save_preferences,
             commands::preferences_update,
             i18n::set_native_language,
+            i18n::system_locale,
             commands::get_app_version,
             updater::get_update_badge,
             updater::update_install,

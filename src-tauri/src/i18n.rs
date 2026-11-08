@@ -22,6 +22,9 @@ const CATALOGUES: &[(&str, &str)] = &[
 ];
 
 static LANGUAGE: RwLock<String> = RwLock::new(String::new());
+/// The locale the core's numbers are written in: the language, with the
+/// digits chosen in Preferences ("ar-u-nu-latn"). Empty means the language.
+static NUMBER_LOCALE: RwLock<String> = RwLock::new(String::new());
 
 fn catalogues() -> &'static [(&'static str, Value)] {
     static PARSED: OnceLock<Vec<(&'static str, Value)>> = OnceLock::new();
@@ -135,7 +138,11 @@ fn group_digits(language: &str, n: u64) -> String {
 }
 
 fn core_number(n: u64) -> String {
-    group_digits(&language(), n)
+    let mut locale = NUMBER_LOCALE.read().unwrap().clone();
+    if locale.is_empty() {
+        locale = language();
+    }
+    group_digits(&locale, n)
 }
 
 /// Give the core this module's translations and number format.
@@ -154,11 +161,18 @@ pub fn init_from_preferences(prefs: &Value) {
     }
 }
 
-/// The renderer reports the interface language (`language`, resolved) and
-/// the preference it came from (`preference`: a language id or "system"):
+/// The renderer reports the interface language (`language`, resolved),
+/// the preference it came from (`preference`: a language id or "system")
+/// and the locale for numbers (`number_locale`, with the chosen digits):
 /// rebuild the menu in it.
 #[tauri::command]
-pub fn set_native_language(app: AppHandle, language: String, preference: String) {
+pub fn set_native_language(
+    app: AppHandle,
+    language: String,
+    preference: String,
+    number_locale: Option<String>,
+) {
+    *NUMBER_LOCALE.write().unwrap() = number_locale.unwrap_or_default();
     #[cfg(target_os = "macos")]
     set_apple_languages((preference != "system").then_some(language.as_str()));
     #[cfg(not(target_os = "macos"))]
@@ -168,6 +182,23 @@ pub fn set_native_language(app: AppHandle, language: String, preference: String)
         crate::windows::retitle(&app);
         crate::menu::rebuild(&app);
     }
+}
+
+/// The computer's region locale as macOS keeps it ("ar_EG", or
+/// "ar_EG@numbers=latn" when the digits are overridden), for the renderer
+/// to follow the computer's digits. Empty elsewhere: the renderer then
+/// goes by the system language's region.
+#[tauri::command]
+pub fn system_locale() -> String {
+    #[cfg(target_os = "macos")]
+    {
+        use objc2_foundation::{NSString, NSUserDefaults};
+        let defaults = NSUserDefaults::standardUserDefaults();
+        if let Some(s) = defaults.stringForKey(&NSString::from_str("AppleLocale")) {
+            return s.to_string();
+        }
+    }
+    String::new()
 }
 
 /// macOS draws its own panels (open and save dialogs) and some menu items
@@ -293,5 +324,9 @@ mod tests {
         // Languages Magnolia doesn't have yet get theirs too.
         assert_eq!(group_digits("fr", 1234).replace('\u{202f}', " "), "1 234");
         assert_eq!(plural_category("pl", 3), "few");
+        // Digits chosen in Preferences come as a Unicode extension.
+        assert_eq!(group_digits("ar-EG", 1234), "١٬٢٣٤");
+        assert_eq!(group_digits("ar-u-nu-arab", 1234), "١٬٢٣٤");
+        assert_eq!(group_digits("ar-EG-u-nu-latn", 1234), "1,234");
     }
 }

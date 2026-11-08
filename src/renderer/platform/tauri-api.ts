@@ -331,7 +331,8 @@ const api: MagnoliaAPI = {
     on<{ language: string; from: string }>('language-changed', (p) => {
       if (p.from !== current.label) callback(p.language)
     }),
-  setNativeLanguage: (language, preference) => void invoke('set_native_language', { language, preference }),
+  setNativeLanguage: (language, preference, numberLocale) => void invoke('set_native_language', { language, preference, numberLocale }),
+  systemLocale: () => invoke('system_locale'),
 
   // Codebook window
   openCodebookWindow: (data) => void invoke('open_child_window', { kind: 'codebook', data }),

@@ -1,4 +1,4 @@
-import { formatDateTime, currentLanguage, formatNumber } from '../../i18n'
+import { formatDateTime, formatLocale, formatNumber } from '../../i18n'
 import { useState, useCallback, useEffect } from 'react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { Icon, faPlus } from '../Icon'
@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next'
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
-  return d.toLocaleDateString(currentLanguage(), {
+  return d.toLocaleDateString(formatLocale(), {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

@@ -656,8 +656,12 @@ export interface MagnoliaAPI {
   broadcastLanguage: (language: string) => void
   onLanguageChanged: (callback: (language: string) => void) => () => void
   /** Tell the backend the interface language, for its menus and dialogs,
-   *  and the preference it came from (a language id, or "system"). */
-  setNativeLanguage: (language: string, preference: string) => void
+   *  the preference it came from (a language id, or "system"), and the
+   *  locale its numbers are written in ("ar-u-nu-latn"). */
+  setNativeLanguage: (language: string, preference: string, numberLocale: string) => void
+  /** The computer's region locale as the OS gives it ("ar_EG",
+   *  "ar_EG@numbers=latn"); empty where there's none to read. */
+  systemLocale: () => Promise<string>
   // Codebook window
   openCodebookWindow: (data: CodebookInitData) => void
   getCodebookData: () => Promise<CodebookInitData>
