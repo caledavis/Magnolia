@@ -2207,7 +2207,10 @@ div:hover > .folder-row-add,
   flex-direction: column;
   align-items: center;
   gap: 5px;
-  width: 76px;
+  /* At least this wide; a longer label widens it (Ribbon.tsx sets the
+   * label's min-width to its two-line width). */
+  width: min-content;
+  min-width: 76px;
   padding: 5px 4px 4px;
   border: none;
   border-radius: 6px;
@@ -2230,6 +2233,17 @@ div:hover > .folder-row-add,
   /* Room for two lines on every tab, so the ribbon keeps one height
    * and the panes below don't jump when you switch tabs. */
   min-height: 2.4em;
+}
+/* A tab too wide for the window at its label widths (Ribbon.tsx): first
+ * the one-word labels, then all of them, go back to 76px buttons, with
+ * long words hyphenated by the interface language's rules (the page's
+ * lang), or broken anywhere as a last resort. */
+.ribbon-body[data-tight="words"] .ribbon-label[data-one-word],
+.ribbon-body[data-tight="all"] .ribbon-label {
+  min-width: 0 !important;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+  overflow-wrap: anywhere;
 }
 /* Flat buttons: the glyph alone, in the icon palette (see "Icon
  * palette" above). */

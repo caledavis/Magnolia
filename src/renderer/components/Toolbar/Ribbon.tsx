@@ -14,8 +14,17 @@
  * strip; the choice is remembered on this computer. While collapsed,
  * clicking a tab shows its buttons over the panels until you click a
  * button or anywhere else.
+ *
+ * A button is at least 76px wide, and wider when its label needs it: as
+ * wide as the label's widest line when it's wrapped onto two lines as
+ * evenly as its word breaks allow (see twoLineWidth). So a long word in
+ * any language ("Woordfrequenties") widens its button instead of running
+ * into the next one, and no label takes a third line. When that makes
+ * the tab too wide for the window, labels that are one long word go back
+ * to 76px and are hyphenated in the interface language (data-tight
+ * "words"), and if it's still too wide, every label does ("all").
  */
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Icon, faChevronUp, faChevronDown, type IconComponent } from '../Icon'
 import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
 import { useTranslation } from 'react-i18next'
@@ -143,11 +152,34 @@ export function RibbonTabs({ ribbon }: { ribbon: RibbonState }) {
   )
 }
 
+/** Narrow the ribbon's buttons in stages while they're wider than the
+ *  window (see data-tight above). Checked again on every resize and tab. */
+function useTightFit(active: RibbonTabDef, shown: boolean) {
+  const ref = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const fit = (): void => {
+      el.removeAttribute('data-tight')
+      for (const stage of ['words', 'all']) {
+        if (el.scrollWidth <= el.clientWidth + 1) return
+        el.setAttribute('data-tight', stage)
+      }
+    }
+    fit()
+    const observer = new ResizeObserver(fit)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [active, shown])
+  return ref
+}
+
 export function RibbonBody({ ribbon }: { ribbon: RibbonState }) {
   const { active, collapsed, peek, endPeek } = ribbon
+  const ref = useTightFit(active, !collapsed || peek)
   if (collapsed && !peek) return null
   const body = (
-    <div className="ribbon-body" role="tabpanel" aria-label={active.label}>
+    <div ref={ref} className="ribbon-body" role="tabpanel" aria-label={active.label}>
       {active.groups.map((group) => (
         <div key={group.label} className="ribbon-group" role="group" aria-label={group.label}>
           <div className="ribbon-group-buttons">
@@ -162,7 +194,46 @@ export function RibbonBody({ ribbon }: { ribbon: RibbonState }) {
   return peek ? <div className="ribbon-peek-host">{body}</div> : body
 }
 
+/** The narrowest width at which `text` fits on at most two lines, given
+ *  `measure` (a run of text's width). Lines break after spaces and
+ *  hyphens, as the browser breaks them, and never inside a word. */
+export function twoLineWidth(text: string, measure: (s: string) => number): number {
+  const parts = text.trim().split(/(?<=[\s-])/)
+  let best = measure(text.trim())
+  for (let i = 1; i < parts.length; i++) {
+    const first = measure(parts.slice(0, i).join('').trimEnd())
+    const second = measure(parts.slice(i).join(''))
+    best = Math.min(best, Math.max(first, second))
+  }
+  return best
+}
+
+/** `label`'s two-line width in ems of its own font size, so it holds in
+ *  the compact ribbon's smaller type too. Measured with a hidden copy of
+ *  the label, so it's in exactly the font the label is drawn in. */
+function labelWidthEm(label: HTMLElement): number | null {
+  const probe = document.createElement('span')
+  probe.className = label.className
+  probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;min-width:0;min-height:0'
+  label.parentElement?.appendChild(probe)
+  const measure = (s: string): number => { probe.textContent = s; return probe.getBoundingClientRect().width }
+  const px = twoLineWidth(label.textContent ?? '', measure)
+  const size = parseFloat(getComputedStyle(probe).fontSize)
+  probe.remove()
+  // A hair extra, so rounding never pushes the last word onto a new line.
+  return size > 0 && px > 0 ? px / size + 0.05 : null
+}
+
 function RibbonButton({ def, onDone }: { def: RibbonButtonDef; onDone: () => void }) {
+  const labelRef = useRef<HTMLSpanElement>(null)
+  useLayoutEffect(() => {
+    const el = labelRef.current
+    if (!el) return
+    const em = labelWidthEm(el)
+    el.style.minWidth = em ? `${em.toFixed(3)}em` : ''
+    // A label with nowhere to break but inside its word.
+    el.toggleAttribute('data-one-word', !/[\s-]/.test(def.label.trim()))
+  }, [def.label])
   return (
     <button
       type="button"
@@ -179,7 +250,7 @@ function RibbonButton({ def, onDone }: { def: RibbonButtonDef; onDone: () => voi
         {def.glyph ?? (def.icon && <Icon icon={def.icon} className={PALETTE_ICON_CLASS} style={def.iconStyle} />)}
         {def.badge && <span className="ribbon-badge" aria-hidden />}
       </span>
-      <span className="ribbon-label">{def.label}</span>
+      <span ref={labelRef} className="ribbon-label">{def.label}</span>
     </button>
   )
 }
