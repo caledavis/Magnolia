@@ -167,9 +167,12 @@ describe('choosing the language', () => {
     expect(resolveLanguage('system', ['en-AU', 'es-ES'])).toBe('en')
   })
 
-  it('gives any Portuguese Brazilian Portuguese', () => {
-    expect(resolveLanguage('system', ['pt-PT'])).toBe('pt-BR')
+  it("matches the computer's variety of a language, else another variety", () => {
+    expect(resolveLanguage('system', ['pt-PT'])).toBe('pt-PT')
     expect(resolveLanguage('system', ['pt_BR'])).toBe('pt-BR')
+    expect(resolveLanguage('system', ['pt'])).toBe('pt-BR')
+    expect(resolveLanguage('system', ['zh-CN'])).toBe('zh-Hans')
+    expect(resolveLanguage('system', ['zh-Hans-CN'])).toBe('zh-Hans')
   })
 
   it('falls back to English', () => {

@@ -17,6 +17,10 @@
     <string>ar</string>
     <string>fr</string>
     <string>ru</string>
+    <string>zh-Hans</string>
+    <string>it</string>
+    <string>hi</string>
+    <string>pt-PT</string>
   </array>
   <key>CFBundleDocumentTypes</key>
   <array>

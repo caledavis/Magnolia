@@ -2263,12 +2263,11 @@ div:hover > .folder-row-add,
    * and the panes below don't jump when you switch tabs. */
   min-height: 2.4em;
 }
-/* A tab too wide for the window at its label widths (Ribbon.tsx): first
- * the one-word labels, then all of them, go back to 76px buttons, with
- * long words hyphenated by the interface language's rules (the page's
- * lang), or broken anywhere as a last resort. */
-.ribbon-body[data-tight="words"] .ribbon-label[data-one-word],
-.ribbon-body[data-tight="all"] .ribbon-label {
+/* A tab too wide for the window at its label widths (Ribbon.tsx): the
+ * one-word labels go back to 76px buttons, with long words hyphenated by
+ * the interface language's rules (the page's lang), or broken anywhere as
+ * a last resort. Beyond that the buttons scroll. */
+.ribbon-body[data-tight="words"] .ribbon-label[data-one-word] {
   min-width: 0 !important;
   -webkit-hyphens: auto;
   hyphens: auto;

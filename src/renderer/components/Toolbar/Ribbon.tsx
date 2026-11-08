@@ -22,11 +22,11 @@
  * into the next one, and no label takes a third line. When that makes
  * the tab too wide for the window, labels that are one long word go back
  * to 76px and are hyphenated in the interface language (data-tight
- * "words"), and if it's still too wide, every label does ("all"). If
- * even that doesn't fit (a narrow window, or a tab with many buttons),
- * the buttons scroll sideways, between chevrons like the Icons and Text
- * toolbar's that fade in while there's more that way; clicking one
- * scrolls a page. The chevrons are the start and end ones (left and
+ * "words"). If even that doesn't fit (a narrow window, a long language,
+ * or a tab with many buttons), the buttons scroll sideways, so labels
+ * keep to two lines and the ribbon to one height. They scroll between
+ * chevrons like the Icons and Text toolbar's, which fade in while there's
+ * more that way; clicking one scrolls a page. The chevrons are the start and end ones (left and
  * right, or the other way round in a right-to-left language).
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -187,10 +187,7 @@ function useRibbonFit(active: RibbonTabDef, shown: boolean) {
       const room = body.clientWidth - parseFloat(style.paddingInlineStart) - parseFloat(style.paddingInlineEnd)
       const fits = (): boolean => scroller.scrollWidth <= room + 1
       body.removeAttribute('data-tight')
-      for (const stage of ['words', 'all']) {
-        if (fits()) break
-        body.setAttribute('data-tight', stage)
-      }
+      if (!fits()) body.setAttribute('data-tight', 'words')
       setOverflow(!fits())
       updateChevrons()
     }
