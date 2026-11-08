@@ -341,7 +341,7 @@ export function ResultItem({
             maxW={260}
             maxH={180}
           />
-          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Page {pdfRegion.page}</span>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t('results.page', { page: pdfRegion.page })}</span>
         </div>
       ) : (
         <>
@@ -517,7 +517,7 @@ export function QueryResultsBody({
             color: 'var(--text-secondary)'
           }}
         >
-          This query references {missingDocuments.length} document{missingDocuments.length !== 1 ? 's' : ''} no longer in the project.
+          {t('results.missingDocs', { count: missingDocuments.length })}
         </div>
       )}
       {isActive && results.length === 0 && (

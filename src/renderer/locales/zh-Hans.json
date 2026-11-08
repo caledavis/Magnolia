@@ -350,7 +350,8 @@
     "doubleClickToEdit": "连按两次以编辑",
     "saving": "正在保存…",
     "clear": "清除",
-    "discardChanges": "放弃更改"
+    "discardChanges": "放弃更改",
+    "createdOn": "创建于 {{date}}"
   },
   "panel": {
     "popIn": "放回",
@@ -926,7 +927,8 @@
     "codingTheirs": "仅在对方版本中，勾选以添加",
     "codingTheirs_named": "仅在 {{name}} 的版本中，勾选以添加",
     "codingMineReconciling": "您未保存的编码，已保留——取消勾选则放弃",
-    "codingMine": "仅在我的版本中，已保留——取消勾选则移除"
+    "codingMine": "仅在我的版本中，已保留——取消勾选则移除",
+    "readFailed": "无法读取该文件：{{error}}"
   },
   "surveyImport": {
     "title": "导入调查",
@@ -1053,7 +1055,8 @@
     "noMatches": "未找到匹配项。",
     "openDocument": "打开文档",
     "copy": "拷贝结果",
-    "matchesInDocs": "{{matches}}，来自 {{documents}}"
+    "matchesInDocs": "{{matches}}，来自 {{documents}}",
+    "missingDocs_other": "此查询引用的 {{count}} 个文档已不在项目中。"
   },
   "scope": {
     "all": {

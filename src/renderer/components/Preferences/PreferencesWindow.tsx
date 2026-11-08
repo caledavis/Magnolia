@@ -857,6 +857,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
             return (
               <div
                 key={cat.id}
+                data-pref-cat={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
                 style={{
                   padding: '6px 20px',

@@ -353,7 +353,8 @@
     "doubleClickToEdit": "Double-click to edit",
     "saving": "Saving…",
     "clear": "Clear",
-    "discardChanges": "Discard Changes"
+    "discardChanges": "Discard Changes",
+    "createdOn": "Created {{date}}"
   },
   "panel": {
     "popIn": "Pop back in",
@@ -960,7 +961,8 @@
     "codingTheirs": "only in theirs, check to add",
     "codingTheirs_named": "only in {{name}}’s, check to add",
     "codingMineReconciling": "your unsaved coding, kept — uncheck to discard it instead",
-    "codingMine": "only in mine, kept — uncheck to remove"
+    "codingMine": "only in mine, kept — uncheck to remove",
+    "readFailed": "Couldn’t read that file: {{error}}"
   },
   "surveyImport": {
     "title": "Import Survey",
@@ -1095,7 +1097,9 @@
     "noMatches": "No matches found.",
     "openDocument": "Open document",
     "copy": "Copy Result",
-    "matchesInDocs": "{{matches}} in {{documents}}"
+    "matchesInDocs": "{{matches}} in {{documents}}",
+    "missingDocs_one": "This query references {{count}} document no longer in the project.",
+    "missingDocs_other": "This query references {{count}} documents no longer in the project."
   },
   "scope": {
     "all": {

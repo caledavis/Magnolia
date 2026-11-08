@@ -1878,7 +1878,7 @@ export function DocumentSelector({
                       <div style={{ padding: '1px 6px 0 16px', fontSize: 9, color: 'var(--text-muted)', lineHeight: 1.5, whiteSpace: 'normal' }}>
                         {scope!.respondents.length > 0 && (
                           <div>
-                            <div style={{ fontWeight: 600 }}>Respondents ({scope!.respondents.length}):</div>
+                            <div style={{ fontWeight: 600 }}>{t('map.sectionRespondents', { count: scope!.respondents.length })}:</div>
                             {scopeListItems(scope!.respondents).map((label, i) => (
                               <div key={i} style={{ paddingInlineStart: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>• {label}</div>
                             ))}
@@ -1886,7 +1886,7 @@ export function DocumentSelector({
                         )}
                         {scope!.questions.length > 0 && (
                           <div style={{ marginTop: scope!.respondents.length > 0 ? 2 : 0 }}>
-                            <div style={{ fontWeight: 600 }}>Questions ({scope!.questions.length}):</div>
+                            <div style={{ fontWeight: 600 }}>{t('map.sectionQuestions', { count: scope!.questions.length })}:</div>
                             {scopeListItems(scope!.questions).map((label, i) => (
                               <div key={i} style={{ paddingInlineStart: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>• {label}</div>
                             ))}

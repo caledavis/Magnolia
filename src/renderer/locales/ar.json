@@ -365,7 +365,8 @@
     "doubleClickToEdit": "انقر نقرًا مزدوجًا للتحرير",
     "saving": "جارٍ الحفظ…",
     "clear": "مسح",
-    "discardChanges": "تجاهل التغييرات"
+    "discardChanges": "تجاهل التغييرات",
+    "createdOn": "أُنشئ في {{date}}"
   },
   "panel": {
     "popIn": "إعادة إلى النافذة",
@@ -1096,7 +1097,8 @@
     "codingTheirs": "في نسختهم فقط، حدّد للإضافة",
     "codingTheirs_named": "في نسخة {{name}} فقط، حدّد للإضافة",
     "codingMineReconciling": "ترميزك غير المحفوظ، محتفظ به — ألغِ التحديد لتجاهله بدلًا من ذلك",
-    "codingMine": "في نسختي فقط، محتفظ به — ألغِ التحديد للإزالة"
+    "codingMine": "في نسختي فقط، محتفظ به — ألغِ التحديد للإزالة",
+    "readFailed": "تعذّرت قراءة ذلك الملف: {{error}}"
   },
   "surveyImport": {
     "title": "استيراد استبيان",
@@ -1263,7 +1265,13 @@
     "noMatches": "لم يُعثر على تطابقات.",
     "openDocument": "فتح المستند",
     "copy": "نسخ النتيجة",
-    "matchesInDocs": "{{matches}} في {{documents}}"
+    "matchesInDocs": "{{matches}} في {{documents}}",
+    "missingDocs_zero": "لا يشير هذا الاستعلام إلى مستندات محذوفة من المشروع.",
+    "missingDocs_one": "يشير هذا الاستعلام إلى مستند واحد لم يعد في المشروع.",
+    "missingDocs_two": "يشير هذا الاستعلام إلى مستندين لم يعودا في المشروع.",
+    "missingDocs_few": "يشير هذا الاستعلام إلى {{count}} مستندات لم تعد في المشروع.",
+    "missingDocs_many": "يشير هذا الاستعلام إلى {{count}} مستندًا لم تعد في المشروع.",
+    "missingDocs_other": "يشير هذا الاستعلام إلى {{count}} مستند لم تعد في المشروع."
   },
   "scope": {
     "all": {

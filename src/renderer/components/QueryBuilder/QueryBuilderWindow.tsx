@@ -519,7 +519,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
           }}
         >
           <Icon icon={faMagnifyingGlass} className="analysis-header-icon" style={{ fontSize: 16 }} />
-          Query{editGuid ? ':' : ''}
+          {t('queryDesc.query')}{editGuid ? ':' : ''}
           {editGuid && <EditableTitleSuffix name={editName} onRename={handleRenameQuery} />}
         </h2>
         <div style={{ flex: 1 }} />

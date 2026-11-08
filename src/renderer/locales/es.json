@@ -356,7 +356,8 @@
     "doubleClickToEdit": "Haz doble clic para editar",
     "saving": "Guardando…",
     "clear": "Borrar",
-    "discardChanges": "Descartar cambios"
+    "discardChanges": "Descartar cambios",
+    "createdOn": "Creado el {{date}}"
   },
   "panel": {
     "popIn": "Volver a acoplar",
@@ -994,7 +995,8 @@
     "codingTheirs": "solo en el otro; márcalo para añadirlo",
     "codingTheirs_named": "solo en el de {{name}}; márcalo para añadirlo",
     "codingMineReconciling": "tu codificación sin guardar, se conserva; desmárcala para descartarla",
-    "codingMine": "solo en el mío, se conserva; desmárcalo para quitarlo"
+    "codingMine": "solo en el mío, se conserva; desmárcalo para quitarlo",
+    "readFailed": "No se pudo leer ese archivo: {{error}}"
   },
   "surveyImport": {
     "title": "Importar encuesta",
@@ -1137,7 +1139,10 @@
     "noMatches": "No se encontraron coincidencias.",
     "openDocument": "Abrir documento",
     "copy": "Copiar resultado",
-    "matchesInDocs": "{{matches}} en {{documents}}"
+    "matchesInDocs": "{{matches}} en {{documents}}",
+    "missingDocs_one": "Esta consulta hace referencia a {{count}} documento que ya no está en el proyecto.",
+    "missingDocs_many": "Esta consulta hace referencia a {{count}} de documentos que ya no están en el proyecto.",
+    "missingDocs_other": "Esta consulta hace referencia a {{count}} documentos que ya no están en el proyecto."
   },
   "scope": {
     "all": {

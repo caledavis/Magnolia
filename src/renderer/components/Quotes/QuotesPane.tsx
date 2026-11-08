@@ -327,7 +327,7 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
                         maxW={240}
                         maxH={160}
                       />
-                      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Page {q.pdfRegion.page}</span>
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t('results.page', { page: q.pdfRegion.page })}</span>
                     </div>
                   ) : (
                     <span style={{

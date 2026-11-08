@@ -316,6 +316,7 @@ function RibbonButton({ def, onDone }: { def: RibbonButtonDef; onDone: () => voi
     <button
       type="button"
       className="ribbon-btn"
+      data-ribbon-id={def.id}
       aria-pressed={def.pressed}
       aria-disabled={def.disabledReason ? true : undefined}
       title={def.disabledReason ?? def.title ?? def.label}

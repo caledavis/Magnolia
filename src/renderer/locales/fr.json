@@ -356,7 +356,8 @@
     "doubleClickToEdit": "Double-cliquez pour modifier",
     "saving": "Enregistrement…",
     "clear": "Effacer",
-    "discardChanges": "Abandonner les modifications"
+    "discardChanges": "Abandonner les modifications",
+    "createdOn": "Créé le {{date}}"
   },
   "panel": {
     "popIn": "Réintégrer",
@@ -994,7 +995,8 @@
     "codingTheirs": "uniquement dans la leur, cochez pour ajouter",
     "codingTheirs_named": "uniquement dans celle de {{name}}, cochez pour ajouter",
     "codingMineReconciling": "votre codage non enregistré, conservé — décochez pour l’abandonner",
-    "codingMine": "uniquement dans la mienne, conservé — décochez pour retirer"
+    "codingMine": "uniquement dans la mienne, conservé — décochez pour retirer",
+    "readFailed": "Impossible de lire ce fichier : {{error}}"
   },
   "surveyImport": {
     "title": "Importer une enquête",
@@ -1137,7 +1139,10 @@
     "noMatches": "Aucune correspondance trouvée.",
     "openDocument": "Ouvrir le document",
     "copy": "Copier le résultat",
-    "matchesInDocs": "{{matches}} dans {{documents}}"
+    "matchesInDocs": "{{matches}} dans {{documents}}",
+    "missingDocs_one": "Cette requête fait référence à {{count}} document qui n’est plus dans le projet.",
+    "missingDocs_many": "Cette requête fait référence à {{count}} de documents qui ne sont plus dans le projet.",
+    "missingDocs_other": "Cette requête fait référence à {{count}} documents qui ne sont plus dans le projet."
   },
   "scope": {
     "all": {

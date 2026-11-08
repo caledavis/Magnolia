@@ -517,7 +517,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
       <div style={{ padding: '14px 20px 6px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
         <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
           <Icon icon={faFrame} className="analysis-header-icon" style={{ fontSize: 16 }} />
-          Framework Matrix{isExisting || savedRef.current ? ':' : ''}
+          {t('tools.frameworkMatrix.label')}{isExisting || savedRef.current ? ':' : ''}
           {(isExisting || savedRef.current) && <EditableTitleSuffix name={analysisName} onRename={handleRename} />}
         </h2>
         <div style={{ flex: 1 }} />

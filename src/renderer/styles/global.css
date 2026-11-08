@@ -729,6 +729,16 @@ textarea:focus {
   container-name: panel-header;
 }
 
+/* A pane's title stays on one line, ending in "…" when a long one
+ * (Russian "СОХРАНЁННЫЕ ЗАМЕТКИ", say) doesn't fit the pane, so every
+ * header keeps the same height. */
+.panel-header > span {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Query Results panel header is a hybrid: it shows the static
  * "Query" / "Query:" label followed by dynamic user content (the
  * saved-query name, or for popped-out windows a query string with

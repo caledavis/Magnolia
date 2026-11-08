@@ -84,8 +84,8 @@ function MemoDetail({ memo, place, onEdit, onShow }: {
         </div>
       )}
       <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>
-        Created {formatDate(memo.createdDateTime)}
-        {memo.modifiedDateTime && <span> · edited {formatDate(memo.modifiedDateTime)}</span>}
+        {t('common.createdOn', { date: formatDate(memo.createdDateTime) })}
+        {memo.modifiedDateTime && <span> · {t('common.editedOn', { date: formatDate(memo.modifiedDateTime) })}</span>}
       </div>
       {memo.content ? (
         <Markdown text={memo.content} style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }} />

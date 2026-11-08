@@ -382,7 +382,7 @@ function CodingPreview({
           maxW={220}
           maxH={140}
         />
-        {!isImage && <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Page {sel.pdfRegion.page}</span>}
+        {!isImage && <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t('results.page', { page: sel.pdfRegion.page })}</span>}
       </div>
     )
   }
@@ -755,7 +755,7 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
   }
   if (error) {
     return (
-      <div style={{ padding: 24, fontSize: 13, color: 'var(--danger)' }}>Couldn’t read that file: {error}</div>
+      <div style={{ padding: 24, fontSize: 13, color: 'var(--danger)' }}>{t('merge.readFailed', { error })}</div>
     )
   }
   if (!diff) {

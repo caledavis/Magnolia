@@ -56,7 +56,7 @@ function EntryRow({
       <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
         {formatDate(entry.createdDateTime)}
         {entry.modifiedDateTime && (
-          <span> · edited {formatDate(entry.modifiedDateTime)}</span>
+          <span> · {t('common.editedOn', { date: formatDate(entry.modifiedDateTime) })}</span>
         )}
       </div>
     </div>
@@ -135,9 +135,9 @@ function EntryDetailPane({ entry }: { entry: LogbookEntry | null }) {
         {entry.title || t('logbook.untitledEntry')}
       </div>
       <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>
-        Created {formatDate(entry.createdDateTime)}
+        {t('common.createdOn', { date: formatDate(entry.createdDateTime) })}
         {entry.modifiedDateTime && (
-          <span> · edited {formatDate(entry.modifiedDateTime)}</span>
+          <span> · {t('common.editedOn', { date: formatDate(entry.modifiedDateTime) })}</span>
         )}
       </div>
       {entry.content ? (

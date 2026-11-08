@@ -353,7 +353,8 @@
     "doubleClickToEdit": "Dubbelklik om te bewerken",
     "saving": "Bewaren…",
     "clear": "Wissen",
-    "discardChanges": "Wijzigingen verwerpen"
+    "discardChanges": "Wijzigingen verwerpen",
+    "createdOn": "Gemaakt op {{date}}"
   },
   "panel": {
     "popIn": "Terugzetten",
@@ -960,7 +961,8 @@
     "codingTheirs": "alleen in de andere; vink aan om toe te voegen",
     "codingTheirs_named": "alleen in die van {{name}}; vink aan om toe te voegen",
     "codingMineReconciling": "je niet-bewaarde codering, blijft behouden; vink uit om die te verwerpen",
-    "codingMine": "alleen in de mijne, blijft behouden; vink uit om te verwijderen"
+    "codingMine": "alleen in de mijne, blijft behouden; vink uit om te verwijderen",
+    "readFailed": "Kan dat bestand niet lezen: {{error}}"
   },
   "surveyImport": {
     "title": "Enquête importeren",
@@ -1095,7 +1097,9 @@
     "noMatches": "Geen overeenkomsten gevonden.",
     "openDocument": "Document openen",
     "copy": "Resultaat kopiëren",
-    "matchesInDocs": "{{matches}} in {{documents}}"
+    "matchesInDocs": "{{matches}} in {{documents}}",
+    "missingDocs_one": "Deze query verwijst naar {{count}} document dat niet meer in het project staat.",
+    "missingDocs_other": "Deze query verwijst naar {{count}} documenten die niet meer in het project staan."
   },
   "scope": {
     "all": {
