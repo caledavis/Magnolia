@@ -162,7 +162,7 @@ describe('choosing the language', () => {
   })
 
   it("follows the computer's first language Magnolia has", () => {
-    expect(resolveLanguage('system', ['fr-FR', 'es-MX', 'en-GB'])).toBe('es')
+    expect(resolveLanguage('system', ['de-DE', 'es-MX', 'en-GB'])).toBe('es')
     expect(resolveLanguage('system', ['nl-BE'])).toBe('nl')
     expect(resolveLanguage('system', ['en-AU', 'es-ES'])).toBe('en')
   })
@@ -173,12 +173,12 @@ describe('choosing the language', () => {
   })
 
   it('falls back to English', () => {
-    expect(resolveLanguage('system', ['fr-FR', 'de'])).toBe('en')
+    expect(resolveLanguage('system', ['de-DE', 'ja'])).toBe('en')
     expect(resolveLanguage('system', [])).toBe('en')
   })
 
   it('reads an unknown saved preference as "system"', () => {
-    expect(normaliseLanguagePreference('fr')).toBe('system')
+    expect(normaliseLanguagePreference('de')).toBe('system')
     expect(normaliseLanguagePreference(undefined)).toBe('system')
     expect(normaliseLanguagePreference('pt-BR')).toBe('pt-BR')
   })

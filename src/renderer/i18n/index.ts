@@ -23,10 +23,12 @@ import es from '../locales/es.json'
 import nl from '../locales/nl.json'
 import ptBR from '../locales/pt-BR.json'
 import ar from '../locales/ar.json'
+import fr from '../locales/fr.json'
+import ru from '../locales/ru.json'
 
 /** Every catalogue, by language id. Adding a language: see "Adding a
  *  language" in locales/GLOSSARY.md (the tests name anything missed). */
-const CATALOGUES = { en, es, nl, 'pt-BR': ptBR, ar }
+const CATALOGUES = { en, es, nl, 'pt-BR': ptBR, ar, fr, ru }
 
 export type LanguageId = keyof typeof CATALOGUES
 export const LANGUAGE_IDS = Object.keys(CATALOGUES) as readonly LanguageId[]

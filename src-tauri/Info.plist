@@ -15,6 +15,8 @@
     <string>nl</string>
     <string>pt-BR</string>
     <string>ar</string>
+    <string>fr</string>
+    <string>ru</string>
   </array>
   <key>CFBundleDocumentTypes</key>
   <array>

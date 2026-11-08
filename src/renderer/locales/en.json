@@ -5,7 +5,13 @@
       "es": "Español",
       "nl": "Nederlands",
       "pt-BR": "Português (Brasil)",
-      "ar": "العربية"
+      "ar": "العربية",
+      "fr": "Français",
+      "ru": "Русский",
+      "zh-Hans": "简体中文",
+      "it": "Italiano",
+      "hi": "हिन्दी",
+      "pt-PT": "Português (Portugal)"
     },
     "system": "Same as the computer ({{language}})"
   },

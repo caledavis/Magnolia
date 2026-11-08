@@ -12,6 +12,23 @@
  */
 import type { LanguageId } from '../../i18n'
 
+const PORTUGUESE = `
+    a à agora ainda ali algo alguém algum alguma algumas alguns ao aos
+    aquela aquelas aquele aqueles aquilo as às assim até bem cada coisa
+    coisas com como da das de dela delas dele deles depois diz disse do
+    dos e é ela elas ele eles em entao então entre era eram essa essas
+    esse esses esta está estado estamos estão estar estas estava estavam
+    este estes estou eu faz fazem fazer fiz foi foram fui há havia isso
+    isto já lá lhe lhes mais mas me mesma mesmo meu meus minha minhas
+    muita muitas muito muitos na nada nao não nas ne né nem nenhum
+    nenhuma no nos nós nossa nossas nosso nossos num numa o onde os ou
+    outra outras outro outros para pela pelas pelo pelos pode podem poder
+    porque posso pouca pouco poucos pra pro quais qual quando quanto que
+    quem são se seja sem sempre ser seu seus sido sim só sobre somos sou
+    sua suas ta tá também tambem tanto tão te tem têm temos tenho ter teve
+    ti tinha tinham toda todas todo todos tu tua tudo um uma umas uns vai
+    vão vou vez vezes`
+
 const LISTS = {
   en: `
     the be to of and a in that have i it for not on with he as you do at
@@ -54,22 +71,9 @@ const LISTS = {
     want waren waar waarom wanneer was wat we wel welk welke werd werden
     wie wij wil wilde willen wilt word worden wordt z'n ze zei zeer zelf
     zelfs zich zij zijn zo zo'n zonder zou zouden zal zullen zult`,
-  'pt-BR': `
-    a à agora ainda ali algo alguém algum alguma algumas alguns ao aos
-    aquela aquelas aquele aqueles aquilo as às assim até bem cada coisa
-    coisas com como da das de dela delas dele deles depois diz disse do
-    dos e é ela elas ele eles em entao então entre era eram essa essas
-    esse esses esta está estado estamos estão estar estas estava estavam
-    este estes estou eu faz fazem fazer fiz foi foram fui há havia isso
-    isto já lá lhe lhes mais mas me mesma mesmo meu meus minha minhas
-    muita muitas muito muitos na nada nao não nas ne né nem nenhum
-    nenhuma no nos nós nossa nossas nosso nossos num numa o onde os ou
-    outra outras outro outros para pela pelas pelo pelos pode podem poder
-    porque posso pouca pouco poucos pra pro quais qual quando quanto que
-    quem são se seja sem sempre ser seu seus sido sim só sobre somos sou
-    sua suas ta tá também tambem tanto tão te tem têm temos tenho ter teve
-    ti tinha tinham toda todas todo todos tu tua tudo um uma umas uns vai
-    vão vc você vocês voce vou vez vezes`,
+  'pt-BR': PORTUGUESE + ' vc você vocês voce',
+  'pt-PT': PORTUGUESE + ` teu teus tuas contigo vós vosso vossa vossos
+    vossas estás tens connosco consigo cá pois portanto`,
   ar: `
     في من على إلى الى عن مع هذا هذه ذلك تلك هؤلاء أولئك هذان هاتان الذي
     التي الذين اللذان اللتان اللواتي اللاتي ما ماذا لماذا كيف أين اين متى
@@ -83,7 +87,65 @@ const LISTS = {
     وكان وقد ولا وما وأن وان فإن فان وهذا وهذه حيث حين بعد قبل خلال تحت
     فوق أمام امام دون نحو منذ لدى لدي يمكن أصبح اصبح صار سوف أكثر اكثر
     أقل اقل كثير كثيرا قليل شيء شي أحد احد كلها كله جميع معظم أيضاً
-    عليها لأن لان لأنه لانه أنني انني إنني انني ولم ولن`
+    عليها لأن لان لأنه لانه أنني انني إنني انني ولم ولن`,
+  fr: `
+    à a ai aie aient ainsi alors après as au aucun aussi autre autres aux
+    avaient avais avait avant avec avez avions avoir avons ayant beaucoup
+    bien c ça car ce ceci cela celle celles celui cependant certains ces
+    cet cette ceux chez chose choses comme comment d dans de déjà depuis
+    des donc dont du elle elles en encore entre es est et étaient étais
+    était étant été êtes étions être eu eux faire fait faut fois font ici
+    il ils j je jusqu l la là le les leur leurs lui m ma mais me même
+    mes moi moins mon n ne ni non nos notre nous on ont or ou où oui par
+    parce pas peu peut plus pour pourquoi qu quand que quel quelle
+    quelles quels qui quoi rien s sa sans se sera seront ses si sien
+    soit sommes son sont sous suis sur t ta te tes toi ton toujours tous
+    tout toute toutes très tu un une va vers vont vos votre vous y
+    c'est c’est j'ai j’ai qu'il qu’il qu'elle qu’elle n'est n’est d'un
+    d’un d'une d’une s'il s’il c'était c’était n'a n’a l'on l’on`,
+  ru: `
+    а без более бы был была были было быть в вам вас весь во вот все
+    всегда всего всех всю вся всё вы где да даже два для до его ее её
+    если есть еще ещё ж же за здесь и из или им их к как какая какой
+    когда конечно который которые которая которое которых кто куда ли
+    лучше между меня мне много может можно мой моя мы на над надо наш
+    наша наши не него нее неё нельзя нет ни них ничего но ну о об один
+    он она они опять от очень перед по под после потом потому почти при
+    про раз разве с сам свой свою своей себе себя сейчас со совсем так
+    также такой там тебя тем теперь то тогда того тоже только том тот
+    три тут ты у уже хоть хорошо чего чем через что чтоб чтобы чуть эта
+    эти это этого этой этом этот эту я`,
+  'zh-Hans': `
+    的 了 是 在 我 有 和 就 不 人 都 一 一个 上 也 很 到 说 要 去 你 会
+    着 没有 看 好 自己 这 那 他 她 它 我们 你们 他们 她们 什么 怎么
+    因为 所以 但是 但 如果 还 吗 吧 呢 啊 被 把 让 给 对 从 与 及 而 或
+    等 之 其 这个 那个 这些 那些 可以 能 已经 没 又 再 就是 还是 只 才
+    比 更 最 非常 地 得 过 来 为 以 于 中 还有 而且 然后 或者 并 并且
+    这样 那样 怎样 哪 哪里 这里 那里 时候 现在 已 每 各 些 个 么 嗯
+    哦 呀 啦 所 将 向 由 跟 同 这种 那种 一些 一样 觉得 认为 比较`,
+  it: `
+    a ad agli ai al alla alle allo allora anche ancora avere aveva avevo
+    abbiamo avete c che chi ci cioè come con contro cosa così cui da dai
+    dal dalla dalle dagli de dei del della delle dello deve di dopo dove
+    e è ed era erano essere fa fare fatto gli già ha hai hanno ho i il in
+    io l la le lei li lo loro lui ma mai mentre mi mia mie miei mio molto
+    ne negli nei nel nella nelle nello noi non nostra nostre nostri nostro
+    o per perché però più poco poi possono prima può qual quale quali
+    quando quanto quella quelle quelli quello questa queste questi questo
+    qui quindi sarà se sei sempre si sia siamo siete solo sono stata stato
+    su sua sue sui sul sulla sulle suo suoi ti tra tu tua tue tuo tuoi
+    tutta tutte tutti tutto un una uno vi voi c'è c’è c'era c’era l'ho
+    l’ho dell dell'`,
+  hi: `
+    के का की है हैं यह और से को पर इस होता कि जो कर में मे गया करने किया
+    लिये लिए अपने अपनी अपना ने नहीं तो ही या एवं दिया हो इसका इसकी इसके
+    था थी थे द्वारा हुआ हुई हुए तक साथ करना वाले वाली बाद आप कुछ सकते
+    सकता किसी ये सबसे इसमें इसी इसे दो होने वह वे करते करता करें होती
+    होते बहुत कहा कई यदि जा ना कहते जब कोई व न अभी जैसे सभी उनके उनकी
+    उनका उन्हें तरह उस उसे उसका उसकी उसके आदि रहा रही रहे पे मैं मुझे
+    मेरा मेरी मेरे हम हमारे हमारी हमें तुम तुम्हारे भी तब क्या क्यों
+    कैसे कहाँ यहाँ वहाँ लेकिन मगर क्योंकि इसलिए फिर अब जी हाँ गए गई
+    होगा होगी होंगे एक`
 } satisfies Record<LanguageId, string> & Record<string, string>
 
 /** The languages with stop words: the interface languages, and others. */
