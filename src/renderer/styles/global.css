@@ -2169,11 +2169,40 @@ div:hover > .folder-row-add,
   padding: 4px 8px 4px;
   background: linear-gradient(180deg, var(--ribbon-shade-top), var(--ribbon-shade-bottom));
   border-bottom: 1px solid var(--border-color);
+}
+/* The groups. They scroll sideways only when even the narrowed buttons
+ * don't fit (Ribbon.tsx), between the chevrons below. */
+.ribbon-scroll {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
 }
-.ribbon-body::-webkit-scrollbar { display: none; }
+.ribbon-scroll::-webkit-scrollbar { display: none; }
+/* Chevrons in their own gutters (not over the buttons), shown only while
+ * the buttons overflow, each fading in while there's more on its side,
+ * like the Icons and Text toolbar's. */
+.ribbon-scroll-hint {
+  flex-shrink: 0;
+  width: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.ribbon-scroll-hint[data-shown] { opacity: 1; pointer-events: auto; }
+:root .ribbon-scroll-hint:hover { background: transparent; color: var(--text-primary); }
 /* Shown from a collapsed ribbon: floats over the panes below. */
 .ribbon-peek-host {
   position: absolute;

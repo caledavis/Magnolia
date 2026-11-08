@@ -22,10 +22,14 @@
  * into the next one, and no label takes a third line. When that makes
  * the tab too wide for the window, labels that are one long word go back
  * to 76px and are hyphenated in the interface language (data-tight
- * "words"), and if it's still too wide, every label does ("all").
+ * "words"), and if it's still too wide, every label does ("all"). If
+ * even that doesn't fit (a narrow window, or a tab with many buttons),
+ * the buttons scroll sideways, between chevrons like the Icons and Text
+ * toolbar's that fade in while there's more that way; clicking one
+ * scrolls a page.
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Icon, faChevronUp, faChevronDown, type IconComponent } from '../Icon'
+import { Icon, faChevronUp, faChevronDown, faChevronsLeft, faChevronsRight, type IconComponent } from '../Icon'
 import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
 import { useTranslation } from 'react-i18next'
 
@@ -152,42 +156,104 @@ export function RibbonTabs({ ribbon }: { ribbon: RibbonState }) {
   )
 }
 
-/** Narrow the ribbon's buttons in stages while they're wider than the
- *  window (see data-tight above). Checked again on every resize and tab. */
-function useTightFit(active: RibbonTabDef, shown: boolean) {
-  const ref = useRef<HTMLDivElement>(null)
-  useLayoutEffect(() => {
-    const el = ref.current
+/** Fit the ribbon's buttons to the window: narrow them in stages while
+ *  they're wider than it (data-tight, above), then let them scroll, with
+ *  the chevrons shown while there's more on their side. Checked again on
+ *  every resize, scroll and tab. */
+function useRibbonFit(active: RibbonTabDef, shown: boolean) {
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [overflow, setOverflow] = useState(false)
+  const [canLeft, setCanLeft] = useState(false)
+  const [canRight, setCanRight] = useState(false)
+
+  const updateChevrons = useCallback(() => {
+    const el = scrollRef.current
     if (!el) return
+    setCanLeft(el.scrollLeft > 1)
+    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1)
+  }, [])
+
+  useLayoutEffect(() => {
+    const body = bodyRef.current
+    const scroller = scrollRef.current
+    if (!body || !scroller) return
     const fit = (): void => {
-      el.removeAttribute('data-tight')
+      // Room inside the body's padding, whether or not the chevrons are
+      // taking some of it now.
+      const style = getComputedStyle(body)
+      const room = body.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+      const fits = (): boolean => scroller.scrollWidth <= room + 1
+      body.removeAttribute('data-tight')
       for (const stage of ['words', 'all']) {
-        if (el.scrollWidth <= el.clientWidth + 1) return
-        el.setAttribute('data-tight', stage)
+        if (fits()) break
+        body.setAttribute('data-tight', stage)
       }
+      setOverflow(!fits())
+      updateChevrons()
     }
     fit()
-    const observer = new ResizeObserver(fit)
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [active, shown])
-  return ref
+    // The window (the body) and the groups, which change size when their
+    // labels do (another language) or buttons come and go.
+    // Refit on the next frame: fitting resizes the groups, which would
+    // otherwise notify this observer again within the same frame.
+    let frame = 0
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(fit)
+    })
+    observer.observe(body)
+    for (const group of scroller.children) observer.observe(group)
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+    }
+  }, [active.id, active.groups.length, shown, updateChevrons])
+
+  // A new tab starts scrolled to its first button.
+  useLayoutEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollLeft = 0
+  }, [active.id])
+
+  // The chevrons take room when they appear, so recheck which show then.
+  useLayoutEffect(updateChevrons, [overflow, updateChevrons])
+
+  const scrollPage = (direction: 1 | -1): void => {
+    const el = scrollRef.current
+    el?.scrollBy({ left: direction * el.clientWidth * 0.8, behavior: 'smooth' })
+  }
+  return { bodyRef, scrollRef, overflow, canLeft, canRight, updateChevrons, scrollPage }
+}
+
+/** A chevron beside the scrolling buttons, for mouse users without a
+ *  sideways scroll. Hidden from keyboards and screen readers, which reach
+ *  every button by Tab (and the focused button scrolls into view). */
+function ScrollChevron({ side, shown, onClick }: { side: 'left' | 'right'; shown: boolean; onClick: () => void }) {
+  return (
+    <button type="button" className="ribbon-scroll-hint" data-shown={shown || undefined} tabIndex={-1} aria-hidden onClick={onClick}>
+      <Icon icon={side === 'left' ? faChevronsLeft : faChevronsRight} />
+    </button>
+  )
 }
 
 export function RibbonBody({ ribbon }: { ribbon: RibbonState }) {
   const { active, collapsed, peek, endPeek } = ribbon
-  const ref = useTightFit(active, !collapsed || peek)
+  const fit = useRibbonFit(active, !collapsed || peek)
   if (collapsed && !peek) return null
   const body = (
-    <div ref={ref} className="ribbon-body" role="tabpanel" aria-label={active.label}>
-      {active.groups.map((group) => (
-        <div key={group.label} className="ribbon-group" role="group" aria-label={group.label}>
-          <div className="ribbon-group-buttons">
-            {group.buttons.map((b) => <RibbonButton key={b.id} def={b} onDone={endPeek} />)}
+    <div ref={fit.bodyRef} className="ribbon-body" role="tabpanel" aria-label={active.label}>
+      {fit.overflow && <ScrollChevron side="left" shown={fit.canLeft} onClick={() => fit.scrollPage(-1)} />}
+      <div ref={fit.scrollRef} className="ribbon-scroll" onScroll={fit.updateChevrons}>
+        {active.groups.map((group) => (
+          <div key={group.label} className="ribbon-group" role="group" aria-label={group.label}>
+            <div className="ribbon-group-buttons">
+              {group.buttons.map((b) => <RibbonButton key={b.id} def={b} onDone={endPeek} />)}
+            </div>
+            <div className="ribbon-group-label">{group.label}</div>
           </div>
-          <div className="ribbon-group-label">{group.label}</div>
-        </div>
-      ))}
+        ))}
+      </div>
+      {fit.overflow && <ScrollChevron side="right" shown={fit.canRight} onClick={() => fit.scrollPage(1)} />}
     </div>
   )
   // Peeking from a collapsed ribbon: float over the panels below.
