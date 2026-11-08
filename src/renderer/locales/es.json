@@ -1404,7 +1404,7 @@
     "freqCodedTitle": "Cuenta las palabras de los pasajes codificados con los códigos elegidos, una serie por código.",
     "freqQueryTitle": "Cuenta las palabras de los resultados de las consultas guardadas elegidas, una serie por consulta. Cada consulta busca en los documentos elegidos en ella.",
     "onlyHint": "Déjalo vacío para incluir todas las palabras no excluidas",
-    "stopWordsHint": "Las palabras vacías habituales del inglés se excluyen de forma predeterminada",
+    "stopWordsHint": "Las palabras comunes (palabras vacías) se excluyen de forma predeterminada",
     "searchCoded": "Buscar «{{word}}» en los pasajes codificados",
     "searchQuery": "Buscar «{{word}}» en los resultados de las consultas",
     "search": "Buscar «{{word}}»",
@@ -1415,7 +1415,10 @@
     "noWords": "No hay palabras que mostrar",
     "barTitle": "{{word}}: {{count}}",
     "barTitleSeries": "{{word}}: {{count}} ({{series}})",
-    "cloudTitle": "{{word}}: {{count}} — haz clic para buscar"
+    "cloudTitle": "{{word}}: {{count}} — haz clic para buscar",
+    "stopWordsLanguage": "Palabras vacías:",
+    "stopWordsCustom": "Personalizadas",
+    "stopWordsNone": "Ninguna"
   },
   "codesInDocs": {
     "sankeyTitle": "Muestra la cuadrícula como un diagrama de Sankey de los códigos que fluyen hacia los documentos.",
@@ -1504,7 +1507,7 @@
     "codedTitle": "Mira solo los pasajes codificados con los códigos elegidos.",
     "queryTitle": "Mira solo los resultados de las consultas guardadas elegidas. Cada consulta busca en los documentos elegidos en ella.",
     "onlyHint": "Déjalo vacío para incluir todas las palabras. Si no, las frases deben contener una de estas palabras y las asociaciones deben ser una de ellas",
-    "leaveOutHint": "Las frases no pueden empezar ni terminar con estas palabras, y no se muestran como asociaciones. Las palabras vacías habituales del inglés se excluyen de forma predeterminada",
+    "leaveOutHint": "Las frases no pueden empezar ni terminar con estas palabras, y no se muestran como asociaciones. Las palabras comunes (palabras vacías) se excluyen de forma predeterminada",
     "viewPhrases": "Frases",
     "viewPhrasesTitle": "Muestra secuencias de palabras que se repiten.",
     "viewAssociations": "Asociaciones",

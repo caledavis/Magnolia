@@ -1356,7 +1356,7 @@
     "freqCodedTitle": "Tel de woorden in passages die met de gekozen codes gecodeerd zijn, één reeks per code.",
     "freqQueryTitle": "Tel de woorden in de resultaten van de gekozen bewaarde query's, één reeks per query. Elke query doorzoekt de documenten die erin gekozen zijn.",
     "onlyHint": "Laat leeg om elk woord op te nemen dat niet is weggelaten",
-    "stopWordsHint": "Veelvoorkomende Engelse stopwoorden worden standaard weggelaten",
+    "stopWordsHint": "Veelvoorkomende woorden (stopwoorden) worden standaard weggelaten",
     "searchCoded": "\"{{word}}\" zoeken in de gecodeerde passages",
     "searchQuery": "\"{{word}}\" zoeken in de queryresultaten",
     "search": "\"{{word}}\" zoeken",
@@ -1367,7 +1367,10 @@
     "noWords": "Geen woorden om te tonen",
     "barTitle": "{{word}}: {{count}}",
     "barTitleSeries": "{{word}}: {{count}} ({{series}})",
-    "cloudTitle": "{{word}}: {{count}} — klik om te zoeken"
+    "cloudTitle": "{{word}}: {{count}} — klik om te zoeken",
+    "stopWordsLanguage": "Stopwoorden:",
+    "stopWordsCustom": "Aangepast",
+    "stopWordsNone": "Geen"
   },
   "codesInDocs": {
     "sankeyTitle": "Toon het raster als een sankeydiagram van codes die naar documenten stromen.",
@@ -1448,7 +1451,7 @@
     "codedTitle": "Bekijk alleen de passages die met de gekozen codes gecodeerd zijn.",
     "queryTitle": "Bekijk alleen de resultaten van de gekozen bewaarde query's. Elke query doorzoekt de documenten die erin gekozen zijn.",
     "onlyHint": "Laat leeg om alle woorden op te nemen. Anders moeten woordgroepen een van deze woorden bevatten en associaties er een van zijn",
-    "leaveOutHint": "Woordgroepen kunnen niet met deze woorden beginnen of eindigen, en ze worden niet als associaties getoond. Veelvoorkomende Engelse stopwoorden worden standaard weggelaten",
+    "leaveOutHint": "Woordgroepen kunnen niet met deze woorden beginnen of eindigen, en ze worden niet als associaties getoond. Veelvoorkomende woorden (stopwoorden) worden standaard weggelaten",
     "viewPhrases": "Woordgroepen",
     "viewPhrasesTitle": "Toon reeksen woorden die terugkomen.",
     "viewAssociations": "Associaties",

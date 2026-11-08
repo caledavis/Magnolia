@@ -1404,7 +1404,7 @@
     "freqCodedTitle": "Conta as palavras dos trechos codificados com os códigos escolhidos, uma série por código.",
     "freqQueryTitle": "Conta as palavras dos resultados das consultas salvas escolhidas, uma série por consulta. Cada consulta pesquisa os documentos escolhidos nela.",
     "onlyHint": "Deixe vazio para incluir todas as palavras não excluídas",
-    "stopWordsHint": "As palavras vazias comuns do inglês são excluídas por padrão",
+    "stopWordsHint": "As palavras comuns (palavras vazias) são excluídas por padrão",
     "searchCoded": "Procurar \"{{word}}\" nos trechos codificados",
     "searchQuery": "Procurar \"{{word}}\" nos resultados das consultas",
     "search": "Procurar \"{{word}}\"",
@@ -1415,7 +1415,10 @@
     "noWords": "Nenhuma palavra para mostrar",
     "barTitle": "{{word}}: {{count}}",
     "barTitleSeries": "{{word}}: {{count}} ({{series}})",
-    "cloudTitle": "{{word}}: {{count}} — clique para procurar"
+    "cloudTitle": "{{word}}: {{count}} — clique para procurar",
+    "stopWordsLanguage": "Palavras vazias:",
+    "stopWordsCustom": "Personalizadas",
+    "stopWordsNone": "Nenhuma"
   },
   "codesInDocs": {
     "sankeyTitle": "Mostra a grade como um diagrama de Sankey dos códigos fluindo para os documentos.",
@@ -1504,7 +1507,7 @@
     "codedTitle": "Veja só os trechos codificados com os códigos escolhidos.",
     "queryTitle": "Veja só os resultados das consultas salvas escolhidas. Cada consulta pesquisa os documentos escolhidos nela.",
     "onlyHint": "Deixe vazio para incluir todas as palavras. Caso contrário, as frases devem conter uma destas palavras e as associações devem ser uma delas",
-    "leaveOutHint": "As frases não podem começar nem terminar com estas palavras, e elas não aparecem como associações. As palavras vazias comuns do inglês são excluídas por padrão",
+    "leaveOutHint": "As frases não podem começar nem terminar com estas palavras, e elas não aparecem como associações. As palavras comuns (palavras vazias) são excluídas por padrão",
     "viewPhrases": "Frases",
     "viewPhrasesTitle": "Mostra sequências de palavras que se repetem.",
     "viewAssociations": "Associações",

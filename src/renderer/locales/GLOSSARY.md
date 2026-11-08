@@ -21,7 +21,9 @@ adds a % sign or separators of its own. CSV exports keep plain "12.5"
 decimals, which spreadsheets read in any language.
 
 The translations were drafted by Claude and need review by native
-speakers before release. Keep to the terms below so the interface uses
+speakers before release, as do the stop-word lists (the common words Word
+Frequencies and Word Combinations leave out) in
+`src/renderer/components/Analysis/stop-words.ts`. Keep to the terms below so the interface uses
 one word for each idea; change a term here first, then everywhere.
 
 ## Conventions
@@ -78,7 +80,9 @@ one word for each idea; change a term here first, then everywhere.
    one entry; the Preferences picker and system-language matching follow).
 3. Add it to `CATALOGUES` in `src-tauri/src/i18n.rs` and to
    `CFBundleLocalizations` in `src-tauri/Info.plist`.
-4. Add its column to the tables above.
+4. Add its stop words to `src/renderer/components/Analysis/stop-words.ts`
+   (the typecheck fails until it has a list).
+5. Add its column to the tables above.
 
 Plural rules, number and date formats and alphabetical order come from
 CLDR (the browser's `Intl` in the renderer, ICU4X in the backend), so no

@@ -35,7 +35,9 @@ export function wordFilter(includeWords: string, excludeWords: string): WordFilt
 /** Add the words of `texts` to `freq` (a new map when omitted). */
 export function countWords(texts: Iterable<string>, filter: WordFilter, freq = new Map<string, number>()): Map<string, number> {
   for (const text of texts) {
-    const words = text.toLowerCase().match(/\b[a-zA-ZÀ-ɏ']+\b/g) || []
+    // Words as text search finds them (TOKEN_RE below), so accented
+    // letters belong to their word.
+    const words = text.toLowerCase().match(TOKEN_RE) || []
     for (const w of words) {
       if (w.length < 2) continue
       if (filter.exclude.has(w)) continue

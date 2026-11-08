@@ -152,6 +152,11 @@ describe('countWords', () => {
     expect([...countWords(['The cows and the sheep'], wordFilter('', 'the, and')).keys()]).toEqual(['cows', 'sheep'])
     expect([...countWords(['The cows and the sheep'], wordFilter('sheep', '')).keys()]).toEqual(['sheep'])
   })
+
+  it('keeps accented letters in their words', () => {
+    const words = [...countWords(['Café, élève; één geïnteresseerd não está. Don\'t'], wordFilter('', '')).keys()]
+    expect(words).toEqual(['café', 'élève', 'één', 'geïnteresseerd', 'não', 'está', "don't"])
+  })
 })
 
 describe('wordCondition', () => {

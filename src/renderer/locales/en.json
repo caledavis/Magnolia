@@ -1356,7 +1356,7 @@
     "freqCodedTitle": "Count the words in passages coded with the chosen codes, one series per code.",
     "freqQueryTitle": "Count the words in the results of the chosen saved queries, one series per query. Each query searches the documents chosen in it.",
     "onlyHint": "Leave empty to include every word not left out",
-    "stopWordsHint": "Common English stop words are left out by default",
+    "stopWordsHint": "Common words (stop words) are left out by default",
     "searchCoded": "Search for \"{{word}}\" in the coded passages",
     "searchQuery": "Search for \"{{word}}\" in the query results",
     "search": "Search for \"{{word}}\"",
@@ -1367,7 +1367,10 @@
     "noWords": "No words to display",
     "barTitle": "{{word}}: {{count}}",
     "barTitleSeries": "{{word}}: {{count}} ({{series}})",
-    "cloudTitle": "{{word}}: {{count}} — click to search"
+    "cloudTitle": "{{word}}: {{count}} — click to search",
+    "stopWordsLanguage": "Stop words:",
+    "stopWordsCustom": "Custom",
+    "stopWordsNone": "None"
   },
   "codesInDocs": {
     "sankeyTitle": "Show the grid as a Sankey diagram of codes flowing into documents.",
@@ -1448,7 +1451,7 @@
     "codedTitle": "Look only at the passages coded with the chosen codes.",
     "queryTitle": "Look only at the results of the chosen saved queries. Each query searches the documents chosen in it.",
     "onlyHint": "Leave empty to include all words. Otherwise, phrases must contain, and associations must be, one of these words",
-    "leaveOutHint": "Phrases can't start or end with these words, and they aren't shown as associations. Common English stop words are left out by default",
+    "leaveOutHint": "Phrases can't start or end with these words, and they aren't shown as associations. Common words (stop words) are left out by default",
     "viewPhrases": "Phrases",
     "viewPhrasesTitle": "Show sequences of words that repeat.",
     "viewAssociations": "Associations",

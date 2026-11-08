@@ -18,7 +18,9 @@ import {
   type DocumentFilterState
 } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
-import { toCsv, resolveFilteredSources, STOP_WORDS, applySurveyCellScope } from './analysis-helpers'
+import { toCsv, resolveFilteredSources, applySurveyCellScope } from './analysis-helpers'
+import { stopWordsText } from './stop-words'
+import { StopWordsPicker } from './StopWordsPicker'
 import {
   countWords,
   sourceTexts,
@@ -52,7 +54,7 @@ import { buildWordTree, connectedNodes, flattenWordTree, layoutWordTree, type Tr
 import { useThemeSvgColors, SVG_FONT_FAMILY } from '../../utils/use-theme-svg-colors'
 import { buildPhraseNetwork, layoutPhraseNetwork, linkTitle, neighbours, LABEL_GAP, type NetworkLayout } from './phrase-network'
 import { useTranslation } from 'react-i18next'
-import { formatPercent, formatFixed, formatNumber } from '../../i18n'
+import { formatPercent, formatFixed, formatNumber, currentLanguage } from '../../i18n'
 
 export type CombinationsView = 'phrases' | 'associations' | 'tree'
 /** How Phrases are shown. */
@@ -93,7 +95,7 @@ export function defaultCombinationsConfig(): WordCombinationsConfig {
     includeSubcodes: true,
     queryGuids: [],
     includeWords: '',
-    excludeWords: Array.from(STOP_WORDS).join(', '),
+    excludeWords: stopWordsText(currentLanguage()),
     view: 'phrases',
     phraseLength: 2,
     phraseDisplay: 'list',
@@ -545,6 +547,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
           <div className="analysis-section" style={{ flex: 1 }}>
             <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>{t('analysis.leaveOutWords')}</div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>{t('combos.leaveOutHint')}</div>
+            <StopWordsPicker value={excludeWords} onChange={setExcludeWords} />
             <textarea
               value={excludeWords}
               onChange={(e) => setExcludeWords(e.target.value)}

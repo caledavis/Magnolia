@@ -8,7 +8,9 @@ import {
 } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
-import { toCsv, resolveFilteredSources, STOP_WORDS, applySurveyCellScope } from './analysis-helpers'
+import { toCsv, resolveFilteredSources, applySurveyCellScope } from './analysis-helpers'
+import { stopWordsText } from './stop-words'
+import { StopWordsPicker } from './StopWordsPicker'
 import { countWords, sourceTexts, codedPassageTexts, queryPassageTexts, wordFilter, type WordQueryCodes } from './word-counts'
 import {
   type TextSource,
@@ -44,7 +46,7 @@ import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { SegmentedControl } from './SegmentedControl'
 import { useTranslation } from 'react-i18next'
-import { formatNumber } from '../../i18n'
+import { formatNumber, currentLanguage } from '../../i18n'
 
 interface Props {
   data: AnalysisInitData
@@ -181,7 +183,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
   }, [propData, live, docFilter, byQuery])
   const [tagDropOver, setTagDropOver] = useState(false)
   const [includeWords, setIncludeWords] = useState(savedConfig?.includeWords ?? '')
-  const [excludeWords, setExcludeWords] = useState(savedConfig?.excludeWords ?? Array.from(STOP_WORDS).join(', '))
+  const [excludeWords, setExcludeWords] = useState(savedConfig?.excludeWords ?? stopWordsText(currentLanguage()))
   const [vizMode, setVizMode] = useState<VizMode>('bar')
   const [wordCount, setWordCount] = useState(savedConfig?.wordCount ?? 30)
   const chartRef = useRef<SVGSVGElement>(null)
@@ -199,7 +201,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
   const initialBaseline = useMemo(() => ({
     docFilter: documentFilterFromConfig(savedConfig),
     includeWords: savedConfig?.includeWords ?? '',
-    excludeWords: savedConfig?.excludeWords ?? Array.from(STOP_WORDS).join(', '),
+    excludeWords: savedConfig?.excludeWords ?? stopWordsText(currentLanguage()),
     wordCount: savedConfig?.wordCount ?? 30,
     groupBy: savedConfig?.groupBy ?? migrateLegacyGroupBy(savedConfig?.groupByTags),
     textSource: savedConfig?.textSource ?? 'documents',
@@ -646,6 +648,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
           <div className="analysis-section" style={{ flex: 1 }}>
             <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>{t('analysis.leaveOutWords')}</div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>{t('words.stopWordsHint')}</div>
+            <StopWordsPicker value={excludeWords} onChange={setExcludeWords} />
             <textarea
               value={excludeWords}
               onChange={(e) => setExcludeWords(e.target.value)}
