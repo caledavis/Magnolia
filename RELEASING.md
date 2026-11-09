@@ -21,7 +21,7 @@ You build for a platform **on that platform** (Tauri can't cross-compile
 installers). Releases need only the Mac: Windows and Linux are built on
 GitHub's machines. Each machine you build on needs:
 
-- **Node.js** — a recent LTS (20+).
+- **Node.js** — a recent LTS (24+; the GitHub workflows use 24).
 - **Rust** — stable, via <https://rustup.rs>.
 - **Git**.
 - The repo + dependencies:
