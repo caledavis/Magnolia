@@ -15,8 +15,6 @@ import ts from 'typescript'
 
 /** Names and symbols that are the same in every language. */
 const SAME_EVERYWHERE = ['Magnolia', 'PDF', 'CSV', 'SVG', 'PNG', 'QDPX', 'AND', 'OR', 'NOT', 'XOR', 'px', 'Aa']
-/** Components nothing renders. */
-const UNUSED = ['components/Codebook/CodebookDialog.tsx', 'components/QueryBuilder/QueryBuilderDialog.tsx']
 const TEXT_ATTRIBUTES = new Set(['title', 'placeholder', 'aria-label', 'aria-description', 'aria-roledescription', 'aria-valuetext', 'alt', 'label'])
 
 const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', times: '×', hellip: '…', mdash: '—', ndash: '–', bull: '•' }
@@ -76,7 +74,7 @@ function untranslated(source: string, file = 'component.tsx'): string[] {
 }
 
 describe('interface text', () => {
-  const files = filesUnder('src/renderer').filter((f) => !UNUSED.some((u) => f.endsWith(u)))
+  const files = filesUnder('src/renderer')
 
   it('finds the components', () => {
     expect(files.length).toBeGreaterThan(50)

@@ -19,10 +19,10 @@
  *   screenshot  the main window with a document open
  *
  * --lang defaults to English; "all" checks every language in
- * src/renderer/locales one after the other. The project defaults to
- * working_materials/screenshots/tools.qdpx; the checks use the names in
- * PROJECT below where it has them (another project works, with those
- * steps skipped).
+ * src/renderer/locales one after the other. The project is a few made-up
+ * coded interviews (fixture.mjs), written as a .qdpx by Magnolia's own
+ * writer; --project opens another one instead, skipping the steps that
+ * need names it doesn't have.
  *
  * Builds the debug app and runs it with MAGNOLIA_AUTOMATION (a debug-only
  * hook, src-tauri/src/automation.rs) on a scratch copy of the project with
@@ -35,12 +35,11 @@ import { spawn, execFileSync } from 'node:child_process'
 import net from 'node:net'
 import fs from 'node:fs'
 import path from 'node:path'
+import { fixture, NAMES } from './fixture.mjs'
 
 const ROOT = path.resolve(import.meta.dirname, '../..')
 const REPORT = path.join(ROOT, 'layout-report')
 const CHECKS = ['ribbon', 'ribbon-rtl', 'ui', 'pdf', 'rtl-ui', 'rtl-text', 'screenshot']
-/** Names in the project the checks open, if it has them. */
-const PROJECT = { document: 'Interview - Mia.txt', code: 'Paid work', query: 'Online Learning and Loneliness' }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 // ── Arguments ──────────────────────────────────────────────────────
@@ -48,15 +47,16 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const args = process.argv.slice(2)
 const option = (name) => { const i = args.indexOf(name); return i < 0 ? undefined : args.splice(i, 2)[1] }
 const langArg = option('--lang') ?? 'en'
-const project = path.resolve(option('--project') ?? path.join(ROOT, 'working_materials/screenshots/tools.qdpx'))
+const projectArg = option('--project')
+const project = projectArg ? path.resolve(projectArg) : path.join(REPORT, 'Layout check.qdpx')
 const checks = args.length ? args : ['ribbon', 'ui']
 const unknown = checks.filter((c) => !CHECKS.includes(c))
 const allLanguages = fs.readdirSync(path.join(ROOT, 'src/renderer/locales')).filter((f) => f.endsWith('.json')).map((f) => f.slice(0, -5)).sort()
 const languages = langArg === 'all' ? allLanguages : [langArg]
-if (unknown.length || languages.some((l) => !allLanguages.includes(l)) || !fs.existsSync(project)) {
+if (unknown.length || languages.some((l) => !allLanguages.includes(l)) || (projectArg && !fs.existsSync(project))) {
   if (unknown.length) console.error('Unknown check: ' + unknown.join(', ') + '. Checks: ' + CHECKS.join(', '))
   if (languages.some((l) => !allLanguages.includes(l))) console.error('Unknown language: ' + langArg + '. Languages: ' + allLanguages.join(', ') + ', all')
-  if (!fs.existsSync(project)) console.error('No project at ' + project + ' (use --project <file.qdpx>)')
+  if (projectArg && !fs.existsSync(project)) console.error('No project at ' + project + ' (use --project <file.qdpx>)')
   process.exit(2)
 }
 
@@ -93,7 +93,7 @@ async function checkLanguage(lang) {
   fs.copyFileSync(project, copy)
   fs.writeFileSync(path.join(run, 'userdata/magnolia-preferences.json'), JSON.stringify({ userName: 'Tester', toolbarStyle: 'ribbon', language: lang }))
   fs.writeFileSync(path.join(run, 'checks.js'),
-    `const OUT = ${JSON.stringify(out)};\nconst ONLY = ${JSON.stringify(checks)};\nconst PROJECT = ${JSON.stringify(PROJECT)};\n` +
+    `const OUT = ${JSON.stringify(out)};\nconst ONLY = ${JSON.stringify(checks)};\nconst PROJECT = ${JSON.stringify(NAMES)};\n` +
     fs.readFileSync(path.join(import.meta.dirname, 'checks.js'), 'utf8'))
 
   const lines = []
@@ -143,6 +143,14 @@ if (!(await portOpen(5173))) {
 const problems = {}
 try {
   execFileSync('cargo', ['build'], { cwd: path.join(ROOT, 'src-tauri'), stdio: 'inherit' })
+  if (!projectArg) {
+    execFileSync('cargo', ['build', '--example', 'qdpx_tool', '-p', 'magnolia-core'], { cwd: ROOT, stdio: 'inherit' })
+    fs.mkdirSync(REPORT, { recursive: true })
+    const json = path.join(REPORT, 'fixture.json')
+    fs.writeFileSync(json, JSON.stringify(fixture()))
+    execFileSync(path.join(ROOT, 'target/debug/examples/qdpx_tool'), ['write', json, project])
+    fs.rmSync(json)
+  }
   for (const lang of languages) {
     console.log(`${lang}: ${checks.join(', ')}`)
     problems[lang] = await checkLanguage(lang)
