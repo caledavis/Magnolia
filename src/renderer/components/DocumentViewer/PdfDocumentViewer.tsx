@@ -24,6 +24,7 @@ import { SelectionDragHandle, boxSelectionAnchor, textSelectionAnchor } from './
 import { modKey } from '../../utils/platform'
 import { roundRegionToWholePixels } from '../../utils/region-rounding'
 import { useTranslation } from 'react-i18next'
+import { digitKey } from '../../utils/keys'
 
 function flattenCodes(codes: Code[], depth = 0): { code: Code; depth: number }[] {
   const result: { code: Code; depth: number }[] = []
@@ -665,8 +666,8 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
         return
       }
       if (!e.metaKey && !e.ctrlKey) return
-      const digit = parseInt(e.key, 10)
-      if (isNaN(digit) || digit < 0 || digit > 9) return
+      const digit = digitKey(e)
+      if (digit === null) return
       const code = hotkeyMap.get(digit)
       if (!code) return
       // Box selection takes priority

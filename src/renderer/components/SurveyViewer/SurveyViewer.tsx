@@ -81,6 +81,7 @@ import { onSelectionDrop } from '../../utils/selection-drag'
 import { SelectionDragHandle, textSelectionAnchor } from '../DocumentViewer/SelectionDragHandle'
 import { useTranslation } from 'react-i18next'
 import { t, formatDateTime, formatPercent, formatNumber, compareText } from '../../i18n'
+import { digitKey } from '../../utils/keys'
 
 interface Props {
   source: TextSource
@@ -2521,8 +2522,8 @@ export function SurveyViewer({ source }: Props) {
     if (!isActive) return
     const onKeyDown = (e: KeyboardEvent) => {
       if (!e.metaKey && !e.ctrlKey) return
-      const digit = parseInt(e.key, 10)
-      if (isNaN(digit) || digit < 0 || digit > 9) return
+      const digit = digitKey(e)
+      if (digit === null) return
       const match = hotkeyCodes.find((h) => h.code.hotkey === digit)
       if (!match || !pending) return
       e.preventDefault()

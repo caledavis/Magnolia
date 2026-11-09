@@ -29,6 +29,7 @@ import { onSelectionDrop } from '../../utils/selection-drag'
 import { SelectionDragHandle, textSelectionAnchor } from './SelectionDragHandle'
 import { useTranslation } from 'react-i18next'
 import { t, formatDateTime } from '../../i18n'
+import { digitKey } from '../../utils/keys'
 
 interface Props {
   sourceGuid: string
@@ -333,8 +334,8 @@ export function TranscriptEditor({
     if (isTranscribing) return // No coding hotkeys in transcription mode
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!e.metaKey && !e.ctrlKey) return
-      const digit = parseInt(e.key, 10)
-      if (isNaN(digit) || digit < 0 || digit > 9) return
+      const digit = digitKey(e)
+      if (digit === null) return
       const code = hotkeyMap.get(digit)
       if (!code || !pendingSelection) return
       e.preventDefault()

@@ -24,6 +24,7 @@ import { decodePeaks } from '../../utils/waveform-peaks'
 import { useRememberedPlayhead } from '../../utils/use-remembered-playhead'
 import type { TextSource, VideoFormatData } from '../../models/types'
 import { useTranslation } from 'react-i18next'
+import { keyCombo } from '../../utils/keys'
 
 interface Props {
   source: TextSource
@@ -34,17 +35,6 @@ const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2]
 /** Approximate "one frame" for arrow-key nudge when paused. 30 fps is a
  *  reasonable default that works well for most video. */
 const FRAME_STEP_SECONDS = 1 / 30
-
-function keyComboFromEvent(e: KeyboardEvent): string {
-  const parts: string[] = []
-  if (e.ctrlKey) parts.push('Ctrl')
-  if (e.altKey) parts.push('Alt')
-  if (e.shiftKey) parts.push('Shift')
-  if (e.metaKey) parts.push('Cmd')
-  if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) return ''
-  parts.push(e.key.length === 1 ? e.key.toUpperCase() : e.key)
-  return parts.join('+')
-}
 
 export function VideoDocumentViewer({ source, content }: Props) {
   const { t } = useTranslation()
@@ -246,7 +236,7 @@ export function VideoDocumentViewer({ source, content }: Props) {
     // configured mapping (rather than the focus target) lets unrelated
     // typing pass through while real shortcuts still fire.
     const handler = (e: KeyboardEvent) => {
-      const combo = keyComboFromEvent(e)
+      const combo = keyCombo(e)
       if (!combo) return
       if (combo === footPedalMappings.playPause) { e.preventDefault(); togglePlayPause() }
       else if (combo === footPedalMappings.rewind) { e.preventDefault(); rewind(footPedalMappings.rewindSeconds) }

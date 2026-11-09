@@ -16,6 +16,7 @@ import type { SurveyEntityRef } from '../../models/types'
 import { SurveyScopeLine, chosenIds, mayBeSurveyEntityDrag, parseSurveyEntityDrop, withSurveyEntity, withSurveyIds } from './SurveyScope'
 import { useTranslation } from 'react-i18next'
 import { t, compareText } from '../../i18n'
+import { isLetterKey } from '../../utils/keys'
 
 /** A document category's name (docSelector.category.<category>). */
 const categoryLabel = (category: DocCategory): string => t(`docSelector.category.${category}`)
@@ -714,9 +715,9 @@ export function DocumentSelector({
       // handler steals the key from those editors app-wide.
       if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || (e.target as HTMLElement).isContentEditable) return
       if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); doDelete() }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'c') doCopy()
-      if ((e.metaKey || e.ctrlKey) && e.key === 'v') doPaste()
-      if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+      if ((e.metaKey || e.ctrlKey) && isLetterKey(e, 'c')) doCopy()
+      if ((e.metaKey || e.ctrlKey) && isLetterKey(e, 'v')) doPaste()
+      if ((e.metaKey || e.ctrlKey) && isLetterKey(e, 'a')) {
         e.preventDefault()
         setSelNodes(new Set(nodesRef.current.map((n) => n.id)))
       }

@@ -6,6 +6,7 @@ import { PaletteGroup, PaletteDivider, PaletteButton } from '../NodePalette'
 import { modKey, altClickHint } from '../../utils/platform'
 import { useTranslation } from 'react-i18next'
 import { t } from '../../i18n'
+import { isLetterKey } from '../../utils/keys'
 
 /* ═══════════════════════════════════════════════════
    Types
@@ -743,13 +744,13 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
         e.preventDefault()
         doDelete()
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'c') {
+      if ((e.metaKey || e.ctrlKey) && isLetterKey(e, 'c')) {
         doCopy()
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
+      if ((e.metaKey || e.ctrlKey) && isLetterKey(e, 'v')) {
         doPaste()
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+      if ((e.metaKey || e.ctrlKey) && isLetterKey(e, 'a')) {
         e.preventDefault()
         setSelNodes(new Set(nodesRef.current.map((n) => n.id)))
       }

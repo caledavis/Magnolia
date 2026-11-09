@@ -13,6 +13,7 @@ import { decodePeaks } from '../../utils/waveform-peaks'
 import { useRememberedPlayhead } from '../../utils/use-remembered-playhead'
 import type { TextSource } from '../../models/types'
 import { useTranslation } from 'react-i18next'
+import { keyCombo } from '../../utils/keys'
 
 interface Props {
   source: TextSource
@@ -45,17 +46,6 @@ function formatTime(seconds: number): string {
   const s = Math.floor(seconds % 60)
   if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
   return `${m}:${String(s).padStart(2, '0')}`
-}
-
-function keyComboFromEvent(e: KeyboardEvent): string {
-  const parts: string[] = []
-  if (e.ctrlKey) parts.push('Ctrl')
-  if (e.altKey) parts.push('Alt')
-  if (e.shiftKey) parts.push('Shift')
-  if (e.metaKey) parts.push('Cmd')
-  if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) return ''
-  parts.push(e.key.length === 1 ? e.key.toUpperCase() : e.key)
-  return parts.join('+')
 }
 
 export function AudioDocumentViewer({ source, content }: Props) {
@@ -225,7 +215,7 @@ export function AudioDocumentViewer({ source, content }: Props) {
     // element is invisible to the focus chain), so the cursor stays
     // exactly where the transcriber put it.
     const handler = (e: KeyboardEvent) => {
-      const combo = keyComboFromEvent(e)
+      const combo = keyCombo(e)
       if (!combo) return
       if (combo === footPedalMappings.playPause) { e.preventDefault(); togglePlayPause() }
       else if (combo === footPedalMappings.rewind) { e.preventDefault(); rewind(footPedalMappings.rewindSeconds) }

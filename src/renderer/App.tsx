@@ -98,6 +98,7 @@ import type { Project, Query, CodeCondition, Code, TextSource, QDASet, LogbookIn
 import { buildSurveyEntityLabels } from './utils/survey/survey-labels'
 import { useTranslation } from 'react-i18next'
 import { t } from './i18n'
+import { isLetterKey } from './utils/keys'
 
 /** Fold the survey-cell scope carried by an analysis cell-click into the
  *  documentFilter of the Query being generated, so it re-runs against the
@@ -1841,7 +1842,7 @@ function App() {
         useDocumentStore.getState().showAdjacentTab(tabStep)
         return
       }
-      if (e.key === 'a' && !isTextInput()) {
+      if (isLetterKey(e, 'a') && !isTextInput()) {
         if (activePanelRef.current === 'documents') {
           e.preventDefault()
           const docStore = useDocumentStore.getState()
@@ -1850,13 +1851,13 @@ function App() {
           e.preventDefault()
           window.dispatchEvent(new CustomEvent('magnolia-select-all-codes'))
         }
-      } else if (e.key === 'z' && !e.shiftKey && (!isTextInput() || inNoteEditor())) {
+      } else if (isLetterKey(e, 'z') && !e.shiftKey && (!isTextInput() || inNoteEditor())) {
         e.preventDefault()
         useUndoStore.getState().undo()
-      } else if (e.key === 'z' && e.shiftKey && (!isTextInput() || inNoteEditor())) {
+      } else if (isLetterKey(e, 'z') && e.shiftKey && (!isTextInput() || inNoteEditor())) {
         e.preventDefault()
         useUndoStore.getState().redo()
-      } else if (e.key === 'f') {
+      } else if (isLetterKey(e, 'f')) {
         // Find is the only global Cmd/Ctrl+F behaviour — fires even
         // when a text input is focused (e.g. while the user is
         // selecting text in a transcript). Only available when a

@@ -18,6 +18,7 @@ import type { MagnoliaAPI } from '../models/types'
 import { base64ToBytes, extractPdfText } from './pdf-text'
 import { t } from '../i18n'
 import { withDocumentLanguage } from '../utils/document-language'
+import { guardComposition } from '../utils/keys'
 
 const current = getCurrentWebviewWindow()
 const MAIN = 'main'
@@ -457,3 +458,6 @@ if (current.label !== MAIN) {
 // clears the macOS traffic lights, and on macOS the panes in a window's
 // bottom corners, pop-outs included, follow its rounded corners.
 document.documentElement.setAttribute('data-platform', platform)
+// Enter and Escape belong to an input method while it's composing (see
+// utils/keys), in every window.
+guardComposition()

@@ -15,6 +15,7 @@ import { Icon, faGear } from '../Icon'
 import { COLOURFUL_INTERFACE_ENABLED, colourfulInterfaceFromSaved } from '../../utils/colourful-interface'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGE_IDS, normaliseLanguagePreference, resolveLanguage, setLanguagePreference, setDigitsPreference, digitChoices, digitsSample, type LanguagePreference, type DigitsPreference } from '../../i18n'
+import { keyCombo } from '../../utils/keys'
 
 interface FootPedalMappings {
   playPause: string
@@ -139,24 +140,6 @@ const SPONSOR_URL = 'https://github.com/sponsors/caledavis'
  *  the portable Windows exe) download the newest version. */
 const RELEASES_URL = 'https://github.com/caledavis/Magnolia/releases/latest'
 
-/** Capture a key combination from a keyboard event */
-function keyComboFromEvent(e: KeyboardEvent): string {
-  const parts: string[] = []
-  if (e.ctrlKey) parts.push('Ctrl')
-  if (e.altKey) parts.push('Alt')
-  if (e.shiftKey) parts.push('Shift')
-  if (e.metaKey) parts.push('Cmd')
-
-  const key = e.key
-  // Skip modifier-only presses
-  if (['Control', 'Alt', 'Shift', 'Meta'].includes(key)) return ''
-
-  // Normalize key names
-  const normalized = key.length === 1 ? key.toUpperCase() : key
-  parts.push(normalized)
-  return parts.join('+')
-}
-
 function KeyCaptureInput({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
   const { t } = useTranslation()
   const [capturing, setCapturing] = useState(false)
@@ -167,7 +150,7 @@ function KeyCaptureInput({ value, onChange, label }: { value: string; onChange: 
     const handler = (e: KeyboardEvent) => {
       e.preventDefault()
       e.stopPropagation()
-      const combo = keyComboFromEvent(e)
+      const combo = keyCombo(e)
       if (combo) {
         onChange(combo)
         setCapturing(false)

@@ -24,6 +24,7 @@ import { modKey } from '../../utils/platform'
 import { CodedTextView, type CodingRightClickContext } from './CodedTextView'
 import type { Code, MemoEditInitData, SourceType, TextSource } from '../../models/types'
 import { useTranslation } from 'react-i18next'
+import { digitKey } from '../../utils/keys'
 
 /** After a long jump, how many frames the target must stay put, and how
  *  long to keep re-centring it at most. */
@@ -366,8 +367,8 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
     if (!active) return
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!e.metaKey && !e.ctrlKey) return
-      const digit = parseInt(e.key, 10)
-      if (isNaN(digit) || digit < 0 || digit > 9) return
+      const digit = digitKey(e)
+      if (digit === null) return
       const code = hotkeyMap.get(digit)
       if (!code || !pendingSelection) return
       e.preventDefault()

@@ -31,6 +31,7 @@ import { useRememberedScroll } from '../../utils/use-remembered-scroll'
 import { onSelectionDrop } from '../../utils/selection-drag'
 import { SelectionDragHandle, boxSelectionAnchor } from './SelectionDragHandle'
 import { useTranslation } from 'react-i18next'
+import { digitKey } from '../../utils/keys'
 
 // Horizontal space the right-hand RichMarginColumn + its 8-px gap actually
 // occupy in the flex row. The margin column has flex-basis 260 plus an 8-px
@@ -451,8 +452,8 @@ export function ImageDocumentViewer({ source }: Props) {
         return
       }
       if (!e.metaKey && !e.ctrlKey) return
-      const digit = parseInt(e.key, 10)
-      if (isNaN(digit) || digit < 0 || digit > 9) return
+      const digit = digitKey(e)
+      if (digit === null) return
       const code = hotkeyMap.get(digit)
       if (!code) return
       if (pendingBoxSelection) {

@@ -7,6 +7,7 @@ import { MapConnectionComponent } from './MapConnection'
 import { FreeTextNode } from './FreeTextNode'
 import { Icon, MEMO_RANGED_ICON } from '../../Icon'
 import { useTranslation } from 'react-i18next'
+import { isLetterKey } from '../../../utils/keys'
 
 interface Props {
   elements: MapElementType[]
@@ -210,7 +211,7 @@ export function MapCanvas({
           return
         onDeleteSelected()
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+      if ((e.metaKey || e.ctrlKey) && isLetterKey(e, 'a')) {
         // Don't intercept if focus is in an input, textarea, or contenteditable
         if (
           document.activeElement?.tagName === 'INPUT' ||
