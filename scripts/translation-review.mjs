@@ -9,10 +9,13 @@
  *     questions for this language from locales/GLOSSARY.md), Translations
  *     (key, where it appears, English, current translation, a column for
  *     the reviewer's correction and one for comments), Glossary (the
- *     terms table) and Stop words.
+ *     terms table) and Stop words. Messages waiting for a translator
+ *     (npm run i18n:sync) come first, with a Status column, and a Checked
+ *     column for an English change the translation still fits.
  *
  *   node scripts/translation-review.mjs import <lang> <file.xlsx>
- *     Apply the Your correction column to src/renderer/locales/<lang>.json.
+ *     Apply the Your correction column to src/renderer/locales/<lang>.json,
+ *     and clear the pending messages translated or checked.
  *     A correction whose {{placeholders}} don't match the English is
  *     skipped and reported; comments and stop-word suggestions are
  *     printed for a person to act on. Run the tests afterwards
@@ -26,6 +29,7 @@ import JSZip from 'jszip'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { readStatus, writeStatus, baseKey } from './i18n-sync.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const LOCALES = path.join(ROOT, 'src/renderer/locales')
@@ -51,8 +55,15 @@ export function flatten(tree, prefix = '', out = new Map()) {
 function setKey(tree, key, value) {
   const parts = key.split('.')
   let node = tree
-  for (const p of parts.slice(0, -1)) node = node[p]
+  for (const p of parts.slice(0, -1)) node = node[p] ??= {}
   node[parts.at(-1)] = value
+}
+
+/** The keys a language needs for an English message: the key itself, or
+ *  one per plural form the language has. */
+function keysFor(en, lang, base) {
+  if (en.has(base)) return [base]
+  return new Intl.PluralRules(lang).resolvedOptions().pluralCategories.map((f) => `${base}_${f}`)
 }
 
 export const placeholders = (s) => [...s.matchAll(/\{\{\s*(\w+)[^}]*\}\}/g)].map((m) => m[1]).sort()
@@ -206,15 +217,30 @@ export async function exportLanguage(lang, dir) {
   const examples = pluralExamples(lang)
   const rtl = new Intl.Locale(lang).maximize().script === 'Arab'
   const { conventions, terms, questions, name } = glossaryFor(lang)
-  const rows = [['Key', 'Where it appears', 'English', 'Current translation', 'Your correction', 'Comment', 'Notes']]
-  for (const [key, text] of tr) {
-    if (key.startsWith('language.name.')) continue // each language's own name
+  const pending = readStatus().pending[lang] ?? {}
+  const waiting = Object.keys(pending).length > 0
+  const rows = [waiting
+    ? ['Key', 'Status', 'Where it appears', 'English', 'Current translation', 'Your correction', 'Checked (x)', 'Comment', 'Notes']
+    : ['Key', 'Where it appears', 'English', 'Current translation', 'Your correction', 'Comment', 'Notes']]
+  const row = (key, state) => {
     const english = englishFor(en, key) ?? ''
-    rows.push([key, whereFor(key, examples), english, text, '', '', notesFor(english)])
+    const cells = [key, whereFor(key, examples), english, tr.get(key) ?? '', '', '', notesFor(english)]
+    if (waiting) cells.splice(1, 0, state), cells.splice(6, 0, '')
+    rows.push(cells)
+  }
+  // Waiting for a translator first, then everything else.
+  for (const [base, state] of Object.entries(pending)) {
+    const label = state === 'new' ? 'New: please translate' : `English changed (was "${state.was}"): correct the translation, or put x in Checked if it still fits`
+    for (const key of keysFor(en, lang, base)) row(key, label)
+  }
+  for (const key of tr.keys()) {
+    if (key.startsWith('language.name.')) continue // each language's own name
+    if (!pending[baseKey(key)]) row(key, '')
   }
   const readme = [
     ['Magnolia translation review — ' + name],
     ['Thank you for reviewing Magnolia in ' + name + '. The Translations sheet lists every piece of interface text: the English, the current translation, and where it appears.'],
+    ...(waiting ? [['The first rows are new or changed since the last review (see the Status column). Please translate the new ones, and check the changed ones: correct the translation, or put x in "Checked" if it still fits the new English.']] : []),
     ['Where a translation is wrong, unnatural or inconsistent, write your version in the "Your correction" column. Leave it empty where the translation is fine. Use "Comment" for anything else (a question, or a suggestion that needs discussion).'],
     ['Keep anything in {{double braces}} exactly as written, and keep <b>…</b> tags around the same words: Magnolia fills these in. The Notes column says when a row has them.'],
     ['Some rows are plural forms ("plural form one", "few", "many"…): the same message for different numbers. "Where it appears" lists the numbers each form is used for.'],
@@ -225,7 +251,7 @@ export async function exportLanguage(lang, dir) {
   const stop = [['Stop word', 'Remove? (x)', 'Words to add (one per row)'], ...stopWordsFor(lang).map((w) => [w, '', ''])]
   const buf = await buildWorkbook([
     { name: 'Read me', rows: readme, widths: [120] },
-    { name: 'Translations', rows, widths: [34, 38, 50, 50, 50, 30, 30], rtlCols: rtl ? [3, 4] : [] },
+    { name: 'Translations', rows, widths: waiting ? [34, 30, 38, 50, 50, 50, 10, 30, 30] : [34, 38, 50, 50, 50, 30, 30], rtlCols: rtl ? (waiting ? [4, 5] : [3, 4]) : [] },
     { name: 'Glossary', rows: glossary, widths: [40, 50], rtlCols: rtl ? [1] : [] },
     { name: 'Stop words', rows: stop, widths: [24, 14, 30], rtlCols: rtl ? [0, 2] : [] }
   ])
@@ -279,14 +305,22 @@ export async function importLanguage(lang, file) {
   const en = flatten(readCatalogue('en'))
   const catalogue = readCatalogue(lang)
   const current = flatten(catalogue)
-  const applied = [], skipped = [], comments = []
+  const status = readStatus()
+  const pending = status.pending[lang] ?? {}
+  const col = (name) => rows[0].indexOf(name)
+  const [cCorrection, cComment, cChecked] = [col('Your correction'), col('Comment'), col('Checked (x)')]
+  if (cCorrection < 0) throw new Error('No "Your correction" column in ' + file)
+  const applied = [], skipped = [], comments = [], checked = new Set()
   for (const row of rows.slice(1)) {
-    const [key, , , , correction = '', comment = ''] = row
+    const key = row[0]
+    const correction = row[cCorrection] ?? '', comment = cComment < 0 ? '' : row[cComment] ?? ''
     if (!key) continue
     if (comment.trim()) comments.push(`${key}: ${comment.trim()}`)
+    if (cChecked >= 0 && row[cChecked]?.trim()) checked.add(baseKey(key))
     const text = correction.replace(/\r\n?/g, '\n').trim()
     if (!text) continue
-    if (!current.has(key)) { skipped.push(`${key}: no such key`); continue }
+    const isNew = pending[baseKey(key)] === 'new' && keysFor(en, lang, baseKey(key)).includes(key)
+    if (!current.has(key) && !isNew) { skipped.push(`${key}: no such key`); continue }
     const english = englishFor(en, key) ?? ''
     const form = key.match(PLURAL)?.[1]
     const inWords = (p) => ['zero', 'one', 'two'].includes(form) && p === 'count'
@@ -294,15 +328,24 @@ export async function importLanguage(lang, file) {
     const got = placeholders(text).filter((p) => !inWords(p))
     if (want.join() !== got.join()) { skipped.push(`${key}: placeholders ${got.map((p) => `{{${p}}}`).join(' ') || '(none)'} don't match the English ${want.map((p) => `{{${p}}}`).join(' ') || '(none)'}`); continue }
     if (tags(english).join() !== tags(text).join()) { skipped.push(`${key}: the <b> tags don't match the English`); continue }
+    checked.add(baseKey(key))
     if (text === current.get(key)) continue
     setKey(catalogue, key, text)
-    applied.push(`${key}: ${current.get(key)}\n    → ${text}`)
+    applied.push(`${key}: ${current.get(key) ?? '(new)'}\n    → ${text}`)
   }
+  // Clear what the reviewer translated or checked.
+  const now = flatten(catalogue)
+  const cleared = []
+  for (const [base, state] of Object.entries(pending)) {
+    const done = state === 'new' ? keysFor(en, lang, base).every((k) => now.has(k)) : checked.has(base)
+    if (done) { delete pending[base]; cleared.push(base) }
+  }
+  if (cleared.length) writeStatus(status)
   const stop = book['Stop words'] ?? []
   const remove = stop.slice(1).filter((r) => r[0] && r[1]?.trim()).map((r) => r[0])
   const add = stop.slice(1).map((r) => r[2]?.trim()).filter(Boolean)
   if (applied.length) fs.writeFileSync(path.join(LOCALES, `${lang}.json`), JSON.stringify(catalogue, null, 2) + '\n')
-  return { applied, skipped, comments, stopWords: { remove, add } }
+  return { applied, skipped, comments, cleared, stopWords: { remove, add } }
 }
 
 // ── Command line ───────────────────────────────────────────────────
@@ -315,9 +358,10 @@ async function main([cmd, lang, arg]) {
       console.log(`${l}: ${rows} strings → ${path.relative(process.cwd(), file)}`)
     }
   } else if (cmd === 'import' && lang && arg) {
-    const { applied, skipped, comments, stopWords } = await importLanguage(lang, arg)
+    const { applied, skipped, comments, cleared, stopWords } = await importLanguage(lang, arg)
     console.log(`Applied ${applied.length} correction(s) to ${lang}.json`)
     for (const a of applied) console.log('  ' + a)
+    if (cleared.length) console.log(`\nNo longer waiting for a translator: ${cleared.join(', ')}`)
     if (skipped.length) { console.log(`\nSkipped ${skipped.length}:`); for (const s of skipped) console.log('  ' + s) }
     if (comments.length) { console.log(`\nComments:`); for (const c of comments) console.log('  ' + c) }
     if (stopWords.remove.length || stopWords.add.length) {

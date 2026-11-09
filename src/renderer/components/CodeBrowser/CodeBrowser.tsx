@@ -1052,7 +1052,7 @@ export function CodeBrowser({ onNewCode, onClose, onPopOut, isPoppedOut }: Props
               fontSize: 'var(--font-size-sm)'
             }}
           >
-            No codes match "{trimmedSearch}".
+            {t('codes.noMatch', { query: trimmedSearch })}
           </div>
         )}
         {filteredCodes.map((code) => (

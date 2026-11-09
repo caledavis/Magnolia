@@ -142,7 +142,7 @@ export function MemoEditWindow() {
         </button>
         {/* A transparent border, so it's the size of the bordered buttons beside it. */}
         <button style={{ fontSize: 11, padding: '4px 14px', border: '1px solid transparent' }} onClick={handleSaveAndClose}>
-          Save &amp; Close
+          {t('memoEdit.saveAndClose')}
         </button>
       </div>
     </div>

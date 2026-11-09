@@ -1678,7 +1678,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                           opacity: 0.7
                         }}
                       >
-                        + Add input
+                        {t('queryBuilder.addInput')}
                       </div>
                     )}
                   </div>

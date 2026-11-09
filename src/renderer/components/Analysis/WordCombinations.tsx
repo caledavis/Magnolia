@@ -583,7 +583,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                       onChange={(v) => setPhraseLength(phraseLengthOf(Number(v)))}
                       options={PHRASE_LENGTHS.map((n) => ({ value: String(n), label: String(n), title: t('combos.phraseLengthTitle', { n }) }))}
                     />
-                    words
+                    {t('combos.phraseLengthWords', { count: phraseLength })}
                   </span>
                   <SegmentedControl
                     label={t('combos.showAs')}
@@ -598,14 +598,14 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                     <input type="number" min={1} max={1000} value={minCount} onChange={(e) => setMinCount(Number(e.target.value))}
                       style={{ width: 50, margin: '0 4px' }}
                     />
-                    times
+                    {t('combos.appearsAtLeastTimes', { count: minCount })}
                   </label>
                 </>
               ) : (
                 <>
-                  <label style={{ fontSize: 10, color: 'var(--text-muted)' }}>Word:
+                  <label style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t('combos.word')}
                     <input type="text" value={focusWord} onChange={(e) => setFocusWord(e.target.value)}
-                      placeholder={focus && !focusWord.trim() ? focus : 'word'}
+                      placeholder={focus && !focusWord.trim() ? focus : t('combos.wordPlaceholder')}
                       style={{ width: 120, marginInlineStart: 4 }}
                     />
                   </label>
@@ -720,7 +720,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                   </tbody>
                 </table>
                 <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
-                  G² above 3.84 means the words share sentences more often than chance at p &lt; 0.05; above 10.83, at p &lt; 0.001. Greyed values are below 3.84.
+                  {t('combos.g2Note', { g2: formatFixed(3.84, 2), p: formatFixed(0.05, 2), g2Strict: formatFixed(10.83, 2), pStrict: formatFixed(0.001, 3) })}
                 </div>
               </div>
             </>

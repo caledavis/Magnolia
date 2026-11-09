@@ -289,7 +289,7 @@ export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemo
         )}
         {savedAnalyses.length > 0 && filteredGroups.length === 0 && (
           <div className="empty-state" style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-            No analyses match "{trimmedSearch}".
+            {t('analyses.noMatch', { query: trimmedSearch })}
           </div>
         )}
         {filteredGroups.map((group, idx) => {

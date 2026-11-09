@@ -1595,7 +1595,7 @@ function ApplyDocumentTagsDialog({
 
           {tags.length === 0 && categories.length === 0 && (
             <div className="empty-state" style={{ color: 'var(--text-muted)', fontSize: 12 }}>
-              No tags yet. Use Documents &gt; Manage Document Tags to create categories and tags.
+              {t('tags.emptyHelp', { menu: `${t('native.menu.documents')} > ${t('tags.manageTitle')}` })}
             </div>
           )}
         </div>

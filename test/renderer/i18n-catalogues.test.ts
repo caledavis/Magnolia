@@ -1,8 +1,9 @@
 /**
  * The translation catalogues (src/renderer/locales) stay complete and
  * consistent: every English string exists in each language with the same
- * placeholders, plurals have every form the language needs, and every key
- * the app asks for exists.
+ * placeholders (or is waiting for a translator, and shows in English until
+ * then), plurals have every form the language needs, and every key the app
+ * asks for exists.
  */
 import { describe, expect, it } from 'vitest'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
@@ -47,6 +48,17 @@ function messages(tree: Tree): Map<string, Map<string, string>> {
 const placeholders = (text: string): string[] => [...text.matchAll(/\{\{\s*(\w+)[^}]*\}\}/g)].map((m) => m[1]).sort()
 
 const english = messages(en)
+/** What npm run i18n:sync recorded (scripts/i18n-sync.mjs). */
+const status = JSON.parse(readFileSync('src/renderer/i18n/translation-status.json', 'utf-8')) as {
+  english: Record<string, string>
+  pending: Record<string, Record<string, 'new' | { was: string }>>
+}
+
+describe('keeping translations in step with the English', () => {
+  it('has recorded the current English (else run npm run i18n:sync)', () => {
+    expect(status.english).toEqual(Object.fromEntries(flatten(en)))
+  })
+})
 
 describe('the list of languages', () => {
   const ids = Object.keys(CATALOGUES).sort()
@@ -71,8 +83,12 @@ describe('translation catalogues', () => {
     const translated = messages(tree)
     const forms = new Intl.PluralRules(language).resolvedOptions().pluralCategories
 
-    it(`${language} has exactly the English keys`, () => {
-      expect([...translated.keys()].sort()).toEqual([...english.keys()].sort())
+    it(`${language} has the English keys, apart from those waiting for a translator`, () => {
+      const extra = [...translated.keys()].filter((k) => !english.has(k))
+      expect(extra, 'not in English (npm run i18n:sync removes them)').toEqual([])
+      const waiting = status.pending[language] ?? {}
+      const missing = [...english.keys()].filter((k) => !translated.has(k) && waiting[k] !== 'new')
+      expect(missing, 'missing and not marked new (run npm run i18n:sync)').toEqual([])
     })
 
     it(`${language} has every plural form it needs, and no empty strings`, () => {

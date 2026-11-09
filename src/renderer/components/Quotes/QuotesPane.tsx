@@ -236,7 +236,7 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
         )}
         {quotes.length > 0 && filteredGroups.length === 0 && (
           <div className="empty-state" style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-            No quotes match "{trimmedSearch}".
+            {t('quotes.noMatch', { query: trimmedSearch })}
           </div>
         )}
         {filteredGroups.map((group) => {

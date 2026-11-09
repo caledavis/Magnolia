@@ -44,6 +44,27 @@ words and its questions below. `npm run i18n:review-import -- <lang>
 reports the rest, and lists comments and stop-word changes to make by
 hand. Then run `npm test`.
 
+## Changing the English
+
+Interface text goes in `en.json` and is shown with `t()`; a test
+(`test/renderer/i18n-hardcoded.test.ts`) finds English written straight
+into a component. A symbol or unit that stays as written can be allowed
+with an `i18n-ignore` comment.
+
+After adding, changing or removing English, run `npm run i18n:sync`. It
+records the English in `src/renderer/i18n/translation-status.json` and
+marks, per language, the messages waiting for a translator: **new** ones
+(shown in English until translated) and **changed** ones (the translation
+was made for the old English). It removes messages English no longer has
+from every catalogue. The tests fail until it has been run, and allow a
+language to lack only the messages marked new.
+
+Review spreadsheets put the waiting messages first, with a Status column
+and a "Checked" column for a translation that still fits the new English;
+importing clears what the reviewer translated or checked. A change that
+doesn't affect the translations (a typo fix) can be cleared with
+`npm run i18n:sync -- done all <key>…`.
+
 ## Conventions
 
 | | Spanish | Dutch | Portuguese (Brazil) | Arabic | French | Russian | Chinese (Simplified) | Italian | Hindi | Portuguese (Portugal) | German | Finnish |

@@ -207,7 +207,7 @@ export function SavedQueries({
             fontSize: 'var(--font-size-sm)'
           }}
         >
-          No saved queries match "{trimmedSearch}".
+          {t('queries.noMatch', { query: trimmedSearch })}
         </div>
       )}
       {filteredQueries.map((sq) => {

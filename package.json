@@ -32,7 +32,8 @@
     "release:linux": "node scripts/release.mjs release linux",
     "release:finish": "node scripts/release.mjs finish",
     "i18n:review-export": "node scripts/translation-review.mjs export",
-    "i18n:review-import": "node scripts/translation-review.mjs import"
+    "i18n:review-import": "node scripts/translation-review.mjs import",
+    "i18n:sync": "node scripts/i18n-sync.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.4",

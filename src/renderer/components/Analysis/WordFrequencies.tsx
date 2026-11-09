@@ -700,7 +700,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
                 ]}
               />
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <label style={{ fontSize: 10, color: 'var(--text-muted)' }}>Show:
+                <label style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t('words.showCount')}
                   <input type="number" min={5} max={200} value={wordCount} onChange={(e) => setWordCount(Number(e.target.value))}
                     style={{ width: 50, marginInlineStart: 4 }}
                   />

@@ -1721,7 +1721,7 @@ export function DocumentSelector({
                       color: 'var(--accent-primary)', cursor: 'pointer', opacity: 0.7
                     }}
                   >
-                    + Add input...
+                    {t('queryBuilder.addInput')}
                   </div>
                 )
                 return <div>{items}</div>

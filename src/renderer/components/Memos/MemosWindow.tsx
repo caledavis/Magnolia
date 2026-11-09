@@ -250,7 +250,7 @@ export function MemosWindow() {
                 </div>
               ) : groups.length === 0 ? (
                 <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                  No memos match "{search.trim()}".
+                  {t('memos.noMatch', { query: search.trim() })}
                 </div>
               ) : groups.map((g, i) => {
                 const open = !collapsed.has(g.key) || !!search

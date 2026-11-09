@@ -670,7 +670,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
               )}
               {firstShown === null && trimmedSearch && (
                 <div className="empty-state" style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                  No memos match "{trimmedSearch}".
+                  {t('memos.noMatch', { query: trimmedSearch })}
                 </div>
               )}
               {showProject && (

@@ -135,7 +135,7 @@ export function SankeyView({ left, right, values, leftTitle, rightTitle, exclude
     <div ref={wrapRef} style={{ position: 'relative', width: '100%' }}>
       {layout.links.length === 0 ? (
         <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-          Nothing to show — every cell in the grid is 0
+          {t('analysis.sankeyEmpty')}
         </div>
       ) : (
       <svg width={width} height={height + TITLE_HEIGHT} style={{ display: 'block', overflow: 'visible' }}>
