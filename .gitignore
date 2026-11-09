@@ -28,3 +28,5 @@ working_materials/
 
 # Review spreadsheets made by scripts/translation-review.mjs
 translation-review/
+# Captures and reports made by scripts/layout-check/run.mjs
+layout-report/

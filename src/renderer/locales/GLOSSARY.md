@@ -122,6 +122,11 @@ doesn't affect the translations (a typo fix) can be cleared with
 4. Add its stop words to `src/renderer/components/Analysis/stop-words.ts`
    (the typecheck fails until it has a list).
 5. Add its column to the tables above.
+6. Check the layout in the app: `npm run layout-check -- --lang <id>`
+   (every ribbon tab, view, tool, menu and dialog; add `ribbon-rtl` and
+   `rtl-ui` for a right-to-left language). It reports labels that don't
+   fit and text that overflows, and saves captures in `layout-report/`
+   to look over. See `scripts/layout-check/run.mjs` for the other checks.
 
 Plural rules, number and date formats and alphabetical order come from
 CLDR (the browser's `Intl` in the renderer, ICU4X in the backend), so no
