@@ -18,7 +18,8 @@ This file explains two things:
 ## 0. Common setup (every platform)
 
 You build for a platform **on that platform** (Tauri can't cross-compile
-installers). Each machine needs:
+installers). Releases need only the Mac: Windows and Linux are built on
+GitHub's machines. Each machine you build on needs:
 
 - **Node.js** — a recent LTS (20+).
 - **Rust** — stable, via <https://rustup.rs>.
@@ -39,7 +40,7 @@ Everyday commands:
 | `npm run typecheck` | TypeScript check of the renderer |
 | `npm run build` | Release build + installers for this platform, into `target/…/release/bundle/` (for testing; nothing is uploaded) |
 | `npm run release:mac` | macOS release: builds arm64 + x64, collects and uploads to the draft (see "Cutting a release") |
-| `npm run release:win` | The same for Windows |
+| `npm run release:win` | Windows release, from any machine: runs the **Release (Windows)** workflow on GitHub, which builds, tests and uploads (see "Building for Windows") |
 | `npm run release:linux` | Linux release, from any machine: runs the **Release (Linux)** workflow on GitHub, which builds on Ubuntu 22.04, tests and uploads (see "Building for Linux") |
 | `npm run release:finish` | Writes and uploads the update manifests, once every platform is uploaded and the draft has its notes |
 
@@ -60,7 +61,7 @@ key lives at `~/.tauri/magnolia-updater.key` on the Mac it was generated on
   (on Windows, `%USERPROFILE%\.tauri\magnolia-updater.key`). The
   `release:*` commands load it from there by themselves.
 - **Add it to GitHub** as the repository secret `TAURI_SIGNING_PRIVATE_KEY`,
-  for the Linux release workflow (once):
+  for the Windows and Linux release workflows (once):
   ```sh
   gh secret set TAURI_SIGNING_PRIVATE_KEY --repo caledavis/Magnolia < ~/.tauri/magnolia-updater.key
   ```
@@ -138,14 +139,26 @@ xcrun stapler validate target/aarch64-apple-darwin/release/bundle/macos/Magnolia
 
 ## 2. Building for Windows
 
-**Machine:** a Windows PC (or VM) with **Node.js**, **Rust** and **Git**, plus
-the "Desktop development with C++" workload from the Visual Studio Build
-Tools (Rust's MSVC toolchain needs it). WebView2 ships with Windows 10/11;
-the installer bootstraps it on machines that lack it.
+**Build a release on GitHub; no Windows PC is needed.** The **Release
+(Windows)** workflow (`.github/workflows/release-windows.yml`) builds on
+GitHub's Windows machines, installs the result silently on a clean one and
+checks Magnolia starts and keeps running, and only then uploads the
+installer and its `.sig` to the draft release. Start it with
+`npm run release:win` once the draft exists and your commit is pushed: like
+`release:linux`, it runs the workflow for GitHub's `main`, follows it in the
+terminal, stops with the run's link if anything fails, and refuses to start
+if your checkout isn't what's on `main`. (You can also run it from the
+Actions tab; untick **upload** to build and test without uploading.) It
+needs the `TAURI_SIGNING_PRIVATE_KEY` secret (see "The updater signing
+key"). The smoke test catches an app that won't start; it can't tell
+whether the interface looks right, so try a build on a real PC now and then.
 
-**Build a release:** `npm run release:win` builds, collects and uploads
-(see "Cutting a release"). It needs `gh` logged in on this machine and the
-updater key at `%USERPROFILE%\.tauri\magnolia-updater.key`.
+**Machine for local builds** (testing only): a Windows PC (or VM) with
+**Node.js**, **Rust** and **Git**, plus the "Desktop development with C++"
+workload from the Visual Studio Build Tools (Rust's MSVC toolchain needs
+it). WebView2 ships with Windows 10/11; the installer bootstraps it on
+machines that lack it. `npm run release:win -- --no-upload` builds and
+collects there, without uploading.
 
 **Build by hand** (for testing):
 ```powershell
@@ -230,9 +243,9 @@ gh release create vX.Y.Z --draft --title "Magnolia X.Y.Z" --notes ""
 
 # On the Mac (after exporting APPLE_ID and APPLE_APP_SPECIFIC_PASSWORD):
 npm run release:mac
-# On Windows (after git pull):
+# Windows and Linux, from any machine (they build on GitHub; see
+# "Building for Windows" and "Building for Linux"):
 npm run release:win
-# Linux, from any machine (builds on GitHub; see "Building for Linux"):
 npm run release:linux
 
 # Anywhere, once all three are uploaded and the notes are written on GitHub:
@@ -257,17 +270,18 @@ The steps in detail:
    ```sh
    gh release create vX.Y.Z --draft --title "Magnolia X.Y.Z" --notes ""
    ```
-3. **Build and upload on each platform** (all on the same commit). On each
-   machine, check out that commit and run its one command:
+3. **Build and upload each platform** (all on the same commit, pushed to
+   `main`). From the Mac:
    ```sh
    npm run release:mac     # macOS: both arm64 and x64
-   npm run release:win     # Windows
    ```
    ```sh
+   npm run release:win     # Windows, from any machine: builds on GitHub
    npm run release:linux   # Linux, from any machine: builds on GitHub
    ```
-   `release:linux` runs the **Release (Linux)** workflow on GitHub instead of
-   building locally, and uploads to the same draft once its smoke tests pass.
+   `release:win` and `release:linux` run the **Release (Windows)** and
+   **Release (Linux)** workflows on GitHub instead of building locally, and
+   upload to the same draft once their smoke tests pass.
    Each builds the installers and update payloads, collects them into
    `release/` under stable, version-less names (so the README's
    `…/releases/latest/download/…` links keep working), and uploads them to

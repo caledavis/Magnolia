@@ -1,0 +1,103 @@
+# Builds Magnolia's Windows release (the NSIS installer, which is also the
+# update payload) on GitHub's Windows machines and uploads it to the draft
+# release for package.json's version, so no Windows PC is needed.
+#
+# `npm run release:win` starts it (from any machine) and follows it; or run
+# it from the Actions tab ("Release (Windows)" → Run workflow). Then run
+# `npm run release:finish` as usual.
+# Needs the repository secret TAURI_SIGNING_PRIVATE_KEY (the contents of
+# ~/.tauri/magnolia-updater.key); see RELEASING.md. Windows builds are not
+# code-signed, so there's no certificate to provide.
+
+name: Release (Windows)
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: Upload to the draft release (untick to only build and test)
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - run: npm ci
+
+      - name: Build and collect
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: node scripts/release.mjs release win --no-upload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: magnolia-windows
+          path: release/Magnolia-win-*
+          if-no-files-found: error
+
+  # Install the build on a clean Windows machine, as a user would (silently,
+  # per user, no admin), start it, and check it's still running a little
+  # later: a missing DLL or a crash at startup ends it before then.
+  smoke:
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: magnolia-windows
+
+      - name: Install
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath .\Magnolia-win-x64.exe -ArgumentList '/S' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { Write-Error "The installer exited with $($p.ExitCode)"; exit 1 }
+          $exe = Get-ChildItem "$env:LOCALAPPDATA" -Recurse -Filter '*.exe' -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -match '^magnolia' -and $_.FullName -notmatch 'uninstall' } | Select-Object -First 1
+          if (-not $exe) { Write-Error 'Magnolia is not where the installer should have put it'; exit 1 }
+          "Installed: $($exe.FullName)"
+          "MAGNOLIA_EXE=$($exe.FullName)" >> $env:GITHUB_ENV
+
+      - name: Start
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath $env:MAGNOLIA_EXE -PassThru
+          Start-Sleep -Seconds 30
+          if ($p.HasExited) { Write-Error "Magnolia quit at startup (exit code $($p.ExitCode))"; exit 1 }
+          "Magnolia is running."
+          Stop-Process -Id $p.Id -Force
+
+  upload:
+    needs: smoke
+    if: inputs.upload
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: magnolia-windows
+          path: release
+
+      - name: Upload to the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v$(node -p "require('./package.json').version")"
+          gh release upload "$tag" release/Magnolia-win-* --clobber --repo "$GITHUB_REPOSITORY"
+          echo "Uploaded to $tag. Now run npm run release:finish."

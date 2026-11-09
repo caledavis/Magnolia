@@ -6,11 +6,12 @@
  *     (npm run release:mac / release:win / release:linux.) Build this
  *     platform's installers and update payloads, collect them, and upload
  *     them to the draft release for package.json's version (vX.Y.Z).
- *     Linux is the exception: `release linux` starts the Release (Linux)
- *     GitHub workflow, which builds on Ubuntu 22.04, smoke-tests and uploads
- *     (a build from a newer distro doesn't run on older ones; issue #31),
- *     and follows it until it's done, from any machine. With --no-upload it
- *     builds locally instead, for testing, on a Linux machine. Loads
+ *     Windows and Linux are built on GitHub: `release win` and `release
+ *     linux` start the Release (Windows) or Release (Linux) workflow, which
+ *     builds, smoke-tests and uploads, and follow it until it's done, from
+ *     any machine. (Linux builds on Ubuntu 22.04: a build from a newer
+ *     distro doesn't run on older ones; issue #31.) With --no-upload they
+ *     build locally instead, on that platform; the workflows use this. Loads
  *     the updater key from ~/.tauri/magnolia-updater.key when
  *     TAURI_SIGNING_PRIVATE_KEY isn't set; on macOS, needs APPLE_ID and
  *     APPLE_PASSWORD (or APPLE_APP_SPECIFIC_PASSWORD) for notarization,
@@ -217,12 +218,19 @@ function releaseEnv(platform) {
   return env
 }
 
+/** Platforms released by a GitHub workflow rather than on this machine. */
+const WORKFLOWS = {
+  win: { file: 'release-windows.yml', name: 'Windows' },
+  linux: { file: 'release-linux.yml', name: 'Linux' }
+}
+
 /**
- * Run the Release (Linux) workflow on GitHub for the pushed main branch and
- * follow it to the end. It builds on Ubuntu 22.04, checks the AppImage starts
- * on older and newer distros, and uploads to the vX.Y.Z draft.
+ * Run the platform's release workflow on GitHub for the pushed main branch
+ * and follow it to the end. It builds, checks the result starts on clean
+ * machines, and uploads to the vX.Y.Z draft.
  */
-function releaseLinuxOnGitHub() {
+function releaseOnGitHub(platform) {
+  const { file, name } = WORKFLOWS[platform]
   const tag = `v${version()}`
   const gh = (args) => execFileSync('gh', [...args, '--repo', REPO], { encoding: 'utf-8', shell: isWin, cwd: root }).trim()
   try {
@@ -235,16 +243,16 @@ function releaseLinuxOnGitHub() {
   const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf-8', cwd: root }).trim()
   const remote = execFileSync('git', ['rev-parse', 'origin/main'], { encoding: 'utf-8', cwd: root }).trim()
   if (head !== remote) {
-    throw new Error(`This checkout (${head.slice(0, 7)}) isn't what's on GitHub's main (${remote.slice(0, 7)}): push or pull first, so the Linux build is of the same commit.`)
+    throw new Error(`This checkout (${head.slice(0, 7)}) isn't what's on GitHub's main (${remote.slice(0, 7)}): push or pull first, so the ${name} build is of the same commit.`)
   }
   const started = Date.now() - 5000
-  console.log(`Starting the Release (Linux) workflow for ${tag} (${head.slice(0, 7)})…`)
-  gh(['workflow', 'run', 'release-linux.yml', '--ref', 'main'])
+  console.log(`Starting the Release (${name}) workflow for ${tag} (${head.slice(0, 7)})…`)
+  gh(['workflow', 'run', file, '--ref', 'main'])
   // `workflow run` doesn't say which run it started: find the new one.
   let id
   for (let i = 0; i < 30 && !id; i++) {
     execFileSync(process.execPath, ['-e', 'setTimeout(() => {}, 2000)'])
-    const runs = JSON.parse(gh(['run', 'list', '--workflow', 'release-linux.yml', '--event', 'workflow_dispatch', '--limit', '5', '--json', 'databaseId,createdAt,headSha']))
+    const runs = JSON.parse(gh(['run', 'list', '--workflow', file, '--event', 'workflow_dispatch', '--limit', '5', '--json', 'databaseId,createdAt,headSha']))
     id = runs.find((r) => r.headSha === head && Date.parse(r.createdAt) >= started)?.databaseId
   }
   if (!id) throw new Error('Started the workflow but couldn\'t find its run: follow it in the Actions tab on GitHub.')
@@ -253,14 +261,14 @@ function releaseLinuxOnGitHub() {
   try {
     run('gh', ['run', 'watch', String(id), '--exit-status', '--interval', '20', '--repo', REPO])
   } catch {
-    throw new Error(`The Linux release failed: see ${url}`)
+    throw new Error(`The ${name} release failed: see ${url}`)
   }
-  console.log(`\nDone: the Linux files are built, tested and uploaded to ${tag}.`)
+  console.log(`\nDone: the ${name} files are built, tested and uploaded to ${tag}.`)
 }
 
 /** Build, collect and (unless --no-upload) upload this platform's assets. */
 function release(platform, upload) {
-  if (platform === 'linux' && upload) return releaseLinuxOnGitHub()
+  if (WORKFLOWS[platform] && upload) return releaseOnGitHub(platform)
   const host = { darwin: 'mac', win32: 'win', linux: 'linux' }[process.platform]
   if (platform !== host) throw new Error(`Build ${platform} on a ${platform} machine (this one is ${host ?? process.platform}).`)
   const env = releaseEnv(platform)
