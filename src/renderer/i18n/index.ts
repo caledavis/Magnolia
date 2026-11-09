@@ -96,9 +96,27 @@ export const currentLanguage = (): LanguageId => (isLanguageId(i18n.language) ? 
  *  usual ones (a CLDR numbering system, such as "latn" or "arab"). */
 let numbering: string | null = null
 
-/** The locale numbers and dates are formatted in: the interface language,
- *  with the chosen digits as a Unicode extension ("ar-u-nu-latn"). */
-export const formatLocale = (): string => (numbering ? `${currentLanguage()}-u-nu-${numbering}` : currentLanguage())
+/** The computer's region ("AU" in en_AU), set at start-up. */
+let region: string | null = null
+
+/** The region a system locale names ("en_AU", "ar-EG@numbers=latn",
+ *  "zh_Hans_CN"), if any. */
+export function systemRegion(systemLocale: string): string | null {
+  return systemLocale.match(/^[a-z]{2,3}(?:[_-][A-Za-z]{4})?[_-]([A-Z]{2}|\d{3})/)?.[1] ?? null
+}
+
+/** The locale numbers and dates are formatted in: the interface language
+ *  in the computer's region (English in Australia writes "2 Sept 2026",
+ *  not "Sep 2, 2026"), with the chosen digits as a Unicode extension. */
+export function resolveFormatLocale(language: string, inRegion: string | null, nu: string | null): string {
+  let base = language
+  if (inRegion) {
+    try { base = new Intl.Locale(language, { region: inRegion }).toString() } catch { /* an odd region: the language alone */ }
+  }
+  return nu ? `${base}-u-nu-${nu}` : base
+}
+
+export const formatLocale = (): string => resolveFormatLocale(currentLanguage(), region, numbering)
 
 export const formatDateTime = (d: Date | string | number, options?: Intl.DateTimeFormatOptions): string =>
   new Date(d).toLocaleString(formatLocale(), options)
@@ -177,8 +195,8 @@ export function digitChoices(language: string): string[] {
   return [...new Set([defaultNumbering(language), regional, ...listed, 'latn'])]
 }
 
-/** The digits for `language` under a Digits preference, or null for the
- *  language's usual ones. "system" follows the computer's region
+/** The digits for `language` under a Digits preference, or null where the
+ *  language has no choice. "system" follows the computer's region
  *  (`systemLocale`, as macOS gives it: "ar_EG" or "ar_EG@numbers=latn"),
  *  so Egypt gets Arabic-Indic digits and Morocco Western ones. */
 export function resolveNumbering(language: string, pref: DigitsPreference, systemLocale: string): string | null {
@@ -194,7 +212,9 @@ export function resolveNumbering(language: string, pref: DigitsPreference, syste
       try { nu = defaultNumbering(`${language}-${region}`) } catch { /* unknown region */ }
     }
   }
-  return nu && nu !== choices[0] ? nu : null
+  // Always explicit: formatting also takes the region, whose own default
+  // could differ from the choice (Arabic in Egypt with Western digits).
+  return nu ?? choices[0]
 }
 
 /** The interface locale as one tag: the language, with the digits as a
@@ -244,13 +264,14 @@ export async function initLanguage(): Promise<void> {
   } catch { /* defaults */ }
   try { systemLocale = await window.api.systemLocale() } catch { /* none */ }
   if (!systemLocale) systemLocale = systemLanguages()[0] ?? ''
+  region = systemRegion(systemLocale)
   languagePref = pref
   const tag = currentTag()
   apply(tag)
   window.api.onLanguageChanged((t) => apply(t))
   // The backend builds the menus and dialogs, and learns from the first
   // window to start what "system" means here (it ignores repeats).
-  window.api.setNativeLanguage(tagLanguage(tag), pref, tag)
+  window.api.setNativeLanguage(tagLanguage(tag), pref, formatLocale())
 }
 
 let languagePref: LanguagePreference = 'system'
@@ -267,7 +288,7 @@ function broadcast(): void {
   const tag = currentTag()
   apply(tag)
   window.api.broadcastLanguage(tag)
-  window.api.setNativeLanguage(tagLanguage(tag), languagePref, tag)
+  window.api.setNativeLanguage(tagLanguage(tag), languagePref, formatLocale())
 }
 
 /** Switch every window to a newly chosen preference (from Preferences). */

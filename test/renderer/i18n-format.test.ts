@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { i18n, t, formatPercent, formatFixed, formatNumber, compareText, isRtlLanguage, digitChoices, resolveNumbering } from '../../src/renderer/i18n'
+import { i18n, t, formatPercent, formatFixed, formatNumber, compareText, isRtlLanguage, digitChoices, resolveNumbering, resolveFormatLocale, systemRegion } from '../../src/renderer/i18n'
 import { sentencesOf } from '../../src/renderer/components/Analysis/word-counts'
 
 afterEach(() => { void i18n.changeLanguage('en') })
@@ -56,11 +56,34 @@ describe('digits', () => {
 
   it('follows the computer, or the choice made', () => {
     expect(resolveNumbering('ar', 'system', 'ar_EG')).toBe('arab')
-    expect(resolveNumbering('ar', 'system', 'ar_MA')).toBeNull()
-    expect(resolveNumbering('ar', 'system', 'ar_EG@numbers=latn')).toBeNull()
-    expect(resolveNumbering('ar', 'system', 'en_AU')).toBeNull()
+    expect(resolveNumbering('ar', 'system', 'ar_MA')).toBe('latn')
+    expect(resolveNumbering('ar', 'system', 'ar_EG@numbers=latn')).toBe('latn')
+    expect(resolveNumbering('ar', 'system', 'en_AU')).toBe('latn')
     expect(resolveNumbering('ar', 'arab', 'en_AU')).toBe('arab')
-    expect(resolveNumbering('ar', 'latn', 'ar_EG')).toBeNull()
+    expect(resolveNumbering('ar', 'latn', 'ar_EG')).toBe('latn')
     expect(resolveNumbering('en', 'arab', 'ar_EG')).toBeNull()
+  })
+})
+
+describe('regional formats', () => {
+  const date = new Date(2026, 8, 2, 12, 30)
+  const fmt = (locale: string) => date.toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' })
+
+  it("format in the interface language and the computer's region", () => {
+    expect(systemRegion('en_AU')).toBe('AU')
+    expect(systemRegion('ar_EG@numbers=latn')).toBe('EG')
+    expect(systemRegion('zh_Hans_CN')).toBe('CN')
+    expect(systemRegion('en')).toBeNull()
+    expect(resolveFormatLocale('en', 'AU', null)).toBe('en-AU')
+    expect(resolveFormatLocale('pt-BR', 'PT', null)).toBe('pt-PT')
+    expect(resolveFormatLocale('zh-Hans', 'CN', null)).toBe('zh-Hans-CN')
+    expect(resolveFormatLocale('en', null, null)).toBe('en')
+    expect(fmt(resolveFormatLocale('en', 'AU', null))).toBe('2 Sept 2026')
+    expect(fmt(resolveFormatLocale('en', 'US', null))).toBe('Sep 2, 2026')
+  })
+
+  it('keep the chosen digits whatever the region', () => {
+    expect(new Intl.NumberFormat(resolveFormatLocale('ar', 'EG', 'latn')).format(12)).toBe('12')
+    expect(new Intl.NumberFormat(resolveFormatLocale('ar', 'EG', 'arab')).format(12)).toBe('١٢')
   })
 })
