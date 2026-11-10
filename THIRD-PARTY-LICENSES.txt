@@ -2955,7 +2955,7 @@ SOFTWARE.
 
 
 ────────────────────────────────────────────────────────────────────────
-magnolia@2.0.1
+magnolia@2.1.0
   Publisher: Cale Davis
   License:   EUPL-1.2
   Source:    https://github.com/caledavis/Magnolia
