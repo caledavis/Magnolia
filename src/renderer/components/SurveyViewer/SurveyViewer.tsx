@@ -48,7 +48,7 @@
  * everything else — none of it lives in this file. CodedTextView
  * owns those concerns.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type {
   Code,
   Memo,
@@ -679,7 +679,9 @@ function OptionListCell({
   options,
   chosen,
   compact = false,
-  showSwatches = false
+  showSwatches = false,
+  hovered = null,
+  onHover
 }: {
   options: OptionTally[]
   chosen: Set<string>
@@ -688,6 +690,9 @@ function OptionListCell({
    *  option (matching DonutChart's `segmentColor(index)`) instead of
    *  staying blank, so the list doubles as the donut's legend. */
   showSwatches?: boolean
+  /** The option hovered here or in the donut (see DonutWithLegend). */
+  hovered?: number | null
+  onHover?: (index: number | null) => void
 }) {
   const { t } = useTranslation()
   if (options.length === 0) {
@@ -700,6 +705,8 @@ function OptionListCell({
         return (
           <li
             key={d.option}
+            onMouseEnter={onHover ? () => onHover(i) : undefined}
+            onMouseLeave={onHover ? () => onHover(null) : undefined}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -727,12 +734,14 @@ function OptionListCell({
             >
               {showSwatches && (
                 <span
+                  className={`donut-swatch${hovered === i ? ' is-hot' : ''}`}
                   style={{
                     width: 9,
                     height: 9,
                     borderRadius: 2,
                     background: segmentColor(i),
-                    display: 'inline-block'
+                    display: 'inline-block',
+                    ['--seg' as string]: segmentColor(i)
                   }}
                 />
               )}
@@ -780,56 +789,115 @@ function segmentColor(index: number): string {
 function DonutChart({
   options,
   size = 72,
-  thickness = 14
+  thickness = 14,
+  hovered = null,
+  onHover
 }: {
   options: OptionTally[]
   size?: number
   thickness?: number
+  /** The option to pop out: its segment slides out from the centre and
+   *  glows in its own colour (see .donut-seg in global.css). */
+  hovered?: number | null
+  onHover?: (index: number | null) => void
 }) {
   const { t } = useTranslation()
+  // One blur filter per chart, for the glow (ids must be unique on the page).
+  const glowId = 'donut-glow-' + useId().replace(/[^a-zA-Z0-9_-]/g, '')
   const total = options.reduce((sum, d) => sum + d.count, 0)
   if (total === 0) return null
   const cx = size / 2
   const cy = size / 2
   const radius = (size - thickness) / 2
   const circ = 2 * Math.PI * radius
+  // How far a hovered segment slides out from the centre.
+  const pop = size * 0.06
   let offset = 0
+  const segments = options.map((d, i) => {
+    const dash = (d.count / total) * circ
+    // The segment's middle, as an angle in the rotated group, so a popped
+    // segment slides straight out from the centre. A segment that is the
+    // whole ring has no direction to slide in.
+    const mid = ((offset + dash / 2) / circ) * 2 * Math.PI
+    const hot = hovered === i
+    const shift = hot && dash < circ ? pop : 0
+    const seg = {
+      d, i, hot, dash,
+      start: offset,
+      color: segmentColor(i),
+      transform: `translate(${Math.cos(mid) * shift}px, ${Math.sin(mid) * shift}px)`
+    }
+    offset += dash
+    return seg
+  })
+  const ring = (s: (typeof segments)[number]) => ({
+    cx, cy, r: radius, fill: 'none', stroke: s.color, strokeWidth: thickness,
+    strokeDasharray: `${s.dash} ${circ - s.dash}`, strokeDashoffset: -s.start
+  })
   return (
     <svg
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
-      style={{ flexShrink: 0, marginTop: 6 }}
+      // A popped segment and its glow reach past the ring's box.
+      style={{ flexShrink: 0, marginTop: 6, overflow: 'visible' }}
       role="img"
       aria-label={t('survey.answerDistribution')}
     >
+      {/* The glow is a blurred copy of the segment behind it, in the
+          segment's colour: WebKit ignores CSS drop-shadow on SVG shapes. */}
+      <defs>
+        <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation={size * 0.04} />
+        </filter>
+      </defs>
       {/* Track behind the segments so sub-pixel rounding between
           slices never reads as a gap in the ring. */}
       <circle cx={cx} cy={cy} r={radius} fill="none" stroke="var(--bg-tertiary)" strokeWidth={thickness} />
       {/* Rotate so the first segment starts at 12 o'clock. */}
       <g transform={`rotate(-90 ${cx} ${cy})`}>
-        {options.map((d, i) => {
-          const dash = (d.count / total) * circ
-          const seg = (
-            <circle
-              key={d.option}
-              cx={cx}
-              cy={cy}
-              r={radius}
-              fill="none"
-              stroke={segmentColor(i)}
-              strokeWidth={thickness}
-              strokeDasharray={`${dash} ${circ - dash}`}
-              strokeDashoffset={-offset}
-            >
-              <title>{`${d.displayOption ?? d.option}: ${formatPct(d.pct)} (${d.count})`}</title>
-            </circle>
-          )
-          offset += dash
-          return seg
-        })}
+        {segments.map((s) => (
+          <circle
+            key={`glow-${s.d.option}`}
+            {...ring(s)}
+            className={`donut-glow${s.hot ? ' is-hot' : ''}`}
+            filter={`url(#${glowId})`}
+            style={{ transform: s.transform }}
+            aria-hidden="true"
+          />
+        ))}
+        {segments.map((s) => (
+          <circle
+            key={s.d.option}
+            {...ring(s)}
+            className="donut-seg"
+            onMouseEnter={onHover ? () => onHover(s.i) : undefined}
+            onMouseLeave={onHover ? () => onHover(null) : undefined}
+            style={{ transform: s.transform }}
+          >
+            <title>{`${s.d.displayOption ?? s.d.option}: ${formatPct(s.d.pct)} (${s.d.count})`}</title>
+          </circle>
+        ))}
       </g>
     </svg>
+  )
+}
+
+/** A single-choice question's donut with its option list as the legend.
+ *  Hovering an option, in the list or the donut, pops its segment out. */
+function DonutWithLegend({ options, chosen, compact = false }: {
+  options: OptionTally[]
+  chosen: Set<string>
+  compact?: boolean
+}) {
+  const [hovered, setHovered] = useState<number | null>(null)
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+      <DonutChart options={options} hovered={hovered} onHover={setHovered} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <OptionListCell options={options} chosen={chosen} compact={compact} showSwatches hovered={hovered} onHover={setHovered} />
+      </div>
+    </div>
   )
 }
 
@@ -1229,12 +1297,7 @@ function RespondentAnswerCell({
     // Donut of the overall distribution, with the list (this respondent's
     // pick bolded) as its legend — mirrors Survey Overview.
     return (
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-        <DonutChart options={dist} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <OptionListCell options={dist} chosen={chosen} showSwatches />
-        </div>
-      </div>
+      <DonutWithLegend options={dist} chosen={chosen} />
     )
   }
   if (question.type === 'multi-select') {
@@ -1291,12 +1354,7 @@ function QuestionView({
         <div style={indentedAnswerStyle}>
           {/* Donut on the left, the option list (with matching colour
               swatches) doubling as its legend — mirrors Survey Overview. */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-            <DonutChart options={dist} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <OptionListCell options={dist} chosen={new Set()} showSwatches />
-            </div>
-          </div>
+          <DonutWithLegend options={dist} chosen={new Set()} />
         </div>
       </article>
     )
@@ -1990,12 +2048,7 @@ function SummaryView({
                       // Single-select: donut on the left, the option
                       // list (with matching colour swatches) doubling
                       // as its legend on the right.
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-                        <DonutChart options={optionDist} />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <OptionListCell options={optionDist} chosen={new Set()} compact showSwatches />
-                        </div>
-                      </div>
+                      <DonutWithLegend options={optionDist} chosen={new Set()} compact />
                     ) : optionDist ? (
                       <OptionListCell options={optionDist} chosen={new Set()} compact />
                     ) : (

@@ -256,6 +256,16 @@
             // A survey has no bar; capture its summary instead.
             await log(`INFO ${l} ${w} no document bar for ${name}`)
             await shot(`Bar-${w}-${rows.indexOf(row)}-page`)
+            // Hover the second option of the first donut with several
+            // segments: its segment should pop out and glow.
+            const donut = [...document.querySelectorAll('svg')].find((g) => visible(g) && g.querySelectorAll('.donut-seg').length > 2)
+            const item = donut?.parentElement?.querySelectorAll('li')[1]
+            if (item) {
+              item.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))
+              await sleep(400)
+              await shot(`Donut-${w}`, () => { const r = donut.parentElement.getBoundingClientRect(); return { x: r.x - 20, y: r.y - 20, width: r.width + 40, height: r.height + 40 } })
+              item.dispatchEvent(new MouseEvent('mouseout', { bubbles: true }))
+            }
             continue
           }
           const b = bar.getBoundingClientRect()

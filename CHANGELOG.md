@@ -10,6 +10,7 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 
 ### Changed
 - **One bar above each document.** The document's name and its controls now share a single bar, instead of a title bar with a toolbar under it. The name comes first, then the document's own controls (zoom and the selection tools for PDFs and images; Coding Mode, Import and Export for transcripts), then Export, Split and the memo button, in the same place for every document. In a split PDF, the bar shows the zoom of the half you're working in. When the viewer is narrow, the name is shortened, and the controls move together onto a second line if they still don't fit. The transcript's Coding Mode hint is now the switch's tooltip, and the document type and word count are no longer shown.
+- **Survey charts respond to the pointer.** Point at an option in a donut chart's key, or at the chart itself, and its slice pops out of the ring with a soft glow in its colour.
 - **Survey charts use the interface's colours,** the same blue, coral, teal, violet and gold as the code colours, in place of the older bright set. Exported survey summaries match.
 - **The survey summary's export is in an Export menu,** with the same two choices as every other document: Export as PDF with Codes and Export as PDF.
 
