@@ -77,6 +77,14 @@ doesn't affect the translations (a typo fix) can be cleared with
 | The app's name | Magnolia | Magnolia | o Magnolia (masculine, like "o aplicativo") | Magnolia, in Latin letters | Magnolia | Magnolia | Magnolia | Magnolia | Magnolia | o Magnolia | Magnolia | Magnolia (Magnolian, Magnoliaa…) |
 | Query operators | AND, OR, NOT, XOR stay in English, as query syntax; their explanations are translated | same | same | same | same | same | same | same | same | same | same | same |
 
+**Spanish past events:** the one Spanish catalogue serves Spain and Latin
+America, so a finished event takes the simple past, which is natural
+everywhere: "No se pudo abrir el proyecto", "un fallo vació los
+documentos". Not the present perfect ("No se ha podido…", "ha vaciado"),
+which reads as from Spain in Latin America. A reviewer noted the
+difference in November 2026 (correct, but more Latin American in feel)
+and the simple past was kept.
+
 ## Terms
 
 | English | Spanish | Dutch | Portuguese (Brazil) | Arabic | French | Russian | Chinese (Simplified) | Italian | Hindi | Portuguese (Portugal) | German | Finnish |
