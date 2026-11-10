@@ -1,0 +1,6 @@
+# Scripts keep Unix line endings on every checkout, Windows included. A
+# script that starts with "#!" doesn't run with Windows line endings, and
+# the tests can't load the .mjs scripts they import (Vitest fails on the
+# "#!" line followed by a carriage return).
+*.mjs text eol=lf
+*.sh text eol=lf
