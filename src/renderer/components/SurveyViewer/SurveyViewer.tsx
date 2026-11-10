@@ -758,12 +758,13 @@ function OptionListCell({
 }
 
 /** Categorical palette for donut segments (and the matching list
- *  swatches): the first ten standard code colours (coral, blue, teal,
- *  violet, gold…), which are built around the interface's icon colours
- *  and stay distinguishable on light and dark themes. Cycles if a
- *  question has more options than colours. Kept fixed rather than
- *  derived from --accent so segments don't all collapse to one hue. */
-const SEGMENT_PALETTE = COLOURFUL_CODE_COLOURS.slice(0, 10)
+ *  swatches): the first ten standard code colours, built around the
+ *  interface's icon colours and distinguishable on light and dark
+ *  themes, with blue before coral so a chart starts in blue (blue,
+ *  coral, teal, violet, gold…). Cycles if a question has more options
+ *  than colours. Kept fixed rather than derived from --accent so
+ *  segments don't all collapse to one hue. */
+const SEGMENT_PALETTE = [COLOURFUL_CODE_COLOURS[1], COLOURFUL_CODE_COLOURS[0], ...COLOURFUL_CODE_COLOURS.slice(2, 10)]
 
 function segmentColor(index: number): string {
   return SEGMENT_PALETTE[index % SEGMENT_PALETTE.length]
