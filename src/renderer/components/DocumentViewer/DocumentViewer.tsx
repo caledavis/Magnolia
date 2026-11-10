@@ -11,6 +11,7 @@ import { ImageDocumentViewer } from './ImageDocumentViewer'
 import { SurveyViewer } from '../SurveyViewer/SurveyViewer'
 import { TabBar } from './TabBar'
 import { NoteHeader } from './NoteHeader'
+import { DocumentToolbarContext, DocumentExportButton } from './DocumentToolbar'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
 import { isAnalysisTab, isMapTab, isPreferencesTab, isMergeTab, isQueryBuilderTab, isToolTab, mapGuidFromTabId } from '../../utils/tab-ids'
 import { InlineAnalysisTab } from '../Analysis/InlineAnalysisTab'
@@ -223,6 +224,11 @@ export function DocumentViewer() {
     document.body.style.cursor = 'row-resize'
   }
 
+  // Slots the transcript editor portals its controls into.
+  const [toolbarStart, setToolbarStart] = useState<HTMLElement | null>(null)
+  const [toolbarEnd, setToolbarEnd] = useState<HTMLElement | null>(null)
+  const toolbarSlots = useMemo(() => ({ start: toolbarStart, end: toolbarEnd }), [toolbarStart, toolbarEnd])
+
   // Tool tabs (relationship maps, analysis tools, query builder) share
   // the same chrome as documents. We keep every open tool tab mounted
   // and toggle visibility with display:none so switching to a sibling
@@ -279,60 +285,27 @@ export function DocumentViewer() {
         </div>
       ))}
       {!activeIsTool && (<>
-      {/* Document header — the document's name + a document-level memo
-          FAB, always visible at the top of the viewer area. Survey
-          documents skip this: SurveyViewer renders its own per-sub-view
+      {/* The document bar: the document's name, then the viewer's own
+          controls (PDF and image zoom, the transcript's Coding Mode, Import
+          and Export), portalled in by the viewer, then Export, Split and
+          the document memo, always in that order at the end. Survey
+          documents skip it: SurveyViewer renders its own per-sub-view
           header (Respondent N / Question N) inside its scroll area. */}
       {source && !isSurvey && (
-        <div
-          style={{
-            flexShrink: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '14px 20px 12px 20px',
-            background: 'var(--bg-panel)',
-            borderBottom: '1px solid var(--border-color)',
-            userSelect: 'none'
-          }}
-        >
+        <div className="document-bar">
           {isNote ? <NoteHeader source={source} /> : (
-          <h1
-            title={source.name}
-            style={{
-              margin: 0,
-              fontSize: 18,
-              color: 'var(--text-secondary)',
-              flex: 1,
-              minWidth: 0,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {source.name}
-          </h1>
+            <h1 className="document-bar-name" title={source.name}>{source.name}</h1>
           )}
-          {canSplit && <SplitToggle split={splitRatio !== null} onToggle={toggleSplit} />}
-          <MemoFab variant="inline" kind="document" sourceGuid={source.guid} />
+          <div className="document-bar-controls">
+            <span ref={setToolbarStart} style={{ display: 'contents' }} />
+            <span ref={setToolbarEnd} style={{ display: 'contents' }} />
+            {!isAudio && !isVideo && <DocumentExportButton source={source} content={content} />}
+            {canSplit && <SplitToggle split={splitRatio !== null} onToggle={toggleSplit} />}
+            <MemoFab variant="inline" kind="document" sourceGuid={source.guid} />
+          </div>
         </div>
       )}
-      {/* The generic viewer-toolbar carries source-type / word-count meta for
-          viewers that don't ship their own controls. PDF and image viewers
-          render their own toolbars instead. */}
-      {source && !isPdf && !isImage && !isSurvey && (
-        <div className="viewer-toolbar">
-          <span className="viewer-meta">
-            {(() => {
-              const st = effectiveSourceType
-              const type = t(`viewer.type.${st === 'note' || st === 'markdown' || st === 'audio' || st === 'video' ? st : 'text'}`)
-              const wc = (content.match(/\S+/g) || []).length
-              return t('viewer.wordCount', { type, count: wc, formatParams: { count: { useGrouping: true } } })
-            })()}
-          </span>
-          <span className="viewer-spacer" />
-        </div>
-      )}
+      <DocumentToolbarContext.Provider value={toolbarSlots}>
       {source && (isPdf || isText) ? (
         <div
           ref={splitAreaRef}
@@ -440,6 +413,7 @@ export function DocumentViewer() {
           )}
         </div>
       )}
+      </DocumentToolbarContext.Provider>
       </>)}
     </div>
   )

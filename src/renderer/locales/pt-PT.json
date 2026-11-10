@@ -449,7 +449,7 @@
     "summaryDefaultName": "Resumo do inquérito",
     "exportSummaryDialog": "Exportar o resumo do inquérito como PDF",
     "exportSummaryTitle": "Exportar este resumo como PDF, com as respostas de cada respondente às perguntas abertas",
-    "exportPdf": "Exportar PDF",
+    "exportCodedTitle": "Exportar como PDF as respostas de cada respondente às perguntas abertas, com os segmentos codificados destacados e etiquetados",
     "notLoaded": "Não foi possível carregar este inquérito: faltam os dados processados.",
     "selectRespondent": "Selecione um respondente à esquerda.",
     "selectQuestion": "Selecione uma pergunta à esquerda."
@@ -666,16 +666,6 @@
     "splitIntoTwo": "Dividir em duas visualizações",
     "splitDividerTitle": "Arraste para redimensionar · arraste até uma borda ou clique duas vezes para remover a divisão",
     "errorLoading": "Erro ao carregar o documento:",
-    "type": {
-      "note": "Nota",
-      "markdown": "Markdown",
-      "audio": "Transcrição de áudio",
-      "video": "Transcrição de vídeo",
-      "text": "Texto simples"
-    },
-    "wordCount_one": "{{type}} · {{count}} palavra",
-    "wordCount_many": "{{type}} · {{count}} palavras",
-    "wordCount_other": "{{type}} · {{count}} palavras",
     "region": "Região",
     "regionPage": "Região p. {{page}}",
     "boxSelection": "Seleção de caixa",
@@ -688,8 +678,6 @@
     "fitWindow": "Ajustar à janela",
     "fit": "Ajustar",
     "toFit": "Ajustar",
-    "image": "Imagem",
-    "pdf": "PDF",
     "imageUnavailable": "Ficheiro de imagem indisponível",
     "pdfUnavailable": "Ficheiro PDF indisponível",
     "pageRegion": "Região da página {{page}}",
@@ -702,7 +690,11 @@
     "loadingImage": "A carregar a imagem…",
     "loadingPdf": "A carregar o PDF...",
     "rendering": "A gerar…",
-    "heading": "Visualizador"
+    "heading": "Visualizador",
+    "exportCodedPdfTitle": "Exportar este documento como PDF, com os segmentos codificados destacados e etiquetados",
+    "exportingPdf": "A exportar…",
+    "exportPdfWithCodes": "Exportar como PDF com códigos",
+    "exportPdfPlain": "Exportar como PDF"
   },
   "tabs": {
     "untitledMap": "Mapa sem título",
@@ -740,10 +732,8 @@
     "codingHint": "Selecione um texto para aplicar códigos, memos e citações.",
     "importedNotes": "Notas da transcrição importada",
     "importTitle": "Importar um ficheiro de transcrição (.txt, .md, .srt, .vtt, .html)",
-    "exportTitle": "Exportar transcrição",
     "exportTxt": "Exportar como TXT",
     "exportMarkdown": "Exportar como Markdown",
-    "exportPdf": "Exportar como PDF",
     "fileSuffix": "transcricao",
     "pdfTitle": "{{name}} - Transcrição",
     "pdfSubtitle_one": "{{count}} linha — exportada em {{date}}",
@@ -1781,5 +1771,17 @@
   "platform": {
     "altClickMac": "⌥+clique",
     "altClick": "Alt+clique"
+  },
+  "codedPdf": {
+    "fileName": "{{name}} (codificado)",
+    "dialogTitle": "Exportar documento codificado como PDF",
+    "subtitle_one": "{{count}} segmento codificado — exportado em {{date}}",
+    "subtitle_many": "{{count}} segmentos codificados — exportado em {{date}}",
+    "subtitle_other": "{{count}} segmentos codificados — exportado em {{date}}",
+    "codes": "Códigos",
+    "page": "Página {{page}}",
+    "noPdfData": "O conteúdo do PDF não foi encontrado.",
+    "noImageData": "O conteúdo da imagem não foi encontrado.",
+    "failed": "Não foi possível exportar o PDF.\n\n{{detail}}"
   }
 }

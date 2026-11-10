@@ -6,6 +6,15 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 
 ### Added
 - **Drag a selection onto a code to code it.** As well as dragging a code onto the text you've selected, you can now drag the selection onto a code in the Code Browser. When you finish selecting, a small grab handle appears on the end of the selected text, or at the bottom-right corner of a box selection in a PDF or an image. Drag the handle onto a code: the code highlights as you drag over it, and the selection is coded just as the code's hotkey would code it. It works in text documents, notes, transcripts, PDFs, images and survey answers. Drag the handle into the Saved Quotes pane instead to save the selection as a quote.
+- **Export a document as a PDF, with or without its codes.** Every document now has an **Export** menu in its toolbar with **Export as PDF with Codes** and **Export as PDF**. With codes, each coded segment is highlighted in its code's colour, with the code names in the margin beside it, after a list of the codes used and how often. Without codes, you get just the document. It works for text documents, notes and transcripts (with their timestamps), and for PDFs and images, whose pages are shown with the coded text and boxes marked on them. For a survey, the Export menu on the summary page exports each respondent's answers to the open questions with their codes, or the summary without them.
+
+### Changed
+- **One bar above each document.** The document's name and its controls now share a single bar, instead of a title bar with a toolbar under it. The name comes first, then the document's own controls (zoom and the selection tools for PDFs and images; Coding Mode, Import and Export for transcripts), then Export, Split and the memo button, in the same place for every document. In a split PDF, the bar shows the zoom of the half you're working in. When the viewer is narrow, the name is shortened, and the controls move together onto a second line if they still don't fit. The transcript's Coding Mode hint is now the switch's tooltip, and the document type and word count are no longer shown.
+- **Survey charts use the interface's colours,** the same coral, blue, teal, violet and gold as the code colours, in place of the older bright set. Exported survey summaries match.
+- **The survey summary's export is in an Export menu,** with the same two choices as every other document: Export as PDF with Codes and Export as PDF.
+
+### Fixed
+- **Space between the warning icon and "Locked"** on the toolbar button that shows when someone else is working on the project.
 
 ## [2.0.1]
 

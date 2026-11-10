@@ -23,6 +23,7 @@ import { SpeakerCodingDialog, type SpeakerAssignment } from './SpeakerCodingDial
 import type { Code, Memo, MemoEditInitData, PlainTextSelection } from '../../models/types'
 import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
+import { DocumentToolbarPortal, ExportMenuButton, toolbarButtonStyle, usePdfExportItems } from './DocumentToolbar'
 import { modKey } from '../../utils/platform'
 import { useRememberedScroll } from '../../utils/use-remembered-scroll'
 import { onSelectionDrop } from '../../utils/selection-drag'
@@ -115,7 +116,25 @@ export function TranscriptEditor({
   onTimestampClick, videoMode = false, lineTimes, externalHighlight
 }: Props) {
   const { t } = useTranslation()
-  const [exportMenu, setExportMenu] = useState<{ x: number; y: number } | null>(null)
+  const transcriptSource = useDocumentStore((s) => s.sources.find((src) => src.guid === sourceGuid))
+  const download = (type: string, extension: string) => {
+    const blob = new Blob([content], { type })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url; a.download = sourceName.replace(/\.[^.]+$/, '') + `-${t('transcript.fileSuffix')}.${extension}`; a.click()
+    URL.revokeObjectURL(url)
+  }
+  // The plain PDF is the transcript's own layout, with its timestamps.
+  const pdfExport = usePdfExportItems(transcriptSource, content, {
+    plain: () => {
+      const html = buildTranscriptHtml(sourceName, content, lineTimes)
+      void exportPdfWithHeader(html, t('transcript.pdfTitle', { name: sourceName.replace(/\.[^.]+$/, '') }))
+    }
+  })
+  const exportItems = [
+    ...pdfExport.items,
+    { label: t('transcript.exportTxt'), run: () => download('text/plain', 'txt') },
+    { label: t('transcript.exportMarkdown'), run: () => download('text/markdown', 'md') }
+  ]
   const [isTranscribing, setIsTranscribing] = useState(false)
   const [speakerDialog, setSpeakerDialog] = useState<{ speakers: DetectedSpeaker[]; source: any } | null>(null)
   const updateSourceContent = useDocumentStore((s) => s.updateSourceContent)
@@ -377,57 +396,45 @@ export function TranscriptEditor({
         }
       }}
     >
-      {/* Coding Mode toolbar — sits on the panel surface so the
-          viewer reads as a single continuous surface with the
-          surrounding tools. */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: '4px 12px',
-        background: 'var(--bg-panel)',
-        borderBottom: '1px solid var(--border-color)',
-        gap: 8,
-        flexShrink: 0,
-        userSelect: 'none'
-      }}>
-        <button
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 32,
-            height: 32,
-            padding: 0,
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-md)',
-            background: isTranscribing ? 'var(--accent)' : 'var(--bg-primary)',
-            color: isTranscribing ? '#fff' : 'var(--text-muted)',
-            cursor: 'pointer',
-            transition: 'background 0.15s, color 0.15s',
-            flexShrink: 0
-          }}
-          onClick={toggleMode}
-          title={isTranscribing ? t('transcript.switchToCoding') : t('transcript.switchToTranscribing')}
+      {/* Coding Mode, Import and Export live in the document bar
+          (DocumentViewer), with the document's other controls. */}
+      <DocumentToolbarPortal slot="start">
+        {/* The mode's hint is its tooltip, so the bar stays one line. */}
+        <span
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0, fontSize: 11 }}
+          title={isTranscribing ? t('transcript.transcribingHint') : t('transcript.codingHint')}
         >
-          <Icon icon={faPenLine} />
-        </button>
-        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>
-          {isTranscribing ? t('transcript.transcribingMode') : t('transcript.codingMode')}
+          <button
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 26,
+              height: 26,
+              padding: 0,
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-sm)',
+              background: isTranscribing ? 'var(--accent)' : 'var(--bg-primary)',
+              color: isTranscribing ? '#fff' : 'var(--text-muted)',
+              cursor: 'pointer',
+              transition: 'background 0.15s, color 0.15s',
+              flexShrink: 0,
+              fontSize: 11
+            }}
+            onClick={toggleMode}
+            title={isTranscribing ? t('transcript.switchToCoding') : t('transcript.switchToTranscribing')}
+            aria-pressed={isTranscribing}
+          >
+            <Icon icon={faPenLine} />
+          </button>
+          <span style={{ fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+            {isTranscribing ? t('transcript.transcribingMode') : t('transcript.codingMode')}
+          </span>
         </span>
-        <span style={{ fontSize: 10, color: 'var(--text-muted)', flex: 1 }}>
-          {isTranscribing ? t('transcript.transcribingHint') : t('transcript.codingHint')}
-        </span>
+      </DocumentToolbarPortal>
+      <DocumentToolbarPortal slot="end">
         <button
-          style={{
-            padding: '3px 10px',
-            fontSize: 11,
-            fontWeight: 600,
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-sm)',
-            background: 'var(--bg-primary)',
-            color: 'var(--text-primary)',
-            cursor: 'pointer'
-          }}
+          style={toolbarButtonStyle}
           onClick={async () => {
             const result = await window.api.importTranscript()
             if (!result) return
@@ -465,52 +472,8 @@ export function TranscriptEditor({
         >
           {t('common.import')}
         </button>
-        <div style={{ position: 'relative', flexShrink: 0 }}>
-          <button
-            style={{
-              padding: '3px 10px',
-              fontSize: 11,
-              fontWeight: 600,
-              border: '1px solid var(--border-color)',
-              borderRadius: 'var(--radius-sm)',
-              background: 'var(--bg-primary)',
-              color: 'var(--text-primary)',
-              cursor: 'pointer'
-            }}
-            onClick={(e) => setExportMenu(exportMenu ? null : { x: e.currentTarget.getBoundingClientRect().right, y: e.currentTarget.getBoundingClientRect().bottom })}
-            title={t('transcript.exportTitle')}
-          >
-            {t('common.export')}
-          </button>
-          {exportMenu && (
-            <>
-              <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setExportMenu(null)} />
-              <div className="context-menu" style={{ position: 'fixed', left: exportMenu.x, top: exportMenu.y, transform: 'translateX(-100%)', zIndex: 100, minWidth: 140 }}>
-                <div className="context-menu-item" onClick={() => {
-                  setExportMenu(null)
-                  const blob = new Blob([content], { type: 'text/plain' })
-                  const url = URL.createObjectURL(blob)
-                  const a = document.createElement('a'); a.href = url; a.download = sourceName.replace(/\.[^.]+$/, '') + `-${t('transcript.fileSuffix')}.txt`; a.click()
-                  URL.revokeObjectURL(url)
-                }}>{t('transcript.exportTxt')}</div>
-                <div className="context-menu-item" onClick={() => {
-                  setExportMenu(null)
-                  const blob = new Blob([content], { type: 'text/markdown' })
-                  const url = URL.createObjectURL(blob)
-                  const a = document.createElement('a'); a.href = url; a.download = sourceName.replace(/\.[^.]+$/, '') + `-${t('transcript.fileSuffix')}.md`; a.click()
-                  URL.revokeObjectURL(url)
-                }}>{t('transcript.exportMarkdown')}</div>
-                <div className="context-menu-item" onClick={async () => {
-                  setExportMenu(null)
-                  const html = buildTranscriptHtml(sourceName, content, lineTimes)
-                  const baseName = sourceName.replace(/\.[^.]+$/, '')
-                  await exportPdfWithHeader(html, t('transcript.pdfTitle', { name: baseName }))
-                }}>{t('transcript.exportPdf')}</div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+        <ExportMenuButton items={exportItems} busy={pdfExport.busy} />
+      </DocumentToolbarPortal>
 
       {/* Content area */}
       {isTranscribing ? (

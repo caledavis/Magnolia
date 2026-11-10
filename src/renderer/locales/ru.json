@@ -457,7 +457,7 @@
     "summaryDefaultName": "Сводка опроса",
     "exportSummaryDialog": "Экспорт сводки опроса в PDF",
     "exportSummaryTitle": "Экспортировать эту сводку в PDF вместе с ответами каждого респондента на открытые вопросы",
-    "exportPdf": "Экспорт в PDF",
+    "exportCodedTitle": "Экспортировать в PDF ответы каждого респондента на открытые вопросы с выделенными и подписанными закодированными фрагментами",
     "notLoaded": "Не удалось загрузить этот опрос — его разобранные данные отсутствуют.",
     "selectRespondent": "Выберите респондента слева.",
     "selectQuestion": "Выберите вопрос слева."
@@ -688,17 +688,6 @@
     "splitIntoTwo": "Разделить на два окна просмотра",
     "splitDividerTitle": "Перетащите, чтобы изменить размер · перетащите к краю или дважды нажмите, чтобы убрать разделение",
     "errorLoading": "Ошибка загрузки документа:",
-    "type": {
-      "note": "Запись",
-      "markdown": "Markdown",
-      "audio": "Транскрипт аудио",
-      "video": "Транскрипт видео",
-      "text": "Обычный текст"
-    },
-    "wordCount_one": "{{type}} · {{count}} слово",
-    "wordCount_few": "{{type}} · {{count}} слова",
-    "wordCount_many": "{{type}} · {{count}} слов",
-    "wordCount_other": "{{type}} · {{count}} слова",
     "region": "Область",
     "regionPage": "Область с. {{page}}",
     "boxSelection": "Прямоугольное выделение",
@@ -711,8 +700,6 @@
     "fitWindow": "По размеру окна",
     "fit": "По размеру",
     "toFit": "По размеру",
-    "image": "Изображение",
-    "pdf": "PDF",
     "imageUnavailable": "Файл изображения недоступен",
     "pdfUnavailable": "Файл PDF недоступен",
     "pageRegion": "Область на странице {{page}}",
@@ -725,7 +712,11 @@
     "loadingImage": "Загрузка изображения…",
     "loadingPdf": "Загрузка PDF…",
     "rendering": "Отрисовка…",
-    "heading": "Просмотр"
+    "heading": "Просмотр",
+    "exportCodedPdfTitle": "Экспортировать этот документ в PDF с выделенными и подписанными закодированными фрагментами",
+    "exportingPdf": "Экспорт…",
+    "exportPdfWithCodes": "Экспорт в PDF с кодами",
+    "exportPdfPlain": "Экспорт в PDF"
   },
   "tabs": {
     "untitledMap": "Карта без названия",
@@ -763,10 +754,8 @@
     "codingHint": "Выделите текст, чтобы применить коды, заметки и цитаты.",
     "importedNotes": "Заметки импортированного транскрипта",
     "importTitle": "Импортировать файл транскрипта (.txt, .md, .srt, .vtt, .html)",
-    "exportTitle": "Экспорт транскрипта",
     "exportTxt": "Экспорт в TXT",
     "exportMarkdown": "Экспорт в Markdown",
-    "exportPdf": "Экспорт в PDF",
     "fileSuffix": "транскрипт",
     "pdfTitle": "{{name}} - Транскрипт",
     "pdfSubtitle_one": "{{count}} строка — экспортировано {{date}}",
@@ -1847,5 +1836,18 @@
   "platform": {
     "altClickMac": "⌥-нажатие",
     "altClick": "Alt-нажатие"
+  },
+  "codedPdf": {
+    "fileName": "{{name}} (закодировано)",
+    "dialogTitle": "Экспорт закодированного документа в PDF",
+    "subtitle_one": "{{count}} закодированный фрагмент — экспортировано {{date}}",
+    "subtitle_few": "{{count}} закодированных фрагмента — экспортировано {{date}}",
+    "subtitle_many": "{{count}} закодированных фрагментов — экспортировано {{date}}",
+    "subtitle_other": "{{count}} закодированного фрагмента — экспортировано {{date}}",
+    "codes": "Коды",
+    "page": "Страница {{page}}",
+    "noPdfData": "Не удалось найти содержимое PDF.",
+    "noImageData": "Не удалось найти содержимое изображения.",
+    "failed": "Не удалось экспортировать PDF.\n\n{{detail}}"
   }
 }

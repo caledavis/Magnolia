@@ -1522,6 +1522,45 @@ div:hover > .folder-row-add,
 /* (#5) Viewer control bar — sits between the tab bar and the document
  * body. Carries a small caption on the left, ⌘F hint on the right,
  * separated from the body by a thin border. */
+/* The document bar: the document's name, then the viewer's controls,
+ * then Export, Split and the memo button. The name takes the room
+ * that's left and shortens with "…"; only when even a short name won't
+ * fit do the controls move, all together, onto a second line. */
+.document-bar {
+  container-type: inline-size;
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 9px 16px 9px 20px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-color);
+  user-select: none;
+}
+.document-bar-name {
+  flex: 1 1 0;
+  min-width: min(120px, 100%);
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.document-bar-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.document-bar .zoom-strip { height: 26px; flex-shrink: 0; }
+/* Narrow: drop the zoom strip's 100% (Fit and −/+ remain). */
+@container (max-width: 520px) {
+  .document-bar .zoom-reset { display: none; }
+}
+
 .viewer-toolbar {
   height: 30px;
   flex-shrink: 0;

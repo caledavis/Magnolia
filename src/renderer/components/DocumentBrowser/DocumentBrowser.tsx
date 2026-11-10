@@ -574,6 +574,7 @@ function DocItem({
         if (!editing) onViewDocument(source.guid)
       }}
       onContextMenu={(e) => onContextMenu(e, source.guid)}
+      data-document-guid={source.guid}
     >
       {/* Drop position indicator line */}
       {dropPosition && (
@@ -889,6 +890,7 @@ function SurveyItem({
           drop targets accept surveys unchanged. */}
       <div
         draggable={!editing}
+        data-document-guid={source.guid}
         onDragStart={(e) => {
           e.dataTransfer.setData('application/x-magnolia-doc-reorder', source.guid)
           const guids = selectedGuids.has(source.guid) && selectedGuids.size > 1

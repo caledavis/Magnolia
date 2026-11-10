@@ -441,7 +441,7 @@
     "summaryDefaultName": "Umfragezusammenfassung",
     "exportSummaryDialog": "Umfragezusammenfassung als PDF exportieren",
     "exportSummaryTitle": "Diese Zusammenfassung als PDF exportieren, mit den Antworten jeder befragten Person auf offene Fragen",
-    "exportPdf": "PDF exportieren",
+    "exportCodedTitle": "Die Antworten jeder befragten Person auf offene Fragen als PDF exportieren, mit hervorgehobenen und beschrifteten codierten Segmenten",
     "notLoaded": "Diese Umfrage konnte nicht geladen werden – ihre eingelesenen Daten fehlen.",
     "selectRespondent": "Wählen Sie links eine befragte Person aus.",
     "selectQuestion": "Wählen Sie links eine Frage aus."
@@ -644,15 +644,6 @@
     "splitIntoTwo": "In zwei Ansichten teilen",
     "splitDividerTitle": "Ziehen zum Ändern der Größe · an den Rand ziehen oder doppelklicken, um die Teilung aufzuheben",
     "errorLoading": "Fehler beim Laden des Dokuments:",
-    "type": {
-      "note": "Notiz",
-      "markdown": "Markdown",
-      "audio": "Audiotranskript",
-      "video": "Videotranskript",
-      "text": "Reiner Text"
-    },
-    "wordCount_one": "{{type}} · {{count}} Wort",
-    "wordCount_other": "{{type}} · {{count}} Wörter",
     "region": "Bereich",
     "regionPage": "Bereich S. {{page}}",
     "boxSelection": "Rechteckauswahl",
@@ -665,8 +656,6 @@
     "fitWindow": "An Fenster anpassen",
     "fit": "Anpassen",
     "toFit": "Anpassen",
-    "image": "Bild",
-    "pdf": "PDF",
     "imageUnavailable": "Bilddatei nicht verfügbar",
     "pdfUnavailable": "PDF-Datei nicht verfügbar",
     "pageRegion": "Bereich auf Seite {{page}}",
@@ -679,7 +668,11 @@
     "loadingImage": "Bild wird geladen …",
     "loadingPdf": "PDF wird geladen …",
     "rendering": "Wird dargestellt …",
-    "heading": "Viewer"
+    "heading": "Viewer",
+    "exportCodedPdfTitle": "Dieses Dokument als PDF exportieren, mit hervorgehobenen und beschrifteten codierten Segmenten",
+    "exportingPdf": "Wird exportiert …",
+    "exportPdfWithCodes": "Als PDF mit Codes exportieren",
+    "exportPdfPlain": "Als PDF exportieren"
   },
   "tabs": {
     "untitledMap": "Karte ohne Titel",
@@ -717,10 +710,8 @@
     "codingHint": "Wählen Sie Text aus, um Codes, Memos und Zitate anzuwenden.",
     "importedNotes": "Notizen zum importierten Transkript",
     "importTitle": "Transkriptdatei importieren (.txt, .md, .srt, .vtt, .html)",
-    "exportTitle": "Transkript exportieren",
     "exportTxt": "Als TXT exportieren",
     "exportMarkdown": "Als Markdown exportieren",
-    "exportPdf": "Als PDF exportieren",
     "fileSuffix": "Transkript",
     "pdfTitle": "{{name}} - Transkript",
     "pdfSubtitle_one": "{{count}} Zeile – exportiert am {{date}}",
@@ -1715,5 +1706,16 @@
   "platform": {
     "altClickMac": "⌥-Klick",
     "altClick": "Alt-Klick"
+  },
+  "codedPdf": {
+    "fileName": "{{name}} (codiert)",
+    "dialogTitle": "Codiertes Dokument als PDF exportieren",
+    "subtitle_one": "{{count}} codiertes Segment – exportiert am {{date}}",
+    "subtitle_other": "{{count}} codierte Segmente – exportiert am {{date}}",
+    "codes": "Codes",
+    "page": "Seite {{page}}",
+    "noPdfData": "Der Inhalt der PDF-Datei wurde nicht gefunden.",
+    "noImageData": "Der Inhalt des Bildes wurde nicht gefunden.",
+    "failed": "Die PDF-Datei konnte nicht exportiert werden.\n\n{{detail}}"
   }
 }

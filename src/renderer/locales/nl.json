@@ -441,7 +441,7 @@
     "summaryDefaultName": "Enquêteoverzicht",
     "exportSummaryDialog": "Enquêteoverzicht exporteren als pdf",
     "exportSummaryTitle": "Dit overzicht exporteren als pdf, met de antwoorden van elke respondent op de open vragen",
-    "exportPdf": "Pdf exporteren",
+    "exportCodedTitle": "De antwoorden van elke respondent op de open vragen exporteren als pdf, met de gecodeerde segmenten gemarkeerd en gelabeld",
     "notLoaded": "Deze enquête kan niet worden geladen: de verwerkte gegevens ontbreken.",
     "selectRespondent": "Selecteer links een respondent.",
     "selectQuestion": "Selecteer links een vraag."
@@ -644,15 +644,6 @@
     "splitIntoTwo": "In twee weergaven splitsen",
     "splitDividerTitle": "Sleep om de grootte te wijzigen · sleep naar een rand of dubbelklik om de splitsing op te heffen",
     "errorLoading": "Fout bij het laden van het document:",
-    "type": {
-      "note": "Notitie",
-      "markdown": "Markdown",
-      "audio": "Audiotranscript",
-      "video": "Videotranscript",
-      "text": "Platte tekst"
-    },
-    "wordCount_one": "{{type}} · {{count}} woord",
-    "wordCount_other": "{{type}} · {{count}} woorden",
     "region": "Gebied",
     "regionPage": "Gebied p. {{page}}",
     "boxSelection": "Kaderselectie",
@@ -665,8 +656,6 @@
     "fitWindow": "Aan venster aanpassen",
     "fit": "Passend",
     "toFit": "Passend",
-    "image": "Afbeelding",
-    "pdf": "PDF",
     "imageUnavailable": "Afbeeldingsbestand niet beschikbaar",
     "pdfUnavailable": "Pdf-bestand niet beschikbaar",
     "pageRegion": "Gebied op pagina {{page}}",
@@ -679,7 +668,11 @@
     "loadingImage": "Afbeelding laden…",
     "loadingPdf": "Pdf laden...",
     "rendering": "Weergeven…",
-    "heading": "Viewer"
+    "heading": "Viewer",
+    "exportCodedPdfTitle": "Dit document exporteren als pdf, met de gecodeerde segmenten gemarkeerd en gelabeld",
+    "exportingPdf": "Exporteren…",
+    "exportPdfWithCodes": "Exporteren als pdf met codes",
+    "exportPdfPlain": "Exporteren als pdf"
   },
   "tabs": {
     "untitledMap": "Naamloze kaart",
@@ -717,10 +710,8 @@
     "codingHint": "Selecteer tekst om codes, memo's en citaten toe te passen.",
     "importedNotes": "Notities uit het geïmporteerde transcript",
     "importTitle": "Een transcriptbestand importeren (.txt, .md, .srt, .vtt, .html)",
-    "exportTitle": "Transcript exporteren",
     "exportTxt": "Exporteren als TXT",
     "exportMarkdown": "Exporteren als Markdown",
-    "exportPdf": "Exporteren als pdf",
     "fileSuffix": "transcript",
     "pdfTitle": "{{name}} - Transcript",
     "pdfSubtitle_one": "{{count}} regel — geëxporteerd op {{date}}",
@@ -1715,5 +1706,16 @@
   "platform": {
     "altClickMac": "⌥-klik",
     "altClick": "Alt-klik"
+  },
+  "codedPdf": {
+    "fileName": "{{name}} (gecodeerd)",
+    "dialogTitle": "Gecodeerd document exporteren als pdf",
+    "subtitle_one": "{{count}} gecodeerd segment — geëxporteerd op {{date}}",
+    "subtitle_other": "{{count}} gecodeerde segmenten — geëxporteerd op {{date}}",
+    "codes": "Codes",
+    "page": "Pagina {{page}}",
+    "noPdfData": "De inhoud van de pdf is niet gevonden.",
+    "noImageData": "De inhoud van de afbeelding is niet gevonden.",
+    "failed": "De pdf kon niet worden geëxporteerd.\n\n{{detail}}"
   }
 }

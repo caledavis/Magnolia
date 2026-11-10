@@ -433,7 +433,7 @@
     "summaryDefaultName": "调查摘要",
     "exportSummaryDialog": "将调查摘要导出为 PDF",
     "exportSummaryTitle": "将此摘要导出为 PDF，包括每位受访者对开放式问题的回答",
-    "exportPdf": "导出 PDF",
+    "exportCodedTitle": "将每位受访者对开放式问题的回答导出为 PDF，并突出显示和标注已编码片段",
     "notLoaded": "无法载入此调查——其解析数据缺失。",
     "selectRespondent": "在左侧选择一位受访者。",
     "selectQuestion": "在左侧选择一个问题。"
@@ -622,14 +622,6 @@
     "splitIntoTwo": "拆分为两个视图",
     "splitDividerTitle": "拖动以调整大小 · 拖到边缘或连按两次以取消拆分",
     "errorLoading": "载入文档时出错：",
-    "type": {
-      "note": "笔记",
-      "markdown": "Markdown",
-      "audio": "音频转录稿",
-      "video": "视频转录稿",
-      "text": "纯文本"
-    },
-    "wordCount_other": "{{type}} · {{count}} 个词",
     "region": "区域",
     "regionPage": "区域 第{{page}}页",
     "boxSelection": "框选",
@@ -642,8 +634,6 @@
     "fitWindow": "适合窗口",
     "fit": "适合",
     "toFit": "适合",
-    "image": "图像",
-    "pdf": "PDF",
     "imageUnavailable": "图像文件不可用",
     "pdfUnavailable": "PDF 文件不可用",
     "pageRegion": "第 {{page}} 页区域",
@@ -656,7 +646,11 @@
     "loadingImage": "正在载入图像…",
     "loadingPdf": "正在载入 PDF…",
     "rendering": "正在渲染…",
-    "heading": "查看器"
+    "heading": "查看器",
+    "exportCodedPdfTitle": "将此文档导出为 PDF，并突出显示和标注已编码片段",
+    "exportingPdf": "正在导出…",
+    "exportPdfWithCodes": "导出为带代码的 PDF",
+    "exportPdfPlain": "导出为 PDF"
   },
   "tabs": {
     "untitledMap": "未命名地图",
@@ -694,10 +688,8 @@
     "codingHint": "选择文本以应用代码、备忘录和引文。",
     "importedNotes": "已导入转录稿的笔记",
     "importTitle": "导入转录稿文件（.txt、.md、.srt、.vtt、.html）",
-    "exportTitle": "导出转录稿",
     "exportTxt": "导出为 TXT",
     "exportMarkdown": "导出为 Markdown",
-    "exportPdf": "导出为 PDF",
     "fileSuffix": "转录稿",
     "pdfTitle": "{{name}} - 转录稿",
     "pdfSubtitle_other": "{{count}} 行——导出于 {{date}}",
@@ -1649,5 +1641,15 @@
   "platform": {
     "altClickMac": "⌥-点按",
     "altClick": "Alt-点按"
+  },
+  "codedPdf": {
+    "fileName": "{{name}}（已编码）",
+    "dialogTitle": "将已编码文档导出为 PDF",
+    "subtitle_other": "{{count}} 个已编码片段——导出于 {{date}}",
+    "codes": "代码",
+    "page": "第 {{page}} 页",
+    "noPdfData": "找不到 PDF 的内容。",
+    "noImageData": "找不到图像的内容。",
+    "failed": "无法导出 PDF。\n\n{{detail}}"
   }
 }

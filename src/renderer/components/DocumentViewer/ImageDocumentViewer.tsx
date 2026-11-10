@@ -20,6 +20,7 @@ import { ImagePageRenderer } from './ImagePageRenderer'
 import { RichMarginColumn } from './RichMarginColumn'
 import { Icon, QUOTE_ICON, MEMO_POINT_ICON, MEMO_RANGED_ICON } from '../Icon'
 import { ViewerZoomToolbar } from './ViewerZoomToolbar'
+import { DocumentToolbarPortal } from './DocumentToolbar'
 import type { CodingRightClickContext } from './CodedTextView'
 import type { Code, Memo, MemoEditInitData, TextSource, PdfRegionSelection } from '../../models/types'
 import { usePendingSelectionStore } from '../../stores/pending-selection-store'
@@ -500,18 +501,15 @@ export function ImageDocumentViewer({ source }: Props) {
       }}
     >
       {pendingBoxSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={boxSelectionAnchor} label={t('viewer.boxSelection')} />}
-      {/* Top control bar — connected zoom strip mirroring the PDF viewer
-          and the mockup's button group. */}
-      <div className="viewer-toolbar">
+      {/* Zoom, in the document bar. */}
+      <DocumentToolbarPortal slot="start">
         <div className="zoom-strip">
           <button onClick={() => setZoom((z) => Math.max(0.1, z * 0.9))} title={t('viewer.zoomOut')}>−</button>
-          <button onClick={() => setZoom(1)} title={t('viewer.resetZoom')}>100%</button>
+          <button className="zoom-reset" onClick={() => setZoom(1)} title={t('viewer.resetZoom')}>100%</button>
           <button onClick={() => setZoom((z) => Math.min(6, z * 1.1))} title={t('viewer.zoomIn')}>+</button>
           <button onClick={handleFit} title={t('viewer.fitWindow')}>{t('viewer.fit')}</button>
         </div>
-        <span className="viewer-spacer" />
-        <span className="viewer-meta">{t('viewer.image')}</span>
-      </div>
+      </DocumentToolbarPortal>
       <div
         ref={scrollContainerRef}
         className="image-scroll-area"

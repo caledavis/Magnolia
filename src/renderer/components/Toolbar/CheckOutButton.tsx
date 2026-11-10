@@ -35,6 +35,7 @@ export function CheckOutButton(): JSX.Element | null {
         onClick={() => promptCheckoutConflict()}
         style={{
           display: 'flex',
+          gap: 6,
           border: 'none',
           borderRadius: 'var(--radius-sm)',
           background: 'var(--danger)',

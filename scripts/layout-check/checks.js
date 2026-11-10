@@ -241,6 +241,67 @@
       await log('INFO wrote Scripts-' + l + '.pdf')
     },
 
+    // The document bar of every document in the project at three window
+    // widths: a control that spills out of the bar, or a bar that wraps.
+    async 'document-bar'() {
+      const l = lang()
+      const rows = [...document.querySelectorAll('[data-document-guid]')]
+      for (const w of [1400, 1000, 760]) {
+        await setSize(w, 1000); await sleep(1200)
+        for (const row of rows) {
+          const name = row.textContent.trim()
+          await open(row); await sleep(1200)
+          const bar = [...document.querySelectorAll('.document-bar')].find(visible)
+          if (!bar) {
+            // A survey has no bar; capture its summary instead.
+            await log(`INFO ${l} ${w} no document bar for ${name}`)
+            await shot(`Bar-${w}-${rows.indexOf(row)}-page`)
+            continue
+          }
+          const b = bar.getBoundingClientRect()
+          for (const el of bar.children) {
+            const r = el.getBoundingClientRect()
+            if (r.width && (r.left < b.left - 1 || r.right > b.right + 1)) await log(`ISSUE ${l} ${w} ${name}: ${el.className || el.tagName} spills out of the bar`)
+          }
+          const tops = new Set([...bar.children, ...(bar.querySelector('.document-bar-controls')?.children ?? [])].filter((e) => e.getBoundingClientRect().width).map((e) => Math.round(e.getBoundingClientRect().top / 8)))
+          const nameEl = bar.querySelector('.document-bar-name, .note-title-input')
+          await log(`INFO ${l} ${w} ${name}: bar ${Math.round(b.width)}x${Math.round(b.height)}, ${tops.size} line(s), name ${Math.round(nameEl?.getBoundingClientRect().width ?? 0)}px`)
+          await shot(`Bar-${w}-${rows.indexOf(row)}`, () => { const r = bar.getBoundingClientRect(); return { x: r.x, y: r.y - 4, width: r.width, height: r.height + 60 } })
+        }
+      }
+    },
+
+    // Every document in the project exported from its Export menu as a
+    // PDF with its codes, then as a PDF without them.
+    async 'coded-pdf'() {
+      await setSize(1400, 1000); await sleep(1200)
+      const rows = [...document.querySelectorAll('[data-document-guid]')]
+      for (const row of rows) {
+        const name = row.textContent.trim()
+        await open(row); await sleep(1500)
+        await shot('CodedPdf-' + rows.indexOf(row))
+        for (const withCodes of [true, false]) {
+          const menuButton = [...document.querySelectorAll('[data-export-menu]')].find(visible)
+          if (!menuButton) { await log('ISSUE no Export menu for ' + name); break }
+          press(menuButton); await sleep(400)
+          // A click that lands while the document is still settling can
+          // miss; try once more.
+          if (!document.querySelector('[data-export-coded-pdf]')) { press(menuButton); await sleep(600) }
+          if (withCodes) await shot('ExportMenu-' + rows.indexOf(row))
+          const coded = document.querySelector('[data-export-coded-pdf]')
+          // The export without codes is the item after the one with them.
+          const item = withCodes ? coded : coded?.nextElementSibling
+          if (!item) { await log('ISSUE no PDF export ' + (withCodes ? 'with' : 'without') + ' codes for ' + name); break }
+          press(item)
+          // Wait for the export to finish (the button reads "Exporting…" meanwhile).
+          await sleep(1500)
+          await waitFor(() => !document.querySelector('[data-export-menu][disabled]'), 'the export of ' + name, 120000)
+          await sleep(3000)
+          await log('INFO exported ' + name + (withCodes ? ' with' : ' without') + ' codes')
+        }
+      }
+    },
+
     // The page forced right to left: the main window, a tool and a document.
     async 'rtl-ui'() {
       await setSize(1400, 1000); await sleep(1200)

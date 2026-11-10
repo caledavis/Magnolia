@@ -12,6 +12,7 @@ import { PdfPageRenderer } from './PdfPageRenderer'
 import { RichMarginColumn } from './RichMarginColumn'
 import { Icon, QUOTE_ICON, MEMO_POINT_ICON, MEMO_RANGED_ICON, faCrosshairs, faICursor } from '../Icon'
 import { ViewerZoomToolbar } from './ViewerZoomToolbar'
+import { DocumentToolbarPortal } from './DocumentToolbar'
 import type { CodingRightClickContext } from './CodedTextView'
 import type { Code, Memo, MemoEditInitData, TextSource, PdfRegionSelection } from '../../models/types'
 import 'pdfjs-dist/web/pdf_viewer.css'
@@ -729,34 +730,34 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
     >
       {pendingSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={textSelectionAnchor} />}
       {pendingBoxSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={boxSelectionAnchor} label={t('viewer.boxSelectionPage', { page: pendingBoxSelection.pdfRegion.page })} />}
-      {/* Top control bar — zoom strip + selection-mode toggle. Mirrors
-          the mockup's connected button group. */}
-      <div className="viewer-toolbar">
-        <div className="zoom-strip">
-          <button onClick={() => setZoom((z) => Math.max(0.25, z * 0.9))} title={t('viewer.zoomOut')}>−</button>
-          <button onClick={() => setZoom(1)} title={t('viewer.resetZoom')}>100%</button>
-          <button onClick={() => setZoom((z) => Math.min(4, z * 1.1))} title={t('viewer.zoomIn')}>+</button>
-          <button onClick={handleFit} title={t('viewer.fitWindow')}>{t('viewer.fit')}</button>
-        </div>
-        <div className="zoom-strip" style={{ marginInlineStart: 6 }}>
-          <button
-            onClick={() => { setSelectionMode('text'); setPendingBoxSelection(null); setBoxDrag(null) }}
-            title={t('viewer.textSelection')}
-            className={selectionMode === 'text' ? 'active' : ''}
-          >
-            <Icon icon={faICursor} />
-          </button>
-          <button
-            onClick={() => { setSelectionMode('box'); setPendingSelection(null) }}
-            title={t('viewer.boxSelection')}
-            className={selectionMode === 'box' ? 'active' : ''}
-          >
-            <Icon icon={faCrosshairs} />
-          </button>
-        </div>
-        <span className="viewer-spacer" />
-        <span className="viewer-meta">{t('viewer.pdf')}</span>
-      </div>
+      {/* Zoom and selection mode, in the document bar. In a split, the
+          bar shows the tools of the active half. */}
+      {active && (
+        <DocumentToolbarPortal slot="start">
+          <div className="zoom-strip">
+            <button onClick={() => setZoom((z) => Math.max(0.25, z * 0.9))} title={t('viewer.zoomOut')}>−</button>
+            <button className="zoom-reset" onClick={() => setZoom(1)} title={t('viewer.resetZoom')}>100%</button>
+            <button onClick={() => setZoom((z) => Math.min(4, z * 1.1))} title={t('viewer.zoomIn')}>+</button>
+            <button onClick={handleFit} title={t('viewer.fitWindow')}>{t('viewer.fit')}</button>
+          </div>
+          <div className="zoom-strip">
+            <button
+              onClick={() => { setSelectionMode('text'); setPendingBoxSelection(null); setBoxDrag(null) }}
+              title={t('viewer.textSelection')}
+              className={selectionMode === 'text' ? 'active' : ''}
+            >
+              <Icon icon={faICursor} />
+            </button>
+            <button
+              onClick={() => { setSelectionMode('box'); setPendingSelection(null) }}
+              title={t('viewer.boxSelection')}
+              className={selectionMode === 'box' ? 'active' : ''}
+            >
+              <Icon icon={faCrosshairs} />
+            </button>
+          </div>
+        </DocumentToolbarPortal>
+      )}
       <div
         ref={scrollContainerRef}
         className="pdf-scroll-area"

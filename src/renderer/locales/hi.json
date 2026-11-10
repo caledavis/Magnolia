@@ -441,7 +441,7 @@
     "summaryDefaultName": "सर्वेक्षण सारांश",
     "exportSummaryDialog": "सर्वेक्षण सारांश PDF के रूप में निर्यात करें",
     "exportSummaryTitle": "इस सारांश को PDF के रूप में निर्यात करें, जिसमें खुले प्रश्नों पर हर उत्तरदाता के उत्तर शामिल हों",
-    "exportPdf": "PDF निर्यात करें",
+    "exportCodedTitle": "खुले प्रश्नों पर हर उत्तरदाता के उत्तर PDF के रूप में निर्यात करें, जिसमें कोड किए गए अंश हाइलाइट और लेबल किए हों",
     "notLoaded": "यह सर्वेक्षण लोड नहीं हो सका — इसका पार्स किया गया डेटा मौजूद नहीं है।",
     "selectRespondent": "बाईं ओर से एक उत्तरदाता चुनें।",
     "selectQuestion": "बाईं ओर से एक प्रश्न चुनें।"
@@ -644,15 +644,6 @@
     "splitIntoTwo": "दो दृश्यों में बाँटें",
     "splitDividerTitle": "आकार बदलने के लिए खींचें · विभाजन हटाने के लिए किनारे पर खींचें या डबल-क्लिक करें",
     "errorLoading": "दस्तावेज़ लोड करने में त्रुटि:",
-    "type": {
-      "note": "नोट",
-      "markdown": "Markdown",
-      "audio": "ऑडियो प्रतिलेख",
-      "video": "वीडियो प्रतिलेख",
-      "text": "सादा टेक्स्ट"
-    },
-    "wordCount_one": "{{type}} · {{count}} शब्द",
-    "wordCount_other": "{{type}} · {{count}} शब्द",
     "region": "क्षेत्र",
     "regionPage": "क्षेत्र पृ. {{page}}",
     "boxSelection": "बॉक्स चयन",
@@ -665,8 +656,6 @@
     "fitWindow": "विंडो में फ़िट करें",
     "fit": "फ़िट",
     "toFit": "फ़िट करें",
-    "image": "छवि",
-    "pdf": "PDF",
     "imageUnavailable": "छवि फ़ाइल उपलब्ध नहीं",
     "pdfUnavailable": "PDF फ़ाइल उपलब्ध नहीं",
     "pageRegion": "पृष्ठ {{page}} क्षेत्र",
@@ -679,7 +668,11 @@
     "loadingImage": "छवि लोड हो रही है…",
     "loadingPdf": "PDF लोड हो रहा है…",
     "rendering": "रेंडर हो रहा है…",
-    "heading": "व्यूअर"
+    "heading": "व्यूअर",
+    "exportCodedPdfTitle": "इस दस्तावेज़ को PDF के रूप में निर्यात करें, जिसमें कोड किए गए अंश हाइलाइट और लेबल किए हों",
+    "exportingPdf": "निर्यात हो रहा है…",
+    "exportPdfWithCodes": "कोड सहित PDF के रूप में निर्यात करें",
+    "exportPdfPlain": "PDF के रूप में निर्यात करें"
   },
   "tabs": {
     "untitledMap": "शीर्षकहीन नक्शा",
@@ -717,10 +710,8 @@
     "codingHint": "कोड, मेमो और उद्धरण लागू करने के लिए टेक्स्ट चुनें।",
     "importedNotes": "आयात किए गए प्रतिलेख के नोट",
     "importTitle": "प्रतिलेख फ़ाइल आयात करें (.txt, .md, .srt, .vtt, .html)",
-    "exportTitle": "प्रतिलेख निर्यात करें",
     "exportTxt": "TXT के रूप में निर्यात करें",
     "exportMarkdown": "Markdown के रूप में निर्यात करें",
-    "exportPdf": "PDF के रूप में निर्यात करें",
     "fileSuffix": "प्रतिलेख",
     "pdfTitle": "{{name}} - प्रतिलेख",
     "pdfSubtitle_one": "{{count}} पंक्ति — {{date}} को निर्यात की गई",
@@ -1715,5 +1706,16 @@
   "platform": {
     "altClickMac": "⌥-क्लिक",
     "altClick": "Alt-क्लिक"
+  },
+  "codedPdf": {
+    "fileName": "{{name}} (कोड किया गया)",
+    "dialogTitle": "कोड किए गए दस्तावेज़ को PDF के रूप में निर्यात करें",
+    "subtitle_one": "{{count}} कोड किया गया अंश — {{date}} को निर्यात किया गया",
+    "subtitle_other": "{{count}} कोड किए गए अंश — {{date}} को निर्यात किया गया",
+    "codes": "कोड",
+    "page": "पृष्ठ {{page}}",
+    "noPdfData": "PDF की सामग्री नहीं मिली।",
+    "noImageData": "छवि की सामग्री नहीं मिली।",
+    "failed": "PDF निर्यात नहीं किया जा सका।\n\n{{detail}}"
   }
 }

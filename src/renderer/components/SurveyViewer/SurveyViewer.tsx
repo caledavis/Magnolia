@@ -76,6 +76,8 @@ import { Icon, faCheck } from '../Icon'
 import { MemoFab } from '../Memos/MemoFab'
 import { cleanCellText, buildCellText } from '../../utils/survey/cell-text'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
+import { COLOURFUL_CODE_COLOURS } from '../../utils/code-colours'
+import { ExportMenuButton, usePdfExportItems } from '../DocumentViewer/DocumentToolbar'
 import { modKey } from '../../utils/platform'
 import { onSelectionDrop } from '../../utils/selection-drag'
 import { SelectionDragHandle, textSelectionAnchor } from '../DocumentViewer/SelectionDragHandle'
@@ -756,14 +758,12 @@ function OptionListCell({
 }
 
 /** Categorical palette for donut segments (and the matching list
- *  swatches). Apple system colours, picked to stay distinguishable
- *  on both light and dark themes; cycles if a question has more
- *  options than colours. Kept fixed rather than derived from
- *  --accent so segments don't all collapse to one hue. */
-const SEGMENT_PALETTE = [
-  '#007AFF', '#34c759', '#ff9500', '#af52de', '#ff2d55',
-  '#5ac8fa', '#ffcc00', '#5856d6', '#30b0c7', '#a2845e'
-]
+ *  swatches): the first ten standard code colours (coral, blue, teal,
+ *  violet, gold…), which are built around the interface's icon colours
+ *  and stay distinguishable on light and dark themes. Cycles if a
+ *  question has more options than colours. Kept fixed rather than
+ *  derived from --accent so segments don't all collapse to one hue. */
+const SEGMENT_PALETTE = COLOURFUL_CODE_COLOURS.slice(0, 10)
 
 function segmentColor(index: number): string {
   return SEGMENT_PALETTE[index % SEGMENT_PALETTE.length]
@@ -1827,7 +1827,7 @@ export const SURVEY_SUMMARY_CSS = `
   .survey-summary ul.options li .opt-swatch { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; display: inline-block; }
   /* Respondent / single-cell embeds: the chosen option is bold with a tick. */
   .survey-summary ul.options li.chosen { font-weight: 700; color: #111; }
-  .survey-summary ul.options li .opt-chosen { color: #007AFF; margin-inline-start: 4px; }
+  .survey-summary ul.options li .opt-chosen { color: #3a78d8; margin-inline-start: 4px; }
   /* A respondent's per-question answer blocks. */
   .survey-summary .sv-q { margin: 0 0 14px; break-inside: avoid; page-break-inside: avoid; }
   .survey-summary .sv-q-head { font-size: 11.5px; font-weight: 600; color: #222; margin: 0 0 4px; }
@@ -1839,7 +1839,7 @@ export const SURVEY_SUMMARY_CSS = `
   /* Contents "Show answers" link → jumps to the question's answers in
      the detailed Questions section. Print blue, no underline to match
      the on-screen link. */
-  .survey-summary a.show-answers { color: #1155cc; text-decoration: none; }
+  .survey-summary a.show-answers { color: #3a78d8; text-decoration: none; }
   /* The detailed Questions section starts on a fresh page so Contents
      reads as front matter. */
   .survey-summary .section-break { page-break-before: always; }
@@ -1880,11 +1880,13 @@ function buildSurveySummaryHtml(survey: SurveyData, displayName: string): string
 }
 
 function SummaryView({
+  sourceGuid,
   survey,
   displayName,
   onJumpToQuestion,
   onJumpToRespondent
 }: {
+  sourceGuid: string
   survey: SurveyData
   // The live source name from the document store. Used for the header
   // (and PDF filename) so renaming the survey updates them, rather than
@@ -1897,6 +1899,8 @@ function SummaryView({
   const totalRespondents = survey.respondents.length
   const totalQuestions = survey.questions.length
 
+  const source = useDocumentStore((s) => s.sources.find((src) => src.guid === sourceGuid))
+
   const handleExportPdf = useCallback(async () => {
     const html = buildSurveySummaryHtml(survey, displayName)
     // Strip filesystem-hostile chars from the survey name so the
@@ -1905,6 +1909,13 @@ function SummaryView({
     const safeName = (displayName || fallback).replace(/[^\p{L}\p{N} _-]/gu, '').trim() || fallback
     await exportPdfWithHeader(html, safeName, t('survey.exportSummaryDialog'))
   }, [survey, displayName])
+  // Without codes, the export is the summary, which already includes
+  // each respondent's open answers.
+  const pdfExport = usePdfExportItems(source, '', {
+    plain: () => void handleExportPdf(),
+    withCodesTitle: t('survey.exportCodedTitle'),
+    plainTitle: t('survey.exportSummaryTitle')
+  })
 
   return (
     <div style={{ padding: 24 }}>
@@ -1920,14 +1931,12 @@ function SummaryView({
             {t('survey.questionCount', { count: totalQuestions })}
           </div>
         </div>
-        <button
+        <ExportMenuButton
           className="secondary"
           style={{ fontSize: 11, padding: '3px 10px', flexShrink: 0 }}
-          onClick={handleExportPdf}
-          title={t('survey.exportSummaryTitle')}
-        >
-          {t('survey.exportPdf')}
-        </button>
+          items={pdfExport.items}
+          busy={pdfExport.busy}
+        />
       </div>
 
       <section style={{ marginTop: 28 }}>
@@ -2859,6 +2868,7 @@ export function SurveyViewer({ source }: Props) {
       <div ref={surveyScrollRef} onScroll={rememberScroll} style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-panel)', padding: '0 20px 24px 20px' }}>
         {view.mode === 'summary' && (
           <SummaryView
+            sourceGuid={source.guid}
             survey={survey}
             displayName={source.name}
             onJumpToQuestion={(qid) => setView(source.guid, 'question', qid)}

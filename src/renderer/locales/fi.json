@@ -441,7 +441,7 @@
     "summaryDefaultName": "Kyselyn yhteenveto",
     "exportSummaryDialog": "Vie kyselyn yhteenveto PDF-muodossa",
     "exportSummaryTitle": "Vie tämä yhteenveto PDF-muodossa, mukana kunkin vastaajan vastaukset avoimiin kysymyksiin",
-    "exportPdf": "Vie PDF",
+    "exportCodedTitle": "Vie kunkin vastaajan vastaukset avoimiin kysymyksiin PDF-muodossa, koodatut segmentit korostettuina ja nimettyinä",
     "notLoaded": "Tätä kyselyä ei voitu ladata – sen jäsennetyt tiedot puuttuvat.",
     "selectRespondent": "Valitse vastaaja vasemmalta.",
     "selectQuestion": "Valitse kysymys vasemmalta."
@@ -644,15 +644,6 @@
     "splitIntoTwo": "Jaa kahteen näkymään",
     "splitDividerTitle": "Muuta kokoa vetämällä · poista jako vetämällä reunaan tai kaksoisklikkaamalla",
     "errorLoading": "Virhe dokumenttia ladattaessa:",
-    "type": {
-      "note": "Muistiinpano",
-      "markdown": "Markdown",
-      "audio": "Äänen litteraatti",
-      "video": "Videon litteraatti",
-      "text": "Pelkkä teksti"
-    },
-    "wordCount_one": "{{type}} · {{count}} sana",
-    "wordCount_other": "{{type}} · {{count}} sanaa",
     "region": "Alue",
     "regionPage": "Alue s. {{page}}",
     "boxSelection": "Laatikkovalinta",
@@ -665,8 +656,6 @@
     "fitWindow": "Sovita ikkunaan",
     "fit": "Sovita",
     "toFit": "Sovita",
-    "image": "Kuva",
-    "pdf": "PDF",
     "imageUnavailable": "Kuvatiedosto ei saatavilla",
     "pdfUnavailable": "PDF-tiedosto ei saatavilla",
     "pageRegion": "Alue sivulla {{page}}",
@@ -679,7 +668,11 @@
     "loadingImage": "Ladataan kuvaa…",
     "loadingPdf": "Ladataan PDF:ää…",
     "rendering": "Piirretään…",
-    "heading": "Katseluohjelma"
+    "heading": "Katseluohjelma",
+    "exportCodedPdfTitle": "Vie tämä dokumentti PDF-muodossa, koodatut segmentit korostettuina ja nimettyinä",
+    "exportingPdf": "Viedään…",
+    "exportPdfWithCodes": "Vie PDF-muodossa koodien kanssa",
+    "exportPdfPlain": "Vie PDF-muodossa"
   },
   "tabs": {
     "untitledMap": "Nimetön kartta",
@@ -717,10 +710,8 @@
     "codingHint": "Valitse tekstiä liittääksesi koodeja, muistioita ja lainauksia.",
     "importedNotes": "Tuodun litteraatin muistiinpanot",
     "importTitle": "Tuo litteraattitiedosto (.txt, .md, .srt, .vtt, .html)",
-    "exportTitle": "Vie litteraatti",
     "exportTxt": "Vie TXT-muodossa",
     "exportMarkdown": "Vie Markdown-muodossa",
-    "exportPdf": "Vie PDF-muodossa",
     "fileSuffix": "litteraatti",
     "pdfTitle": "{{name}} - Litteraatti",
     "pdfSubtitle_one": "{{count}} rivi – viety {{date}}",
@@ -1715,5 +1706,16 @@
   "platform": {
     "altClickMac": "⌥-klikkaus",
     "altClick": "Alt-klikkaus"
+  },
+  "codedPdf": {
+    "fileName": "{{name}} (koodattu)",
+    "dialogTitle": "Vie koodattu dokumentti PDF-muodossa",
+    "subtitle_one": "{{count}} koodattu segmentti – viety {{date}}",
+    "subtitle_other": "{{count}} koodattua segmenttiä – viety {{date}}",
+    "codes": "Koodit",
+    "page": "Sivu {{page}}",
+    "noPdfData": "PDF-tiedoston sisältöä ei löytynyt.",
+    "noImageData": "Kuvan sisältöä ei löytynyt.",
+    "failed": "PDF-tiedostoa ei voitu viedä.\n\n{{detail}}"
   }
 }

@@ -26,7 +26,7 @@ export function NoteHeader({ source }: { source: TextSource }) {
     : {}
 
   return (
-    <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+    <div style={{ flex: '1 1 0', minWidth: 'min(240px, 100%)', display: 'flex', alignItems: 'center', gap: 10 }}>
       <input
         type="text"
         className="note-title-input"

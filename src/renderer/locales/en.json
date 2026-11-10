@@ -441,7 +441,7 @@
     "summaryDefaultName": "Survey Summary",
     "exportSummaryDialog": "Export Survey Summary as PDF",
     "exportSummaryTitle": "Export this summary as a PDF, including each respondent's answers to open questions",
-    "exportPdf": "Export PDF",
+    "exportCodedTitle": "Export each respondent's answers to open questions as a PDF, with the coded segments highlighted and labelled",
     "notLoaded": "This survey couldn't be loaded — its parsed data is missing.",
     "selectRespondent": "Select a respondent on the left.",
     "selectQuestion": "Select a question on the left."
@@ -644,15 +644,6 @@
     "splitIntoTwo": "Split into two views",
     "splitDividerTitle": "Drag to resize · drag to an edge or double-click to remove the split",
     "errorLoading": "Error loading document:",
-    "type": {
-      "note": "Note",
-      "markdown": "Markdown",
-      "audio": "Audio transcript",
-      "video": "Video transcript",
-      "text": "Plain text"
-    },
-    "wordCount_one": "{{type}} · {{count}} word",
-    "wordCount_other": "{{type}} · {{count}} words",
     "region": "Region",
     "regionPage": "Region p{{page}}",
     "boxSelection": "Box selection",
@@ -665,8 +656,6 @@
     "fitWindow": "Fit to window",
     "fit": "Fit",
     "toFit": "To Fit",
-    "image": "Image",
-    "pdf": "PDF",
     "imageUnavailable": "Image file not available",
     "pdfUnavailable": "PDF file not available",
     "pageRegion": "Page {{page}} region",
@@ -679,7 +668,11 @@
     "loadingImage": "Loading image…",
     "loadingPdf": "Loading PDF...",
     "rendering": "Rendering…",
-    "heading": "Viewer"
+    "heading": "Viewer",
+    "exportCodedPdfTitle": "Export this document as a PDF, with its coded segments highlighted and labelled",
+    "exportingPdf": "Exporting…",
+    "exportPdfWithCodes": "Export as PDF with Codes",
+    "exportPdfPlain": "Export as PDF"
   },
   "tabs": {
     "untitledMap": "Untitled map",
@@ -717,10 +710,8 @@
     "codingHint": "Select text to apply codes, memos, and quotes.",
     "importedNotes": "Imported transcript notes",
     "importTitle": "Import a transcript file (.txt, .md, .srt, .vtt, .html)",
-    "exportTitle": "Export Transcript",
     "exportTxt": "Export as TXT",
     "exportMarkdown": "Export as Markdown",
-    "exportPdf": "Export as PDF",
     "fileSuffix": "transcript",
     "pdfTitle": "{{name}} - Transcript",
     "pdfSubtitle_one": "{{count}} line — exported {{date}}",
@@ -1715,5 +1706,16 @@
   "platform": {
     "altClickMac": "⌥-click",
     "altClick": "Alt-click"
+  },
+  "codedPdf": {
+    "fileName": "{{name}} (coded)",
+    "dialogTitle": "Export Coded Document as PDF",
+    "subtitle_one": "{{count}} coded segment — exported {{date}}",
+    "subtitle_other": "{{count}} coded segments — exported {{date}}",
+    "codes": "Codes",
+    "page": "Page {{page}}",
+    "noPdfData": "The PDF's contents couldn't be found.",
+    "noImageData": "The image's contents couldn't be found.",
+    "failed": "The PDF couldn't be exported.\n\n{{detail}}"
   }
 }

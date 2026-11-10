@@ -473,7 +473,7 @@
     "summaryDefaultName": "ملخص الاستبيان",
     "exportSummaryDialog": "تصدير ملخص الاستبيان بتنسيق PDF",
     "exportSummaryTitle": "تصدير هذا الملخص بتنسيق PDF، بما في ذلك إجابات كل مستجيب عن الأسئلة المفتوحة",
-    "exportPdf": "تصدير PDF",
+    "exportCodedTitle": "تصدير إجابات كل مستجيب عن الأسئلة المفتوحة بتنسيق PDF، مع إبراز المقاطع المرمّزة وتسميتها",
     "notLoaded": "تعذّر تحميل هذا الاستبيان — بياناته المحلَّلة مفقودة.",
     "selectRespondent": "اختر مستجيبًا من القائمة.",
     "selectQuestion": "اختر سؤالًا من القائمة."
@@ -732,19 +732,6 @@
     "splitIntoTwo": "تقسيم إلى عرضين",
     "splitDividerTitle": "اسحب لتغيير الحجم · اسحب إلى الحافة أو انقر نقرًا مزدوجًا لإزالة التقسيم",
     "errorLoading": "خطأ في تحميل المستند:",
-    "type": {
-      "note": "ملاحظة",
-      "markdown": "Markdown",
-      "audio": "تفريغ نصي لملف صوتي",
-      "video": "تفريغ نصي لملف فيديو",
-      "text": "نص عادي"
-    },
-    "wordCount_zero": "{{type}} · لا توجد كلمات",
-    "wordCount_one": "{{type}} · كلمة واحدة",
-    "wordCount_two": "{{type}} · كلمتان",
-    "wordCount_few": "{{type}} · {{count}} كلمات",
-    "wordCount_many": "{{type}} · {{count}} كلمةً",
-    "wordCount_other": "{{type}} · {{count}} كلمة",
     "region": "منطقة",
     "regionPage": "منطقة ص{{page}}",
     "boxSelection": "تحديد مربع",
@@ -757,8 +744,6 @@
     "fitWindow": "ملاءمة النافذة",
     "fit": "ملاءمة",
     "toFit": "ملاءمة",
-    "image": "صورة",
-    "pdf": "PDF",
     "imageUnavailable": "ملف الصورة غير متاح",
     "pdfUnavailable": "ملف PDF غير متاح",
     "pageRegion": "منطقة في الصفحة {{page}}",
@@ -771,7 +756,11 @@
     "loadingImage": "جارٍ تحميل الصورة…",
     "loadingPdf": "جارٍ تحميل PDF…",
     "rendering": "جارٍ العرض…",
-    "heading": "العارض"
+    "heading": "العارض",
+    "exportCodedPdfTitle": "تصدير هذا المستند بتنسيق PDF، مع إبراز المقاطع المرمّزة وتسميتها",
+    "exportingPdf": "جارٍ التصدير…",
+    "exportPdfWithCodes": "تصدير بتنسيق PDF مع الرموز",
+    "exportPdfPlain": "تصدير بتنسيق PDF"
   },
   "tabs": {
     "untitledMap": "خريطة بلا عنوان",
@@ -809,10 +798,8 @@
     "codingHint": "حدّد نصًا لتطبيق الرموز والمذكرات والاقتباسات.",
     "importedNotes": "ملاحظات التفريغ النصي المستورد",
     "importTitle": "استيراد ملف تفريغ نصي (‎.txt و‎.md و‎.srt و‎.vtt و‎.html)",
-    "exportTitle": "تصدير التفريغ النصي",
     "exportTxt": "تصدير بتنسيق TXT",
     "exportMarkdown": "تصدير بتنسيق Markdown",
-    "exportPdf": "تصدير بتنسيق PDF",
     "fileSuffix": "تفريغ نصي",
     "pdfTitle": "{{name}} - التفريغ النصي",
     "pdfSubtitle_zero": "لا توجد أسطر — صُدِّر في {{date}}",
@@ -1979,5 +1966,20 @@
   "platform": {
     "altClickMac": "⌥-نقر",
     "altClick": "Alt-نقر"
+  },
+  "codedPdf": {
+    "fileName": "{{name}} (مرمّز)",
+    "dialogTitle": "تصدير المستند المرمّز بتنسيق PDF",
+    "subtitle_zero": "لا توجد مقاطع مرمّزة — صُدِّر في {{date}}",
+    "subtitle_one": "مقطع مرمّز واحد — صُدِّر في {{date}}",
+    "subtitle_two": "مقطعان مرمّزان — صُدِّر في {{date}}",
+    "subtitle_few": "{{count}} مقاطع مرمّزة — صُدِّر في {{date}}",
+    "subtitle_many": "{{count}} مقطعًا مرمّزًا — صُدِّر في {{date}}",
+    "subtitle_other": "{{count}} مقطع مرمّز — صُدِّر في {{date}}",
+    "codes": "الرموز",
+    "page": "الصفحة {{page}}",
+    "noPdfData": "تعذّر العثور على محتوى ملف PDF.",
+    "noImageData": "تعذّر العثور على محتوى الصورة.",
+    "failed": "تعذّر تصدير ملف PDF.\n\n{{detail}}"
   }
 }
