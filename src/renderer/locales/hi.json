@@ -397,7 +397,8 @@
     "deleteNotebook": "नोटबुक हटाएँ",
     "deleteFolder": "फ़ोल्डर हटाएँ",
     "renameNotebook": "नोटबुक का नाम बदलें",
-    "renameFolder": "फ़ोल्डर का नाम बदलें"
+    "renameFolder": "फ़ोल्डर का नाम बदलें",
+    "notebook": "नोटबुक"
   },
   "survey": {
     "respondents": "उत्तरदाता",
@@ -689,6 +690,19 @@
     "titleLabel": "नोट का शीर्षक",
     "dateTime": "अवलोकन की तारीख़ और समय",
     "placeholder": "अपना अवलोकन लिखें…"
+  },
+  "notebook": {
+    "noteCount_one": "{{count}} नोट",
+    "noteCount_other": "{{count}} नोट",
+    "dateRange": "{{from}} – {{to}}",
+    "exportCodedTitle": "इस नोटबुक के सभी नोट एक PDF में निर्यात करें, कोड किए गए अंशों को हाइलाइट और लेबल करके",
+    "exportPlainTitle": "इस नोटबुक के सभी नोट एक PDF में निर्यात करें",
+    "empty": "इस नोटबुक में अभी कोई नोट नहीं है। नोट लिखने के लिए “नया नोट” पर क्लिक करें।",
+    "colDate": "तारीख",
+    "colTitle": "शीर्षक",
+    "colWords": "शब्द",
+    "colCoded": "कोड किए गए अंश",
+    "openNote": "यह नोट खोलें"
   },
   "media": {
     "rewind": "पीछे करें (दोहराने के लिए दबाए रखें)",
@@ -1716,6 +1730,8 @@
     "page": "पृष्ठ {{page}}",
     "noPdfData": "PDF की सामग्री नहीं मिली।",
     "noImageData": "छवि की सामग्री नहीं मिली।",
-    "failed": "PDF निर्यात नहीं किया जा सका।\n\n{{detail}}"
+    "failed": "PDF निर्यात नहीं किया जा सका।\n\n{{detail}}",
+    "notebookSubtitle_one": "{{count}} नोट — {{date}} को निर्यात किया गया",
+    "notebookSubtitle_other": "{{count}} नोट — {{date}} को निर्यात किया गया"
   }
 }

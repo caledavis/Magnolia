@@ -9,6 +9,7 @@
  *                                              saved analyses; fresh guid for
  *                                              ad-hoc runs)
  *   query-builder:<instanceId>               — Query Builder tabs
+ *   notebook:<folderGuid>                    — a notebook's overview
  *
  * Consumers that do per-document work (e.g. "find the source for the active
  * tab") should call isToolTab() first and bail out.
@@ -17,6 +18,7 @@
 const MAP_TAB_PREFIX = 'map:'
 const ANALYSIS_TAB_PREFIX = 'analysis:'
 const QUERY_BUILDER_TAB_PREFIX = 'query-builder:'
+const NOTEBOOK_TAB_PREFIX = 'notebook:'
 /** Singleton id for the Preferences tab — there's only ever one
  *  open at a time, so a fixed id is enough (no per-instance suffix). */
 export const PREFERENCES_TAB_ID = 'preferences'
@@ -70,6 +72,19 @@ export function queryBuilderInstanceIdFromTabId(id: string | null | undefined): 
   return isQueryBuilderTab(id) ? (id as string).slice(QUERY_BUILDER_TAB_PREFIX.length) : null
 }
 
+export function makeNotebookTabId(folderGuid: string): string {
+  return `${NOTEBOOK_TAB_PREFIX}${folderGuid}`
+}
+
+export function isNotebookTab(id: string | null | undefined): boolean {
+  return typeof id === 'string' && id.startsWith(NOTEBOOK_TAB_PREFIX)
+}
+
+/** Returns the notebook's folder guid if id is a notebook tab id, otherwise null. */
+export function notebookGuidFromTabId(id: string | null | undefined): string | null {
+  return isNotebookTab(id) ? (id as string).slice(NOTEBOOK_TAB_PREFIX.length) : null
+}
+
 export function isPreferencesTab(id: string | null | undefined): boolean {
   return id === PREFERENCES_TAB_ID
 }
@@ -78,7 +93,8 @@ export function isMergeTab(id: string | null | undefined): boolean {
   return id === MERGE_TAB_ID
 }
 
-/** True for any non-document tab id (map, analysis, query-builder, preferences, merge). */
+/** True for any non-document tab id (map, analysis, query-builder,
+ *  notebook, preferences, merge). */
 export function isToolTab(id: string | null | undefined): boolean {
-  return isMapTab(id) || isAnalysisTab(id) || isQueryBuilderTab(id) || isPreferencesTab(id) || isMergeTab(id)
+  return isMapTab(id) || isAnalysisTab(id) || isQueryBuilderTab(id) || isNotebookTab(id) || isPreferencesTab(id) || isMergeTab(id)
 }

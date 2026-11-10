@@ -1,7 +1,8 @@
 import { useState, useCallback, useRef } from 'react'
 import type { TextSource } from '../../models/types'
-import { Icon, faXmark, faFile, faHeadphones, faVideo, faImage, faGear, faGitMerge, SURVEY_ICON, type IconComponent } from '../Icon'
-import { isAnalysisTab, isMapTab, isPreferencesTab, isMergeTab, isQueryBuilderTab, mapGuidFromTabId } from '../../utils/tab-ids'
+import { Icon, faXmark, faFile, faHeadphones, faVideo, faImage, faGear, faGitMerge, faNotebookPen, SURVEY_ICON, type IconComponent } from '../Icon'
+import { isAnalysisTab, isMapTab, isPreferencesTab, isMergeTab, isQueryBuilderTab, isNotebookTab, mapGuidFromTabId, notebookGuidFromTabId } from '../../utils/tab-ids'
+import { useDocumentStore } from '../../stores/document-store'
 import { useRelationshipMapStore } from '../../stores/relationship-map-store'
 import { useAnalysisTabsStore } from '../../stores/analysis-tabs-store'
 import { useToolSaveRegistry } from '../../stores/tool-save-registry'
@@ -30,6 +31,7 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
   const [editName, setEditName] = useState('')
 
   const sourceMap = new Map(sources.map((s) => [s.guid, s]))
+  const folders = useDocumentStore((s) => s.folders)
   const analysisTabs = useAnalysisTabsStore((s) => s.instances)
   // Tab id of the dirty tab the user is trying to close, or null when
   // the confirm dialog is hidden. Storing the id (not just a boolean)
@@ -92,6 +94,10 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
     }
     if (isPreferencesTab(tabId)) return t('tabs.preferences')
     if (isMergeTab(tabId)) return t('tabs.mergeProjects')
+    if (isNotebookTab(tabId)) {
+      const guid = notebookGuidFromTabId(tabId)
+      return folders.find((f) => f.guid === guid)?.name || t('documents.notebook')
+    }
     return sourceMap.get(tabId)?.name || t('common.document')
   }
 
@@ -109,6 +115,7 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
     }
     if (isPreferencesTab(tabId)) return faGear
     if (isMergeTab(tabId)) return faGitMerge
+    if (isNotebookTab(tabId)) return faNotebookPen
     const source = sourceMap.get(tabId)
     if (!source) return null
     if (source.sourceType === 'survey') return SURVEY_ICON
@@ -139,6 +146,7 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
   const tintFor = (tabId: string): React.CSSProperties => {
     if (isMapTab(tabId) || isQueryBuilderTab(tabId) || isAnalysisTab(tabId)) return {}
     if (isPreferencesTab(tabId) || isMergeTab(tabId)) return {}
+    if (isNotebookTab(tabId)) return tint('folder')
     const source = sourceMap.get(tabId)
     if (!source) return {}
     const st = ((source as { sourceType?: string }).sourceType || sourceTypeFromFilename(source.name)) as string

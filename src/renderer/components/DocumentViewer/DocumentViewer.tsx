@@ -10,10 +10,11 @@ import { VideoDocumentViewer } from './VideoDocumentViewer'
 import { ImageDocumentViewer } from './ImageDocumentViewer'
 import { SurveyViewer } from '../SurveyViewer/SurveyViewer'
 import { TabBar } from './TabBar'
+import { NotebookOverview } from './NotebookOverview'
 import { NoteHeader } from './NoteHeader'
 import { DocumentToolbarContext, DocumentExportButton } from './DocumentToolbar'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
-import { isAnalysisTab, isMapTab, isPreferencesTab, isMergeTab, isQueryBuilderTab, isToolTab, mapGuidFromTabId } from '../../utils/tab-ids'
+import { isAnalysisTab, isMapTab, isPreferencesTab, isMergeTab, isQueryBuilderTab, isToolTab, mapGuidFromTabId, isNotebookTab, notebookGuidFromTabId } from '../../utils/tab-ids'
 import { InlineAnalysisTab } from '../Analysis/InlineAnalysisTab'
 import { PreferencesWindow } from '../Preferences/PreferencesWindow'
 import { MergeReviewWindow } from '../Merge/MergeReviewWindow'
@@ -35,6 +36,10 @@ function renderToolTab(tabId: string): React.ReactNode {
   }
   if (isAnalysisTab(tabId) || isQueryBuilderTab(tabId)) {
     return <InlineAnalysisTab key={tabId} tabId={tabId} />
+  }
+  if (isNotebookTab(tabId)) {
+    const folderGuid = notebookGuidFromTabId(tabId)
+    return folderGuid ? <NotebookOverview key={tabId} folderGuid={folderGuid} /> : null
   }
   if (isPreferencesTab(tabId)) {
     return (

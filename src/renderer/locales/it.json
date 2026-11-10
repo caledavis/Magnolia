@@ -403,7 +403,8 @@
     "deleteNotebook": "Elimina quaderno",
     "deleteFolder": "Elimina cartella",
     "renameNotebook": "Rinomina quaderno",
-    "renameFolder": "Rinomina cartella"
+    "renameFolder": "Rinomina cartella",
+    "notebook": "Quaderno"
   },
   "survey": {
     "respondents": "Rispondenti",
@@ -711,6 +712,20 @@
     "titleLabel": "Titolo della nota",
     "dateTime": "Data e ora dell’osservazione",
     "placeholder": "Scrivi la tua osservazione…"
+  },
+  "notebook": {
+    "noteCount_one": "{{count}} nota",
+    "noteCount_many": "{{count}} di note",
+    "noteCount_other": "{{count}} note",
+    "dateRange": "{{from}} – {{to}}",
+    "exportCodedTitle": "Esporta tutte le note di questo quaderno in un unico PDF, con i segmenti codificati evidenziati ed etichettati",
+    "exportPlainTitle": "Esporta tutte le note di questo quaderno in un unico PDF",
+    "empty": "Questo quaderno non ha ancora note. Fai clic su «Nuova nota» per scriverne una.",
+    "colDate": "Data",
+    "colTitle": "Titolo",
+    "colWords": "Parole",
+    "colCoded": "Segmenti codificati",
+    "openNote": "Apri questa nota"
   },
   "media": {
     "rewind": "Indietro (tieni premuto per ripetere)",
@@ -1782,6 +1797,9 @@
     "page": "Pagina {{page}}",
     "noPdfData": "Impossibile trovare il contenuto del PDF.",
     "noImageData": "Impossibile trovare il contenuto dell’immagine.",
-    "failed": "Impossibile esportare il PDF.\n\n{{detail}}"
+    "failed": "Impossibile esportare il PDF.\n\n{{detail}}",
+    "notebookSubtitle_one": "{{count}} nota — esportato il {{date}}",
+    "notebookSubtitle_many": "{{count}} di note — esportato il {{date}}",
+    "notebookSubtitle_other": "{{count}} note — esportato il {{date}}"
   }
 }

@@ -13,6 +13,7 @@ import { formatTimestamp } from '../timestamp-parser'
 import { buildCellText } from '../survey/cell-text'
 import { base64ToBytes } from '../../platform/pdf-text'
 import { sourceTypeFromFilename } from '../format-registry'
+import { noteData } from '../notes'
 import {
   CODED_PDF_CSS,
   DEFAULT_CODE_COLOUR,
@@ -343,6 +344,62 @@ export async function exportDocumentPdf(source: TextSource, content: string, wit
     return await exportPdfWithHeader(html, fileName, withCodes ? t('codedPdf.dialogTitle') : undefined)
   } catch (e) {
     console.error('PDF export failed:', e)
+    window.alert(t('codedPdf.failed', { detail: e instanceof Error ? e.message : String(e) }))
+    return null
+  }
+}
+
+// ── Notebooks ──────────────────────────────────────────────────────
+
+/**
+ * A whole notebook in one PDF: each note's title and date, then its text,
+ * in the order given (the notebook's, newest first). With codes, the
+ * coded segments are marked as in a single note's export, after a list of
+ * the codes used across the notebook.
+ */
+export function buildNotebookPdfHtml(
+  notebookName: string,
+  notes: TextSource[],
+  contents: Record<string, string>,
+  withCodes = true
+): string {
+  const lookup = withCodes ? codeLookup() : new Map<string, CodeRef>()
+  const body = notes.map((note) => {
+    const data = noteData(note)
+    const title = data.title.trim() || t('notes.untitled')
+    const date = new Date(data.noteDateTime)
+    const when = isNaN(date.getTime()) ? '' : formatDateTime(date)
+    return `<div class="nb-note"><div class="nb-head"><div class="nb-title">${escHtml(title)}</div>` +
+      (when ? `<div class="nb-date">${escHtml(when)}</div>` : '') + '</div>' +
+      codedTextHtml(contents[note.guid] ?? '', textSegments(note.selections, lookup)) + '</div>'
+  }).join('\n')
+  const notesHtml = `<div class="nb-notes">${body}</div>`
+  const subtitle = escHtml(t('codedPdf.notebookSubtitle', { count: notes.length, date: formatDateTime(new Date()) }))
+  const coded = notes.flatMap((n) => n.selections).filter((s) => codesOf(s, lookup).length > 0)
+  return buildPdfDocument({
+    title: notebookName,
+    subtitle,
+    body: withCodes
+      ? legendHtml(t('codedPdf.codes'), legendEntries(coded, lookup)) + notesHtml
+      : `<div class="no-codes">${notesHtml}</div>`,
+    extraCss: CODED_PDF_CSS
+  })
+}
+
+/** Ask where to save, then write the notebook's PDF. Returns the saved path. */
+export async function exportNotebookPdf(
+  notebookName: string,
+  notes: TextSource[],
+  contents: Record<string, string>,
+  withCodes: boolean
+): Promise<string | null> {
+  try {
+    const html = buildNotebookPdfHtml(notebookName, notes, contents, withCodes)
+    const name = withCodes ? t('codedPdf.fileName', { name: notebookName }) : notebookName
+    const fileName = name.replace(/[\\/:*?"<>|]/g, '').trim() || notebookName
+    return await exportPdfWithHeader(html, fileName, withCodes ? t('codedPdf.dialogTitle') : undefined)
+  } catch (e) {
+    console.error('Notebook PDF export failed:', e)
     window.alert(t('codedPdf.failed', { detail: e instanceof Error ? e.message : String(e) }))
     return null
   }

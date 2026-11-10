@@ -332,6 +332,7 @@
     "documents.deleteFolder": "Delete Folder",
     "documents.renameNotebook": "Rename Notebook",
     "documents.renameFolder": "Rename Folder",
+    "documents.notebook": "Notebook",
     "survey.respondents": "Respondents",
     "survey.respondentsDragTitle": "Drag onto an analysis tool's Grouped by box to group results by respondent",
     "survey.respondentId": "RespondentID: {{id}}",
@@ -593,6 +594,17 @@
     "notes.titleLabel": "Note title",
     "notes.dateTime": "Date and time of the observation",
     "notes.placeholder": "Write your observation…",
+    "notebook.noteCount_one": "{{count}} note",
+    "notebook.noteCount_other": "{{count}} notes",
+    "notebook.dateRange": "{{from}} – {{to}}",
+    "notebook.exportCodedTitle": "Export every note in this notebook as one PDF, with the coded segments highlighted and labelled",
+    "notebook.exportPlainTitle": "Export every note in this notebook as one PDF",
+    "notebook.empty": "This notebook has no notes yet. Click New note to write one.",
+    "notebook.colDate": "Date",
+    "notebook.colTitle": "Title",
+    "notebook.colWords": "Words",
+    "notebook.colCoded": "Coded segments",
+    "notebook.openNote": "Open this note",
     "media.rewind": "Rewind (hold to repeat)",
     "media.play": "Play",
     "media.pause": "Pause",
@@ -1472,6 +1484,8 @@
     "codedPdf.page": "Page {{page}}",
     "codedPdf.noPdfData": "The PDF's contents couldn't be found.",
     "codedPdf.noImageData": "The image's contents couldn't be found.",
-    "codedPdf.failed": "The PDF couldn't be exported.\n\n{{detail}}"
+    "codedPdf.failed": "The PDF couldn't be exported.\n\n{{detail}}",
+    "codedPdf.notebookSubtitle_one": "{{count}} note — exported {{date}}",
+    "codedPdf.notebookSubtitle_other": "{{count}} notes — exported {{date}}"
   }
 }

@@ -403,7 +403,8 @@
     "deleteNotebook": "Eliminar caderno",
     "deleteFolder": "Eliminar pasta",
     "renameNotebook": "Renomear caderno",
-    "renameFolder": "Renomear pasta"
+    "renameFolder": "Renomear pasta",
+    "notebook": "Caderno"
   },
   "survey": {
     "respondents": "Respondentes",
@@ -711,6 +712,20 @@
     "titleLabel": "Título da nota",
     "dateTime": "Data e hora da observação",
     "placeholder": "Escreva a sua observação…"
+  },
+  "notebook": {
+    "noteCount_one": "{{count}} nota",
+    "noteCount_many": "{{count}} de notas",
+    "noteCount_other": "{{count}} notas",
+    "dateRange": "{{from}} – {{to}}",
+    "exportCodedTitle": "Exportar todas as notas deste caderno num único PDF, com os segmentos codificados realçados e identificados",
+    "exportPlainTitle": "Exportar todas as notas deste caderno num único PDF",
+    "empty": "Este caderno ainda não tem notas. Clique em «Nova nota» para escrever uma.",
+    "colDate": "Data",
+    "colTitle": "Título",
+    "colWords": "Palavras",
+    "colCoded": "Segmentos codificados",
+    "openNote": "Abrir esta nota"
   },
   "media": {
     "rewind": "Retroceder (mantenha pressionado para repetir)",
@@ -1782,6 +1797,9 @@
     "page": "Página {{page}}",
     "noPdfData": "O conteúdo do PDF não foi encontrado.",
     "noImageData": "O conteúdo da imagem não foi encontrado.",
-    "failed": "Não foi possível exportar o PDF.\n\n{{detail}}"
+    "failed": "Não foi possível exportar o PDF.\n\n{{detail}}",
+    "notebookSubtitle_one": "{{count}} nota — exportado em {{date}}",
+    "notebookSubtitle_many": "{{count}} de notas — exportado em {{date}}",
+    "notebookSubtitle_other": "{{count}} notas — exportado em {{date}}"
   }
 }

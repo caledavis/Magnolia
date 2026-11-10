@@ -403,7 +403,8 @@
     "deleteNotebook": "Supprimer le carnet",
     "deleteFolder": "Supprimer le dossier",
     "renameNotebook": "Renommer le carnet",
-    "renameFolder": "Renommer le dossier"
+    "renameFolder": "Renommer le dossier",
+    "notebook": "Carnet"
   },
   "survey": {
     "respondents": "Répondants",
@@ -711,6 +712,20 @@
     "titleLabel": "Titre de la note",
     "dateTime": "Date et heure de l’observation",
     "placeholder": "Écrivez votre observation…"
+  },
+  "notebook": {
+    "noteCount_one": "{{count}} note",
+    "noteCount_many": "{{count}} de notes",
+    "noteCount_other": "{{count}} notes",
+    "dateRange": "{{from}} – {{to}}",
+    "exportCodedTitle": "Exporter toutes les notes de ce carnet dans un seul PDF, avec les segments codés surlignés et étiquetés",
+    "exportPlainTitle": "Exporter toutes les notes de ce carnet dans un seul PDF",
+    "empty": "Ce carnet ne contient encore aucune note. Cliquez sur « Nouvelle note » pour en écrire une.",
+    "colDate": "Date",
+    "colTitle": "Titre",
+    "colWords": "Mots",
+    "colCoded": "Segments codés",
+    "openNote": "Ouvrir cette note"
   },
   "media": {
     "rewind": "Retour arrière (maintenir pour répéter)",
@@ -1782,6 +1797,9 @@
     "page": "Page {{page}}",
     "noPdfData": "Le contenu du PDF est introuvable.",
     "noImageData": "Le contenu de l’image est introuvable.",
-    "failed": "Impossible d’exporter le PDF.\n\n{{detail}}"
+    "failed": "Impossible d’exporter le PDF.\n\n{{detail}}",
+    "notebookSubtitle_one": "{{count}} note — exporté le {{date}}",
+    "notebookSubtitle_many": "{{count}} de notes — exporté le {{date}}",
+    "notebookSubtitle_other": "{{count}} notes — exporté le {{date}}"
   }
 }

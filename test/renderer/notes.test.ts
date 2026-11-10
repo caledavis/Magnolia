@@ -3,7 +3,7 @@ import { useDocumentStore } from '../../src/renderer/stores/document-store'
 import { useMemoStore } from '../../src/renderer/stores/memo-store'
 import { useQuoteStore } from '../../src/renderer/stores/quote-store'
 import { useProjectStore } from '../../src/renderer/stores/project-store'
-import { formatNoteStamp, noteName, sortNotes, toDateTimeLocal, fromDateTimeLocal, continueListEdit } from '../../src/renderer/utils/notes'
+import { formatNoteStamp, noteName, sortNotes, toDateTimeLocal, fromDateTimeLocal, continueListEdit, notePreview } from '../../src/renderer/utils/notes'
 import type { TextSource } from '../../src/renderer/models/types'
 import { getFormat } from '../../src/renderer/utils/format-registry'
 import { categoryOfSource } from '../../src/renderer/utils/document-graph'
@@ -187,5 +187,21 @@ describe('notes in the Document Selector', () => {
   it('are their own document type', () => {
     expect(categoryOfSource({ name: '261027 14:32 - Market.mp3', sourceType: 'note' })).toBe('note')
     expect(categoryOfSource({ name: 'interview.txt' })).toBe('document')
+  })
+})
+
+describe('notePreview', () => {
+  it('takes the Markdown out and runs the lines together', () => {
+    expect(notePreview('# Arrivals\n\n- Most came in **pairs**.\n> Quiet, [see map](x.png)\n1. `one`'))
+      .toBe('Arrivals Most came in pairs. Quiet, see map one')
+  })
+  it('cuts a long note at a word, with an ellipsis', () => {
+    const text = 'word '.repeat(100)
+    const out = notePreview(text, 50)
+    expect(out.endsWith('word…')).toBe(true)
+    expect([...out].length).toBeLessThanOrEqual(51)
+  })
+  it('is empty for an empty note', () => {
+    expect(notePreview('\n\n')).toBe('')
   })
 })

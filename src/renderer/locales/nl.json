@@ -397,7 +397,8 @@
     "deleteNotebook": "Notitieboek verwijderen",
     "deleteFolder": "Map verwijderen",
     "renameNotebook": "Naam van notitieboek wijzigen",
-    "renameFolder": "Naam van map wijzigen"
+    "renameFolder": "Naam van map wijzigen",
+    "notebook": "Notitieboek"
   },
   "survey": {
     "respondents": "Respondenten",
@@ -689,6 +690,19 @@
     "titleLabel": "Titel van de notitie",
     "dateTime": "Datum en tijd van de waarneming",
     "placeholder": "Schrijf je waarneming op…"
+  },
+  "notebook": {
+    "noteCount_one": "{{count}} notitie",
+    "noteCount_other": "{{count}} notities",
+    "dateRange": "{{from}} – {{to}}",
+    "exportCodedTitle": "Alle notities in dit notitieboek exporteren als één pdf, met de gecodeerde segmenten gemarkeerd en gelabeld",
+    "exportPlainTitle": "Alle notities in dit notitieboek exporteren als één pdf",
+    "empty": "Dit notitieboek heeft nog geen notities. Klik op \"Nieuwe notitie\" om er een te schrijven.",
+    "colDate": "Datum",
+    "colTitle": "Titel",
+    "colWords": "Woorden",
+    "colCoded": "Gecodeerde segmenten",
+    "openNote": "Deze notitie openen"
   },
   "media": {
     "rewind": "Terugspoelen (ingedrukt houden om te herhalen)",
@@ -1716,6 +1730,8 @@
     "page": "Pagina {{page}}",
     "noPdfData": "De inhoud van de pdf is niet gevonden.",
     "noImageData": "De inhoud van de afbeelding is niet gevonden.",
-    "failed": "De pdf kon niet worden geëxporteerd.\n\n{{detail}}"
+    "failed": "De pdf kon niet worden geëxporteerd.\n\n{{detail}}",
+    "notebookSubtitle_one": "{{count}} notitie — geëxporteerd op {{date}}",
+    "notebookSubtitle_other": "{{count}} notities — geëxporteerd op {{date}}"
   }
 }

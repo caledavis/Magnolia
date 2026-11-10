@@ -44,6 +44,28 @@ export function sortNotes(notes: TextSource[]): TextSource[] {
   return [...notes].sort((a, b) => noteData(b).noteDateTime.localeCompare(noteData(a).noteDateTime))
 }
 
+/**
+ * The start of a note's text as plain prose, for a preview: Markdown
+ * markers (headings, lists, quotes, emphasis, code, links) taken out and
+ * lines run together, cut at `max` characters on a word boundary.
+ */
+export function notePreview(text: string, max = 200): string {
+  const plain = text
+    .split('\n')
+    .map((line) => line
+      .replace(/^\s*(?:#{1,6}\s+|>\s?|[-*+]\s+(?:\[[ xX]\]\s+)?|\d+[.)]\s+)/, '')
+      .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/(\*\*|__|\*|_|~~|`)(.+?)\1/g, '$2')
+      .trim())
+    .filter(Boolean)
+    .join(' ')
+  const cps = [...plain]
+  if (cps.length <= max) return plain
+  const cut = cps.slice(0, max).join('')
+  const space = cut.lastIndexOf(' ')
+  return (space > max * 0.6 ? cut.slice(0, space) : cut).replace(/[\s.,;:]+$/, '') + '…'
+}
+
 /** ISO timestamp → the value a <input type="datetime-local"> expects. */
 export function toDateTimeLocal(iso: string): string {
   const d = new Date(iso)

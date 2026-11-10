@@ -73,6 +73,7 @@ export type PersistedTab =
       title: string
       adhocConfig?: any
     }
+  | { id: string; kind: 'notebook'; folderGuid: string }
 
 export interface User {
   guid: string

@@ -397,7 +397,8 @@
     "deleteNotebook": "Notizbuch löschen",
     "deleteFolder": "Ordner löschen",
     "renameNotebook": "Notizbuch umbenennen",
-    "renameFolder": "Ordner umbenennen"
+    "renameFolder": "Ordner umbenennen",
+    "notebook": "Notizbuch"
   },
   "survey": {
     "respondents": "Befragte",
@@ -689,6 +690,19 @@
     "titleLabel": "Titel der Notiz",
     "dateTime": "Datum und Uhrzeit der Beobachtung",
     "placeholder": "Beschreiben Sie Ihre Beobachtung …"
+  },
+  "notebook": {
+    "noteCount_one": "{{count}} Notiz",
+    "noteCount_other": "{{count}} Notizen",
+    "dateRange": "{{from}} – {{to}}",
+    "exportCodedTitle": "Alle Notizen dieses Notizbuchs als ein PDF exportieren, mit hervorgehobenen und beschrifteten codierten Segmenten",
+    "exportPlainTitle": "Alle Notizen dieses Notizbuchs als ein PDF exportieren",
+    "empty": "Dieses Notizbuch enthält noch keine Notizen. Klicken Sie auf „Neue Notiz“, um eine zu schreiben.",
+    "colDate": "Datum",
+    "colTitle": "Titel",
+    "colWords": "Wörter",
+    "colCoded": "Codierte Segmente",
+    "openNote": "Diese Notiz öffnen"
   },
   "media": {
     "rewind": "Zurück (gedrückt halten zum Wiederholen)",
@@ -1716,6 +1730,8 @@
     "page": "Seite {{page}}",
     "noPdfData": "Der Inhalt der PDF-Datei wurde nicht gefunden.",
     "noImageData": "Der Inhalt des Bildes wurde nicht gefunden.",
-    "failed": "Die PDF-Datei konnte nicht exportiert werden.\n\n{{detail}}"
+    "failed": "Die PDF-Datei konnte nicht exportiert werden.\n\n{{detail}}",
+    "notebookSubtitle_one": "{{count}} Notiz – exportiert am {{date}}",
+    "notebookSubtitle_other": "{{count}} Notizen – exportiert am {{date}}"
   }
 }

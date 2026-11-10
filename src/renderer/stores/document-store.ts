@@ -5,7 +5,7 @@ import { useProjectStore } from './project-store'
 import { useMemoStore } from './memo-store'
 import { useQuoteStore } from './quote-store'
 import { deriveLineAnchorsFromTimeRange, deriveVideoTimeRange, lineStartOffsets, lineForChar } from '../components/DocumentViewer/video-time-utils'
-import { isToolTab } from '../utils/tab-ids'
+import { isToolTab, makeNotebookTabId } from '../utils/tab-ids'
 import { computeTextEdit, adjustRange } from '../utils/text-edit-offsets'
 import { promotedArchiveHandle, mediaPathField } from '../utils/binary-handles'
 import { makeHmrSafe } from './hmr-preserve'
@@ -729,11 +729,17 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
       for (const [sg, fg] of Object.entries(newSourceFolder)) {
         if (toRemove.has(fg)) delete newSourceFolder[sg]
       }
+      // A deleted notebook's overview tab closes with it.
+      const goneTabs = new Set([...toRemove].map(makeNotebookTabId))
+      const openTabs = state.openTabs.filter((g) => !goneTabs.has(g))
+      const viewedGone = !!state.viewedDocumentGuid && goneTabs.has(state.viewedDocumentGuid)
       return {
         folders: state.folders
           .filter((f) => !toRemove.has(f.guid))
           .map((f) => (rehome.has(f.guid) ? { ...f, parentGuid: null } : f)),
-        sourceFolder: newSourceFolder
+        sourceFolder: newSourceFolder,
+        openTabs,
+        viewedDocumentGuid: viewedGone ? (openTabs[openTabs.length - 1] ?? null) : state.viewedDocumentGuid
       }
     })
     useProjectStore.getState().markDirty()

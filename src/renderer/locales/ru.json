@@ -409,7 +409,8 @@
     "deleteNotebook": "Удалить блокнот",
     "deleteFolder": "Удалить папку",
     "renameNotebook": "Переименовать блокнот",
-    "renameFolder": "Переименовать папку"
+    "renameFolder": "Переименовать папку",
+    "notebook": "Блокнот"
   },
   "survey": {
     "respondents": "Респонденты",
@@ -733,6 +734,21 @@
     "titleLabel": "Название записи",
     "dateTime": "Дата и время наблюдения",
     "placeholder": "Опишите наблюдение…"
+  },
+  "notebook": {
+    "noteCount_one": "{{count}} запись",
+    "noteCount_few": "{{count}} записи",
+    "noteCount_many": "{{count}} записей",
+    "noteCount_other": "{{count}} записи",
+    "dateRange": "{{from}} – {{to}}",
+    "exportCodedTitle": "Экспортировать все записи этого блокнота в один PDF, с выделенными и подписанными закодированными фрагментами",
+    "exportPlainTitle": "Экспортировать все записи этого блокнота в один PDF",
+    "empty": "В этом блокноте пока нет записей. Чтобы добавить запись, нажмите «Новая запись».",
+    "colDate": "Дата",
+    "colTitle": "Название",
+    "colWords": "Слова",
+    "colCoded": "Закодированные фрагменты",
+    "openNote": "Открыть эту запись"
   },
   "media": {
     "rewind": "Назад (удерживайте для повтора)",
@@ -1848,6 +1864,10 @@
     "page": "Страница {{page}}",
     "noPdfData": "Не удалось найти содержимое PDF.",
     "noImageData": "Не удалось найти содержимое изображения.",
-    "failed": "Не удалось экспортировать PDF.\n\n{{detail}}"
+    "failed": "Не удалось экспортировать PDF.\n\n{{detail}}",
+    "notebookSubtitle_one": "{{count}} запись — экспортировано {{date}}",
+    "notebookSubtitle_few": "{{count}} записи — экспортировано {{date}}",
+    "notebookSubtitle_many": "{{count}} записей — экспортировано {{date}}",
+    "notebookSubtitle_other": "{{count}} записи — экспортировано {{date}}"
   }
 }

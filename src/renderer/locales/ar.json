@@ -421,7 +421,8 @@
     "deleteNotebook": "حذف الدفتر",
     "deleteFolder": "حذف المجلد",
     "renameNotebook": "إعادة تسمية الدفتر",
-    "renameFolder": "إعادة تسمية المجلد"
+    "renameFolder": "إعادة تسمية المجلد",
+    "notebook": "دفتر"
   },
   "survey": {
     "respondents": "المستجيبون",
@@ -777,6 +778,23 @@
     "titleLabel": "عنوان الملاحظة",
     "dateTime": "تاريخ الملاحظة ووقتها",
     "placeholder": "اكتب ملاحظتك…"
+  },
+  "notebook": {
+    "noteCount_zero": "لا ملاحظات",
+    "noteCount_one": "ملاحظة واحدة",
+    "noteCount_two": "ملاحظتان",
+    "noteCount_few": "{{count}} ملاحظات",
+    "noteCount_many": "{{count}} ملاحظة",
+    "noteCount_other": "{{count}} ملاحظة",
+    "dateRange": "{{from}} – {{to}}",
+    "exportCodedTitle": "تصدير كل ملاحظات هذا الدفتر في ملف PDF واحد، مع تمييز المقاطع المرمّزة وتسميتها",
+    "exportPlainTitle": "تصدير كل ملاحظات هذا الدفتر في ملف PDF واحد",
+    "empty": "لا يحتوي هذا الدفتر على ملاحظات بعد. انقر «ملاحظة جديدة» لكتابة ملاحظة.",
+    "colDate": "التاريخ",
+    "colTitle": "العنوان",
+    "colWords": "الكلمات",
+    "colCoded": "المقاطع المرمّزة",
+    "openNote": "فتح هذه الملاحظة"
   },
   "media": {
     "rewind": "إرجاع (اضغط باستمرار للتكرار)",
@@ -1980,6 +1998,12 @@
     "page": "الصفحة {{page}}",
     "noPdfData": "تعذّر العثور على محتوى ملف PDF.",
     "noImageData": "تعذّر العثور على محتوى الصورة.",
-    "failed": "تعذّر تصدير ملف PDF.\n\n{{detail}}"
+    "failed": "تعذّر تصدير ملف PDF.\n\n{{detail}}",
+    "notebookSubtitle_zero": "لا ملاحظات — صُدِّر في {{date}}",
+    "notebookSubtitle_one": "ملاحظة واحدة — صُدِّر في {{date}}",
+    "notebookSubtitle_two": "ملاحظتان — صُدِّر في {{date}}",
+    "notebookSubtitle_few": "{{count}} ملاحظات — صُدِّر في {{date}}",
+    "notebookSubtitle_many": "{{count}} ملاحظة — صُدِّر في {{date}}",
+    "notebookSubtitle_other": "{{count}} ملاحظة — صُدِّر في {{date}}"
   }
 }

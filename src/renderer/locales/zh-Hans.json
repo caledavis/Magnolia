@@ -391,7 +391,8 @@
     "deleteNotebook": "删除笔记本",
     "deleteFolder": "删除文件夹",
     "renameNotebook": "重命名笔记本",
-    "renameFolder": "重命名文件夹"
+    "renameFolder": "重命名文件夹",
+    "notebook": "笔记本"
   },
   "survey": {
     "respondents": "受访者",
@@ -667,6 +668,18 @@
     "titleLabel": "笔记标题",
     "dateTime": "观察的日期和时间",
     "placeholder": "写下您的观察…"
+  },
+  "notebook": {
+    "noteCount_other": "{{count}} 条笔记",
+    "dateRange": "{{from}} – {{to}}",
+    "exportCodedTitle": "将此笔记本中的所有笔记导出为一个 PDF，并突出显示和标注已编码片段",
+    "exportPlainTitle": "将此笔记本中的所有笔记导出为一个 PDF",
+    "empty": "此笔记本还没有笔记。点击“新笔记”来写一条。",
+    "colDate": "日期",
+    "colTitle": "标题",
+    "colWords": "字数",
+    "colCoded": "已编码片段",
+    "openNote": "打开此笔记"
   },
   "media": {
     "rewind": "后退（按住重复）",
@@ -1650,6 +1663,7 @@
     "page": "第 {{page}} 页",
     "noPdfData": "找不到 PDF 的内容。",
     "noImageData": "找不到图像的内容。",
-    "failed": "无法导出 PDF。\n\n{{detail}}"
+    "failed": "无法导出 PDF。\n\n{{detail}}",
+    "notebookSubtitle_other": "{{count}} 条笔记——导出于 {{date}}"
   }
 }

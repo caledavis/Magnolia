@@ -397,7 +397,8 @@
     "deleteNotebook": "Poista muistikirja",
     "deleteFolder": "Poista kansio",
     "renameNotebook": "Nimeä muistikirja uudelleen",
-    "renameFolder": "Nimeä kansio uudelleen"
+    "renameFolder": "Nimeä kansio uudelleen",
+    "notebook": "Muistikirja"
   },
   "survey": {
     "respondents": "Vastaajat",
@@ -689,6 +690,19 @@
     "titleLabel": "Muistiinpanon otsikko",
     "dateTime": "Havainnon päivämäärä ja aika",
     "placeholder": "Kirjoita havaintosi…"
+  },
+  "notebook": {
+    "noteCount_one": "{{count}} muistiinpano",
+    "noteCount_other": "{{count}} muistiinpanoa",
+    "dateRange": "{{from}} – {{to}}",
+    "exportCodedTitle": "Vie kaikki tämän muistikirjan muistiinpanot yhteen PDF-tiedostoon, koodatut segmentit korostettuina ja nimettyinä",
+    "exportPlainTitle": "Vie kaikki tämän muistikirjan muistiinpanot yhteen PDF-tiedostoon",
+    "empty": "Tässä muistikirjassa ei ole vielä muistiinpanoja. Kirjoita sellainen napsauttamalla ”Uusi muistiinpano”.",
+    "colDate": "Päivämäärä",
+    "colTitle": "Otsikko",
+    "colWords": "Sanat",
+    "colCoded": "Koodatut segmentit",
+    "openNote": "Avaa tämä muistiinpano"
   },
   "media": {
     "rewind": "Taaksepäin (pidä painettuna toistaaksesi)",
@@ -1716,6 +1730,8 @@
     "page": "Sivu {{page}}",
     "noPdfData": "PDF-tiedoston sisältöä ei löytynyt.",
     "noImageData": "Kuvan sisältöä ei löytynyt.",
-    "failed": "PDF-tiedostoa ei voitu viedä.\n\n{{detail}}"
+    "failed": "PDF-tiedostoa ei voitu viedä.\n\n{{detail}}",
+    "notebookSubtitle_one": "{{count}} muistiinpano – viety {{date}}",
+    "notebookSubtitle_other": "{{count}} muistiinpanoa – viety {{date}}"
   }
 }

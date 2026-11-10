@@ -14,6 +14,7 @@ import { buildCellText } from '../../utils/survey/cell-text'
 import { RESPONDENTS_GROUP_MIME } from '../Analysis/group-by'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 import { isNotebook, noteData, sortNotes } from '../../utils/notes'
+import { makeNotebookTabId } from '../../utils/tab-ids'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
 
@@ -177,6 +178,7 @@ function FolderItem({
   const moveFolderToFolder = useDocumentStore((s) => s.moveFolderToFolder)
 
   const notebook = isNotebook(folder)
+  const overviewOpen = notebook && viewedGuid === makeNotebookTabId(folder.guid)
   const childFolders = allFolders.filter((f) => f.parentGuid === folder.guid)
   const inFolder = sources.filter((s) => sourceFolder[s.guid] === folder.guid)
   const childSources = notebook ? sortNotes(inFolder) : inFolder
@@ -199,9 +201,9 @@ function FolderItem({
           paddingInlineStart: 8 + depth * 16,
           cursor: 'pointer',
           borderRadius: 'var(--radius-sm)',
-          background: isDragOver ? 'var(--accent)' : 'transparent',
+          background: isDragOver ? 'var(--accent)' : overviewOpen ? 'var(--selection-bg)' : 'transparent',
           fontSize: 'var(--font-size-sm)',
-          fontWeight: 600,
+          fontWeight: overviewOpen ? 700 : 600,
           outline: isDragOver ? '1px dashed var(--accent-hover)' : 'none',
           opacity: isSearchMatch ? 1 : 0.45,
           transition: 'background 0.1s'
@@ -283,10 +285,20 @@ function FolderItem({
             setExpanded(true)
           }
         }}
-        onClick={() => setExpanded(!expanded)}
+        // A notebook opens on its overview, as a survey opens on its
+        // summary; its arrow folds it. A folder folds wherever it's clicked.
+        onClick={() => {
+          if (notebook) useDocumentStore.getState().openToolTab(makeNotebookTabId(folder.guid))
+          else setExpanded(!expanded)
+        }}
         onContextMenu={(e) => onContextMenuFolder(e, folder.guid)}
+        data-notebook-guid={notebook ? folder.guid : undefined}
       >
-        <Icon icon={effectiveExpanded ? faChevronDown : faChevronRight} style={{ fontSize: 9, flexShrink: 0, width: 10, textAlign: 'center', opacity: 0.6 }} />
+        <Icon
+          icon={effectiveExpanded ? faChevronDown : faChevronRight}
+          style={{ fontSize: 9, flexShrink: 0, width: 10, textAlign: 'center', opacity: 0.6 }}
+          onClick={notebook ? (e: React.MouseEvent) => { e.stopPropagation(); setExpanded(!expanded) } : undefined}
+        />
         <Icon className={PALETTE_ICON_CLASS} icon={notebook ? faNotebookPen : faFolder} style={{ fontSize: 13, flexShrink: 0, width: 16, textAlign: 'center', opacity: 0.75, color: 'var(--text-muted)', ...tint('folder') }} />
         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {folder.name}

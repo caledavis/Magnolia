@@ -397,7 +397,8 @@
     "deleteNotebook": "Delete Notebook",
     "deleteFolder": "Delete Folder",
     "renameNotebook": "Rename Notebook",
-    "renameFolder": "Rename Folder"
+    "renameFolder": "Rename Folder",
+    "notebook": "Notebook"
   },
   "survey": {
     "respondents": "Respondents",
@@ -689,6 +690,19 @@
     "titleLabel": "Note title",
     "dateTime": "Date and time of the observation",
     "placeholder": "Write your observation…"
+  },
+  "notebook": {
+    "noteCount_one": "{{count}} note",
+    "noteCount_other": "{{count}} notes",
+    "dateRange": "{{from}} – {{to}}",
+    "exportCodedTitle": "Export every note in this notebook as one PDF, with the coded segments highlighted and labelled",
+    "exportPlainTitle": "Export every note in this notebook as one PDF",
+    "empty": "This notebook has no notes yet. Click New note to write one.",
+    "colDate": "Date",
+    "colTitle": "Title",
+    "colWords": "Words",
+    "colCoded": "Coded segments",
+    "openNote": "Open this note"
   },
   "media": {
     "rewind": "Rewind (hold to repeat)",
@@ -1716,6 +1730,8 @@
     "page": "Page {{page}}",
     "noPdfData": "The PDF's contents couldn't be found.",
     "noImageData": "The image's contents couldn't be found.",
-    "failed": "The PDF couldn't be exported.\n\n{{detail}}"
+    "failed": "The PDF couldn't be exported.\n\n{{detail}}",
+    "notebookSubtitle_one": "{{count}} note — exported {{date}}",
+    "notebookSubtitle_other": "{{count}} notes — exported {{date}}"
   }
 }

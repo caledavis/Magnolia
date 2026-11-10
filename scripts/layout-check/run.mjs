@@ -16,8 +16,8 @@
  *               CSV, and a PDF of text in several scripts
  *   document-bar every document's bar at three widths: controls that
  *               spill out of it, or a bar that wraps
- *   coded-pdf   exports every document in the project from its Export menu,
- *               as a PDF with its codes and without
+ *   coded-pdf   exports every document and notebook in the project from its
+ *               Export menu, as a PDF with its codes and without
  *   rtl-ui      the main window, a tool and a document forced right to left
  *   rtl-text    imports and opens a mixed Arabic and English document
  *   screenshot  the main window with a document open

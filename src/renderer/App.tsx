@@ -65,7 +65,7 @@ import { flushViewPositions } from './stores/view-position-store'
 import { useRelationshipMapStore } from './stores/relationship-map-store'
 import { useSurveyViewStore } from './stores/survey-view-store'
 import { useAnalysisTabsStore } from './stores/analysis-tabs-store'
-import { isAnalysisTab, isMapTab, isQueryBuilderTab, isMergeTab, makeAnalysisTabId, makeMapTabId, makeQueryBuilderTabId, mapGuidFromTabId, parseAnalysisTabId, PREFERENCES_TAB_ID, MERGE_TAB_ID } from './utils/tab-ids'
+import { isAnalysisTab, isMapTab, isQueryBuilderTab, isMergeTab, isNotebookTab, notebookGuidFromTabId, makeAnalysisTabId, makeMapTabId, makeQueryBuilderTabId, mapGuidFromTabId, parseAnalysisTabId, PREFERENCES_TAB_ID, MERGE_TAB_ID } from './utils/tab-ids'
 import { requestPreferencesCategory } from './components/Preferences/PreferencesWindow'
 import type { PersistedTab, PersistedTabState, MissingBinary, CheckoutMarker } from './models/types'
 import { MissingBinariesBanner } from './components/MissingBinariesBanner'
@@ -676,6 +676,9 @@ function App() {
           adhocConfig: inst?.config
         }
       }
+      if (isNotebookTab(id)) {
+        return { id, kind: 'notebook', folderGuid: notebookGuidFromTabId(id) ?? '' }
+      }
       return { id, kind: 'document' }
     })
     const tabState: PersistedTabState = {
@@ -755,6 +758,11 @@ function App() {
     const newInstances: Record<string, import('./stores/analysis-tabs-store').AnalysisTabInstance> = {}
     for (const t of tabState.openTabs ?? []) {
       if (t.kind === 'document') continue
+      if (t.kind === 'notebook') {
+        // Keep a notebook's overview tab while the notebook exists.
+        if (ds.folders.some((f) => f.guid === t.folderGuid && f.kind === 'notebook')) validToolTabIds.add(t.id)
+        continue
+      }
       if (t.kind === 'map') {
         // Maps are restored via the relationship-map-store. Only keep the
         // tab if the underlying map record is in the store (loaded earlier

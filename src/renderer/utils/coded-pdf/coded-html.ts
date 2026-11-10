@@ -283,6 +283,11 @@ export const CODED_PDF_CSS = `
   .pg-img img { display: block; width: 100%; border: 1px solid #ddd; }
   .pg-labels { position: relative; flex: 1; min-width: 0; }
   .pl { position: absolute; left: 0; right: 0; }
+  .nb-note { margin: 0 0 22px; padding-top: 12px; border-top: 1px solid #ddd; }
+  .nb-note:first-child { border-top: none; padding-top: 0; }
+  .nb-head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 6px; break-after: avoid; page-break-after: avoid; }
+  .nb-title { font-size: 14px; font-weight: 600; }
+  .nb-date { font-size: 10.5px; color: #888; }
   .resp { font-size: 14px; font-weight: 600; margin: 22px 0 6px; padding-bottom: 3px; border-bottom: 1px solid #ddd; break-after: avoid; page-break-after: avoid; }
   .q { font-size: 10.5px; font-weight: 600; color: #555; margin: 10px 0 2px; break-after: avoid; page-break-after: avoid; }
 `

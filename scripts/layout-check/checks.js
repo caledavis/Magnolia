@@ -281,11 +281,11 @@
       }
     },
 
-    // Every document in the project exported from its Export menu as a
-    // PDF with its codes, then as a PDF without them.
+    // Every document and notebook in the project exported from its Export
+    // menu as a PDF with its codes, then as a PDF without them.
     async 'coded-pdf'() {
       await setSize(1400, 1000); await sleep(1200)
-      const rows = [...document.querySelectorAll('[data-document-guid]')]
+      const rows = [...document.querySelectorAll('[data-document-guid], [data-notebook-guid]')]
       for (const row of rows) {
         const name = row.textContent.trim()
         await open(row); await sleep(1500)
