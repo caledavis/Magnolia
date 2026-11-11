@@ -190,7 +190,7 @@
       "description": "Bekijk welke documenten welke queryresultaten bevatten"
     },
     "codeCooccurrences": {
-      "label": "Code-co-occurrences",
+      "label": "Gelijktijdig voorkomende codes",
       "description": "Bekijk welke codes elkaar overlappen"
     },
     "codeFrequencies": {
