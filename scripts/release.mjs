@@ -102,8 +102,10 @@ function collect(platform) {
     copy(findOne(join(bundle, 'appimage'), /\.AppImage\.sig$/), 'Magnolia-linux-x86_64.AppImage.sig')
     copy(findOne(join(bundle, 'deb'), /\.deb$/), 'Magnolia-linux-amd64.deb')
     copy(findOne(join(bundle, 'deb'), /\.deb\.sig$/), 'Magnolia-linux-amd64.deb.sig')
-    copy(findOne(join(bundle, 'rpm'), /\.rpm$/), 'Magnolia-linux-x86_64.rpm')
-    copy(findOne(join(bundle, 'rpm'), /\.rpm\.sig$/), 'Magnolia-linux-x86_64.rpm.sig')
+    if (!isPrerelease()) {
+      copy(findOne(join(bundle, 'rpm'), /\.rpm$/), 'Magnolia-linux-x86_64.rpm')
+      copy(findOne(join(bundle, 'rpm'), /\.rpm\.sig$/), 'Magnolia-linux-x86_64.rpm.sig')
+    }
   } else {
     throw new Error(`Unknown platform "${platform}" (mac-arm64, mac-x64, win, linux)`)
   }
@@ -183,6 +185,12 @@ function manifests(version, dir, notesFile, baseUrl) {
 }
 
 const version = () => JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')).version
+/**
+ * A test build such as 2.1.0-beta.1. RPM won't accept a hyphen in a version
+ * and Tauri can't give the .rpm a version of its own, so these builds have
+ * no .rpm: Fedora testers use the AppImage.
+ */
+const isPrerelease = () => version().includes('-')
 const isWin = process.platform === 'win32'
 
 /** Run a command with its output shown; npm and gh are .cmd files on Windows. */
@@ -281,7 +289,8 @@ function release(platform, upload) {
     }
     for (const target of ['mac-arm64', 'mac-x64']) { console.log(`Collecting ${target}:`); collect(target) }
   } else {
-    run('npm', ['run', 'tauri', 'build'], env)
+    const bundles = platform === 'linux' && isPrerelease() ? ['--', '--bundles', 'appimage,deb'] : []
+    run('npm', ['run', 'tauri', 'build', ...bundles], env)
     console.log(`Collecting ${platform}:`)
     collect(platform)
   }

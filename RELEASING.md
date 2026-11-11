@@ -192,7 +192,9 @@ this way and has both problems.
 The **Release (Linux)** workflow (`.github/workflows/release-linux.yml`)
 builds on Ubuntu 22.04 instead, starts the AppImage on clean Ubuntu 22.04,
 Ubuntu 24.04 and Debian 12 to check it loads, and only then uploads the
-AppImage, `.deb` and `.rpm` to the draft release. Start it with
+AppImage, `.deb` and `.rpm` to the draft release (no `.rpm` for a test
+build such as `2.1.0-beta.1`: RPM doesn't allow a hyphen in a version).
+Start it with
 `npm run release:linux` once the draft exists and your commit is pushed:
 it runs the workflow for GitHub's `main`, follows it in the terminal, and
 stops with the run's link if anything fails. It refuses to start if your
