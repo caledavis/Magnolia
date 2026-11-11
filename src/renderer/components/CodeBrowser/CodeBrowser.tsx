@@ -11,7 +11,6 @@ import { isMac, modKey } from '../../utils/platform'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 import { usePreferencesStore } from '../../stores/preferences-store'
 import { codeColourPresetsFor, useCodeColourPresets } from '../../utils/code-colours'
-import { isSelectionDrag, requestSelectionDrop } from '../../utils/selection-drag'
 
 interface Props {
   onNewCode: () => void
@@ -148,8 +147,6 @@ function CodeTreeItem({
   const [isDragOver, setIsDragOver] = useState(false)
   const [dropPosition, setDropPosition] = useState<'before' | 'child' | 'after'>('child')
   const [showMergeDroplet, setShowMergeDroplet] = useState(false)
-  /** Selected text from a document is being dragged over this code. */
-  const [isSelectionOver, setIsSelectionOver] = useState(false)
   const dragCounterRef = useRef(0)
   const rowRef = useRef<HTMLDivElement>(null)
   const isSelected = selectedCodeGuids.has(code.guid)
@@ -243,17 +240,10 @@ function CodeTreeItem({
             e.preventDefault()
             dragCounterRef.current++
             setIsDragOver(true)
-          } else if (isSelectionDrag(e)) {
-            e.preventDefault()
-            dragCounterRef.current++
-            setIsSelectionOver(true)
           }
         }}
         onDragOver={(e) => {
-          if (isSelectionDrag(e)) {
-            e.preventDefault()
-            e.dataTransfer.dropEffect = 'copy'
-          } else if (e.dataTransfer.types.includes('application/x-magnolia-code-reorder')) {
+          if (e.dataTransfer.types.includes('application/x-magnolia-code-reorder')) {
             e.preventDefault()
             e.dataTransfer.dropEffect = 'move'
             // Compute drop position based on mouse Y
@@ -272,7 +262,6 @@ function CodeTreeItem({
           if (dragCounterRef.current <= 0) {
             dragCounterRef.current = 0
             setIsDragOver(false)
-            setIsSelectionOver(false)
           }
         }}
         onDrop={(e) => {
@@ -282,14 +271,7 @@ function CodeTreeItem({
           dragCounterRef.current = 0
           setIsDragOver(false)
           setShowMergeDroplet(false)
-          setIsSelectionOver(false)
           if (lockedBy) { promptCheckoutLocked(); return }
-
-          // Selected text dropped on this code: code it, as the hotkey would.
-          if (isSelectionDrag(e)) {
-            requestSelectionDrop(e, { kind: 'code', codeGuids: [code.guid] })
-            return
-          }
 
           // Read multi-selection data, fall back to single guid
           const multiData = e.dataTransfer.getData('application/x-magnolia-codes')
@@ -335,13 +317,13 @@ function CodeTreeItem({
           cursor: 'grab',
           borderRadius: 'var(--radius-sm)',
           position: 'relative',
-          background: (isDragOver && dropPosition === 'child') || isSelectionOver
+          background: isDragOver && dropPosition === 'child'
             ? 'var(--accent)'
             : isSelected
               ? 'var(--selection-bg)'
               : 'transparent',
           fontSize: 'var(--font-size-sm)',
-          outline: (isDragOver && dropPosition === 'child') || isSelectionOver ? '1px dashed var(--accent-hover)' : 'none',
+          outline: isDragOver && dropPosition === 'child' ? '1px dashed var(--accent-hover)' : 'none',
           opacity: isSearchMatch ? 1 : 0.45,
           transition: 'background 0.1s'
         }}

@@ -9,7 +9,6 @@ import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { renderPdfRegionThumbnail } from '../../utils/pdf-thumbnail'
 import { renderImageRegionThumbnail } from '../../utils/image-thumbnail'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
-import { isSelectionDrag, requestSelectionDrop } from '../../utils/selection-drag'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
 
@@ -30,9 +29,6 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
   const viewDocumentAt = useDocumentStore((s) => s.viewDocumentAt)
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; guid: string } | null>(null)
-  /** A selection is being dragged over the pane by its grab handle. */
-  const [isSelectionOver, setIsSelectionOver] = useState(false)
-  const dragCounterRef = useRef(0)
   const menuPos = useClampedMenuPosition(contextMenu)
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
   const [searchOpen, setSearchOpen] = useState(false)
@@ -154,37 +150,7 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
   }
 
   return (
-    <div
-      className="panel"
-      style={isSelectionOver ? { outline: '2px dashed var(--accent)', outlineOffset: -2 } : undefined}
-      onDragEnter={(e) => {
-        if (!isSelectionDrag(e)) return
-        e.preventDefault()
-        dragCounterRef.current++
-        setIsSelectionOver(true)
-      }}
-      onDragOver={(e) => {
-        if (!isSelectionDrag(e)) return
-        e.preventDefault()
-        e.dataTransfer.dropEffect = 'copy'
-      }}
-      onDragLeave={() => {
-        dragCounterRef.current--
-        if (dragCounterRef.current <= 0) {
-          dragCounterRef.current = 0
-          setIsSelectionOver(false)
-        }
-      }}
-      onDrop={(e) => {
-        if (!isSelectionDrag(e)) return
-        e.preventDefault()
-        dragCounterRef.current = 0
-        setIsSelectionOver(false)
-        // A selection dragged here by its grab handle: save it as a quote.
-        if (lockedBy) { useProjectStore.getState().promptCheckoutConflict(); return }
-        requestSelectionDrop(e, { kind: 'quote' })
-      }}
-    >
+    <div className="panel">
       <div className="panel-header">
         {searchOpen ? (
           <input

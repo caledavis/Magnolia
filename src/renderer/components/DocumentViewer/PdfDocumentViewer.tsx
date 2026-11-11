@@ -20,9 +20,8 @@ import { usePendingSelectionStore } from '../../stores/pending-selection-store'
 import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
 import { useRememberedScroll } from '../../utils/use-remembered-scroll'
 import { paneScrollKey, type SplitPane } from '../../utils/split-view'
-import { onSelectionDrop } from '../../utils/selection-drag'
-import { SelectionDragHandle, boxSelectionAnchor, textSelectionAnchor } from './SelectionDragHandle'
-import { modKey } from '../../utils/platform'
+import { SelectionMenuButton, boxSelectionAnchor, textSelectionAnchor } from './SelectionMenuButton'
+import { ApplyCodeMenuList } from './ApplyCodeMenuList'
 import { roundRegionToWholePixels } from '../../utils/region-rounding'
 import { useTranslation } from 'react-i18next'
 import { digitKey } from '../../utils/keys'
@@ -272,11 +271,6 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
     }
     return map
   }, [flatCodes])
-  const hotkeyCodes = useMemo(
-    () => flatCodes.filter(({ code }) => code.hotkey !== undefined)
-      .sort((a, b) => (a.code.hotkey ?? 0) - (b.code.hotkey ?? 0)),
-    [flatCodes]
-  )
 
   const pageOffsets: number[] = source.formatData?.pdfPageOffsets || []
   const numPages = pdfDocument ? pdfDocument.numPages : 0
@@ -683,27 +677,8 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
       }
     }
     window.addEventListener('keydown', handleKeyDown)
-    // The selection or box dragged by its grab handle onto a code in the
-    // Code Browser (as its hotkey) or into Saved Quotes (as "Add as
-    // Quote"), box first.
-    const stopSelectionDrop = onSelectionDrop(source.guid, {
-      code: (codeGuid) => {
-        if (pendingBoxSelection) applyCodingToRegion(codeGuid, pendingBoxSelection.pdfRegion)
-        else if (pendingSelection) applyCodingToRange(codeGuid, pendingSelection.startCp, pendingSelection.endCp, pendingSelection.selectedText)
-      },
-      quote: () => {
-        if (pendingBoxSelection) {
-          const r = pendingBoxSelection.pdfRegion
-          useQuoteStore.getState().addQuote(source.guid, source.name, 0, 0, t('viewer.regionPage', { page: r.page }), r)
-          setPendingBoxSelection(null)
-        } else if (pendingSelection) {
-          useQuoteStore.getState().addQuote(source.guid, source.name, pendingSelection.startCp, pendingSelection.endCp, pendingSelection.selectedText)
-        }
-      }
-    })
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
-      stopSelectionDrop()
     }
   }, [active, hotkeyMap, pendingSelection, pendingBoxSelection, applyCodingToRange, applyCodingToRegion, boxDrag, contextMenu, source.guid, source.name])
 
@@ -728,8 +703,8 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
         }
       }}
     >
-      {pendingSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={textSelectionAnchor} />}
-      {pendingBoxSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={boxSelectionAnchor} label={t('viewer.boxSelectionPage', { page: pendingBoxSelection.pdfRegion.page })} />}
+      {pendingSelection && <SelectionMenuButton containerRef={containerRef} anchor={textSelectionAnchor} />}
+      {pendingBoxSelection && <SelectionMenuButton containerRef={containerRef} anchor={boxSelectionAnchor} />}
       {/* Zoom and selection mode, in the document bar. In a split, the
           bar shows the tools of the active half. */}
       {active && (
@@ -952,19 +927,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
           {contextMenu.context.pendingSelection && (
             <>
               <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>{t('viewer.applyCode')}</div>
-              <div style={{ padding: '0 14px 6px', fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4, maxWidth: 220, userSelect: 'none' }}>
-                {t('viewer.applyHint')}
-              </div>
-              {hotkeyCodes.map(({ code }) => (
-                <div key={code.guid} className="context-menu-item" onClick={() => handleApplyCode(code.guid)}>
-                  <span className="color-pip" style={{ background: code.color || '#888' }} />
-                  <span style={{ flex: 1 }}>{code.name}</span>
-                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginInlineStart: 12 }}>{modKey(code.hotkey!)}</span>
-                </div>
-              ))}
-              {hotkeyCodes.length === 0 && (
-                <div className="context-menu-item" style={{ color: 'var(--menu-fg-muted)', pointerEvents: 'none' }}>{t('viewer.noHotkeysShort')}</div>
-              )}
+              <ApplyCodeMenuList codes={flatCodes} onApply={handleApplyCode} />
             </>
           )}
           {contextMenu.context.pendingSelection && contextMenu.context.existingCodings.length > 0 && <div className="context-menu-separator" />}

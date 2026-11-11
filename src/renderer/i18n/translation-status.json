@@ -1,6 +1,79 @@
 {
   "about": "Written by npm run i18n:sync; see scripts/i18n-sync.mjs. \"english\" is en.json at the last sync; \"pending\" lists, per language, the messages waiting for a translator.",
-  "pending": {},
+  "pending": {
+    "ar": {
+      "quotes.emptyHint": {
+        "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
+      },
+      "viewer.selectionMenu": "new"
+    },
+    "de": {
+      "quotes.emptyHint": {
+        "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
+      },
+      "viewer.selectionMenu": "new"
+    },
+    "es": {
+      "quotes.emptyHint": {
+        "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
+      },
+      "viewer.selectionMenu": "new"
+    },
+    "fi": {
+      "quotes.emptyHint": {
+        "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
+      },
+      "viewer.selectionMenu": "new"
+    },
+    "fr": {
+      "quotes.emptyHint": {
+        "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
+      },
+      "viewer.selectionMenu": "new"
+    },
+    "hi": {
+      "quotes.emptyHint": {
+        "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
+      },
+      "viewer.selectionMenu": "new"
+    },
+    "it": {
+      "quotes.emptyHint": {
+        "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
+      },
+      "viewer.selectionMenu": "new"
+    },
+    "nl": {
+      "quotes.emptyHint": {
+        "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
+      },
+      "viewer.selectionMenu": "new"
+    },
+    "pt-BR": {
+      "quotes.emptyHint": {
+        "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
+      },
+      "viewer.selectionMenu": "new"
+    },
+    "pt-PT": {
+      "quotes.emptyHint": {
+        "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
+      },
+      "viewer.selectionMenu": "new"
+    },
+    "ru": {
+      "quotes.emptyHint": {
+        "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
+      },
+      "viewer.selectionMenu": "new"
+    },
+    "zh-Hans": {
+      "quotes.emptyHint": {
+        "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
+      },
+      "viewer.selectionMenu": "new"
+    }
+  },
   "english": {
     "language.name.en": "English",
     "language.name.es": "Español",
@@ -480,7 +553,7 @@
     "quotes.noMatch": "No quotes match \"{{query}}\".",
     "quotes.filter": "Filter quotes",
     "quotes.empty": "No quotes yet.",
-    "quotes.emptyHint": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here.",
+    "quotes.emptyHint": "Right-click a selection in a document, or click the button at its end, and choose \"Add as Quote\".",
     "quotes.copy": "Copy Quote",
     "quotes.delete": "Delete Quote",
     "memos.untitled": "Untitled Memo",
@@ -535,8 +608,6 @@
     "viewer.selectFirst": "Select text first, then drag a code onto it",
     "viewer.newCode": "New Code",
     "viewer.applyCode": "Apply Code",
-    "viewer.applyHint": "To apply any code, select content and drag the code from the Code Browser to the selection.",
-    "viewer.noHotkeys": "No hotkeys assigned — right-click a code to assign one",
     "viewer.removeCode": "Remove Code",
     "viewer.addAsQuote": "Add as Quote",
     "viewer.addSelectionMemo": "Add Selection Memo",
@@ -556,7 +627,6 @@
     "viewer.region": "Region",
     "viewer.regionPage": "Region p{{page}}",
     "viewer.boxSelection": "Box selection",
-    "viewer.boxSelectionPage": "Box selection on page {{page}}",
     "viewer.textSelection": "Text selection",
     "viewer.zoomOut": "Zoom out",
     "viewer.zoomIn": "Zoom in",
@@ -568,12 +638,10 @@
     "viewer.imageUnavailable": "Image file not available",
     "viewer.pdfUnavailable": "PDF file not available",
     "viewer.pageRegion": "Page {{page}} region",
-    "viewer.dragToCode": "Drag onto a code to code this selection",
-    "viewer.selection": "Selection",
+    "viewer.selectionMenu": "Code this selection",
     "viewer.code": "Code",
     "viewer.codeTimeRange": "{{code}} — {{start}} to {{end}}",
     "viewer.removeSelection": "Remove Selection",
-    "viewer.noHotkeysShort": "No hotkeys assigned",
     "viewer.loadingImage": "Loading image…",
     "viewer.loadingPdf": "Loading PDF...",
     "viewer.rendering": "Rendering…",

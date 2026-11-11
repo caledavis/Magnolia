@@ -18,9 +18,8 @@ import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 import { useRememberedScroll } from '../../utils/use-remembered-scroll'
 import { paneScrollKey, type SplitPane } from '../../utils/split-view'
-import { onSelectionDrop } from '../../utils/selection-drag'
-import { SelectionDragHandle, textSelectionAnchor } from './SelectionDragHandle'
-import { modKey } from '../../utils/platform'
+import { SelectionMenuButton, textSelectionAnchor } from './SelectionMenuButton'
+import { ApplyCodeMenuList } from './ApplyCodeMenuList'
 import { CodedTextView, type CodingRightClickContext } from './CodedTextView'
 import type { Code, MemoEditInitData, SourceType, TextSource } from '../../models/types'
 import { useTranslation } from 'react-i18next'
@@ -245,11 +244,6 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
     return map
   }, [flatCodes])
 
-  const hotkeyCodes = useMemo(
-    () => flatCodes.filter(({ code }) => code.hotkey !== undefined)
-      .sort((a, b) => (a.code.hotkey ?? 0) - (b.code.hotkey ?? 0)),
-    [flatCodes]
-  )
 
   const applyCodingToRange = useCallback(
     (codeGuid: string, startCp: number, endCp: number, text: string) => {
@@ -377,20 +371,8 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
       applyCodingToRange(code.guid, startCp, endCp, selectedText)
     }
     window.addEventListener('keydown', handleKeyDown)
-    // The selection dragged by its grab handle onto a code in the Code
-    // Browser (as its hotkey) or into Saved Quotes (as "Add as Quote").
-    // Both have already checked the checkout lock.
-    const stopSelectionDrop = onSelectionDrop(sourceGuid, {
-      code: (codeGuid) => {
-        if (pendingSelection) applyCodingToRange(codeGuid, pendingSelection.startCp, pendingSelection.endCp, pendingSelection.selectedText)
-      },
-      quote: () => {
-        if (pendingSelection) useQuoteStore.getState().addQuote(sourceGuid, source.name, pendingSelection.startCp, pendingSelection.endCp, pendingSelection.selectedText)
-      }
-    })
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
-      stopSelectionDrop()
     }
   }, [active, hotkeyMap, pendingSelection, applyCodingToRange, lockedBy, sourceGuid, source.name])
 
@@ -464,7 +446,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
           }
         }}
       >
-        {pendingSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={sourceGuid} anchor={textSelectionAnchor} />}
+        {pendingSelection && <SelectionMenuButton containerRef={containerRef} anchor={textSelectionAnchor} />}
         {isNote ? (
           <CodedTextView
             text={content}
@@ -557,7 +539,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
             {t('viewer.newCode')}
           </div>
           <div className="context-menu-separator" />
-          {/* If there's a pending text selection, show hotkeyed codes for quick apply */}
+          {/* If there's a pending text selection, list every code to apply */}
           {contextMenu.context.pendingSelection && (
             <>
               <div
@@ -571,46 +553,14 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
               >
                 {t('viewer.applyCode')}
               </div>
-              <div
-                style={{
-                  padding: '0 14px 6px',
-                  fontSize: 11,
-                  color: 'var(--text-muted)',
-                  lineHeight: 1.4,
-                  maxWidth: 220,
-                  userSelect: 'none'
+              <ApplyCodeMenuList
+                codes={flatCodes}
+                itemTitle={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
+                onApply={(guid) => {
+                  if (lockedBy) { promptCheckoutLocked(); return }
+                  handleApplyCodeFromMenu(guid)
                 }}
-              >
-                {t('viewer.applyHint')}
-              </div>
-              {hotkeyCodes.map(({ code }) => (
-                <div
-                  key={code.guid}
-                  className="context-menu-item"
-                  title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
-                  onClick={() => {
-                    if (lockedBy) { promptCheckoutLocked(); return }
-                    handleApplyCodeFromMenu(code.guid)
-                  }}
-                >
-                  <span
-                    className="color-pip"
-                    style={{ background: code.color || '#888' }}
-                  />
-                  <span style={{ flex: 1 }}>{code.name}</span>
-                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginInlineStart: 12 }}>
-                    {modKey(code.hotkey!)}
-                  </span>
-                </div>
-              ))}
-              {hotkeyCodes.length === 0 && (
-                <div
-                  className="context-menu-item"
-                  style={{ color: 'var(--text-muted)', pointerEvents: 'none' }}
-                >
-                  {t('viewer.noHotkeys')}
-                </div>
-              )}
+              />
             </>
           )}
 

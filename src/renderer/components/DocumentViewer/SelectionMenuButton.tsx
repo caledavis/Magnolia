@@ -1,7 +1,7 @@
 /**
- * SelectionDragHandle — a grab handle on the end of the pending selection (or the
- * corner of the pending box) that the reader drags onto a code in the Code
- * Browser to code the selection. See utils/selection-drag.ts.
+ * SelectionMenuButton — a chevron button on the end of the pending selection
+ * (or the corner of the pending box). Clicking it opens the selection's
+ * context menu, as right-clicking the selection would.
  *
  * It's drawn in document.body at a fixed position, so no viewer's overflow
  * clips it, and follows its anchor every frame: the anchor moves when the
@@ -12,14 +12,13 @@
 import { useEffect, useRef } from 'react'
 import type React from 'react'
 import { createPortal } from 'react-dom'
-import { Icon, faHand } from '../Icon'
-import { startSelectionDrag } from '../../utils/selection-drag'
+import { Icon, faChevronDown } from '../Icon'
 import { useTranslation } from 'react-i18next'
 
 const SIZE = 18
 
-/** Where the handle's centre goes, in client coordinates, or null to hide it. */
-export type HandleAnchor = (container: HTMLElement) => { x: number; y: number } | null
+/** Where the button's centre goes, in client coordinates, or null to hide it. */
+export type MenuButtonAnchor = (container: HTMLElement) => { x: number; y: number } | null
 
 /** The last character of a range, or its last box if that has no width
  *  (a range ending at a line break). */
@@ -63,7 +62,7 @@ function focusPoint(sel: Selection): { x: number; y: number } | null {
 
 /** Centred on the end of the selection in `container`, where the cursor
  *  finished: on the edge of its last character, in the middle of the line. */
-export const textSelectionAnchor: HandleAnchor = (container) => {
+export const textSelectionAnchor: MenuButtonAnchor = (container) => {
   const sel = window.getSelection()
   if (!sel || sel.isCollapsed || sel.rangeCount === 0) return null
   const range = sel.getRangeAt(sel.rangeCount - 1)
@@ -76,52 +75,67 @@ export const textSelectionAnchor: HandleAnchor = (container) => {
 
 /** The bottom-right corner of the pending box drawn in `container`
  *  (PdfPageRenderer and ImagePageRenderer mark it data-pending-box). */
-export const boxSelectionAnchor: HandleAnchor = (container) => {
+export const boxSelectionAnchor: MenuButtonAnchor = (container) => {
   const box = container.querySelector('[data-pending-box]')
   if (!box) return null
   const r = box.getBoundingClientRect()
   return { x: r.right, y: r.bottom }
 }
 
-/** The drag image: the start of the selected text, or the label. */
-function setDragPreview(e: React.DragEvent, text: string): void {
-  const flat = text.replace(/\s+/g, ' ').trim()
-  const ghost = document.createElement('div')
-  ghost.style.cssText = 'position:absolute;top:-9999px;left:-9999px;max-width:280px;padding:4px 8px;background:var(--bg-secondary,#2a2a2a);border:1px solid var(--border-color,#555);border-radius:4px;font-size:11px;color:var(--text-primary,#eee);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'
-  ghost.textContent = flat.length > 60 ? `${flat.slice(0, 57)}…` : flat
-  document.body.appendChild(ghost)
-  e.dataTransfer.setDragImage(ghost, 10, 10)
-  requestAnimationFrame(() => ghost.remove())
+/** The element a right-click on the selection would land on: the pending
+ *  box, or the text the selection ends in. */
+function menuTarget(container: HTMLElement): Element | null {
+  const box = container.querySelector('[data-pending-box]')
+  if (box) return box
+  const sel = window.getSelection()
+  if (!sel || sel.isCollapsed) return null
+  const node = sel.focusNode
+  const el = node && (node.nodeType === Node.TEXT_NODE ? node.parentElement : node as Element)
+  return el && container.contains(el) ? el : null
+}
+
+/** Failing that, whatever is just behind the button, where the selection ends. */
+function elementBehind(button: HTMLElement, container: HTMLElement): Element | null {
+  const r = button.getBoundingClientRect()
+  const prev = button.style.display
+  button.style.display = 'none'
+  const el = document.elementFromPoint(r.left - 2, r.top + r.height / 2)
+  button.style.display = prev
+  return el && container.contains(el) ? el : null
+}
+
+/** Open the selection's context menu at the button by sending the viewer
+ *  the right-click it already handles, so every viewer's menu (and what it
+ *  finds under the selection) is unchanged. */
+function openMenu(target: Element, button: HTMLElement): void {
+  const r = button.getBoundingClientRect()
+  target.dispatchEvent(new MouseEvent('contextmenu', {
+    bubbles: true, cancelable: true, button: 2,
+    clientX: r.left + r.width / 2, clientY: r.top + r.height / 2
+  }))
 }
 
 interface Props {
-  /** The viewer the selection is in: the handle shows only while its
+  /** The viewer the selection is in: the button shows only while its
    *  anchor is inside this element's visible area. */
   containerRef: React.RefObject<HTMLElement | null>
-  sourceGuid: string
-  anchor: HandleAnchor
-  /** Shown in the drag image in place of the selected text (for a box). */
-  label?: string
+  anchor: MenuButtonAnchor
 }
 
-export function SelectionDragHandle({ containerRef, sourceGuid, anchor, label }: Props): React.ReactElement {
+export function SelectionMenuButton({ containerRef, anchor }: Props): React.ReactElement {
   const { t } = useTranslation()
-  const handleRef = useRef<HTMLDivElement>(null)
-  /** Held still from mousedown to drop: pressing a draggable element
-   *  clears the text selection for a frame (install-drag-selection-keeper
-   *  puts it back), which would otherwise hide the handle mid-drag. */
-  const grabbingRef = useRef(false)
+  const buttonRef = useRef<HTMLDivElement>(null)
   /** The mouse is down somewhere else, perhaps making a new selection: the
-   *  handle waits until it's released, when the selection is finished. */
+   *  button waits until it's released, when the selection is finished. */
   const selectingRef = useRef(false)
 
   useEffect(() => {
     let frame = 0
     const place = (): void => {
       frame = requestAnimationFrame(place)
-      const el = handleRef.current
+      const el = buttonRef.current
       const container = containerRef.current
-      if (!el || !container || grabbingRef.current) return
+      if (!el || !container) return
       if (selectingRef.current) {
         el.style.display = 'none'
         return
@@ -132,7 +146,7 @@ export function SelectionDragHandle({ containerRef, sourceGuid, anchor, label }:
         el.style.display = 'none'
         return
       }
-      // A selection ending at the right edge keeps its handle inside the viewer.
+      // A selection ending at the right edge keeps its button inside the viewer.
       const x = Math.min(p.x, c.right - SIZE / 2 - 2)
       el.style.display = 'flex'
       el.style.left = `${x - SIZE / 2}px`
@@ -140,20 +154,15 @@ export function SelectionDragHandle({ containerRef, sourceGuid, anchor, label }:
     }
     place()
     const press = (e: MouseEvent): void => {
-      if (e.button === 0 && e.target !== handleRef.current && !handleRef.current?.contains(e.target as Node)) selectingRef.current = true
+      if (e.button === 0 && e.target !== buttonRef.current && !buttonRef.current?.contains(e.target as Node)) selectingRef.current = true
     }
-    const release = (): void => {
-      grabbingRef.current = false
-      selectingRef.current = false
-    }
+    const release = (): void => { selectingRef.current = false }
     window.addEventListener('mousedown', press, true)
     window.addEventListener('mouseup', release, true)
-    window.addEventListener('dragend', release, true)
     return () => {
       cancelAnimationFrame(frame)
       window.removeEventListener('mousedown', press, true)
       window.removeEventListener('mouseup', release, true)
-      window.removeEventListener('dragend', release, true)
     }
   }, [containerRef, anchor])
 
@@ -163,21 +172,25 @@ export function SelectionDragHandle({ containerRef, sourceGuid, anchor, label }:
 
   return createPortal(
     <div
-      ref={handleRef}
-      draggable
-      data-selection-handle
-      title={t('viewer.dragToCode')}
-      onMouseDown={(e) => { e.stopPropagation(); grabbingRef.current = true }}
+      ref={buttonRef}
+      data-selection-menu-button
+      role="button"
+      aria-haspopup="menu"
+      aria-label={t('viewer.selectionMenu')}
+      title={t('viewer.selectionMenu')}
+      // preventDefault keeps the text selection: pressing would clear it.
+      onMouseDown={(e) => { e.preventDefault(); e.stopPropagation() }}
       onMouseUp={stop}
-      onClick={stop}
+      onClick={(e) => {
+        e.stopPropagation()
+        const container = containerRef.current
+        const button = buttonRef.current
+        if (!container || !button) return
+        const target = menuTarget(container) ?? elementBehind(button, container)
+        if (target) openMenu(target, button)
+      }}
       onDoubleClick={stop}
       onContextMenu={(e) => { e.preventDefault(); e.stopPropagation() }}
-      onDragStart={(e) => {
-        e.stopPropagation()
-        const text = label ?? (window.getSelection()?.toString() || t('viewer.selection'))
-        startSelectionDrag(e, sourceGuid, text)
-        setDragPreview(e, text)
-      }}
       style={{
         position: 'fixed',
         display: 'none',
@@ -188,12 +201,12 @@ export function SelectionDragHandle({ containerRef, sourceGuid, anchor, label }:
         color: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
-        cursor: 'grab',
+        cursor: 'pointer',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
         zIndex: 30
       }}
     >
-      <Icon icon={faHand} size={12} />
+      <Icon icon={faChevronDown} size={12} />
     </div>,
     document.body
   )

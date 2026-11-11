@@ -24,10 +24,9 @@ import type { Code, Memo, MemoEditInitData, PlainTextSelection } from '../../mod
 import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { DocumentToolbarPortal, ExportMenuButton, toolbarButtonStyle, usePdfExportItems } from './DocumentToolbar'
-import { modKey } from '../../utils/platform'
 import { useRememberedScroll } from '../../utils/use-remembered-scroll'
-import { onSelectionDrop } from '../../utils/selection-drag'
-import { SelectionDragHandle, textSelectionAnchor } from './SelectionDragHandle'
+import { SelectionMenuButton, textSelectionAnchor } from './SelectionMenuButton'
+import { ApplyCodeMenuList } from './ApplyCodeMenuList'
 import { useTranslation } from 'react-i18next'
 import { t, formatDateTime } from '../../i18n'
 import { digitKey } from '../../utils/keys'
@@ -243,11 +242,6 @@ export function TranscriptEditor({
     }
     return map
   }, [flatCodes])
-  const hotkeyCodes = useMemo(
-    () => flatCodes.filter(({ code }) => code.hotkey !== undefined)
-      .sort((a, b) => (a.code.hotkey ?? 0) - (b.code.hotkey ?? 0)),
-    [flatCodes]
-  )
 
   const applyCodingToRange = useCallback(
     (codeGuid: string, startCp: number, endCp: number, text: string) => {
@@ -361,21 +355,8 @@ export function TranscriptEditor({
       applyCodingToRange(code.guid, pendingSelection.startCp, pendingSelection.endCp, pendingSelection.selectedText)
     }
     window.addEventListener('keydown', handleKeyDown)
-    // The selection dragged by its grab handle onto a code in the Code
-    // Browser (as its hotkey) or into Saved Quotes (as "Add as Quote").
-    const stopSelectionDrop = onSelectionDrop(sourceGuid, {
-      code: (codeGuid) => {
-        if (pendingSelection) applyCodingToRange(codeGuid, pendingSelection.startCp, pendingSelection.endCp, pendingSelection.selectedText)
-      },
-      quote: () => {
-        if (!pendingSelection) return
-        const name = useDocumentStore.getState().sources.find((s) => s.guid === sourceGuid)?.name || ''
-        useQuoteStore.getState().addQuote(sourceGuid, name, pendingSelection.startCp, pendingSelection.endCp, pendingSelection.selectedText)
-      }
-    })
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
-      stopSelectionDrop()
     }
   }, [isTranscribing, hotkeyMap, pendingSelection, applyCodingToRange, sourceGuid])
 
@@ -535,7 +516,7 @@ export function TranscriptEditor({
             if (data) { try { handleDrop([JSON.parse(data).guid]) } catch {} }
           }}
         >
-          {pendingSelection && <SelectionDragHandle containerRef={codingAreaRef} sourceGuid={sourceGuid} anchor={textSelectionAnchor} />}
+          {pendingSelection && <SelectionMenuButton containerRef={codingAreaRef} anchor={textSelectionAnchor} />}
           {content ? (
             <CodedTextView
               text={content}
@@ -593,19 +574,7 @@ export function TranscriptEditor({
           {contextMenu.context.pendingSelection && (
             <>
               <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>{t('viewer.applyCode')}</div>
-              <div style={{ padding: '0 14px 6px', fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4, maxWidth: 220, userSelect: 'none' }}>
-                {t('viewer.applyHint')}
-              </div>
-              {hotkeyCodes.map(({ code }) => (
-                <div key={code.guid} className="context-menu-item" onClick={() => handleApplyCode(code.guid)}>
-                  <span className="color-pip" style={{ background: code.color || '#888' }} />
-                  <span style={{ flex: 1 }}>{code.name}</span>
-                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginInlineStart: 12 }}>{modKey(code.hotkey!)}</span>
-                </div>
-              ))}
-              {hotkeyCodes.length === 0 && (
-                <div className="context-menu-item" style={{ color: 'var(--menu-fg-muted)', pointerEvents: 'none' }}>{t('viewer.noHotkeysShort')}</div>
-              )}
+              <ApplyCodeMenuList codes={flatCodes} onApply={handleApplyCode} />
             </>
           )}
           {contextMenu.context.pendingSelection && contextMenu.context.existingCodings.length > 0 && <div className="context-menu-separator" />}

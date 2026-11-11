@@ -25,12 +25,11 @@ import type { CodingRightClickContext } from './CodedTextView'
 import type { Code, Memo, MemoEditInitData, TextSource, PdfRegionSelection } from '../../models/types'
 import { usePendingSelectionStore } from '../../stores/pending-selection-store'
 import { useNewCodeTriggerStore } from '../../stores/new-code-trigger-store'
-import { modKey } from '../../utils/platform'
 import { roundRegionToWholePixels } from '../../utils/region-rounding'
 import { getViewSetting, setViewSetting } from '../../stores/view-position-store'
 import { useRememberedScroll } from '../../utils/use-remembered-scroll'
-import { onSelectionDrop } from '../../utils/selection-drag'
-import { SelectionDragHandle, boxSelectionAnchor } from './SelectionDragHandle'
+import { SelectionMenuButton, boxSelectionAnchor } from './SelectionMenuButton'
+import { ApplyCodeMenuList } from './ApplyCodeMenuList'
 import { useTranslation } from 'react-i18next'
 import { digitKey } from '../../utils/keys'
 
@@ -271,11 +270,6 @@ export function ImageDocumentViewer({ source }: Props) {
     }
     return map
   }, [flatCodes])
-  const hotkeyCodes = useMemo(
-    () => flatCodes.filter(({ code }) => code.hotkey !== undefined)
-      .sort((a, b) => (a.code.hotkey ?? 0) - (b.code.hotkey ?? 0)),
-    [flatCodes]
-  )
 
   /** Convert client mouse coords into image-pixel coords on the page. */
   const clientToImageCoords = useCallback((clientX: number, clientY: number, pageEl: HTMLElement) => {
@@ -463,21 +457,8 @@ export function ImageDocumentViewer({ source }: Props) {
       }
     }
     window.addEventListener('keydown', handleKeyDown)
-    // The box dragged by its grab handle onto a code in the Code Browser
-    // (as its hotkey) or into Saved Quotes (as "Add as Quote").
-    const stopSelectionDrop = onSelectionDrop(source.guid, {
-      code: (codeGuid) => {
-        if (pendingBoxSelection) applyCodingToRegion(codeGuid, pendingBoxSelection.pdfRegion)
-      },
-      quote: () => {
-        if (!pendingBoxSelection) return
-        useQuoteStore.getState().addQuote(source.guid, source.name, 0, 0, t('viewer.region'), pendingBoxSelection.pdfRegion)
-        setPendingBoxSelection(null)
-      }
-    })
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
-      stopSelectionDrop()
     }
   }, [hotkeyMap, pendingBoxSelection, applyCodingToRegion, boxDrag, contextMenu, source.guid, source.name])
 
@@ -500,7 +481,7 @@ export function ImageDocumentViewer({ source }: Props) {
         }
       }}
     >
-      {pendingBoxSelection && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={boxSelectionAnchor} label={t('viewer.boxSelection')} />}
+      {pendingBoxSelection && <SelectionMenuButton containerRef={containerRef} anchor={boxSelectionAnchor} />}
       {/* Zoom, in the document bar. */}
       <DocumentToolbarPortal slot="start">
         <div className="zoom-strip">
@@ -694,19 +675,7 @@ export function ImageDocumentViewer({ source }: Props) {
           {contextMenu.context.pendingSelection && (
             <>
               <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>{t('viewer.applyCode')}</div>
-              <div style={{ padding: '0 14px 6px', fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4, maxWidth: 220, userSelect: 'none' }}>
-                {t('viewer.applyHint')}
-              </div>
-              {hotkeyCodes.map(({ code }) => (
-                <div key={code.guid} className="context-menu-item" onClick={() => handleApplyCode(code.guid)}>
-                  <span className="color-pip" style={{ background: code.color || '#888' }} />
-                  <span style={{ flex: 1 }}>{code.name}</span>
-                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginInlineStart: 12 }}>{modKey(code.hotkey!)}</span>
-                </div>
-              ))}
-              {hotkeyCodes.length === 0 && (
-                <div className="context-menu-item" style={{ color: 'var(--menu-fg-muted)', pointerEvents: 'none' }}>{t('viewer.noHotkeysShort')}</div>
-              )}
+              <ApplyCodeMenuList codes={flatCodes} onApply={handleApplyCode} />
             </>
           )}
           {contextMenu.context.pendingSelection && contextMenu.context.existingCodings.length > 0 && <div className="context-menu-separator" />}

@@ -78,9 +78,8 @@ import { cleanCellText, buildCellText } from '../../utils/survey/cell-text'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { COLOURFUL_CODE_COLOURS } from '../../utils/code-colours'
 import { ExportMenuButton, usePdfExportItems } from '../DocumentViewer/DocumentToolbar'
-import { modKey } from '../../utils/platform'
-import { onSelectionDrop } from '../../utils/selection-drag'
-import { SelectionDragHandle, textSelectionAnchor } from '../DocumentViewer/SelectionDragHandle'
+import { SelectionMenuButton, textSelectionAnchor } from '../DocumentViewer/SelectionMenuButton'
+import { ApplyCodeMenuList } from '../DocumentViewer/ApplyCodeMenuList'
 import { useTranslation } from 'react-i18next'
 import { t, formatDateTime, formatPercent, formatNumber, compareText } from '../../i18n'
 import { digitKey } from '../../utils/keys'
@@ -2593,23 +2592,8 @@ export function SurveyViewer({ source }: Props) {
       applyCodeToPending(match.code.guid)
     }
     window.addEventListener('keydown', onKeyDown)
-    // The selection dragged by its grab handle onto a code in the Code
-    // Browser (as its hotkey) or into Saved Quotes (as "Add as Quote": one
-    // quote per answer).
-    const stopSelectionDrop = onSelectionDrop(source.guid, {
-      code: (codeGuid) => {
-        if (pending) applyCodeToPending(codeGuid)
-      },
-      quote: () => {
-        for (const cell of pending?.cells ?? []) {
-          useQuoteStore.getState().addQuote(source.guid, source.name, cell.start, cell.end, cell.selectedText, undefined,
-            { respondentId: cell.respondentId, questionId: cell.questionId })
-        }
-      }
-    })
     return () => {
       window.removeEventListener('keydown', onKeyDown)
-      stopSelectionDrop()
     }
   }, [isActive, hotkeyCodes, pending, applyCodeToPending, source.guid, source.name])
 
@@ -2918,7 +2902,7 @@ export function SurveyViewer({ source }: Props) {
       }}
       onDrop={handleDrop}
     >
-      {pending && <SelectionDragHandle containerRef={containerRef} sourceGuid={source.guid} anchor={textSelectionAnchor} />}
+      {pending && <SelectionMenuButton containerRef={containerRef} anchor={textSelectionAnchor} />}
       <div ref={surveyScrollRef} onScroll={rememberScroll} style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-panel)', padding: '0 20px 24px 20px' }}>
         {view.mode === 'summary' && (
           <SummaryView
@@ -2989,27 +2973,7 @@ export function SurveyViewer({ source }: Props) {
           {showApply && (
             <>
               <div style={menuSectionLabelStyle}>{t('viewer.applyCode')}</div>
-              <div style={menuHintStyle}>
-                {t('viewer.applyHint')}
-              </div>
-              {hotkeyCodes.map(({ code }) => (
-                <div
-                  key={code.guid}
-                  className="context-menu-item"
-                  onClick={() => handleApplyHotkeyCode(code.guid)}
-                >
-                  <span className="color-pip" style={{ background: code.color || '#888' }} />
-                  <span style={{ flex: 1 }}>{code.name}</span>
-                  <span style={{ fontSize: 10, color: 'var(--menu-fg-muted)', marginInlineStart: 12 }}>
-                    {modKey(code.hotkey!)}
-                  </span>
-                </div>
-              ))}
-              {hotkeyCodes.length === 0 && (
-                <div className="context-menu-item" style={{ color: 'var(--text-muted)', pointerEvents: 'none' }}>
-                  {t('viewer.noHotkeys')}
-                </div>
-              )}
+              <ApplyCodeMenuList codes={flatCodes} onApply={handleApplyHotkeyCode} />
             </>
           )}
 
@@ -3146,11 +3110,3 @@ const menuSectionLabelStyle: React.CSSProperties = {
   userSelect: 'none'
 }
 
-const menuHintStyle: React.CSSProperties = {
-  padding: '0 14px 6px',
-  fontSize: 11,
-  color: 'var(--text-muted)',
-  lineHeight: 1.4,
-  maxWidth: 220,
-  userSelect: 'none'
-}
