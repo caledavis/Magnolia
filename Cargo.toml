@@ -6,3 +6,9 @@ members = ["crates/magnolia-core", "src-tauri"]
 lto = "thin"
 codegen-units = 4
 strip = true
+
+# Dependencies are built lightly optimised in development: unoptimised,
+# Typst (document import) is slow, and the debug binary grows past what
+# macOS's linker can describe in its compact unwind tables.
+[profile.dev.package."*"]
+opt-level = 1
