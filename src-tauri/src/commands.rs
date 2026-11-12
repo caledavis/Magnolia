@@ -505,8 +505,9 @@ fn ext_of(name: &str) -> String {
     }
 }
 
-/// A PDF-backed document for the renderer: it extracts the text with pdf.js
-/// (`_pendingPdfText`) — the same library its viewer uses, so offsets agree.
+/// A PDF-backed document for the renderer: it reads the text with pdf.js
+/// (`_pendingPdfText`), or from the PDF's own text layer when Magnolia
+/// typeset it — the same reading its viewer uses, so offsets agree.
 fn pdf_doc(name: &str, pdf: &[u8]) -> Value {
     json!({
         "name": name,
@@ -520,15 +521,15 @@ fn pdf_doc(name: &str, pdf: &[u8]) -> Value {
 /// Read one document for import. `bytes` is the file's content (read from
 /// disk, or sent by the renderer for an OS drag-and-drop).
 fn read_document(
-    app: &AppHandle,
     state: &AppState,
     name: &str,
     bytes: Vec<u8>,
 ) -> CmdResult<Value> {
     let ext = ext_of(name);
+    // Office documents are typeset as PDFs that carry their own text layer
+    // (convert::typeset), so their text reads back exactly in any script.
     let office_pdf = |html: Result<String, String>| -> CmdResult<Value> {
-        let doc = convert::html::print_document(&html?);
-        let pdf = print::html_to_pdf(app, &doc, &print::PdfOptions::import())?;
+        let pdf = convert::typeset::html_to_pdf(&html?)?;
         Ok(pdf_doc(name, &pdf))
     };
     match ext.as_str() {
@@ -580,11 +581,11 @@ fn file_name(p: &Path) -> String {
         .unwrap_or_default()
 }
 
-fn read_document_path(app: &AppHandle, state: &AppState, path: &Path) -> Value {
+fn read_document_path(state: &AppState, path: &Path) -> Value {
     let name = file_name(path);
     match std::fs::read(path)
         .map_err(|e| e.to_string())
-        .and_then(|b| read_document(app, state, &name, b))
+        .and_then(|b| read_document(state, &name, b))
     {
         Ok(v) => v,
         Err(e) => json!({ "name": name, "error": e }),
@@ -624,7 +625,7 @@ pub async fn import_text_file(
     }
     Ok(paths
         .iter()
-        .map(|p| read_document_path(&app, &state, p))
+        .map(|p| read_document_path(&state, p))
         .collect::<Vec<_>>()
         .into())
 }
@@ -632,7 +633,6 @@ pub async fn import_text_file(
 /// Real filesystem paths (from a native source rather than a browser drop).
 #[tauri::command]
 pub async fn read_text_files(
-    app: AppHandle,
     state: State<'_, AppState>,
     file_paths: Vec<String>,
 ) -> CmdResult<Value> {
@@ -642,7 +642,7 @@ pub async fn read_text_files(
             let p = Path::new(fp);
             match reject_reason(p) {
                 Some(r) => json!({ "name": file_name(p), "error": r }),
-                None => read_document_path(&app, &state, p),
+                None => read_document_path(&state, p),
             }
         })
         .collect::<Vec<_>>()
@@ -654,7 +654,6 @@ pub async fn read_text_files(
 /// the `x-file-name` header (URI-encoded).
 #[tauri::command]
 pub async fn read_dropped_file(
-    app: AppHandle,
     state: State<'_, AppState>,
     request: Request<'_>,
 ) -> CmdResult<Value> {
@@ -680,7 +679,7 @@ pub async fn read_dropped_file(
         InvokeBody::Raw(b) => b.clone(),
         InvokeBody::Json(_) => return Err("expected raw file bytes".into()),
     };
-    Ok(match read_document(&app, &state, &name, bytes) {
+    Ok(match read_document(&state, &name, bytes) {
         Ok(v) => v,
         Err(e) => json!({ "name": name, "error": e }),
     })
@@ -714,7 +713,7 @@ pub async fn reimport_document(
     if let Some(dir) = path.parent() {
         storage::set_last_import_dir(project.as_deref(), dir);
     }
-    let mut doc = read_document_path(&app, &state, &path);
+    let mut doc = read_document_path(&state, &path);
     if let Some(f) = doc.get("formatting").cloned() {
         let handle = f
             .get("videoFilePath")

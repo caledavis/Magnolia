@@ -37,33 +37,3 @@ pub fn image_mime(ext: &str) -> &'static str {
         _ => "image/png",
     }
 }
-
-/// Wrap converted body HTML in a full document with print-safe styling that
-/// keeps the source's fonts / colours / borders and readable tables.
-pub fn print_document(body: &str) -> String {
-    format!(
-        r#"<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-  @page {{ margin: 0.4in; }}
-  body {{
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size: 12pt;
-    line-height: 1.5;
-    color: #000;
-    max-width: 100%;
-    padding: 0;
-    margin: 0;
-  }}
-  img {{ max-width: 100%; height: auto; }}
-  table {{ border-collapse: collapse; width: 100%; margin: 8px 0; }}
-  td, th {{ border: 1px solid #ccc; padding: 4px 8px; vertical-align: top; }}
-  p {{ margin: 0 0 8px; }}
-</style>
-</head>
-<body>{body}</body>
-</html>"#
-    )
-}

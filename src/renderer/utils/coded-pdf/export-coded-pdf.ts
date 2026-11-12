@@ -12,6 +12,7 @@ import { buildPdfDocument, escHtml, exportPdfWithHeader } from '../pdf-export'
 import { formatTimestamp } from '../timestamp-parser'
 import { buildCellText } from '../survey/cell-text'
 import { base64ToBytes } from '../../platform/pdf-text'
+import { joinPageText, pageTextContent } from '../pdf-page-text'
 import { sourceTypeFromFilename } from '../format-registry'
 import { noteData } from '../notes'
 import {
@@ -151,28 +152,18 @@ async function pdfBody(source: TextSource, lookup: Map<string, CodeRef>, wide: b
       await page.render({ canvasContext: ctx, viewport }).promise
 
       // Each text item's codepoint span on this page, and its rectangle.
-      const textContent = await page.getTextContent()
-      const items: { start: number; end: number; rect: Rect }[] = []
-      let pageCp = 0
-      let lastY: number | null = null
-      for (const raw of textContent.items) {
-        if (!('str' in raw)) continue
-        const it = raw as any
-        if (lastY !== null && Math.abs(it.transform[5] - lastY) > 2) pageCp += 1
-        const len = [...(it.str || '')].length
-        if (len > 0) {
-          const tx = pdfjsLib.Util.transform(viewport.transform, it.transform)
-          const fontHeight = Math.hypot(tx[2], tx[3])
-          items.push({
-            start: pageOffset + pageCp,
-            end: pageOffset + pageCp + len,
-            rect: { x: tx[4], y: tx[5] - fontHeight, w: it.width * scale, h: fontHeight * 1.2 }
-          })
+      const { text: pageText, items: placed } = joinPageText(await pageTextContent(doc, page))
+      const items: { start: number; end: number; rect: Rect; rtl: boolean }[] = placed.map(({ item: it, start, length }) => {
+        const tx = pdfjsLib.Util.transform(viewport.transform, it.transform)
+        const fontHeight = Math.hypot(tx[2], tx[3])
+        return {
+          start: pageOffset + start,
+          end: pageOffset + start + length,
+          rect: { x: tx[4], y: tx[5] - fontHeight, w: it.width * scale, h: fontHeight * 1.2 },
+          rtl: it.dir === 'rtl'
         }
-        pageCp += len
-        lastY = it.transform[5]
-        if (it.hasEOL) { pageCp += 1; lastY = null }
-      }
+      })
+      const pageCp = [...pageText].length
       const pageStart = pageOffset
       const pageEnd = pageOffset + pageCp
       pageOffset = pageEnd + 1
@@ -188,7 +179,9 @@ async function pdfBody(source: TextSource, lookup: Map<string, CodeRef>, wide: b
           const len = item.end - item.start
           const from = Math.max(0, sel.startPosition - item.start) / len
           const to = Math.min(len, sel.endPosition - item.start) / len
-          const rect = { x: item.rect.x + from * item.rect.w, y: item.rect.y, w: (to - from) * item.rect.w, h: item.rect.h }
+          // Right-to-left text runs from the item's right edge.
+          const x = item.rtl ? item.rect.x + (1 - to) * item.rect.w : item.rect.x + from * item.rect.w
+          const rect = { x, y: item.rect.y, w: (to - from) * item.rect.w, h: item.rect.h }
           for (const c of codes) highlights.push({ rect, color: c.color })
           if (firstTop === null || rect.y < firstTop) firstTop = rect.y
         }

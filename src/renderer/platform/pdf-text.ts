@@ -1,12 +1,13 @@
 /**
  * PDF text extraction for imported and loaded PDFs.
  *
- * Magnolia's character offsets for a PDF are defined by pdf.js's text
- * content, joined exactly as below. This runs in the renderer, with the same
- * pdf.js the viewer uses, so stored codings always line up with what the
- * viewer shows. (The Electron build ran the same algorithm in the main
- * process.)
+ * Magnolia's character offsets for a PDF are defined by each page's text as
+ * utils/pdf-page-text.ts reads and joins it (pdf.js's text content, or the
+ * text layer Magnolia attaches to the PDFs it typesets). This runs in the
+ * renderer, with the same code the viewer uses, so stored codings always
+ * line up with what the viewer shows.
  */
+import { joinPageText, pageTextContent } from '../utils/pdf-page-text'
 
 export interface PdfTextResult {
   text: string
@@ -44,22 +45,7 @@ export async function extractPdfText(data: Uint8Array): Promise<PdfTextResult> {
     for (let i = 1; i <= doc.numPages; i++) {
       pageOffsets.push(totalCpOffset)
       const page = await doc.getPage(i)
-      const textContent = await page.getTextContent()
-      const lines: string[] = []
-      let lastY: number | null = null
-      for (const item of textContent.items) {
-        if (!('str' in item)) continue
-        const textItem = item as any
-        // A change in Y position is a line break.
-        if (lastY !== null && Math.abs(textItem.transform[5] - lastY) > 2) lines.push('\n')
-        lines.push(textItem.str)
-        lastY = textItem.transform[5]
-        if (textItem.hasEOL) {
-          lines.push('\n')
-          lastY = null
-        }
-      }
-      const pageText = lines.join('')
+      const { text: pageText } = joinPageText(await pageTextContent(doc, page))
       pages.push(pageText)
       totalCpOffset += [...pageText].length
       // Page separator

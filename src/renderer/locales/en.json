@@ -169,7 +169,8 @@
         "noText_other": "Refusing to overwrite “{{file}}”: the project has {{count}} documents, but none of their text is loaded. This usually means the project didn’t open fully, and saving now would erase the documents’ text. Reopen the project, and if the problem persists, restore it from a backup.",
         "missingFiles_one": "Refusing to save “{{file}}”: the contents of {{count}} imported document couldn’t be found ({{names}}). They weren’t in memory, the temporary cache or the existing project file, so saving now would save it empty. Import the document again and try again.",
         "missingFiles_other": "Refusing to save “{{file}}”: the contents of {{count}} imported documents couldn’t be found ({{names}}). They weren’t in memory, the temporary cache or the existing project file, so saving now would save them empty. Import the documents again and try again."
-      }
+      },
+      "typesetFailed": "Magnolia couldn’t lay this document out as pages. Try saving it again in the program it came from, or saving it as a PDF and importing that."
     }
   },
   "tools": {

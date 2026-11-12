@@ -12,6 +12,7 @@ import { useRef, useEffect, useState, useCallback } from 'react'
 import type { PlainTextSelection, Code, Memo } from '../../models/types'
 import { Icon, MEMO_POINT_ICON } from '../Icon'
 import { useTranslation } from 'react-i18next'
+import { joinPageText, pageTextContent } from '../../utils/pdf-page-text'
 
 // SVG wave underline pattern for memos (matching CodedTextView)
 const MEMO_WAVE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='2.25'%3E%3Cpath d='M0 2.25 L3 0 L6 2.25 L9 0 L12 2.25' fill='none' stroke='%234a90d9' stroke-width='1'/%3E%3C/svg%3E")`
@@ -202,8 +203,9 @@ export function PdfPageRenderer({
       await page.render({ canvasContext: ctx, viewport }).promise
       if (cancelled) return
 
-      // Build text layer using pdfjs-dist's official TextLayer API
-      const textContent = await page.getTextContent()
+      // Build text layer using pdfjs-dist's official TextLayer API, from
+      // the page's text as Magnolia reads it (utils/pdf-page-text).
+      const textContent = await pageTextContent(pdfDocument, page)
       if (cancelled) return
 
       const textLayerEl = textLayerRef.current!
@@ -228,34 +230,12 @@ export function PdfPageRenderer({
       await textLayer.render()
       if (cancelled) return
 
-      // Assign data-cpoffset to each rendered span by walking the same
-      // text-content items pdf.js used to render the layer and mirroring
-      // pdf-extract.ts's line-break logic. Earlier we matched span text
-      // against the extracted page text via substring search — fragile,
-      // because pdf.js's TextLayer normalises whitespace / ligatures
-      // differently than our extractor, and a single failed match would
-      // truncate every downstream cpoffset (visible as a highlight that
-      // covers only the prefix of a multi-span text item, e.g.
-      // "Chemical Weapons: I" of "Chemical Weapons: Is it a Crime?").
-      // Index-based assignment is exact: pdf.js renders one span per
-      // non-empty `str` item in textContent, in order.
-      const validItemCpStarts: number[] = []
-      {
-        let pageCp = 0
-        let lastY: number | null = null
-        for (const rawItem of textContent.items) {
-          if (!('str' in rawItem)) continue
-          const it = rawItem as any
-          // Mirror pdf-extract.ts: a Y jump > 2pt produces an inserted
-          // newline that consumes 1 codepoint in pageText.
-          if (lastY !== null && Math.abs(it.transform[5] - lastY) > 2) pageCp += 1
-          const cpLen = [...(it.str || '')].length
-          if (cpLen > 0) validItemCpStarts.push(pageCp)
-          pageCp += cpLen
-          lastY = it.transform[5]
-          if (it.hasEOL) { pageCp += 1; lastY = null }
-        }
-      }
+      // Assign data-cpoffset to each rendered span: pdf.js renders one
+      // span per item with text, in order, and joinPageText gives each
+      // such item's offset exactly as text extraction counted it. (Matching
+      // span text against the page text instead was fragile: pdf.js
+      // normalises whitespace and ligatures differently.)
+      const validItemCpStarts = joinPageText(textContent).items.map((p) => p.start)
       const spans = textLayerEl.querySelectorAll<HTMLSpanElement>('span:not(.markedContent)')
       let validIdx = 0
       for (const span of spans) {
@@ -318,8 +298,10 @@ export function PdfPageRenderer({
         const localEndCp = Math.min(spanCpLen, cpEnd - sd.cpStart)
         const startFrac = spanCpLen > 0 ? localStartCp / spanCpLen : 0
         const endFrac = spanCpLen > 0 ? localEndCp / spanCpLen : 1
-        const left = r.left + startFrac * r.width
-        const right = r.left + endFrac * r.width
+        // Right-to-left text runs from the span's right edge.
+        const rtl = sd.el.dir === 'rtl'
+        const left = rtl ? r.right - endFrac * r.width : r.left + startFrac * r.width
+        const right = rtl ? r.right - startFrac * r.width : r.left + endFrac * r.width
         rawRects.push({
           left: left - containerRect.left,
           top: r.top - containerRect.top,

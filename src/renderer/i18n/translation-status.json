@@ -2,72 +2,84 @@
   "about": "Written by npm run i18n:sync; see scripts/i18n-sync.mjs. \"english\" is en.json at the last sync; \"pending\" lists, per language, the messages waiting for a translator.",
   "pending": {
     "ar": {
+      "native.core.typesetFailed": "new",
       "quotes.emptyHint": {
         "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
       },
       "viewer.selectionMenu": "new"
     },
     "de": {
+      "native.core.typesetFailed": "new",
       "quotes.emptyHint": {
         "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
       },
       "viewer.selectionMenu": "new"
     },
     "es": {
+      "native.core.typesetFailed": "new",
       "quotes.emptyHint": {
         "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
       },
       "viewer.selectionMenu": "new"
     },
     "fi": {
+      "native.core.typesetFailed": "new",
       "quotes.emptyHint": {
         "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
       },
       "viewer.selectionMenu": "new"
     },
     "fr": {
+      "native.core.typesetFailed": "new",
       "quotes.emptyHint": {
         "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
       },
       "viewer.selectionMenu": "new"
     },
     "hi": {
+      "native.core.typesetFailed": "new",
       "quotes.emptyHint": {
         "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
       },
       "viewer.selectionMenu": "new"
     },
     "it": {
+      "native.core.typesetFailed": "new",
       "quotes.emptyHint": {
         "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
       },
       "viewer.selectionMenu": "new"
     },
     "nl": {
+      "native.core.typesetFailed": "new",
       "quotes.emptyHint": {
         "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
       },
       "viewer.selectionMenu": "new"
     },
     "pt-BR": {
+      "native.core.typesetFailed": "new",
       "quotes.emptyHint": {
         "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
       },
       "viewer.selectionMenu": "new"
     },
     "pt-PT": {
+      "native.core.typesetFailed": "new",
       "quotes.emptyHint": {
         "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
       },
       "viewer.selectionMenu": "new"
     },
     "ru": {
+      "native.core.typesetFailed": "new",
       "quotes.emptyHint": {
         "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
       },
       "viewer.selectionMenu": "new"
     },
     "zh-Hans": {
+      "native.core.typesetFailed": "new",
       "quotes.emptyHint": {
         "was": "Right-click a selection in a document and choose \"Add as Quote\", or drag the selection's grab handle here."
       },
@@ -218,6 +230,7 @@
     "native.core.guard.noText_other": "Refusing to overwrite “{{file}}”: the project has {{count}} documents, but none of their text is loaded. This usually means the project didn’t open fully, and saving now would erase the documents’ text. Reopen the project, and if the problem persists, restore it from a backup.",
     "native.core.guard.missingFiles_one": "Refusing to save “{{file}}”: the contents of {{count}} imported document couldn’t be found ({{names}}). They weren’t in memory, the temporary cache or the existing project file, so saving now would save it empty. Import the document again and try again.",
     "native.core.guard.missingFiles_other": "Refusing to save “{{file}}”: the contents of {{count}} imported documents couldn’t be found ({{names}}). They weren’t in memory, the temporary cache or the existing project file, so saving now would save them empty. Import the documents again and try again.",
+    "native.core.typesetFailed": "Magnolia couldn’t lay this document out as pages. Try saving it again in the program it came from, or saving it as a PDF and importing that.",
     "tools.queryBuilder.label": "Query Builder",
     "tools.queryBuilder.description": "Build a code / text query",
     "tools.codesInDocuments.label": "Codes in Documents",

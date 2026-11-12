@@ -1,13 +1,27 @@
 //! Developer tool: run one import converter on a file and print the result.
 //! `convert_tool <file>` — docx/rtf/odt → HTML, xlsx → CSV, tif/heic → PNG
 //! dimensions, audio/video → metadata.
+//! `convert_tool <file> <out.pdf>` — docx/rtf/odt → the imported PDF, and
+//! print the text Magnolia reads from it.
 
-use magnolia_core::convert::{docx, image, media, odt, rtf, xlsx};
+use magnolia_core::convert::{docx, image, media, odt, rtf, typeset, xlsx};
 
 fn main() {
-    let path = std::env::args().nth(1).expect("usage: convert_tool <file>");
+    let path = std::env::args().nth(1).expect("usage: convert_tool <file> [out.pdf]");
     let bytes = std::fs::read(&path).unwrap();
     let ext = magnolia_core::util::ext_of(&path);
+    if let Some(out) = std::env::args().nth(2) {
+        let html = match ext.as_str() {
+            "docx" => docx::docx_to_html(&bytes),
+            "rtf" => rtf::rtf_to_html(&bytes),
+            "odt" => odt::odt_to_html(&bytes),
+            _ => panic!("only docx, rtf and odt can be typeset"),
+        }
+        .unwrap();
+        std::fs::write(&out, typeset::html_to_pdf(&html).unwrap()).unwrap();
+        println!("{}", typeset::layer_text(&typeset::html_text_layer(&html).unwrap()));
+        return;
+    }
     match ext.as_str() {
         "docx" => println!("{}", docx::docx_to_html(&bytes).unwrap()),
         "rtf" => println!("{}", rtf::rtf_to_html(&bytes).unwrap()),

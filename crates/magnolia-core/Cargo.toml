@@ -8,7 +8,7 @@ base64 = "0.23.1"
 calamine = "0.37.0"
 chrono = "0.4.45"
 encoding_rs = "0.8.42"
-image = { version = "0.25.10", default-features = false, features = ["jpeg", "png", "tiff"] }
+image = { version = "0.25.10", default-features = false, features = ["bmp", "gif", "jpeg", "png", "tiff", "webp"] }
 lofty = "0.25.5"
 lopdf = "0.46.0"
 regex = "1.13.1"
@@ -16,6 +16,10 @@ roxmltree = "0.21.2"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = { version = "1.0.154", features = ["preserve_order"] }
 thiserror = "2.0.21"
+typst = "0.15.1"
+typst-kit = { version = "0.15.1", default-features = false, features = ["scan-fonts"] }
+typst-layout = "0.15.1"
+typst-pdf = "0.15.1"
 uuid = { version = "1.29.0", features = ["v4"] }
 zip = "9.1.2"
 zune-heic = { version = "0.5.0", default-features = false }
