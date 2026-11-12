@@ -55,12 +55,12 @@ pub fn docx_to_html(bytes: &[u8]) -> Result<String, String> {
     let mut zip = zip::ZipArchive::new(Cursor::new(bytes)).map_err(|e| {
         crate::message::tr(
             "invalidDocx",
-            "Invalid DOCX: {{detail}}",
+            "This file is damaged or isn’t really a Word document. Try opening it in Word and saving it again as .docx.",
             &[("detail", &e.to_string())],
         )
     })?;
     let document = read_entry(&mut zip, "word/document.xml").ok_or_else(|| {
-        crate::message::tr("docxNoDocument", "Invalid DOCX: no word/document.xml", &[])
+        crate::message::tr("docxNoDocument", "This file is damaged or isn’t really a Word document. Try opening it in Word and saving it again as .docx.", &[])
     })?;
     let rels_xml = read_entry(&mut zip, "word/_rels/document.xml.rels").unwrap_or_default();
     let styles_xml = read_entry(&mut zip, "word/styles.xml").unwrap_or_default();
@@ -134,7 +134,7 @@ pub fn docx_to_html(bytes: &[u8]) -> Result<String, String> {
     let doc = Document::parse(&document).map_err(|e| {
         crate::message::tr(
             "invalidDocxDocument",
-            "Invalid DOCX document: {{detail}}",
+            "This file is damaged or isn’t really a Word document. Try opening it in Word and saving it again as .docx.",
             &[("detail", &e.to_string())],
         )
     })?;
@@ -144,7 +144,7 @@ pub fn docx_to_html(bytes: &[u8]) -> Result<String, String> {
     let body = doc
         .descendants()
         .find(|n| is(*n, "body"))
-        .ok_or_else(|| crate::message::tr("docxNoBody", "Invalid DOCX: no body", &[]))?;
+        .ok_or_else(|| crate::message::tr("docxNoBody", "This file is damaged or isn’t really a Word document. Try opening it in Word and saving it again as .docx.", &[]))?;
     let mut ctx = Ctx {
         rels,
         media,

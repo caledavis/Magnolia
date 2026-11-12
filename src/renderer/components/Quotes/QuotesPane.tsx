@@ -296,7 +296,7 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
                       <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t('results.page', { page: q.pdfRegion.page })}</span>
                     </div>
                   ) : (
-                    <span style={{
+                    <span className="user-text" style={{
                       flex: 1,
                       overflow: 'hidden',
                       display: '-webkit-box',

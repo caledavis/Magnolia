@@ -106,7 +106,8 @@
       "legacyDoc": "Legacy Microsoft Word .doc files aren't supported. Please open the file in Word and save it as .docx.",
       "folder": "Folders can't be imported. Drop the files inside it instead.",
       "noExtension": "Files without an extension can't be imported.",
-      "unsupported": "Magnolia can't import .{{ext}} files."
+      "unsupported": "Magnolia can't import .{{ext}} files.",
+      "unreadable": "Magnolia couldn’t open this file. Check that it still exists and that you can open it."
     },
     "window": {
       "codes": "Codes",
@@ -146,21 +147,21 @@
       "invalidProjectXml": "Invalid project XML: {{detail}}",
       "notAProject": "Invalid project XML: root element is not <Project>",
       "invalidCodebookXml": "Invalid codebook XML: {{detail}}",
-      "invalidDocx": "Invalid DOCX: {{detail}}",
-      "docxNoDocument": "Invalid DOCX: no word/document.xml",
-      "invalidDocxDocument": "Invalid DOCX document: {{detail}}",
-      "docxNoBody": "Invalid DOCX: no body",
-      "invalidOdt": "Invalid ODT: {{detail}}",
-      "odtNoContent": "Invalid ODT: no content.xml",
-      "invalidOdtContent": "Invalid ODT content: {{detail}}",
-      "notRtf": "Not an RTF document.",
-      "readSpreadsheet": "Could not read spreadsheet: {{detail}}",
-      "xlsxNoWorksheets": "XLSX file has no worksheets.",
-      "readWorksheet": "Could not read worksheet: {{detail}}",
-      "decodeTiff": "Could not decode TIFF: {{detail}}",
-      "decodeHeic": "Could not decode HEIC: {{detail}}",
-      "heicColourSpace": "Unsupported HEIC colour space {{detail}}",
-      "heicMalformed": "HEIC decoder returned a malformed image",
+      "invalidDocx": "This file is damaged or isn’t really a Word document. Try opening it in Word and saving it again as .docx.",
+      "docxNoDocument": "This file is damaged or isn’t really a Word document. Try opening it in Word and saving it again as .docx.",
+      "invalidDocxDocument": "This file is damaged or isn’t really a Word document. Try opening it in Word and saving it again as .docx.",
+      "docxNoBody": "This file is damaged or isn’t really a Word document. Try opening it in Word and saving it again as .docx.",
+      "invalidOdt": "This file is damaged or isn’t really an OpenDocument text file. Try opening it in LibreOffice or Word and saving it again as .odt.",
+      "odtNoContent": "This file is damaged or isn’t really an OpenDocument text file. Try opening it in LibreOffice or Word and saving it again as .odt.",
+      "invalidOdtContent": "This file is damaged or isn’t really an OpenDocument text file. Try opening it in LibreOffice or Word and saving it again as .odt.",
+      "notRtf": "This file isn’t really an RTF document. Try opening it in a word processor and saving it again as .rtf.",
+      "readSpreadsheet": "This spreadsheet is damaged or isn’t really an Excel file. Try opening it in Excel and saving it again as .xlsx.",
+      "xlsxNoWorksheets": "This spreadsheet has no sheets to import.",
+      "readWorksheet": "This spreadsheet is damaged or isn’t really an Excel file. Try opening it in Excel and saving it again as .xlsx.",
+      "decodeTiff": "This TIFF image is damaged or in a form Magnolia can’t read. Try saving it again as a PNG or JPEG.",
+      "decodeHeic": "This HEIC photo is damaged or in a form Magnolia can’t read. Try exporting it as a JPEG.",
+      "heicColourSpace": "This HEIC photo is damaged or in a form Magnolia can’t read. Try exporting it as a JPEG.",
+      "heicMalformed": "This HEIC photo is damaged or in a form Magnolia can’t read. Try exporting it as a JPEG.",
       "guard": {
         "noSources_one": "Refusing to overwrite “{{file}}”: this project has no documents, but the file holds {{count}} document. This usually means a fault cleared the documents after the file was opened. Use Save Project As to save it to a new file if you really want to save an empty project.",
         "noSources_other": "Refusing to overwrite “{{file}}”: this project has no documents, but the file holds {{count}} documents. This usually means a fault cleared the documents after the file was opened. Use Save Project As to save it to a new file if you really want to save an empty project.",
@@ -1310,7 +1311,9 @@
     "noQuotesInQuery": "Quotes can’t be added to a query",
     "noAnalysesInQuery": "Analyses can’t be added to a query",
     "projectInfo": "Project info",
-    "progressOf": "{{current}} / {{total}}"
+    "progressOf": "{{current}} / {{total}}",
+    "dropToImport": "Drop to import",
+    "dropToImportHint": "Drop on a folder in Documents to import into that folder"
   },
   "analysis": {
     "save": "Save Analysis",
@@ -1729,5 +1732,21 @@
     "failed": "The PDF couldn't be exported.\n\n{{detail}}",
     "notebookSubtitle_one": "{{count}} note — exported {{date}}",
     "notebookSubtitle_other": "{{count}} notes — exported {{date}}"
+  },
+  "importProgress": {
+    "title_one": "Importing {{count}} document",
+    "title_other": "Importing {{count}} documents",
+    "finished_one": "Imported {{count}} document",
+    "finished_other": "Imported {{count}} documents",
+    "someFailed_one": "{{count}} document couldn’t be imported",
+    "someFailed_other": "{{count}} documents couldn’t be imported",
+    "waiting": "Waiting",
+    "reading": "Reading",
+    "converting": "Converting to PDF",
+    "readingText": "Reading text",
+    "done": "Done",
+    "failed": "Couldn’t import",
+    "pdfPassword": "This PDF is protected by a password. Remove the password in a PDF app, then import it again.",
+    "pdfDamaged": "This file is damaged or isn’t really a PDF."
   }
 }

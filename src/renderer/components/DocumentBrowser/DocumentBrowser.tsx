@@ -2580,10 +2580,8 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
     if (!files) return
     const errors: string[] = []
     for (const f of files) {
-      if ((f as any).error) {
-        errors.push(`${f.name}: ${(f as any).error}`)
-        continue
-      }
+      // Files that couldn't be read are listed in the import dialog.
+      if ((f as any).error) continue
       const ext = (f as any).extension || f.name.split('.').pop()?.toLowerCase() || ''
       // CSV / XLSX → defer to the survey-import preview dialog
       // (handled in App.tsx). XLSX is converted to CSV text in the

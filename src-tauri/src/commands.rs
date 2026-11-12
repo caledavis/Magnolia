@@ -584,7 +584,10 @@ fn file_name(p: &Path) -> String {
 fn read_document_path(state: &AppState, path: &Path) -> Value {
     let name = file_name(path);
     match std::fs::read(path)
-        .map_err(|e| e.to_string())
+        .map_err(|e| {
+            log::warn!("could not read {}: {e}", path.display());
+            t("import.unreadable")
+        })
         .and_then(|b| read_document(state, &name, b))
     {
         Ok(v) => v,
@@ -604,8 +607,11 @@ fn reject_reason(path: &Path) -> Option<String> {
     (!SUPPORTED.contains(&ext.as_str())).then(|| t_with("import.unsupported", &[("ext", &ext)]))
 }
 
+/// Ask for documents to import. Returns their paths (null if cancelled);
+/// the renderer reads them one at a time with `read_text_files`, so it can
+/// show how the import is going.
 #[tauri::command]
-pub async fn import_text_file(
+pub async fn pick_import_files(
     app: AppHandle,
     window: WebviewWindow,
     state: State<'_, AppState>,
@@ -625,7 +631,7 @@ pub async fn import_text_file(
     }
     Ok(paths
         .iter()
-        .map(|p| read_document_path(&state, p))
+        .map(|p| p.to_string_lossy().into_owned())
         .collect::<Vec<_>>()
         .into())
 }

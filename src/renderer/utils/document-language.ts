@@ -6,7 +6,14 @@
  * direction of its own first letter, as the user's text does in the app,
  * so an English quote in an Arabic report (or the reverse) reads right.
  */
-const BIDI_CSS = '<style>p, li, td, th, blockquote, dd, .context, .doc-content, .sv-ans-text, .quote, .memo-body { unicode-bidi: plaintext; }</style>'
+// The user's text in each export: headings (document and section names),
+// paragraphs, list items and cells, plus
+// the blocks and names the exports write in divs and spans — query
+// results' passages (.context), reports' documents, survey answers,
+// quotes, memos, coded documents and notes (.coded, where each line is
+// its own paragraph), logbook and notebook titles, respondent and code
+// names. On an inline name it isolates the name in its own direction.
+const BIDI_CSS = '<style>h1, h2, h3, p, li, td, th, blockquote, dd, .context, .doc-content, .sv-ans-text, .quote, .memo-body, .memo-title, .coded, .entry-title, .nb-title, .resp, .who, .what, .code-name { unicode-bidi: plaintext; }</style>'
 
 export function withDocumentLanguage(html: string, root: HTMLElement = document.documentElement): string {
   const lang = root.lang || 'en'

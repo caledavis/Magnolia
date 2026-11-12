@@ -74,7 +74,7 @@ function MemoItem({
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <span style={{
+        <span className="user-text" style={{
           fontWeight: 500,
           flex: 1,
           overflow: 'hidden',
@@ -87,7 +87,7 @@ function MemoItem({
       <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
         {formatDate(memo.createdDateTime)}
         {memo.content && (
-          <span> — {memo.content.slice(0, 40)}{memo.content.length > 40 ? '...' : ''}</span>
+          <span> — <span className="user-text">{memo.content.slice(0, 40)}{memo.content.length > 40 ? '...' : ''}</span></span>
         )}
       </div>
     </div>

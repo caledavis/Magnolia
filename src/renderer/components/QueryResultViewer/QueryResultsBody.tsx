@@ -352,6 +352,7 @@ export function ResultItem({
           )}
 
           <div
+            className="user-text"
             style={{
               color: 'var(--text-primary)',
               lineHeight: 1.6,

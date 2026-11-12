@@ -11,17 +11,17 @@ pub fn xlsx_to_csv(bytes: &[u8]) -> Result<String, String> {
     let mut wb = open_workbook_auto_from_rs(Cursor::new(bytes.to_vec())).map_err(|e| {
         crate::message::tr(
             "readSpreadsheet",
-            "Could not read spreadsheet: {{detail}}",
+            "This spreadsheet is damaged or isn’t really an Excel file. Try opening it in Excel and saving it again as .xlsx.",
             &[("detail", &e.to_string())],
         )
     })?;
     let first = wb.sheet_names().first().cloned().ok_or_else(|| {
-        crate::message::tr("xlsxNoWorksheets", "XLSX file has no worksheets.", &[])
+        crate::message::tr("xlsxNoWorksheets", "This spreadsheet has no sheets to import.", &[])
     })?;
     let range = wb.worksheet_range(&first).map_err(|e| {
         crate::message::tr(
             "readWorksheet",
-            "Could not read worksheet: {{detail}}",
+            "This spreadsheet is damaged or isn’t really an Excel file. Try opening it in Excel and saving it again as .xlsx.",
             &[("detail", &e.to_string())],
         )
     })?;

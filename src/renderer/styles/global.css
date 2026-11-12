@@ -2422,12 +2422,15 @@ div:hover > .folder-row-add,
 }
 
 /* The user's own text (documents, transcripts, survey answers, memos and
- * notes, query results, anything typed into a text box) reads in its own
- * direction, whatever the interface's: each paragraph takes the
+ * notes, query results, quotes, anything typed into a text box) reads in
+ * its own direction, whatever the interface's: each paragraph takes the
  * direction of its first letter, so an Arabic paragraph runs and aligns
  * right to left and an English one left to right, in the same document.
- * The query results and reports set this in their own stylesheets. */
+ * On an inline element (a snippet in a line of interface text) it isolates
+ * the snippet in its own direction. Exported reports set this in their
+ * own stylesheets. */
 .user-text,
+.user-text :is(p, li, h1, h2, h3, h4, h5, h6, blockquote, td, th, dd),
 .ProseMirror :is(p, li, h1, h2, h3, h4, h5, h6, blockquote, td, th),
 textarea {
   unicode-bidi: plaintext;
@@ -2452,3 +2455,154 @@ textarea {
  * the start edge (the right), and the bracket layers are flipped so each
  * bracket opens towards the text (CodedTextView, RichMarginColumn). */
 [dir="rtl"] [data-bracket-overlay] { transform: scaleX(-1); }
+
+/* Files dragged over the window: a cue that dropping imports them. It
+   lets pointer events through, so drop targets underneath (the Document
+   Browser's folders) still work. The frame is inset, with its own rounded
+   corners, so it sits clear of the window's rounded corners. */
+.file-drop-cue {
+  position: fixed;
+  inset: 0;
+  z-index: 19000;
+  pointer-events: none;
+  display: flex;
+  padding: 10px;
+  animation: file-drop-cue-in 0.12s ease-out;
+}
+.file-drop-cue-frame {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border: 2px dashed var(--accent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.file-drop-cue-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 360px;
+  padding: 20px 28px;
+  text-align: center;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+}
+.file-drop-cue-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+.file-drop-cue-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+@keyframes file-drop-cue-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* The import dialog: every document being imported, with its stage. */
+.modal.import-progress {
+  width: 460px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.import-progress-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-tertiary);
+  overflow: hidden;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+.import-progress-bar > div {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s ease-out;
+}
+.import-progress-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  max-height: 50vh;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--bg-primary);
+}
+.import-progress-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 7px 10px;
+  font-size: var(--font-size-sm);
+}
+.import-progress-list li + li {
+  border-top: 1px solid var(--border-color);
+}
+.import-progress-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.import-progress-waiting {
+  border-radius: 50%;
+  border: 1.5px solid var(--text-muted);
+  opacity: 0.6;
+  box-sizing: border-box;
+}
+.import-progress-spinner {
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-top-color: var(--accent);
+  box-sizing: border-box;
+  animation: import-progress-spin 0.8s linear infinite;
+}
+@keyframes import-progress-spin {
+  to { transform: rotate(360deg); }
+}
+.import-progress-text {
+  flex: 1;
+  min-width: 0;
+}
+.import-progress-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+}
+.import-progress-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+.import-progress-stage {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+.import-progress-list li[data-stage="waiting"] .import-progress-name {
+  color: var(--text-muted);
+}
+.import-progress-list li[data-stage="failed"] .import-progress-stage {
+  color: var(--danger);
+}
+.import-progress-error {
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+@media (prefers-reduced-motion: reduce) {
+  .file-drop-cue { animation: none; }
+  .import-progress-spinner { animation-duration: 2.4s; }
+}

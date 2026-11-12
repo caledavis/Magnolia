@@ -542,6 +542,13 @@ export interface EditorInfo {
 }
 
 // IPC API exposed to renderer
+/** A document being imported: Waiting, then Reading (or Converting, for
+ *  Word, RTF and ODT files, which are typeset as PDFs), then Reading text
+ *  (PDFs), then Done or Failed. */
+export type ImportStage = 'waiting' | 'reading' | 'converting' | 'readingText' | 'done' | 'failed'
+export interface ImportItem { name: string; stage: ImportStage; error?: string }
+export interface ImportState { items: ImportItem[]; finished: boolean }
+
 export interface MagnoliaAPI {
   getFileSize: (filePath: string) => Promise<number | null>
   readPdfFile: (filePath: string) => Promise<Uint8Array>
@@ -613,7 +620,9 @@ export interface MagnoliaAPI {
    *  open. */
   setActiveProjectPath: (filePath: string | null) => Promise<void>
   createNewProjectFile: () => Promise<{ filePath: string; projectName: string } | null>
-  importTextFile: () => Promise<{ name: string; content: string } | null>
+  importTextFile: () => Promise<{ name: string; content: string }[] | null>
+  /** How an import is going: each file's stage, and whether it's finished. */
+  onImportProgress: (callback: (s: ImportState) => void) => () => void
   readTextFiles: (filePaths: string[]) => Promise<{ name: string; content: string }[] | null>
   /** Filesystem path of a dropped / picked File ('' if it has none). */
   getPathForFile: (file: File) => string

@@ -264,7 +264,7 @@ pub fn odt_to_html(bytes: &[u8]) -> Result<String, String> {
     let mut zip = zip::ZipArchive::new(Cursor::new(bytes)).map_err(|e| {
         crate::message::tr(
             "invalidOdt",
-            "Invalid ODT: {{detail}}",
+            "This file is damaged or isn’t really an OpenDocument text file. Try opening it in LibreOffice or Word and saving it again as .odt.",
             &[("detail", &e.to_string())],
         )
     })?;
@@ -275,7 +275,7 @@ pub fn odt_to_html(bytes: &[u8]) -> Result<String, String> {
         Some(b)
     };
     let content = read("content.xml")
-        .ok_or_else(|| crate::message::tr("odtNoContent", "Invalid ODT: no content.xml", &[]))?;
+        .ok_or_else(|| crate::message::tr("odtNoContent", "This file is damaged or isn’t really an OpenDocument text file. Try opening it in LibreOffice or Word and saving it again as .odt.", &[]))?;
     let styles = read("styles.xml");
 
     let mut pictures = HashMap::new();
@@ -313,7 +313,7 @@ pub fn odt_to_html(bytes: &[u8]) -> Result<String, String> {
     let doc = crate::xml_read::parse(&content_text).map_err(|e| {
         crate::message::tr(
             "invalidOdtContent",
-            "Invalid ODT content: {{detail}}",
+            "This file is damaged or isn’t really an OpenDocument text file. Try opening it in LibreOffice or Word and saving it again as .odt.",
             &[("detail", &e.to_string())],
         )
     })?;

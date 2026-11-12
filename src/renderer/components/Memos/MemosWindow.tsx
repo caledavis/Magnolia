@@ -46,7 +46,7 @@ function MemoRow({ memo, place, selected, onClick, onDoubleClick, onContextMenu 
       onDoubleClick={onDoubleClick}
       onContextMenu={(e) => { e.preventDefault(); onContextMenu(e) }}
     >
-      <div style={{ fontWeight: 500, fontSize: 'var(--font-size-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <div className="user-text" style={{ fontWeight: 500, fontSize: 'var(--font-size-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {memo.title || t('memos.untitled')}
       </div>
       <div style={{ fontSize: 10, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -73,7 +73,7 @@ function MemoDetail({ memo, place, onEdit, onShow }: {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
-        <div style={{ flex: 1, fontWeight: 600, fontSize: 'var(--font-size-lg)' }}>{memo.title || t('memos.untitled')}</div>
+        <div className="user-text" style={{ flex: 1, fontWeight: 600, fontSize: 'var(--font-size-lg)' }}>{memo.title || t('memos.untitled')}</div>
         {place?.canShow && <button className="secondary" style={{ fontSize: 11, padding: '2px 10px' }} onClick={onShow} title={t('memos.showTitle')}>{t('common.show')}</button>}
         {/* A transparent border, so it matches Show's 1px border. */}
         <button style={{ fontSize: 11, padding: '2px 10px', border: '1px solid transparent' }} onClick={onEdit}>{t('common.edit')}</button>
@@ -88,7 +88,7 @@ function MemoDetail({ memo, place, onEdit, onShow }: {
         {memo.modifiedDateTime && <span> · {t('common.editedOn', { date: formatDate(memo.modifiedDateTime) })}</span>}
       </div>
       {memo.content ? (
-        <Markdown text={memo.content} style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }} />
+        <Markdown text={memo.content} className="user-text" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }} />
       ) : (
         <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-muted)', fontStyle: 'italic' }}>{t('common.noContent')}</div>
       )}

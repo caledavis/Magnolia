@@ -14,7 +14,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { emit, emitTo } from '@tauri-apps/api/event'
 import { getCurrentWebview } from '@tauri-apps/api/webview'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
-import type { MagnoliaAPI } from '../models/types'
+import type { ImportItem, ImportState, MagnoliaAPI } from '../models/types'
 import { base64ToBytes, extractPdfText } from './pdf-text'
 import { t } from '../i18n'
 import { withDocumentLanguage } from '../utils/document-language'
@@ -109,7 +109,9 @@ async function completeImportedPdf(doc: any): Promise<any> {
     doc.formatting.pdfPageOffsets = pageOffsets
     return doc
   } catch (err: any) {
-    return { name: doc.name, error: err?.message || String(err) }
+    // pdf.js's messages are technical; say what's wrong in plain words.
+    console.error(`Could not read the PDF ${doc.name}:`, err)
+    return { name: doc.name, error: t(err?.name === 'PasswordException' ? 'importProgress.pdfPassword' : 'importProgress.pdfDamaged') }
   }
 }
 
@@ -125,6 +127,57 @@ async function readMedia(handle: string): Promise<ArrayBuffer> {
 async function openedProject(data: any): Promise<any> {
   if (!data) return data
   return completeProjectPdfText(data, async (h) => new Uint8Array(await readMedia(h)))
+}
+
+// ── Importing documents ───────────────────────────────────────────────
+// Files are read one at a time, reporting each one's stage: the backend
+// reads it (and typesets Word, RTF and ODT files as PDFs), then a PDF's
+// text is read here.
+
+const importProgress = new Set<(s: ImportState) => void>()
+const OFFICE = /\.(docx|rtf|odt)$/i
+
+async function readImports(filePaths: string[]): Promise<any[]> {
+  const items: ImportItem[] = filePaths.map((p) => ({
+    name: droppedFiles.get(p)?.name ?? p.split(/[\\/]/).pop() ?? p,
+    stage: 'waiting'
+  }))
+  const report = (finished = false) => {
+    const state = { items: items.map((it) => ({ ...it })), finished }
+    for (const cb of importProgress) cb(state)
+  }
+  const out: any[] = []
+  for (const [i, p] of filePaths.entries()) {
+    const item = items[i]
+    item.stage = OFFICE.test(item.name) ? 'converting' : 'reading'
+    report()
+    let doc: any
+    try {
+      const file = droppedFiles.get(p)
+      if (file) {
+        droppedFiles.delete(p)
+        doc = await readDroppedFile(file)
+      } else {
+        doc = (await invoke<any[]>('read_text_files', { filePaths: [p] }))[0]
+      }
+      if (doc?._pendingPdfText) {
+        item.stage = 'readingText'
+        report()
+      }
+      doc = await completeImportedPdf(doc)
+    } catch (err: any) {
+      doc = { name: item.name, error: err?.message || String(err) }
+    }
+    if (doc?.error) {
+      item.stage = 'failed'
+      item.error = doc.error
+    } else {
+      item.stage = 'done'
+    }
+    out.push(doc)
+  }
+  report(true)
+  return out
 }
 
 // ── OS file drops ─────────────────────────────────────────────────────
@@ -143,10 +196,9 @@ async function readDroppedFile(file: File): Promise<any> {
     // WebKit can't read a dropped folder as bytes.
     return { name: file.name, error: t('native.import.folder') }
   }
-  const doc = await invoke('read_dropped_file', new Uint8Array(bytes), {
+  return invoke('read_dropped_file', new Uint8Array(bytes), {
     headers: { 'x-file-name': encodeURIComponent(file.name) }
   })
-  return completeImportedPdf(doc)
 }
 
 // ── Window chrome ─────────────────────────────────────────────────────
@@ -264,19 +316,14 @@ const api: MagnoliaAPI = {
   saveProjectAs: (data) => invoke('save_project_as', { data }),
   createProjectCopy: (data) => invoke('create_project_copy', { data }),
   createNewProjectFile: () => invoke('create_new_project_file'),
-  importTextFile: async () => completeImports(await invoke('import_text_file')),
-  readTextFiles: async (filePaths) => {
-    const out: any[] = []
-    for (const p of filePaths) {
-      const file = droppedFiles.get(p)
-      if (file) {
-        droppedFiles.delete(p)
-        out.push(await readDroppedFile(file))
-      } else {
-        out.push(...(await completeImports(await invoke<any[]>('read_text_files', { filePaths: [p] }))))
-      }
-    }
-    return out
+  importTextFile: async () => {
+    const paths = await invoke<string[] | null>('pick_import_files')
+    return paths?.length ? readImports(paths) : null
+  },
+  readTextFiles: readImports,
+  onImportProgress: (callback) => {
+    importProgress.add(callback)
+    return () => { importProgress.delete(callback) }
   },
   getPathForFile: (file) => {
     const token = `${DROP_PREFIX}${nextDropId++}/${file.name}`

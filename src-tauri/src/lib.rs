@@ -105,7 +105,7 @@ pub fn run() {
             commands::save_project_as,
             commands::create_project_copy,
             commands::create_new_project_file,
-            commands::import_text_file,
+            commands::pick_import_files,
             commands::read_text_files,
             commands::read_dropped_file,
             commands::reimport_document,

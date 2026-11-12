@@ -18,7 +18,7 @@ pub fn tiff_to_png(bytes: &[u8]) -> Result<Vec<u8>, String> {
     let img = image::load_from_memory_with_format(bytes, ImageFormat::Tiff).map_err(|e| {
         crate::message::tr(
             "decodeTiff",
-            "Could not decode TIFF: {{detail}}",
+            "This TIFF image is damaged or in a form Magnolia can’t read. Try saving it again as a PNG or JPEG.",
             &[("detail", &e.to_string())],
         )
     })?;
@@ -33,7 +33,7 @@ pub fn heic_to_png(bytes: &[u8]) -> Result<Vec<u8>, String> {
     let pixels = dec.decode().map_err(|e| {
         crate::message::tr(
             "decodeHeic",
-            "Could not decode HEIC: {{detail}}",
+            "This HEIC photo is damaged or in a form Magnolia can’t read. Try exporting it as a JPEG.",
             &[("detail", &format!("{e:?}"))],
         )
     })?;
@@ -59,7 +59,7 @@ pub fn heic_to_png(bytes: &[u8]) -> Result<Vec<u8>, String> {
         other => {
             return Err(crate::message::tr(
                 "heicColourSpace",
-                "Unsupported HEIC colour space {{detail}}",
+                "This HEIC photo is damaged or in a form Magnolia can’t read. Try exporting it as a JPEG.",
                 &[("detail", &format!("{other:?}"))],
             ));
         }
@@ -67,7 +67,7 @@ pub fn heic_to_png(bytes: &[u8]) -> Result<Vec<u8>, String> {
     let img = RgbaImage::from_raw(w, h, rgba).ok_or_else(|| {
         crate::message::tr(
             "heicMalformed",
-            "HEIC decoder returned a malformed image",
+            "This HEIC photo is damaged or in a form Magnolia can’t read. Try exporting it as a JPEG.",
             &[],
         )
     })?;
