@@ -247,7 +247,7 @@ export function zoteroLink(item: ZoteroItem, library: ZoteroLibrary): string {
 const oneLine = (s: string): string => s.replace(/\s*\n\s*/g, '; ').replace(/\s+/g, ' ').trim()
 
 /** Everything Zotero knows about an item, as categories and values, in
- *  Zotero's order: item type, title, creators by role, then each field,
+ *  Zotero's order: item type, creators by role, then each field,
  *  then Zotero's tags and the collections it's in. */
 export function itemInfo(
   item: ZoteroItem,
@@ -262,8 +262,8 @@ export function itemInfo(
   }
   add('itemType', labels.itemTypeField, 'text', [labels.itemType(d.itemType)])
   const fieldsInOrder = Object.keys(d).filter((f) => !NOT_INFO.has(f))
-  // The title first, then the creators, then the rest in Zotero's order.
-  if (fieldsInOrder.includes('title')) add('title', labels.field('title'), 'text', [String(d.title)])
+  // The creators first, then the rest in Zotero's order. The title isn't
+  // a tag: it's the document's name.
   const roles = new Map<string, string[]>()
   for (const c of (d.creators ?? []) as any[]) {
     const name = creatorName(c)

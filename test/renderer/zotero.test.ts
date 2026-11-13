@@ -9,7 +9,7 @@ import {
   type ZoteroGet, type ZoteroItem, type ZoteroLabels, type ZoteroLibrary
 } from '../../src/renderer/utils/zotero'
 import { tagDocument } from '../../src/renderer/utils/zotero-tags'
-import { importedLinks } from '../../src/renderer/utils/zotero-import'
+import { importedLinks, importZoteroItems } from '../../src/renderer/utils/zotero-import'
 import { useTagStore } from '../../src/renderer/stores/tag-store'
 import { useDocumentStore } from '../../src/renderer/stores/document-store'
 
@@ -58,7 +58,7 @@ describe("an item's information", () => {
 
   it('has a category for every non-empty field, in order', () => {
     expect(info.map((e) => e.label)).toEqual([
-      'Item Type', 'Title', 'Author', 'Editor', 'Publication', 'Volume', 'Date', 'DOI', 'Accessed',
+      'Item Type', 'Author', 'Editor', 'Publication', 'Volume', 'Date', 'DOI', 'Accessed',
       'Zotero Tags', 'Collection'
     ])
   })
@@ -76,9 +76,9 @@ describe("an item's information", () => {
     expect(byLabel.Accessed).toMatchObject({ type: 'date', values: ['15/01/2024'] })
   })
 
-  it("keeps the abstract and Zotero's bookkeeping out of the tags", () => {
+  it("keeps the title, the abstract and Zotero's bookkeeping out of the tags", () => {
     const fields = info.map((e) => e.field)
-    for (const f of ['abstractNote', 'dateAdded', 'dateModified', 'key', 'version', 'extra']) expect(fields).not.toContain(f)
+    for (const f of ['title', 'abstractNote', 'dateAdded', 'dateModified', 'key', 'version', 'extra']) expect(fields).not.toContain(f)
   })
 
   it('links the item in Zotero, in a group too', () => {
@@ -190,5 +190,37 @@ describe('tagging the document', () => {
     docs.setZoteroLink(guid, zoteroLink(article, myLibrary))
     expect(importedLinks()).toEqual(new Set(['zotero://select/library/items/ABCD1234']))
     expect(useTagStore.getState().tags).toEqual([])
+  })
+})
+
+describe('importing', () => {
+  beforeEach(() => {
+    useTagStore.getState().clearAll()
+    useDocumentStore.setState({ sources: [], folders: [], sourceFolder: {} })
+    ;(globalThis as any).window ??= globalThis
+    ;(window as any).api = {
+      ...(window as any).api,
+      zoteroFilePath: async (_lib: string, key: string) => `/files/${key}.pdf`,
+      readTextFiles: async (paths: string[]) => paths.map((p) => ({ name: p.split('/').pop(), extension: 'pdf', content: 'x' }))
+    }
+  })
+  const job = { items: [article], library: myLibrary, labels, collectionNames: new Map<string, string>(), noteFallbackTitle: 'Note' }
+  const get: ZoteroGet = async () => ({ status: 200, total: 0, body: '[]' })
+
+  it('names the document after the title and files it in a "Zotero" folder', async () => {
+    await importZoteroItems(get, job)
+    const { sources, folders, sourceFolder } = useDocumentStore.getState()
+    expect(sources.map((s) => s.name)).toEqual(['Teaching with care'])
+    expect(folders.map((f) => f.name)).toEqual(['Zotero'])
+    expect(sourceFolder[sources[0].guid]).toBe(folders[0].guid)
+  })
+
+  it("uses the project's Zotero folder if it has one", async () => {
+    const mine = useDocumentStore.getState().addFolder('zotero')
+    await importZoteroItems(get, job)
+    await importZoteroItems(get, { ...job, items: [{ ...article, key: 'OTHER', data: { ...article.data, key: 'OTHER' } }] })
+    const { sources, folders, sourceFolder } = useDocumentStore.getState()
+    expect(folders).toHaveLength(1)
+    expect(sources.every((s) => sourceFolder[s.guid] === mine)).toBe(true)
   })
 })

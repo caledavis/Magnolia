@@ -1,7 +1,8 @@
 /**
  * Importing chosen Zotero items: each item's file is read like any other
  * import (with the import progress dialog, and Word files typeset as
- * PDFs), becomes a document named after the item, and is tagged with the
+ * PDFs), becomes a document named after the item's title in the project's
+ * "Zotero" folder (made if there's none), and is tagged with the
  * item's information. The abstract and the item's notes become memos on
  * the document.
  */
@@ -23,6 +24,17 @@ export interface ZoteroImport {
   noteFallbackTitle: string
 }
 
+/** The folder imports go in: the project's top-level "Zotero" folder,
+ *  made if there's none. */
+export const ZOTERO_FOLDER = 'Zotero'
+function zoteroFolder(): string {
+  const docs = useDocumentStore.getState()
+  const found = docs.folders.find(
+    (f) => !f.parentGuid && f.kind !== 'notebook' && f.name.trim().toLocaleLowerCase() === ZOTERO_FOLDER.toLocaleLowerCase()
+  )
+  return found?.guid ?? docs.addFolder(ZOTERO_FOLDER)
+}
+
 /** Import the items; true if any document came in. */
 export async function importZoteroItems(get: ZoteroGet, job: ZoteroImport): Promise<boolean> {
   const { items, library, labels, collectionNames } = job
@@ -37,6 +49,7 @@ export async function importZoteroItems(get: ZoteroGet, job: ZoteroImport): Prom
   }
   const read = (await window.api.readTextFiles(paths)) ?? []
   let added = false
+  let folder: string | undefined
   for (const [i, item] of items.entries()) {
     const file = read[i] as any
     if (!file || file.error) continue
@@ -46,6 +59,8 @@ export async function importZoteroItems(get: ZoteroGet, job: ZoteroImport): Prom
       itemTitle(item), file.content, sourceType !== 'text' ? sourceType : undefined, file.formatting
     )
     added = true
+    folder ??= zoteroFolder()
+    useDocumentStore.getState().moveSourceToFolder(guid, folder)
     useDocumentStore.getState().setZoteroLink(guid, zoteroLink(item, library))
     tagDocument(guid, itemInfo(item, labels, collectionNames))
     const { addMemo } = useMemoStore.getState()

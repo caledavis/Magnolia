@@ -1580,7 +1580,7 @@
     "toolbar.projectDetails": "Project Details",
     "toolbar.import": "Import",
     "toolbar.importTitle": "Import documents",
-    "toolbar.zotero": "Zotero",
+    "toolbar.zotero": "Import from Zotero",
     "toolbar.zoteroTitle": "Import documents from Zotero, tagged with their information",
     "toolbar.merge": "Merge",
     "toolbar.mergeTitle": "Merge a project into this one",

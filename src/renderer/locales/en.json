@@ -253,7 +253,7 @@
     "projectDetails": "Project Details",
     "import": "Import",
     "importTitle": "Import documents",
-    "zotero": "Zotero",
+    "zotero": "Import from Zotero",
     "zoteroTitle": "Import documents from Zotero, tagged with their information",
     "merge": "Merge",
     "mergeTitle": "Merge a project into this one",
