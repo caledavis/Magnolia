@@ -112,7 +112,8 @@
       "legacyDoc": "Oude Microsoft Word-bestanden (.doc) worden niet ondersteund. Open het bestand in Word en bewaar het als .docx.",
       "folder": "Mappen kunnen niet worden geïmporteerd. Sleep in plaats daarvan de bestanden die erin staan.",
       "noExtension": "Bestanden zonder extensie kunnen niet worden geïmporteerd.",
-      "unsupported": "Magnolia kan geen .{{ext}}-bestanden importeren."
+      "unsupported": "Magnolia kan geen .{{ext}}-bestanden importeren.",
+      "unreadable": "Magnolia kon dit bestand niet openen. Controleer of het nog bestaat en of je het kunt openen."
     },
     "window": {
       "codes": "Codes",
@@ -152,6 +153,21 @@
       "invalidProjectXml": "Ongeldige project-XML: {{detail}}",
       "notAProject": "Ongeldige project-XML: het hoofdelement is niet <Project>",
       "invalidCodebookXml": "Ongeldige codeboek-XML: {{detail}}",
+      "invalidDocx": "Dit bestand is beschadigd of is niet echt een Word-document. Open het in Word en sla het opnieuw op als .docx.",
+      "docxNoDocument": "Dit bestand is beschadigd of is niet echt een Word-document. Open het in Word en sla het opnieuw op als .docx.",
+      "invalidDocxDocument": "Dit bestand is beschadigd of is niet echt een Word-document. Open het in Word en sla het opnieuw op als .docx.",
+      "docxNoBody": "Dit bestand is beschadigd of is niet echt een Word-document. Open het in Word en sla het opnieuw op als .docx.",
+      "invalidOdt": "Dit bestand is beschadigd of is niet echt een OpenDocument-tekstbestand. Open het in LibreOffice of Word en sla het opnieuw op als .odt.",
+      "odtNoContent": "Dit bestand is beschadigd of is niet echt een OpenDocument-tekstbestand. Open het in LibreOffice of Word en sla het opnieuw op als .odt.",
+      "invalidOdtContent": "Dit bestand is beschadigd of is niet echt een OpenDocument-tekstbestand. Open het in LibreOffice of Word en sla het opnieuw op als .odt.",
+      "notRtf": "Dit bestand is niet echt een RTF-document. Open het in een tekstverwerker en sla het opnieuw op als .rtf.",
+      "readSpreadsheet": "Deze spreadsheet is beschadigd of is niet echt een Excel-bestand. Open hem in Excel en sla hem opnieuw op als .xlsx.",
+      "xlsxNoWorksheets": "Deze spreadsheet heeft geen werkbladen om te importeren.",
+      "readWorksheet": "Deze spreadsheet is beschadigd of is niet echt een Excel-bestand. Open hem in Excel en sla hem opnieuw op als .xlsx.",
+      "decodeTiff": "Deze TIFF-afbeelding is beschadigd of heeft een vorm die Magnolia niet kan lezen. Sla de afbeelding opnieuw op als PNG of JPEG.",
+      "decodeHeic": "Deze HEIC-foto is beschadigd of heeft een vorm die Magnolia niet kan lezen. Exporteer de foto als JPEG.",
+      "heicColourSpace": "Deze HEIC-foto is beschadigd of heeft een vorm die Magnolia niet kan lezen. Exporteer de foto als JPEG.",
+      "heicMalformed": "Deze HEIC-foto is beschadigd of heeft een vorm die Magnolia niet kan lezen. Exporteer de foto als JPEG.",
       "guard": {
         "noSources_one": "Magnolia overschrijft “{{file}}” niet: dit project heeft geen documenten, maar het bestand bevat {{count}} document. Meestal betekent dit dat een fout de documenten heeft gewist nadat het bestand was geopend. Wil je echt een leeg project bewaren, bewaar het dan met ‘Bewaar project als’ in een nieuw bestand.",
         "noSources_other": "Magnolia overschrijft “{{file}}” niet: dit project heeft geen documenten, maar het bestand bevat {{count}} documenten. Meestal betekent dit dat een fout de documenten heeft gewist nadat het bestand was geopend. Wil je echt een leeg project bewaren, bewaar het dan met ‘Bewaar project als’ in een nieuw bestand.",
@@ -160,7 +176,8 @@
         "noText_other": "Magnolia overschrijft “{{file}}” niet: het project heeft {{count}} documenten, maar van geen ervan is de tekst geladen. Meestal betekent dit dat het project niet volledig is geopend, en nu bewaren zou de tekst van de documenten wissen. Open het project opnieuw en zet het terug vanuit een back-up als het probleem blijft.",
         "missingFiles_one": "Magnolia bewaart “{{file}}” niet: de inhoud van {{count}} geïmporteerd document is niet gevonden ({{names}}). Die stond niet in het geheugen, de tijdelijke cache of het bestaande projectbestand, dus nu bewaren zou het leeg bewaren. Importeer het document opnieuw en probeer het nog eens.",
         "missingFiles_other": "Magnolia bewaart “{{file}}” niet: de inhoud van {{count}} geïmporteerde documenten is niet gevonden ({{names}}). Die stond niet in het geheugen, de tijdelijke cache of het bestaande projectbestand, dus nu bewaren zou ze leeg bewaren. Importeer de documenten opnieuw en probeer het nog eens."
-      }
+      },
+      "typesetFailed": "Magnolia kon dit document niet in pagina’s opmaken. Sla het opnieuw op in het programma waar het vandaan komt, of sla het op als pdf en importeer die."
     }
   },
   "tools": {
@@ -559,7 +576,7 @@
     "noMatch": "Geen citaten komen overeen met \"{{query}}\".",
     "filter": "Citaten filteren",
     "empty": "Nog geen citaten.",
-    "emptyHint": "Klik met de rechtermuisknop op een selectie in een document en kies \"Als citaat toevoegen\", of sleep de greep van de selectie hierheen.",
+    "emptyHint": "Klik met de rechtermuisknop op een selectie in een document, of klik op de knop aan het eind ervan, en kies \"Als citaat toevoegen\".",
     "copy": "Citaat kopiëren",
     "delete": "Citaat verwijderen"
   },
@@ -650,6 +667,7 @@
     "imageUnavailable": "Afbeeldingsbestand niet beschikbaar",
     "pdfUnavailable": "Pdf-bestand niet beschikbaar",
     "pageRegion": "Gebied op pagina {{page}}",
+    "selectionMenu": "Deze selectie coderen",
     "code": "Code",
     "codeTimeRange": "{{code}}: {{start}} tot {{end}}",
     "removeSelection": "Selectie verwijderen",
@@ -1309,7 +1327,9 @@
     "noQuotesInQuery": "Citaten kunnen niet aan een query worden toegevoegd",
     "noAnalysesInQuery": "Analyses kunnen niet aan een query worden toegevoegd",
     "projectInfo": "Projectinformatie",
-    "progressOf": "{{current}} / {{total}}"
+    "progressOf": "{{current}} / {{total}}",
+    "dropToImport": "Loslaten om te importeren",
+    "dropToImportHint": "Laat los op een map in Documenten om in die map te importeren"
   },
   "analysis": {
     "save": "Analyse bewaren",
@@ -1728,6 +1748,22 @@
     "failed": "De pdf kon niet worden geëxporteerd.\n\n{{detail}}",
     "notebookSubtitle_one": "{{count}} notitie — geëxporteerd op {{date}}",
     "notebookSubtitle_other": "{{count}} notities — geëxporteerd op {{date}}"
+  },
+  "importProgress": {
+    "title_one": "{{count}} document wordt geïmporteerd",
+    "title_other": "{{count}} documenten worden geïmporteerd",
+    "finished_one": "{{count}} document geïmporteerd",
+    "finished_other": "{{count}} documenten geïmporteerd",
+    "someFailed_one": "{{count}} document kon niet worden geïmporteerd",
+    "someFailed_other": "{{count}} documenten konden niet worden geïmporteerd",
+    "waiting": "Wachten",
+    "reading": "Lezen",
+    "converting": "Omzetten naar pdf",
+    "readingText": "Tekst lezen",
+    "done": "Klaar",
+    "failed": "Kon niet worden geïmporteerd",
+    "pdfPassword": "Deze pdf is beveiligd met een wachtwoord. Verwijder het wachtwoord in een pdf-app en importeer hem opnieuw.",
+    "pdfDamaged": "Dit bestand is beschadigd of is niet echt een pdf."
   },
   "zotero": {
     "title": "Importeren uit Zotero",

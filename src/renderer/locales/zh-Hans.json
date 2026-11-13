@@ -112,7 +112,8 @@
       "legacyDoc": "不支持旧版 Microsoft Word .doc 文件。请在 Word 中打开该文件并另存为 .docx。",
       "folder": "无法导入文件夹。请改为拖入其中的文件。",
       "noExtension": "无法导入没有扩展名的文件。",
-      "unsupported": "Magnolia 无法导入 .{{ext}} 文件。"
+      "unsupported": "Magnolia 无法导入 .{{ext}} 文件。",
+      "unreadable": "Magnolia 无法打开此文件。请确认该文件仍然存在，并且您可以打开它。"
     },
     "window": {
       "codes": "代码",
@@ -152,12 +153,28 @@
       "invalidProjectXml": "无效的项目 XML：{{detail}}",
       "notAProject": "无效的项目 XML：根元素不是 <Project>",
       "invalidCodebookXml": "无效的代码本 XML：{{detail}}",
+      "invalidDocx": "此文件已损坏，或并非真正的 Word 文档。请尝试在 Word 中打开它，并重新存储为 .docx。",
+      "docxNoDocument": "此文件已损坏，或并非真正的 Word 文档。请尝试在 Word 中打开它，并重新存储为 .docx。",
+      "invalidDocxDocument": "此文件已损坏，或并非真正的 Word 文档。请尝试在 Word 中打开它，并重新存储为 .docx。",
+      "docxNoBody": "此文件已损坏，或并非真正的 Word 文档。请尝试在 Word 中打开它，并重新存储为 .docx。",
+      "invalidOdt": "此文件已损坏，或并非真正的 OpenDocument 文本文件。请尝试在 LibreOffice 或 Word 中打开它，并重新存储为 .odt。",
+      "odtNoContent": "此文件已损坏，或并非真正的 OpenDocument 文本文件。请尝试在 LibreOffice 或 Word 中打开它，并重新存储为 .odt。",
+      "invalidOdtContent": "此文件已损坏，或并非真正的 OpenDocument 文本文件。请尝试在 LibreOffice 或 Word 中打开它，并重新存储为 .odt。",
+      "notRtf": "此文件并非真正的 RTF 文档。请尝试在文字处理程序中打开它，并重新存储为 .rtf。",
+      "readSpreadsheet": "此电子表格已损坏，或并非真正的 Excel 文件。请尝试在 Excel 中打开它，并重新存储为 .xlsx。",
+      "xlsxNoWorksheets": "此电子表格中没有可导入的工作表。",
+      "readWorksheet": "此电子表格已损坏，或并非真正的 Excel 文件。请尝试在 Excel 中打开它，并重新存储为 .xlsx。",
+      "decodeTiff": "此 TIFF 图像已损坏，或采用了 Magnolia 无法读取的格式。请尝试将其重新存储为 PNG 或 JPEG。",
+      "decodeHeic": "此 HEIC 照片已损坏，或采用了 Magnolia 无法读取的格式。请尝试将其导出为 JPEG。",
+      "heicColourSpace": "此 HEIC 照片已损坏，或采用了 Magnolia 无法读取的格式。请尝试将其导出为 JPEG。",
+      "heicMalformed": "此 HEIC 照片已损坏，或采用了 Magnolia 无法读取的格式。请尝试将其导出为 JPEG。",
       "guard": {
         "noSources_other": "拒绝覆盖“{{file}}”：此项目没有文档，但该文件包含 {{count}} 个文档。这通常意味着文件打开后某个故障清除了文档。如果您确实要保存空项目，请使用“项目另存为”将其保存到新文件。",
         "emptyProject": "拒绝用空项目覆盖“{{file}}”（{{size}} 字节）。如果您确实要保存空项目，请使用“项目另存为”。",
         "noText_other": "拒绝覆盖“{{file}}”：项目有 {{count}} 个文档，但其文本均未载入。这通常意味着项目没有完全打开，现在保存会抹去文档的文本。请重新打开项目；如果问题仍然存在，请从备份恢复。",
         "missingFiles_other": "拒绝保存“{{file}}”：找不到 {{count}} 个已导入文档的内容（{{names}}）。它们既不在内存中，也不在临时缓存或现有项目文件中，现在保存会将其保存为空。请重新导入文档后再试。"
-      }
+      },
+      "typesetFailed": "Magnolia 无法将此文档排版成页面。请尝试在原来的程序中重新存储它，或将其存储为 PDF 后导入该文件。"
     }
   },
   "tools": {
@@ -545,7 +562,7 @@
     "noMatch": "没有与“{{query}}”匹配的引文。",
     "filter": "筛选引文",
     "empty": "暂无引文。",
-    "emptyHint": "在文档中右键点按所选内容并选择“添加为引文”，或将所选内容的拖动柄拖到此处。",
+    "emptyHint": "在文档中右键点按所选内容，或点按其末尾的按钮，然后选择“添加为引文”。",
     "copy": "拷贝引文",
     "delete": "删除引文"
   },
@@ -628,6 +645,7 @@
     "imageUnavailable": "图像文件不可用",
     "pdfUnavailable": "PDF 文件不可用",
     "pageRegion": "第 {{page}} 页区域",
+    "selectionMenu": "编码此选段",
     "code": "代码",
     "codeTimeRange": "{{code}}——{{start}} 至 {{end}}",
     "removeSelection": "移除选段",
@@ -1264,7 +1282,9 @@
     "noQuotesInQuery": "引文无法添加到查询",
     "noAnalysesInQuery": "分析无法添加到查询",
     "projectInfo": "项目信息",
-    "progressOf": "{{current}} / {{total}}"
+    "progressOf": "{{current}} / {{total}}",
+    "dropToImport": "松开以导入",
+    "dropToImportHint": "拖放到“文档”中的文件夹上，即可导入到该文件夹"
   },
   "analysis": {
     "save": "保存分析",
@@ -1660,6 +1680,19 @@
     "noImageData": "找不到图像的内容。",
     "failed": "无法导出 PDF。\n\n{{detail}}",
     "notebookSubtitle_other": "{{count}} 条笔记——导出于 {{date}}"
+  },
+  "importProgress": {
+    "title_other": "正在导入 {{count}} 个文档",
+    "finished_other": "已导入 {{count}} 个文档",
+    "someFailed_other": "{{count}} 个文档无法导入",
+    "waiting": "等待中",
+    "reading": "正在读取",
+    "converting": "正在转换为 PDF",
+    "readingText": "正在读取文本",
+    "done": "完成",
+    "failed": "无法导入",
+    "pdfPassword": "此 PDF 受密码保护。请在 PDF 应用中移除密码，然后重新导入。",
+    "pdfDamaged": "此文件已损坏，或并非真正的 PDF。"
   },
   "zotero": {
     "title": "从 Zotero 导入",

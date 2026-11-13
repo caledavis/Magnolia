@@ -112,7 +112,8 @@
       "legacyDoc": "Les anciens fichiers Microsoft Word .doc ne sont pas pris en charge. Ouvrez le fichier dans Word et enregistrez-le au format .docx.",
       "folder": "Les dossiers ne peuvent pas être importés. Déposez plutôt les fichiers qu’ils contiennent.",
       "noExtension": "Les fichiers sans extension ne peuvent pas être importés.",
-      "unsupported": "Magnolia ne peut pas importer les fichiers .{{ext}}."
+      "unsupported": "Magnolia ne peut pas importer les fichiers .{{ext}}.",
+      "unreadable": "Magnolia n’a pas pu ouvrir ce fichier. Vérifiez qu’il existe toujours et que vous pouvez l’ouvrir."
     },
     "window": {
       "codes": "Codes",
@@ -152,6 +153,21 @@
       "invalidProjectXml": "XML du projet non valide : {{detail}}",
       "notAProject": "XML du projet non valide : l’élément racine n’est pas <Project>",
       "invalidCodebookXml": "XML du livre de codes non valide : {{detail}}",
+      "invalidDocx": "Ce fichier est endommagé ou n’est pas vraiment un document Word. Essayez de l’ouvrir dans Word et de l’enregistrer à nouveau au format .docx.",
+      "docxNoDocument": "Ce fichier est endommagé ou n’est pas vraiment un document Word. Essayez de l’ouvrir dans Word et de l’enregistrer à nouveau au format .docx.",
+      "invalidDocxDocument": "Ce fichier est endommagé ou n’est pas vraiment un document Word. Essayez de l’ouvrir dans Word et de l’enregistrer à nouveau au format .docx.",
+      "docxNoBody": "Ce fichier est endommagé ou n’est pas vraiment un document Word. Essayez de l’ouvrir dans Word et de l’enregistrer à nouveau au format .docx.",
+      "invalidOdt": "Ce fichier est endommagé ou n’est pas vraiment un fichier texte OpenDocument. Essayez de l’ouvrir dans LibreOffice ou Word et de l’enregistrer à nouveau au format .odt.",
+      "odtNoContent": "Ce fichier est endommagé ou n’est pas vraiment un fichier texte OpenDocument. Essayez de l’ouvrir dans LibreOffice ou Word et de l’enregistrer à nouveau au format .odt.",
+      "invalidOdtContent": "Ce fichier est endommagé ou n’est pas vraiment un fichier texte OpenDocument. Essayez de l’ouvrir dans LibreOffice ou Word et de l’enregistrer à nouveau au format .odt.",
+      "notRtf": "Ce fichier n’est pas vraiment un document RTF. Essayez de l’ouvrir dans un traitement de texte et de l’enregistrer à nouveau au format .rtf.",
+      "readSpreadsheet": "Ce classeur est endommagé ou n’est pas vraiment un fichier Excel. Essayez de l’ouvrir dans Excel et de l’enregistrer à nouveau au format .xlsx.",
+      "xlsxNoWorksheets": "Ce classeur ne contient aucune feuille à importer.",
+      "readWorksheet": "Ce classeur est endommagé ou n’est pas vraiment un fichier Excel. Essayez de l’ouvrir dans Excel et de l’enregistrer à nouveau au format .xlsx.",
+      "decodeTiff": "Cette image TIFF est endommagée ou dans un format que Magnolia ne sait pas lire. Essayez de l’enregistrer à nouveau en PNG ou en JPEG.",
+      "decodeHeic": "Cette photo HEIC est endommagée ou dans un format que Magnolia ne sait pas lire. Essayez de l’exporter en JPEG.",
+      "heicColourSpace": "Cette photo HEIC est endommagée ou dans un format que Magnolia ne sait pas lire. Essayez de l’exporter en JPEG.",
+      "heicMalformed": "Cette photo HEIC est endommagée ou dans un format que Magnolia ne sait pas lire. Essayez de l’exporter en JPEG.",
       "guard": {
         "noSources_one": "Refus d’écraser « {{file}} » : ce projet ne contient aucun document, mais le fichier en contient {{count}}. Cela signifie généralement qu’une erreur a effacé les documents après l’ouverture du fichier. Utilisez Enregistrer le projet sous pour l’enregistrer dans un nouveau fichier si vous voulez vraiment enregistrer un projet vide.",
         "noSources_many": "Refus d’écraser « {{file}} » : ce projet ne contient aucun document, mais le fichier en contient {{count}}. Cela signifie généralement qu’une erreur a effacé les documents après l’ouverture du fichier. Utilisez Enregistrer le projet sous pour l’enregistrer dans un nouveau fichier si vous voulez vraiment enregistrer un projet vide.",
@@ -163,7 +179,8 @@
         "missingFiles_one": "Refus d’enregistrer « {{file}} » : le contenu de {{count}} document importé est introuvable ({{names}}). Il n’était ni en mémoire, ni dans le cache temporaire, ni dans le fichier du projet existant ; l’enregistrer maintenant l’enregistrerait vide. Importez de nouveau le document et réessayez.",
         "missingFiles_many": "Refus d’enregistrer « {{file}} » : le contenu de {{count}} documents importés est introuvable ({{names}}). Ils n’étaient ni en mémoire, ni dans le cache temporaire, ni dans le fichier du projet existant ; les enregistrer maintenant les enregistrerait vides. Importez de nouveau les documents et réessayez.",
         "missingFiles_other": "Refus d’enregistrer « {{file}} » : le contenu de {{count}} documents importés est introuvable ({{names}}). Ils n’étaient ni en mémoire, ni dans le cache temporaire, ni dans le fichier du projet existant ; les enregistrer maintenant les enregistrerait vides. Importez de nouveau les documents et réessayez."
-      }
+      },
+      "typesetFailed": "Magnolia n’a pas pu mettre ce document en pages. Essayez de l’enregistrer à nouveau dans le programme d’origine, ou de l’enregistrer en PDF et d’importer ce fichier."
     }
   },
   "tools": {
@@ -573,7 +590,7 @@
     "noMatch": "Aucune citation ne correspond à « {{query}} ».",
     "filter": "Filtrer les citations",
     "empty": "Aucune citation pour l’instant.",
-    "emptyHint": "Faites un clic droit sur une sélection dans un document et choisissez « Ajouter comme citation », ou faites glisser la poignée de la sélection ici.",
+    "emptyHint": "Faites un clic droit sur une sélection dans un document, ou cliquez sur le bouton à sa fin, et choisissez « Ajouter comme citation ».",
     "copy": "Copier la citation",
     "delete": "Supprimer la citation"
   },
@@ -672,6 +689,7 @@
     "imageUnavailable": "Fichier image indisponible",
     "pdfUnavailable": "Fichier PDF indisponible",
     "pageRegion": "Zone de la page {{page}}",
+    "selectionMenu": "Coder cette sélection",
     "code": "Code",
     "codeTimeRange": "{{code}} — de {{start}} à {{end}}",
     "removeSelection": "Retirer la sélection",
@@ -1354,7 +1372,9 @@
     "noQuotesInQuery": "Les citations ne peuvent pas être ajoutées à une requête",
     "noAnalysesInQuery": "Les analyses ne peuvent pas être ajoutées à une requête",
     "projectInfo": "Infos sur le projet",
-    "progressOf": "{{current}} / {{total}}"
+    "progressOf": "{{current}} / {{total}}",
+    "dropToImport": "Déposer pour importer",
+    "dropToImportHint": "Déposez sur un dossier de Documents pour importer dans ce dossier"
   },
   "analysis": {
     "save": "Enregistrer l’analyse",
@@ -1796,6 +1816,25 @@
     "notebookSubtitle_one": "{{count}} note — exporté le {{date}}",
     "notebookSubtitle_many": "{{count}} de notes — exporté le {{date}}",
     "notebookSubtitle_other": "{{count}} notes — exporté le {{date}}"
+  },
+  "importProgress": {
+    "title_one": "Importation de {{count}} document",
+    "title_many": "Importation de {{count}} documents",
+    "title_other": "Importation de {{count}} documents",
+    "finished_one": "{{count}} document importé",
+    "finished_many": "{{count}} documents importés",
+    "finished_other": "{{count}} documents importés",
+    "someFailed_one": "{{count}} document n’a pas pu être importé",
+    "someFailed_many": "{{count}} documents n’ont pas pu être importés",
+    "someFailed_other": "{{count}} documents n’ont pas pu être importés",
+    "waiting": "En attente",
+    "reading": "Lecture",
+    "converting": "Conversion en PDF",
+    "readingText": "Lecture du texte",
+    "done": "Terminé",
+    "failed": "Importation impossible",
+    "pdfPassword": "Ce PDF est protégé par un mot de passe. Supprimez le mot de passe dans une app PDF, puis importez-le à nouveau.",
+    "pdfDamaged": "Ce fichier est endommagé ou n’est pas vraiment un PDF."
   },
   "zotero": {
     "title": "Importer depuis Zotero",

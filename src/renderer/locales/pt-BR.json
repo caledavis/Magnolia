@@ -112,7 +112,8 @@
       "legacyDoc": "Arquivos .doc antigos do Microsoft Word não são compatíveis. Abra o arquivo no Word e salve-o como .docx.",
       "folder": "Não é possível importar pastas. Em vez disso, arraste os arquivos que estão dentro dela.",
       "noExtension": "Não é possível importar arquivos sem extensão.",
-      "unsupported": "O Magnolia não pode importar arquivos .{{ext}}."
+      "unsupported": "O Magnolia não pode importar arquivos .{{ext}}.",
+      "unreadable": "O Magnolia não conseguiu abrir este arquivo. Verifique se ele ainda existe e se você consegue abri-lo."
     },
     "window": {
       "codes": "Códigos",
@@ -152,6 +153,21 @@
       "invalidProjectXml": "XML do projeto inválido: {{detail}}",
       "notAProject": "XML do projeto inválido: o elemento raiz não é <Project>",
       "invalidCodebookXml": "XML do livro de códigos inválido: {{detail}}",
+      "invalidDocx": "Este arquivo está danificado ou não é realmente um documento do Word. Tente abri-lo no Word e salvá-lo novamente como .docx.",
+      "docxNoDocument": "Este arquivo está danificado ou não é realmente um documento do Word. Tente abri-lo no Word e salvá-lo novamente como .docx.",
+      "invalidDocxDocument": "Este arquivo está danificado ou não é realmente um documento do Word. Tente abri-lo no Word e salvá-lo novamente como .docx.",
+      "docxNoBody": "Este arquivo está danificado ou não é realmente um documento do Word. Tente abri-lo no Word e salvá-lo novamente como .docx.",
+      "invalidOdt": "Este arquivo está danificado ou não é realmente um arquivo de texto OpenDocument. Tente abri-lo no LibreOffice ou no Word e salvá-lo novamente como .odt.",
+      "odtNoContent": "Este arquivo está danificado ou não é realmente um arquivo de texto OpenDocument. Tente abri-lo no LibreOffice ou no Word e salvá-lo novamente como .odt.",
+      "invalidOdtContent": "Este arquivo está danificado ou não é realmente um arquivo de texto OpenDocument. Tente abri-lo no LibreOffice ou no Word e salvá-lo novamente como .odt.",
+      "notRtf": "Este arquivo não é realmente um documento RTF. Tente abri-lo em um processador de texto e salvá-lo novamente como .rtf.",
+      "readSpreadsheet": "Esta planilha está danificada ou não é realmente um arquivo do Excel. Tente abri-la no Excel e salvá-la novamente como .xlsx.",
+      "xlsxNoWorksheets": "Esta planilha não tem abas para importar.",
+      "readWorksheet": "Esta planilha está danificada ou não é realmente um arquivo do Excel. Tente abri-la no Excel e salvá-la novamente como .xlsx.",
+      "decodeTiff": "Esta imagem TIFF está danificada ou em um formato que o Magnolia não consegue ler. Tente salvá-la novamente como PNG ou JPEG.",
+      "decodeHeic": "Esta foto HEIC está danificada ou em um formato que o Magnolia não consegue ler. Tente exportá-la como JPEG.",
+      "heicColourSpace": "Esta foto HEIC está danificada ou em um formato que o Magnolia não consegue ler. Tente exportá-la como JPEG.",
+      "heicMalformed": "Esta foto HEIC está danificada ou em um formato que o Magnolia não consegue ler. Tente exportá-la como JPEG.",
       "guard": {
         "noSources_one": "O Magnolia não vai substituir “{{file}}”: este projeto não tem documentos, mas o arquivo contém {{count}} documento. Isso geralmente significa que uma falha apagou os documentos depois que o arquivo foi aberto. Se quiser mesmo salvar um projeto vazio, use Salvar projeto como para salvá-lo em um novo arquivo.",
         "noSources_many": "O Magnolia não vai substituir “{{file}}”: este projeto não tem documentos, mas o arquivo contém {{count}} documentos. Isso geralmente significa que uma falha apagou os documentos depois que o arquivo foi aberto. Se quiser mesmo salvar um projeto vazio, use Salvar projeto como para salvá-lo em um novo arquivo.",
@@ -163,7 +179,8 @@
         "missingFiles_one": "O Magnolia não vai salvar “{{file}}”: o conteúdo de {{count}} documento importado não foi encontrado ({{names}}). Ele não estava na memória, no cache temporário nem no arquivo do projeto, então salvar agora o deixaria vazio. Importe o documento de novo e tente outra vez.",
         "missingFiles_many": "O Magnolia não vai salvar “{{file}}”: o conteúdo de {{count}} documentos importados não foi encontrado ({{names}}). Eles não estavam na memória, no cache temporário nem no arquivo do projeto, então salvar agora os deixaria vazios. Importe os documentos de novo e tente outra vez.",
         "missingFiles_other": "O Magnolia não vai salvar “{{file}}”: o conteúdo de {{count}} documentos importados não foi encontrado ({{names}}). Eles não estavam na memória, no cache temporário nem no arquivo do projeto, então salvar agora os deixaria vazios. Importe os documentos de novo e tente outra vez."
-      }
+      },
+      "typesetFailed": "O Magnolia não conseguiu diagramar este documento em páginas. Tente salvá-lo novamente no programa de origem, ou salvá-lo como PDF e importar esse arquivo."
     }
   },
   "tools": {
@@ -573,7 +590,7 @@
     "noMatch": "Nenhuma citação corresponde a \"{{query}}\".",
     "filter": "Filtrar citações",
     "empty": "Nenhuma citação ainda.",
-    "emptyHint": "Clique com o botão direito em uma seleção em um documento e escolha \"Adicionar como citação\", ou arraste a alça da seleção para cá.",
+    "emptyHint": "Clique com o botão direito em uma seleção em um documento, ou clique no botão no fim dela, e escolha \"Adicionar como citação\".",
     "copy": "Copiar citação",
     "delete": "Excluir citação"
   },
@@ -672,6 +689,7 @@
     "imageUnavailable": "Arquivo de imagem indisponível",
     "pdfUnavailable": "Arquivo PDF indisponível",
     "pageRegion": "Região da página {{page}}",
+    "selectionMenu": "Codificar esta seleção",
     "code": "Código",
     "codeTimeRange": "{{code}}: de {{start}} a {{end}}",
     "removeSelection": "Remover seleção",
@@ -1354,7 +1372,9 @@
     "noQuotesInQuery": "Não é possível adicionar citações a uma consulta",
     "noAnalysesInQuery": "Não é possível adicionar análises a uma consulta",
     "projectInfo": "Informações do projeto",
-    "progressOf": "{{current}} / {{total}}"
+    "progressOf": "{{current}} / {{total}}",
+    "dropToImport": "Solte para importar",
+    "dropToImportHint": "Solte sobre uma pasta em Documentos para importar para essa pasta"
   },
   "analysis": {
     "save": "Salvar análise",
@@ -1796,6 +1816,25 @@
     "notebookSubtitle_one": "{{count}} nota — exportado em {{date}}",
     "notebookSubtitle_many": "{{count}} de notas — exportado em {{date}}",
     "notebookSubtitle_other": "{{count}} notas — exportado em {{date}}"
+  },
+  "importProgress": {
+    "title_one": "Importando {{count}} documento",
+    "title_many": "Importando {{count}} documentos",
+    "title_other": "Importando {{count}} documentos",
+    "finished_one": "{{count}} documento importado",
+    "finished_many": "{{count}} documentos importados",
+    "finished_other": "{{count}} documentos importados",
+    "someFailed_one": "Não foi possível importar {{count}} documento",
+    "someFailed_many": "Não foi possível importar {{count}} documentos",
+    "someFailed_other": "Não foi possível importar {{count}} documentos",
+    "waiting": "Aguardando",
+    "reading": "Lendo",
+    "converting": "Convertendo para PDF",
+    "readingText": "Lendo o texto",
+    "done": "Concluído",
+    "failed": "Não foi possível importar",
+    "pdfPassword": "Este PDF está protegido por senha. Remova a senha em um aplicativo de PDF e importe-o novamente.",
+    "pdfDamaged": "Este arquivo está danificado ou não é realmente um PDF."
   },
   "zotero": {
     "title": "Importar do Zotero",

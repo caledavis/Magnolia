@@ -112,7 +112,8 @@
       "legacyDoc": "Ältere Microsoft-Word-Dateien (.doc) werden nicht unterstützt. Bitte öffnen Sie die Datei in Word und speichern Sie sie als .docx.",
       "folder": "Ordner können nicht importiert werden. Ziehen Sie stattdessen die enthaltenen Dateien hierher.",
       "noExtension": "Dateien ohne Endung können nicht importiert werden.",
-      "unsupported": "Magnolia kann keine .{{ext}}-Dateien importieren."
+      "unsupported": "Magnolia kann keine .{{ext}}-Dateien importieren.",
+      "unreadable": "Magnolia konnte diese Datei nicht öffnen. Prüfen Sie, ob sie noch vorhanden ist und ob Sie sie öffnen können."
     },
     "window": {
       "codes": "Codes",
@@ -152,6 +153,21 @@
       "invalidProjectXml": "Ungültiges Projekt-XML: {{detail}}",
       "notAProject": "Ungültiges Projekt-XML: Das Wurzelelement ist nicht <Project>",
       "invalidCodebookXml": "Ungültiges Codebuch-XML: {{detail}}",
+      "invalidDocx": "Diese Datei ist beschädigt oder kein echtes Word-Dokument. Öffnen Sie sie in Word und speichern Sie sie erneut als .docx.",
+      "docxNoDocument": "Diese Datei ist beschädigt oder kein echtes Word-Dokument. Öffnen Sie sie in Word und speichern Sie sie erneut als .docx.",
+      "invalidDocxDocument": "Diese Datei ist beschädigt oder kein echtes Word-Dokument. Öffnen Sie sie in Word und speichern Sie sie erneut als .docx.",
+      "docxNoBody": "Diese Datei ist beschädigt oder kein echtes Word-Dokument. Öffnen Sie sie in Word und speichern Sie sie erneut als .docx.",
+      "invalidOdt": "Diese Datei ist beschädigt oder keine echte OpenDocument-Textdatei. Öffnen Sie sie in LibreOffice oder Word und speichern Sie sie erneut als .odt.",
+      "odtNoContent": "Diese Datei ist beschädigt oder keine echte OpenDocument-Textdatei. Öffnen Sie sie in LibreOffice oder Word und speichern Sie sie erneut als .odt.",
+      "invalidOdtContent": "Diese Datei ist beschädigt oder keine echte OpenDocument-Textdatei. Öffnen Sie sie in LibreOffice oder Word und speichern Sie sie erneut als .odt.",
+      "notRtf": "Diese Datei ist kein echtes RTF-Dokument. Öffnen Sie sie in einem Textverarbeitungsprogramm und speichern Sie sie erneut als .rtf.",
+      "readSpreadsheet": "Diese Tabelle ist beschädigt oder keine echte Excel-Datei. Öffnen Sie sie in Excel und speichern Sie sie erneut als .xlsx.",
+      "xlsxNoWorksheets": "Diese Tabelle enthält keine Blätter zum Importieren.",
+      "readWorksheet": "Diese Tabelle ist beschädigt oder keine echte Excel-Datei. Öffnen Sie sie in Excel und speichern Sie sie erneut als .xlsx.",
+      "decodeTiff": "Dieses TIFF-Bild ist beschädigt oder liegt in einer Form vor, die Magnolia nicht lesen kann. Speichern Sie es erneut als PNG oder JPEG.",
+      "decodeHeic": "Dieses HEIC-Foto ist beschädigt oder liegt in einer Form vor, die Magnolia nicht lesen kann. Exportieren Sie es als JPEG.",
+      "heicColourSpace": "Dieses HEIC-Foto ist beschädigt oder liegt in einer Form vor, die Magnolia nicht lesen kann. Exportieren Sie es als JPEG.",
+      "heicMalformed": "Dieses HEIC-Foto ist beschädigt oder liegt in einer Form vor, die Magnolia nicht lesen kann. Exportieren Sie es als JPEG.",
       "guard": {
         "noSources_one": "„{{file}}“ wird nicht überschrieben: Dieses Projekt hat keine Dokumente, die Datei enthält aber {{count}} Dokument. Meist bedeutet das, dass ein Fehler die Dokumente nach dem Öffnen der Datei entfernt hat. Verwenden Sie „Projekt speichern unter“, um es in eine neue Datei zu speichern, wenn Sie wirklich ein leeres Projekt speichern möchten.",
         "noSources_other": "„{{file}}“ wird nicht überschrieben: Dieses Projekt hat keine Dokumente, die Datei enthält aber {{count}} Dokumente. Meist bedeutet das, dass ein Fehler die Dokumente nach dem Öffnen der Datei entfernt hat. Verwenden Sie „Projekt speichern unter“, um es in eine neue Datei zu speichern, wenn Sie wirklich ein leeres Projekt speichern möchten.",
@@ -160,7 +176,8 @@
         "noText_other": "„{{file}}“ wird nicht überschrieben: Das Projekt hat {{count}} Dokumente, aber keiner ihrer Texte ist geladen. Meist bedeutet das, dass das Projekt nicht vollständig geöffnet wurde; jetzt zu speichern würde den Text der Dokumente löschen. Öffnen Sie das Projekt erneut und stellen Sie es aus einer Sicherung wieder her, falls das Problem bleibt.",
         "missingFiles_one": "„{{file}}“ wird nicht gespeichert: Der Inhalt von {{count}} importierten Dokument wurde nicht gefunden ({{names}}). Er war weder im Speicher noch im temporären Cache noch in der vorhandenen Projektdatei; jetzt zu speichern würde es leer speichern. Importieren Sie das Dokument erneut und versuchen Sie es noch einmal.",
         "missingFiles_other": "„{{file}}“ wird nicht gespeichert: Der Inhalt von {{count}} importierten Dokumenten wurde nicht gefunden ({{names}}). Er war weder im Speicher noch im temporären Cache noch in der vorhandenen Projektdatei; jetzt zu speichern würde sie leer speichern. Importieren Sie die Dokumente erneut und versuchen Sie es noch einmal."
-      }
+      },
+      "typesetFailed": "Magnolia konnte dieses Dokument nicht in Seiten setzen. Speichern Sie es im ursprünglichen Programm erneut, oder speichern Sie es als PDF und importieren Sie dieses."
     }
   },
   "tools": {
@@ -559,7 +576,7 @@
     "noMatch": "Keine Zitate passen zu „{{query}}“.",
     "filter": "Zitate filtern",
     "empty": "Noch keine Zitate.",
-    "emptyHint": "Klicken Sie mit der rechten Maustaste auf eine Auswahl in einem Dokument und wählen Sie „Als Zitat hinzufügen“, oder ziehen Sie den Griff der Auswahl hierher.",
+    "emptyHint": "Klicken Sie mit der rechten Maustaste auf eine Auswahl in einem Dokument oder klicken Sie auf die Schaltfläche an ihrem Ende, und wählen Sie „Als Zitat hinzufügen“.",
     "copy": "Zitat kopieren",
     "delete": "Zitat löschen"
   },
@@ -650,6 +667,7 @@
     "imageUnavailable": "Bilddatei nicht verfügbar",
     "pdfUnavailable": "PDF-Datei nicht verfügbar",
     "pageRegion": "Bereich auf Seite {{page}}",
+    "selectionMenu": "Diese Auswahl codieren",
     "code": "Code",
     "codeTimeRange": "{{code}} – {{start}} bis {{end}}",
     "removeSelection": "Auswahl entfernen",
@@ -1309,7 +1327,9 @@
     "noQuotesInQuery": "Zitate können nicht zu einer Abfrage hinzugefügt werden",
     "noAnalysesInQuery": "Analysen können nicht zu einer Abfrage hinzugefügt werden",
     "projectInfo": "Projektinfo",
-    "progressOf": "{{current}} / {{total}}"
+    "progressOf": "{{current}} / {{total}}",
+    "dropToImport": "Zum Importieren loslassen",
+    "dropToImportHint": "Auf einem Ordner unter „Dokumente“ loslassen, um in diesen Ordner zu importieren"
   },
   "analysis": {
     "save": "Analyse speichern",
@@ -1728,6 +1748,22 @@
     "failed": "Die PDF-Datei konnte nicht exportiert werden.\n\n{{detail}}",
     "notebookSubtitle_one": "{{count}} Notiz – exportiert am {{date}}",
     "notebookSubtitle_other": "{{count}} Notizen – exportiert am {{date}}"
+  },
+  "importProgress": {
+    "title_one": "{{count}} Dokument wird importiert",
+    "title_other": "{{count}} Dokumente werden importiert",
+    "finished_one": "{{count}} Dokument importiert",
+    "finished_other": "{{count}} Dokumente importiert",
+    "someFailed_one": "{{count}} Dokument konnte nicht importiert werden",
+    "someFailed_other": "{{count}} Dokumente konnten nicht importiert werden",
+    "waiting": "Wartet",
+    "reading": "Wird gelesen",
+    "converting": "Wird in PDF umgewandelt",
+    "readingText": "Text wird gelesen",
+    "done": "Fertig",
+    "failed": "Import nicht möglich",
+    "pdfPassword": "Dieses PDF ist mit einem Passwort geschützt. Entfernen Sie das Passwort in einer PDF-App und importieren Sie es dann erneut.",
+    "pdfDamaged": "Diese Datei ist beschädigt oder kein echtes PDF."
   },
   "zotero": {
     "title": "Aus Zotero importieren",

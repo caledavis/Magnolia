@@ -112,7 +112,8 @@
       "legacyDoc": "Vanhoja Microsoft Wordin .doc-tiedostoja ei tueta. Avaa tiedosto Wordissa ja tallenna se .docx-muotoon.",
       "folder": "Kansioita ei voi tuoda. Pudota sen sijaan kansiossa olevat tiedostot.",
       "noExtension": "Tiedostoja, joilla ei ole tunnistetta, ei voi tuoda.",
-      "unsupported": "Magnolia ei voi tuoda .{{ext}}-tiedostoja."
+      "unsupported": "Magnolia ei voi tuoda .{{ext}}-tiedostoja.",
+      "unreadable": "Magnolia ei voinut avata tätä tiedostoa. Tarkista, että se on yhä olemassa ja että voit avata sen."
     },
     "window": {
       "codes": "Koodit",
@@ -152,6 +153,21 @@
       "invalidProjectXml": "Virheellinen projektin XML: {{detail}}",
       "notAProject": "Virheellinen projektin XML: juurielementti ei ole <Project>",
       "invalidCodebookXml": "Virheellinen koodikirjan XML: {{detail}}",
+      "invalidDocx": "Tämä tiedosto on vioittunut, tai se ei oikeasti ole Word-dokumentti. Kokeile avata se Wordissa ja tallentaa uudelleen .docx-muodossa.",
+      "docxNoDocument": "Tämä tiedosto on vioittunut, tai se ei oikeasti ole Word-dokumentti. Kokeile avata se Wordissa ja tallentaa uudelleen .docx-muodossa.",
+      "invalidDocxDocument": "Tämä tiedosto on vioittunut, tai se ei oikeasti ole Word-dokumentti. Kokeile avata se Wordissa ja tallentaa uudelleen .docx-muodossa.",
+      "docxNoBody": "Tämä tiedosto on vioittunut, tai se ei oikeasti ole Word-dokumentti. Kokeile avata se Wordissa ja tallentaa uudelleen .docx-muodossa.",
+      "invalidOdt": "Tämä tiedosto on vioittunut, tai se ei oikeasti ole OpenDocument-tekstitiedosto. Kokeile avata se LibreOfficessa tai Wordissa ja tallentaa uudelleen .odt-muodossa.",
+      "odtNoContent": "Tämä tiedosto on vioittunut, tai se ei oikeasti ole OpenDocument-tekstitiedosto. Kokeile avata se LibreOfficessa tai Wordissa ja tallentaa uudelleen .odt-muodossa.",
+      "invalidOdtContent": "Tämä tiedosto on vioittunut, tai se ei oikeasti ole OpenDocument-tekstitiedosto. Kokeile avata se LibreOfficessa tai Wordissa ja tallentaa uudelleen .odt-muodossa.",
+      "notRtf": "Tämä tiedosto ei oikeasti ole RTF-dokumentti. Kokeile avata se tekstinkäsittelyohjelmassa ja tallentaa uudelleen .rtf-muodossa.",
+      "readSpreadsheet": "Tämä laskentataulukko on vioittunut, tai se ei oikeasti ole Excel-tiedosto. Kokeile avata se Excelissä ja tallentaa uudelleen .xlsx-muodossa.",
+      "xlsxNoWorksheets": "Tässä laskentataulukossa ei ole tuotavia taulukoita.",
+      "readWorksheet": "Tämä laskentataulukko on vioittunut, tai se ei oikeasti ole Excel-tiedosto. Kokeile avata se Excelissä ja tallentaa uudelleen .xlsx-muodossa.",
+      "decodeTiff": "Tämä TIFF-kuva on vioittunut tai muodossa, jota Magnolia ei osaa lukea. Kokeile tallentaa se uudelleen PNG- tai JPEG-muodossa.",
+      "decodeHeic": "Tämä HEIC-kuva on vioittunut tai muodossa, jota Magnolia ei osaa lukea. Kokeile viedä se JPEG-muodossa.",
+      "heicColourSpace": "Tämä HEIC-kuva on vioittunut tai muodossa, jota Magnolia ei osaa lukea. Kokeile viedä se JPEG-muodossa.",
+      "heicMalformed": "Tämä HEIC-kuva on vioittunut tai muodossa, jota Magnolia ei osaa lukea. Kokeile viedä se JPEG-muodossa.",
       "guard": {
         "noSources_one": "Tiedostoa ”{{file}}” ei korvata: tässä projektissa ei ole dokumentteja, mutta tiedostossa on {{count}} dokumentti. Yleensä tämä tarkoittaa, että virhe poisti dokumentit tiedoston avaamisen jälkeen. Jos todella haluat tallentaa tyhjän projektin, tallenna se uuteen tiedostoon valinnalla ”Tallenna projekti nimellä”.",
         "noSources_other": "Tiedostoa ”{{file}}” ei korvata: tässä projektissa ei ole dokumentteja, mutta tiedostossa on {{count}} dokumenttia. Yleensä tämä tarkoittaa, että virhe poisti dokumentit tiedoston avaamisen jälkeen. Jos todella haluat tallentaa tyhjän projektin, tallenna se uuteen tiedostoon valinnalla ”Tallenna projekti nimellä”.",
@@ -160,7 +176,8 @@
         "noText_other": "Tiedostoa ”{{file}}” ei korvata: projektissa on {{count}} dokumenttia, mutta niiden tekstiä ei ole ladattu. Yleensä tämä tarkoittaa, ettei projekti avautunut kokonaan, ja tallentaminen nyt pyyhkisi dokumenttien tekstin. Avaa projekti uudelleen, ja jos ongelma jatkuu, palauta se varmuuskopiosta.",
         "missingFiles_one": "Tiedostoa ”{{file}}” ei tallenneta: {{count}} tuodun dokumentin sisältöä ei löytynyt ({{names}}). Se ei ollut muistissa, väliaikaisessa välimuistissa eikä nykyisessä projektitiedostossa, joten tallentaminen nyt tallentaisi sen tyhjänä. Tuo dokumentti uudelleen ja yritä uudelleen.",
         "missingFiles_other": "Tiedostoa ”{{file}}” ei tallenneta: {{count}} tuodun dokumentin sisältöä ei löytynyt ({{names}}). Ne eivät olleet muistissa, väliaikaisessa välimuistissa eivätkä nykyisessä projektitiedostossa, joten tallentaminen nyt tallentaisi ne tyhjinä. Tuo dokumentit uudelleen ja yritä uudelleen."
-      }
+      },
+      "typesetFailed": "Magnolia ei voinut taittaa tätä dokumenttia sivuiksi. Kokeile tallentaa se uudelleen ohjelmassa, josta se on peräisin, tai tallenna se PDF:ksi ja tuo se."
     }
   },
   "tools": {
@@ -559,7 +576,7 @@
     "noMatch": "Haulla ”{{query}}” ei löytynyt lainauksia.",
     "filter": "Suodata lainauksia",
     "empty": "Ei vielä lainauksia.",
-    "emptyHint": "Klikkaa dokumentin valintaa hiiren oikealla painikkeella ja valitse ”Lisää lainaukseksi”, tai vedä valinnan kahva tähän.",
+    "emptyHint": "Klikkaa dokumentin valintaa hiiren oikealla painikkeella tai klikkaa sen lopussa olevaa painiketta ja valitse ”Lisää lainaukseksi”.",
     "copy": "Kopioi lainaus",
     "delete": "Poista lainaus"
   },
@@ -650,6 +667,7 @@
     "imageUnavailable": "Kuvatiedosto ei saatavilla",
     "pdfUnavailable": "PDF-tiedosto ei saatavilla",
     "pageRegion": "Alue sivulla {{page}}",
+    "selectionMenu": "Koodaa tämä valinta",
     "code": "Koodi",
     "codeTimeRange": "{{code}} – {{start}}–{{end}}",
     "removeSelection": "Poista valinta",
@@ -1309,7 +1327,9 @@
     "noQuotesInQuery": "Lainauksia ei voi lisätä hakuun",
     "noAnalysesInQuery": "Analyyseja ei voi lisätä hakuun",
     "projectInfo": "Projektin tiedot",
-    "progressOf": "{{current}} / {{total}}"
+    "progressOf": "{{current}} / {{total}}",
+    "dropToImport": "Pudota tuodaksesi",
+    "dropToImportHint": "Pudota Dokumentit-paneelin kansioon tuodaksesi siihen kansioon"
   },
   "analysis": {
     "save": "Tallenna analyysi",
@@ -1728,6 +1748,22 @@
     "failed": "PDF-tiedostoa ei voitu viedä.\n\n{{detail}}",
     "notebookSubtitle_one": "{{count}} muistiinpano – viety {{date}}",
     "notebookSubtitle_other": "{{count}} muistiinpanoa – viety {{date}}"
+  },
+  "importProgress": {
+    "title_one": "Tuodaan {{count}} dokumentti",
+    "title_other": "Tuodaan {{count}} dokumenttia",
+    "finished_one": "Tuotiin {{count}} dokumentti",
+    "finished_other": "Tuotiin {{count}} dokumenttia",
+    "someFailed_one": "{{count}} dokumentin tuonti epäonnistui",
+    "someFailed_other": "{{count}} dokumentin tuonti epäonnistui",
+    "waiting": "Odottaa",
+    "reading": "Luetaan",
+    "converting": "Muunnetaan PDF:ksi",
+    "readingText": "Luetaan tekstiä",
+    "done": "Valmis",
+    "failed": "Tuonti epäonnistui",
+    "pdfPassword": "Tämä PDF on suojattu salasanalla. Poista salasana PDF-sovelluksessa ja tuo se sitten uudelleen.",
+    "pdfDamaged": "Tämä tiedosto on vioittunut, tai se ei oikeasti ole PDF."
   },
   "zotero": {
     "title": "Tuo Zoterosta",
