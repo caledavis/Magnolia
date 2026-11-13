@@ -31,10 +31,16 @@ import hi from '../locales/hi.json'
 import ptPT from '../locales/pt-PT.json'
 import de from '../locales/de.json'
 import fi from '../locales/fi.json'
+import sv from '../locales/sv.json'
+import nb from '../locales/nb.json'
+import da from '../locales/da.json'
+import tr from '../locales/tr.json'
+import ca from '../locales/ca.json'
+import cs from '../locales/cs.json'
 
 /** Every catalogue, by language id. Adding a language: see "Adding a
  *  language" in locales/GLOSSARY.md (the tests name anything missed). */
-const CATALOGUES = { en, es, nl, 'pt-BR': ptBR, ar, fr, ru, 'zh-Hans': zhHans, it, hi, 'pt-PT': ptPT, de, fi }
+const CATALOGUES = { en, es, nl, 'pt-BR': ptBR, ar, fr, ru, 'zh-Hans': zhHans, it, hi, 'pt-PT': ptPT, de, fi, sv, nb, da, tr, ca, cs }
 
 export type LanguageId = keyof typeof CATALOGUES
 export const LANGUAGE_IDS = Object.keys(CATALOGUES) as readonly LanguageId[]
@@ -53,7 +59,11 @@ export function normaliseLanguagePreference(v: unknown): LanguagePreference {
  *  language ("pt-PT" and "pt" get "pt-BR"; "es-MX" gets "es"). */
 export function resolveLanguage(pref: LanguagePreference, systemLanguages: readonly string[]): LanguageId {
   if (pref !== 'system') return pref
-  const baseOf = (tag: string): string => tag.toLowerCase().split(/[-_]/)[0]
+  // Norwegian ("no") and Nynorsk ("nn") read the Bokmål catalogue.
+  const baseOf = (tag: string): string => {
+    const base = tag.toLowerCase().split(/[-_]/)[0]
+    return base === 'no' || base === 'nn' ? 'nb' : base
+  }
   for (const tag of systemLanguages) {
     const exact = LANGUAGE_IDS.find((id) => id.toLowerCase() === tag.toLowerCase().replace('_', '-'))
     if (exact) return exact

@@ -13,7 +13,13 @@
       "hi": "हिन्दी",
       "pt-PT": "Português (Portugal)",
       "de": "Deutsch",
-      "fi": "Suomi"
+      "fi": "Suomi",
+      "sv": "Svenska",
+      "nb": "Norsk bokmål",
+      "da": "Dansk",
+      "tr": "Türkçe",
+      "ca": "Català",
+      "cs": "Čeština"
     },
     "system": "Как на компьютере ({{language}})"
   },

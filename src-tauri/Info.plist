@@ -23,6 +23,12 @@
     <string>pt-PT</string>
     <string>de</string>
     <string>fi</string>
+    <string>sv</string>
+    <string>nb</string>
+    <string>da</string>
+    <string>tr</string>
+    <string>ca</string>
+    <string>cs</string>
   </array>
   <key>CFBundleDocumentTypes</key>
   <array>

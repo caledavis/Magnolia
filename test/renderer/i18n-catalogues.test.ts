@@ -183,6 +183,12 @@ describe('choosing the language', () => {
     expect(resolveLanguage('system', ['en-AU', 'es-ES'])).toBe('en')
   })
 
+  it('gives Norwegian and Nynorsk the Bokmål catalogue', () => {
+    expect(resolveLanguage('system', ['nb-NO'])).toBe('nb')
+    expect(resolveLanguage('system', ['no'])).toBe('nb')
+    expect(resolveLanguage('system', ['nn-NO'])).toBe('nb')
+  })
+
   it("matches the computer's variety of a language, else another variety", () => {
     expect(resolveLanguage('system', ['pt-PT'])).toBe('pt-PT')
     expect(resolveLanguage('system', ['pt_BR'])).toBe('pt-BR')

@@ -4,7 +4,9 @@ Magnolia's interface text lives in one catalogue per language in this
 folder: `en.json` (the source), and `es` (Spanish), `nl` (Dutch), `pt-BR`
 (Brazilian Portuguese), `pt-PT` (European Portuguese), `ar` (Arabic), `fr`
 (French), `ru` (Russian), `zh-Hans` (Simplified Chinese), `it` (Italian),
-`hi` (Hindi), `de` (German) and `fi` (Finnish). The renderer reads them through
+`hi` (Hindi), `de` (German), `fi` (Finnish), `sv` (Swedish), `nb`
+(Norwegian Bokmål; Norwegian and Nynorsk systems get it too), `da`
+(Danish), `tr` (Turkish), `ca` (Catalan) and `cs` (Czech). The renderer reads them through
 i18next (`src/renderer/i18n`); the Rust backend reads the `native` section
 for its menus, file dialogs, window titles and update messages
 (`src-tauri/src/i18n.rs`).
@@ -15,7 +17,11 @@ Plural strings use i18next's suffixes: `_one` and `_other`, plus `_many`
 in Spanish and Portuguese (CLDR uses it for millions, "1 millón de
 códigos"), and all six (`_zero`, `_one`, `_two`, `_few`, `_many`,
 `_other`) in Arabic, whose zero, one and two forms usually name the
-number in words ("رمزان", two codes). German and Finnish have `_one` and `_other`. Russian has `_one`, `_few` and `_many`
+number in words ("رمزان", two codes). German, Finnish, Swedish, Norwegian, Danish and Turkish have `_one` and
+`_other`. Czech has `_one`, `_few` (2–4) and `_other` (5+), plus `_many`,
+which CLDR uses only for fractions ("1,5 kódu"); the drafts copy `_other`
+into it, since Magnolia's counts are whole numbers. Catalan has `_one`,
+`_many` and `_other`, like French. Russian has `_one`, `_few` and `_many`
 (1, 2–4 and 5–20 documents); French, Italian and both Portuguese have
 `_one`, `_many` and `_other`; Hindi `_one` and `_other`; Chinese only
 `_other`. The tests list whatever forms a language needs.
@@ -67,15 +73,15 @@ doesn't affect the translations (a typo fix) can be cleared with
 
 ## Conventions
 
-| | Spanish | Dutch | Portuguese (Brazil) | Arabic | French | Russian | Chinese (Simplified) | Italian | Hindi | Portuguese (Portugal) | German | Finnish |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Address the user as | *tú* | *je* | *você* | Commands as verbal nouns ("حفظ"), so no gender; sentences in the masculine singular where unavoidable | *vous* | *вы* | 您 | *tu* | आप | third person, without *você* ("Pode…") | *Sie* | *sinä*, mostly implied by the verb |
-| Capitalisation | Sentence case | Sentence case | Sentence case | — | Sentence case | Sentence case | — | Sentence case | — | Sentence case | Sentence case (nouns capitalised as in German) | Sentence case |
-| Menu commands | Infinitive: "Guardar proyecto" | Imperative, as on macOS: "Bewaar project" | Infinitive: "Salvar projeto" | Verbal noun: "حفظ المشروع" | Infinitive: "Enregistrer le projet" | Infinitive: "Сохранить проект" | Verb: "保存项目" | Imperative, as on macOS: "Salva progetto" | Polite imperative: "परियोजना सहेजें" | Infinitive: "Guardar projeto" | Infinitive: "Projekt speichern" | Imperative: "Tallenna projekti" |
-| Buttons and tooltips | Infinitive: "Importar" | Infinitive, as in Office: "Importeren" | Infinitive: "Importar" | Verbal noun: "استيراد" | Infinitive: "Importer" | Infinitive: "Импортировать" | Verb: "导入" | Imperative: "Importa" | Polite imperative: "आयात करें" | Infinitive: "Importar" | Infinitive: "Importieren" | Imperative: "Tuo" |
-| Quotation marks | « » | " " | " " | “ ” (and « » around interface names) | « » | « » | “ ” | « » | “ ” | « » | „ “ | ” ” |
-| The app's name | Magnolia | Magnolia | o Magnolia (masculine, like "o aplicativo") | Magnolia, in Latin letters | Magnolia | Magnolia | Magnolia | Magnolia | Magnolia | o Magnolia | Magnolia | Magnolia (Magnolian, Magnoliaa…) |
-| Query operators | AND, OR, NOT, XOR stay in English, as query syntax; their explanations are translated | same | same | same | same | same | same | same | same | same | same | same |
+| | Spanish | Dutch | Portuguese (Brazil) | Arabic | French | Russian | Chinese (Simplified) | Italian | Hindi | Portuguese (Portugal) | German | Finnish | Swedish | Norwegian (Bokmål) | Danish | Turkish | Catalan | Czech |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Address the user as | *tú* | *je* | *você* | Commands as verbal nouns ("حفظ"), so no gender; sentences in the masculine singular where unavoidable | *vous* | *вы* | 您 | *tu* | आप | third person, without *você* ("Pode…") | *Sie* | *sinä*, mostly implied by the verb | *du* | *du* | *du* | *siz*, mostly implied by the verb | *vós* in messages ("Voleu…") | *vy* ("Chcete…") |
+| Capitalisation | Sentence case | Sentence case | Sentence case | — | Sentence case | Sentence case | — | Sentence case | — | Sentence case | Sentence case (nouns capitalised as in German) | Sentence case | Sentence case | Sentence case | Sentence case | Sentence case | Sentence case | Sentence case |
+| Menu commands | Infinitive: "Guardar proyecto" | Imperative, as on macOS: "Bewaar project" | Infinitive: "Salvar projeto" | Verbal noun: "حفظ المشروع" | Infinitive: "Enregistrer le projet" | Infinitive: "Сохранить проект" | Verb: "保存项目" | Imperative, as on macOS: "Salva progetto" | Polite imperative: "परियोजना सहेजें" | Infinitive: "Guardar projeto" | Infinitive: "Projekt speichern" | Imperative: "Tallenna projekti" | Imperative, as on macOS: "Spara projekt" | Imperative: "Lagre prosjekt" | Imperative: "Gem projekt" | Imperative: "Projeyi kaydet" | Imperative, as Softcatalà: "Desa el projecte" | Infinitive: "Uložit projekt" |
+| Buttons and tooltips | Infinitive: "Importar" | Infinitive, as in Office: "Importeren" | Infinitive: "Importar" | Verbal noun: "استيراد" | Infinitive: "Importer" | Infinitive: "Импортировать" | Verb: "导入" | Imperative: "Importa" | Polite imperative: "आयात करें" | Infinitive: "Importar" | Infinitive: "Importieren" | Imperative: "Tuo" | Imperative: "Importera" | Imperative: "Importer" | Imperative: "Importér" | Imperative: "İçe aktar" | Imperative: "Importa" | Infinitive: "Importovat" |
+| Quotation marks | « » | " " | " " | “ ” (and « » around interface names) | « » | « » | “ ” | « » | “ ” | « » | „ “ | ” ” | ” ” | « » | » « | “ ” | « » | „ “ |
+| The app's name | Magnolia | Magnolia | o Magnolia (masculine, like "o aplicativo") | Magnolia, in Latin letters | Magnolia | Magnolia | Magnolia | Magnolia | Magnolia | o Magnolia | Magnolia | Magnolia (Magnolian, Magnoliaa…) | Magnolia (Magnolias) | Magnolia (Magnolias) | Magnolia (Magnolias) | Magnolia, suffixes after ’ (Magnolia’yı, Magnolia’dan) | el Magnolia | "aplikace Magnolia" where a case ending is needed; Magnolia otherwise |
+| Query operators | AND, OR, NOT, XOR stay in English, as query syntax; their explanations are translated | same | same | same | same | same | same | same | same | same | same | same | same | same | same | same | same | same |
 
 **Spanish past events:** the one Spanish catalogue serves Spain and Latin
 America, so a finished event takes the simple past, which is natural
@@ -87,36 +93,36 @@ and the simple past was kept.
 
 ## Terms
 
-| English | Spanish | Dutch | Portuguese (Brazil) | Arabic | French | Russian | Chinese (Simplified) | Italian | Hindi | Portuguese (Portugal) | German | Finnish |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| analysis (a saved analysis) | análisis | analyse | análise | تحليل | analyse | анализ | 分析 | analisi | विश्लेषण | análise | Analyse | analyysi |
-| box selection | selección de recuadro | kaderselectie | seleção de caixa | تحديد مربع | sélection rectangulaire | прямоугольное выделение | 框选 | selezione rettangolare | बॉक्स चयन | seleção de caixa | Rechteckauswahl | laatikkovalinta |
-| code (noun) | código | code | código | رمز (ج. رموز) | code | код | 代码 | codice | कोड | código | Code | koodi |
-| code (verb), coding | codificar, codificación | coderen, codering | codificar, codificação | رمّز، ترميز | coder, codage | кодировать, кодирование | 编码 | codificare, codifica | कोड करना, कोडिंग | codificar, codificação | codieren, Codierung | koodata, koodaus |
-| coded segment | segmento codificado | gecodeerd segment | segmento codificado | مقطع مرمّز | segment codé | закодированный фрагмент | 已编码片段 | segmento codificato | कोड किया गया अंश | segmento codificado | codiertes Segment | koodattu segmentti |
-| codebook | libro de códigos | codeboek | livro de códigos | دليل الرموز | livre de codes | книга кодов | 代码本 | libro dei codici | कोडबुक | livro de códigos | Codebuch | koodikirja |
-| document | documento | document | documento | مستند | document | документ | 文档 | documento | दस्तावेज़ | documento | Dokument | dokumentti |
-| folder | carpeta | map | pasta | مجلد | dossier | папка | 文件夹 | cartella | फ़ोल्डर | pasta | Ordner | kansio |
-| logbook | bitácora | logboek | diário de bordo | السجل | journal | журнал | 日志 | diario | लॉगबुक | diário de bordo | Logbuch | lokikirja |
-| memo | memo (m.) | memo (pl. memo's) | memo (m.) | مذكرة | mémo | заметка | 备忘录 | memo | मेमो | memo | Memo | muistio |
-| note, notebook | nota, cuaderno | notitie, notitieboek | nota, caderno | ملاحظة، دفتر | note, carnet | запись, блокнот | 笔记, 笔记本 | nota, quaderno | नोट, नोटबुक | nota, caderno | Notiz, Notizbuch | muistiinpano, muistikirja |
-| panel / pane | panel | paneel | painel | لوحة | volet | панель | 窗格 | riquadro | पैनल | painel | Bereich | paneeli |
-| project | proyecto | project | projeto | مشروع | projet | проект | 项目 | progetto | परियोजना | projeto | Projekt | projekti |
-| query | consulta | query (pl. query's) | consulta | استعلام | requête | запрос | 查询 | query | क्वेरी | consulta | Abfrage | haku |
-| question (survey) | pregunta | vraag | pergunta | سؤال | question | вопрос | 问题 | domanda | प्रश्न | pergunta | Frage | kysymys |
-| quote | cita | citaat | citação | اقتباس | citation | цитата | 引文 | citazione | उद्धरण | citação | Zitat | lainaus |
-| relationship map | mapa de relaciones | relatiekaart | mapa de relações | خريطة العلاقات | carte des relations | карта связей | 关系地图 | mappa delle relazioni | संबंध नक्शा | mapa de relações | Beziehungskarte | suhdekartta |
-| report | informe | rapport | relatório | تقرير | rapport | отчёт | 报告 | report | रिपोर्ट | relatório | Bericht | raportti |
-| respondent | encuestado | respondent | respondente | مستجيب | répondant | респондент | 受访者 | rispondente | उत्तरदाता | respondente | befragte Person, Befragte | vastaaja |
-| ribbon | cinta | lint | faixa de opções | الشريط | ruban | лента | 功能区 | barra multifunzione | रिबन | faixa de opções | Menüband | valintanauha |
-| save | guardar | bewaren | salvar | حفظ | enregistrer | сохранить | 保存 | salvare | सहेजें | guardar | speichern | tallentaa |
-| selection | selección | selectie | seleção | تحديد | sélection | выделение | 选段 | selezione | चयन | seleção | Auswahl | valinta |
-| subcode | subcódigo | subcode | subcódigo | رمز فرعي | sous-code | подкод | 子代码 | sottocodice | उप-कोड | subcódigo | Subcode | alakoodi |
-| survey | encuesta | enquête | pesquisa | استبيان | enquête | опрос | 调查 | sondaggio | सर्वेक्षण | inquérito | Umfrage | kysely |
-| tab | pestaña | tabblad | aba | علامة تبويب | onglet | вкладка | 标签页 | pannello | टैब | separador | Tab | välilehti |
-| tag | etiqueta | tag | etiqueta | وسم (ج. وسوم) | étiquette | метка | 标签 | etichetta | टैग | etiqueta | Tag | tunniste |
-| transcript | transcripción | transcript | transcrição | تفريغ نصي | transcription | транскрипт | 转录稿 | trascrizione | प्रतिलेख | transcrição | Transkript | litteraatti |
-| Viewer (the document viewer) | visor | viewer | visualizador | العارض | visionneuse | просмотр | 查看器 | visualizzatore | व्यूअर | visualizador | Viewer | katseluohjelma |
+| English | Spanish | Dutch | Portuguese (Brazil) | Arabic | French | Russian | Chinese (Simplified) | Italian | Hindi | Portuguese (Portugal) | German | Finnish | Swedish | Norwegian (Bokmål) | Danish | Turkish | Catalan | Czech |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| analysis (a saved analysis) | análisis | analyse | análise | تحليل | analyse | анализ | 分析 | analisi | विश्लेषण | análise | Analyse | analyysi | analys | analyse | analyse | analiz | anàlisi (f.) | analýza |
+| box selection | selección de recuadro | kaderselectie | seleção de caixa | تحديد مربع | sélection rectangulaire | прямоугольное выделение | 框选 | selezione rettangolare | बॉक्स चयन | seleção de caixa | Rechteckauswahl | laatikkovalinta | rutmarkering | rektangelmarkering | rektangelmarkering | kutu seçimi | selecció rectangular | obdélníkový výběr |
+| code (noun) | código | code | código | رمز (ج. رموز) | code | код | 代码 | codice | कोड | código | Code | koodi | kod | kode | kode | kod | codi | kód |
+| code (verb), coding | codificar, codificación | coderen, codering | codificar, codificação | رمّز، ترميز | coder, codage | кодировать, кодирование | 编码 | codificare, codifica | कोड करना, कोडिंग | codificar, codificação | codieren, Codierung | koodata, koodaus | koda, kodning | kode, koding | kode, kodning | kodlamak, kodlama | codificar, codificació | kódovat, kódování |
+| coded segment | segmento codificado | gecodeerd segment | segmento codificado | مقطع مرمّز | segment codé | закодированный фрагмент | 已编码片段 | segmento codificato | कोड किया गया अंश | segmento codificado | codiertes Segment | koodattu segmentti | kodat segment | kodet segment | kodet segment | kodlanmış bölüm | segment codificat | kódovaný úsek |
+| codebook | libro de códigos | codeboek | livro de códigos | دليل الرموز | livre de codes | книга кодов | 代码本 | libro dei codici | कोडबुक | livro de códigos | Codebuch | koodikirja | kodbok | kodebok | kodebog | kod kitabı | llibre de codis | kódovací kniha |
+| document | documento | document | documento | مستند | document | документ | 文档 | documento | दस्तावेज़ | documento | Dokument | dokumentti | dokument | dokument | dokument | belge | document | dokument |
+| folder | carpeta | map | pasta | مجلد | dossier | папка | 文件夹 | cartella | फ़ोल्डर | pasta | Ordner | kansio | mapp | mappe | mappe | klasör | carpeta | složka |
+| logbook | bitácora | logboek | diário de bordo | السجل | journal | журнал | 日志 | diario | लॉगबुक | diário de bordo | Logbuch | lokikirja | loggbok | loggbok | logbog | günlük | diari | deník |
+| memo | memo (m.) | memo (pl. memo's) | memo (m.) | مذكرة | mémo | заметка | 备忘录 | memo | मेमो | memo | Memo | muistio | memo (pl. memon) | memo (pl. memoer) | memo (pl. memoer) | memo | memo (m.) | poznámka |
+| note, notebook | nota, cuaderno | notitie, notitieboek | nota, caderno | ملاحظة، دفتر | note, carnet | запись, блокнот | 笔记, 笔记本 | nota, quaderno | नोट, नोटबुक | nota, caderno | Notiz, Notizbuch | muistiinpano, muistikirja | anteckning, anteckningsbok | notat, notatbok | note, notesbog | not, defter | nota, quadern | záznam, zápisník |
+| panel / pane | panel | paneel | painel | لوحة | volet | панель | 窗格 | riquadro | पैनल | painel | Bereich | paneeli | panel | panel | panel | bölme | plafó | panel |
+| project | proyecto | project | projeto | مشروع | projet | проект | 项目 | progetto | परियोजना | projeto | Projekt | projekti | projekt | prosjekt | projekt | proje | projecte | projekt |
+| query | consulta | query (pl. query's) | consulta | استعلام | requête | запрос | 查询 | query | क्वेरी | consulta | Abfrage | haku | sökfråga | spørring | forespørgsel | sorgu | consulta | dotaz |
+| question (survey) | pregunta | vraag | pergunta | سؤال | question | вопрос | 问题 | domanda | प्रश्न | pergunta | Frage | kysymys | fråga | spørsmål | spørgsmål | soru | pregunta | otázka |
+| quote | cita | citaat | citação | اقتباس | citation | цитата | 引文 | citazione | उद्धरण | citação | Zitat | lainaus | citat | sitat | citat | alıntı | cita | citace |
+| relationship map | mapa de relaciones | relatiekaart | mapa de relações | خريطة العلاقات | carte des relations | карта связей | 关系地图 | mappa delle relazioni | संबंध नक्शा | mapa de relações | Beziehungskarte | suhdekartta | relationskarta | relasjonskart | relationskort | ilişki haritası | mapa de relacions | mapa vztahů |
+| report | informe | rapport | relatório | تقرير | rapport | отчёт | 报告 | report | रिपोर्ट | relatório | Bericht | raportti | rapport | rapport | rapport | rapor | informe | zpráva |
+| respondent | encuestado | respondent | respondente | مستجيب | répondant | респондент | 受访者 | rispondente | उत्तरदाता | respondente | befragte Person, Befragte | vastaaja | respondent | respondent | respondent | katılımcı | enquestat | respondent |
+| ribbon | cinta | lint | faixa de opções | الشريط | ruban | лента | 功能区 | barra multifunzione | रिबन | faixa de opções | Menüband | valintanauha | menyfliksområde | bånd | bånd | şerit | cinta | pás karet |
+| save | guardar | bewaren | salvar | حفظ | enregistrer | сохранить | 保存 | salvare | सहेजें | guardar | speichern | tallentaa | spara | lagre | gem | kaydet | desar | uložit |
+| selection | selección | selectie | seleção | تحديد | sélection | выделение | 选段 | selezione | चयन | seleção | Auswahl | valinta | markering | markering | markering | seçim | selecció | výběr |
+| subcode | subcódigo | subcode | subcódigo | رمز فرعي | sous-code | подкод | 子代码 | sottocodice | उप-कोड | subcódigo | Subcode | alakoodi | underkod | underkode | underkode | alt kod | subcodi | podkód |
+| survey | encuesta | enquête | pesquisa | استبيان | enquête | опрос | 调查 | sondaggio | सर्वेक्षण | inquérito | Umfrage | kysely | enkät | undersøkelse | undersøgelse | anket | enquesta | průzkum |
+| tab | pestaña | tabblad | aba | علامة تبويب | onglet | вкладка | 标签页 | pannello | टैब | separador | Tab | välilehti | flik | fane | fane | sekme | pestanya | karta |
+| tag | etiqueta | tag | etiqueta | وسم (ج. وسوم) | étiquette | метка | 标签 | etichetta | टैग | etiqueta | Tag | tunniste | tagg | etikett | tag (pl. tags) | etiket | etiqueta | štítek |
+| transcript | transcripción | transcript | transcrição | تفريغ نصي | transcription | транскрипт | 转录稿 | trascrizione | प्रतिलेख | transcrição | Transkript | litteraatti | transkription | transkripsjon | transskription | transkript | transcripció | přepis |
+| Viewer (the document viewer) | visor | viewer | visualizador | العارض | visionneuse | просмотр | 查看器 | visualizzatore | व्यूअर | visualizador | Viewer | katseluohjelma | visare | fremviser | fremviser | görüntüleyici | visualitzador | prohlížeč |
 
 ## Adding a language
 
@@ -165,6 +171,21 @@ instance, adds `_many`).
   better pair?
 - **German:** respondents are *Befragte* (plural) and *befragte Person*
   (singular), to avoid choosing a gender. Does that read naturally?
+- **Swedish:** a query is *sökfråga*, to keep it apart from a survey
+  *fråga* (question). Does it read well in the Analyse tab?
+- **Norwegian:** the catalogue is Bokmål, and Nynorsk systems get it too.
+  Is that acceptable, or is a Nynorsk catalogue (`nn`) wanted?
+- **Danish:** *tag* (pl. *tags*) is kept for a tag, as in much Danish
+  software. Would *mærke* be better?
+- **Turkish:** names put into messages ("{{name}} bu dosya üzerinde
+  çalışıyor") are never given suffixes, since their vowel harmony isn't
+  known; some sentences are built around that ("şu kişinin sürümü:
+  {{name}}"). Do any read too stiffly?
+- **Catalan:** commands are imperatives ("Desa", "Importa") and messages
+  address the user as *vós*, as Softcatalà does. Is that the right mix?
+- **Czech:** memos are *poznámky* and notebook notes *záznamy*, so the two
+  don't clash. The app's name is avoided where it would need a case ending
+  ("aplikace Magnolia"). Do those read naturally?
 - **Arabic:** word counts treat words with and without vowel marks
   ("كَتَبَ", "كتب"), and the alef variants (أ, إ, آ, ا), as different
   words. Should Word Frequencies, Word Combinations and text search treat
