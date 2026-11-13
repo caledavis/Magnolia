@@ -869,6 +869,9 @@ fn apply_source_meta(
     if let Some(st) = meta.get("sourceType").filter(|v| truthy(v)) {
         source["sourceType"] = st.clone();
     }
+    if let Some(link) = meta.get("zoteroLink").filter(|v| truthy(v)) {
+        source["zoteroLink"] = link.clone();
+    }
     if source.get("selections").and_then(Value::as_array).is_none() {
         source["selections"] = json!([]);
     }

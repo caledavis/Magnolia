@@ -10,6 +10,7 @@ mod state;
 mod storage;
 mod updater;
 mod windows;
+mod zotero;
 
 use state::AppState;
 use tauri::{AppHandle, Manager, RunEvent};
@@ -90,6 +91,8 @@ pub fn run() {
         .on_menu_event(|app, event| menu::handle_event(app, event.id().as_ref()))
         .invoke_handler(tauri::generate_handler![
             commands::open_project,
+            zotero::zotero_get,
+            zotero::zotero_file_path,
             commands::pick_project_file,
             commands::open_project_path,
             commands::set_active_project_path,

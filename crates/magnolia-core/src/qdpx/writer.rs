@@ -432,6 +432,7 @@ pub fn write_qdpx(
         .filter(|s| {
             get_nonempty(s, "sourceType").is_some_and(|t| t != "text")
                 || has(s, "formatData")
+                || has(s, "zoteroLink")
                 || get_arr(s, "selections")
                     .iter()
                     .any(|sel| has(sel, "pdfRegion"))
@@ -522,6 +523,10 @@ fn source_meta_for(s: &Value, written: &HashSet<String>) -> Value {
     meta.insert("guid".into(), guid.into());
     if !st.is_empty() && st != "text" {
         meta.insert("sourceType".into(), st.into());
+    }
+    // The Zotero item a document was imported from (zotero://select/…).
+    if let Some(link) = get_nonempty(s, "zoteroLink") {
+        meta.insert("zoteroLink".into(), link.into());
     }
     // Image regions live in the XML as <PictureSelection>s instead.
     if st != "image" {

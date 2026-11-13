@@ -54,6 +54,8 @@ interface DocumentState {
 
   setSources: (sources: TextSource[], contents: Record<string, string>) => void
   addSource: (name: string, content: string, sourceType?: SourceType, formatData?: any) => string // returns guid
+  /** Remember the Zotero item a document came from. */
+  setZoteroLink: (guid: string, link: string) => void
   /** Re-attach binary content to an existing source whose bytes were
    *  missing from the .qdpx. Replaces its formatData (the new
    *  magnolia-bin:// handle / pdf data) and text content while preserving
@@ -264,6 +266,11 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     }))
     useProjectStore.getState().markDirty()
     return guid
+  },
+
+  setZoteroLink: (guid, link) => {
+    set((state) => ({ sources: state.sources.map((s) => (s.guid === guid ? { ...s, zoteroLink: link } : s)) }))
+    useProjectStore.getState().markDirty()
   },
 
   reattachSourceBinary: (guid, formatData, content) => {

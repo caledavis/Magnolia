@@ -2058,6 +2058,7 @@ div:hover > .folder-row-add,
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-message-circle-question-mark > :nth-child(n+2) { stroke: var(--rb-coral); }
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-message-circle-question-mark > :nth-child(1) { fill: color-mix(in srgb, var(--rb-blue) var(--rb-tint), transparent); }
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-square-arrow-right-enter > :nth-child(-n+2),
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-library-big > :nth-child(3),
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-git-merge > :nth-child(3),
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-book > *,
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-notebook-pen > :nth-child(n+2):nth-child(-n+5),
@@ -2504,6 +2505,77 @@ textarea {
 @keyframes file-drop-cue-in {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* Import from Zotero: the library's collections beside its items. */
+.modal.zotero-import {
+  width: 760px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.zotero-message {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  max-width: 520px;
+}
+.zotero-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.zotero-bar input { flex: 1; min-width: 0; }
+.zotero-panes {
+  display: flex;
+  gap: 10px;
+  height: min(420px, 55vh);
+  min-height: 0;
+}
+.zotero-collections,
+.zotero-items {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--bg-primary);
+  font-size: var(--font-size-sm);
+}
+.zotero-collections { width: 200px; flex-shrink: 0; }
+.zotero-items { flex: 1; min-width: 0; }
+.zotero-collections li {
+  padding: 4px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.zotero-collections li.selected {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--text-primary);
+}
+.zotero-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.zotero-item input { margin-top: 2px; flex-shrink: 0; }
+.zotero-item.disabled { cursor: default; opacity: 0.55; }
+.zotero-all { border-bottom: 1px solid var(--border-color); color: var(--text-secondary); }
+.zotero-item-text { display: flex; flex-direction: column; min-width: 0; }
+.zotero-item-title { color: var(--text-primary); overflow-wrap: anywhere; }
+.zotero-item-details { color: var(--text-muted); font-size: var(--font-size-xs, 11px); }
+.zotero-empty { padding: 10px; color: var(--text-muted); }
+.zotero-explain {
+  margin: 10px 0 0;
+  font-size: var(--font-size-xs, 11px);
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 /* The import dialog: every document being imported, with its stage. */

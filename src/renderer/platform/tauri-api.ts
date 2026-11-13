@@ -321,6 +321,8 @@ const api: MagnoliaAPI = {
     return paths?.length ? readImports(paths) : null
   },
   readTextFiles: readImports,
+  zoteroGet: (path) => invoke('zotero_get', { path }),
+  zoteroFilePath: (library, key) => invoke('zotero_file_path', { library, key }),
   onImportProgress: (callback) => {
     importProgress.add(callback)
     return () => { importProgress.delete(callback) }

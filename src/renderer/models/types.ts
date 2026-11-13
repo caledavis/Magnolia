@@ -256,6 +256,9 @@ export interface TextSource {
   creationDateTime?: string
   modifyingUser?: string
   modifiedDateTime?: string
+  /** The Zotero item the document was imported from (zotero://select/…),
+   *  kept out of sight in magnolia-sources.json. */
+  zoteroLink?: string
   selections: PlainTextSelection[]
 }
 
@@ -624,6 +627,11 @@ export interface MagnoliaAPI {
   /** How an import is going: each file's stage, and whether it's finished. */
   onImportProgress: (callback: (s: ImportState) => void) => () => void
   readTextFiles: (filePaths: string[]) => Promise<{ name: string; content: string }[] | null>
+  /** GET from the Zotero app's local API (a path under /api/). Rejects
+   *  with "zotero-not-running" when Zotero isn't open. */
+  zoteroGet: (path: string) => Promise<{ status: number; total: number | null; body: string }>
+  /** Where a Zotero attachment's file is on this computer, or null. */
+  zoteroFilePath: (library: string, key: string) => Promise<string | null>
   /** Filesystem path of a dropped / picked File ('' if it has none). */
   getPathForFile: (file: File) => string
   /** Re-import the file for an existing document of the given type whose

@@ -14,6 +14,7 @@ import {
   faNotebookPen,
   faTags,
   faSquareArrowRightEnter,
+  faLibraryBig,
   faGitMerge,
   faGear,
   faChevronsLeft,
@@ -21,6 +22,8 @@ import {
 } from './components/Icon'
 import { LicenceDialog } from './components/Licence/LicenceDialog'
 import { ImportProgressDialog } from './components/ImportProgressDialog'
+import { ZoteroImportDialog } from './components/ZoteroImportDialog'
+import { importZoteroItems, type ZoteroImport } from './utils/zotero-import'
 import { isMac } from './utils/platform'
 import { sourceTypeFromExtension } from './utils/format-registry'
 import { parseSurveyGrid, type SurveyFormat } from './utils/survey/survey-parser'
@@ -354,6 +357,7 @@ function App() {
     []
   )
   const [showProjectDetails, setShowProjectDetails] = useState(false)
+  const [showZoteroImport, setShowZoteroImport] = useState(false)
   const [showLicenceDialog, setShowLicenceDialog] = useState(false)
   const [loadProgress, setLoadProgress] = useState<{ stage: string; current: number; total: number } | null>(null)
   // Documents whose binary content is missing from the just-opened .qdpx —
@@ -1459,6 +1463,16 @@ function App() {
     useDocumentStore.getState().openToolTab(MERGE_TAB_ID)
     await useMergeReviewStore.getState().openCompare(filePath)
   }, [])
+
+  const handleZoteroImport = useCallback(async (job: ZoteroImport) => {
+    setShowZoteroImport(false)
+    if (checkoutLockedBy) { setCheckoutConflict(); return }
+    try {
+      flushImportSave(await importZoteroItems((path) => window.api.zoteroGet(path), job))
+    } catch (err) {
+      console.error('[zotero-import] failed:', err)
+    }
+  }, [flushImportSave, checkoutLockedBy, setCheckoutConflict])
 
   const handleImportDocument = useCallback(async () => {
     // Enforced lock: importing adds documents, a mutation — refuse it
@@ -2783,6 +2797,10 @@ function App() {
               onClick: () => setShowProjectDetails(true)
             },
             { id: 'import', label: t('toolbar.import'), title: t('toolbar.importTitle'), icon: faSquareArrowRightEnter, disabledReason: lockedReason, onClick: () => handleImportDocument() },
+            {
+              id: 'zotero', label: t('toolbar.zotero'), title: t('toolbar.zoteroTitle'), icon: faLibraryBig, disabledReason: lockedReason,
+              onClick: () => { if (checkoutLockedBy) setCheckoutConflict(); else setShowZoteroImport(true) }
+            },
             { id: 'merge', label: t('toolbar.merge'), title: t('toolbar.mergeTitle'), icon: faGitMerge, iconStyle: { transform: 'scale(-1, -1)' }, onClick: () => handleMergeProject() },
             {
               id: 'preferences', label: t('toolbar.preferences'), icon: faGear, badge: updateBadgeAvailable,
@@ -3567,6 +3585,9 @@ function App() {
       )}
 
       <ProjectDetailsDialog open={showProjectDetails} onClose={() => setShowProjectDetails(false)} />
+      {showZoteroImport && (
+        <ZoteroImportDialog onClose={() => setShowZoteroImport(false)} onImport={(job) => void handleZoteroImport(job)} />
+      )}
       <LicenceDialog open={showLicenceDialog} onClose={() => setShowLicenceDialog(false)} />
       {/* !stealBackConflict guards against both rendering at once: they're
           set independently (markDirty's edit-time block calls
