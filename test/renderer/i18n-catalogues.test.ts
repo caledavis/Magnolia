@@ -178,9 +178,18 @@ describe('choosing the language', () => {
   })
 
   it("follows the computer's first language Magnolia has", () => {
-    expect(resolveLanguage('system', ['ja-JP', 'es-MX', 'en-GB'])).toBe('es')
+    expect(resolveLanguage('system', ['ko-KR', 'es-MX', 'en-GB'])).toBe('es')
     expect(resolveLanguage('system', ['nl-BE'])).toBe('nl')
     expect(resolveLanguage('system', ['en-AU', 'es-ES'])).toBe('en')
+  })
+
+  it('gives Japanese computers the Japanese catalogue', () => {
+    expect(resolveLanguage('system', ['ja-JP'])).toBe('ja')
+  })
+
+  it("gives Hebrew's old code the Hebrew catalogue", () => {
+    expect(resolveLanguage('system', ['he-IL'])).toBe('he')
+    expect(resolveLanguage('system', ['iw-IL'])).toBe('he')
   })
 
   it('gives Norwegian and Nynorsk the Bokmål catalogue', () => {
@@ -198,12 +207,12 @@ describe('choosing the language', () => {
   })
 
   it('falls back to English', () => {
-    expect(resolveLanguage('system', ['ja-JP', 'ko'])).toBe('en')
+    expect(resolveLanguage('system', ['th-TH', 'ko'])).toBe('en')
     expect(resolveLanguage('system', [])).toBe('en')
   })
 
   it('reads an unknown saved preference as "system"', () => {
-    expect(normaliseLanguagePreference('ja')).toBe('system')
+    expect(normaliseLanguagePreference('ko')).toBe('system')
     expect(normaliseLanguagePreference(undefined)).toBe('system')
     expect(normaliseLanguagePreference('pt-BR')).toBe('pt-BR')
   })

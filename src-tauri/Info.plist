@@ -29,6 +29,11 @@
     <string>tr</string>
     <string>ca</string>
     <string>cs</string>
+    <string>uk</string>
+    <string>lt</string>
+    <string>he</string>
+    <string>el</string>
+    <string>ja</string>
   </array>
   <key>CFBundleDocumentTypes</key>
   <array>

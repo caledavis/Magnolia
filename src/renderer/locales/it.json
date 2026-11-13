@@ -19,7 +19,12 @@
       "da": "Dansk",
       "tr": "Türkçe",
       "ca": "Català",
-      "cs": "Čeština"
+      "cs": "Čeština",
+      "uk": "Українська",
+      "lt": "Lietuvių",
+      "he": "עברית",
+      "el": "Ελληνικά",
+      "ja": "日本語"
     },
     "system": "Come il computer ({{language}})"
   },

@@ -138,7 +138,8 @@ function notesFor(english) {
 const LANGUAGE_NAMES = {
   es: 'Spanish', nl: 'Dutch', 'pt-BR': 'Portuguese (Brazil)', 'pt-PT': 'Portuguese (Portugal)', ar: 'Arabic',
   fr: 'French', ru: 'Russian', 'zh-Hans': 'Chinese (Simplified)', it: 'Italian', hi: 'Hindi', de: 'German', fi: 'Finnish',
-  sv: 'Swedish', nb: 'Norwegian (Bokmål)', da: 'Danish', tr: 'Turkish', ca: 'Catalan', cs: 'Czech'
+  sv: 'Swedish', nb: 'Norwegian (Bokmål)', da: 'Danish', tr: 'Turkish', ca: 'Catalan', cs: 'Czech',
+  uk: 'Ukrainian', lt: 'Lithuanian', he: 'Hebrew', el: 'Greek', ja: 'Japanese'
 }
 
 /** The rows of a markdown table under `heading` in GLOSSARY.md. */
