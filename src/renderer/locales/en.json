@@ -1774,7 +1774,6 @@
     "noFile": "no file to import",
     "unsupportedFile": "Magnolia can’t import this kind of file",
     "alreadyImported": "already in the project",
-    "explain": "Each item’s file becomes a document, tagged with everything Zotero knows about the item. The abstract and the item’s notes become memos on the document.",
     "import_one": "Import {{count}} Item",
     "import_other": "Import {{count}} Items",
     "noteTitle": "Zotero Note",

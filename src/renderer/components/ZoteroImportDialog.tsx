@@ -237,7 +237,6 @@ export function ZoteroImportDialog({ onClose, onImport }: Props) {
                 )}
               </div>
             </div>
-            <p className="zotero-explain">{t('zotero.explain')}</p>
             <div className="modal-actions">
               <button className="secondary" onClick={onClose}>{t('common.cancel')}</button>
               <button onClick={doImport} disabled={chosen.size === 0}>

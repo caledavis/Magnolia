@@ -2571,12 +2571,6 @@ textarea {
 .zotero-item-title { color: var(--text-primary); overflow-wrap: anywhere; }
 .zotero-item-details { color: var(--text-muted); font-size: var(--font-size-xs, 11px); }
 .zotero-empty { padding: 10px; color: var(--text-muted); }
-.zotero-explain {
-  margin: 10px 0 0;
-  font-size: var(--font-size-xs, 11px);
-  color: var(--text-muted);
-  line-height: 1.4;
-}
 
 /* The import dialog: every document being imported, with its stage. */
 .modal.import-progress {
