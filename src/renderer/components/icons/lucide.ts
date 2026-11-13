@@ -52,7 +52,7 @@ import {
   SquareSplitVertical,
   SquarePlus,
   SquareArrowRightEnter,
-  LibraryBig,
+  BookOpenText,
   Plus,
   Menu,
   Quote,
@@ -209,7 +209,7 @@ export const faTableColumns = PanelLeft
 export const faSquareSplitVertical = SquareSplitVertical
 export const faSquarePlus = SquarePlus
 export const faSquareArrowRightEnter = SquareArrowRightEnter
-export const faLibraryBig = LibraryBig
+export const faBookOpenText = BookOpenText
 export const faPlus = Plus
 export const faBars = Menu
 export const faQuoteLeft = Quote

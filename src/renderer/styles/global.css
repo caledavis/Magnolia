@@ -2058,8 +2058,9 @@ div:hover > .folder-row-add,
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-message-circle-question-mark > :nth-child(n+2) { stroke: var(--rb-coral); }
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-message-circle-question-mark > :nth-child(1) { fill: color-mix(in srgb, var(--rb-blue) var(--rb-tint), transparent); }
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-square-arrow-right-enter > :nth-child(-n+2),
-:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-library-big > :nth-child(3),
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-git-merge > :nth-child(3),
+/* Import from Zotero: the lines of text on the open book's pages */
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-book-open-text > :is(:nth-child(2), :nth-child(3), :nth-child(5), :nth-child(6)),
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-book > *,
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-notebook-pen > :nth-child(n+2):nth-child(-n+5),
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-tags > :nth-child(2),

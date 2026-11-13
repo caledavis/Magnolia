@@ -188,7 +188,7 @@
       for (const id of [...document.querySelectorAll('.ribbon-body .ribbon-btn')].map((b) => b.dataset.ribbonId)) {
         await tab(1); press(rb(id)); await sleep(1500); await check('tool ' + id)
       }
-      await tab(0); press(rb('query')); await sleep(1800); await check('query builder')
+      await tab(1); press(rb('query')); await sleep(1800); await check('query builder')
       await shot('Ui-' + l + '-query-builder')
       // Context menus on a document and a code.
       const menu = async (el, name) => {

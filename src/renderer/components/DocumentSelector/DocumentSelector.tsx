@@ -10,7 +10,9 @@ import {
   type SetOp,
   type DNodeKind,
   type DocCategory,
-  type DocumentFilterState
+  type DocumentFilterState,
+  dateSpan,
+  newestFirst
 } from '../../utils/document-graph'
 import type { SurveyEntityRef } from '../../models/types'
 import { SurveyScopeLine, chosenIds, mayBeSurveyEntityDrag, parseSurveyEntityDrop, withSurveyEntity, withSurveyIds } from './SurveyScope'
@@ -405,7 +407,7 @@ function tagNodeH(n: DNode): number {
     const allValues = catTags.map((t) => t.value).filter(Boolean) as string[]
     const isDateCat = cat?.type === 'date' || (allValues.length > 0 && allValues.every((v) => !isNaN(new Date(v.split('/').reverse().join('-')).getTime())))
     const isNumCat = cat?.type === 'numeric' || (!isDateCat && allValues.length > 0 && allValues.every((v) => !isNaN(parseFloat(v))))
-    showModePicker = (isDateCat || isNumCat) && catTags.length > 1
+    showModePicker = (isDateCat || isNumCat) && catTags.length > (isDateCat ? 0 : 1)
   } else if (n.betweenMode !== undefined) {
     // Fallback: use betweenMode as a hint
     showModePicker = true
@@ -1009,7 +1011,7 @@ export function DocumentSelector({
             const vals = tagCatTags.map((t) => t.value).filter(Boolean) as string[]
             const isD = tagCat?.type === 'date' || (vals.length > 0 && vals.every((v) => !isNaN(new Date(v.split('/').reverse().join('-')).getTime())))
             const isN = tagCat?.type === 'numeric' || (!isD && vals.length > 0 && vals.every((v) => !isNaN(parseFloat(v))))
-            if ((isD || isN) && tagCatTags.length > 1) autoMode = 'is'
+            if ((isD || isN) && tagCatTags.length > (isD ? 0 : 1)) autoMode = 'is'
           }
           setNodes((p) => [
             ...p,
@@ -1422,17 +1424,102 @@ export function DocumentSelector({
                 // when the dropdown visually shows a category but state hasn't been set)
                 const effectiveCatGuid = node.tagCategoryGuid
                   || (uncatTags.length === 0 && categories.length > 0 ? categories[0].guid : undefined)
-                const catTags = effectiveCatGuid
+                const unsortedCatTags = effectiveCatGuid
                   ? tags.filter((t) => t.categoryGuid === effectiveCatGuid)
                   : []
-                const valueTags = effectiveCatGuid ? catTags : uncatTags
                 const cat = effectiveCatGuid ? categories.find((c) => c.guid === effectiveCatGuid) : null
                 // Determine if all values in this category are numeric or dates
-                const allValues = catTags.map((t) => t.value).filter(Boolean) as string[]
+                const allValues = unsortedCatTags.map((t) => t.value).filter(Boolean) as string[]
                 const isDateCat = cat?.type === 'date' || (allValues.length > 0 && allValues.every((v) => !isNaN(new Date(v.split('/').reverse().join('-')).getTime())))
+                // Dates are listed newest first.
+                const catTags = isDateCat
+                  ? [...unsortedCatTags].sort((a, b) => newestFirst(a.value || a.name, b.value || b.name))
+                  : unsortedCatTags
+                const valueTags = effectiveCatGuid ? catTags : uncatTags
                 const isNumCat = cat?.type === 'numeric' || (!isDateCat && allValues.length > 0 && allValues.every((v) => !isNaN(parseFloat(v))))
-                const showModePicker = effectiveCatGuid && (isDateCat || isNumCat) && catTags.length > 1
+                const showModePicker = effectiveCatGuid && (isDateCat || isNumCat) && catTags.length > (isDateCat ? 0 : 1)
                 const mode = node.betweenMode || 'is'
+                const dateRange = isDateCat && (mode === 'between' || mode === 'not-between')
+                // A range's ends: as typed, else the dates picked before typing existed.
+                const tagValue = (g?: string) => (g ? tags.find((tg) => tg.guid === g)?.value ?? '' : '')
+                const rangeFrom = node.rangeFrom ?? tagValue(node.tagGuid)
+                const rangeTo = node.rangeTo ?? tagValue(node.tagGuid2)
+                const dateOptions = [...new Set(catTags.map((tg) => tg.value).filter((v): v is string => !!v && !!dateSpan(v)))]
+                const setRange = (end: 'from' | 'to', value: string) => {
+                  const from = end === 'from' ? value : rangeFrom
+                  const to = end === 'to' ? value : rangeTo
+                  setNodes((p) => p.map((nd) =>
+                    nd.id === node.id ? {
+                      ...nd,
+                      rangeFrom: from,
+                      rangeTo: to,
+                      tagGuid: undefined,
+                      tagGuid2: undefined,
+                      tagName: `${from.trim() || '…'} – ${to.trim() || '…'}`,
+                      tagCategoryGuid: nd.tagCategoryGuid || effectiveCatGuid
+                    } : nd
+                  ))
+                }
+                // A date in three boxes. The value is kept the way date tags
+                // write it: dd/mm/yyyy, mm/yyyy or yyyy.
+                const dateParts = (v: string): [string, string, string] => {
+                  const p = v.trim().split('/')
+                  return p.length >= 3 ? [p[0], p[1], p[2]] : p.length === 2 ? ['', p[0], p[1]] : ['', '', p[0]]
+                }
+                const joinDate = ([d, m, y]: [string, string, string]) => (d ? `${d}/${m}/${y}` : m ? `${m}/${y}` : y)
+                const rangeField = (end: 'from' | 'to') => {
+                  const value = end === 'from' ? rangeFrom : rangeTo
+                  const parts = dateParts(value)
+                  // Red once the year is in and it still isn't a date.
+                  const bad = parts[2].length === 4 && !dateSpan(value)
+                  const box = (i: 0 | 1 | 2) => (
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={i === 2 ? 4 : 2}
+                      value={parts[i]}
+                      placeholder={t(i === 0 ? 'docSelector.dayShort' : i === 1 ? 'docSelector.monthShort' : 'docSelector.yearShort')}
+                      aria-label={t(i === 0 ? 'docSelector.day' : i === 1 ? 'docSelector.month' : 'docSelector.year')}
+                      title={bad ? t('docSelector.notADate') : undefined}
+                      aria-invalid={bad || undefined}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, '')
+                        const next: [string, string, string] = [...parts]
+                        next[i] = digits
+                        setRange(end, joinDate(next))
+                        // On to the next box once this one is full.
+                        if (i < 2 && digits.length === 2) (e.target.nextElementSibling as HTMLInputElement | null)?.focus()
+                      }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        ...selectStyle, height: 18, boxSizing: 'border-box', textAlign: 'center', padding: '2px 1px',
+                        ...(i === 2 ? { flex: 1, minWidth: 0 } : { width: 28, flex: 'none' }),
+                        ...(bad ? { borderColor: '#f43f5e' } : {})
+                      }}
+                    />
+                  )
+                  return (
+                    <div style={{ display: 'flex', gap: 2, marginTop: end === 'from' ? 3 : 2 }}>
+                      {box(0)}
+                      {box(1)}
+                      {box(2)}
+                      <select
+                        value=""
+                        aria-label={t('docSelector.pickDate')}
+                        title={t('docSelector.pickDate')}
+                        disabled={dateOptions.length === 0}
+                        onChange={(e) => { if (e.target.value) setRange(end, e.target.value) }}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ ...selectStyle, width: 22, flex: 'none', padding: '2px 0' }}
+                      >
+                        <option value="" disabled>{t('docSelector.pickDate')}</option>
+                        {dateOptions.map((v) => <option key={v} value={v}>{v}</option>)}
+                      </select>
+                    </div>
+                  )
+                }
                 const selectStyle: React.CSSProperties = {
                   width: '100%', fontSize: 9, padding: '2px 4px',
                   border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)',
@@ -1479,7 +1566,7 @@ export function DocumentSelector({
                           const vals = newCatTags.map((t) => t.value).filter(Boolean) as string[]
                           const isD = newCat?.type === 'date' || (vals.length > 0 && vals.every((v) => !isNaN(new Date(v.split('/').reverse().join('-')).getTime())))
                           const isN = newCat?.type === 'numeric' || (!isD && vals.length > 0 && vals.every((v) => !isNaN(parseFloat(v))))
-                          if ((isD || isN) && newCatTags.length > 1) newMode = 'is'
+                          if ((isD || isN) && newCatTags.length > (isD ? 0 : 1)) newMode = 'is'
                         }
                         setNodes((p) => p.map((nd) =>
                           nd.id === node.id ? {
@@ -1488,6 +1575,8 @@ export function DocumentSelector({
                             tagGuid: undefined,
                             tagName: undefined,
                             tagGuid2: undefined,
+                            rangeFrom: undefined,
+                            rangeTo: undefined,
                             betweenMode: newMode
                           } : nd
                         ))
@@ -1516,8 +1605,17 @@ export function DocumentSelector({
                       </div>
                     )}
 
+                    {/* 3–4. A date range: typed, or picked from the category's dates */}
+                    {dateRange && (
+                      <>
+                        {rangeField('from')}
+                        <div style={{ textAlign: 'center', fontSize: 8, color: 'var(--text-muted)', fontStyle: 'italic', marginTop: 2, lineHeight: '12px' }}>{t('docSelector.and')}</div>
+                        {rangeField('to')}
+                      </>
+                    )}
+
                     {/* 3. Value 1 */}
-                    <select
+                    {!dateRange && <select
                       value={node.tagGuid || ''}
                       onChange={(e) => {
                         const val = e.target.value
@@ -1540,10 +1638,10 @@ export function DocumentSelector({
                       {valueTags.map((t) => (
                         <option key={t.guid} value={t.guid}>{t.value || t.name}</option>
                       ))}
-                    </select>
+                    </select>}
 
                     {/* 4. "and" + Value 2 (only for between / not-between) */}
-                    {(mode === 'between' || mode === 'not-between') && (
+                    {!dateRange && (mode === 'between' || mode === 'not-between') && (
                       <>
                       <div style={{ textAlign: 'center', fontSize: 8, color: 'var(--text-muted)', fontStyle: 'italic', marginTop: 2, lineHeight: '12px' }}>{t('docSelector.and')}</div>
                       <select

@@ -32,6 +32,12 @@ export interface DNode {
   /** tag filter mode and range */
   tagGuid2?: string
   betweenMode?: 'is' | 'between' | 'not-between'
+  /** Between / Not Between on dates: the two ends as typed (or picked),
+   *  written like date tags (dd/mm/yyyy, mm/yyyy, yyyy). Either may be
+   *  empty, leaving that end open. When neither is set, the ends are the
+   *  values of tagGuid and tagGuid2. */
+  rangeFrom?: string
+  rangeTo?: string
   /** type node */
   typeExt?: string
   /** folder node: a single folder guid (descendants included automatically) */
@@ -90,6 +96,61 @@ export function categoryOfSource(source: { name: string; sourceType?: string }):
 
 /** Everything the resolver needs about the current project, passed in so the
  *  resolution stays pure (no module-level state, runnable from the engine). */
+/** The stretch of time a date tag's value covers, as UTC milliseconds
+ *  (first and last moment): "03/05/2019" is a day, "05/2019" a month,
+ *  "2019" a year. Also reads yyyy-mm-dd. Null if it isn't a date. */
+export function dateSpan(value: string): [number, number] | null {
+  const v = value.trim()
+  let y: number, m: number | undefined, d: number | undefined
+  let match: RegExpMatchArray | null
+  if ((match = v.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/))) [d, m, y] = [+match[1], +match[2], +match[3]]
+  else if ((match = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))) [y, m, d] = [+match[1], +match[2], +match[3]]
+  else if ((match = v.match(/^(\d{1,2})[/.-](\d{4})$/))) [m, y] = [+match[1], +match[2]]
+  else if ((match = v.match(/^(\d{4})$/))) y = +match[1]
+  else return null
+  if (m !== undefined && (m < 1 || m > 12)) return null
+  if (d !== undefined) {
+    const start = Date.UTC(y, m! - 1, d)
+    if (new Date(start).getUTCDate() !== d) return null // 31/02/2019
+    return [start, Date.UTC(y, m! - 1, d + 1) - 1]
+  }
+  if (m !== undefined) return [Date.UTC(y, m - 1, 1), Date.UTC(y, m, 1) - 1]
+  return [Date.UTC(y, 0, 1), Date.UTC(y + 1, 0, 1) - 1]
+}
+
+/** Newest first, for lists of dates; values that aren't dates go last. */
+export function newestFirst(a: string, b: string): number {
+  const sa = dateSpan(a), sb = dateSpan(b)
+  if (!sa || !sb) return sa ? -1 : sb ? 1 : a.localeCompare(b)
+  return sb[0] - sa[0] || sb[1] - sa[1]
+}
+
+/** The documents a date range takes in (or, for not-between, leaves
+ *  out): those tagged with a date in the category that lies wholly
+ *  inside it. Null if an end isn't a date or neither end is given. */
+function dateRangeMembers(
+  n: DNode, from: string, to: string, data: DocGraphData, allSet: Set<string>
+): Set<string> | null {
+  const a = from.trim() ? dateSpan(from) : undefined
+  const b = to.trim() ? dateSpan(to) : undefined
+  if (a === null || b === null || (!a && !b)) return null
+  // Only a "from": from then on. Only a "to": up to then. Both: whichever
+  // way round they were given.
+  const lo = a && b ? Math.min(a[0], b[0]) : a ? a[0] : -Infinity
+  const hi = a && b ? Math.max(a[1], b[1]) : b ? b[1] : Infinity
+  const result = new Set<string>()
+  for (const t of data.tags) {
+    if (t.categoryGuid !== n.tagCategoryGuid || !t.value) continue
+    const span = dateSpan(t.value)
+    if (!span) continue
+    const inRange = span[0] >= lo && span[1] <= hi
+    if ((n.betweenMode === 'between') === inRange) {
+      for (const g of data.tagMembers[t.guid] || []) if (allSet.has(g)) result.add(g)
+    }
+  }
+  return result
+}
+
 export interface DocGraphData {
   sources: { guid: string; name: string; sourceType?: string }[]
   tags: { guid: string; name: string; categoryGuid?: string; value?: string }[]
@@ -133,8 +194,17 @@ function walkNode(
   }
 
   if (n.kind === 'tag') {
+    // Between / Not Between on dates, typed or picked
+    if ((n.betweenMode === 'between' || n.betweenMode === 'not-between') && n.tagCategoryGuid) {
+      const value = (g?: string) => (g ? data.tags.find((t) => t.guid === g)?.value ?? '' : '')
+      const from = n.rangeFrom ?? value(n.tagGuid)
+      const to = n.rangeTo ?? value(n.tagGuid2)
+      const typed = n.rangeFrom !== undefined || n.rangeTo !== undefined
+      const datesOnly = (!from || dateSpan(from)) && (!to || dateSpan(to))
+      if (typed || datesOnly) return dateRangeMembers(n, from, to, data, allSet) ?? new Set()
+    }
     if (!n.tagGuid) return new Set()
-    // Between / Not Between range filter
+    // Between / Not Between on numbers
     if (n.tagGuid2 && n.betweenMode && n.tagCategoryGuid) {
       const tag1 = data.tags.find((t) => t.guid === n.tagGuid)
       const tag2 = data.tags.find((t) => t.guid === n.tagGuid2)

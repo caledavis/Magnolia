@@ -14,7 +14,7 @@ import {
   faNotebookPen,
   faTags,
   faSquareArrowRightEnter,
-  faLibraryBig,
+  faBookOpenText,
   faGitMerge,
   faGear,
   faChevronsLeft,
@@ -2798,7 +2798,7 @@ function App() {
             },
             { id: 'import', label: t('toolbar.import'), title: t('toolbar.importTitle'), icon: faSquareArrowRightEnter, disabledReason: lockedReason, onClick: () => handleImportDocument() },
             {
-              id: 'zotero', label: t('toolbar.zotero'), title: t('toolbar.zoteroTitle'), icon: faLibraryBig, disabledReason: lockedReason,
+              id: 'zotero', label: t('toolbar.zotero'), title: t('toolbar.zoteroTitle'), icon: faBookOpenText, disabledReason: lockedReason,
               onClick: () => { if (checkoutLockedBy) setCheckoutConflict(); else setShowZoteroImport(true) }
             },
             { id: 'merge', label: t('toolbar.merge'), title: t('toolbar.mergeTitle'), icon: faGitMerge, iconStyle: { transform: 'scale(-1, -1)' }, onClick: () => handleMergeProject() },
@@ -2820,12 +2820,6 @@ function App() {
             { id: 'memos', label: t('toolbar.memos'), title: t('toolbar.memosTitle'), icon: PANE_ICONS.memos, onClick: () => openMemos() },
             { id: 'tags', label: t('toolbar.tags'), title: t('toolbar.tagsTitle'), icon: faTags, onClick: () => setShowManageDocTags(true) }
           ]
-        },
-        {
-          label: t('toolbar.groupQuery'),
-          buttons: [
-            { id: 'query', label: t('toolbar.query'), title: TOOL_REGISTRY.queryBuilder.description, icon: faMagnifyingGlass, onClick: () => openQueryBuilder() }
-          ]
         }
       ]
     },
@@ -2833,6 +2827,12 @@ function App() {
       id: 'analyse',
       label: t('toolbar.tabAnalyse'),
       groups: [
+        {
+          label: t('toolbar.groupQuery'),
+          buttons: [
+            { id: 'query', label: t('toolbar.query'), title: TOOL_REGISTRY.queryBuilder.description, icon: faMagnifyingGlass, onClick: () => openQueryBuilder() }
+          ]
+        },
         { label: t('toolbar.groupCodes'), buttons: (['codes-in-documents', 'framework-matrix', 'code-cooccurrences', 'code-orders', 'code-frequencies'] as AnalysisToolType[]).map(toolButton) },
         { label: t('toolbar.groupQueriesWords'), buttons: (['results-in-documents', 'word-frequencies', 'word-combinations'] as AnalysisToolType[]).map(toolButton) },
         { label: t('toolbar.groupRelationshipsReports'), buttons: (['relationship-map', 'reports'] as AnalysisToolType[]).map(toolButton) }

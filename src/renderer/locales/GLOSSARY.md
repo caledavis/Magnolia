@@ -190,3 +190,10 @@ instance, adds `_many`).
   ("كَتَبَ", "كتب"), and the alef variants (أ, إ, آ, ا), as different
   words. Should Word Frequencies, Word Combinations and text search treat
   them as the same word (normalise them), always or as an option?
+- **All languages (Import from Zotero):** the message shown when Zotero
+  won't share its library names Zotero's own settings (Settings, Advanced,
+  and the "Allow other applications on this computer to communicate with
+  Zotero" checkbox). These were translated without Zotero to hand, so
+  please check them against Zotero's wording in your language. Hindi keeps
+  the English names, as Zotero has no Hindi interface. The creator roles
+  (Author, Editor, Interviewee…) should also match Zotero's.
