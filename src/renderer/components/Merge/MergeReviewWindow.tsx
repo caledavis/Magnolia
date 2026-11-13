@@ -1,5 +1,5 @@
 import { Trans, useTranslation } from 'react-i18next'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useMergeReviewStore, collectCurrentProject, type FlatCategory } from '../../stores/merge-review-store'
 import { applyMerge, emptyApplyPlan, resolveBinarySources, type ApplyPlan } from '../../utils/project-diff-apply'
 import type { DiffItem, MergeDiff, CodeDiffItem, SavedAnalysisDiffItem, CodingInstance, SourceDiffItem } from '../../utils/project-diff'
@@ -12,7 +12,7 @@ import { textForSelection } from '../../utils/query-engine'
 import { buildHighlightedSpans, formatClipTime } from '../QueryResultViewer/QueryResultsBody'
 import { PdfRegionThumbnail } from '../DocumentViewer/PdfRegionThumbnail'
 import { stripFormatting } from '../../utils/strip-formatting'
-import type { Code } from '../../models/types'
+import type { Code, DocumentFolder } from '../../models/types'
 import { t } from '../../i18n'
 
 interface MergeReviewWindowProps {
@@ -252,14 +252,30 @@ function SourcesPane({ diff }: { diff: MergeDiff }): JSX.Element {
   const who = theirs(comparisonEditedBy)
   if (diff.sources.length === 0) return <p style={{ color: 'var(--text-muted)', fontSize: 12.5 }}>{t('merge.noDocDifferences')}</p>
 
+  // Where a document is filed: a folder, a notebook, or the top level.
+  const place = (f?: DocumentFolder): string =>
+    !f ? t('merge.topLevel') : f.kind === 'notebook' ? t('merge.notebookPlace', { name: f.name }) : t('merge.folderPlace', { name: f.name })
+
   const renderRow = (item: SourceDiffItem): React.ReactNode => {
     if (item.bucket === 'bothDiffer') {
+      const renamed = item.changedFields?.includes('name') ?? true
+      const moved = item.changedFields?.includes('folder') ?? false
+      const movedText = t('merge.movedFromTo', { from: place(item.mineFolder), to: place(item.theirsFolder) })
+      const hint = renamed && moved ? t('merge.takeNewNameAndPlace') : moved ? t('merge.takeNewPlace') : t('merge.takeNewName')
       return (
         <CheckboxRow
           key={item.guid}
           checked={approved.has(item.guid)}
           onChange={() => toggle('sources', item.guid)}
-          label={<span><Trans i18nKey="merge.renamed" values={{ from: item.mine?.name, to: item.theirs?.name }} components={{ b: <strong /> }} /> <span style={{ color: 'var(--text-muted)' }}>{t('merge.takeNewName')}</span></span>}
+          label={
+            <span>
+              {renamed
+                ? <Trans i18nKey="merge.renamed" values={{ from: item.mine?.name, to: item.theirs?.name }} components={{ b: <strong /> }} />
+                : <strong>{item.mine?.name}</strong>}
+              {moved && <>{renamed ? '; ' : ' '}{movedText}</>}{' '}
+              <span style={{ color: 'var(--text-muted)' }}>{hint}</span>
+            </span>
+          }
         />
       )
     }
@@ -273,7 +289,7 @@ function SourcesPane({ diff }: { diff: MergeDiff }): JSX.Element {
         label={
           <span>
             <strong>{obj?.name}</strong>{' '}
-            <span style={{ color: 'var(--text-muted)' }}>— {sourceTypeLabel(obj?.sourceType)}, {bucketLabel(item.bucket, comparisonEditedBy, reconciling)}</span>
+            <span style={{ color: 'var(--text-muted)' }}>— {sourceTypeLabel(obj?.sourceType)}, {place(item.bucket === 'onlyMine' ? item.mineFolder : item.theirsFolder)}, {bucketLabel(item.bucket, comparisonEditedBy, reconciling)}</span>
           </span>
         }
       />
@@ -295,7 +311,7 @@ function SourcesPane({ diff }: { diff: MergeDiff }): JSX.Element {
       )}
       {bothDiffer.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <h4 style={sectionHeaderStyle}>{t('merge.renamedCount', { count: bothDiffer.length })}</h4>
+          <h4 style={sectionHeaderStyle}>{t('merge.renamedOrMovedCount', { count: bothDiffer.length })}</h4>
           {bothDiffer.map(renderRow)}
         </div>
       )}
@@ -570,6 +586,76 @@ function totalApprovedCount(approved: Record<FlatCategory, Set<string>>, codings
  *  "Select All" should show. documentText and coarse-coding items were
  *  never inverted (each is a single "take theirs" toggle, no separate
  *  mine/theirs buckets), so they're included exactly as before. */
+/** Notebooks and their notes get a section of their own: the comparison
+ *  split in two, notebooks (and their notes, and the notes' text) apart
+ *  from everything else. Approvals stay in the same categories (folders,
+ *  sources, documentText), so applying a merge is the same either way. */
+type Section = FlatCategory | 'codings' | 'notebooks'
+const NOTEBOOK_PARTS: (FlatCategory | 'codings')[] = ['folders', 'sources', 'documentText', 'codings']
+
+function splitDiff(diff: MergeDiff): { main: MergeDiff; notebooks: MergeDiff } {
+  const isNotebook = (i: DiffItem<DocumentFolder>): boolean => (i.theirs ?? i.mine)?.kind === 'notebook'
+  const isNote = (i: SourceDiffItem): boolean => (i.theirs ?? i.mine)?.sourceType === 'note'
+  const main: MergeDiff = {
+    ...diff,
+    folders: diff.folders.filter((i) => !isNotebook(i)),
+    sources: diff.sources.filter((i) => !isNote(i)),
+    documentText: diff.documentText.filter((d) => d.sourceType !== 'note'),
+    codings: diff.codings.filter((c) => c.sourceType !== 'note')
+  }
+  const notebooks: MergeDiff = {
+    codes: [], tags: [], tagCategories: [], memos: [], quotes: [], logbookEntries: [], savedQueries: [],
+    savedAnalyses: [],
+    folders: diff.folders.filter(isNotebook),
+    sources: diff.sources.filter(isNote),
+    documentText: diff.documentText.filter((d) => d.sourceType === 'note'),
+    codings: diff.codings.filter((c) => c.sourceType === 'note')
+  }
+  return { main, notebooks }
+}
+
+/** The guids a category's checkboxes cover in one section's diff. */
+function scopeOf(id: FlatCategory, diff: MergeDiff): string[] {
+  if (id === 'documentText') return diff.documentText.map((d) => d.sourceGuid)
+  return ((diff as any)[id] as DiffItem<any>[]).map((i) => i.guid)
+}
+
+function NotebooksPane({ diff }: { diff: MergeDiff }): JSX.Element {
+  const { t } = useTranslation()
+  const headingStyle: React.CSSProperties = { fontSize: 13, fontWeight: 600, margin: '0 0 8px' }
+  if (diff.folders.length + diff.sources.length + diff.documentText.length + diff.codings.length === 0) {
+    return <p style={{ color: 'var(--text-muted)', fontSize: 12.5 }}>{t('merge.noNotebookDifferences')}</p>
+  }
+  return (
+    <div>
+      {diff.folders.length > 0 && (
+        <section style={{ marginBottom: 18 }}>
+          <h3 style={headingStyle}>{t('merge.cat.notebooks')}</h3>
+          <FlatCategoryPane category="folders" diff={diff} />
+        </section>
+      )}
+      {diff.sources.length > 0 && (
+        <section style={{ marginBottom: 18 }}>
+          <h3 style={headingStyle}>{t('merge.notes')}</h3>
+          <SourcesPane diff={diff} />
+        </section>
+      )}
+      {diff.documentText.length > 0 && (
+        <section style={{ marginBottom: 18 }}>
+          <h3 style={headingStyle}>{t('merge.noteText')}</h3>
+          <DocumentTextPane diff={diff} />
+        </section>
+      )}
+      {diff.codings.length > 0 && (
+        <section style={{ marginBottom: 18 }}>
+          <h3 style={headingStyle}>{t('merge.noteCodings')}</h3>
+          <CodingsPane diff={diff} />
+        </section>
+      )}
+    </div>
+  )
+}
+
 function keysForSelectAll(id: FlatCategory | 'codings' | 'documentText', diff: MergeDiff): string[] {
   if (id === 'codings') {
     const keys: string[] = []
@@ -611,7 +697,8 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
   const { t } = useTranslation()
   const { diff, loading, error, comparisonFilePath, comparisonEditedBy, approved, codingsApproved, reconciling } = useMergeReviewStore()
   const reset = useMergeReviewStore((s) => s.reset)
-  const [selected, setSelected] = useState<'codings' | 'documentText' | FlatCategory>('codes')
+  const [selected, setSelected] = useState<Section>('codes')
+  const parts = useMemo(() => (diff ? splitDiff(diff) : null), [diff])
   const [applied, setApplied] = useState<number | null>(null)
   const [applying, setApplying] = useState(false)
   const [applyWarning, setApplyWarning] = useState<string | null>(null)
@@ -649,21 +736,20 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
 
   // Scoped to whichever category is currently active in the sidebar —
   // selecting all in "Codes" never touches "Memos", etc.
-  const handleSelectAll = (): void => {
-    if (!diff) return
+  // Select All / Deselect All touch only what the open section shows.
+  const setAll = (deselect: boolean): void => {
+    if (!parts) return
     const store = useMergeReviewStore.getState()
-    const keys = keysForSelectAll(selected, diff)
-    if (selected === 'codings') store.selectAllCodings(keys)
-    else store.selectAll(selected as FlatCategory, keys)
+    const run = (id: FlatCategory | 'codings', d: MergeDiff): void => {
+      const keys = (deselect ? keysForDeselectAll : keysForSelectAll)(id, d)
+      if (id === 'codings') store.selectAllCodings(keys, d.codings.map((c) => c.sourceGuid))
+      else store.selectAll(id, keys, scopeOf(id, d))
+    }
+    if (selected === 'notebooks') for (const id of NOTEBOOK_PARTS) run(id, parts.notebooks)
+    else run(selected, parts.main)
   }
-
-  const handleDeselectAll = (): void => {
-    if (!diff) return
-    const store = useMergeReviewStore.getState()
-    const keys = keysForDeselectAll(selected, diff)
-    if (selected === 'codings') store.selectAllCodings(keys)
-    else store.selectAll(selected as FlatCategory, keys)
-  }
+  const handleSelectAll = (): void => setAll(false)
+  const handleDeselectAll = (): void => setAll(true)
 
   // Mirrors App.tsx's handleSaveProject (main-process save + dirty-flag
   // clearing + recent-projects tracking), reimplemented against store
@@ -784,7 +870,9 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
     )
   }
 
-  const categoryCount = (id: FlatCategory | 'codings' | 'documentText'): number => {
+  const view = parts!.main
+  const categoryCount = (id: Section, diff: MergeDiff = view): number => {
+    if (id === 'notebooks') return NOTEBOOK_PARTS.reduce((n, p) => n + categoryCount(p, parts!.notebooks), 0)
     if (id === 'codings') return diff.codings.reduce((n, c) => n + (c.coarse ? 1 : (c.onlyMine?.length ?? 0) + (c.onlyTheirs?.length ?? 0)), 0)
     if (id === 'documentText') return diff.documentText.length
     if (id === 'sources') return diff.sources.length
@@ -797,7 +885,8 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
   // FlatCategoryPane/the checked prop in CodingsPane — raw approved-set
   // size undercounts once onlyMine's checkbox is inverted (a kept
   // onlyMine item is CHECKED but deliberately absent from the set).
-  const approvedCount = (id: FlatCategory | 'codings' | 'documentText'): number => {
+  const approvedCount = (id: Section, diff: MergeDiff = view): number => {
+    if (id === 'notebooks') return NOTEBOOK_PARTS.reduce((n, p) => n + approvedCount(p, parts!.notebooks), 0)
     if (id === 'codings') {
       return diff.codings.reduce((n, c) => {
         if (c.coarse) return n + (codingsApproved.has(`coarse::${c.sourceGuid}`) ? 1 : 0)
@@ -806,14 +895,14 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
         return n + addChecked + removeChecked
       }, 0)
     }
-    if (id === 'documentText') return approved.documentText.size
+    if (id === 'documentText') return diff.documentText.filter((d) => approved.documentText.has(d.sourceGuid)).length
     const items = (diff as any)[id] as DiffItem<any>[]
     const approvedSet = approved[id as FlatCategory]
     return items.filter((i) => i.bucket === 'onlyMine' ? !approvedSet.has(i.guid) : approvedSet.has(i.guid)).length
   }
 
-  const allCategories: { id: FlatCategory | 'codings' | 'documentText'; label: string }[] = (
-    ['sources', ...FLAT_CATEGORIES.filter((c) => c.id !== 'savedAnalyses').map((c) => c.id), 'documentText', 'codings', 'savedAnalyses'] as (FlatCategory | 'codings' | 'documentText')[]
+  const allCategories: { id: Section; label: string }[] = (
+    ['sources', 'notebooks', ...FLAT_CATEGORIES.filter((c) => c.id !== 'savedAnalyses').map((c) => c.id), 'documentText', 'codings', 'savedAnalyses'] as Section[]
   ).map((id) => ({ id, label: t(`merge.cat.${id}`) }))
 
   const totalApproved = totalApprovedCount(approved, codingsApproved)
@@ -864,10 +953,11 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
               <button className="secondary" onClick={handleSelectAll}>{t('merge.selectAll')}</button>
             </div>
           )}
-          {selected === 'codings' && <CodingsPane diff={diff} />}
-          {selected === 'documentText' && <DocumentTextPane diff={diff} />}
-          {selected === 'sources' && <SourcesPane diff={diff} />}
-          {selected !== 'codings' && selected !== 'documentText' && selected !== 'sources' && <FlatCategoryPane category={selected as FlatCategory} diff={diff} />}
+          {selected === 'codings' && <CodingsPane diff={view} />}
+          {selected === 'documentText' && <DocumentTextPane diff={view} />}
+          {selected === 'sources' && <SourcesPane diff={view} />}
+          {selected === 'notebooks' && <NotebooksPane diff={parts!.notebooks} />}
+          {selected !== 'codings' && selected !== 'documentText' && selected !== 'sources' && selected !== 'notebooks' && <FlatCategoryPane category={selected} diff={view} />}
         </div>
       </div>
 

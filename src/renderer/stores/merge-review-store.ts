@@ -104,9 +104,12 @@ interface MergeReviewState {
   toggleCoding: (key: string) => void
   /** Marks every given guid as approved for one category — used by the
    *  review screen's "Select All" button, scoped to whichever category is
-   *  currently active. */
-  selectAll: (category: FlatCategory, guids: string[]) => void
-  selectAllCodings: (keys: string[]) => void
+   *  currently active. With `scope`, only those guids are touched (a
+   *  category split across two sections of the screen, like folders and
+   *  notebooks); without, the whole category is replaced. */
+  selectAll: (category: FlatCategory, guids: string[], scope?: string[]) => void
+  /** With `scopeGuids`, only the codings of those documents are touched. */
+  selectAllCodings: (keys: string[], scopeGuids?: string[]) => void
   reset: () => void
 }
 
@@ -182,12 +185,22 @@ export const useMergeReviewStore = create<MergeReviewState>((set, get) => ({
     })
   },
 
-  selectAll: (category, guids) => {
-    set((s) => ({ approved: { ...s.approved, [category]: new Set(guids) } }))
+  selectAll: (category, guids, scope) => {
+    set((s) => {
+      if (!scope) return { approved: { ...s.approved, [category]: new Set(guids) } }
+      const out = new Set([...s.approved[category]].filter((g) => !scope.includes(g)))
+      for (const g of guids) out.add(g)
+      return { approved: { ...s.approved, [category]: out } }
+    })
   },
 
-  selectAllCodings: (keys) => {
-    set({ codingsApproved: new Set(keys) })
+  selectAllCodings: (keys, scopeGuids) => {
+    set((s) => {
+      if (!scopeGuids) return { codingsApproved: new Set(keys) }
+      // Keys are kind::sourceGuid[::index].
+      const inScope = (k: string): boolean => scopeGuids.includes(k.split('::')[1])
+      return { codingsApproved: new Set([...[...s.codingsApproved].filter((k) => !inScope(k)), ...keys]) }
+    })
   },
 
   reset: () => set({

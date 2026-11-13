@@ -61,6 +61,9 @@ export interface TagDiffItem extends DiffItem<QDASet> {
 export interface DocumentTextDiffItem {
   sourceGuid: string
   sourceName: string
+  /** The document's kind, so the review can show a note's text with
+   *  the notebooks. */
+  sourceType?: TextSource['sourceType']
   mineText: string
   theirsText: string
   changes: Change[]
@@ -69,6 +72,9 @@ export interface DocumentTextDiffItem {
 export interface CodingsDiffItem {
   sourceGuid: string
   sourceName: string
+  /** The document's kind, so the review can show a note's codings with
+   *  the notebooks. */
+  sourceType?: TextSource['sourceType']
   /** When the underlying document text differs between the two files,
    *  codings can't be reliably position-matched — collapses to one
    *  coarse choice for the whole document rather than itemized rows
@@ -130,6 +136,12 @@ export interface SourceDiffItem extends DiffItem<TextSource> {
    *  flag only affects what Apply does internally; the review UI treats
    *  it like any other addable document. */
   binary?: boolean
+  /** Where the document is filed: its folder or notebook on each side
+   *  (absent at the top level). A move shows as a bothDiffer item with
+   *  'folder' among its changedFields; an added document goes into
+   *  theirsFolder (see placeSource in project-diff-apply.ts). */
+  mineFolder?: DocumentFolder
+  theirsFolder?: DocumentFolder
 }
 
 export interface MergeDiff {
@@ -297,26 +309,40 @@ function isBinaryBackedSourceType(sourceType: string | undefined): boolean {
   return sourceType === 'pdf' || sourceType === 'audio' || sourceType === 'video' || sourceType === 'image'
 }
 
-function diffSources(
-  mine: TextSource[],
-  theirs: TextSource[],
-  theirsContents: Record<string, string>
-): SourceDiffItem[] {
+/** The folder or notebook a document is filed in on one side. */
+function folderOf(side: ProjectSide, sourceGuid: string): DocumentFolder | undefined {
+  const guid = side.project.sourceFolder?.[sourceGuid]
+  return guid ? side.project.folders?.find((f) => f.guid === guid) : undefined
+}
+
+function diffSources(mineSide: ProjectSide, theirsSide: ProjectSide): SourceDiffItem[] {
+  const mine = mineSide.project.sources
+  const theirs = theirsSide.project.sources
   const { onlyMine, onlyTheirs, bothPairs } = bucketByKey(mine, theirs, (x) => x.guid)
   const items: SourceDiffItem[] = []
-  for (const m of onlyMine) items.push({ guid: m.guid, bucket: 'onlyMine', mine: m })
+  const where = (item: SourceDiffItem, m?: DocumentFolder, t?: DocumentFolder): SourceDiffItem => {
+    if (m) item.mineFolder = m
+    if (t) item.theirsFolder = t
+    return item
+  }
+  for (const m of onlyMine) items.push(where({ guid: m.guid, bucket: 'onlyMine', mine: m }, folderOf(mineSide, m.guid)))
   for (const t of onlyTheirs) {
-    items.push({
+    items.push(where({
       guid: t.guid,
       bucket: 'onlyTheirs',
       theirs: t,
       binary: isBinaryBackedSourceType(t.sourceType),
-      theirsContent: theirsContents[t.guid] ?? ''
-    })
+      theirsContent: theirsSide.sourceContents[t.guid] ?? ''
+    }, undefined, folderOf(theirsSide, t.guid)))
   }
   for (const [m, t] of bothPairs) {
-    if (!fieldsDiffer(m.name, t.name)) continue
-    items.push({ guid: m.guid, bucket: 'bothDiffer', mine: m, theirs: t, changedFields: ['name'] })
+    const mf = folderOf(mineSide, m.guid)
+    const tf = folderOf(theirsSide, t.guid)
+    const changedFields: string[] = []
+    if (fieldsDiffer(m.name, t.name)) changedFields.push('name')
+    if ((mf?.guid ?? null) !== (tf?.guid ?? null)) changedFields.push('folder')
+    if (changedFields.length === 0) continue
+    items.push(where({ guid: m.guid, bucket: 'bothDiffer', mine: m, theirs: t, changedFields }, mf, tf))
   }
   return items
 }
@@ -405,6 +431,7 @@ function diffDocumentTextAndCodings(
       documentText.push({
         sourceGuid: mineSource.guid,
         sourceName: mineSource.name,
+        sourceType: mineSource.sourceType,
         mineText,
         theirsText,
         changes: diffLines(mineText, theirsText)
@@ -419,13 +446,14 @@ function diffDocumentTextAndCodings(
         codings.push({
           sourceGuid: mineSource.guid,
           sourceName: mineSource.name,
+          sourceType: mineSource.sourceType,
           coarse: false,
           onlyMine,
           onlyTheirs
         })
       }
     } else {
-      codings.push({ sourceGuid: mineSource.guid, sourceName: mineSource.name, coarse: true, theirsSource })
+      codings.push({ sourceGuid: mineSource.guid, sourceName: mineSource.name, sourceType: mineSource.sourceType, coarse: true, theirsSource })
     }
   }
   return { documentText, codings }
@@ -484,8 +512,8 @@ export function diffProjects(mine: ProjectSide, theirs: ProjectSide): MergeDiff 
     ]),
     logbookEntries: diffByGuid(mine.project.logbookEntries ?? [], theirs.project.logbookEntries ?? [], ['title', 'content']),
     savedQueries: diffByGuid(mine.project.savedQueries ?? [], theirs.project.savedQueries ?? [], ['name', 'query']),
-    folders: diffByGuid(mine.project.folders ?? [], theirs.project.folders ?? [], ['name', 'parentGuid']),
-    sources: diffSources(mine.project.sources, theirs.project.sources, theirs.sourceContents),
+    folders: diffByGuid(mine.project.folders ?? [], theirs.project.folders ?? [], ['name', 'parentGuid', 'kind']),
+    sources: diffSources(mine, theirs),
     documentText,
     codings,
     savedAnalyses: diffSavedAnalyses(mine.project.savedAnalyses ?? [], theirs.project.savedAnalyses ?? [])

@@ -222,7 +222,7 @@ describe('diffProjects — survey content (formatData-aware, not raw-CSV text)',
     )
     // No raw-CSV documentText item — that comparison is meaningless for surveys.
     expect(diff.documentText).toEqual([])
-    expect(diff.codings).toEqual([{ sourceGuid: 'sv1', sourceName: 'sv1', coarse: true, theirsSource }])
+    expect(diff.codings).toEqual([{ sourceGuid: 'sv1', sourceName: 'sv1', sourceType: 'survey', coarse: true, theirsSource }])
   })
 })
 
@@ -273,5 +273,36 @@ describe('diffProjects — saved analyses', () => {
     const analysis: SavedAnalysis = { guid: 'sa1', toolType: 'code-frequencies', name: 'Freq', config: { sort: 'asc' }, createdDateTime: '2024-01-01' }
     const diff = diffProjects(side(emptyProject({ savedAnalyses: [analysis] })), side(emptyProject({ savedAnalyses: [{ ...analysis }] })))
     expect(diff.savedAnalyses).toEqual([])
+  })
+})
+
+describe('diffProjects — folders and notebooks', () => {
+  const doc = (guid: string, sourceType: TextSource['sourceType'] = 'text'): TextSource =>
+    ({ guid, name: guid, sourceType, selections: [] } as unknown as TextSource)
+  const interviews = { guid: 'f1', name: 'Interviews', parentGuid: null }
+  const fieldwork = { guid: 'nb1', name: 'Fieldwork', parentGuid: null, kind: 'notebook' as const }
+
+  it("records where an added document is filed in theirs", () => {
+    const diff = diffProjects(
+      side(emptyProject({ folders: [fieldwork] })),
+      side(emptyProject({ sources: [doc('n1', 'note')], folders: [fieldwork], sourceFolder: { n1: 'nb1' } }))
+    )
+    expect(diff.sources[0]).toMatchObject({ bucket: 'onlyTheirs', theirsFolder: fieldwork })
+  })
+
+  it('finds a document moved to another folder', () => {
+    const diff = diffProjects(
+      side(emptyProject({ sources: [doc('d1')], folders: [interviews] })),
+      side(emptyProject({ sources: [doc('d1')], folders: [interviews], sourceFolder: { d1: 'f1' } }))
+    )
+    expect(diff.sources).toEqual([expect.objectContaining({ bucket: 'bothDiffer', changedFields: ['folder'], theirsFolder: interviews })])
+  })
+
+  it('sees a folder that became a notebook', () => {
+    const diff = diffProjects(
+      side(emptyProject({ folders: [{ guid: 'nb1', name: 'Fieldwork', parentGuid: null }] })),
+      side(emptyProject({ folders: [fieldwork] }))
+    )
+    expect(diff.folders[0].changedFields).toEqual(['kind'])
   })
 })

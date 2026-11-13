@@ -268,6 +268,7 @@ function applySourceChanges(items: SourceDiffItem[]): void {
   const ds = useDocumentStore.getState()
   const contents = { ...ds.sourceContents }
   let sources = ds.sources
+  const placements: { source: TextSource; folder?: DocumentFolder }[] = []
 
   for (const item of items) {
     if (item.bucket === 'onlyMine') {
@@ -276,16 +277,77 @@ function applySourceChanges(items: SourceDiffItem[]): void {
     } else if (item.bucket === 'onlyTheirs' && item.theirs && !item.binary) {
       sources = [...sources, item.theirs]
       contents[item.theirs.guid] = item.theirsContent ?? ''
+      placements.push({ source: item.theirs, folder: item.theirsFolder })
     } else if (item.bucket === 'bothDiffer' && item.theirs) {
       const theirs = item.theirs
+      const changed = item.changedFields ?? ['name']
       // A note's name is derived from its title + timestamp (formatData),
       // so taking the new name means taking those too.
-      sources = sources.map((s) => (s.guid !== item.guid ? s
-        : s.sourceType === 'note' ? { ...s, name: theirs.name, formatData: theirs.formatData }
-        : { ...s, name: theirs.name }))
+      if (changed.includes('name')) {
+        sources = sources.map((s) => (s.guid !== item.guid ? s
+          : s.sourceType === 'note' ? { ...s, name: theirs.name, formatData: theirs.formatData }
+          : { ...s, name: theirs.name }))
+      }
+      if (changed.includes('folder')) placements.push({ source: theirs, folder: item.theirsFolder })
     }
   }
   ds.setSources(sources, contents)
+  for (const { source, folder } of placements) placeSource(source, folder)
+}
+
+const sameName = (a: string, b: string): boolean => a.trim().toLocaleLowerCase() === b.trim().toLocaleLowerCase()
+
+/** Files a document where the other project has it: in the same folder
+ *  or notebook if this project has it (by guid, else one of the same name
+ *  and kind), otherwise in a copy of theirs, made here. At the top level
+ *  if theirs is. A note always ends up in a notebook: one with no
+ *  notebook to go to stays where it is. */
+function placeSource(source: TextSource, folder: DocumentFolder | undefined): void {
+  const ds = useDocumentStore.getState()
+  const isNote = source.sourceType === 'note'
+  const sourceFolder = { ...ds.sourceFolder }
+  if (!folder) {
+    if (isNote) return
+    delete sourceFolder[source.guid]
+    ds.setFolders(ds.folders, sourceFolder)
+    return
+  }
+  const wantNotebook = folder.kind === 'notebook'
+  if (wantNotebook !== isNote) return
+  const isNotebook = (f: DocumentFolder): boolean => f.kind === 'notebook'
+  let folders = ds.folders
+  let target = folders.find((f) => f.guid === folder.guid && isNotebook(f) === wantNotebook)
+    ?? folders.find((f) => sameName(f.name, folder.name) && isNotebook(f) === wantNotebook)
+  if (!target) {
+    const parentHere = folder.parentGuid && folders.some((f) => f.guid === folder.parentGuid && !isNotebook(f))
+    target = { ...folder, parentGuid: parentHere ? folder.parentGuid : null }
+    folders = [...folders, target]
+  }
+  sourceFolder[source.guid] = target.guid
+  ds.setFolders(folders, sourceFolder)
+}
+
+/** Removing folders: a notebook that would still hold notes is kept
+ *  (notes live only in notebooks). */
+function foldersToApply(items: DiffItem<DocumentFolder>[], sourceRemovals: Set<string>): DiffItem<DocumentFolder>[] {
+  const ds = useDocumentStore.getState()
+  return items.filter((item) => {
+    if (item.bucket !== 'onlyMine' || item.mine?.kind !== 'notebook') return true
+    return !Object.entries(ds.sourceFolder).some(([sg, fg]) => fg === item.guid && !sourceRemovals.has(sg))
+  })
+}
+
+/** After a merge: no folder hangs off one that's gone, and no document
+ *  is filed in a folder that's gone (it moves to the top level). */
+function tidyFolders(): void {
+  const ds = useDocumentStore.getState()
+  const ids = new Set(ds.folders.map((f) => f.guid))
+  const sourceIds = new Set(ds.sources.map((s) => s.guid))
+  const folders = ds.folders.map((f) => (f.parentGuid && !ids.has(f.parentGuid) ? { ...f, parentGuid: null } : f))
+  const sourceFolder = Object.fromEntries(Object.entries(ds.sourceFolder).filter(([sg, fg]) => sourceIds.has(sg) && ids.has(fg)))
+  const changed = folders.some((f, i) => f !== ds.folders[i])
+    || Object.keys(sourceFolder).length !== Object.keys(ds.sourceFolder).length
+  if (changed) ds.setFolders(folders, sourceFolder)
 }
 
 /** Applies approved document-text replacements and coarse coding
@@ -371,7 +433,15 @@ export function applyMerge(plan: ApplyPlan): void {
   if (isPlanEmpty(plan)) return
 
   applyCodeChanges(plan.codes)
+  // Folders first, so documents can be filed in the ones just added.
+  const removals = new Set(plan.sources.filter((i) => i.bucket === 'onlyMine').map((i) => i.guid))
+  const folderItems = foldersToApply(plan.folders, removals)
+  if (folderItems.length > 0) {
+    const ds = useDocumentStore.getState()
+    ds.setFolders(spliceByGuid(ds.folders, folderItems), ds.sourceFolder)
+  }
   applySourceChanges(plan.sources)
+  tidyFolders()
 
   if (plan.tags.length > 0) {
     useTagStore.getState().setTags(spliceByGuid(useTagStore.getState().tags, plan.tags))
@@ -390,10 +460,6 @@ export function applyMerge(plan: ApplyPlan): void {
   }
   if (plan.savedQueries.length > 0) {
     useQueryStore.getState().setSavedQueries(spliceByGuid(useQueryStore.getState().savedQueries, plan.savedQueries))
-  }
-  if (plan.folders.length > 0) {
-    const ds = useDocumentStore.getState()
-    ds.setFolders(spliceByGuid(ds.folders, plan.folders), ds.sourceFolder)
   }
   if (plan.savedAnalyses.length > 0) {
     const current = useProjectStore.getState().savedAnalyses ?? []

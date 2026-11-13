@@ -349,3 +349,69 @@ describe('applyMerge — document text, coarse codings, and itemized codings', (
     expect(useDocumentStore.getState().sources[0].selections[0].codings).toEqual([])
   })
 })
+
+describe('applyMerge — folders and notebooks', () => {
+  const note = (guid: string): TextSource => ({ guid, name: guid, sourceType: 'note', selections: [] } as unknown as TextSource)
+  const doc = (guid: string): TextSource => ({ guid, name: guid, sourceType: 'text', selections: [] } as unknown as TextSource)
+  const fieldwork = { guid: 'nb1', name: 'Fieldwork', parentGuid: null, kind: 'notebook' as const }
+  const interviews = { guid: 'f1', name: 'Interviews', parentGuid: null }
+  const docs = () => useDocumentStore.getState()
+
+  it("puts a note from theirs in its notebook, bringing the notebook if it isn't here", () => {
+    const plan = emptyApplyPlan()
+    plan.sources = [{ guid: 'n1', bucket: 'onlyTheirs', theirs: note('n1'), theirsContent: 'hi', theirsFolder: fieldwork }]
+    applyMerge(plan)
+    expect(docs().folders).toEqual([fieldwork])
+    expect(docs().sourceFolder).toEqual({ n1: 'nb1' })
+  })
+
+  it('uses a notebook of the same name rather than making a second', () => {
+    useDocumentStore.setState({ folders: [{ guid: 'mine', name: 'fieldwork', parentGuid: null, kind: 'notebook' }] })
+    const plan = emptyApplyPlan()
+    plan.sources = [{ guid: 'n1', bucket: 'onlyTheirs', theirs: note('n1'), theirsFolder: fieldwork }]
+    applyMerge(plan)
+    expect(docs().folders).toHaveLength(1)
+    expect(docs().sourceFolder).toEqual({ n1: 'mine' })
+  })
+
+  it('never puts a document in a notebook, or a note in a folder', () => {
+    useDocumentStore.setState({ folders: [{ guid: 'x', name: 'Fieldwork', parentGuid: null }] })
+    const plan = emptyApplyPlan()
+    plan.sources = [{ guid: 'n1', bucket: 'onlyTheirs', theirs: note('n1'), theirsFolder: fieldwork }]
+    applyMerge(plan)
+    expect(docs().sourceFolder.n1).toBe('nb1')
+    expect(docs().folders.find((f) => f.guid === 'nb1')?.kind).toBe('notebook')
+  })
+
+  it('takes a move to another folder, and to the top level', () => {
+    useDocumentStore.setState({ sources: [doc('d1'), doc('d2')], folders: [interviews], sourceFolder: { d2: 'f1' } })
+    const plan = emptyApplyPlan()
+    plan.sources = [
+      { guid: 'd1', bucket: 'bothDiffer', mine: doc('d1'), theirs: doc('d1'), changedFields: ['folder'], theirsFolder: interviews },
+      { guid: 'd2', bucket: 'bothDiffer', mine: doc('d2'), theirs: doc('d2'), changedFields: ['folder'], mineFolder: interviews }
+    ]
+    applyMerge(plan)
+    expect(docs().sourceFolder).toEqual({ d1: 'f1' })
+  })
+
+  it('keeps a notebook that would still hold notes, and removes one emptied by the merge', () => {
+    const other = { guid: 'nb2', name: 'Old', parentGuid: null, kind: 'notebook' as const }
+    useDocumentStore.setState({ sources: [note('n1'), note('n2')], folders: [fieldwork, other], sourceFolder: { n1: 'nb1', n2: 'nb2' } })
+    const plan = emptyApplyPlan()
+    plan.folders = [{ guid: 'nb1', bucket: 'onlyMine', mine: fieldwork }, { guid: 'nb2', bucket: 'onlyMine', mine: other }]
+    plan.sources = [{ guid: 'n2', bucket: 'onlyMine', mine: note('n2') }]
+    applyMerge(plan)
+    expect(docs().folders).toEqual([fieldwork])
+    expect(docs().sourceFolder).toEqual({ n1: 'nb1' })
+  })
+
+  it("sends a removed folder's documents and subfolders to the top level", () => {
+    const sub = { guid: 'f2', name: 'Sub', parentGuid: 'f1' }
+    useDocumentStore.setState({ sources: [doc('d1')], folders: [interviews, sub], sourceFolder: { d1: 'f1' } })
+    const plan = emptyApplyPlan()
+    plan.folders = [{ guid: 'f1', bucket: 'onlyMine', mine: interviews }]
+    applyMerge(plan)
+    expect(docs().folders).toEqual([{ ...sub, parentGuid: null }])
+    expect(docs().sourceFolder).toEqual({})
+  })
+})
