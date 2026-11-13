@@ -116,6 +116,7 @@ export default defineConfig({
           page('Introduction', '/guide/introduction'), // DONE
           page('Installation', '/guide/installation'), // DONE
           page('Interface', '/guide/interface'),
+          page('Merging projects', '/guide/merging'),
 //          page('Preferences', '/guide/preferences'),
 //          page('Logbook', '/guide/logbook'),
         ]

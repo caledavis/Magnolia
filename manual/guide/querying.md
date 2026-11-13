@@ -37,7 +37,7 @@ By default, the Document Selector is collapsed and applies your query to all doc
 
 The Query Builder allows you to create complex queries that target specific documents, groups of documents, survey questions, or survey respondents.
 
-To open the Query Builder, click `Query` on the `Home` tab of the ribbon.
+To open the Query Builder, click `Query` on the `Analyse` tab of the ribbon.
 
 The Query Builder has two sections: `From these documents`, which is the [Document Selector](/guide/documentselector), and `Find this content`, where you build the query itself.
 

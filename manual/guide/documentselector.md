@@ -20,6 +20,29 @@ You can select which documents your query or analysis applies to by:
 You cannot simply drag documents directly from the Document Browser onto the Document Selector canvas. Instead, they must be dropped into a pre-existing Document node box on the canvas.
 :::
 
+## Tags with dates
+A tag node can select documents by a range of dates, such as every interview from March to April 2025. When you choose a date category, the node offers `Is`, `Between` and `Not Between`.
+
+**To select documents between two dates:**
+
+1. Add a `Tag` node and choose a date category;
+2. Click `Between`, or `Not Between` to leave those dates out; and,
+3. Type each date in the `DD`, `MM` and `YYYY` boxes; or,
+4. Pick a date already used in that category from the menu beside each date.
+
+<figure>
+     <img src="./images/DocumentSelectorDates.png" alt="Selecting documents dated between 1 March and April 2025.">
+     <figcaption>Selecting documents dated between 1 March and the end of April 2025.</figcaption>
+</figure>
+
+You can leave out the day, or the day and the month. A year on its own covers the whole year, so `Between` 2024 and 2025 runs to the end of 2025. Leave one date empty to select everything from, or up to, the other date.
+
+Dates are listed newest first.
+
+::: tip
+If a date is not a real date, such as 31/02/2025, its boxes turn red.
+:::
+
 ## Operators
 You can add logical operators into your document selection to refine it. Magnolia uses these logical operators:
 
