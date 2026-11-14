@@ -155,6 +155,7 @@ export default defineConfig({
           page('Code Frequencies', '/guide/codefrequencies'), // DONE
           page('Word Frequencies', '/guide/wordfrequencies'), // DONE
           page('Word Combinations', '/guide/wordcombinations'),
+          page('Inter-coder Agreement', '/guide/intercoder'),
           page('Relationships', '/guide/relationships'), // DONE
           page('Reports', '/guide/reports'), // DONE
         ]
