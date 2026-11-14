@@ -38,7 +38,7 @@ How the percentage is calculated depends on the type of document:
 | Document type | Percentage of |
 | --- | --- |
 | Text | The characters in the document |
-| Audio and video | The length of the recording |
+| Audio and video | The length of the recording (see below) |
 | PDF (text selections) | The text in the PDF |
 | PDF (box selections) | The box selections in the PDF |
 | Image | The box selections in the image |
@@ -47,6 +47,8 @@ How the percentage is calculated depends on the type of document:
 ::: info
 Images do not have a "length" in the way that text or recordings do, so Magnolia measures them by their selections instead. If an image has four box selections and one of them is coded with a code, that code covers 25% of the image. You can see these rules at any time by clicking the `ⓘ` button above the table.
 :::
+
+For audio and video, a coding made on the timeline counts for the time it covers. A coding made on the transcript counts for the transcript lines it covers, using the times of those lines. If any coding can't be placed in time, because the transcript has no timestamps, or if Magnolia doesn't know how long the recording is, it measures the percentage of the transcript's text instead.
 
 <figure>
      <img src="./images/CodeFrequenciesInfo.png" alt="The explanation of how frequencies are calculated.">
