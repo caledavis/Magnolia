@@ -162,8 +162,9 @@ Click the `ⓘ` button beside `Characters` and `Segments` to see how each figure
 
 A few things are useful to know when you report your results:
 - A code's row brings together all the documents, so a long document counts for more than a short one;
-- `All codes` uses the pooled kappa of de Vries et al. (2008), which combines the codes' agreement before calculating kappa; and,
-- Brennan and Prediger's kappa treats a segment that only one coder coded as a disagreement, so it may differ from the segment kappa in other programs.
+- `All codes` uses the pooled kappa of de Vries et al. (2008), which combines the codes' agreement before calculating kappa;
+- Brennan and Prediger's kappa treats a segment that only one coder coded as a disagreement, so it may differ from the segment kappa in other programs; and,
+- If one coder coded a recording on its transcript and another coded it on the timeline, Magnolia compares that code in that recording by time, using the times of the transcript lines. A coding of part of a line then counts for the whole line. Where every coder coded the transcript, it is compared character by character.
 
 ## Saving and exporting
 
