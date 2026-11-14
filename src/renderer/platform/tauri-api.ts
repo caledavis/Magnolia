@@ -73,7 +73,11 @@ const localProgress = new Set<ProgressCallback>()
  *  PDF by its handle. */
 async function completeProjectPdfText(
   data: any,
-  readBytes: (handle: string) => Promise<Uint8Array | null>
+  readBytes: (handle: string) => Promise<Uint8Array | null>,
+  /** Report progress to the project-loading overlay. Off for a file read
+   *  alongside the open project (merge, inter-coder agreement): nothing
+   *  would close the overlay afterwards. */
+  reportProgress = true
 ): Promise<any> {
   if (!data?.sources) return data
   const pending = data.sources.filter((s: any) => s._pendingPdfText)
@@ -94,7 +98,7 @@ async function completeProjectPdfText(
       console.error(`Failed to extract text from PDF ${source.guid}:`, err)
     }
     done++
-    for (const cb of localProgress) cb({ stage: t('pdfText.reading'), current: done, total: pending.length })
+    if (reportProgress) for (const cb of localProgress) cb({ stage: t('pdfText.reading'), current: done, total: pending.length })
   }
   return data
 }
@@ -295,6 +299,10 @@ const api: MagnoliaAPI = {
   },
   openProject: async () => openedProject(await invoke('open_project')),
   pickProjectFile: () => invoke('pick_project_file'),
+  pickProjectFiles: () => invoke('pick_project_files'),
+  stageDroppedProject: async (file) => invoke('stage_dropped_project', new Uint8Array(await file.arrayBuffer()), {
+    headers: { 'x-file-name': encodeURIComponent(file.name) }
+  }),
   openProjectPath: async (filePath) => openedProject(await invoke('open_project_path', { filePath })),
   readCheckoutMarker: (filePath) => invoke('read_checkout_marker', { filePath }),
   checkOutProject: (filePath, userName, steal) => invoke('check_out_project', { filePath, userName, steal }),
@@ -305,7 +313,7 @@ const api: MagnoliaAPI = {
     return completeProjectPdfText(data, async (handle) => {
       const buf = await invoke<ArrayBuffer>('read_compare_binary', { comparisonFilePath: filePath, handle })
       return buf.byteLength ? new Uint8Array(buf) : null
-    })
+    }, false)
   },
   importMergeBinary: (comparisonFilePath, handle) => invoke('import_merge_binary', { comparisonFilePath, handle }),
   readCompareBinary: async (comparisonFilePath, handle) => {

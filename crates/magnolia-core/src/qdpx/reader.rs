@@ -343,6 +343,8 @@ pub fn read_qdpx(path: &Path, progress: Option<Progress>) -> Result<Value, Strin
     // ── Media-transcript reconciliation (Atlas's three-source layout) ──
     let mut sources = reconcile_media_transcripts(sources, &mut source_contents, &paths);
 
+    apply_saved_time_ranges(&mut sources);
+
     // ── Re-derive video coding timeRanges from line times ──
     for source in sources.iter_mut() {
         if get_str(source, "sourceType") != Some("video") {
@@ -379,6 +381,7 @@ pub fn read_qdpx(path: &Path, progress: Option<Progress>) -> Result<Value, Strin
                     sel["timeRange"] = tr;
                 }
             }
+            repair_line_number_anchors(sels, &text, &lt);
         }
     }
 
@@ -448,6 +451,26 @@ fn load_source(
     let has_path = has(source, "plainTextPath");
     let obj = source.as_object_mut().unwrap();
 
+    // Timeline codings belong to the recording whether or not its file is
+    // in the archive (a missing file is reported, and can be relinked);
+    // dropping them here would lose them at the next save.
+    if st == "audio" || st == "video" {
+        let raw = obj
+            .get("_rawVideoSelections")
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        if !raw.is_empty() {
+            obj.insert(
+                "selections".into(),
+                raw.iter()
+                    .map(convert_video_selection)
+                    .collect::<Vec<_>>()
+                    .into(),
+            );
+        }
+    }
+
     match st.as_str() {
         "audio" => {
             // Foreign imports carry the binary only via plainTextPath; advertise
@@ -457,20 +480,6 @@ fn load_source(
                 let ext = Some(ext_of(name))
                     .filter(|e| !e.is_empty())
                     .unwrap_or_else(|| "m4a".into());
-                let raw = obj
-                    .get("_rawVideoSelections")
-                    .and_then(Value::as_array)
-                    .cloned()
-                    .unwrap_or_default();
-                if !raw.is_empty() {
-                    obj.insert(
-                        "selections".into(),
-                        raw.iter()
-                            .map(convert_video_selection)
-                            .collect::<Vec<_>>()
-                            .into(),
-                    );
-                }
                 obj.insert(
                     "formatData".into(),
                     json!({
@@ -489,35 +498,41 @@ fn load_source(
             obj.remove("plainTextPath");
         }
         "pdf" if has_path => {
-            if let Some(name) = internal.as_ref()
-                && let Some(bytes) = zip.read(&in_sources(name))
-            {
-                // Box sizes now; text is extracted in the renderer with pdf.js.
-                let page_sizes = crate::pdf_info::page_sizes(&bytes).unwrap_or_default();
-                let raw = obj
-                    .get("_rawPdfSelections")
+            let bytes = internal.as_ref().and_then(|name| zip.read(&in_sources(name)));
+            // Box sizes now; text is extracted in the renderer with pdf.js.
+            let page_sizes: Vec<Value> = bytes
+                .as_ref()
+                .and_then(|b| crate::pdf_info::page_sizes(b).ok())
+                .unwrap_or_default();
+            // Region codings are kept even when the PDF itself is missing
+            // (it's reported and can be relinked); without its page sizes a
+            // bottom-left-origin file's boxes can't be flipped, but dropping
+            // them would lose them at the next save.
+            let raw = obj
+                .get("_rawPdfSelections")
+                .and_then(Value::as_array)
+                .cloned()
+                .unwrap_or_default();
+            if !raw.is_empty() {
+                let q = pdf_quirks(origin);
+                let existing: HashSet<String> =
+                    get_arr(&Value::Object(obj.clone()), "selections")
+                        .iter()
+                        .filter_map(|s| get_str(s, "guid").map(str::to_string))
+                        .collect();
+                let mut sels = obj
+                    .get("selections")
                     .and_then(Value::as_array)
                     .cloned()
                     .unwrap_or_default();
-                if !raw.is_empty() {
-                    let q = pdf_quirks(origin);
-                    let existing: HashSet<String> =
-                        get_arr(&Value::Object(obj.clone()), "selections")
-                            .iter()
-                            .filter_map(|s| get_str(s, "guid").map(str::to_string))
-                            .collect();
-                    let mut sels = obj
-                        .get("selections")
-                        .and_then(Value::as_array)
-                        .cloned()
-                        .unwrap_or_default();
-                    sels.extend(
-                        raw.iter()
-                            .filter(|r| !existing.contains(get_str(r, "guid").unwrap_or("")))
-                            .map(|r| convert_pdf_selection(r, &q, &page_sizes)),
-                    );
-                    obj.insert("selections".into(), sels.into());
-                }
+                sels.extend(
+                    raw.iter()
+                        .filter(|r| !existing.contains(get_str(r, "guid").unwrap_or("")))
+                        .map(|r| convert_pdf_selection(r, &q, &page_sizes)),
+                );
+                obj.insert("selections".into(), sels.into());
+            }
+            if let (Some(name), Some(_)) = (internal.as_ref(), bytes.as_ref()) {
                 obj.insert(
                     "formatData".into(),
                     json!({ "pdfFilePath": archive_handle_for_file(name), "pdfPageOffsets": [], "pdfPageSizes": page_sizes }),
@@ -534,20 +549,6 @@ fn load_source(
                 let ext = Some(ext_of(name))
                     .filter(|e| !e.is_empty())
                     .unwrap_or_else(|| "mp4".into());
-                let raw = obj
-                    .get("_rawVideoSelections")
-                    .and_then(Value::as_array)
-                    .cloned()
-                    .unwrap_or_default();
-                if !raw.is_empty() {
-                    obj.insert(
-                        "selections".into(),
-                        raw.iter()
-                            .map(convert_video_selection)
-                            .collect::<Vec<_>>()
-                            .into(),
-                    );
-                }
                 obj.insert(
                     "formatData".into(),
                     json!({
@@ -568,24 +569,25 @@ fn load_source(
             }
         }
         "image" if has_path => {
+            // Region codings are kept even when the image file is missing.
+            let raw = obj
+                .get("_rawPictureSelections")
+                .and_then(Value::as_array)
+                .cloned()
+                .unwrap_or_default();
+            if !raw.is_empty() {
+                obj.insert(
+                    "selections".into(),
+                    raw.iter()
+                        .map(convert_picture_selection)
+                        .collect::<Vec<_>>()
+                        .into(),
+                );
+            }
             if let Some(name) = internal.as_ref().filter(|n| zip.has(&in_sources(n))) {
                 let ext = Some(ext_of(name))
                     .filter(|e| !e.is_empty())
                     .unwrap_or_else(|| "png".into());
-                let raw = obj
-                    .get("_rawPictureSelections")
-                    .and_then(Value::as_array)
-                    .cloned()
-                    .unwrap_or_default();
-                if !raw.is_empty() {
-                    obj.insert(
-                        "selections".into(),
-                        raw.iter()
-                            .map(convert_picture_selection)
-                            .collect::<Vec<_>>()
-                            .into(),
-                    );
-                }
                 obj.insert(
                     "formatData".into(),
                     json!({
@@ -857,6 +859,89 @@ fn restore_side_tables(
     }
 }
 
+/// The transcript lines a time range covers: those whose time falls in
+/// [start, end), else the last line timed at or before start, else line 0.
+/// Mirrors deriveLineAnchorsFromTimeRange in the renderer.
+fn lines_for_time(start: f64, end: f64, line_times: &Value) -> (usize, usize) {
+    let Some(lt) = line_times.as_object() else {
+        return (0, 0);
+    };
+    let timed: Vec<(usize, f64)> = lt
+        .iter()
+        .filter_map(|(k, v)| Some((k.parse::<usize>().ok()?, v.as_f64()?)))
+        .collect();
+    let covered: Vec<usize> = timed.iter().filter(|(_, t)| *t >= start && *t < end).map(|(i, _)| *i).collect();
+    if let (Some(lo), Some(hi)) = (covered.iter().min(), covered.iter().max()) {
+        return (*lo, *hi);
+    }
+    timed
+        .iter()
+        .filter(|(_, t)| *t <= start)
+        .max_by(|a, b| a.1.total_cmp(&b.1))
+        .map(|(i, _)| (*i, *i))
+        .unwrap_or((0, 0))
+}
+
+/// Builds before 2.1 stored a timeline coding's transcript place as LINE
+/// numbers in startPosition / endPosition, which everything else reads as
+/// characters. A coding whose positions are exactly the lines its time
+/// range covers (and that wasn't coded on the text) gets the characters of
+/// those lines instead.
+fn repair_line_number_anchors(sels: &mut [Value], text: &str, line_times: &Value) {
+    let offsets = line_start_offsets_with_end(text);
+    if offsets.len() < 2 {
+        return;
+    }
+    for sel in sels.iter_mut() {
+        let Some(tr) = sel.get("timeRange").filter(|t| truthy(t)) else {
+            continue;
+        };
+        let (Some(ts), Some(te)) = (get_f64(tr, "startTime"), get_f64(tr, "endTime")) else {
+            continue;
+        };
+        let (Some(s), Some(e)) = (get_f64(sel, "startPosition"), get_f64(sel, "endPosition")) else {
+            continue;
+        };
+        if e <= s {
+            continue;
+        }
+        let from_text = derive_line_time_range(text, s, e, Some(line_times)).is_some_and(|d| {
+            (get_f64(&d, "startTime").unwrap_or(f64::NAN) - ts).abs() < 5e-4
+                && (get_f64(&d, "endTime").unwrap_or(f64::NAN) - te).abs() < 5e-4
+        });
+        if from_text {
+            continue;
+        }
+        let (lo, hi) = lines_for_time(ts, te, line_times);
+        if (s as usize, e as usize) != (lo, hi) || s.fract() != 0.0 || e.fract() != 0.0 {
+            continue;
+        }
+        let last = offsets.len() - 1;
+        let start = offsets[lo.min(last)];
+        let end = offsets[(hi + 1).min(last)].saturating_sub(1).max(start);
+        sel["startPosition"] = start.into();
+        sel["endPosition"] = end.into();
+    }
+}
+
+/// A video coding's exact time range from the side table. The XML can only
+/// say which transcript text a coding covers (line-granular time), so
+/// without this a timeline coding would come back rounded to whole lines.
+fn apply_saved_time_ranges(sources: &mut [Value]) {
+    for source in sources.iter_mut() {
+        let Some(Value::Object(ranges)) = take(source, "_savedTimeRanges") else {
+            continue;
+        };
+        if let Some(sels) = source.get_mut("selections").and_then(Value::as_array_mut) {
+            for sel in sels.iter_mut() {
+                if let Some(tr) = get_str(sel, "guid").and_then(|g| ranges.get(g)) {
+                    sel["timeRange"] = tr.clone();
+                }
+            }
+        }
+    }
+}
+
 fn apply_source_meta(
     source: &mut Value,
     meta: &Value,
@@ -937,6 +1022,19 @@ fn apply_source_meta(
                     sel.as_object_mut().unwrap().remove("manuallyAnchored");
                 }
             }
+        }
+        // Exact time ranges, applied once the transcript's codings have been
+        // folded back onto the video (see apply_saved_time_ranges).
+        let ranges: Obj = anchors
+            .iter()
+            .filter_map(|a| {
+                let g = get_str(a, "guid")?;
+                let tr = a.get("timeRange").filter(|v| truthy(v))?;
+                Some((g.to_string(), tr.clone()))
+            })
+            .collect();
+        if !ranges.is_empty() {
+            source["_savedTimeRanges"] = Value::Object(ranges);
         }
     }
 

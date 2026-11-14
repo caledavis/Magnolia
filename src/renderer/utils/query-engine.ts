@@ -407,8 +407,8 @@ function withinFilter(
     cell ? `${sourceGuid}\n${cell.respondentId}\n${cell.questionId}` : sourceGuid
   for (const q of queries) {
     for (const r of executeQuery({ ...q, within: undefined }, sources, sourceContents, codes, tags, sourceFolder, folders)) {
-      // Video results carry transcript line indexes, not text offsets.
-      if (r.timeRange) continue
+      // A video result with no transcript span holds no text.
+      if (r.timeRange && r.endPosition <= r.startPosition) continue
       const k = key(r.sourceGuid, r.surveyCell)
       let arr = spans.get(k)
       if (!arr) { arr = []; spans.set(k, arr) }
@@ -1106,7 +1106,8 @@ function findSameSentences(
   // or one survey cell.
   const groups = new Map<string, { text: string; cell?: PlainTextSelection['surveyCell']; s1: EvalSelection[]; s2: EvalSelection[] }>()
   for (const sel of allSelections) {
-    if (sel.pdfRegion || sel.timeRange) continue
+    // Boxes, and video codings with no transcript span, hold no text.
+    if (sel.pdfRegion || (sel.timeRange && sel.endPosition <= sel.startPosition)) continue
     const in1 = is1(sel)
     const in2 = is2(sel)
     if (!in1 && !in2) continue
@@ -1145,15 +1146,14 @@ function buildResult(
   codeGuids: Set<string>,
   codeMap: Map<string, Code>
 ): QueryResult {
-  // Video-anchored selections store startPosition/endPosition as LINE
-  // INDEXES, not codepoint offsets, so a plain codepointSlice would read
-  // a nonsensical byte range. Compute matchedText from transcript lines
-  // whose recorded lineTimes fall inside the selection's time range —
-  // that's the canonical "text this code covers" for a video.
+  // A video coding's text is its transcript span (code-point offsets, like
+  // any coding: exact for one coded on the text, the covered lines for one
+  // coded on the timeline). One with no span yet — no transcript timing
+  // when it was made — reads the lines whose time falls in its range.
   let matchedText: string
   let before = ''
   let after = ''
-  if (selection.timeRange) {
+  if (selection.timeRange && selection.endPosition <= selection.startPosition) {
     const lineTimes = (source.formatData as { lineTimes?: Record<string, number> } | undefined)?.lineTimes
     const lines = content.split('\n')
     const matched: string[] = []

@@ -96,11 +96,13 @@ and the simple past was kept.
 | English | Spanish | Dutch | Portuguese (Brazil) | Arabic | French | Russian | Chinese (Simplified) | Italian | Hindi | Portuguese (Portugal) | German | Finnish | Swedish | Norwegian (Bokmål) | Danish | Turkish | Catalan | Czech | Ukrainian | Lithuanian | Hebrew | Greek | Japanese |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | analysis (a saved analysis) | análisis | analyse | análise | تحليل | analyse | анализ | 分析 | analisi | विश्लेषण | análise | Analyse | analyysi | analys | analyse | analyse | analiz | anàlisi (f.) | analýza | аналіз | analizė | ניתוח | ανάλυση | 分析 |
+| agreement (between coders) | acuerdo | overeenstemming | concordância | اتفاق | accord | согласие (tool: согласованность) | 一致 (rate: 一致率) | accordo | सहमति | concordância | Übereinstimmung | yhtäpitävyys | överensstämmelse | samsvar | overensstemmelse | uyum | acord | shoda | згода (tool: узгодженість) | sutapimas | הסכמה | συμφωνία | 一致 |
 | box selection | selección de recuadro | kaderselectie | seleção de caixa | تحديد مربع | sélection rectangulaire | прямоугольное выделение | 框选 | selezione rettangolare | बॉक्स चयन | seleção de caixa | Rechteckauswahl | laatikkovalinta | rutmarkering | rektangelmarkering | rektangelmarkering | kutu seçimi | selecció rectangular | obdélníkový výběr | прямокутне виділення | stačiakampis žymėjimas | בחירת מלבן | ορθογώνια επιλογή | 矩形選択 |
 | code (noun) | código | code | código | رمز (ج. رموز) | code | код | 代码 | codice | कोड | código | Code | koodi | kod | kode | kode | kod | codi | kód | код | kodas | קוד | κωδικός | コード |
 | code (verb), coding | codificar, codificación | coderen, codering | codificar, codificação | رمّز، ترميز | coder, codage | кодировать, кодирование | 编码 | codificare, codifica | कोड करना, कोडिंग | codificar, codificação | codieren, Codierung | koodata, koodaus | koda, kodning | kode, koding | kode, kodning | kodlamak, kodlama | codificar, codificació | kódovat, kódování | кодувати, кодування | koduoti, kodavimas | לקודד, קידוד | κωδικοποιώ, κωδικοποίηση | コーディングする, コーディング |
 | coded segment | segmento codificado | gecodeerd segment | segmento codificado | مقطع مرمّز | segment codé | закодированный фрагмент | 已编码片段 | segmento codificato | कोड किया गया अंश | segmento codificado | codiertes Segment | koodattu segmentti | kodat segment | kodet segment | kodet segment | kodlanmış bölüm | segment codificat | kódovaný úsek | закодований фрагмент | užkoduotas fragmentas | קטע מקודד | κωδικοποιημένο τμήμα | コード化セグメント |
 | codebook | libro de códigos | codeboek | livro de códigos | دليل الرموز | livre de codes | книга кодов | 代码本 | libro dei codici | कोडबुक | livro de códigos | Codebuch | koodikirja | kodbok | kodebok | kodebog | kod kitabı | llibre de codis | kódovací kniha | книга кодів | kodų knyga | ספר קודים | βιβλίο κωδικών | コードブック |
+| coder (inter-coder agreement) | codificador | codeur | codificador | مرمِّز | codeur | кодировщик | 编码者 | codificatore | कोडर | codificador | Codierende (codierende Person) | koodaaja | kodare | koder | koder | kodlayıcı | codificador | kódovatel | кодувальник | koduotojas | מקודד | κωδικοποιητής | コーダー |
 | document | documento | document | documento | مستند | document | документ | 文档 | documento | दस्तावेज़ | documento | Dokument | dokumentti | dokument | dokument | dokument | belge | document | dokument | документ | dokumentas | מסמך | έγγραφο | ドキュメント |
 | folder | carpeta | map | pasta | مجلد | dossier | папка | 文件夹 | cartella | फ़ोल्डर | pasta | Ordner | kansio | mapp | mappe | mappe | klasör | carpeta | složka | папка | aplankas | תיקייה | φάκελος | フォルダ |
 | logbook | bitácora | logboek | diário de bordo | السجل | journal | журнал | 日志 | diario | लॉगबुक | diário de bordo | Logbuch | lokikirja | loggbok | loggbok | logbog | günlük | diari | deník | журнал (entry: запис журналу) | žurnalas (entry: įrašas) | יומן (entry: רישום) | ημερολόγιο (entry: καταχώριση) | ログブック (entry: エントリ) |
@@ -197,6 +199,16 @@ instance, adds `_many`).
   please check them against Zotero's wording in your language. Hindi keeps
   the English names, as Zotero has no Hindi interface. The creator roles
   (Author, Editor, Interviewee…) should also match Zotero's.
+- **All languages (Inter-coder Agreement):** please check the names of the
+  statistics (Cohen's kappa, Krippendorff's alpha, Brennan & Prediger's
+  kappa, de Vries et al.'s pooled kappa) against how methods texts in your
+  language write them, and the word for a coder (table above). A coded
+  segment keeps its usual word; the places where two coders' codings meet
+  in the comparison ("passages") have a different word so the two don't
+  clash (Russian *отрывок*, Hebrew *מובאה*, Arabic *موضع*, Greek *σημείο*,
+  Hindi *हिस्सा*). German coders are *Codierende*, to avoid choosing a
+  gender; Hebrew and Arabic use the generic masculine (מקודד, مرمِّز).
+  Do those read naturally?
 - **Ukrainian:** memos are *нотатки*, notebook notes *записи* and logbook
   entries *записи журналу*, so the three don't clash. Is *запис* right for
   a note, and does *запис журналу* read well? Ribbon labels are nouns

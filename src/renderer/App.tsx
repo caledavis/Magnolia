@@ -409,6 +409,9 @@ function App() {
     const hide = () => { clearTimeout(timer); setFileDrag(false) }
     const over = (e: DragEvent) => {
       if (!hasFiles(e)) return
+      // A pane that takes dropped files itself (Inter-coder Agreement's
+      // projects) isn't an import target.
+      if (e.target instanceof Element && e.target.closest('[data-file-drop-zone]')) { hide(); return }
       setFileDrag(true)
       clearTimeout(timer)
       timer = setTimeout(hide, 400)
@@ -2835,6 +2838,7 @@ function App() {
         },
         { label: t('toolbar.groupCodes'), buttons: (['codes-in-documents', 'framework-matrix', 'code-cooccurrences', 'code-orders', 'code-frequencies'] as AnalysisToolType[]).map(toolButton) },
         { label: t('toolbar.groupQueriesWords'), buttons: (['results-in-documents', 'word-frequencies', 'word-combinations'] as AnalysisToolType[]).map(toolButton) },
+        { label: t('toolbar.groupTeam'), buttons: (['intercoder-agreement'] as AnalysisToolType[]).map(toolButton) },
         { label: t('toolbar.groupRelationshipsReports'), buttons: (['relationship-map', 'reports'] as AnalysisToolType[]).map(toolButton) }
       ]
     },

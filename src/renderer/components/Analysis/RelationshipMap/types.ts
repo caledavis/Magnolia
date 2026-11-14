@@ -142,6 +142,7 @@ export const ELEMENT_COLORS: Record<MapElementKind, string> = {
 export const ANALYSIS_TOOL_COLORS: Record<string, string> = {
   'codes-in-documents': '#B89818',
   'framework-matrix': '#C8407A',
+  'intercoder-agreement': '#8C6A3C',
   'code-cooccurrences': '#30A830',
   'code-frequencies': '#10A8A0',
   'code-orders': '#1880D8',

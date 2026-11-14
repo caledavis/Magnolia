@@ -161,7 +161,7 @@ export function isGroupByDrag(e: React.DragEvent): boolean {
 /** Compute every folder guid that descends from rootGuid (inclusive)
  *  via a parentGuid walk. Used by folder entries to flatten subfolders
  *  into a single band. */
-function descendantFolderGuids(folders: AnalysisInitData['folders'], rootGuid: string): Set<string> {
+export function descendantFolderGuids(folders: AnalysisInitData['folders'], rootGuid: string): Set<string> {
   const set = new Set<string>([rootGuid])
   let added = true
   while (added) {

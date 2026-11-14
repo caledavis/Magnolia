@@ -88,15 +88,30 @@ interface CodeSegment {
 function surveyCellLayout(
   data: AnalysisInitData,
   sourceGuid: string
-): { total: number; offsetByCell: Map<string, number> } {
+): { total: number; offsetByCell: Map<string, number>; lengthByCell: Map<string, number> } {
   const cells = data.surveyCodableCells?.[sourceGuid] || []
   let total = 0
   const offsetByCell = new Map<string, number>()
+  const lengthByCell = new Map<string, number>()
   for (const c of cells) {
+    const len = Array.from(c.text).length
     offsetByCell.set(c.respondentId + ' ' + c.questionId, total)
-    total += Array.from(c.text).length
+    lengthByCell.set(c.respondentId + ' ' + c.questionId, len)
+    total += len
   }
-  return { total, offsetByCell }
+  return { total, offsetByCell, lengthByCell }
+}
+
+/** A coding's text span clipped to its document (or cell), or null when it
+ *  has none: a PDF / image region, or a video coding made on the timeline
+ *  before the transcript had timing (0–0) — those have no place in the
+ *  text to draw. Clipping keeps a coding that runs past the end (an
+ *  edited or foreign file) inside its own slot. */
+function textSpan(sel: { startPosition: number; endPosition: number; pdfRegion?: unknown }, len: number): { start: number; end: number } | null {
+  if (sel.pdfRegion) return null
+  const start = Math.max(0, Math.min(len, sel.startPosition))
+  const end = Math.max(0, Math.min(len, sel.endPosition))
+  return end > start ? { start, end } : null
 }
 
 function buildSegments(
@@ -112,18 +127,21 @@ function buildSegments(
   if (src?.sourceType === 'survey') {
     // Position codings within the concatenated codable cells, not the
     // raw CSV — survey offsets are cell-relative.
-    const { total, offsetByCell } = surveyCellLayout(data, sourceGuid)
+    const { total, offsetByCell, lengthByCell } = surveyCellLayout(data, sourceGuid)
     if (total === 0) return []
     for (const sel of sels) {
       if (!sel.surveyCell) continue
-      const base = offsetByCell.get(sel.surveyCell.respondentId + ' ' + sel.surveyCell.questionId)
+      const cellKey = sel.surveyCell.respondentId + ' ' + sel.surveyCell.questionId
+      const base = offsetByCell.get(cellKey)
       if (base === undefined) continue
+      const span = textSpan(sel, lengthByCell.get(cellKey) ?? 0)
+      if (!span) continue
       for (const coding of sel.codings) {
         if (!codeGuids.includes(coding.codeGuid)) continue
         const info = codeMap.get(coding.codeGuid)
         segments.push({
-          start: (base + sel.startPosition) / total,
-          end: (base + sel.endPosition) / total,
+          start: (base + span.start) / total,
+          end: (base + span.end) / total,
           color: info?.color || '#888',
           codeGuid: coding.codeGuid,
           codeName: info?.name || ''
@@ -140,12 +158,14 @@ function buildSegments(
   if (totalCp === 0) return []
 
   for (const sel of sels) {
+    const span = textSpan(sel, totalCp)
+    if (!span) continue
     for (const coding of sel.codings) {
       if (!codeGuids.includes(coding.codeGuid)) continue
       const info = codeMap.get(coding.codeGuid)
       segments.push({
-        start: sel.startPosition / totalCp,
-        end: sel.endPosition / totalCp,
+        start: span.start / totalCp,
+        end: span.end / totalCp,
         color: info?.color || '#888',
         codeGuid: coding.codeGuid,
         codeName: info?.name || ''
@@ -272,7 +292,7 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
       // (open-ended) length, not the raw CSV, and their cell-relative
       // selection offsets are placed within each cell's slot.
       let totalCp = 0
-      const layouts: ({ total: number; offsetByCell: Map<string, number> } | null)[] = []
+      const layouts: ({ total: number; offsetByCell: Map<string, number>; lengthByCell: Map<string, number> } | null)[] = []
       const sourceLengths: number[] = []
       for (const sg of row.sourceGuids) {
         const isSurvey = rd.sources.find((s) => s.guid === sg)?.sourceType === 'survey'
@@ -301,18 +321,23 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
         for (const sel of sels) {
           // For surveys, shift cell-relative offsets by the cell's slot.
           let base = offset
+          let slot = len
           if (layout) {
             if (!sel.surveyCell) continue
-            const cellOff = layout.offsetByCell.get(sel.surveyCell.respondentId + ' ' + sel.surveyCell.questionId)
+            const cellKey = sel.surveyCell.respondentId + ' ' + sel.surveyCell.questionId
+            const cellOff = layout.offsetByCell.get(cellKey)
             if (cellOff === undefined) continue
             base = offset + cellOff
+            slot = layout.lengthByCell.get(cellKey) ?? 0
           }
+          const span = textSpan(sel, slot)
+          if (!span) continue
           for (const coding of sel.codings) {
             if (!codeGuids.includes(coding.codeGuid)) continue
             const info = codeMap.get(coding.codeGuid)
             segments.push({
-              start: (base + sel.startPosition) / totalCp,
-              end: (base + sel.endPosition) / totalCp,
+              start: (base + span.start) / totalCp,
+              end: (base + span.end) / totalCp,
               color: info?.color || '#888',
               codeGuid: coding.codeGuid,
               codeName: info?.name || ''

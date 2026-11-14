@@ -28,6 +28,7 @@ import { buildQueryBuilderInitData } from '../../utils/build-query-builder-init-
 import { CodeCoOccurrences } from './CodeCoOccurrences'
 import { CodesInDocuments } from './CodesInDocuments'
 import { FrameworkMatrix } from './FrameworkMatrix'
+import { IntercoderAgreement } from './intercoder/IntercoderAgreement'
 import { CodeFrequencies } from './CodeFrequencies'
 import { CodeOrders } from './CodeOrders'
 import { WordFrequencies } from './WordFrequencies'
@@ -192,6 +193,8 @@ function dispatch(
       return <CodesInDocuments data={data} savedConfig={savedConfig} inTab={inTab} />
     case 'framework-matrix':
       return <FrameworkMatrix data={data} savedConfig={savedConfig} inTab={inTab} />
+    case 'intercoder-agreement':
+      return <IntercoderAgreement data={data} savedConfig={savedConfig} inTab={inTab} />
     case 'results-in-documents':
       return <ResultsInDocuments data={data} savedConfig={savedConfig} inTab={inTab} />
     case 'code-frequencies':

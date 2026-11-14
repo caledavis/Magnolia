@@ -75,7 +75,8 @@ export function buildAnalysisInitData(
       guid: s.guid,
       name: s.name,
       sourceType: (s as any).sourceType,
-      duration: (s as any).formatData?.duration
+      duration: (s as any).formatData?.duration,
+      lineTimes: (s as any).formatData?.lineTimes
     })),
     folders: docStore.folders.map((f) => ({ guid: f.guid, name: f.name, parentGuid: f.parentGuid ?? null, kind: f.kind })),
     sourceFolder: docStore.sourceFolder,

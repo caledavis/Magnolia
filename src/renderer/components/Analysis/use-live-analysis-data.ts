@@ -97,7 +97,8 @@ export function useLiveAnalysisData(): LiveAnalysisData {
       guid: s.guid,
       name: s.name,
       sourceType: s.sourceType,
-      duration: (s.formatData as { duration?: number } | undefined)?.duration
+      duration: (s.formatData as { duration?: number } | undefined)?.duration,
+      lineTimes: (s.formatData as { lineTimes?: Record<string, number> } | undefined)?.lineTimes
     })),
     [docSources]
   )

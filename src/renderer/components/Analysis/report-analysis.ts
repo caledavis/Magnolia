@@ -21,6 +21,16 @@ import {
 import { buildSurveyAwareColumns, type AnalysisColumn } from './survey-grouping'
 import { buildDisplayRows, fullLabel, summaryKey } from './framework-matrix-model'
 import { buildExportSvg } from './RelationshipMap/svg-export'
+import {
+  metricColumns,
+  metricValue,
+  formatMetric,
+  metricLabel,
+  pairLabel,
+  tableRows,
+  settingsRows,
+  type IntercoderSnapshot
+} from './intercoder/intercoder-tables'
 import { countWords, sourceTexts, codedPassageTexts, queryPassageTexts, codeSet, wordFilter, countPhrases, wordAssociations } from './word-counts'
 import { runQueries, allResults } from './word-sources'
 import { combinationsPassages, defaultCombinationsConfig, effectiveFocus, phraseLengthOf } from './WordCombinations'
@@ -421,11 +431,28 @@ function orderedCodeChips(
   for (const sg of sourceGuids) {
     const sels = d.sourceSelections[sg] || []
     const local: { start: number; name: string; color: string }[] = []
+    // A survey's codings are cell-relative: order them by their cell's
+    // place among the codable cells first, as the tool does.
+    const cellBase = new Map<string, number>()
+    let at = 0
+    for (const c of d.surveyCodableCells?.[sg] || []) {
+      cellBase.set(c.respondentId + ' ' + c.questionId, at)
+      at += Array.from(c.text).length
+    }
     for (const sel of sels) {
+      // As in the tool: a coding with no place in the text (a region, or a
+      // video coding with no transcript span) can't be put in order.
+      if (sel.pdfRegion || sel.endPosition <= sel.startPosition) continue
+      let base = 0
+      if (sel.surveyCell) {
+        const b = cellBase.get(sel.surveyCell.respondentId + ' ' + sel.surveyCell.questionId)
+        if (b === undefined) continue
+        base = b
+      }
       for (const coding of sel.codings) {
         if (!codeGuids.includes(coding.codeGuid)) continue
         const info = codeMap.get(coding.codeGuid)
-        local.push({ start: sel.startPosition, name: info?.name || t('analysis.code'), color: info?.color || '#888' })
+        local.push({ start: base + sel.startPosition, name: info?.name || t('analysis.code'), color: info?.color || '#888' })
       }
     }
     local.sort((a, b) => a.start - b.start)
@@ -742,6 +769,29 @@ function summaryMatrixHtml(config: any): string {
   return `<table class="report-summary"><thead>${head}</thead><tbody>${body}</tbody></table>`
 }
 
+// ── Inter-coder Agreement (from the saved snapshot) ──────────────────
+
+/** The coders' files usually aren't part of this project, so the report
+ *  shows the results as they were when the analysis was last saved. */
+function intercoderHtml(config: any): string {
+  const snap = config?.snapshot as IntercoderSnapshot | undefined
+  if (!snap || snap.codes.length === 0) return `<div class="empty">${escHtml(t('intercoder.reportEmpty'))}</div>`
+  const cols = metricColumns(snap.measure, snap.coders.length)
+  const perPair = snap.measure === 'segments' ? 3 : 2
+  const pairs = snap.results.pairs.length
+  const hasAlpha = cols.some((c) => c.pair === null)
+  const head1 = `<tr><th class="rowhead" rowspan="2">${escHtml(t('intercoder.code'))}</th>${Array.from({ length: pairs }, (_, p) => `<th colspan="${perPair}">${escHtml(pairLabel(snap, p))}</th>`).join('')}${hasAlpha ? `<th>${escHtml(pairLabel(snap, null))}</th>` : ''}</tr>`
+  const head2 = `<tr>${cols.map((c) => `<th>${escHtml(metricLabel(c.metric))}</th>`).join('')}</tr>`
+  const body = tableRows(snap, new Set())
+    .map((r) => `<tr><td class="rowhead">${escHtml(r.label)}</td>${cols.map((c) => {
+      const v = metricValue(r.cell, c, snap.measure)
+      return `<td${v === null ? ' class="zero"' : ''}>${escHtml(formatMetric(v, c.metric))}</td>`
+    }).join('')}</tr>`)
+    .join('')
+  const notes = settingsRows(snap).map(([k, v]) => `${escHtml(k)}: ${escHtml(v)}`).join('<br>')
+  return wrapTable(`<thead>${head1}${head2}</thead><tbody>${body}</tbody>`, cols.length) + `<div class="report-note">${notes}</div>`
+}
+
 /** Render one analysis item: regenerate its table fresh, or a short
  *  placeholder for tools not yet implemented / deleted analyses. */
 // ── Relationship Map (static SVG snapshot) ─────────────────────────
@@ -793,6 +843,9 @@ export function renderAnalysisItemHtml(
         break
       case 'relationship-map':
         inner = relationshipMapHtml(sa.config)
+        break
+      case 'intercoder-agreement':
+        inner = intercoderHtml(sa.config)
         break
       default:
         inner = `<div class="empty">${escHtml(t('reports.comingSoon', { name: sa.name, tool: toolLabel }))}</div>`

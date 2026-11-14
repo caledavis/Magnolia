@@ -128,9 +128,10 @@ export function queryPassageTexts(d: AnalysisInitData, results: QueryResult[]): 
     const byText: RangesByText = new Map()
     for (const r of rs) {
       if (boxes.has(r.selectionGuid)) { boxCount++; continue }
-      // Video results hold transcript line indexes, not text offsets;
-      // their matched text is already the lines they cover.
-      if (r.timeRange) { if (r.matchedText) passages.push({ sourceGuid: sg, text: r.matchedText }); continue }
+      // A video result with no transcript span: its matched text is the
+      // lines its time covers. Otherwise its span is text offsets, merged
+      // with the rest so overlapping codings aren't counted twice.
+      if (r.timeRange && r.endPosition <= r.startPosition) { if (r.matchedText) passages.push({ sourceGuid: sg, text: r.matchedText }); continue }
       const key = r.surveyCell ? `${r.surveyCell.respondentId}\n${r.surveyCell.questionId}` : ''
       addRange(byText, key, r.startPosition, r.endPosition)
     }

@@ -92,6 +92,7 @@ import {
   MessageSquare,
   Check,
   User,
+  Users,
   CircleQuestionMark,
   Scale,
   AppWindow,
@@ -253,6 +254,7 @@ export const faMessageSquare = MessageSquare
 export const faClipboardPen = ClipboardPen
 export const faCheck = Check
 export const faUser = User
+export const faUsers = Users
 export const faQuestion = MessageCircleQuestionMark
 export const faCircleQuestion = CircleQuestionMark
 export const faScale = Scale

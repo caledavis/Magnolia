@@ -2085,6 +2085,8 @@ div:hover > .folder-row-add,
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-type > :nth-child(1),
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-whole-word > :nth-child(-n+2),
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-share-2 > :nth-child(4),
+/* Inter-coder Agreement: the person behind */
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-users > :nth-child(-n+3):nth-child(n+2),
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-notebook-tabs > :nth-child(-n+4) { stroke: var(--rb-blue); }
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-chart-column > :nth-child(4),
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-chart-bar > :nth-child(4),

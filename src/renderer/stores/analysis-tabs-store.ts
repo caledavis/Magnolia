@@ -31,6 +31,7 @@ export type ToolKind =
   | 'code-cooccurrences'
   | 'codes-in-documents'
   | 'framework-matrix'
+  | 'intercoder-agreement'
   | 'results-in-documents'
   | 'code-frequencies'
   | 'code-orders'

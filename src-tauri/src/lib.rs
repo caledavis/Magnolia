@@ -94,6 +94,8 @@ pub fn run() {
             zotero::zotero_get,
             zotero::zotero_file_path,
             commands::pick_project_file,
+            commands::pick_project_files,
+            commands::stage_dropped_project,
             commands::open_project_path,
             commands::set_active_project_path,
             commands::get_file_size,

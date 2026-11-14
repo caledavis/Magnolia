@@ -294,10 +294,11 @@ export interface PlainTextSelection {
    *  of (or in addition to) a character range. startPosition/endPosition
    *  are still used as a fallback for text-based search. */
   pdfRegion?: PdfRegionSelection
-  /** If present, this is a video time-range coding. The authoritative range
-   *  is on the video timeline; startPosition/endPosition carry the line-
-   *  anchor range in the transcript (purely visual — dragging the transcript
-   *  bracket updates startPosition/endPosition without changing timeRange). */
+  /** If present, this is a video coding's time range. Codings made on the
+   *  transcript's text derive it from the lines their text spans; codings
+   *  made on the timeline own it, and startPosition/endPosition (code-point
+   *  offsets, like every coding) are the transcript lines it covers. Saved
+   *  exactly in magnolia-sources.json's videoSelectionAnchors. */
   timeRange?: TimeRange
   /** Video time-range selections only. Set to true when the user has
    *  manually dragged the transcript-bracket endpoints to a new line. Once
@@ -457,9 +458,8 @@ export interface QueryResult {
   matchedCodes: { guid: string; name: string; color?: string }[]
   /** Present when the matched selection is video-anchored. Drives the
    *  inline video player + fully-highlighted transcript rendering in
-   *  the query results window. startPosition/endPosition still carry
-   *  the matching transcript-line range (stored as line indexes for
-   *  video selections). */
+   *  the query results window. startPosition/endPosition carry the
+   *  coding's transcript text span (code-point offsets). */
   timeRange?: TimeRange
   /** Present when the match is inside a survey answer cell — identifies
    *  the (respondent, question) so consumers (e.g. the Select Documents
@@ -558,6 +558,11 @@ export interface MagnoliaAPI {
   onProjectLoadProgress: (callback: (p: { stage: string; current: number; total: number }) => void) => () => void
   openProject: () => Promise<Project & { sourceContents: Record<string, string>; missingBinaries?: MissingBinary[]; checkoutInfo?: CheckoutMarker | null } | null>
   pickProjectFile: () => Promise<string | null>
+  /** Pick several .qdpx files at once (Inter-coder Agreement). */
+  pickProjectFiles: () => Promise<string[]>
+  /** Write a .qdpx dropped from the OS to a temporary file and return
+   *  its path, so it can be read with readQdpxForCompare. */
+  stageDroppedProject: (file: File) => Promise<string>
   openProjectPath: (filePath: string) => Promise<Project & { sourceContents: Record<string, string>; missingBinaries?: MissingBinary[]; checkoutInfo?: CheckoutMarker | null } | null>
   readCheckoutMarker: (filePath: string) => Promise<CheckoutMarker | null>
   /** Atomic check-and-set: rejects (`ok: false`, `marker` = the current
@@ -954,6 +959,7 @@ export type AnalysisToolType =
   | 'code-cooccurrences'
   | 'codes-in-documents'
   | 'framework-matrix'
+  | 'intercoder-agreement'
   | 'results-in-documents'
   | 'code-frequencies'
   | 'code-orders'
@@ -976,6 +982,9 @@ export interface AnalysisInitData {
     /** Duration in seconds for audio/video; used as the denominator
      *  when computing % of media covered by code. */
     duration?: number
+    /** Audio/video: each transcript line's start time (line index →
+     *  seconds), to place codings made on the transcript in time. */
+    lineTimes?: Record<string, number>
   }[]
   folders: { guid: string; name: string; parentGuid: string | null; kind?: 'notebook' }[]
   codes: { guid: string; name: string; color?: string; isCodable: boolean; parentGuid?: string }[]

@@ -13,7 +13,8 @@ import {
   faFont,
   faWholeWord,
   faCircleNodes,
-  faNotebookTabs
+  faNotebookTabs,
+  faUsers
 } from '../components/Icon'
 import type { IconComponent } from '../components/Icon'
 import { t } from '../i18n'
@@ -57,6 +58,7 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = {
   'code-orders':           tool('codeOrders',         faBarsStaggered,    '#2080D8'), // blue
   'word-frequencies':      tool('wordFrequencies',    faFont,             '#6848E0'), // indigo
   'word-combinations':     tool('wordCombinations',   faWholeWord,        '#C83C3C'), // crimson
+  'intercoder-agreement':  tool('intercoderAgreement', faUsers,          '#8C6A3C'), // bronze
   'relationship-map':      tool('relationshipMap',    faCircleNodes,      '#A830D0'), // violet
   'reports':               tool('reports',            faNotebookTabs,     '#607080'), // slate
 }

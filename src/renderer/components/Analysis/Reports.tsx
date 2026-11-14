@@ -77,7 +77,8 @@ const ANALYSIS_CAPS: Record<string, { totalsOnly?: boolean; binary?: boolean; vi
   'code-orders': {},
   'word-frequencies': { barChart: true, wordCloud: true },
   'word-combinations': {},
-  'relationship-map': {}
+  'relationship-map': {},
+  'intercoder-agreement': {}
 }
 
 function itemIcon(item: ReportItem) {

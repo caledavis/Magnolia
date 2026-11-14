@@ -604,6 +604,10 @@ fn source_meta_for(s: &Value, written: &HashSet<String>) -> Value {
                         "startChar": sel.get("startPosition").filter(|v| !v.is_null()).cloned().unwrap_or(0.into()),
                         "endChar": sel.get("endPosition").filter(|v| !v.is_null()).cloned().unwrap_or(0.into()),
                         "manuallyAnchored": sel.get("manuallyAnchored").is_some_and(truthy),
+                        // The exact range: a timeline coding whose text spans
+                        // lines is written to the XML as a TranscriptSelection,
+                        // which only keeps line-granular time.
+                        "timeRange": sel.get("timeRange").filter(|v| truthy(v)).cloned().unwrap_or(Value::Null),
                     })
                 })
                 .collect();

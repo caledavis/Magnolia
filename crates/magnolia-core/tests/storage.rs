@@ -596,3 +596,94 @@ fn codebook_normalises_guids_and_round_trips() {
     assert_eq!(restored[0]["color"], "#FF8800");
     assert_eq!(restored[0]["description"], "a theme");
 }
+
+// ── Video codings keep their exact time range ──
+//
+// No media files are in these archives: codings must survive a missing
+// file too (it's reported and can be relinked), not just the time range.
+
+#[test]
+fn video_codings_keep_their_time_ranges_through_save_and_reload() {
+    const VIDEO: &str = "E2222222-2222-2222-2222-222222222222";
+    const CODE: &str = "C0DEC0DE-0000-4000-8000-00000000C0DE";
+    let d = temp();
+    let path = p(&d, "video.qdpx");
+    make_zip(&path, &[("project.qde", QDE)]);
+    // Lines start at 0, 10, 19, 28, 39.
+    let text = "line zero\nline one\nline two\nline three\nline four";
+    let coding = |n: u32| json!([{ "guid": format!("E2222222-2222-2222-2222-00000000D00{n}"), "codeGuid": CODE }]);
+    let sel = |n: u32, s: i64, e: i64, from: f64, to: f64| {
+        json!({ "guid": format!("E2222222-2222-2222-2222-00000000C00{n}"), "startPosition": s, "endPosition": e,
+                "timeRange": { "startTime": from, "endTime": to }, "codings": coding(n) })
+    };
+    let mut project = json!({ "name": "T", "origin": "test", "users": [],
+        "codes": [{ "guid": CODE, "name": "theme", "isCodable": true, "children": [] }],
+        "sources": [{ "guid": VIDEO, "name": "Clip", "sourceType": "video",
+            "formatData": { "videoExt": "mp4", "lineTimes": { "0": 0, "1": 10, "2": 20, "3": 30, "4": 40 } },
+            "selections": [
+                // Made on the timeline, anchored to the text of lines 1–3.
+                sel(1, 10, 38, 12.0, 37.0),
+                // Made on the timeline by an older build, which stored the
+                // covered line numbers (2–3) rather than characters.
+                sel(2, 2, 3, 12.0, 37.0),
+                // Made on the transcript's text: line 2, time from its lines.
+                sel(3, 19, 27, 20.0, 30.0),
+                // A timeline coding with no text span.
+                sel(4, 0, 0, 5.5, 6.25),
+            ] }],
+        "sets": [], "notes": [] });
+    let mut contents = Map::new();
+    contents.insert(VIDEO.into(), json!(text));
+    write_qdpx(&path, &mut project, &contents, &opts(None, "")).unwrap();
+
+    let back = read_qdpx(&path, None).unwrap();
+    let video = back["sources"].as_array().unwrap().iter().find(|s| s["guid"] == VIDEO).unwrap();
+    let get = |n: u32| {
+        video["selections"].as_array().unwrap().iter()
+            .find(|s| s["guid"] == format!("E2222222-2222-2222-2222-00000000C00{n}"))
+            .unwrap_or_else(|| panic!("coding {n} lost"))
+            .clone()
+    };
+    let range = |v: &Value| (v["timeRange"]["startTime"].as_f64().unwrap(), v["timeRange"]["endTime"].as_f64().unwrap());
+    let span = |v: &Value| (v["startPosition"].as_i64().unwrap(), v["endPosition"].as_i64().unwrap());
+    assert_eq!(range(&get(1)), (12.0, 37.0));
+    assert_eq!(span(&get(1)), (10, 38));
+    assert_eq!(range(&get(2)), (12.0, 37.0));
+    assert_eq!(span(&get(2)), (19, 38), "line numbers repaired to the lines' characters");
+    assert_eq!(range(&get(3)), (20.0, 30.0));
+    assert_eq!(span(&get(3)), (19, 27));
+    assert_eq!(range(&get(4)), (5.5, 6.25));
+    for n in 1..=4 {
+        assert_eq!(get(n)["codings"][0]["codeGuid"], CODE, "coding {n} keeps its code");
+    }
+}
+
+#[test]
+fn region_codings_survive_a_missing_pdf_or_image() {
+    const CODE: &str = "C0DEC0DE-0000-4000-8000-00000000C0DE";
+    let d = temp();
+    let path = p(&d, "regions.qdpx");
+    make_zip(&path, &[("project.qde", QDE)]);
+    let region = |g: &str, page: i64| json!({ "guid": g, "startPosition": 0, "endPosition": 0,
+        "pdfRegion": { "page": page, "x": 10, "y": 20, "width": 100, "height": 50 },
+        "codings": [{ "guid": format!("{g}-c"), "codeGuid": CODE }] });
+    let mut project = json!({ "name": "T", "origin": "test", "users": [],
+        "codes": [{ "guid": CODE, "name": "theme", "isCodable": true, "children": [] }],
+        "sources": [
+            { "guid": "F3333333-3333-3333-3333-333333333333", "name": "Report", "sourceType": "pdf", "formatData": {},
+              "selections": [region("F3333333-3333-3333-3333-0000000000A1", 2)] },
+            { "guid": "A4444444-4444-4444-4444-444444444444", "name": "Photo", "sourceType": "image", "formatData": { "imageExt": "png" },
+              "selections": [region("A4444444-4444-4444-4444-0000000000A1", 1)] }
+        ],
+        "sets": [], "notes": [] });
+    write_qdpx(&path, &mut project, &Map::new(), &opts(None, "")).unwrap();
+    let back = read_qdpx(&path, None).unwrap();
+    for (src, sel) in [("F3333333-3333-3333-3333-333333333333", "F3333333-3333-3333-3333-0000000000A1"),
+                       ("A4444444-4444-4444-4444-444444444444", "A4444444-4444-4444-4444-0000000000A1")] {
+        let s = back["sources"].as_array().unwrap().iter().find(|s| s["guid"] == src).unwrap();
+        let r = s["selections"].as_array().unwrap().iter().find(|x| x["guid"] == sel)
+            .unwrap_or_else(|| panic!("region coding lost from {src}"));
+        assert_eq!(r["pdfRegion"]["width"].as_f64(), Some(100.0));
+        assert_eq!(r["codings"][0]["codeGuid"], CODE);
+    }
+}

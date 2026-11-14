@@ -5,6 +5,18 @@ import { useProjectStore } from './project-store'
 import { useMemoStore } from './memo-store'
 import { useQuoteStore } from './quote-store'
 import { deriveLineAnchorsFromTimeRange, deriveVideoTimeRange, lineStartOffsets, lineForChar } from '../components/DocumentViewer/video-time-utils'
+
+/** Code-point span of transcript lines startLine..endLine (inclusive),
+ *  without the last line's newline. */
+function charSpanOfLines(text: string, startLine: number, endLine: number): { start: number; end: number } {
+  const offsets = lineStartOffsets(text)
+  const start = offsets[Math.min(startLine, offsets.length - 1)] ?? 0
+  const next = offsets[Math.min(endLine + 1, offsets.length - 1)] ?? start
+  return { start, end: Math.max(start, next - 1) }
+}
+
+const sameRange = (a: { startTime: number; endTime: number } | undefined, b: { startTime: number; endTime: number }): boolean =>
+  !!a && Math.abs(a.startTime - b.startTime) < 5e-4 && Math.abs(a.endTime - b.endTime) < 5e-4
 import { isToolTab, makeNotebookTabId } from '../utils/tab-ids'
 import { computeTextEdit, adjustRange } from '../utils/text-edit-offsets'
 import { promotedArchiveHandle, mediaPathField } from '../utils/binary-handles'
@@ -521,23 +533,24 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     const selGuid = generateGuid()
     const now = new Date().toISOString()
     const userGuid = useProjectStore.getState().creatingUserGUID
-    // If line anchors weren't supplied (e.g. the code was dropped on the
-    // CodeTrack or the video frame rather than on a transcript selection),
-    // derive them from the source's lineTimes so the bracket lands on the
-    // transcript lines that correspond to the time range.
-    let finalStart = startLine
-    let finalEnd = endLine
-    if (finalStart === undefined || finalEnd === undefined) {
-      const source = get().sources.find((s) => s.guid === sourceGuid)
-      const lineTimes = source?.formatData?.lineTimes as Record<string, number> | undefined
+    // The coding's transcript text: the lines its time range covers (given
+    // ones, or derived from the source's lineTimes). Like every coding,
+    // startPosition / endPosition are code-point offsets; with no
+    // transcript timing yet it has no text span (0–0) until there is.
+    const source = get().sources.find((s) => s.guid === sourceGuid)
+    const lineTimes = source?.formatData?.lineTimes as Record<string, number> | undefined
+    const text = get().sourceContents[sourceGuid] ?? ''
+    let span = { start: 0, end: 0 }
+    if (startLine !== undefined && endLine !== undefined) {
+      span = charSpanOfLines(text, startLine, endLine)
+    } else if (lineTimes && Object.keys(lineTimes).length > 0 && text) {
       const derived = deriveLineAnchorsFromTimeRange(startTime, endTime, lineTimes)
-      if (finalStart === undefined) finalStart = derived.startLine
-      if (finalEnd === undefined) finalEnd = derived.endLine
+      span = charSpanOfLines(text, derived.startLine, derived.endLine)
     }
     const selection: PlainTextSelection = {
       guid: selGuid,
-      startPosition: finalStart ?? 0,
-      endPosition: finalEnd ?? finalStart ?? 0,
+      startPosition: span.start,
+      endPosition: span.end,
       timeRange: { startTime, endTime },
       creatingUser: userGuid,
       creationDateTime: now,
@@ -601,7 +614,10 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
   },
 
   updateSelectionLineAnchors: (sourceGuid, selectionGuid, startLine, endLine) => {
-    set((state) => ({
+    set((state) => {
+      // Positions are code-point offsets: the span of those lines.
+      const span = charSpanOfLines(state.sourceContents[sourceGuid] ?? '', startLine, endLine)
+      return {
       sources: state.sources.map((s) =>
         s.guid === sourceGuid
           ? {
@@ -610,8 +626,8 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
                 sel.guid === selectionGuid
                   ? {
                       ...sel,
-                      startPosition: startLine,
-                      endPosition: endLine,
+                      startPosition: span.start,
+                      endPosition: span.end,
                       // Mark this bracket as manually anchored so a
                       // subsequent transcription edit (which re-derives
                       // anchors from lineTimes) won't clobber the user's
@@ -623,7 +639,8 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
             }
           : s
       )
-    }))
+    }
+    })
     useProjectStore.getState().markDirty()
   },
 
@@ -642,17 +659,29 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
         // Brackets that the user has manually repositioned in the
         // transcript (manuallyAnchored: true) are LEFT ALONE — their
         // placement is a deliberate user choice we must preserve.
+        // A coding made on the transcript's text keeps its text (its time
+        // range was derived from it, so it's re-derived from the new
+        // times); a coding made on the timeline keeps its time and its
+        // text follows. Positions are code-point offsets.
+        const text = state.sourceContents[sourceGuid] ?? ''
+        const oldLineTimes = s.formatData?.lineTimes as Record<string, number> | undefined
         const newSelections = s.selections.map((sel) => {
-          if (!sel.timeRange || sel.manuallyAnchored) return sel
+          if (!sel.timeRange) return sel
+          const fromText = sel.endPosition > sel.startPosition &&
+            sameRange(deriveVideoTimeRange(text, sel.startPosition, sel.endPosition, oldLineTimes), sel.timeRange)
+          if (fromText) {
+            const tr = deriveVideoTimeRange(text, sel.startPosition, sel.endPosition, lineTimes)
+            return tr && !sameRange(tr, sel.timeRange) ? { ...sel, timeRange: tr } : sel
+          }
+          if (sel.manuallyAnchored || !text) return sel
           const derived = deriveLineAnchorsFromTimeRange(
             sel.timeRange.startTime,
             sel.timeRange.endTime,
             lineTimes
           )
-          if (sel.startPosition === derived.startLine && sel.endPosition === derived.endLine) {
-            return sel
-          }
-          return { ...sel, startPosition: derived.startLine, endPosition: derived.endLine }
+          const span = charSpanOfLines(text, derived.startLine, derived.endLine)
+          if (sel.startPosition === span.start && sel.endPosition === span.end) return sel
+          return { ...sel, startPosition: span.start, endPosition: span.end }
         })
         return { ...s, formatData: newFormatData, selections: newSelections }
       })

@@ -1,6 +1,7 @@
 import type { PlainTextSelection, AnalysisInitData, SurveyEntityRef } from '../../models/types'
 import { resolveTagCellScope } from '../../utils/survey-cell-scope'
 import { formatPercent } from '../../i18n'
+import { deriveVideoTimeRange } from '../DocumentViewer/video-time-utils'
 
 /** Build a cell predicate from a list of (survey, entity) refs. A survey
  *  that appears in the list is restricted to its listed entities; a
@@ -143,8 +144,11 @@ function unionLength(ranges: { start: number; end: number }[]): number {
  *  metric is meaningful across mixed-media projects:
  *
  *    - text / markdown: % of characters covered (union of char ranges).
- *    - audio / video:   % of duration covered (union of timeRange
- *                       selections; needs source.duration).
+ *    - audio / video:   % of duration covered (union of time ranges;
+ *                       a coding made on the transcript counts for the
+ *                       lines it spans). If any coding can't be placed
+ *                       in time, or the duration is unknown, % of the
+ *                       transcript's characters covered.
  *    - pdf:             % of extracted-text characters covered. PDFs
  *                       coded purely via region selections (and any
  *                       PDF without extracted text) fall back to the
@@ -177,16 +181,26 @@ export function codeFrequencyInSource(
   }
 
   if (sourceType === 'audio' || sourceType === 'video') {
+    // % of the duration, every coding placed in time: its own time range
+    // (timeline codings, and a video's transcript codings), else the
+    // transcript lines its text spans. When any can't be placed (no line
+    // times) or the duration is unknown: % of the transcript's characters
+    // (every coding's span is transcript text). Else count-based.
     const duration = source?.duration ?? 0
-    if (duration <= 0) {
-      // No duration recorded — fall back to count-based.
-      return sels.length > 0 ? (codeSels.length / sels.length) * 100 : 0
+    const content = data.sourceContents[sourceGuid] ?? ''
+    const times = codeSels.map((s) => s.timeRange ?? (
+      s.endPosition > s.startPosition ? deriveVideoTimeRange(content, s.startPosition, s.endPosition, source?.lineTimes) : undefined
+    ))
+    if (duration > 0 && times.every((t) => !!t)) {
+      const ranges = times.map((t) => ({ start: t!.startTime, end: t!.endTime }))
+      return (unionLength(clipRanges(ranges, duration)) / duration) * 100
     }
-    const ranges = codeSels
-      .filter((s) => s.timeRange)
-      .map((s) => ({ start: s.timeRange!.startTime, end: s.timeRange!.endTime }))
-    const covered = unionLength(ranges)
-    return (covered / duration) * 100
+    const totalCp = content ? Array.from(content).length : 0
+    if (totalCp > 0) {
+      const ranges = codeSels.map((s) => ({ start: s.startPosition, end: s.endPosition }))
+      return (unionLength(clipRanges(ranges, totalCp)) / totalCp) * 100
+    }
+    return sels.length > 0 ? (codeSels.length / sels.length) * 100 : 0
   }
 
   if (sourceType === 'image') {
@@ -216,7 +230,7 @@ export function codeFrequencyInSource(
     let textPct: number | null = null
     if (totalCp > 0 && textSels.length > 0) {
       const ranges = codeTextSels.map((s) => ({ start: s.startPosition, end: s.endPosition }))
-      textPct = (unionLength(ranges) / totalCp) * 100
+      textPct = (unionLength(clipRanges(ranges, totalCp)) / totalCp) * 100
     }
     let regionPct: number | null = null
     if (regionSels.length > 0) {
@@ -244,8 +258,16 @@ export function codeFrequencyInSource(
   const totalCp = Array.from(content).length
   if (totalCp === 0) return 0
   const ranges = codeSels.map((s) => ({ start: s.startPosition, end: s.endPosition }))
-  const covered = unionLength(ranges)
+  const covered = unionLength(clipRanges(ranges, totalCp))
   return (covered / totalCp) * 100
+}
+
+/** Ranges cut to [0, length]: a coding past the end of its document (an
+ *  edited or foreign file) mustn't push coverage over 100%. */
+function clipRanges(ranges: { start: number; end: number }[], length: number): { start: number; end: number }[] {
+  return ranges
+    .map((r) => ({ start: Math.max(0, r.start), end: Math.min(length, r.end) }))
+    .filter((r) => r.end > r.start)
 }
 
 /** Binary (incidence) view of a numeric grid: every cell becomes 1 if
@@ -425,20 +447,27 @@ function surveyCodeFrequency(
 ): number {
   const cells = data.surveyCodableCells?.[sourceGuid] || []
   let totalCp = 0
-  for (const c of cells) totalCp += cpLen(c.text)
+  const cellLen = new Map<string, number>()
+  for (const c of cells) {
+    const len = cpLen(c.text)
+    cellLen.set(c.respondentId + '\u0000' + c.questionId, len)
+    totalCp += len
+  }
   if (totalCp === 0) return 0
   const sels = selectionsWithCode(data.sourceSelections[sourceGuid] || [], codeGuid)
   // Group coded ranges by cell, union within each cell, then sum.
   const byCell = new Map<string, { start: number; end: number }[]>()
   for (const s of sels) {
     if (!s.surveyCell) continue
-    const key = s.surveyCell.respondentId + ' ' + s.surveyCell.questionId
+    const key = s.surveyCell.respondentId + '\u0000' + s.surveyCell.questionId
     let arr = byCell.get(key)
     if (!arr) { arr = []; byCell.set(key, arr) }
     arr.push({ start: s.startPosition, end: s.endPosition })
   }
+  // Each cell's ranges cut to that cell (a coding on a cell that's out
+  // of scope, or past its end, counts for nothing beyond it).
   let covered = 0
-  for (const ranges of byCell.values()) covered += unionLength(ranges)
+  for (const [key, ranges] of byCell) covered += unionLength(clipRanges(ranges, cellLen.get(key) ?? 0))
   return (covered / totalCp) * 100
 }
 
