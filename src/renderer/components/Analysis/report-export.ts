@@ -12,6 +12,7 @@
  * here they render as a placeholder so the rest of the pipeline works
  * end-to-end.
  */
+import { loadAllPageSizes } from '../../utils/region-sizes'
 import { escHtml, buildPdfDocument, exportPdfWithHeader } from '../../utils/pdf-export'
 import { markdownToHtml } from '../Markdown'
 import { useQueryStore } from '../../stores/query-store'
@@ -609,6 +610,10 @@ export async function exportReportPdf(
   // the HTML as data URLs before the string is handed to the main process,
   // whose isolated print window can't reach the renderer's blob URLs.
   const assets = await resolveDocAssets(items)
+  // Code Frequencies measures box codings by the image's or page's area.
+  if (items.some((it) => it.kind === 'analysis' && it.toolType === 'code-frequencies')) {
+    await loadAllPageSizes(useDocumentStore.getState().sources)
+  }
   const exportedAt = formatDateTime(new Date())
   const html = buildReportHtml(title, items, exportedAt, assets)
   const safeName = (title.trim() || t('reports.report')).replace(/[^\p{L}\p{N} _-]/gu, '').slice(0, 80) || t('reports.report')

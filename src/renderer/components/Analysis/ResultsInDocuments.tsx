@@ -3,7 +3,7 @@ import type { AnalysisInitData, Query, QueryResult, SurveyEntityRef, SurveyCellS
 import { Icon, faFileSearchCorner, faChevronDown, faChevronRight, faXmark } from '../Icon'
 import { toolColors } from '../../utils/tool-colors'
 import { runQueryLive } from '../../stores/query-store'
-import { truncate, toCsv, pctOfTotal, csvPctOfTotal, binarizeGrid } from './analysis-helpers'
+import { truncate, toCsv, pctOfTotal, csvPctOfTotal, binarizeGrid, resultsInColumn, resultRowTotal } from './analysis-helpers'
 import { generateGuid } from '../../utils/guid'
 import {
   parseGroupByDrop,
@@ -220,23 +220,17 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
   const grid = useMemo(() => {
     return queryGuids.map((qGuid) => {
       const results = queryResults.get(qGuid) || []
-      return columns.map((col) => {
-        if (col.respondentRef) {
-          const { sourceGuid, id } = col.respondentRef
-          return results.filter((r) => r.sourceGuid === sourceGuid && r.surveyCell?.respondentId === id).length
-        }
-        const colGuids = new Set(col.sourceGuids)
-        return results.filter((r) => colGuids.has(r.sourceGuid)).length
-      })
+      // A tag column holds only the survey cells the tag covers.
+      return columns.map((col) => resultsInColumn(results, col, data).length)
     })
-  }, [queryGuids, queryResults, columns])
+  }, [queryGuids, queryResults, columns, data])
 
-  // Row totals exclude subtotal columns: a category subtotal already
-  // re-counts hits that appear in its child-tag columns, so summing both
-  // would inflate the row total and the grand total derived from it.
+  // Row totals count each result once: not the subtotal columns (which
+  // repeat their parts), and not twice for a document in two of the
+  // groups shown.
   const rowTotals = useMemo(
-    () => grid.map((row) => row.reduce((sum, val, j) => columns[j].isSubtotal ? sum : sum + val, 0)),
-    [grid, columns]
+    () => queryGuids.map((qGuid) => resultRowTotal(queryResults.get(qGuid) || [], columns, data)),
+    [queryGuids, queryResults, columns, data]
   )
   const colTotals = useMemo(() => {
     if (grid.length === 0) return columns.map(() => 0)

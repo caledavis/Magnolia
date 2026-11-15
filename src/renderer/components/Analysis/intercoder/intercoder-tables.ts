@@ -13,6 +13,7 @@ import {
   pooledAlpha,
   percentAgreement,
   segmentAgreement,
+  pairsOf,
   type AgreementResults,
   type CellResult,
   type Measure
@@ -29,30 +30,90 @@ export interface IntercoderSnapshot {
   results: AgreementResults
 }
 
-export type Metric = 'agreement' | 'kappa' | 'alpha' | 'agreed' | 'segments'
+export type Metric =
+  | 'agreement' | 'kappa' | 'alpha' | 'agreed' | 'segments' | 'avgAgreement'
+  // By coder: the mean of the coder's pairs, and alpha without the coder.
+  | 'coderAgreement' | 'coderKappa' | 'alphaWithout'
+
+/** By pair (each pair of coders) or by coder (each coder against the rest). */
+export type ResultsView = 'pairs' | 'coders'
 
 export interface MetricCol {
-  /** Index into results.pairs; null for a measure over all coders. */
+  /** Index into results.pairs; null for a measure over all coders, or a
+   *  coder's column. */
   pair: number | null
   metric: Metric
+  /** By coder: the coder's index, and the pairs that include them. */
+  coder?: number
+  coderPairs?: number[]
 }
 
-export function metricColumns(measure: Measure, coderCount: number): MetricCol[] {
-  const pairs = (coderCount * (coderCount - 1)) / 2
+/** The table's columns: the measure over all coders first (with three or
+ *  more coders: alpha for Characters, the pairs' average agreement for
+ *  Segments), then each pair's — or, by coder, each coder's. */
+export function metricColumns(measure: Measure, coderCount: number, view: ResultsView = 'pairs'): MetricCol[] {
+  const pairs = pairsOf(coderCount)
   const out: MetricCol[] = []
-  for (let p = 0; p < pairs; p++) {
+  if (coderCount >= 3) out.push({ pair: null, metric: measure === 'characters' ? 'alpha' : 'avgAgreement' })
+  if (view === 'coders' && coderCount >= 3) {
+    for (let k = 0; k < coderCount; k++) {
+      const coderPairs = pairs.flatMap(([i, j], p) => (i === k || j === k ? [p] : []))
+      // Characters leaves out the average % agreement: text nobody coded
+      // counts as agreeing, so it reads high whoever the coder is.
+      const metrics: Metric[] = measure === 'characters' ? ['coderKappa', 'alphaWithout'] : ['coderAgreement']
+      for (const metric of metrics) out.push({ pair: null, metric, coder: k, coderPairs })
+    }
+    return out
+  }
+  for (let p = 0; p < pairs.length; p++) {
     if (measure === 'characters') out.push({ pair: p, metric: 'agreement' }, { pair: p, metric: 'kappa' })
     else out.push({ pair: p, metric: 'agreed' }, { pair: p, metric: 'segments' }, { pair: p, metric: 'agreement' })
   }
-  if (measure === 'characters' && coderCount >= 3) out.push({ pair: null, metric: 'alpha' })
   return out
+}
+
+/** Which header group a column belongs to: all coders, a pair or a coder. */
+export function columnGroup(c: MetricCol): string {
+  return c.coder !== undefined ? `c${c.coder}` : c.pair === null ? 'all' : `p${c.pair}`
+}
+
+/** Whether a value is shaded by strength, and on which scale. Characters'
+ *  % agreement isn't: text nobody coded counts as agreeing, so it reads
+ *  high (and would shade green) even where kappa shows weak agreement. */
+export function tintScale(metric: Metric, measure: Measure): 'segments' | 'kappa' | 'alpha' | null {
+  if (metric === 'agreement' || metric === 'avgAgreement' || metric === 'coderAgreement') return measure === 'segments' ? 'segments' : null
+  if (metric === 'kappa' || metric === 'coderKappa') return 'kappa'
+  if (metric === 'alpha' || metric === 'alphaWithout') return 'alpha'
+  return null
 }
 
 export function metricValue(cell: CellResult | undefined, col: MetricCol, measure: Measure): number | null {
   if (!cell) return null
+  if (col.metric === 'coderAgreement' || col.metric === 'coderKappa') {
+    // The mean over the coder's pairs, each counting equally (pairs that
+    // can't be compared left out).
+    const base: Metric = col.metric === 'coderKappa' ? 'kappa' : 'agreement'
+    const vals = (col.coderPairs ?? []).map((p) => metricValue(cell, { pair: p, metric: base }, measure)).filter((v): v is number => v !== null)
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null
+  }
+  if (col.metric === 'alphaWithout') {
+    if (col.coder === undefined) return null
+    if (cell.pooledAlphaWithout !== undefined) {
+      const p = cell.pooledAlphaWithout[col.coder]
+      return p ? pooledAlpha(p) : null
+    }
+    const tab = cell.alphaWithout?.[col.coder]
+    return tab ? krippendorffAlpha(tab) : null
+  }
   if (col.metric === 'alpha') {
     if (cell.pooledAlpha !== undefined) return cell.pooledAlpha ? pooledAlpha(cell.pooledAlpha) : null
     return cell.alpha ? krippendorffAlpha(cell.alpha) : null
+  }
+  if (col.metric === 'avgAgreement') {
+    // Segments, all coders: the mean of the pairs' agreement, each pair
+    // counting equally (pairs with no segments to compare left out).
+    const vals = cell.segs.map((s) => (s ? segmentAgreement(s) : null)).filter((v): v is number => v !== null)
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null
   }
   if (col.pair === null) return null
   if (measure === 'characters' && cell.pooled) {
@@ -74,32 +135,104 @@ export function metricValue(cell: CellResult | undefined, col: MetricCol, measur
   return null
 }
 
+/** Alpha without a coder, less everyone's alpha: positive when agreement
+ *  rises without them. Taken from the two values as shown (two decimals),
+ *  so it matches what the reader would work out. null for other columns,
+ *  or where either alpha can't be computed. */
+export function alphaChange(cell: CellResult | undefined, col: MetricCol, measure: Measure): number | null {
+  if (col.metric !== 'alphaWithout') return null
+  const without = metricValue(cell, col, measure)
+  const all = metricValue(cell, { pair: null, metric: 'alpha' }, measure)
+  if (without === null || all === null) return null
+  return asShown(asShown(without, 2) - asShown(all, 2), 2)
+}
+
+// Rounds as the display does. Number formatting rounds the decimal a
+// number is written as, halves away from zero (0.015 → 0.02, −0.125 →
+// −0.13), which Math.round and toFixed don't always match. The rounding
+// is the same in every language, so a plain formatter will do.
+const shownFormats = new Map<number, Intl.NumberFormat>()
+/** A value rounded to `digits` decimals exactly as it is shown. */
+export function asShown(x: number, digits: number): number {
+  let f = shownFormats.get(digits)
+  if (!f) shownFormats.set(digits, (f = new Intl.NumberFormat('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits, useGrouping: false })))
+  const v = Number(f.format(x))
+  return v === 0 ? 0 : v
+}
+
+/** How strongly a change says the coder is out of step with the rest:
+ *  agreement 0.10 or more higher without them ('clear'), 0.05 or more
+ *  ('some'), else null — a few hundredths either way is usually chance. */
+export function changeLevel(d: number): 'clear' | 'some' | null {
+  return d >= 0.1 - 1e-9 ? 'clear' : d >= 0.05 - 1e-9 ? 'some' : null
+}
+
+/** "+0.26", "−0.05" or "0.00". */
+export function formatChange(d: number): string {
+  const s = formatFixed(Math.abs(d), 2)
+  return d > 0 ? `+${s}` : d < 0 ? `−${s}` : s
+}
+
 /** Display text for a value; '–' where it can't be computed. */
 export function formatMetric(v: number | null, metric: Metric): string {
   if (v === null) return '–'
-  if (metric === 'agreement') return formatPercent(v * 100, 1)
-  if (metric === 'kappa' || metric === 'alpha') return formatFixed(v, 2)
+  if (metric === 'agreement' || metric === 'avgAgreement' || metric === 'coderAgreement') return formatPercent(v * 100, 1)
+  if (metric === 'kappa' || metric === 'alpha' || metric === 'coderKappa' || metric === 'alphaWithout') return formatFixed(v, 2)
   return formatNumber(v)
 }
 
 export function metricLabel(metric: Metric): string {
   switch (metric) {
+    case 'coderAgreement': return t('intercoder.metricAvgAgreement')
+    case 'coderKappa': return t('intercoder.metricCoderKappa')
+    case 'alphaWithout': return t('intercoder.metricAlphaWithout')
     case 'agreement': return t('intercoder.metricAgreement')
     case 'kappa': return t('intercoder.metricKappa')
     case 'alpha': return t('intercoder.metricAlpha')
     case 'agreed': return t('intercoder.metricAgreed')
     case 'segments': return t('intercoder.metricSegments')
+    case 'avgAgreement': return t('intercoder.metricAvgAgreement')
   }
 }
 
-export function metricTitle(metric: Metric): string {
+export function metricTitle(metric: Metric, measure: Measure): string {
   switch (metric) {
-    case 'agreement': return t('intercoder.metricAgreementTitle')
+    case 'coderAgreement': return t('intercoder.metricCoderSegAgreementTitle')
+    case 'coderKappa': return t('intercoder.metricCoderKappaTitle')
+    case 'alphaWithout': return t('intercoder.metricAlphaWithoutTitle')
+    case 'agreement': return measure === 'segments' ? t('intercoder.metricSegAgreementTitle') : t('intercoder.metricAgreementTitle')
     case 'kappa': return t('intercoder.metricKappaTitle')
     case 'alpha': return t('intercoder.metricAlphaTitle')
     case 'agreed': return t('intercoder.metricAgreedTitle')
     case 'segments': return t('intercoder.metricSegmentsTitle')
+    case 'avgAgreement': return t('intercoder.metricAvgAgreementTitle')
   }
+}
+
+/** The first header row: each run of columns in one group, with its
+ *  heading and width in columns. */
+export function headerGroups(snap: Pick<IntercoderSnapshot, 'coders' | 'results'>, cols: MetricCol[]): { label: string; title: string; span: number }[] {
+  const out: { label: string; title: string; span: number; key: string }[] = []
+  for (const c of cols) {
+    const key = columnGroup(c)
+    const last = out[out.length - 1]
+    if (last && last.key === key) last.span++
+    else out.push({ key, label: columnLabel(snap, c), title: columnTitle(snap, c), span: 1 })
+  }
+  return out.map(({ label, title, span }) => ({ label, title, span }))
+}
+
+/** A column group's tooltip: what the group's columns compare. */
+export function columnTitle(snap: Pick<IntercoderSnapshot, 'coders' | 'results'>, c: MetricCol): string {
+  if (c.coder !== undefined) return t('intercoder.coderTitle', { name: snap.coders[c.coder]?.label ?? '' })
+  if (c.pair === null) return t('intercoder.allCodersTitle')
+  const [i, j] = snap.results.pairs[c.pair]
+  return t('intercoder.pairTitle', { first: snap.coders[i]?.label ?? '', second: snap.coders[j]?.label ?? '' })
+}
+
+/** A column group's heading: all coders, a pair ("Ana – Ben") or a coder. */
+export function columnLabel(snap: Pick<IntercoderSnapshot, 'coders' | 'results'>, c: MetricCol): string {
+  return c.coder !== undefined ? (snap.coders[c.coder]?.label ?? '') : pairLabel(snap, c.pair)
 }
 
 export function pairLabel(snap: Pick<IntercoderSnapshot, 'coders' | 'results'>, pair: number | null): string {
@@ -147,15 +280,22 @@ export function brennanPredigerLine(snap: IntercoderSnapshot): string | null {
 }
 
 /** The table as plain text rows, for the CSV export. */
-export function exportRows(snap: IntercoderSnapshot): string[][] {
-  const cols = metricColumns(snap.measure, snap.coders.length)
-  const head = [t('intercoder.code'), t('intercoder.document'), ...cols.map((c) => `${pairLabel(snap, c.pair)}: ${metricLabel(c.metric)}`)]
+export function exportRows(snap: IntercoderSnapshot, view: ResultsView = 'pairs'): string[][] {
+  const cols = metricColumns(snap.measure, snap.coders.length, view)
+  // Alpha without a coder is followed by its change from everyone's alpha.
+  const head = [t('intercoder.code'), t('intercoder.document'), ...cols.flatMap((c) => {
+    const h = `${columnLabel(snap, c)}: ${metricLabel(c.metric)}`
+    return c.metric === 'alphaWithout' ? [h, `${columnLabel(snap, c)}: ${t('intercoder.metricAlphaChange')}`] : [h]
+  })]
   const body = tableRows(snap, 'all').map((r) => [
     r.kind === 'overall' ? t('intercoder.allCodes') : (snap.codes.find((c) => c.key === r.codeKey)?.path ?? r.label),
     r.kind === 'doc' ? r.label : t('intercoder.allDocuments'),
-    ...cols.map((c) => {
+    ...cols.flatMap((c) => {
       const v = metricValue(r.cell, c, snap.measure)
-      return v === null ? '' : formatMetric(v, c.metric)
+      const text = v === null ? '' : formatMetric(v, c.metric)
+      if (c.metric !== 'alphaWithout') return [text]
+      const d = alphaChange(r.cell, c, snap.measure)
+      return [text, d === null ? '' : formatChange(d)]
     })
   ])
   return [head, ...body]

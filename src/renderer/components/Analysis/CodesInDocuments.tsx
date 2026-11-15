@@ -8,7 +8,7 @@ import {
 } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
-import { truncate, countCodeInSource, toCsv, pctOfTotal, csvPctOfTotal, resolveFilteredSources, applySurveyCellScope, binarizeGrid } from './analysis-helpers'
+import { truncate, countCodeInSource, toCsv, pctOfTotal, csvPctOfTotal, resolveFilteredSources, applySurveyCellScope, binarizeGrid, columnScopedData, codeRowTotal } from './analysis-helpers'
 import { generateGuid } from '../../utils/guid'
 import {
   type GroupByEntry,
@@ -183,33 +183,24 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
     [filteredSourceGuids, groupBy, data, sourceMap]
   )
 
+  // Per-column survey-cell scope: a tag column counts only that tag's
+  // cells; a respondent column counts only that respondent's cells.
+  const colData = useMemo(() => columnScopedData(columns, data), [columns, data])
   const grid = useMemo(() => {
-    // Per-column survey-cell scope: a tag column counts only that tag's
-    // cells; a respondent column counts only that respondent's cells.
-    const colData = new Map<string, AnalysisInitData>()
-    for (const col of columns) {
-      colData.set(
-        col.id,
-        col.respondentRef
-          ? applySurveyCellScope(data, { respondentScope: [col.respondentRef] })
-          : col.tagScopeGuids
-            ? applySurveyCellScope(data, { tagGuids: col.tagScopeGuids })
-            : data
-      )
-    }
     return codeGuids.map((codeGuid) =>
       columns.map((col) => {
         const cd = colData.get(col.id) || data
         return col.sourceGuids.reduce((sum, sg) => sum + countCodeInSource(cd, sg, codeGuid), 0)
       })
     )
-  }, [codeGuids, columns, data])
+  }, [codeGuids, columns, data, colData])
 
-  // Row totals exclude subtotal columns: a category subtotal already
-  // re-counts hits that appear in its child-tag columns.
+  // Row totals count each selection once: not the subtotal columns (which
+  // repeat their parts), and not twice for a document in two of the
+  // groups shown.
   const rowTotals = useMemo(
-    () => grid.map((row) => row.reduce((sum, val, j) => columns[j].isSubtotal ? sum : sum + val, 0)),
-    [grid, columns]
+    () => codeGuids.map((codeGuid) => codeRowTotal(columns, colData, data, codeGuid)),
+    [codeGuids, columns, colData, data]
   )
   const colTotals = useMemo(() => {
     if (grid.length === 0) return columns.map(() => 0)

@@ -15,6 +15,7 @@ import { sentenceSpans } from './sentences'
 import { resolveTagCellScope, tagMembershipFromTags, type TagCellScope } from './survey-cell-scope'
 import { t } from '../i18n'
 import { isWordBoundary, isWordEdge } from './words'
+import { deriveVideoTimeRange, transcriptTimeRange } from '../components/DocumentViewer/video-time-utils'
 
 /** Resolve the text a selection actually points into.
  *
@@ -41,6 +42,9 @@ export function textForSelection(
  *  non-cell selection) — otherwise every cell's near-zero offsets falsely
  *  overlap every other cell's, exploding result counts. */
 function sameSpatialSpace(a: PlainTextSelection, b: PlainTextSelection): boolean {
+  // A recording's codings made on the timeline compare by time — with each
+  // other, and with codings made on the transcript (by their lines' times).
+  if (byTime(a, b)) return !!timeOf(a) && !!timeOf(b)
   const ac = a.surveyCell
   const bc = b.surveyCell
   if (ac || bc) {
@@ -50,6 +54,40 @@ function sameSpatialSpace(a: PlainTextSelection, b: PlainTextSelection): boolean
   // page geometry, which has no reliable mapping to the text stream — so a
   // box is only ever compared with another box, never with a text range.
   return !!a.pdfRegion === !!b.pdfRegion
+}
+
+/** A recording's coding placed in time (see placeInTime). */
+type Timed = { _time?: { startTime: number; endTime: number }; _onTimeline?: boolean }
+const timeOf = (s: PlainTextSelection) => (s as Timed)._time
+const byTime = (a: PlainTextSelection, b: PlainTextSelection) => !!((a as Timed)._onTimeline || (b as Timed)._onTimeline)
+
+/**
+ * A recording's codings, placed in time so the spatial operators can
+ * compare a coding made on the timeline with others by time. Each gets
+ * `_onTimeline` — made on the timeline (a time range of its own, not the
+ * one its transcript text gives) — and `_time`: its own time range, or for
+ * a coding made on the transcript, its lines' times (the last line running
+ * to the end of the recording). Other documents' selections are returned
+ * as they are.
+ */
+export function placeInTime<T extends PlainTextSelection>(
+  selections: T[],
+  recording: { sourceType?: string; lineTimes?: Record<string, number>; duration?: number },
+  content: string
+): (T & Timed)[] {
+  if (recording.sourceType !== 'audio' && recording.sourceType !== 'video') return selections
+  const { lineTimes, duration } = recording
+  return selections.map((s) => {
+    const span = s.endPosition > s.startPosition
+    const derived = span ? deriveVideoTimeRange(content, s.startPosition, s.endPosition, lineTimes) : undefined
+    const onText = !!s.timeRange && !!derived &&
+      Math.abs(derived.startTime - s.timeRange.startTime) < 5e-4 && Math.abs(derived.endTime - s.timeRange.endTime) < 5e-4
+    const onTimeline = !!s.timeRange && !onText
+    const time = onTimeline
+      ? (s.timeRange!.endTime > s.timeRange!.startTime ? s.timeRange : undefined)
+      : span ? transcriptTimeRange(content, s.startPosition, s.endPosition, lineTimes, duration) : undefined
+    return { ...s, _time: time && time.endTime > time.startTime ? time : undefined, _onTimeline: onTimeline }
+  })
 }
 
 /* ═══════════════════════════════════════════════════
@@ -64,7 +102,15 @@ function sameSpatialSpace(a: PlainTextSelection, b: PlainTextSelection): boolean
 function spatialIntersection(
   a: PlainTextSelection,
   b: PlainTextSelection
-): { start: number; end: number; region?: PdfRegionSelection } | null {
+): { start: number; end: number; region?: PdfRegionSelection; time?: { startTime: number; endTime: number } } | null {
+  if (byTime(a, b)) {
+    const ta = timeOf(a)
+    const tb = timeOf(b)
+    if (!ta || !tb) return null
+    const startTime = Math.max(ta.startTime, tb.startTime)
+    const endTime = Math.min(ta.endTime, tb.endTime)
+    return startTime < endTime ? { start: 0, end: 0, time: { startTime, endTime } } : null
+  }
   const ar = a.pdfRegion
   const br = b.pdfRegion
   if (ar && br) {
@@ -85,8 +131,21 @@ function spatiallyOverlaps(a: PlainTextSelection, b: PlainTextSelection): boolea
   return spatialIntersection(a, b) !== null
 }
 
+/** Whether two selections of one source overlap, as the overlap operator
+ *  judges it: text ranges by their offsets (within one survey cell), and
+ *  boxes by their rectangles on the same page. Shared with Code
+ *  Co-Occurrences, so a cell's count and the query it opens agree. */
+export function selectionsOverlap(a: PlainTextSelection, b: PlainTextSelection): boolean {
+  return sameSpatialSpace(a, b) && spatiallyOverlaps(a, b)
+}
+
 /** `inner` lies entirely within `outer`. */
 function spatiallyInside(inner: PlainTextSelection, outer: PlainTextSelection): boolean {
+  if (byTime(inner, outer)) {
+    const ti = timeOf(inner)
+    const to = timeOf(outer)
+    return !!ti && !!to && ti.startTime >= to.startTime && ti.endTime <= to.endTime
+  }
   const ir = inner.pdfRegion
   const or = outer.pdfRegion
   if (ir && or) {
@@ -104,6 +163,11 @@ function spatiallyInside(inner: PlainTextSelection, outer: PlainTextSelection): 
  *  top to bottom: a box precedes another on a later page, or one on the
  *  same page that starts at or below its bottom edge. */
 function spatiallyPrecedes(a: PlainTextSelection, b: PlainTextSelection): boolean {
+  if (byTime(a, b)) {
+    const ta = timeOf(a)
+    const tb = timeOf(b)
+    return !!ta && !!tb && ta.endTime <= tb.startTime
+  }
   const ar = a.pdfRegion
   const br = b.pdfRegion
   if (ar && br) {
@@ -116,6 +180,12 @@ function spatiallyPrecedes(a: PlainTextSelection, b: PlainTextSelection): boolea
 /** The same span: identical text range, or identical box. */
 function sameSpan(a: PlainTextSelection, b: PlainTextSelection): boolean {
   if (!sameSpatialSpace(a, b)) return false
+  if (byTime(a, b)) {
+    const ta = timeOf(a)!
+    const tb = timeOf(b)!
+    return !!(a as Timed)._onTimeline === !!(b as Timed)._onTimeline && ta.startTime === tb.startTime && ta.endTime === tb.endTime &&
+      a.startPosition === b.startPosition && a.endPosition === b.endPosition
+  }
   const ar = a.pdfRegion
   const br = b.pdfRegion
   if (ar && br) {
@@ -286,13 +356,15 @@ export function executeQuery(
     // Within a survey under a cell constraint, only keep selections whose
     // cell is in scope; non-survey selections always pass. Used as both
     // the iteration set and the allSelections set for spatial operators.
-    const scopedSelections = cellScope.hasConstraint
+    const inScope = cellScope.hasConstraint
       ? source.selections.filter(
           (sel) =>
             !sel.surveyCell ||
             cellScope.cellInScope(source.guid, sel.surveyCell.respondentId, sel.surveyCell.questionId)
         )
       : source.selections
+    const media = source.formatData as { lineTimes?: Record<string, number>; duration?: number } | undefined
+    const scopedSelections = placeInTime(inScope, { sourceType: source.sourceType, lineTimes: media?.lineTimes, duration: media?.duration }, content)
 
     const condType = codeCondition.type
 
@@ -923,7 +995,18 @@ function findOverlapIntersections(
     if (!sameSpatialSpace(selection, other)) continue
     const intersection = spatialIntersection(selection, other)
     if (!intersection) continue
-    const { start: intStart, end: intEnd, region } = intersection
+    const { start: intStart, end: intEnd, region, time } = intersection
+    if (time) {
+      // Compared by time: the moments both cover, read as the transcript
+      // lines in them.
+      const timeKey = `${source.guid}:time:${time.startTime}:${time.endTime}`
+      if (seenRanges.has(timeKey)) continue
+      seenRanges.add(timeKey)
+      const allCodes = new Set([...selection.codings.map((c) => c.codeGuid), ...other.codings.map((c) => c.codeGuid)])
+      const r = buildResult(source, { guid: selection.guid, startPosition: 0, endPosition: 0, timeRange: time, codings: [] }, content, allCodes, codeMap)
+      results.push({ ...r, matchedCodes: collectMatchedCodes(condition.condition1, allCodes, codeMap) })
+      continue
+    }
 
     // Deduplicate: same intersection range (or box) in the same source.
     // Boxes carry a 0–0 char range, so they key on the intersected

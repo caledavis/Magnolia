@@ -14,7 +14,7 @@ import { stripFormatting } from '../../utils/strip-formatting'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
 import { sentenceRanges } from '../../utils/sentences'
 import { compareText } from '../../i18n'
-import { wordTokens, type WordToken } from '../../utils/words'
+import { wordTokens, isCountedWord, type WordToken } from '../../utils/words'
 
 export interface WordFilter {
   exclude: Set<string>
@@ -38,7 +38,7 @@ export function countWords(texts: Iterable<string>, filter: WordFilter, freq = n
   for (const text of texts) {
     // Words as text search finds them (utils/words), in any script.
     for (const { word: w } of wordTokens(text.toLowerCase())) {
-      if (w.length < 2) continue
+      if (!isCountedWord(w)) continue
       if (filter.exclude.has(w)) continue
       if (filter.include && !filter.include.has(w)) continue
       freq.set(w, (freq.get(w) || 0) + 1)
@@ -311,7 +311,7 @@ function logLikelihood(a: number, b: number, c: number, d: number): number {
  *  would explain, strongest first. Each sentence counts once per word
  *  however often the word repeats in it. The focus word is matched even
  *  when it's on the exclude list; the associated words honour the
- *  include and exclude lists and must be at least two letters long. */
+ *  include and exclude lists and must be words that count (isCountedWord). */
 export function wordAssociations(texts: Iterable<string>, focus: string, filter: WordFilter, minTogether: number): Associations {
   const target = focus.trim().toLowerCase()
   let sentences = 0
@@ -326,7 +326,7 @@ export function wordAssociations(texts: Iterable<string>, focus: string, filter:
       const hasFocus = words.has(target)
       if (hasFocus) focusSentences++
       for (const w of words) {
-        if (w === target || w.length < 2 || filter.exclude.has(w)) continue
+        if (w === target || !isCountedWord(w) || filter.exclude.has(w)) continue
         if (filter.include && !filter.include.has(w)) continue
         withWord.set(w, (withWord.get(w) || 0) + 1)
         if (hasFocus) together.set(w, (together.get(w) || 0) + 1)

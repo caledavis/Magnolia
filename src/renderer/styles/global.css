@@ -257,14 +257,14 @@
  * take a radius concentric with the window's: its radius less the
  * inset (the padding plus the panel's margin, each --pane-half-gap). The window radius is in screen
  * points, so it's divided by the interface zoom. Applies to Magnolia and
- * Magnolia Dark. */
+ * Magnolia Dark, and not in full screen, where the window is square. */
 :root[data-platform="darwin"] {
   --mac-window-radius: 16px;
 }
-:root[data-platform="darwin"][data-theme^="magnolia"] .panel[data-window-corner~="bl"] {
+:root[data-platform="darwin"]:not([data-fullscreen])[data-theme^="magnolia"] .panel[data-window-corner~="bl"] {
   border-bottom-left-radius: max(4px, calc(var(--mac-window-radius) / var(--window-zoom, 1) - 2 * var(--pane-half-gap)));
 }
-:root[data-platform="darwin"][data-theme^="magnolia"] .panel[data-window-corner~="br"] {
+:root[data-platform="darwin"]:not([data-fullscreen])[data-theme^="magnolia"] .panel[data-window-corner~="br"] {
   border-bottom-right-radius: max(4px, calc(var(--mac-window-radius) / var(--window-zoom, 1) - 2 * var(--pane-half-gap)));
 }
 /* A pane that fills a pop-out window (#root > .panel) sits the same
@@ -275,7 +275,7 @@
   padding: var(--pane-half-gap);
   box-sizing: border-box;
 }
-:root[data-platform="darwin"][data-theme^="magnolia"] #root > .panel {
+:root[data-platform="darwin"]:not([data-fullscreen])[data-theme^="magnolia"] #root > .panel {
   border-bottom-left-radius: max(4px, calc(var(--mac-window-radius) / var(--window-zoom, 1) - 2 * var(--pane-half-gap)));
   border-bottom-right-radius: max(4px, calc(var(--mac-window-radius) / var(--window-zoom, 1) - 2 * var(--pane-half-gap)));
 }
@@ -1059,8 +1059,10 @@ div:hover > .folder-row-add,
  * them. The cluster spans ~52 px starting at x=20 (set via
  * trafficLightPosition in main/index.ts), ending around x=72;
  * 92 px adds ~20 px of breathing room before the wordmark.
- * Other platforms have no traffic lights and need no indent. */
-:root[data-platform="darwin"] .app-toolbar {
+ * Other platforms have no traffic lights and need no indent, and nor
+ * does a full-screen window, where macOS hides them (data-fullscreen,
+ * set in platform/tauri-api.ts). */
+:root[data-platform="darwin"]:not([data-fullscreen]) .app-toolbar {
   padding-left: 92px;
 }
 .app-toolbar button,
@@ -1460,6 +1462,16 @@ div:hover > .folder-row-add,
   border-radius: 2px;
   background: linear-gradient(
     to right,
+    var(--accent) 0%,
+    var(--accent) var(--filled, 0%),
+    var(--bg-tertiary) var(--filled, 0%),
+    var(--bg-tertiary) 100%
+  );
+}
+/* Right-to-left, a slider runs from the right: fill from that side. */
+.themed-range:dir(rtl)::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to left,
     var(--accent) 0%,
     var(--accent) var(--filled, 0%),
     var(--bg-tertiary) var(--filled, 0%),

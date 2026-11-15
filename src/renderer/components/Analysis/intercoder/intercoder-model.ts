@@ -514,6 +514,8 @@ export function brennanPredigerKappa(s: SegmentCount, codeCount: number): number
 export interface ChannelCounts {
   pairs: (PairTable | null)[]
   alpha: AlphaTable | null
+  /** Per coder (3+ coders): alpha over everyone else. */
+  alphaWithout?: (AlphaTable | null)[]
 }
 
 export interface CellResult {
@@ -524,12 +526,17 @@ export interface CellResult {
    *  can't be compared (one of them lacks the document). */
   chars: (PairTable | null)[]
   alpha: AlphaTable | null
+  /** Per coder (3+ coders): the alpha table with that coder left out —
+   *  "alpha without this coder". null where fewer than two others
+   *  have the document. */
+  alphaWithout?: (AlphaTable | null)[]
   segs: (SegmentCount | null)[]
   /** "All codes" only: mean observed / chance agreement over codes per
    *  pair, and mean observed / expected disagreement — the pooled
    *  kappa and alpha. */
   pooled?: ({ po: number; pe: number } | null)[]
   pooledAlpha?: { do: number; de: number } | null
+  pooledAlphaWithout?: ({ do: number; de: number } | null)[]
 }
 
 export interface AgreementResults {
@@ -652,6 +659,19 @@ function popcount(m: number): number {
   return n
 }
 
+/** A piece's coincidences among the m coders in `mask`. */
+function addCoincidences(t: AlphaTable, pc: Piece, mask: number, m: number): void {
+  const k = popcount(pc.mask & mask)
+  t.o01 += (pc.weight * k * (m - k)) / (m - 1)
+  t.n1 += pc.weight * k
+  t.n0 += pc.weight * (m - k)
+}
+
+/** What nobody coded: the rest of the channel's units, uncoded by all m. */
+function addUncoded(t: AlphaTable, total: number, m: number): void {
+  t.n0 += Math.max(0, total * m - (t.n1 + t.n0))
+}
+
 /**
  * One code in one document: the character tables (per channel, as
  * proportions, averaged over the channels in use) and the segment counts.
@@ -685,6 +705,13 @@ function computeCell(
     })
     const chPairs: (PairTable | null)[] = pairs.map(([i, j]) => (present.includes(i) && present.includes(j) ? zeroPair() : null))
     const chAlpha = withAlpha && m >= 2 ? zeroAlpha() : null
+    // The same with each coder left out in turn (of those who have the
+    // document; two or more must remain).
+    const without = withAlpha ? segsByCoder.map((_, k) => {
+      const mask = presentMask & ~(1 << k)
+      const mk = popcount(mask)
+      return mk >= 2 ? { mask, m: mk, t: zeroAlpha() } : null
+    }) : null
     for (const [line, raw] of lines) {
       // A coding can't cover more than the document holds (one past the
       // end of a trimmed text, a recording's last frame, a cell with no
@@ -704,25 +731,17 @@ function computeCell(
           else if (hj) t.c += pc.weight
         }
       })
-      if (chAlpha) {
-        for (const pc of pieces) {
-          const k = popcount(pc.mask & presentMask)
-          chAlpha.o01 += (pc.weight * k * (m - k)) / (m - 1)
-          chAlpha.n1 += pc.weight * k
-          chAlpha.n0 += pc.weight * (m - k)
-        }
-      }
+      if (chAlpha) for (const pc of pieces) addCoincidences(chAlpha, pc, presentMask, m)
+      if (without) for (const w of without) if (w) for (const pc of pieces) addCoincidences(w.t, pc, w.mask, w.m)
     }
     for (const t of chPairs) {
       // Regions can reach past a page's edge (an estimated or cropped
       // page); clamp rather than go negative.
       if (t) t.d = Math.max(0, total - t.a - t.b - t.c)
     }
-    if (chAlpha) {
-      const coded = chAlpha.n1 + chAlpha.n0
-      chAlpha.n0 += Math.max(0, total * m - coded)
-    }
-    units[ch] = { pairs: chPairs, alpha: chAlpha }
+    if (chAlpha) addUncoded(chAlpha, total, m)
+    if (without) for (const w of without) if (w) addUncoded(w.t, total, w.m)
+    units[ch] = { pairs: chPairs, alpha: chAlpha, ...(without ? { alphaWithout: without.map((w) => w?.t ?? null) } : {}) }
   }
 
   const segs: (SegmentCount | null)[] = pairs.map(([i, j]) =>
@@ -735,7 +754,7 @@ function computeCell(
  *  channel's own when there's one; with more, each channel's proportions
  *  weighted equally (alpha's rescaled to the channels' mean size, so its
  *  n − 1 correction still means something). */
-function combineChannels(units: CellResult['units'], pairCount: number): { chars: (PairTable | null)[]; alpha: AlphaTable | null } {
+function combineChannels(units: CellResult['units'], pairCount: number): { chars: (PairTable | null)[]; alpha: AlphaTable | null; alphaWithout?: (AlphaTable | null)[] } {
   const used = (['text', 'time', 'region'] as Channel[]).filter((c) => units[c])
   const chars: (PairTable | null)[] = []
   for (let p = 0; p < pairCount; p++) {
@@ -748,15 +767,21 @@ function combineChannels(units: CellResult['units'], pairCount: number): { chars
       chars.push(out)
     }
   }
-  const alphas = used.map((c) => units[c]!.alpha).filter((t): t is AlphaTable => !!t && t.n0 + t.n1 > 0)
-  let alpha: AlphaTable | null = null
-  if (alphas.length === 1) alpha = { ...alphas[0] }
-  else if (alphas.length > 1) {
-    const meanN = alphas.reduce((x, t) => x + t.n0 + t.n1, 0) / alphas.length
-    alpha = zeroAlpha()
-    for (const t of alphas) addAlpha(alpha, t, meanN / (t.n0 + t.n1))
-  }
-  return { chars, alpha }
+  const alpha = combineAlphas(used.map((c) => units[c]!.alpha))
+  const coderCount = Math.max(0, ...used.map((c) => units[c]!.alphaWithout?.length ?? 0))
+  if (coderCount === 0) return { chars, alpha }
+  const alphaWithout = Array.from({ length: coderCount }, (_, k) => combineAlphas(used.map((c) => units[c]!.alphaWithout?.[k] ?? null)))
+  return { chars, alpha, alphaWithout }
+}
+
+function combineAlphas(tables: (AlphaTable | null)[]): AlphaTable | null {
+  const alphas = tables.filter((t): t is AlphaTable => !!t && t.n0 + t.n1 > 0)
+  if (alphas.length === 0) return null
+  if (alphas.length === 1) return { ...alphas[0] }
+  const meanN = alphas.reduce((x, t) => x + t.n0 + t.n1, 0) / alphas.length
+  const alpha = zeroAlpha()
+  for (const t of alphas) addAlpha(alpha, t, meanN / (t.n0 + t.n1))
+  return alpha
 }
 
 /** Per-channel counts summed (pooled) over cells. */
@@ -776,6 +801,13 @@ function sumUnits(cells: CellResult[], pairCount: number): CellResult['units'] {
         if (!dst.alpha) dst.alpha = zeroAlpha()
         addAlpha(dst.alpha, src.alpha)
       }
+      src.alphaWithout?.forEach((t, k) => {
+        if (!t) return
+        if (!dst!.alphaWithout) dst!.alphaWithout = []
+        while (dst!.alphaWithout.length <= k) dst!.alphaWithout.push(null)
+        if (!dst!.alphaWithout[k]) dst!.alphaWithout[k] = zeroAlpha()
+        addAlpha(dst!.alphaWithout[k]!, t)
+      })
     }
   }
   return out
@@ -902,7 +934,13 @@ export function computeAgreement({ projects, docs, codes, extents, threshold }: 
       return parts.length ? parts.reduce((x, y) => ({ agree: x.agree + y.agree, total: x.total + y.total }), { agree: 0, total: 0 }) : null
     }),
     pooled,
-    pooledAlpha: withAlpha && alphaParts.length ? { do: mean(alphaParts.map((x) => x.do)), de: mean(alphaParts.map((x) => x.de)) } : null
+    pooledAlpha: withAlpha && alphaParts.length ? { do: mean(alphaParts.map((x) => x.do)), de: mean(alphaParts.map((x) => x.de)) } : null,
+    ...(withAlpha ? {
+      pooledAlphaWithout: projects.map((_, k) => {
+        const parts = totals.map((t) => (t.alphaWithout?.[k] ? disagreementParts(t.alphaWithout[k]!) : null)).filter((x): x is { do: number; de: number } => !!x)
+        return parts.length ? { do: mean(parts.map((x) => x.do)), de: mean(parts.map((x) => x.de)) } : null
+      })
+    } : {})
   }
 
   return {

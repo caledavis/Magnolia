@@ -1,5 +1,5 @@
 import { Trans } from 'react-i18next'
-import { useState, useMemo, useCallback, useRef } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
 import { Icon, faChartBar, faCircleInfo } from '../Icon'
 import { toolColors } from '../../utils/tool-colors'
@@ -9,7 +9,9 @@ import {
 } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
-import { truncate, codeFrequencyInSource, toCsv, resolveFilteredSources, applySurveyCellScope } from './analysis-helpers'
+import { truncate, codeFrequencyInSource, sizeEstimated, isAverageColumn, toCsv, resolveFilteredSources, applySurveyCellScope } from './analysis-helpers'
+import { usePageSizes } from '../../utils/region-sizes'
+import { useDocumentStore } from '../../stores/document-store'
 import { generateGuid } from '../../utils/guid'
 import {
   type GroupByEntry,
@@ -32,7 +34,7 @@ import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { useThemeSvgColors, SVG_FONT_FAMILY } from '../../utils/use-theme-svg-colors'
 import { useTranslation } from 'react-i18next'
-import { formatPercent } from '../../i18n'
+import { formatPercent, t as tr } from '../../i18n'
 
 interface Props {
   data: AnalysisInitData
@@ -56,6 +58,14 @@ interface Props {
   }
 }
 
+/** A column's heading: a column of several documents shows the average of
+ *  their percentages, and says so. The name is shortened to `max`
+ *  characters, the "(average)" kept whole. */
+function columnLabel(col: { label: string; sourceGuids: string[] }, max?: number): string {
+  const name = max ? truncate(col.label, max) : col.label
+  return isAverageColumn(col) ? tr('codeFreq.averageLabel', { label: name }) : name
+}
+
 export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
   const { t } = useTranslation()
   const [docFilter, setDocFilter] = useState<DocumentFilterState>(documentFilterFromConfig(savedConfig))
@@ -69,9 +79,11 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
   // respondent's coded cells). No-op when no tag constraint is active.
   // The survey questions and respondents chosen in From these documents
   // narrow it further.
+  // Image and page sizes, read from the files, measure box codings by area.
+  const pageSizes = usePageSizes(useDocumentStore((s) => s.sources))
   const data = useMemo(() => {
-    return applySurveyCellScope({ ...propData, ...live }, docFilter)
-  }, [propData, live, docFilter])
+    return applySurveyCellScope({ ...propData, ...live, pageSizes }, docFilter)
+  }, [propData, live, pageSizes, docFilter])
   const [dropOver, setDropOver] = useState(false)
   const [tagDropOver, setTagDropOver] = useState(false)
   const chartRef = useRef<SVGSVGElement>(null)
@@ -80,6 +92,24 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
   const [analysisName, setAnalysisName] = useState(savedConfig?.name ?? '')
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
+  // The info panel is placed against the window, not the Results box
+  // (which would cut it off), and kept inside it.
+  const infoButtonRef = useRef<HTMLButtonElement>(null)
+  const [infoPlace, setInfoPlace] = useState<{ left: number; top: number; width: number; maxHeight: number } | null>(null)
+  useEffect(() => {
+    if (!showInfo || !infoButtonRef.current) return
+    const update = () => {
+      const r = infoButtonRef.current!.getBoundingClientRect()
+      const width = Math.min(400, window.innerWidth - 32)
+      const rtl = getComputedStyle(infoButtonRef.current!).direction === 'rtl'
+      const left = rtl ? Math.min(r.left, window.innerWidth - width - 16) : Math.max(16, r.right - width)
+      const top = r.bottom + 6
+      setInfoPlace({ left, top, width, maxHeight: Math.max(160, window.innerHeight - top - 16) })
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [showInfo])
   const isExisting = !!savedConfig?.guid
 
   // Dirty tracking (see useToolDirtyState — baseline is the saved
@@ -140,6 +170,13 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
   const { columns, headerGroups, hasGroupedHeader } = useMemo(
     () => buildSurveyAwareColumns(groupBy, data, filteredSourceGuids, sourceMap, { includeSubtotals: false }),
     [filteredSourceGuids, groupBy, data, sourceMap]
+  )
+
+  // Documents whose size had to be estimated (an image or page that
+  // couldn't be read, a recording of unknown length), for the note.
+  const estimatedNames = useMemo(
+    () => filteredSourceGuids.filter((g) => sizeEstimated(data, g)).map((g) => sourceMap.get(g) ?? ''),
+    [filteredSourceGuids, data, sourceMap]
   )
 
   // Grid: percentage values
@@ -203,7 +240,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
   }, [])
 
   const handleExportCsv = useCallback(() => {
-    const colNames = columns.map((c) => c.label)
+    const colNames = columns.map((c) => columnLabel(c))
     const rows: string[][] = [[t('analysis.code'), ...colNames]]
     for (let i = 0; i < codeGuids.length; i++) {
       rows.push([codeMap.get(codeGuids[i])?.name || '', ...grid[i].map((v) => v.toFixed(1) + '%')])
@@ -300,7 +337,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
     const CHAR_W = 5.5
 
     const items = columns.map((col, ci) => {
-      const label = truncate(col.label, 20)
+      const label = columnLabel(col, 20)
       return {
         color: seriesColors[ci % seriesColors.length],
         label,
@@ -473,6 +510,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                 {t('analysis.exportCsv')}
               </button>
               <button
+                ref={infoButtonRef}
                 onClick={() => setShowInfo((v) => !v)}
                 title={t('codeFreq.howCalculated')}
                 aria-label={t('codeFreq.howCalculated')}
@@ -484,7 +522,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
               >
                 <Icon icon={faCircleInfo} style={{ fontSize: 14 }} />
               </button>
-              {showInfo && (
+              {showInfo && infoPlace && (
                 <>
                   {/* Click-outside dismiss */}
                   <div
@@ -493,8 +531,8 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                   />
                   <div
                     style={{
-                      position: 'absolute', top: '100%', insetInlineEnd: 0, marginTop: 6,
-                      width: 360, padding: '12px 14px',
+                      position: 'fixed', left: infoPlace.left, top: infoPlace.top,
+                      width: infoPlace.width, maxHeight: infoPlace.maxHeight, overflow: 'auto', padding: '12px 14px',
                       background: 'var(--bg-panel)',
                       border: '1px solid var(--border-color)',
                       borderRadius: 'var(--radius-md)',
@@ -512,12 +550,15 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                     </div>
                     <ul style={{ margin: '0 0 8px 16px', padding: 0, color: 'var(--text-secondary)' }}>
                       <li style={{ marginBottom: 4 }}><Trans i18nKey="codeFreq.howText" components={{ b: <strong /> }} /></li>
+                      <li style={{ marginBottom: 4 }}><Trans i18nKey="codeFreq.howSurvey" components={{ b: <strong /> }} /></li>
                       <li style={{ marginBottom: 4 }}><Trans i18nKey="codeFreq.howMedia" components={{ b: <strong /> }} /></li>
                       <li style={{ marginBottom: 4 }}><Trans i18nKey="codeFreq.howPdfText" components={{ b: <strong /> }} /></li>
                       <li style={{ marginBottom: 4 }}><Trans i18nKey="codeFreq.howPdfRegion" components={{ b: <strong /> }} /></li>
                       <li style={{ marginBottom: 4 }}><Trans i18nKey="codeFreq.howPdfMixed" components={{ b: <strong /> }} /></li>
                       <li><Trans i18nKey="codeFreq.howImage" components={{ b: <strong /> }} /></li>
                     </ul>
+                    <div style={{ color: 'var(--text-secondary)', marginBottom: 6 }}><Trans i18nKey="codeFreq.howGroups" components={{ b: <strong /> }} /></div>
+                    <div style={{ color: 'var(--text-secondary)' }}>{t('codeFreq.howEstimated')}</div>
                   </div>
                 </>
               )}
@@ -568,8 +609,11 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                           verticalAlign: 'bottom', height: 80, padding: 0, position: 'relative'
                         }}
                       >
-                        <div style={{ position: 'absolute', bottom: 6, left: '50%', transformOrigin: 'bottom left', transform: 'rotate(-20deg)', whiteSpace: 'nowrap', fontSize: 10, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}>
-                          {truncate(col.label, 24)}
+                        <div
+                          title={isAverageColumn(col) ? `${col.label}: ${t('codeFreq.averageTitle')}` : col.label}
+                          style={{ position: 'absolute', bottom: 6, left: '50%', transformOrigin: 'bottom left', transform: 'rotate(-20deg)', whiteSpace: 'nowrap', fontSize: 10, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 170 }}
+                        >
+                          {columnLabel(col, 24)}
                         </div>
                       </th>
                     ))}
@@ -611,6 +655,11 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                   ))}
                 </tbody>
               </table>
+              {estimatedNames.length > 0 && (
+                <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-muted)' }}>
+                  {t('codeFreq.estimatedNote', { names: estimatedNames.join(', ') })}
+                </div>
+              )}
             </div>
           )}
           {dropOver && (
@@ -639,7 +688,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
               {columns.map((col, ci) => (
                 <div key={col.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10 }}>
                   <div style={{ width: 10, height: 10, background: seriesColors[ci % seriesColors.length], borderRadius: 2 }} />
-                  {truncate(col.label, 20)}
+                  {columnLabel(col, 20)}
                 </div>
               ))}
             </div>
@@ -696,7 +745,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                               }
                             }}
                           >
-                            <title>{t('codeFreq.barTitle', { code: codeMap.get(codeGuid)?.name, value: formatPercent(val), column: col.label })}</title>
+                            <title>{t('codeFreq.barTitle', { code: codeMap.get(codeGuid)?.name, value: formatPercent(val), column: columnLabel(col) })}</title>
                           </rect>
                         )
                       })}

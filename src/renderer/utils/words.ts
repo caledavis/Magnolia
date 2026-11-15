@@ -32,6 +32,14 @@ export function wordTokens(text: string): WordToken[] {
   return out
 }
 
+/** Whether a word is long enough to count in the word tools. Single
+ *  letters ("a", "I", "s" from "it's") are left out, but not in scripts
+ *  written without spaces, where one character is often a whole word
+ *  (钱 "money", 家 "home", 本 "book"). */
+export function isCountedWord(word: string): boolean {
+  return word.length >= 2 || NO_SPACE_RE.test(word)
+}
+
 /** The words of `text` (numbers included) and each punctuation mark on
  *  its own, for the Word Tree, whose branches run on past a comma. */
 export function wordAndMarkTokens(text: string): WordToken[] {

@@ -165,3 +165,19 @@ export function deriveVideoTimeRange(
   return { startTime, endTime: Math.max(endTime, startTime) }
 }
 
+
+/** The time a transcript span covers, for measuring it: its lines' times
+ *  (deriveVideoTimeRange), with a span on the last timed line running to
+ *  the end of the recording rather than ending where it starts. */
+export function transcriptTimeRange(
+  text: string,
+  startCp: number,
+  endCp: number,
+  lineTimes: Record<string, number> | undefined,
+  duration?: number
+): { startTime: number; endTime: number } | undefined {
+  const d = deriveVideoTimeRange(text, startCp, endCp, lineTimes)
+  if (!d) return undefined
+  if (d.endTime <= d.startTime && duration && duration > d.startTime) return { startTime: d.startTime, endTime: duration }
+  return d
+}

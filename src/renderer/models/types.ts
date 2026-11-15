@@ -558,11 +558,10 @@ export interface MagnoliaAPI {
   onProjectLoadProgress: (callback: (p: { stage: string; current: number; total: number }) => void) => () => void
   openProject: () => Promise<Project & { sourceContents: Record<string, string>; missingBinaries?: MissingBinary[]; checkoutInfo?: CheckoutMarker | null } | null>
   pickProjectFile: () => Promise<string | null>
+  /** Of the given files, those that no longer exist. */
+  missingFiles: (paths: string[]) => Promise<string[]>
   /** Pick several .qdpx files at once (Inter-coder Agreement). */
   pickProjectFiles: () => Promise<string[]>
-  /** Write a .qdpx dropped from the OS to a temporary file and return
-   *  its path, so it can be read with readQdpxForCompare. */
-  stageDroppedProject: (file: File) => Promise<string>
   openProjectPath: (filePath: string) => Promise<Project & { sourceContents: Record<string, string>; missingBinaries?: MissingBinary[]; checkoutInfo?: CheckoutMarker | null } | null>
   readCheckoutMarker: (filePath: string) => Promise<CheckoutMarker | null>
   /** Atomic check-and-set: rejects (`ok: false`, `marker` = the current
@@ -976,8 +975,7 @@ export interface AnalysisInitData {
     name: string
     /** Source kind — drives extent calculations for the analysis tools
      *  (e.g. Code Frequencies uses % of duration for audio/video and
-     *  % of selection count for image / PDF-region codings, where a
-     *  pixel-area denominator isn't available). */
+     *  % of area for image / PDF box codings). */
     sourceType?: SourceType
     /** Duration in seconds for audio/video; used as the denominator
      *  when computing % of media covered by code. */
@@ -996,6 +994,11 @@ export interface AnalysisInitData {
   sourceSelections: Record<string, PlainTextSelection[]>
   /** Tag member source guids */
   tagMembers: Record<string, string[]>
+  /** PDFs and images whose page sizes have been read (source guid →
+   *  page key 'p1'… → width / height in points or pixels), for measuring
+   *  box codings by area. A document missing here has its size estimated
+   *  from its boxes. */
+  pageSizes?: Record<string, Record<string, { w: number; h: number }>>
   /** Survey respondent/question tag membership (tag guid → entity refs),
    *  for cell-precise scoping of survey content by tag. */
   respondentTagMembers?: Record<string, SurveyEntityRef[]>

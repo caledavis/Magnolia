@@ -14,7 +14,7 @@
  * the results, so a report (and a reopened analysis whose files have
  * moved) can still show them.
  */
-import { useState, useMemo, useCallback, useEffect, useRef, Fragment } from 'react'
+import { useState, useMemo, useCallback, useEffect, useLayoutEffect, useRef, Fragment } from 'react'
 import type { AnalysisInitData } from '../../../models/types'
 import {
   Icon,
@@ -84,7 +84,14 @@ import {
   formatMetric,
   metricLabel,
   metricTitle,
-  pairLabel,
+  headerGroups,
+  alphaChange,
+  formatChange,
+  changeLevel,
+  asShown,
+  columnGroup,
+  tintScale,
+  type ResultsView,
   tableRows,
   brennanPredigerLine,
   exportRows,
@@ -100,6 +107,8 @@ export interface IntercoderConfig {
   docGuids: string[]
   codeGuids: string[]
   measure: Measure
+  /** Results by pair of coders, or by coder against the rest (3+ coders). */
+  view?: ResultsView
   /** Segments: minimum overlap (intersection ÷ union), 0–1. */
   threshold: number
   /** The results as last computed — what reports show, and what the
@@ -129,10 +138,6 @@ function docIcon(sourceType: string | undefined): { icon: IconComponent; tint?: 
   if (sourceType === 'video') return { icon: faVideo, tint }
   if (sourceType === 'image') return { icon: faImage, tint }
   return { icon: faFile, tint }
-}
-
-function isQdpxDrag(e: React.DragEvent): boolean {
-  return e.dataTransfer.types.includes('Files')
 }
 
 function isDocDrag(e: React.DragEvent): boolean {
@@ -223,13 +228,14 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
   const [codeGuids, setCodeGuids] = useState<string[]>(savedConfig?.codeGuids ?? [])
   const [measure, setMeasure] = useState<Measure>(savedConfig?.measure ?? 'characters')
   const [threshold, setThreshold] = useState<number>(savedConfig?.threshold ?? DEFAULT_THRESHOLD)
+  const [view, setView] = useState<ResultsView>(savedConfig?.view ?? 'pairs')
   const savedSnapshot = savedConfig?.snapshot
 
   // ── Loaded projects ───────────────────────────────────────────────
   const [fileCoders, setFileCoders] = useState<Record<string, CoderProject>>({})
   const [loadErrors, setLoadErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState<string[]>([])
-  const [dropOver, setDropOver] = useState<'projects' | 'docs' | 'codes' | null>(null)
+  const [dropOver, setDropOver] = useState<'docs' | 'codes' | null>(null)
 
   // The open project, live: rebuilt whenever its codes, documents or
   // text change, so coding while the tool is open shows straight away.
@@ -274,14 +280,15 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
     if (picked.length) addPaths(picked)
   }, [addPaths])
 
-  const handleFileDrop = useCallback(async (e: React.DragEvent) => {
-    const files = Array.from(e.dataTransfer.files).filter((f) => /\.qdpx$/i.test(f.name))
-    const staged: string[] = []
-    for (const f of files) {
-      try { staged.push(await window.api.stageDroppedProject(f)) } catch { /* unreadable drop */ }
-    }
-    if (staged.length) addPaths(staged)
-  }, [addPaths])
+  // A project that couldn't be opened (moved, renamed, deleted): pick
+  // the file again, and it takes the old one's place in the list.
+  const relocate = useCallback(async (p: string) => {
+    const picked = await window.api.pickProjectFile()
+    if (!picked) return
+    const np = isOpenProjectPath(picked) ? OPEN_PROJECT_ID : picked
+    setPaths((prev) => (prev.includes(np) && np !== p ? prev.filter((x) => x !== p) : prev.map((x) => (x === p ? np : x))))
+    setLoadErrors((prev) => { const n = { ...prev }; delete n[p]; return n })
+  }, [])
 
   const removePath = useCallback((p: string) => {
     setPaths((prev) => prev.filter((x) => x !== p))
@@ -323,7 +330,6 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
     const fresh = parseCodeDrop(e)
     if (fresh.length) setCodeGuids((prev) => appendNew(prev, fresh))
   })
-  const projectDrop = dropHandlers(isQdpxDrag, (o) => setDropOver(o ? 'projects' : null), (e) => { void handleFileDrop(e) })
 
   const [focusDoc, setFocusDoc] = useState<string | null>(null)
   const focusMembers = focusDoc ? docs.find((d) => d.key === focusDoc)?.members : undefined
@@ -375,7 +381,57 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
     setExpanded((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]))
 
   const [drill, setDrill] = useState<{ codeKey: string; docKey: string | null; pair: number } | null>(null)
-  useEffect(() => { setDrill(null) }, [paths, measure])
+  useEffect(() => { setDrill(null) }, [paths, measure, view])
+
+  // A clicked result's coded segments must always be in view, so the user
+  // sees them change: while they're open the table is kept short (see the
+  // table's box), and the tool scrolls down to the results (the measure
+  // controls at its top), so the table and the start of the coding fill
+  // the window.
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const resultsTopRef = useRef<HTMLDivElement>(null)
+  const [scrollerHeight, setScrollerHeight] = useState(0)
+  useLayoutEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const measure = () => setScrollerHeight(el.clientHeight)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  const tableBoxRef = useRef<HTMLDivElement>(null)
+  const drillRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!drill) return
+    const frame = requestAnimationFrame(() => {
+      const sc = scrollRef.current
+      const box = tableBoxRef.current
+      const dd = drillRef.current
+      if (!sc || !box || !dd) return
+      // Keep the clicked result in view inside the (now shorter) table,
+      // clear of its pinned header rows and code column.
+      const cell = box.querySelector<HTMLElement>('td[data-selected]')
+      if (cell) {
+        const b = box.getBoundingClientRect()
+        const c = cell.getBoundingClientRect()
+        const headH = box.querySelector('thead')?.getBoundingClientRect().height ?? 0
+        // Past the code column and the pinned all-coders column.
+        const codeW = [...box.querySelectorAll<HTMLElement>('thead tr:first-child th[data-pinned]')].reduce((w, th) => w + th.getBoundingClientRect().width, 0)
+        const bottom = b.top + box.clientHeight
+        if (c.top < b.top + headH) box.scrollTop -= b.top + headH - c.top
+        else if (c.bottom > bottom) box.scrollTop += c.bottom - bottom
+        const rtl = getComputedStyle(box).direction === 'rtl'
+        const start = rtl ? b.right - codeW : b.left + codeW
+        if (!rtl && c.left < start) box.scrollLeft -= start - c.left
+        if (rtl && c.right > start) box.scrollLeft += c.right - start
+      }
+      const view = sc.getBoundingClientRect()
+      const top = (resultsTopRef.current ?? box).getBoundingClientRect().top
+      sc.scrollTo({ top: sc.scrollTop + top - view.top - 6, behavior: 'smooth' })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [drill])
 
   // ── Persistence ───────────────────────────────────────────────────
   const [analysisGuid] = useState(savedConfig?.guid ?? generateGuid())
@@ -385,12 +441,13 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
   const savedRef = useRef(isExisting)
   const nameRef = useRef(analysisName)
 
-  const currentConfig = useMemo(() => ({ paths, docGuids, codeGuids, measure, threshold }), [paths, docGuids, codeGuids, measure, threshold])
+  const currentConfig = useMemo(() => ({ paths, docGuids, codeGuids, measure, view, threshold }), [paths, docGuids, codeGuids, measure, view, threshold])
   const initialBaseline = useMemo(() => ({
     paths: savedConfig?.paths ?? [OPEN_PROJECT_ID],
     docGuids: savedConfig?.docGuids ?? [],
     codeGuids: savedConfig?.codeGuids ?? [],
     measure: savedConfig?.measure ?? 'characters',
+    view: savedConfig?.view ?? 'pairs',
     threshold: savedConfig?.threshold ?? DEFAULT_THRESHOLD
   }), [])
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
@@ -423,6 +480,7 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
     setDocGuids(baseline.docGuids)
     setCodeGuids(baseline.codeGuids)
     setMeasure(baseline.measure)
+    setView(baseline.view)
     setThreshold(baseline.threshold)
   }, [baseline])
 
@@ -445,15 +503,50 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
   // ── Export ────────────────────────────────────────────────────────
   const handleExportCsv = useCallback(() => {
     if (!snapshot) return
-    const rows = exportRows(snapshot)
+    const rows = exportRows(snapshot, view)
     window.api.exportCsv(toCsv(rows), 'intercoder-agreement.csv')
-  }, [snapshot])
+  }, [snapshot, view])
 
   // ── Render ────────────────────────────────────────────────────────
-  const cols: MetricCol[] = snapshot ? metricColumns(snapshot.measure, snapshot.coders.length) : []
+  // By coder needs three or more coders; with two it's the one pair.
+  const byCoderOffered = (snapshot?.coders.length ?? coders.length) >= 3
+  const cols: MetricCol[] = snapshot ? metricColumns(snapshot.measure, snapshot.coders.length, byCoderOffered ? view : 'pairs') : []
   const rows = snapshot ? tableRows(snapshot, expandedSet) : []
-  const pairCount = snapshot ? snapshot.results.pairs.length : 0
-  const colsPerPair = snapshot?.measure === 'segments' ? 3 : 2
+  // Where each column's group (all coders, a pair, a coder) starts and ends.
+  const groupStarts = cols.map((c, i) => i === 0 || columnGroup(cols[i - 1]) !== columnGroup(c))
+  const groupEnds = cols.map((c, i) => i === cols.length - 1 || columnGroup(cols[i + 1]) !== columnGroup(c))
+  // The header's first row, measured so the second sticks just below it.
+  const headRowRef = useRef<HTMLTableRowElement>(null)
+  const [headRowHeight, setHeadRowHeight] = useState(0)
+  useLayoutEffect(() => {
+    const el = headRowRef.current
+    if (!el) return
+    const measure = () => setHeadRowHeight(el.getBoundingClientRect().height)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [snapshot !== null])
+  // The all-coders column stays beside the code column when the table
+  // scrolls sideways: each pair or coder is read against it (a coder's
+  // "Alpha without" against everyone's alpha). Measure the code column
+  // so the pinned column sits just past it.
+  const pinFirst = cols.length > 0 && columnGroup(cols[0]) === 'all'
+  const codeHeadRef = useRef<HTMLTableCellElement>(null)
+  const [codeColWidth, setCodeColWidth] = useState(0)
+  useLayoutEffect(() => {
+    const el = codeHeadRef.current
+    if (!el) return
+    const measure = () => setCodeColWidth(el.getBoundingClientRect().width)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [snapshot !== null])
+  const pinned = (top?: number): React.CSSProperties => ({
+    position: 'sticky', insetInlineStart: codeColWidth, borderInlineEnd: '1px solid var(--border-color)',
+    ...(top === undefined ? { zIndex: 1 } : { top, zIndex: 3 })
+  })
   const bpLine = snapshot ? brennanPredigerLine(snapshot) : null
   const docNameOf = (key: string) => snapshot?.docs.find((d) => d.key === key)?.name ?? docs.find((d) => d.key === key)?.name ?? ''
 
@@ -507,8 +600,24 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
       )}
 
       <div style={{ padding: '4px 20px 8px', fontSize: 11, color: 'var(--text-muted)', flexShrink: 0 }}>{t('intercoder.intro')}</div>
+      {(() => {
+        // Coders' projects that couldn't be opened, said at the top so
+        // it isn't missed: the results are then the saved ones.
+        const missing = paths.filter((p) => loadErrors[p])
+        if (missing.length === 0) return null
+        return (
+          <div role="alert" style={{
+            margin: '0 20px 8px', padding: '7px 10px', fontSize: 11, display: 'flex', alignItems: 'flex-start', gap: 8, flexShrink: 0,
+            color: 'var(--text-primary)', borderRadius: 'var(--radius-md)',
+            background: 'color-mix(in srgb, #d39b1a 14%, var(--bg-panel))', border: '1px solid color-mix(in srgb, #d39b1a 45%, transparent)'
+          }}>
+            <Icon icon={faExclamationTriangle} style={{ fontSize: 12, color: 'var(--warning, #c68a00)', marginTop: 1, flexShrink: 0 }} />
+            <span>{t('intercoder.missingBanner', { names: missing.map((p) => p.split(/[/\\]/).pop()).join(', ') })}</span>
+          </div>
+        )
+      })()}
 
-      <div style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '0 20px 14px' }}>
+      <div ref={scrollRef} style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '0 20px 14px' }}>
         {/* ── The three panes ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, height: PANE_H }}>
           {/* 1. Projects */}
@@ -516,10 +625,11 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
             title={t('intercoder.paneProjects')}
             step={1}
             actions={<button className="secondary" style={smallBtn} onClick={() => void handlePick()}><Icon icon={faPlus} style={{ fontSize: 10 }} /> {t('intercoder.addProjects')}</button>}
-            dropOver={dropOver === 'projects'}
-            fileDropZone
-            {...projectDrop}
           >
+            {/* Projects are added with Add projects only: a file dropped
+                into the window arrives without its location on disk, so
+                it could only be read from a temporary copy that a saved
+                analysis could never find again. */}
             {paths.map((p, i) => {
               const c = p === OPEN_PROJECT_ID ? openCoder : fileCoders[p]
               const err = loadErrors[p]
@@ -536,13 +646,26 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
                 >
                   <span style={coderBadge}>{formatNumber(i + 1)}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={ellipsis} title={c?.label}>
-                      {c ? c.label : err ? p.split(/[/\\]/).pop() : t('intercoder.loading')}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+                      {err && (
+                        <span title={err} style={{ display: 'inline-flex', flexShrink: 0, color: 'var(--warning, #c68a00)' }}>
+                          <Icon icon={faExclamationTriangle} style={{ fontSize: 11 }} />
+                        </span>
+                      )}
+                      <span style={ellipsis} title={c?.label}>
+                        {c ? c.label : err ? p.split(/[/\\]/).pop() : t('intercoder.loading')}
+                      </span>
                     </div>
                     <div style={{ ...ellipsis, fontSize: 10, color: err ? 'var(--danger, #c0392b)' : 'var(--text-muted)' }} title={err ?? p}>
                       {err ?? (p === OPEN_PROJECT_ID ? t('intercoder.openProject', { name: c?.fileName ?? '' }) : c?.fileName ?? '')}
                     </div>
+
                   </div>
+                  {err && (
+                    <button className="secondary" style={{ ...smallBtn, flexShrink: 0 }} title={t('intercoder.locateTitle')} onClick={() => void relocate(p)}>
+                      {t('intercoder.locate')}
+                    </button>
+                  )}
                   <span onClick={() => removePath(p)} title={t('intercoder.removeProject')} style={xStyle}><Icon icon={faXmark} style={{ fontSize: 10 }} /></span>
                 </div>
               )
@@ -556,7 +679,7 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
           <Pane
             title={t('intercoder.paneDocuments')}
             step={2}
-            actions={selDocs.length > 0 && <ClearLink onClear={() => { setDocGuids([]); setFocusDoc(null) }} />}
+            actions={selDocs.length > 0 && <ClearButton onClear={() => { setDocGuids([]); setFocusDoc(null) }} />}
             dropOver={dropOver === 'docs'}
             {...docDrop}
           >
@@ -597,7 +720,7 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
           <Pane
             title={t('intercoder.paneCodes')}
             step={3}
-            actions={selCodes.length > 0 && <ClearLink onClear={() => setCodeGuids([])} />}
+            actions={selCodes.length > 0 && <ClearButton onClear={() => setCodeGuids([])} />}
             dropOver={dropOver === 'codes'}
             {...codeDrop}
           >
@@ -617,8 +740,22 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
           </Pane>
         </div>
 
-        {/* ── Results ── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '14px 0 8px', flexWrap: 'wrap' }}>
+        {/* ── Results ── While a result's coded segments are open, the
+            results take at least the tool's whole height, so the tool can
+            always scroll down to them however short the segments are. */}
+        <div style={{ minHeight: drill && !showingSaved ? Math.max(0, scrollerHeight - 20) : undefined }}>
+        <div ref={resultsTopRef} style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '14px 0 8px', flexWrap: 'wrap' }}>
+          {byCoderOffered && (
+            <SegmentedControl
+              label={t('analysis.view')}
+              value={view}
+              onChange={setView}
+              options={[
+                { value: 'pairs', label: t('intercoder.viewPairs'), title: t('intercoder.viewPairsTitle') },
+                { value: 'coders', label: t('intercoder.viewCoders'), title: t('intercoder.viewCodersTitle') }
+              ]}
+            />
+          )}
           <SegmentedControl
             label={t('intercoder.measure')}
             value={measure}
@@ -631,7 +768,16 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
           {measure === 'segments' && (
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-secondary)' }} title={t('intercoder.thresholdTitle')}>
               {t('intercoder.threshold')}
-              <input type="range" min={10} max={100} step={5} value={Math.round(threshold * 100)} onChange={(e) => setThreshold(Number(e.target.value) / 100)} style={{ width: 140 }} />
+              <input
+                type="range"
+                className="themed-range"
+                min={10}
+                max={100}
+                step={5}
+                value={Math.round(threshold * 100)}
+                onChange={(e) => setThreshold(Number(e.target.value) / 100)}
+                style={{ width: 140, ['--filled' as string]: `${((Math.round(threshold * 100) - 10) / 90) * 100}%` }}
+              />
               <span style={{ minWidth: 36 }}>{formatPercent(threshold * 100, 0)}</span>
             </label>
           )}
@@ -660,19 +806,23 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
                   : t('intercoder.pickCodes')}
           </div>
         ) : (
-          <div style={{ overflow: 'auto', background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+          // The table scrolls inside its own box — as wide as the tool and
+          // no taller than the window, or under half of it while a result's
+          // coded segments are open below — with its two header rows pinned
+          // to the box's top and the code column to its side. The tool
+          // itself only ever scrolls up and down.
+          <div ref={tableBoxRef} style={{ overflow: 'auto', maxHeight: drill && !showingSaved ? drillTableHeight(scrollerHeight) : 'max(240px, calc(100vh - 200px))', background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
             <table style={{ borderCollapse: 'separate', borderSpacing: 0, fontSize: 12, minWidth: '100%' }}>
               <thead>
-                <tr>
-                  <th rowSpan={2} style={{ ...headStyle, textAlign: 'start', minWidth: 220 }}>{t('intercoder.code')}</th>
-                  {Array.from({ length: pairCount }, (_, p) => (
-                    <th key={p} colSpan={colsPerPair} style={{ ...headStyle, textAlign: 'center' }}>{pairLabel(snapshot, p)}</th>
+                <tr ref={headRowRef}>
+                  <th ref={codeHeadRef} data-pinned="" rowSpan={2} style={{ ...headStyle, ...stickyHead(0), insetInlineStart: 0, zIndex: 3, borderInlineEnd: '1px solid var(--border-color)', textAlign: 'start', minWidth: 220, cursor: 'help' }} title={t('intercoder.codeTitle')}>{t('intercoder.code')}</th>
+                  {headerGroups(snapshot, cols).map((g, k) => (
+                    <th key={k} colSpan={g.span} title={g.title} data-pinned={pinFirst && k === 0 ? '' : undefined} style={{ ...headStyle, ...stickyHead(0), ...(pinFirst && k === 0 ? pinned(0) : {}), textAlign: 'center', cursor: 'help' }}>{g.label}</th>
                   ))}
-                  {cols.some((c) => c.pair === null) && <th style={{ ...headStyle, textAlign: 'center' }}>{pairLabel(snapshot, null)}</th>}
                 </tr>
                 <tr>
                   {cols.map((c, i) => (
-                    <th key={i} style={{ ...headStyle, fontWeight: 500, textAlign: 'center' }} title={metricTitle(c.metric)}>{metricLabel(c.metric)}</th>
+                    <th key={i} style={{ ...headStyle, ...stickyHead(headRowHeight), ...(pinFirst && i === 0 ? pinned(headRowHeight) : {}), fontWeight: 500, textAlign: 'center', cursor: 'help' }} title={metricTitle(c.metric, snapshot.measure)}>{metricLabel(c.metric)}</th>
                   ))}
                 </tr>
               </thead>
@@ -682,7 +832,12 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
                   const code = r.codeKey ? snapshot.codes.find((c) => c.key === r.codeKey) : undefined
                   return (
                     <tr key={`${r.kind}|${r.codeKey ?? ''}|${r.docKey ?? ''}`} style={{ background: r.kind === 'overall' ? 'var(--bg-secondary)' : undefined }}>
-                      <td style={{ ...cellStyle, textAlign: 'start', paddingInlineStart: r.kind === 'doc' ? 34 : 8, fontWeight: r.kind === 'overall' ? 600 : undefined }} title={r.title ?? r.label}>
+                      <td style={{
+                        ...cellStyle, textAlign: 'start', paddingInlineStart: r.kind === 'doc' ? 34 : 8, fontWeight: r.kind === 'overall' ? 600 : undefined,
+                        // The code names stay in view when the table scrolls sideways.
+                        position: 'sticky', insetInlineStart: 0, zIndex: 1, borderInlineEnd: '1px solid var(--border-color)',
+                        background: r.kind === 'overall' ? 'var(--bg-secondary)' : 'var(--bg-panel)'
+                      }} title={r.title ?? r.label}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                           {isCode && (
                             <span onClick={() => toggleExpanded(r.codeKey!)} style={{ cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex', width: 10 }} title={t('intercoder.showDocuments')}>
@@ -705,6 +860,7 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
                           <td
                             key={i}
                             onClick={clickable ? () => setDrill({ codeKey: r.codeKey!, docKey: r.docKey ?? null, pair: c.pair! }) : undefined}
+                            data-selected={isSel && groupStarts[i] ? '' : undefined}
                             title={clickable ? t('intercoder.showPassages') : undefined}
                             style={{
                               ...cellStyle,
@@ -712,12 +868,37 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
                               cursor: clickable ? 'pointer' : undefined,
                               color: v === null ? 'var(--text-muted)' : undefined,
                               fontWeight: isCode || r.kind === 'overall' ? 600 : undefined,
-                              borderInlineStart: c.pair !== null && i % colsPerPair === 0 ? '1px solid var(--border-color)' : undefined,
-                              boxShadow: isSel ? 'inset 0 0 0 2px var(--accent)' : undefined,
-                              background: v !== null && (c.metric === 'kappa' || c.metric === 'alpha' || c.metric === 'agreement') ? strengthTint(v, c.metric) : undefined
+                              // A line before each group's columns (all coders, a pair, a coder).
+                              // (The first column's line is the code column's own edge.)
+                              // (Not after the pinned column, which has its own.)
+                              borderInlineStart: i > 0 && groupStarts[i] && !(pinFirst && i === 1) ? '1px solid var(--border-color)' : undefined,
+                              boxShadow: isSel ? selectionOutline(groupStarts[i], groupEnds[i]) : undefined,
+                              ...(pinFirst && i === 0 ? pinned() : {}),
+                              background: cellBackground(
+                                v !== null && tintScale(c.metric, snapshot.measure) ? strengthTint(v, tintScale(c.metric, snapshot.measure)!) : undefined,
+                                // The pinned column covers what scrolls beneath it.
+                                pinFirst && i === 0 ? (r.kind === 'overall' ? 'var(--bg-secondary)' : 'var(--bg-panel)') : undefined
+                              )
                             }}
                           >
                             {formatMetric(v, c.metric)}
+                            {(() => {
+                              // Alpha without a coder: its change from everyone's alpha.
+                              // Red or amber where agreement is clearly higher
+                              // without the coder: they're out of step.
+                              const d = alphaChange(r.cell, c, snapshot.measure)
+                              if (d === null) return null
+                              const level = changeLevel(d)
+                              return (
+                                <span title={t('intercoder.metricAlphaChangeTitle')} style={{
+                                  marginInlineStart: 5, fontSize: 10,
+                                  fontWeight: level ? 600 : 400,
+                                  color: level === 'clear' ? 'color-mix(in srgb, #d0473a 85%, var(--text-primary))'
+                                    : level === 'some' ? 'color-mix(in srgb, #d39b1a 65%, var(--text-primary))'
+                                      : 'var(--text-muted)'
+                                }}>({formatChange(d)})</span>
+                              )
+                            })()}
                           </td>
                         )
                       })}
@@ -726,11 +907,12 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
                 })}
               </tbody>
             </table>
-            {bpLine && <div style={{ padding: '6px 10px', fontSize: 11, color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)' }}>{bpLine}</div>}
+            {bpLine && <div style={{ position: 'sticky', insetInlineStart: 0, padding: '6px 10px', fontSize: 11, color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)' }}>{bpLine}</div>}
           </div>
         )}
 
         {snapshot && drill && !showingSaved && (
+          <div ref={drillRef}>
           <DrillDown
             coders={coders}
             docs={drill.docKey ? selDocs.filter((d) => d.key === drill.docKey) : selDocs}
@@ -740,21 +922,44 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
             threshold={threshold}
             onClose={() => setDrill(null)}
           />
+          </div>
         )}
+        </div>
       </div>
     </div>
   )
 }
 
+/** The outline of a selected pair's cells: one box around them all, so
+ *  the edges between the cells aren't drawn. `first` / `last` say whether
+ *  the cell starts or ends the pair (in reading order: right to left in
+ *  a right-to-left language). */
+function selectionOutline(first: boolean, last: boolean): string {
+  const rtl = document.documentElement.dir === 'rtl'
+  const left = rtl ? last : first
+  const right = rtl ? first : last
+  const edges = ['inset 0 2px 0 0 var(--accent)', 'inset 0 -2px 0 0 var(--accent)']
+  if (left) edges.push('inset 2px 0 0 0 var(--accent)')
+  if (right) edges.push('inset -2px 0 0 0 var(--accent)')
+  return edges.join(', ')
+}
+
 /** A soft green / amber / red wash for an agreement or kappa value, so
  *  weak agreement stands out. Kappa bands follow Landis & Koch loosely:
  *  ≥ 0.8 strong, ≥ 0.6 moderate, below that weak. */
-function strengthTint(raw: number, metric: 'agreement' | 'kappa' | 'alpha' | string): string | undefined {
+/** A cell's shading, laid over an opaque base where the cell is pinned. */
+function cellBackground(tint: string | undefined, base: string | undefined): string | undefined {
+  if (!base) return tint
+  return tint ? `linear-gradient(${tint}, ${tint}), ${base}` : base
+}
+
+function strengthTint(raw: number, scale: 'segments' | 'kappa' | 'alpha'): string | undefined {
   // Judge the value as shown (0.1% / two decimals), so a 0.7996 shown as
-  // 0.80 is shaded as 0.80.
-  const v = metric === 'agreement' ? Math.round(raw * 1000) / 1000 : Math.round(raw * 100) / 100
-  const strong = metric === 'agreement' ? 0.9 : 0.8
-  const moderate = metric === 'agreement' ? 0.8 : 0.6
+  // 0.80 is shaded as 0.80. Segment agreement: 80% good, 70% workable;
+  // kappa and alpha: 0.80 strong, 0.60 moderate.
+  const v = scale === 'segments' ? asShown(raw, 3) : asShown(raw, 2)
+  const strong = 0.8
+  const moderate = scale === 'segments' ? 0.7 : 0.6
   const colour = v >= strong ? '#2e9d5b' : v >= moderate ? '#d39b1a' : '#d0473a'
   return `color-mix(in srgb, ${colour} 13%, transparent)`
 }
@@ -988,7 +1193,7 @@ function RegionPreview({ coder, sourceType, formatData, passage, segs, colour }:
 
 // ── Small pieces ───────────────────────────────────────────────────────
 
-function Pane({ title, step, actions, children, dropOver, fileDropZone, onDragOver, onDragLeave, onDrop }: {
+function Pane({ title, step, actions, children, dropOver, onDragOver, onDragLeave, onDrop }: {
   title: string
   step: number
   actions?: React.ReactNode
@@ -996,14 +1201,12 @@ function Pane({ title, step, actions, children, dropOver, fileDropZone, onDragOv
   dropOver?: boolean
   /** Takes dropped files itself, so the window's "drop to import" cue
    *  stays hidden over it. */
-  fileDropZone?: boolean
   onDragOver?: (e: React.DragEvent) => void
   onDragLeave?: (e: React.DragEvent) => void
   onDrop?: (e: React.DragEvent) => void
 }) {
   return (
     <div
-      data-file-drop-zone={fileDropZone ? '' : undefined}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
@@ -1051,6 +1254,12 @@ function HowCalculated() {
     window.addEventListener('resize', update)
     return () => window.removeEventListener('resize', update)
   }, [open])
+  const heading: React.CSSProperties = { fontWeight: 600, fontSize: 12, marginBottom: 4 }
+  const subheading: React.CSSProperties = { fontWeight: 600, fontSize: 11, margin: '8px 0 4px' }
+  const rule: React.CSSProperties = { borderTop: '1px solid var(--border-color)', margin: '10px 0 8px' }
+  const para = (k: string) => (
+    <p key={k} style={{ margin: '0 0 6px', color: 'var(--text-secondary)' }}><Trans i18nKey={`intercoder.${k}`} components={{ b: <strong /> }} /></p>
+  )
   const item = (k: string) => (
     <li style={{ marginBottom: 6 }}><Trans i18nKey={k} components={{ b: <strong /> }} /></li>
   )
@@ -1088,9 +1297,27 @@ function HowCalculated() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Three parts: which measure to use, what the results mean in
+                plain words, and how they're calculated. */}
+            <div style={heading}>{t('intercoder.choiceHeading')}</div>
+            {para('choiceCharacters')}
+            {para('choiceSegments')}
+            {para('choiceBoth')}
+            <MeasureDiagram />
+            <div style={rule} />
+            <div style={heading}>{t('intercoder.meaningHeading')}</div>
+            <div style={subheading}>{t('intercoder.infoCharsHeading')}</div>
+            {['meaningAgreement', 'meaningKappa', 'meaningExample', 'meaningScale', 'meaningAlpha'].map(para)}
+            <div style={subheading}>{t('intercoder.infoSegmentsHeading')}</div>
+            {['meaningSegments', 'meaningOverlap', 'meaningSegmentScale', 'meaningAvgAgreement'].map(para)}
+            <div style={subheading}>{t('intercoder.viewCoders')}</div>
+            {para('meaningByCoder')}
+            {para('meaningAlphaWithoutColours')}
+            <div style={rule} />
             <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 2 }}>{t('intercoder.infoHeading')}</div>
             {section('intercoder.infoCharsHeading', ['intercoder.infoUnits', 'intercoder.infoPercent', 'intercoder.infoKappa', 'intercoder.infoAlpha', 'intercoder.infoTotals', 'intercoder.infoAllCodes'])}
-            {section('intercoder.infoSegmentsHeading', ['intercoder.infoSegments', 'intercoder.infoBp'])}
+            {section('intercoder.infoSegmentsHeading', ['intercoder.infoSegments', 'intercoder.infoAvgAgreement', 'intercoder.infoBp'])}
+            {section('intercoder.viewCoders', ['intercoder.infoByCoder'])}
             {section('intercoder.infoNotesHeading', ['intercoder.infoNotes'])}
           </div>
         </>
@@ -1099,10 +1326,65 @@ function HowCalculated() {
   )
 }
 
-function ClearLink({ onClear }: { onClear: () => void }) {
+/** The two measures side by side on the same pair of codings: coder 1
+ *  codes characters 1–9, coder 2 characters 4–12, of 16. Characters
+ *  compares each character; Segments compares the passages whole, by the
+ *  share of what either coded that both coded (6 of 12 = 50%). */
+function MeasureDiagram() {
+  const { t } = useTranslation()
+  const N = 16, CELL = 9, GAP = 2, X0 = 12
+  const first = [1, 9], second = [4, 12]
+  const inA = (i: number) => i >= first[0] && i <= first[1]
+  const inB = (i: number) => i >= second[0] && i <= second[1]
+  const x = (i: number) => X0 + i * (CELL + GAP)
+  const coded = 'color-mix(in srgb, var(--accent) 55%, transparent)'
+  const empty = 'color-mix(in srgb, var(--border-color) 70%, transparent)'
+  const both = 'color-mix(in srgb, #2e9d5b 75%, transparent)'
+  const one = 'color-mix(in srgb, #d0473a 75%, transparent)'
+  // Neither coded it: agreement as well, in a paler green.
+  const neither = 'color-mix(in srgb, #2e9d5b 30%, transparent)'
+  const width = X0 + N * (CELL + GAP)
+  const label = (y: number, text: string) => (
+    <text x={0} y={y + CELL - 1} fontSize={9} fill="var(--text-muted)">{text}</text>
+  )
+  const cells = (y: number, fill: (i: number) => string) => Array.from({ length: N }, (_, i) => (
+    <rect key={i} x={x(i)} y={y} width={CELL} height={CELL} rx={1.5} fill={fill(i)} />
+  ))
+  const span = (y: number, [a, b]: number[], fill: string, dashed = false) => (
+    <rect x={x(a)} y={y} width={x(b) + CELL - x(a)} height={CELL} rx={2}
+      fill={dashed ? 'none' : fill} stroke={dashed ? 'var(--text-muted)' : 'none'} strokeDasharray={dashed ? '3 2' : undefined} />
+  )
+  const shared = second[0] <= first[1] ? first[1] - second[0] + 1 : 0
+  const union = Math.max(first[1], second[1]) - Math.min(first[0], second[0]) + 1
+  const pct = formatPercent((shared / union) * 100, 0)
+  const panel = (title: string, svg: React.ReactNode, caption: string) => (
+    <div style={{ flex: '1 1 180px', minWidth: 0 }}>
+      <div style={{ fontWeight: 600, fontSize: 11, marginBottom: 4 }}>{title}</div>
+      <svg width={width} height={42} viewBox={`0 0 ${width} 42`} aria-hidden="true" style={{ display: 'block', maxWidth: '100%' }}>{svg}</svg>
+      <div style={{ marginTop: 4, color: 'var(--text-secondary)', fontSize: 10.5, lineHeight: 1.4 }}>{caption}</div>
+    </div>
+  )
+  return (
+    <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', margin: '6px 0 4px', padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
+      {panel(t('intercoder.measureCharacters'), <>
+        {label(0, formatNumber(1))}{cells(0, (i) => (inA(i) ? coded : empty))}
+        {label(12, formatNumber(2))}{cells(12, (i) => (inB(i) ? coded : empty))}
+        {cells(30, (i) => (inA(i) && inB(i) ? both : inA(i) || inB(i) ? one : neither))}
+      </>, t('intercoder.diagramCharacters'))}
+      {panel(t('intercoder.measureSegments'), <>
+        {label(0, formatNumber(1))}{span(0, first, coded)}
+        {label(12, formatNumber(2))}{span(12, second, coded)}
+        {span(30, [Math.min(first[0], second[0]), Math.max(first[1], second[1])], '', true)}
+        {span(30, [second[0], first[1]], both)}
+      </>, t('intercoder.diagramSegments', { shared: formatNumber(shared), union: formatNumber(union), pct }))}
+    </div>
+  )
+}
+
+function ClearButton({ onClear }: { onClear: () => void }) {
   const { t } = useTranslation()
   return (
-    <a href="#" style={{ fontSize: 10 }} onClick={(e) => { e.preventDefault(); onClear() }}>{t('intercoder.clear')}</a>
+    <button className="secondary" style={smallBtn} onClick={onClear}>{t('intercoder.clear')}</button>
   )
 }
 
@@ -1121,6 +1403,9 @@ const countBadge: React.CSSProperties = {
   fontSize: 9, fontWeight: 600, padding: '0 5px', lineHeight: '14px', borderRadius: 7,
   background: 'var(--bg-tertiary)', color: 'var(--text-muted)', flexShrink: 0
 }
+/** A header cell pinned `top` px below the top of the table's box. */
+const stickyHead = (top: number): React.CSSProperties => ({ position: 'sticky', top, zIndex: 2 })
+
 const headStyle: React.CSSProperties = {
   background: 'var(--bg-secondary)',
   borderBottom: '1px solid var(--border-color)', padding: '6px 8px', fontSize: 11, fontWeight: 600,
@@ -1128,4 +1413,12 @@ const headStyle: React.CSSProperties = {
 }
 const cellStyle: React.CSSProperties = {
   borderBottom: '1px solid var(--border-color)', padding: '5px 8px', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums'
+}
+
+/** The results table's height while a result's passages are open: short
+ *  enough that the passages' first lines show below it in the tool's own
+ *  scroll area (not the window, which also holds the panels below). */
+function drillTableHeight(scrollerHeight: number): number {
+  if (!scrollerHeight) return 180
+  return Math.round(Math.max(120, Math.min(scrollerHeight * 0.45, scrollerHeight - 320)))
 }

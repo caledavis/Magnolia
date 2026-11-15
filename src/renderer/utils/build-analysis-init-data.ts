@@ -5,6 +5,7 @@
  * launcher (App.openAnalysis / openSavedAnalysis) and the inline tab
  * wrappers (which get the same payload without going through IPC).
  */
+import { cachedPageSizes } from './region-sizes'
 import type { AnalysisInitData, AnalysisToolType, Code, SurveyFormatData } from '../models/types'
 import { buildCellText } from './survey/cell-text'
 import { buildSurveyEntityLabels } from './survey/survey-labels'
@@ -90,6 +91,8 @@ export function buildAnalysisInitData(
     questionTagMembers,
     surveyCodableCells,
     surveyEntityLabels: buildSurveyEntityLabels(docStore.sources),
+    // Image and page sizes read so far (a report's export reads them first).
+    pageSizes: cachedPageSizes(docStore.sources),
     savedConfig: opts?.savedConfig
   }
 

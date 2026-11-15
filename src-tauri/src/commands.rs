@@ -133,36 +133,6 @@ pub async fn pick_project_files(app: AppHandle, window: WebviewWindow) -> CmdRes
         .collect())
 }
 
-/// A .qdpx dropped from the OS: the webview has its bytes but not its
-/// path, so write them to a temporary file the compare reader can open.
-/// The raw body carries the bytes, the `x-file-name` header the name.
-#[tauri::command]
-pub async fn stage_dropped_project(request: Request<'_>) -> CmdResult<String> {
-    let name = request
-        .headers()
-        .get("x-file-name")
-        .and_then(|v| v.to_str().ok())
-        .and_then(|v| urlencoding::decode(v).ok())
-        .map(|s| s.into_owned())
-        .unwrap_or_default();
-    let bytes = match request.body() {
-        InvokeBody::Raw(b) => b.clone(),
-        InvokeBody::Json(_) => return Err("expected raw file bytes".into()),
-    };
-    static NEXT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(1);
-    let n = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    let dir = std::env::temp_dir().join(format!("magnolia-dropped-{}-{n}", std::process::id()));
-    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-    // Keep only the final component so a crafted name can't escape the folder.
-    let file = Path::new(&name)
-        .file_name()
-        .map(|f| f.to_os_string())
-        .unwrap_or_else(|| "project.qdpx".into());
-    let path = dir.join(file);
-    std::fs::write(&path, bytes).map_err(|e| e.to_string())?;
-    Ok(path_str(&path))
-}
-
 #[tauri::command]
 pub async fn open_project_path(
     window: WebviewWindow,
@@ -257,6 +227,13 @@ pub async fn check_in_project(
 }
 
 // ── Merge ──
+
+/// The given files that no longer exist (moved, renamed or deleted), so
+/// a saved Inter-coder analysis can warn that a coder's project is missing.
+#[tauri::command]
+pub async fn missing_files(paths: Vec<String>) -> CmdResult<Vec<String>> {
+    Ok(paths.into_iter().filter(|p| !Path::new(p).is_file()).collect())
+}
 
 /// Load a second .qdpx for comparison without touching the active project.
 #[tauri::command]

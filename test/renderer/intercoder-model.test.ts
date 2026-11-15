@@ -309,3 +309,158 @@ describe('inter-coder agreement: transcript and timeline', () => {
     expect(p.agreed).toBe(true)
   })
 })
+
+describe('inter-coder agreement: the all-coders column', () => {
+  it('comes first: alpha for Characters, the pairs’ average agreement for Segments', async () => {
+    const { metricColumns, metricValue } = await import('../../src/renderer/components/Analysis/intercoder/intercoder-tables')
+    expect(metricColumns('characters', 3)[0]).toEqual({ pair: null, metric: 'alpha' })
+    const cols = metricColumns('segments', 3)
+    expect(cols[0]).toEqual({ pair: null, metric: 'avgAgreement' })
+    expect(metricColumns('segments', 2).some((c) => c.pair === null)).toBe(false)
+    // Pairs at 50%, 100% and one with nothing to compare: (0.5 + 1) ÷ 2.
+    const cell = { units: {}, chars: [], alpha: null, segs: [{ agree: 2, total: 4 }, { agree: 3, total: 3 }, null] }
+    expect(metricValue(cell, cols[0], 'segments')).toBeCloseTo(0.75)
+  })
+})
+
+describe('inter-coder agreement: by coder', () => {
+  // 20 characters, four coders, plus a second document where coder D
+  // isn't present.
+  const T = 'x'.repeat(20)
+  const four = () => [
+    project('A', [textDoc([sel('a', 0, 10, 'code1')]), textDoc([sel('a2', 0, 5, 'code1')], 'doc2', 'Second')], undefined, { doc1: T, doc2: T }),
+    project('B', [textDoc([sel('b', 2, 10, 'code1')]), textDoc([sel('b2', 0, 6, 'code1')], 'doc2', 'Second')], undefined, { doc1: T, doc2: T }),
+    project('C', [textDoc([sel('c', 0, 12, 'code1')]), textDoc([sel('c2', 10, 15, 'code1')], 'doc2', 'Second')], undefined, { doc1: T, doc2: T }),
+    project('D', [textDoc([sel('d', 8, 18, 'code1')])], undefined, { doc1: T })
+  ]
+
+  it('alpha without a coder is the alpha of the others alone', () => {
+    const all = run(four())
+    for (let k = 0; k < 4; k++) {
+      const others = run(four().filter((_, i) => i !== k))
+      if (others.coders.length >= 3) {
+        expect(all.codeTotals.code1.alphaWithout![k]).toEqual(others.codeTotals.code1.alpha)
+        expect(all.cells.code1.doc1.alphaWithout![k]).toEqual(others.cells.code1.doc1.alpha)
+      }
+    }
+  })
+
+  it('with two others left, it is the two coders’ own alpha', () => {
+    // A, B, C on 20 characters; without C: A 0–10, B 2–10 → a 8, b 2, c 0, d 10.
+    const r = run(four().slice(0, 3).map((p) => ({ ...p, sources: p.sources.slice(0, 1) })))
+    const tab = r.cells.code1.doc1.alphaWithout![2]!
+    // Binary, two coders: n1 = 2a + b + c, n0 = 2d + b + c, o01 = b + c.
+    expect(tab).toEqual({ o01: 2, n1: 18, n0: 22 })
+    expect(krippendorffAlpha(tab)).toBeCloseTo(1 - (39 * 2) / (22 * 18), 10)
+  })
+
+  it('a document one coder lacks counts only among those who have it', () => {
+    const r = run(four())
+    // Without A, only B and C have the second document.
+    expect(r.cells.code1.doc2.alphaWithout![0]).toEqual({ o01: 11, n1: 11, n0: 29 })
+    // Without D, it's A, B and C, as with everyone.
+    expect(r.cells.code1.doc2.alphaWithout![3]).toEqual(r.cells.code1.doc2.alpha)
+  })
+
+  it('averages the coder’s pairs, and pools all codes', async () => {
+    const { metricColumns, metricValue } = await import('../../src/renderer/components/Analysis/intercoder/intercoder-tables')
+    const r = run(four())
+    const cols = metricColumns('characters', 4, 'coders')
+    expect(cols[0]).toEqual({ pair: null, metric: 'alpha' })
+    const forA = cols.filter((c) => c.coder === 0)
+    // No average % agreement for Characters: uncoded text makes it read high.
+    expect(forA.map((c) => c.metric)).toEqual(['coderKappa', 'alphaWithout'])
+    // A is in pairs 0 (A–B), 1 (A–C), 2 (A–D).
+    expect(forA[0].coderPairs).toEqual([0, 1, 2])
+    const cell = r.codeTotals.code1
+    const kappas = [0, 1, 2].map((p) => cohensKappa(cell.chars[p]!)!)
+    expect(metricValue(cell, forA[0], 'characters')).toBeCloseTo((kappas[0] + kappas[1] + kappas[2]) / 3, 10)
+    expect(metricValue(cell, forA[1], 'characters')).toBeCloseTo(krippendorffAlpha(cell.alphaWithout![0]!)!, 10)
+    // All codes (one code here): the pooled form gives the code's own value.
+    expect(metricValue(r.overall, forA[1], 'characters')).toBeCloseTo(krippendorffAlpha(cell.alphaWithout![0]!)!, 10)
+    // Segments: one column per coder, the mean of the coder's pairs.
+    const segCol = metricColumns('segments', 4, 'coders').filter((c) => c.coder === 0)
+    expect(segCol.map((c) => c.metric)).toEqual(['coderAgreement'])
+    const segs = [0, 1, 2].map((p) => cell.segs[p]!.agree / cell.segs[p]!.total)
+    expect(metricValue(cell, segCol[0], 'segments')).toBeCloseTo((segs[0] + segs[1] + segs[2]) / 3, 10)
+    // Two coders: always by pair.
+    expect(metricColumns('characters', 2, 'coders').every((c) => c.pair !== null)).toBe(true)
+  })
+})
+
+describe('inter-coder agreement: shading', () => {
+  it('shades kappa, alpha and segment agreement, but not Characters’ % agreement', async () => {
+    const { tintScale } = await import('../../src/renderer/components/Analysis/intercoder/intercoder-tables')
+    expect(tintScale('agreement', 'characters')).toBeNull()
+    expect(tintScale('agreement', 'segments')).toBe('segments')
+    expect(tintScale('coderAgreement', 'segments')).toBe('segments')
+    expect(tintScale('avgAgreement', 'segments')).toBe('segments')
+    expect(tintScale('coderKappa', 'characters')).toBe('kappa')
+    expect(tintScale('alphaWithout', 'characters')).toBe('alpha')
+    expect(tintScale('agreed', 'segments')).toBeNull()
+  })
+})
+
+describe('inter-coder agreement: alpha without, as a change', () => {
+  it('is the difference of the two values as shown', async () => {
+    const { alphaChange, formatChange, metricColumns } = await import('../../src/renderer/components/Analysis/intercoder/intercoder-tables')
+    const col = metricColumns('characters', 3, 'coders').find((c) => c.metric === 'alphaWithout')!
+    // alpha 0.5649 shows as 0.56 and without 0.8251 as 0.83 → +0.27,
+    // not the unrounded 0.2602 (0.26).
+    const a = (o01: number, n0: number, n1: number) => ({ o01, n0, n1 })
+    const n = 100
+    // Pick tables with the alphas wanted: alpha = 1 − (n−1)·o01/(n0·n1), n0 = n1 = 50.
+    const tab = (alpha: number) => a(((1 - alpha) * 2500) / (n - 1), 50, 50)
+    const cell = { units: {}, chars: [], segs: [], alpha: tab(0.5649), alphaWithout: [tab(0.8251), null, null] }
+    expect(alphaChange(cell, col, 'characters')).toBeCloseTo(0.27, 10)
+    expect(formatChange(0.27)).toBe('+0.27')
+    expect(formatChange(-0.05)).toBe('−0.05')
+    expect(formatChange(0)).toBe('0.00')
+    // Where the coder's alpha can't be computed: no change.
+    expect(alphaChange({ ...cell, alphaWithout: [null, null, null] }, col, 'characters')).toBeNull()
+    // Only for Alpha without.
+    expect(alphaChange(cell, { pair: null, metric: 'alpha' }, 'characters')).toBeNull()
+  })
+})
+
+describe('inter-coder agreement: the change’s colour and the headings’ tooltips', () => {
+  it('flags a coder agreement is clearly higher without', async () => {
+    const { changeLevel } = await import('../../src/renderer/components/Analysis/intercoder/intercoder-tables')
+    expect(changeLevel(0.26)).toBe('clear')
+    expect(changeLevel(0.1)).toBe('clear')
+    expect(changeLevel(0.09)).toBe('some')
+    expect(changeLevel(0.05)).toBe('some')
+    expect(changeLevel(0.04)).toBeNull()
+    expect(changeLevel(-0.3)).toBeNull()
+  })
+
+  it('describes agreement for the measure in use, and every column group', async () => {
+    const { metricTitle, metricColumns, headerGroups } = await import('../../src/renderer/components/Analysis/intercoder/intercoder-tables')
+    expect(metricTitle('agreement', 'segments')).not.toBe(metricTitle('agreement', 'characters'))
+    const snap = { coders: [{ label: 'Ana' }, { label: 'Ben' }, { label: 'Chloe' }], results: { pairs: [[0, 1], [0, 2], [1, 2]] } } as any
+    for (const view of ['pairs', 'coders'] as const) {
+      const groups = headerGroups(snap, metricColumns('characters', 3, view))
+      expect(groups.every((g) => g.title && g.title !== g.label)).toBe(true)
+    }
+  })
+})
+
+describe('inter-coder agreement: rounding as shown', () => {
+  it('rounds exactly as the numbers are displayed, halves away from zero', async () => {
+    const { asShown, alphaChange, metricColumns } = await import('../../src/renderer/components/Analysis/intercoder/intercoder-tables')
+    const fmt = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    for (let i = -100000; i <= 100000; i += 7) {
+      const x = i / 100000
+      expect(asShown(x, 2)).toBe(Number(fmt.format(x)) || 0)
+    }
+    // Where Math.round goes the other way.
+    expect(asShown(-0.125, 2)).toBe(-0.13)
+    expect(asShown(0.015, 2)).toBe(0.02)
+    // The change is the difference of the two values on screen: alpha
+    // −0.125 shows as −0.13, alpha without 0.20 → +0.33.
+    const col = metricColumns('characters', 3, 'coders').find((c) => c.metric === 'alphaWithout')!
+    const tabFor = (alpha: number) => ({ o01: ((1 - alpha) * 2500) / 99, n0: 50, n1: 50 })
+    const cell = { units: {}, chars: [], segs: [], alpha: tabFor(-0.125), alphaWithout: [tabFor(0.2), null, null] }
+    expect(alphaChange(cell, col, 'characters')).toBeCloseTo(0.33, 10)
+  })
+})

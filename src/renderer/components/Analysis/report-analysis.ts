@@ -15,8 +15,15 @@ import {
   resolveFilteredSources,
   countCodeInSource,
   codeFrequencyInSource,
+  sizeEstimated,
+  isAverageColumn,
   countCoOccurrences,
-  binarizeGrid
+  binarizeGrid,
+  columnData,
+  columnScopedData,
+  codeRowTotal,
+  resultsInColumn,
+  resultRowTotal
 } from './analysis-helpers'
 import { buildSurveyAwareColumns, type AnalysisColumn } from './survey-grouping'
 import { buildDisplayRows, fullLabel, summaryKey } from './framework-matrix-model'
@@ -26,7 +33,9 @@ import {
   metricValue,
   formatMetric,
   metricLabel,
-  pairLabel,
+  headerGroups,
+  alphaChange,
+  formatChange,
   tableRows,
   settingsRows,
   type IntercoderSnapshot
@@ -137,10 +146,15 @@ function renderGridTableHtml(
   headerGroups: { label: string | null; span: number }[],
   grid: number[][],
   opts: { binary: boolean; visual: boolean; totalsOnly: boolean },
-  rowDepths?: number[]
+  rowDepths?: number[],
+  /** Counts mode: each row's total with every item counted once (see
+   *  codeRowTotal / resultRowTotal). Binary sums the columns' 0s and 1s. */
+  distinctRowTotals?: number[]
 ): string {
   const { binary, visual, totalsOnly } = opts
-  const rowTotals = grid.map((row) => row.reduce((s, v, j) => (columns[j].isSubtotal ? s : s + v), 0))
+  const rowTotals = !binary && distinctRowTotals
+    ? distinctRowTotals
+    : grid.map((row) => row.reduce((s, v, j) => (columns[j].isSubtotal ? s : s + v), 0))
   const colTotals = columns.map((_, j) => grid.reduce((s, row) => s + row[j], 0))
   const grandTotal = rowTotals.reduce((a, b) => a + b, 0)
   let maxVal = 1
@@ -219,22 +233,6 @@ function renderGridTableHtml(
   return `<div class="report-wide${wide ? ' report-wide-rotate' : ''}"><table class="report-grid">${groupedRow}${headerRow}${body}${totalRow}</table></div>`
 }
 
-/** Per-column survey-cell scope, exactly as the grid tools do it. */
-function buildColData(columns: AnalysisColumn[], data: AnalysisInitData): Map<string, AnalysisInitData> {
-  const colData = new Map<string, AnalysisInitData>()
-  for (const col of columns) {
-    colData.set(
-      col.id,
-      col.respondentRef
-        ? applySurveyCellScope(data, { respondentScope: [col.respondentRef] })
-        : col.tagScopeGuids
-          ? applySurveyCellScope(data, { tagGuids: col.tagScopeGuids })
-          : data
-    )
-  }
-  return colData
-}
-
 function scopedData(toolType: AnalysisInitData['toolType'], config: any): { data: AnalysisInitData; docFilter: any } {
   // Survey questions and respondents are in the filter (moved there
   // from a separate Questions box after 1.9). Word tools counting query
@@ -281,7 +279,7 @@ function codesInDocumentsHtml(config: any, options: AnalysisItemOptions): string
   const sourceMap = new Map<string, string>(data.sources.map((s) => [s.guid, s.name]))
   const codeMap = new Map(data.codes.map((c) => [c.guid, c]))
   const { columns, headerGroups } = buildSurveyAwareColumns(config?.groupBy ?? [], data, filtered, sourceMap)
-  const colData = buildColData(columns, data)
+  const colData = columnScopedData(columns, data)
   let grid = codeGuids.map((cg) =>
     columns.map((col) => {
       const cd = colData.get(col.id) || data
@@ -291,7 +289,8 @@ function codesInDocumentsHtml(config: any, options: AnalysisItemOptions): string
   if (options.binary) grid = binarizeGrid(grid)
   const names = codeGuids.map((cg) => codeMap.get(cg)?.name ?? t('analysis.code'))
   const depths = codeRowDepths(codeGuids, codeMap)
-  return renderGridTableHtml(t('analysis.code'), names, columns, headerGroups, grid, { binary: !!options.binary, visual: !!options.visual, totalsOnly: !!options.totalsOnly }, depths)
+  const totals = codeGuids.map((cg) => codeRowTotal(columns, colData, data, cg))
+  return renderGridTableHtml(t('analysis.code'), names, columns, headerGroups, grid, { binary: !!options.binary, visual: !!options.visual, totalsOnly: !!options.totalsOnly }, depths, totals)
 }
 
 // ── Results in Documents ───────────────────────────────────────────
@@ -317,18 +316,12 @@ function resultsInDocumentsHtml(config: any, options: AnalysisItemOptions): stri
 
   let grid = queryGuids.map((qGuid) => {
     const results = queryResults.get(qGuid) || []
-    return columns.map((col) => {
-      if (col.respondentRef) {
-        const { sourceGuid, id } = col.respondentRef
-        return results.filter((r) => r.sourceGuid === sourceGuid && r.surveyCell?.respondentId === id).length
-      }
-      const colGuids = new Set(col.sourceGuids)
-      return results.filter((r) => colGuids.has(r.sourceGuid)).length
-    })
+    return columns.map((col) => resultsInColumn(results, col, data).length)
   })
   if (options.binary) grid = binarizeGrid(grid)
   const names = queryGuids.map((g) => queryMap.get(g)?.name ?? t('analysis.query'))
-  return renderGridTableHtml(t('analysis.query'), names, columns, headerGroups, grid, { binary: !!options.binary, visual: !!options.visual, totalsOnly: !!options.totalsOnly })
+  const totals = queryGuids.map((g) => resultRowTotal(queryResults.get(g) || [], columns, data))
+  return renderGridTableHtml(t('analysis.query'), names, columns, headerGroups, grid, { binary: !!options.binary, visual: !!options.visual, totalsOnly: !!options.totalsOnly }, undefined, totals)
 }
 
 // ── Code Frequencies (percentage grid, no totals/subtotals) ─────────
@@ -341,7 +334,7 @@ function codeFrequenciesHtml(config: any, options: AnalysisItemOptions): string 
   const sourceMap = new Map<string, string>(data.sources.map((s) => [s.guid, s.name]))
   const codeMap = new Map(data.codes.map((c) => [c.guid, c]))
   const { columns } = buildSurveyAwareColumns(config?.groupBy ?? [], data, filtered, sourceMap, { includeSubtotals: false })
-  const colData = buildColData(columns, data)
+  const colData = columnScopedData(columns, data)
   const grid = codeGuids.map((cg) =>
     columns.map((col) => {
       if (col.sourceGuids.length === 0) return 0
@@ -351,7 +344,8 @@ function codeFrequenciesHtml(config: any, options: AnalysisItemOptions): string 
     })
   )
   const depths = codeRowDepths(codeGuids, codeMap)
-  const thead = `<tr><th class="rowhead">Code</th>${columns.map((c) => `<th>${escHtml(c.label)}</th>`).join('')}</tr>`
+  // A column of several documents shows their average, and says so.
+  const thead = `<tr><th class="rowhead">${escHtml(t('analysis.code'))}</th>${columns.map((c) => `<th>${escHtml(isAverageColumn(c) ? t('codeFreq.averageLabel', { label: c.label }) : c.label)}</th>`).join('')}</tr>`
   const body = codeGuids
     .map((cg, i) => {
       const cells = columns
@@ -363,7 +357,9 @@ function codeFrequenciesHtml(config: any, options: AnalysisItemOptions): string 
       return `<tr><td class="rowhead">${codeIndent(depths[i])}${escHtml(codeMap.get(cg)?.name ?? t('analysis.code'))}</td>${cells}</tr>`
     })
     .join('')
-  return wrapTable(`<thead>${thead}</thead><tbody>${body}</tbody>`, columns.length)
+  const estimated = filtered.filter((g) => sizeEstimated(data, g)).map((g) => sourceMap.get(g) ?? '')
+  const note = estimated.length ? `<p class="report-note">${escHtml(t('codeFreq.estimatedNote', { names: estimated.join(', ') }))}</p>` : ''
+  return wrapTable(`<thead>${thead}</thead><tbody>${body}</tbody>`, columns.length) + note
 }
 
 // ── Code Co-Occurrences ────────────────────────────────────────────
@@ -649,7 +645,7 @@ function wordFrequenciesHtml(config: any, options: AnalysisItemOptions): string 
   const seriesFreqs = series.map((s) => {
     if (s.codeGuid) return countWords(codedPassageTexts(data, s.sourceGuids, codeSets.get(s.codeGuid)!).passages.map((p) => p.text), filter)
     if (s.queryGuid) return countWords(queryPassageTexts(data, queryRuns.get(s.queryGuid)!.results).passages.map((p) => p.text), filter)
-    const sd = s.respondentRef ? applySurveyCellScope(data, { respondentScope: [s.respondentRef] }) : data
+    const sd = columnData(s, data)
     return countWords(s.sourceGuids.flatMap((g) => sourceTexts(sd, g)), filter)
   })
   const ranked = Array.from(total.entries()).sort((a, b) => b[1] - a[1]).slice(0, wordCount)
@@ -776,16 +772,15 @@ function summaryMatrixHtml(config: any): string {
 function intercoderHtml(config: any): string {
   const snap = config?.snapshot as IntercoderSnapshot | undefined
   if (!snap || snap.codes.length === 0) return `<div class="empty">${escHtml(t('intercoder.reportEmpty'))}</div>`
-  const cols = metricColumns(snap.measure, snap.coders.length)
-  const perPair = snap.measure === 'segments' ? 3 : 2
-  const pairs = snap.results.pairs.length
-  const hasAlpha = cols.some((c) => c.pair === null)
-  const head1 = `<tr><th class="rowhead" rowspan="2">${escHtml(t('intercoder.code'))}</th>${Array.from({ length: pairs }, (_, p) => `<th colspan="${perPair}">${escHtml(pairLabel(snap, p))}</th>`).join('')}${hasAlpha ? `<th>${escHtml(pairLabel(snap, null))}</th>` : ''}</tr>`
+  // As last shown: by pair, or by coder.
+  const cols = metricColumns(snap.measure, snap.coders.length, config?.view === 'coders' ? 'coders' : 'pairs')
+  const head1 = `<tr><th class="rowhead" rowspan="2">${escHtml(t('intercoder.code'))}</th>${headerGroups(snap, cols).map((g) => `<th${g.span > 1 ? ` colspan="${g.span}"` : ''}>${escHtml(g.label)}</th>`).join('')}</tr>`
   const head2 = `<tr>${cols.map((c) => `<th>${escHtml(metricLabel(c.metric))}</th>`).join('')}</tr>`
   const body = tableRows(snap, new Set())
     .map((r) => `<tr><td class="rowhead">${escHtml(r.label)}</td>${cols.map((c) => {
       const v = metricValue(r.cell, c, snap.measure)
-      return `<td${v === null ? ' class="zero"' : ''}>${escHtml(formatMetric(v, c.metric))}</td>`
+      const d = alphaChange(r.cell, c, snap.measure)
+      return `<td${v === null ? ' class="zero"' : ''}>${escHtml(formatMetric(v, c.metric))}${d === null ? '' : ` (${escHtml(formatChange(d))})`}</td>`
     }).join('')}</tr>`)
     .join('')
   const notes = settingsRows(snap).map(([k, v]) => `${escHtml(k)}: ${escHtml(v)}`).join('<br>')

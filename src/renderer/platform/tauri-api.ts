@@ -299,10 +299,8 @@ const api: MagnoliaAPI = {
   },
   openProject: async () => openedProject(await invoke('open_project')),
   pickProjectFile: () => invoke('pick_project_file'),
+  missingFiles: (paths) => invoke('missing_files', { paths }),
   pickProjectFiles: () => invoke('pick_project_files'),
-  stageDroppedProject: async (file) => invoke('stage_dropped_project', new Uint8Array(await file.arrayBuffer()), {
-    headers: { 'x-file-name': encodeURIComponent(file.name) }
-  }),
   openProjectPath: async (filePath) => openedProject(await invoke('open_project_path', { filePath })),
   readCheckoutMarker: (filePath) => invoke('read_checkout_marker', { filePath }),
   checkOutProject: (filePath, userName, steal) => invoke('check_out_project', { filePath, userName, steal }),
@@ -515,6 +513,18 @@ if (current.label !== MAIN) {
 // clears the macOS traffic lights, and on macOS the panes in a window's
 // bottom corners, pop-outs included, follow its rounded corners.
 document.documentElement.setAttribute('data-platform', platform)
+// …and whether the window is full screen, where macOS hides the traffic
+// lights and squares the window's corners, so neither needs room. Entering
+// or leaving full screen resizes the window.
+if (platform === 'darwin') {
+  const markFullscreen = () => {
+    void current.isFullscreen().then((full) => {
+      document.documentElement.toggleAttribute('data-fullscreen', full)
+    }).catch(() => { /* window gone */ })
+  }
+  markFullscreen()
+  void current.onResized(markFullscreen)
+}
 // Enter and Escape belong to an input method while it's composing (see
 // utils/keys), in every window.
 guardComposition()

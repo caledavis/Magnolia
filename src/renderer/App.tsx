@@ -409,9 +409,6 @@ function App() {
     const hide = () => { clearTimeout(timer); setFileDrag(false) }
     const over = (e: DragEvent) => {
       if (!hasFiles(e)) return
-      // A pane that takes dropped files itself (Inter-coder Agreement's
-      // projects) isn't an import target.
-      if (e.target instanceof Element && e.target.closest('[data-file-drop-zone]')) { hide(); return }
       setFileDrag(true)
       clearTimeout(timer)
       timer = setTimeout(hide, 400)

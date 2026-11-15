@@ -3,7 +3,8 @@ import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../..
 import { useDocumentStore } from '../../stores/document-store'
 import { useRelationshipMapStore } from '../../stores/relationship-map-store'
 import { useMemoStore } from '../../stores/memo-store'
-import { Icon, faXmark, faUpRightFromSquare, faDownLeftAndUpRightToCenter, faChevronDown, faChevronRight, MEMO_ICON, faMagnifyingGlass } from '../Icon'
+import { Icon, faXmark, faUpRightFromSquare, faDownLeftAndUpRightToCenter, faChevronDown, faChevronRight, MEMO_ICON, faMagnifyingGlass, faExclamationTriangle } from '../Icon'
+import { OPEN_PROJECT_ID } from '../Analysis/intercoder/intercoder-model'
 import type { AnalysisToolType, SavedAnalysis } from '../../models/types'
 import { TOOL_REGISTRY } from '../../utils/tool-registry'
 import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
@@ -53,6 +54,29 @@ export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemo
   const promptCheckoutLocked = () => useProjectStore.getState().promptCheckoutConflict()
   const savedAnalyses = useProjectStore((s) => s.savedAnalyses) ?? []
   const setSavedAnalyses = useProjectStore((s) => s.setSavedAnalyses)
+
+  // Inter-coder analyses with a coder's project that's no longer where it
+  // was (moved, renamed, deleted): checked when the list changes and when
+  // the window regains focus (the file may have been put back).
+  const [missingProjects, setMissingProjects] = useState<Set<string>>(new Set())
+  useEffect(() => {
+    let live = true
+    const check = () => {
+      const byGuid = savedAnalyses
+        .filter((a) => a.toolType === 'intercoder-agreement')
+        .map((a) => ({ guid: a.guid, paths: ((a.config as { paths?: string[] } | undefined)?.paths ?? []).filter((p) => p !== OPEN_PROJECT_ID) }))
+      const all = [...new Set(byGuid.flatMap((a) => a.paths))]
+      if (all.length === 0) { setMissingProjects(new Set()); return }
+      void window.api.missingFiles(all).then((gone) => {
+        if (!live) return
+        const goneSet = new Set(gone)
+        setMissingProjects(new Set(byGuid.filter((a) => a.paths.some((p) => goneSet.has(p))).map((a) => a.guid)))
+      }).catch(() => { /* leave as is */ })
+    }
+    check()
+    window.addEventListener('focus', check)
+    return () => { live = false; window.removeEventListener('focus', check) }
+  }, [savedAnalyses])
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; guid: string } | null>(null)
   const menuPos = useClampedMenuPosition(contextMenu)
@@ -391,6 +415,11 @@ export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemo
                         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {sa.name}
                         </span>
+                        {missingProjects.has(sa.guid) && (
+                          <span title={t('analyses.projectMissing')} style={{ display: 'inline-flex', flexShrink: 0, color: 'var(--warning, #c68a00)' }}>
+                            <Icon icon={faExclamationTriangle} style={{ fontSize: 11 }} />
+                          </span>
+                        )}
                         {findMemoGuidForAnalysis?.(sa.guid) && (
                           <Icon
                             icon={MEMO_ICON}

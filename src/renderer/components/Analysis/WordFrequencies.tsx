@@ -8,7 +8,7 @@ import {
 } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
-import { toCsv, resolveFilteredSources, applySurveyCellScope } from './analysis-helpers'
+import { toCsv, resolveFilteredSources, applySurveyCellScope, columnData } from './analysis-helpers'
 import { stopWordsText } from './stop-words'
 import { StopWordsPicker } from './StopWordsPicker'
 import { countWords, sourceTexts, codedPassageTexts, queryPassageTexts, wordFilter, type WordQueryCodes } from './word-counts'
@@ -321,14 +321,15 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
   )
 
   // Per-series frequency maps. A code series counts its coded passages;
-  // a respondent series counts only that respondent's codable cells
-  // (surveyCodableCells scoped to the respondent first); other series
-  // read the shared data directly.
+  // a respondent series counts only that respondent's codable cells, and
+  // a tag series only the cells the tag covers (surveyCodableCells scoped
+  // first); other series read the shared data directly.
   const seriesFreqs = useMemo(() => {
     return series.map((s) => {
       if (s.codeGuid) return countWords(codedPassageTexts(data, s.sourceGuids, codeSets.get(s.codeGuid)!).passages.map((p) => p.text), filter)
       if (s.queryGuid) return countWords(queryPassageTexts(data, queryRuns.get(s.queryGuid)!.results).passages.map((p) => p.text), filter)
-      const sd = s.respondentRef ? applySurveyCellScope(data, { respondentScope: [s.respondentRef] }) : data
+      // A tag series holds only the survey cells the tag covers.
+      const sd = columnData(s, data)
       return countWords(s.sourceGuids.flatMap((g) => sourceTexts(sd, g)), filter)
     })
   }, [series, data, codeSets, queryRuns, filter])
