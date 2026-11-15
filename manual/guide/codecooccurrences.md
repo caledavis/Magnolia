@@ -6,6 +6,8 @@ Two codes occur together when:
 - They are applied to the same selection; or,
 - They are applied to selections that overlap.
 
+Box selections overlap when their boxes overlap on the same page. In audio and video, a coding made on the timeline overlaps another coding when they share a moment of the recording; for a coding made on the transcript, Magnolia uses the times of its lines.
+
 **To open Code Co-Occurrences:**
 
 1. Click the `Analyse` tab in the ribbon.

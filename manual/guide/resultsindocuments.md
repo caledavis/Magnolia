@@ -30,7 +30,7 @@ Only saved queries can be added. You can save a query by clicking `Save Query` i
 
 ## Reading the results
 
-Each cell shows how many results that query finds in that document (or group of documents). The `Total` column and row add up the table, and the `% of Total` column shows each row's total as a percentage of the grand total. The `Total` row also shows how many documents the table covers.
+Each cell shows how many results that query finds in that document (or group of documents). The `Total` column shows how many results each query finds across the table, and the `Total` row adds up each column. A document in more than one group appears in each of their columns, but its results are only counted once in the `Total` column. The `% of Total` column shows each row's total as a percentage of the grand total. The `Total` row also shows how many documents the table covers.
 
 <figure>
      <img src="./images/ResultsInDocumentsNumeric.png" alt="The results table.">
