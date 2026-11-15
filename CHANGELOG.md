@@ -6,6 +6,33 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 
 ## [2.1.0]
 
+### Changes to how results are calculated
+
+This version makes some important corrections to how results are calculated in several analysis tools. **If you have results from an earlier version of Magnolia, some of them may change when you open them in this version.** Saved analyses are recalculated when you open them, so they will show the new figures; results you exported or copied before won't change. We recommend opening your saved analyses again and checking any figures you have already reported, especially for audio, video, images, PDF boxes, grouped columns and tagged survey respondents.
+
+**Code Frequencies**
+- **Audio and video are measured by time.** Codings made on a transcript now count for the stretch of the recording they cover. Before, audio always showed 0%.
+- **Boxes on images and PDF pages are measured by area:** how much of the page or image they cover. For a PDF coded with both text and boxes, the text percentage and the box percentage are averaged.
+- **A coding can no longer count for more than the document holds.** A coding that ran past the end of a document could push a result over 100%.
+- **Columns that group several documents show an average** and are now labelled "(average)", so it's clear the figure is not a total. A note under the table says when the size of a page, image or recording had to be estimated.
+
+**Code Co-Occurrences and the Query tool's overlap**
+- **Boxes only co-occur when they overlap on the same page.** Before, two boxes could be counted together even when they were on different pages.
+- **Codings in audio and video co-occur when they overlap in time.** This includes a coding on the timeline and a coding on the transcript of the same moment. Before, two timeline codings could be counted together because they fell in the same line of a long transcript, even if they were minutes apart.
+- Code Co-Occurrences and the Query tool's overlap condition now always give the same answer.
+
+**Codes in Documents and Results in Documents**
+- **Totals count each document once.** When a document belonged to more than one of the grouped columns (for example, two tags), the Total counted it once for each column.
+- **A tag's column includes only the survey answers the tag covers.** If you tagged some respondents, the column used to include the whole survey.
+
+**Word Frequencies and the other word tools**
+- **A tag's column includes only the survey answers the tag covers** (as above).
+- **One-character words are counted in Chinese, Japanese and Thai,** where many words are a single character. Before, they were left out.
+
+**Codings kept safe**
+- **Codings on a video's timeline keep their exact times** when a project is saved and opened again.
+- **Codings on PDFs, images and recordings are kept when the file itself is missing** from the project, instead of being dropped.
+
 ### Added
 - **Inter-coder Agreement.** A new analysis tool, in the **Team** group of the Analyse tab, compares how two or more people coded the same documents, each in their own copy of the project. Add each coder's project, drag in the documents and codes to compare, and choose how to compare them:
   - **Characters** compares every character of text, moment of a recording and point of a page or image, and gives each pair of coders their % agreement and Cohen's kappa, with Krippendorff's alpha across three or more coders.
@@ -29,7 +56,6 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 - **The survey summary's export is in an Export menu,** with the same two choices as every other document: Export as PDF with Codes and Export as PDF.
 - **Merge compares where documents are filed.** A document moved to another folder or notebook can be taken like a rename, and a document or note brought in from the other project goes where it was filed there. Notebooks, notes and their codings have a section of their own in the merge review, and **Select All** only touches the section you're looking at.
 - **Query is the first button on the Analyse tab.**
-- **Code Frequencies measures boxes by their area.** A box drawn on an image or a PDF page now counts by how much of the page it covers, and a PDF coded with both text and boxes averages the two. Transcript codings in audio and video count by the time they cover. Grouped columns that combine several documents are marked **(average)**, and a note says when a size had to be estimated.
 - **Word, RTF and OpenDocument files are laid out by Magnolia itself** when you import them, instead of by your system's web view, so they come out the same on Mac, Windows and Linux. They're still imported as PDFs, with their headings, lists, tables, links and pictures, though their spacing and fonts may differ a little from before.
 
 ### Fixed
@@ -37,13 +63,6 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 - **Arabic, Hebrew and other scripts in imported Word, RTF and OpenDocument files read correctly.** Their words came out reversed, or in broken letter shapes, in Word Frequencies, Word Combinations, search and coded passages. Documents imported before this version keep their old text: import them again to fix it.
 - **Right-to-left text reads in its own direction in more places:** passages in Query Results, saved quotes, memo titles and text in the Memos panel and window, and, in exported PDFs, coded documents and notebooks, headings, titles and names. Before, they were laid out left to right, with punctuation and the ends of passages on the wrong side.
 - **Highlights on part of a right-to-left line in a PDF** are drawn over the right words, in the viewer and in exported PDFs with codes.
-- **Codings on a video's timeline keep their times** when the project is saved and opened again. Before, they could lose their exact start and end.
-- **PDF, image and video codings are kept when the file itself is missing** from the project, instead of being dropped when it was opened.
-- **Code Frequencies measures audio correctly.** It showed 0% for audio, and could go over 100% when a coding ran past the end of a document.
-- **Code Co-Occurrences counts boxes and recordings as the Query tool does:** boxes that overlap on the same page, and recording codings that overlap in time, including a timeline coding and a transcript coding of the same moment. Before, boxes on different pages, or timeline codings far apart in a long transcript line, could be counted together.
-- **Totals count a document once** in Codes in Documents and Results in Documents when it belongs to several of the grouped columns.
-- **A tag's column only includes the survey answers the tag covers,** in Codes in Documents, Results in Documents and Word Frequencies, rather than the whole survey.
-- **One-character words are counted in Chinese, Japanese and Thai** in Word Frequencies and the other word tools, where many words are a single character.
 - **In full screen on a Mac,** the toolbar no longer leaves a gap for the window buttons, and the window's corners are square.
 
 ## [2.0.1]
