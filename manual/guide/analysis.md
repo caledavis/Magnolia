@@ -37,6 +37,12 @@ The tools are grouped by what they work with.
 | [Word Frequencies](/guide/wordfrequencies) | See which words appear most often, as a list, a bar chart or a word cloud. |
 | [Word Combinations](/guide/wordcombinations) | See which words go together: the phrases that repeat, the words that appear alongside a word you choose, and every context a word appears in. |
 
+### Team
+
+| Tool | Use it to… |
+| --- | --- |
+| [Inter-coder Agreement](/guide/intercoder) | Compare how two or more coders have coded the same documents, and see where they differ. |
+
 ### Bringing it together
 
 | Tool | Use it to… |

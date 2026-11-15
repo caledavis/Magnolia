@@ -5,7 +5,7 @@ The manner in which you create a memo changes depending on what you are attachin
 In all cases, memos can either be created by either:
 
 - Clicking the ```+``` button in the Saved Memos Panel
-- Right-clicking a selection and choosing ```Add Selection Memo```
+- Right-clicking a selection, or clicking the button on its end, and choosing ```Add Selection Memo```
 - Clicking the Memo button.
 
 ::: tip
@@ -42,7 +42,7 @@ Selection memos are attached to segments in documents. These can be either selec
 
 1. Select the text or the part of the image you would like to attach the memo to.
 
-2. Right-click on the selection and choose "Add selection memo".
+2. Right-click on the selection, or click the button on its end, and choose "Add selection memo".
 
    <figure>
      <img src="./images/RightClickMemos.png" alt="The contextual menu used to create a selection memo.">

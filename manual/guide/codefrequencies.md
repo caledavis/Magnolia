@@ -33,20 +33,26 @@ The tool contains:
 
 Each cell shows the percentage of that document covered by that code. Where selections coded with the same code overlap, the overlapping part is only counted once.
 
+If you group your documents, a column that holds more than one document shows the average of its documents' percentages, and its heading is marked `(average)`. Each document counts equally, however long it is.
+
 How the percentage is calculated depends on the type of document:
 
 | Document type | Percentage of |
 | --- | --- |
 | Text | The characters in the document |
-| Audio and video | The length of the recording |
+| Audio and video | The length of the recording (see below) |
 | PDF (text selections) | The text in the PDF |
-| PDF (box selections) | The box selections in the PDF |
-| Image | The box selections in the image |
+| PDF (box selections) | The area of all of the PDF's pages |
+| Image | The area of the image |
 | Survey | The text of the open-ended answers |
 
 ::: info
-Images do not have a "length" in the way that text or recordings do, so Magnolia measures them by their selections instead. If an image has four box selections and one of them is coded with a code, that code covers 25% of the image. You can see these rules at any time by clicking the `ⓘ` button above the table.
+Images and box selections are measured by area. If a code's boxes cover half of an image, that code covers 50% of the image. If a code has both text and box selections in a PDF, its percentage is the average of the two. You can see these rules at any time by clicking the `ⓘ` button above the table.
 :::
+
+For audio and video, a coding made on the timeline counts for the time it covers. A coding made on the transcript counts for the transcript lines it covers, using the times of those lines. If any coding can't be placed in time, because the transcript has no timestamps, Magnolia measures the percentage of the transcript's text instead.
+
+If Magnolia can't read the size of an image or a PDF's pages, or the length of a recording, from its file, it estimates it from what has been coded. The documents it has estimated are named below the table.
 
 <figure>
      <img src="./images/CodeFrequenciesInfo.png" alt="The explanation of how frequencies are calculated.">

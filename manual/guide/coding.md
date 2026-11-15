@@ -92,7 +92,13 @@ If a passage was coded with both codes, it keeps a single coding after the merge
 
 1. Select the text you wish to code in the Viewer. Then:
    1. Drag the code from the Code Browser to the Viewer; or,
-   2. Press the hotkey assigned to the code.
+   2. Click the button on the end of the selection, or right-click the selection, and choose the code under `Apply Code`; or,
+   3. Press the hotkey assigned to the code.
+
+   <figure>
+     <img src="./images/SelectionMenuButton.png" alt="The button on the end of a selection">
+     <figcaption>The button on the end of a selection.</figcaption>
+   </figure>
 
 2. Your code is assigned to the selection.
 
@@ -107,7 +113,8 @@ If a passage was coded with both codes, it keeps a single coding after the merge
 
 1. Click and drag on the image to create a selection. Then:
    1. Drag the code from the Code Browser to the Viewer; or,
-   2. Press the hotkey assigned to the code.
+   2. Click the button at the bottom-right corner of the selection, or right-click the selection, and choose the code under `Apply Code`; or,
+   3. Press the hotkey assigned to the code.
 
 2. Your code is assigned to the selection.
 

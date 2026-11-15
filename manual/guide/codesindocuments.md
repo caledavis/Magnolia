@@ -31,7 +31,7 @@ The tool contains:
 
 Each cell shows how many selections in that document (or group of documents) are coded with that code.
 
-- The `Total` column adds up each row, and the `Total` row adds up each column.
+- The `Total` column shows how many selections each code is applied to across the table, and the `Total` row adds up each column. A document in more than one group appears in each of their columns, but its selections are only counted once in the `Total` column.
 - The `% of Total` column shows each row's total as a percentage of the grand total.
 - If you group by a tag category or a folder, its columns are followed by a `Subtotal` column and a `%` column. The `%` column shows the subtotal as a percentage of the row's total.
 
