@@ -15,6 +15,7 @@
  *     the updater key from ~/.tauri/magnolia-updater.key when
  *     TAURI_SIGNING_PRIVATE_KEY isn't set; on macOS, needs APPLE_ID and
  *     APPLE_PASSWORD (or APPLE_APP_SPECIFIC_PASSWORD) for notarization,
+ *     reading them from the "Magnolia notarization" keychain item if unset,
  *     signs with Magnolia's Developer ID unless APPLE_SIGNING_IDENTITY says
  *     otherwise, and builds both architectures.
  *
@@ -198,6 +199,21 @@ function run(cmd, args, env = process.env) {
   execFileSync(cmd, args, { stdio: 'inherit', env, shell: isWin, cwd: root })
 }
 
+/** The keychain item holding the Apple ID (its account) and app-specific password. */
+const KEYCHAIN_SERVICE = 'Magnolia notarization'
+
+/** The Apple ID and password saved in the keychain, or null if there's none. */
+function keychainNotarization() {
+  const find = (args) => execFileSync('security', ['find-generic-password', '-s', KEYCHAIN_SERVICE, ...args], { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] })
+  try {
+    const account = find([]).match(/"acct"<blob>="([^"]*)"/)?.[1]
+    const password = find(['-w']).trim()
+    return account && password ? { account, password } : null
+  } catch {
+    return null
+  }
+}
+
 /** The environment for a signed release build, or an error saying what's missing. */
 function releaseEnv(platform) {
   const env = { ...process.env }
@@ -216,11 +232,20 @@ function releaseEnv(platform) {
     env.APPLE_SIGNING_IDENTITY ||= MAC_IDENTITY
     env.APPLE_TEAM_ID ||= MAC_TEAM_ID
     env.APPLE_PASSWORD ||= env.APPLE_APP_SPECIFIC_PASSWORD
+    // Otherwise the Apple ID and password come from the login keychain, so
+    // the password needn't be in a file or the shell history.
+    if (!env.APPLE_ID || !env.APPLE_PASSWORD) {
+      const saved = keychainNotarization()
+      if (saved) {
+        env.APPLE_ID ||= saved.account
+        env.APPLE_PASSWORD ||= saved.password
+      }
+    }
     // Unsigned Mac builds are blocked by Gatekeeper, and 1.x installs only
     // update to a build signed with the same Developer ID, so don't go on.
     const missing = ['APPLE_ID', 'APPLE_PASSWORD'].filter((v) => !env[v])
     if (missing.length) {
-      throw new Error(`Set ${missing.join(' and ')} (or APPLE_APP_SPECIFIC_PASSWORD) first, so the build is notarized (see RELEASING.md).`)
+      throw new Error(`Save the Apple ID and app-specific password in the keychain as "${KEYCHAIN_SERVICE}", or set ${missing.join(' and ')}, first, so the build is notarized (see RELEASING.md).`)
     }
   }
   return env

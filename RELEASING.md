@@ -93,10 +93,17 @@ key lives at `~/.tauri/magnolia-updater.key` on the Mac it was generated on
   Authority"** intermediate is probably missing — download it from
   <https://www.apple.com/certificateauthority/> and import it.
 - **App-specific password** for your Apple ID (for notarization) — generate at
-  <https://appleid.apple.com>.
+  <https://account.apple.com> (Sign-In and Security → App-Specific Passwords).
 
-**Sign + notarize:** export your Apple ID and its app-specific password,
-as for the Electron builds:
+**Sign + notarize:** save your Apple ID and its app-specific password in the
+login keychain once (`-w` last makes `security` ask for the password, so it
+stays out of your shell history):
+```sh
+security add-generic-password -U -s "Magnolia notarization" -a "you@example.com" -w
+```
+`npm run release:mac` reads them from there. (After making a new app-specific
+password, run the same command again; `-U` replaces the old one.) Or export
+them instead, as for the Electron builds, which overrides the keychain:
 ```sh
 export APPLE_ID="you@example.com"
 export APPLE_APP_SPECIFIC_PASSWORD="xxxx-xxxx-xxxx-xxxx"
@@ -243,7 +250,7 @@ npm version X.Y.Z --no-git-tag-version   # and version = "X.Y.Z" in src-tauri/Ca
 (cd src-tauri && cargo build) && git commit -am "Bump version to X.Y.Z" && git push
 gh release create vX.Y.Z --draft --title "Magnolia X.Y.Z" --notes ""
 
-# On the Mac (after exporting APPLE_ID and APPLE_APP_SPECIFIC_PASSWORD):
+# On the Mac (Apple ID and password from the "Magnolia notarization" keychain item):
 npm run release:mac
 # Windows and Linux, from any machine (they build on GitHub; see
 # "Building for Windows" and "Building for Linux"):
@@ -289,12 +296,9 @@ The steps in detail:
    `…/releases/latest/download/…` links keep working), and uploads them to
    the `vX.Y.Z` draft (the version in `package.json`). It loads the updater
    key from `~/.tauri/magnolia-updater.key` unless `TAURI_SIGNING_PRIVATE_KEY`
-   is set. On macOS, export your Apple ID and app-specific password first
-   (as for the Electron builds):
-   ```sh
-   export APPLE_ID="you@example.com"
-   export APPLE_APP_SPECIFIC_PASSWORD="xxxx-xxxx-xxxx-xxxx"
-   ```
+   is set. On macOS, it reads your Apple ID and app-specific password from
+   the "Magnolia notarization" keychain item (see "Sign + notarize" above),
+   unless `APPLE_ID` and `APPLE_APP_SPECIFIC_PASSWORD` are exported.
    `release:mac` signs with Magnolia's Developer ID (Cale Davis,
    DTRLLXT8T7) unless `APPLE_SIGNING_IDENTITY` and `APPLE_TEAM_ID` say
    otherwise, and stops without the Apple ID and password, since an
