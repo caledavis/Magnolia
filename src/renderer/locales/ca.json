@@ -125,6 +125,7 @@
       "logbook": "Diari",
       "memos": "Memos",
       "queries": "Consultes",
+      "intercoder": "Acord entre codificadors",
       "memo": "Memo",
       "softwareUpdate": "Actualització de programari",
       "magnoliaUpdate": "Actualització del Magnolia"
@@ -2033,6 +2034,8 @@
     "showDocuments": "Mostra cada document",
     "showPassages": "Mostra els passatges",
     "showingSaved": "Es mostren els resultats tal com es van desar, perquè no s’ha pogut obrir un projecte.",
+    "popOutTitle": "Obriu els resultats en una finestra a part, per mostrar-los en una pantalla més gran",
+    "resultsPoppedOut": "Els resultats són oberts en una finestra a part.",
     "skippedNote": "Sense comparar: {{names}}.",
     "approxNote": "No s’ha pogut llegir la mida de {{names}} (l’àrea d’una pàgina o imatge, o la durada d’un enregistrament), així que s’ha estimat a partir del que s’ha codificat.",
     "passageCount_one": "{{count}} passatge, {{disagreements}} amb diferències",

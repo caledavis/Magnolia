@@ -125,6 +125,7 @@
       "logbook": "Journal",
       "memos": "Mémos",
       "queries": "Requêtes",
+      "intercoder": "Accord inter-codeurs",
       "memo": "Mémo",
       "softwareUpdate": "Mise à jour du logiciel",
       "magnoliaUpdate": "Mise à jour de Magnolia"
@@ -2033,6 +2034,8 @@
     "showDocuments": "Afficher chaque document",
     "showPassages": "Afficher les passages",
     "showingSaved": "Résultats affichés tels qu’enregistrés, car un projet n’a pas pu être ouvert.",
+    "popOutTitle": "Ouvrir les résultats dans une fenêtre distincte, pour les afficher sur un écran plus grand",
+    "resultsPoppedOut": "Les résultats sont ouverts dans une fenêtre distincte.",
     "skippedNote": "Non comparé : {{names}}.",
     "approxNote": "La taille de {{names}} n’a pas pu être lue (la surface d’une page ou d’une image, ou la durée d’un enregistrement) ; elle a donc été estimée d’après ce qui a été codé.",
     "passageCount_one": "{{count}} passage, {{disagreements}} en désaccord",

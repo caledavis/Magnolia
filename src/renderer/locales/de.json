@@ -125,6 +125,7 @@
       "logbook": "Logbuch",
       "memos": "Memos",
       "queries": "Abfragen",
+      "intercoder": "Intercoder-Übereinstimmung",
       "memo": "Memo",
       "softwareUpdate": "Softwareupdate",
       "magnoliaUpdate": "Magnolia-Update"
@@ -1958,6 +1959,8 @@
     "showDocuments": "Jedes Dokument anzeigen",
     "showPassages": "Die Passagen anzeigen",
     "showingSaved": "Die Ergebnisse werden wie gespeichert angezeigt, da ein Projekt nicht geöffnet werden konnte.",
+    "popOutTitle": "Die Ergebnisse in einem eigenen Fenster öffnen, um sie auf einem größeren Bildschirm zu zeigen",
+    "resultsPoppedOut": "Die Ergebnisse sind in einem eigenen Fenster geöffnet.",
     "skippedNote": "Nicht verglichen: {{names}}.",
     "approxNote": "Die Größe von {{names}} konnte nicht gelesen werden (die Fläche einer Seite oder eines Bildes oder die Länge einer Aufnahme), daher wurde sie anhand des Codierten geschätzt.",
     "passageCount_one": "{{count}} Passage, {{disagreements}} abweichend",

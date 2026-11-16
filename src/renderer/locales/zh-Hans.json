@@ -125,6 +125,7 @@
       "logbook": "日志",
       "memos": "备忘录",
       "queries": "查询",
+      "intercoder": "编码者间一致性",
       "memo": "备忘录",
       "softwareUpdate": "软件更新",
       "magnoliaUpdate": "Magnolia 更新"
@@ -1883,6 +1884,8 @@
     "showDocuments": "显示每个文档",
     "showPassages": "显示段落",
     "showingSaved": "由于无法打开某个项目，显示的是保存时的结果。",
+    "popOutTitle": "在单独的窗口中打开结果，以便在更大的屏幕上显示",
+    "resultsPoppedOut": "结果已在单独的窗口中打开。",
     "skippedNote": "未比较：{{names}}。",
     "approxNote": "无法读取 {{names}} 的大小（页面或图像的面积，或录音的时长），因此根据已编码内容进行了估计。",
     "passageCount_other": "{{count}} 个段落，其中 {{disagreements}} 个不一致",

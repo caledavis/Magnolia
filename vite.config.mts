@@ -32,6 +32,7 @@ export default defineConfig({
         welcome: resolve('src/renderer/welcome.html'),
         'memo-edit': resolve('src/renderer/memo-edit.html'),
         'query-results': resolve('src/renderer/query-results.html'),
+        'intercoder-results': resolve('src/renderer/intercoder-results.html'),
         update: resolve('src/renderer/update.html')
       }
     }

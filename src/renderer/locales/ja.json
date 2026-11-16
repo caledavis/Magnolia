@@ -125,6 +125,7 @@
       "logbook": "ログブック",
       "memos": "メモ",
       "queries": "クエリ",
+      "intercoder": "コーダー間一致",
       "memo": "メモ",
       "softwareUpdate": "ソフトウェア・アップデート",
       "magnoliaUpdate": "Magnolia のアップデート"
@@ -1883,6 +1884,8 @@
     "showDocuments": "各ドキュメントを表示",
     "showPassages": "箇所を表示",
     "showingSaved": "プロジェクトを開けなかったため、保存時の結果を表示しています。",
+    "popOutTitle": "結果を別のウインドウで開き、大きな画面に表示できるようにします",
+    "resultsPoppedOut": "結果は別のウインドウで開いています。",
     "skippedNote": "比べていないもの：{{names}}。",
     "approxNote": "{{names}} の大きさ（ページや画像の面積、または録音の長さ）を読めなかったため、コード化された内容から推定しました。",
     "passageCount_other": "{{count}} 箇所、うち食い違い {{disagreements}}",

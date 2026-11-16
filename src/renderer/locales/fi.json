@@ -125,6 +125,7 @@
       "logbook": "Lokikirja",
       "memos": "Muistiot",
       "queries": "Haut",
+      "intercoder": "Koodaajien yhtäpitävyys",
       "memo": "Muistio",
       "softwareUpdate": "Ohjelmistopäivitys",
       "magnoliaUpdate": "Magnolian päivitys"
@@ -1958,6 +1959,8 @@
     "showDocuments": "Näytä jokainen dokumentti",
     "showPassages": "Näytä kohdat",
     "showingSaved": "Tulokset näytetään tallennetussa muodossa, koska projektia ei voitu avata.",
+    "popOutTitle": "Avaa tulokset erillisessä ikkunassa, jotta ne voi näyttää isommalla näytöllä",
+    "resultsPoppedOut": "Tulokset ovat auki erillisessä ikkunassa.",
     "skippedNote": "Ei verrattu: {{names}}.",
     "approxNote": "Kohteen {{names}} kokoa ei voitu lukea (sivun tai kuvan pinta-alaa tai tallenteen pituutta), joten se arvioitiin koodatun perusteella.",
     "passageCount_one": "{{count}} kohta, joista {{disagreements}} eroaa",

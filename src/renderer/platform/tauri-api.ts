@@ -473,6 +473,16 @@ const api: MagnoliaAPI = {
   getUpdateBadge: () => invoke('get_update_badge'),
   onUpdateBadge: (callback) => on('update:badge', callback as any),
 
+  // Inter-coder Agreement results window (pop-out)
+  openIntercoderResultsWindow: (data) => void invoke('open_child_window', { kind: 'intercoder-results', data }),
+  updateIntercoderResultsWindow: (data) => void invoke('update_intercoder_results_window', { data }),
+  closeIntercoderResultsWindow: () => void invoke('close_child_window', { kind: 'intercoder-results' }),
+  getIntercoderResultsData: () => invoke('get_window_data'),
+  onIntercoderResultsData: (callback) => on('intercoder-results-init-data', callback),
+  sendIntercoderResultsAction: (action, payload) => toMain('intercoder-results-action', { action, payload }),
+  onIntercoderResultsAction: (callback) => on<any>('intercoder-results-action', (p) => callback(p.action, p.payload)),
+  onIntercoderResultsClosed: (callback) => on('intercoder-results-window-closed', () => callback()),
+
   // Query results window (pop-out)
   openQueryResultsWindow: (data) => void invoke('open_child_window', { kind: 'query-results', data }),
   updateQueryResultsWindow: (data) => void invoke('update_query_results_window', { data }),

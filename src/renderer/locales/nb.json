@@ -125,6 +125,7 @@
       "logbook": "Loggbok",
       "memos": "Memoer",
       "queries": "Spørringer",
+      "intercoder": "Samsvar mellom kodere",
       "memo": "Memo",
       "softwareUpdate": "Programvareoppdatering",
       "magnoliaUpdate": "Oppdatering av Magnolia"
@@ -1958,6 +1959,8 @@
     "showDocuments": "Vis hvert dokument",
     "showPassages": "Vis passasjene",
     "showingSaved": "Viser resultatene slik de ble lagret, fordi et prosjekt ikke kunne åpnes.",
+    "popOutTitle": "Åpne resultatene i et eget vindu for å vise dem på en større skjerm",
+    "resultsPoppedOut": "Resultatene er åpne i et eget vindu.",
     "skippedNote": "Ikke sammenlignet: {{names}}.",
     "approxNote": "Størrelsen på {{names}} kunne ikke leses (arealet til en side eller et bilde, eller lengden på et opptak), så den ble anslått ut fra det som er kodet.",
     "passageCount_one": "{{count}} passasje, {{disagreements}} med forskjeller",

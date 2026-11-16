@@ -760,6 +760,16 @@ export interface MagnoliaAPI {
   ) => () => void
   getUpdateBadge: () => Promise<UpdateBadgeState>
   onUpdateBadge: (callback: (state: UpdateBadgeState) => void) => () => void
+  // Inter-coder Agreement results window (pop-out). The data is the
+  // window's IntercoderResultsData (see IntercoderResults.tsx).
+  openIntercoderResultsWindow: (data: unknown) => void
+  updateIntercoderResultsWindow: (data: unknown) => void
+  closeIntercoderResultsWindow: () => void
+  getIntercoderResultsData: () => Promise<unknown>
+  onIntercoderResultsData: (callback: (data: unknown) => void) => () => void
+  sendIntercoderResultsAction: (action: string, payload?: unknown) => void
+  onIntercoderResultsAction: (callback: (action: string, payload?: unknown) => void) => () => void
+  onIntercoderResultsClosed: (callback: () => void) => () => void
   // Query results window (pop-out)
   openQueryResultsWindow: (data: QueryResultsInitData) => void
   updateQueryResultsWindow: (data: QueryResultsInitData) => void

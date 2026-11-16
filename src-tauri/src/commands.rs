@@ -938,6 +938,7 @@ pub async fn open_child_window(app: AppHandle, kind: String, data: Value) -> Cmd
         "memos" => windows::open_memos(&app, data),
         "memo-edit" => windows::open_memo(&app, data),
         "query-results" => windows::open_query_results(&app, data),
+        "intercoder-results" => windows::open_intercoder_results(&app, data),
         _ => return Err(format!("unknown window kind {kind}")),
     }
     Ok(())
@@ -946,6 +947,21 @@ pub async fn open_child_window(app: AppHandle, kind: String, data: Value) -> Cmd
 #[tauri::command]
 pub async fn update_query_results_window(app: AppHandle, data: Value) -> CmdResult<()> {
     windows::update_query_results(&app, data);
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn update_intercoder_results_window(app: AppHandle, data: Value) -> CmdResult<()> {
+    windows::update_intercoder_results(&app, data);
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn close_child_window(app: AppHandle, kind: String) -> CmdResult<()> {
+    match kind.as_str() {
+        "intercoder-results" => windows::close_child(&app, windows::INTERCODER_RESULTS),
+        _ => return Err(format!("unknown window kind {kind}")),
+    }
     Ok(())
 }
 

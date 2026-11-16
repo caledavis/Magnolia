@@ -125,6 +125,7 @@
       "logbook": "Žurnalas",
       "memos": "Pastabos",
       "queries": "Užklausos",
+      "intercoder": "Koduotojų sutapimas",
       "memo": "Pastaba",
       "softwareUpdate": "Programos naujinimas",
       "magnoliaUpdate": "Magnolia naujinimas"
@@ -2108,6 +2109,8 @@
     "showDocuments": "Rodyti kiekvieną dokumentą",
     "showPassages": "Rodyti ištraukas",
     "showingSaved": "Rodomi įrašyti rezultatai, nes nepavyko atidaryti projekto.",
+    "popOutTitle": "Atverti rezultatus atskirame lange, kad juos būtų galima rodyti didesniame ekrane",
+    "resultsPoppedOut": "Rezultatai atverti atskirame lange.",
     "skippedNote": "Nelyginta: {{names}}.",
     "approxNote": "Nepavyko nuskaityti {{names}} dydžio (puslapio ar paveikslėlio ploto arba įrašo trukmės), todėl jis įvertintas pagal tai, kas užkoduota.",
     "passageCount_one": "{{count}} ištrauka, su skirtumais: {{disagreements}}",

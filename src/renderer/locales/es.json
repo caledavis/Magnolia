@@ -125,6 +125,7 @@
       "logbook": "Bitácora",
       "memos": "Memos",
       "queries": "Consultas",
+      "intercoder": "Acuerdo entre codificadores",
       "memo": "Memo",
       "softwareUpdate": "Actualización de software",
       "magnoliaUpdate": "Actualización de Magnolia"
@@ -2033,6 +2034,8 @@
     "showDocuments": "Mostrar cada documento",
     "showPassages": "Mostrar los pasajes",
     "showingSaved": "Se muestran los resultados tal como se guardaron, porque no se pudo abrir un proyecto.",
+    "popOutTitle": "Abrir los resultados en una ventana aparte, para mostrarlos en una pantalla más grande",
+    "resultsPoppedOut": "Los resultados están abiertos en una ventana aparte.",
     "skippedNote": "Sin comparar: {{names}}.",
     "approxNote": "No se pudo leer el tamaño de {{names}} (el área de una página o imagen, o la duración de una grabación), así que se estimó a partir de lo codificado.",
     "passageCount_one": "{{count}} pasaje, {{disagreements}} con diferencias",

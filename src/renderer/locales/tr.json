@@ -125,6 +125,7 @@
       "logbook": "Günlük",
       "memos": "Memolar",
       "queries": "Sorgular",
+      "intercoder": "Kodlayıcılar arası uyum",
       "memo": "Memo",
       "softwareUpdate": "Yazılım güncellemesi",
       "magnoliaUpdate": "Magnolia güncellemesi"
@@ -1958,6 +1959,8 @@
     "showDocuments": "Her belgeyi göster",
     "showPassages": "Pasajları göster",
     "showingSaved": "Bir proje açılamadığı için sonuçlar kaydedildiği hâliyle gösteriliyor.",
+    "popOutTitle": "Sonuçları daha büyük bir ekranda göstermek için ayrı bir pencerede açın",
+    "resultsPoppedOut": "Sonuçlar ayrı bir pencerede açık.",
     "skippedNote": "Karşılaştırılmadı: {{names}}.",
     "approxNote": "{{names}} boyutu okunamadı (bir sayfanın ya da görüntünün alanı veya bir kaydın süresi), bu yüzden kodlananlardan tahmin edildi.",
     "passageCount_one": "{{count}} pasaj, farklı olan: {{disagreements}}",

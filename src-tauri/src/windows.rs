@@ -1,6 +1,6 @@
 //! Window lifecycle: the welcome screen, the main project window and the
 //! pop-out child windows (codebook, logbook, the memos list, each memo,
-//! query results), plus the
+//! query results, inter-coder agreement results), plus the
 //! flush-on-close handshake and quitting.
 
 use crate::i18n;
@@ -21,6 +21,7 @@ pub const LOGBOOK: &str = "logbook";
 /// own `memo-<guid>` window).
 pub const MEMOS: &str = "memos";
 pub const QUERY_RESULTS: &str = "query-results";
+pub const INTERCODER_RESULTS: &str = "intercoder-results";
 pub const UPDATE: &str = "update";
 const MEMO_PREFIX: &str = "memo-";
 
@@ -554,6 +555,9 @@ fn open_child(app: &AppHandle, label: &str, spec: ChildSpec, data: Value) {
                     if label == QUERY_RESULTS {
                         emit_to(&handle, MAIN, "query-results-window-closed", ());
                     }
+                    if label == INTERCODER_RESULTS {
+                        emit_to(&handle, MAIN, "intercoder-results-window-closed", ());
+                    }
                     menu::rebuild(&handle);
                 }
             });
@@ -630,6 +634,40 @@ pub fn update_query_results(app: &AppHandle, data: Value) {
         .insert(QUERY_RESULTS.into(), data.clone());
     if app.get_webview_window(QUERY_RESULTS).is_some() {
         emit_to(app, QUERY_RESULTS, "query-results-init-data", data);
+    }
+}
+
+/// The Inter-coder Agreement results, popped out of their tool (to put
+/// them on a bigger screen, say).
+pub fn open_intercoder_results(app: &AppHandle, data: Value) {
+    let spec = ChildSpec {
+        page: "intercoder-results.html",
+        title: "window.intercoder",
+        size: (1100.0, 760.0),
+        min: (500.0, 300.0),
+        init_event: "intercoder-results-init-data",
+    };
+    open_child(app, INTERCODER_RESULTS, spec, data);
+}
+
+/// Refreshes the Inter-coder Agreement results window when it is open.
+pub fn update_intercoder_results(app: &AppHandle, data: Value) {
+    if app.get_webview_window(INTERCODER_RESULTS).is_none() {
+        return;
+    }
+    state(app)
+        .ui
+        .lock()
+        .unwrap()
+        .window_data
+        .insert(INTERCODER_RESULTS.into(), data.clone());
+    emit_to(app, INTERCODER_RESULTS, "intercoder-results-init-data", data);
+}
+
+/// Close a pop-out from the main window (its Pop back in button).
+pub fn close_child(app: &AppHandle, label: &str) {
+    if let Some(w) = app.get_webview_window(label) {
+        let _ = w.close();
     }
 }
 

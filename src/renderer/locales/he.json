@@ -125,6 +125,7 @@
       "logbook": "יומן",
       "memos": "תזכירים",
       "queries": "שאילתות",
+      "intercoder": "הסכמה בין מקודדים",
       "memo": "תזכיר",
       "softwareUpdate": "עדכון תוכנה",
       "magnoliaUpdate": "עדכון Magnolia"
@@ -2033,6 +2034,8 @@
     "showDocuments": "הצגת כל מסמך",
     "showPassages": "הצגת המובאות",
     "showingSaved": "התוצאות מוצגות כפי שנשמרו, כי לא ניתן היה לפתוח פרויקט.",
+    "popOutTitle": "פתיחת התוצאות בחלון נפרד, כדי להציג אותן על מסך גדול יותר",
+    "resultsPoppedOut": "התוצאות פתוחות בחלון נפרד.",
     "skippedNote": "לא הושוו: {{names}}.",
     "approxNote": "לא ניתן היה לקרוא את הגודל של {{names}} (שטח של עמוד או תמונה, או משך של הקלטה), ולכן הוא הוערך לפי מה שקודד.",
     "passageCount_one": "מובאה אחת, עם הבדלים: {{disagreements}}",

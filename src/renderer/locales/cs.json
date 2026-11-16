@@ -125,6 +125,7 @@
       "logbook": "Deník",
       "memos": "Poznámky",
       "queries": "Dotazy",
+      "intercoder": "Shoda mezi kódovateli",
       "memo": "Poznámka",
       "softwareUpdate": "Aktualizace softwaru",
       "magnoliaUpdate": "Aktualizace aplikace Magnolia"
@@ -2108,6 +2109,8 @@
     "showDocuments": "Zobrazit každý dokument",
     "showPassages": "Zobrazit pasáže",
     "showingSaved": "Výsledky se zobrazují tak, jak byly uloženy, protože jeden projekt nešlo otevřít.",
+    "popOutTitle": "Otevřít výsledky v samostatném okně, aby je bylo možné zobrazit na větší obrazovce",
+    "resultsPoppedOut": "Výsledky jsou otevřené v samostatném okně.",
     "skippedNote": "Neporovnáno: {{names}}.",
     "approxNote": "Velikost {{names}} nešlo přečíst (plochu stránky či obrázku nebo délku nahrávky), takže byla odhadnuta z toho, co bylo zakódováno.",
     "passageCount_one": "{{count}} pasáž, s rozdíly: {{disagreements}}",

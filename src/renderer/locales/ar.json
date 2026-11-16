@@ -125,6 +125,7 @@
       "logbook": "السجل",
       "memos": "المذكرات",
       "queries": "الاستعلامات",
+      "intercoder": "الاتفاق بين المرمِّزين",
       "memo": "مذكرة",
       "softwareUpdate": "تحديث البرنامج",
       "magnoliaUpdate": "تحديث Magnolia"
@@ -2258,6 +2259,8 @@
     "showDocuments": "عرض كل مستند",
     "showPassages": "عرض المواضع",
     "showingSaved": "تُعرض النتائج كما حُفظت، لأنه تعذّر فتح أحد المشاريع.",
+    "popOutTitle": "فتح النتائج في نافذة منفصلة لعرضها على شاشة أكبر",
+    "resultsPoppedOut": "النتائج مفتوحة في نافذة منفصلة.",
     "skippedNote": "لم تُقارَن: {{names}}.",
     "approxNote": "تعذّرت قراءة حجم {{names}} (مساحة صفحة أو صورة، أو مدة تسجيل)، لذا قُدِّر مما رُمِّز.",
     "passageCount_zero": "لا مواضع، المختلفة منها: {{disagreements}}",

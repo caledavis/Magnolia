@@ -125,6 +125,7 @@
       "logbook": "Logboek",
       "memos": "Memo's",
       "queries": "Query's",
+      "intercoder": "Overeenstemming tussen codeurs",
       "memo": "Memo",
       "softwareUpdate": "Software-update",
       "magnoliaUpdate": "Magnolia-update"
@@ -1958,6 +1959,8 @@
     "showDocuments": "Elk document tonen",
     "showPassages": "De passages tonen",
     "showingSaved": "De resultaten worden getoond zoals ze zijn opgeslagen, omdat een project niet kon worden geopend.",
+    "popOutTitle": "De resultaten in een apart venster openen, om ze op een groter scherm te tonen",
+    "resultsPoppedOut": "De resultaten staan open in een apart venster.",
     "skippedNote": "Niet vergeleken: {{names}}.",
     "approxNote": "De grootte van {{names}} kon niet worden gelezen (het oppervlak van een pagina of afbeelding, of de duur van een opname), dus is die geschat uit wat er gecodeerd is.",
     "passageCount_one": "{{count}} passage, {{disagreements}} verschillend",

@@ -125,6 +125,7 @@
       "logbook": "Logbook",
       "memos": "Memos",
       "queries": "Queries",
+      "intercoder": "Inter-coder Agreement",
       "memo": "Memo",
       "softwareUpdate": "Software Update",
       "magnoliaUpdate": "Magnolia Update"
@@ -1958,6 +1959,8 @@
     "showDocuments": "Show each document",
     "showPassages": "Show the passages",
     "showingSaved": "Showing the results as they were saved, because a project couldn't be opened.",
+    "popOutTitle": "Open the results in a separate window, to put them on a bigger screen",
+    "resultsPoppedOut": "The results are open in a separate window.",
     "skippedNote": "Not compared: {{names}}.",
     "approxNote": "The size of {{names}} couldn't be read (a page or image's area, or a recording's length), so it was estimated from what was coded.",
     "passageCount_one": "{{count}} passage, {{disagreements}} differing",
