@@ -4,6 +4,11 @@ The Inter-coder Agreement tool allows you to compare how two or more people have
 
 Think of it as laying two highlighted copies of the same interview on the table next to each other, but for every document and every code at once.
 
+<figure>
+     <img src="./images/InterCoderAgreement.png" alt="The Inter-coder Agreement tool comparing four coders across six interviews and four codes, with the passages where two coders differ shown below.">
+     <figcaption>The Inter-coder Agreement tool.</figcaption>
+</figure>
+
 Checking agreement is a common step in team projects. It shows whether a codebook is clear enough for different people to apply it in the same way, and points you to the codes and passages worth discussing.
 
 ## Before you start
