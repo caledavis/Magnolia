@@ -24,7 +24,6 @@ import type { Code, PlainTextSelection } from '../../models/types'
 import {
   clamp,
   formatTime,
-  formatTimeDecimal,
   snapTimeToSecond,
   DEFAULT_PX_PER_SECOND,
   MIN_PX_PER_SECOND,
@@ -34,6 +33,20 @@ import {
   TRACK_TOP_PADDING
 } from './video-time-utils'
 import { useTranslation } from 'react-i18next'
+import { formatNumber } from '../../i18n'
+
+/** Format a duration in seconds with tenths (M:SS.t) — used on track labels
+ *  where sub-second precision matters for code boundary placement. */
+function formatTimeDecimal(seconds: number): string {
+  if (!isFinite(seconds) || seconds < 0) seconds = 0
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = seconds % 60
+  // The decimal separator is the interface language's ("1:02.5", "1:02,5").
+  const secStr = formatNumber(s, { minimumIntegerDigits: 2, minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false })
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${secStr}`
+  return `${m}:${secStr}`
+}
 
 interface Props {
   sourceGuid: string

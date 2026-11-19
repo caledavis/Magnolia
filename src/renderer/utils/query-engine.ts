@@ -13,7 +13,6 @@ import { codepointSlice, getContext } from './unicode'
 import { buildCellText } from './survey/cell-text'
 import { sentenceSpans } from './sentences'
 import { resolveTagCellScope, tagMembershipFromTags, type TagCellScope } from './survey-cell-scope'
-import { t } from '../i18n'
 import { isWordBoundary, isWordEdge } from './words'
 import { deriveVideoTimeRange, transcriptTimeRange } from '../components/DocumentViewer/video-time-utils'
 
@@ -758,7 +757,7 @@ function containsTextCondition(cond: CodeCondition): boolean {
 }
 
 /** Check if ALL leaves in a condition tree are text conditions */
-function isAllTextCondition(cond: CodeCondition): boolean {
+export function isAllTextCondition(cond: CodeCondition): boolean {
   switch (cond.type) {
     case 'text': return true
     case 'code': return false
@@ -776,36 +775,6 @@ function flattenOr(cond: CodeCondition): CodeCondition[] {
     return cond.conditions.flatMap((c) => flattenOr(c))
   }
   return [cond]
-}
-
-/** Validate a condition tree; returns an error message or null */
-export function validateCondition(cond: CodeCondition, nested = false): string | null {
-  if (cond.type === 'sameSentence' && nested) {
-    return t('queryValidate.sameSentence')
-  }
-  if (cond.type === 'and' || cond.type === 'xor') {
-    if (cond.conditions.every((c) => isAllTextCondition(c))) {
-      return t('queryValidate.textOnlyOr')
-    }
-    for (const c of cond.conditions) {
-      const err = validateCondition(c, true)
-      if (err) return err
-    }
-  }
-  if (cond.type === 'or') {
-    for (const c of cond.conditions) {
-      const err = validateCondition(c, true)
-      if (err) return err
-    }
-  }
-  if (cond.type === 'not') {
-    return validateCondition(cond.condition, true)
-  }
-  if ('condition1' in cond && 'condition2' in cond) {
-    const c = cond as { condition1: CodeCondition; condition2: CodeCondition }
-    return validateCondition(c.condition1, true) || validateCondition(c.condition2, true)
-  }
-  return null
 }
 
 function evaluateCondition(
@@ -852,7 +821,7 @@ function evaluateCondition(
       }
       return false
     case 'sameSentence':
-      // Only valid as the whole query (see validateCondition).
+      // Only valid as the whole query (see validateCondition in query-validate.ts).
       return false
   }
 }

@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import type { CodeCondition } from '../../models/types'
-import { validateCondition } from '../../utils/query-engine'
+import { validateCondition } from '../../utils/query-validate'
 import { Icon, faExclamationTriangle, faCircle, faXmark } from '../Icon'
 import { PaletteGroup, PaletteDivider, PaletteButton } from '../NodePalette'
 import { modKey, altClickHint } from '../../utils/platform'

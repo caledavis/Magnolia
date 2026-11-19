@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { executeQuery, validateCondition } from '../../src/renderer/utils/query-engine'
+import { executeQuery } from '../../src/renderer/utils/query-engine'
+import { validateCondition } from '../../src/renderer/utils/query-validate'
 import { sentenceSpans } from '../../src/renderer/utils/sentences'
 import { sentenceCondition, sentencesOf, wordAssociations, wordCondition, wordFilter } from '../../src/renderer/components/Analysis/word-counts'
 import type { Code, CodeCondition, PlainTextSelection, TextSource } from '../../src/renderer/models/types'

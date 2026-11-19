@@ -1,7 +1,6 @@
-import { formatNumber } from '../../i18n'
-
 /**
- * Shared helpers for the video viewer: time formatting, clamping, and
+ * Shared helpers for the video viewer (no i18n here: the query worker
+ * imports this file, and i18n would pull every catalogue into it): time formatting, clamping, and
  * the zoom math that maps (time in seconds) ↔ (pixels on the CodeTrack).
  */
 
@@ -13,19 +12,6 @@ export function formatTime(seconds: number): string {
   const s = Math.floor(seconds % 60)
   if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
   return `${m}:${String(s).padStart(2, '0')}`
-}
-
-/** Format a duration in seconds with tenths (M:SS.t) — used on track labels
- *  where sub-second precision matters for code boundary placement. */
-export function formatTimeDecimal(seconds: number): string {
-  if (!isFinite(seconds) || seconds < 0) seconds = 0
-  const h = Math.floor(seconds / 3600)
-  const m = Math.floor((seconds % 3600) / 60)
-  const s = seconds % 60
-  // The decimal separator is the interface language's ("1:02.5", "1:02,5").
-  const secStr = formatNumber(s, { minimumIntegerDigits: 2, minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false })
-  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${secStr}`
-  return `${m}:${secStr}`
 }
 
 export function clamp(n: number, lo: number, hi: number): number {
