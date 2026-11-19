@@ -166,6 +166,9 @@ pub fn run() {
             automation::automation_log,
             automation::automation_pdf,
             automation::automation_quit,
+            automation::automation_input,
+            automation::automation_window_frame,
+            automation::automation_set_position,
         ])
         .setup(|app| {
             storage::init(app.handle());

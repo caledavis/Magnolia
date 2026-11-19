@@ -112,6 +112,56 @@ pub fn automation_eval(app: tauri::AppHandle, label: String, script: String) -> 
         .map_err(|e| e.to_string())
 }
 
+/// Drive the real mouse and keyboard (for screencasts): pass `actions` to
+/// the helper named by `MAGNOLIA_AUTOMATION_INPUT` and return its results.
+/// `x`/`y` in an action are CSS px in the calling window's content, turned
+/// into screen points here; `sx`/`sy` are screen points already.
+#[tauri::command]
+pub async fn automation_input(
+    window: WebviewWindow,
+    mut actions: Vec<serde_json::Value>,
+) -> Result<serde_json::Value, String> {
+    check()?;
+    let helper = std::env::var("MAGNOLIA_AUTOMATION_INPUT").map_err(|_| "MAGNOLIA_AUTOMATION_INPUT is not set".to_string())?;
+    let scale = window.scale_factor().map_err(|e| e.to_string())?;
+    let pos = window.inner_position().map_err(|e| e.to_string())?.to_logical::<f64>(scale);
+    for a in actions.iter_mut() {
+        let Some(o) = a.as_object_mut() else { continue };
+        if let (Some(x), Some(y)) = (o.get("x").and_then(|v| v.as_f64()), o.get("y").and_then(|v| v.as_f64())) {
+            o.insert("x".into(), (pos.x + x).into());
+            o.insert("y".into(), (pos.y + y).into());
+        } else if let (Some(x), Some(y)) = (o.get("sx").and_then(|v| v.as_f64()), o.get("sy").and_then(|v| v.as_f64())) {
+            o.insert("x".into(), x.into());
+            o.insert("y".into(), y.into());
+        }
+    }
+    let arg = serde_json::to_string(&actions).map_err(|e| e.to_string())?;
+    let out = tauri::async_runtime::spawn_blocking(move || std::process::Command::new(helper).arg(arg).output())
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(|e| e.to_string())?;
+    serde_json::from_slice(&out.stdout).map_err(|e| format!("input helper: {e}: {}", String::from_utf8_lossy(&out.stderr)))
+}
+
+/// Where the calling window's content sits on screen, in points.
+#[tauri::command]
+pub fn automation_window_frame(window: WebviewWindow) -> Result<serde_json::Value, String> {
+    check()?;
+    let scale = window.scale_factor().map_err(|e| e.to_string())?;
+    let p = window.inner_position().map_err(|e| e.to_string())?.to_logical::<f64>(scale);
+    let s = window.inner_size().map_err(|e| e.to_string())?.to_logical::<f64>(scale);
+    Ok(serde_json::json!({ "x": p.x, "y": p.y, "width": s.width, "height": s.height }))
+}
+
+/// Move the calling window's top-left corner to (`x`, `y`) screen points.
+#[tauri::command]
+pub fn automation_set_position(window: WebviewWindow, x: f64, y: f64) -> Result<(), String> {
+    check()?;
+    window
+        .set_position(tauri::LogicalPosition::new(x, y))
+        .map_err(|e| e.to_string())
+}
+
 /// Print a line to the terminal running the automation.
 /// Render `html` to a PDF at `path` as Export PDF does, without the save
 /// dialog, so a script can check what exports look like.
