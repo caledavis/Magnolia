@@ -809,7 +809,8 @@
     "in": "in {{name}}",
     "placeholder": "woord of zin...",
     "caseSensitive": "Hoofdlettergevoelig",
-    "wholeWord": "Heel woord"
+    "wholeWord": "Heel woord",
+    "sentences": "Zinnen vinden die dit bevatten"
   },
   "projectDetails": {
     "title": "Projectgegevens",
@@ -1100,6 +1101,7 @@
     "in": "IN {{scope}}",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}} (incl. subcodes)",
+    "sentencesWith": "\"{{text}}\" (hele zinnen)",
     "overlap": "{{a}} overlappend met {{b}}",
     "inside": "{{a}} binnen {{b}}",
     "outside": "{{a}} buiten {{b}}",

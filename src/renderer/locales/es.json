@@ -836,7 +836,8 @@
     "in": "en {{name}}",
     "placeholder": "palabra o frase...",
     "caseSensitive": "Distinguir mayúsculas y minúsculas",
-    "wholeWord": "Palabra completa"
+    "wholeWord": "Palabra completa",
+    "sentences": "Buscar oraciones que contengan"
   },
   "projectDetails": {
     "title": "Detalles del proyecto",
@@ -1138,6 +1139,7 @@
     "in": "EN {{scope}}",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}} (con subcódigos)",
+    "sentencesWith": "\"{{text}}\" (oraciones completas)",
     "overlap": "{{a}} superpuesto a {{b}}",
     "inside": "{{a}} dentro de {{b}}",
     "outside": "{{a}} fuera de {{b}}",

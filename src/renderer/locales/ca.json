@@ -836,7 +836,8 @@
     "in": "a {{name}}",
     "placeholder": "paraula o frase…",
     "caseSensitive": "Distingeix majúscules i minúscules",
-    "wholeWord": "Paraula sencera"
+    "wholeWord": "Paraula sencera",
+    "sentences": "Cerca les frases que contenen"
   },
   "projectDetails": {
     "title": "Detalls del projecte",
@@ -1138,6 +1139,7 @@
     "in": "A {{scope}}",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}} (incl. subcodis)",
+    "sentencesWith": "\"{{text}}\" (frases senceres)",
     "overlap": "{{a}} superposat a {{b}}",
     "inside": "{{a}} dins de {{b}}",
     "outside": "{{a}} fora de {{b}}",

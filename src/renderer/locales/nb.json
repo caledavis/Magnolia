@@ -809,7 +809,8 @@
     "in": "i {{name}}",
     "placeholder": "ord eller uttrykk …",
     "caseSensitive": "Skill mellom store og små bokstaver",
-    "wholeWord": "Hele ord"
+    "wholeWord": "Hele ord",
+    "sentences": "Finn setninger som inneholder"
   },
   "projectDetails": {
     "title": "Prosjektinformasjon",
@@ -1100,6 +1101,7 @@
     "in": "I {{scope}}",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}} (inkl. underkoder)",
+    "sentencesWith": "\"{{text}}\" (hele setninger)",
     "overlap": "{{a}} overlapper {{b}}",
     "inside": "{{a}} innenfor {{b}}",
     "outside": "{{a}} utenfor {{b}}",

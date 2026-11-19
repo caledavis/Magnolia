@@ -809,7 +809,8 @@
     "in": "kohteessa {{name}}",
     "placeholder": "sana tai ilmaus…",
     "caseSensitive": "Sama kirjainkoko",
-    "wholeWord": "Koko sana"
+    "wholeWord": "Koko sana",
+    "sentences": "Etsi virkkeet, jotka sisältävät"
   },
   "projectDetails": {
     "title": "Projektin tiedot",
@@ -1100,6 +1101,7 @@
     "in": "KOHTEESSA {{scope}}",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}} (alakoodit mukaan lukien)",
+    "sentencesWith": "\"{{text}}\" (kokonaiset virkkeet)",
     "overlap": "{{a}} päällekkäin kohteen {{b}} kanssa",
     "inside": "{{a}} kohteen {{b}} sisällä",
     "outside": "{{a}} kohteen {{b}} ulkopuolella",

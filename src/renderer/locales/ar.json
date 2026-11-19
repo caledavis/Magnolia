@@ -917,7 +917,8 @@
     "in": "في {{name}}",
     "placeholder": "كلمة أو عبارة…",
     "caseSensitive": "مطابقة حالة الأحرف",
-    "wholeWord": "كلمة كاملة"
+    "wholeWord": "كلمة كاملة",
+    "sentences": "البحث عن الجمل التي تحتوي على"
   },
   "projectDetails": {
     "title": "تفاصيل المشروع",
@@ -1252,6 +1253,7 @@
     "in": "في {{scope}}",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}} (مع الرموز الفرعية)",
+    "sentencesWith": "\"{{text}}\" (جمل كاملة)",
     "overlap": "{{a}} متداخل مع {{b}}",
     "inside": "{{a}} داخل {{b}}",
     "outside": "{{a}} خارج {{b}}",

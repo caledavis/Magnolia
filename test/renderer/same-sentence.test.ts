@@ -93,3 +93,49 @@ describe('Same sentence', () => {
     expect(validateCondition({ type: 'or', conditions: [same, wordCondition('lunch')] })).toMatch(/Same sentence/)
   })
 })
+
+describe('Text: find sentences containing', () => {
+  const text = 'Students trust teachers. Teachers earn trust slowly, trust by trust. Lunch is late.\nTrust matters.'
+  const sentences = (searchText: string, extra: Partial<Extract<CodeCondition, { type: 'text' }>> = {}): CodeCondition =>
+    ({ type: 'text', searchText, sentences: true, ...extra })
+
+  it('returns each sentence the text occurs in, once', () => {
+    const results = run(text, sentences('trust'))
+    expect(results.map((r) => r.matchedText)).toEqual([
+      'Students trust teachers.',
+      'Teachers earn trust slowly, trust by trust.',
+      'Trust matters.'
+    ])
+  })
+
+  it('keeps the case and whole-word options', () => {
+    expect(run(text, sentences('Trust', { caseSensitive: true })).map((r) => r.matchedText)).toEqual(['Trust matters.'])
+    expect(run('Trustworthy staff. We trust them.', sentences('trust', { wholeWord: true })).map((r) => r.matchedText)).toEqual(['We trust them.'])
+  })
+
+  it('takes every sentence a phrase runs across', () => {
+    expect(run('It ends. Then it starts. Later.', sentences('ends. Then')).map((r) => r.matchedText)).toEqual(['It ends. Then it starts.'])
+  })
+
+  it('gives sentences to OR and to the spatial operators', () => {
+    const or: CodeCondition = { type: 'or', conditions: [sentences('lunch'), sentences('matters')] }
+    expect(run(text, or).map((r) => r.matchedText).sort()).toEqual(['Lunch is late.', 'Trust matters.'])
+    //  A codes "Students trust teachers. Teachers" (0–33)
+    const inside: CodeCondition = { type: 'inside', condition1: sentences('trust'), condition2: { type: 'code', codeGuid: 'A' } }
+    expect(run(text, inside, [sel("A", 0, 33)]).map((r) => r.matchedText)).toEqual(['Students trust teachers.'])
+  })
+
+  it('leaves Same sentence comparing the occurrences', () => {
+    const cond: CodeCondition = { type: 'sameSentence', condition1: sentences('trust'), condition2: sentences('teachers') }
+    expect(run(text, cond).map((r) => r.matchedText)).toEqual(['Students trust teachers.', 'Teachers earn trust slowly, trust by trust.'])
+  })
+
+  it('works within survey cells', () => {
+    const source = {
+      guid: 'srv', name: 'Survey.csv', plainTextContent: 'raw,csv', selections: [],
+      formatData: { rawCsv: '', survey: { questions: [{ id: 'q1', text: 'Why?' }], respondents: [{ id: 'r1', answers: { q1: 'Lunch is late. I trust teachers.' } }] } }
+    } as unknown as TextSource
+    const results = executeQuery({ documentFilter: {}, codeCondition: sentences('trust') }, [source], {}, codes, [])
+    expect(results.map((r) => r.matchedText)).toEqual(['I trust teachers.'])
+  })
+})

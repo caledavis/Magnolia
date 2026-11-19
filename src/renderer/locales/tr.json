@@ -809,7 +809,8 @@
     "in": "{{name}} içinde",
     "placeholder": "sözcük ya da ifade…",
     "caseSensitive": "Büyük/küçük harf duyarlı",
-    "wholeWord": "Tam sözcük"
+    "wholeWord": "Tam sözcük",
+    "sentences": "İçeren cümleleri bul"
   },
   "projectDetails": {
     "title": "Proje ayrıntıları",
@@ -1100,6 +1101,7 @@
     "in": "KAPSAM: {{scope}}",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}} (alt kodlar dahil)",
+    "sentencesWith": "\"{{text}}\" (tam cümleler)",
     "overlap": "{{a}} örtüşür: {{b}}",
     "inside": "{{a}}, şunun içinde: {{b}}",
     "outside": "{{a}}, şunun dışında: {{b}}",

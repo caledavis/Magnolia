@@ -809,7 +809,8 @@
     "in": "στο {{name}}",
     "placeholder": "λέξη ή φράση…",
     "caseSensitive": "Διάκριση πεζών-κεφαλαίων",
-    "wholeWord": "Ολόκληρη λέξη"
+    "wholeWord": "Ολόκληρη λέξη",
+    "sentences": "Εύρεση προτάσεων που περιέχουν"
   },
   "projectDetails": {
     "title": "Στοιχεία έργου",
@@ -1100,6 +1101,7 @@
     "in": "ΣΤΟ {{scope}}",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}} (με υποκωδικούς)",
+    "sentencesWith": "\"{{text}}\" (ολόκληρες προτάσεις)",
     "overlap": "{{a}} επικαλύπτεται με {{b}}",
     "inside": "{{a}} εντός {{b}}",
     "outside": "{{a}} εκτός {{b}}",

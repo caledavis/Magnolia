@@ -836,7 +836,8 @@
     "in": "ב-{{name}}",
     "placeholder": "מילה או ביטוי…",
     "caseSensitive": "תלוי רישיות",
-    "wholeWord": "מילה שלמה"
+    "wholeWord": "מילה שלמה",
+    "sentences": "חיפוש משפטים המכילים"
   },
   "projectDetails": {
     "title": "פרטי הפרויקט",
@@ -1138,6 +1139,7 @@
     "in": "בתוך {{scope}}",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}} (כולל קודי משנה)",
+    "sentencesWith": "\"{{text}}\" (משפטים שלמים)",
     "overlap": "{{a}} חופף ל-{{b}}",
     "inside": "{{a}} בתוך {{b}}",
     "outside": "{{a}} מחוץ ל-{{b}}",

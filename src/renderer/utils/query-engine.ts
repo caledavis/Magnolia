@@ -17,6 +17,8 @@ import { t } from '../i18n'
 import { isWordBoundary, isWordEdge } from './words'
 import { deriveVideoTimeRange, transcriptTimeRange } from '../components/DocumentViewer/video-time-utils'
 
+type TextCondition = Extract<CodeCondition, { type: 'text' }>
+
 /** Resolve the text a selection actually points into.
  *
  *  Survey-cell selections store cell-relative codepoint offsets, not
@@ -370,7 +372,7 @@ export function executeQuery(
 
     // Standalone text search: find all occurrences in the full document text
     if (condType === 'text') {
-      results.push(...textSearchDocument(codeCondition as { type: 'text'; searchText: string; caseSensitive?: boolean }, source, content, cellScope, keep))
+      results.push(...textSearchDocument(codeCondition as TextCondition, source, content, cellScope, keep))
       continue
     }
 
@@ -405,7 +407,9 @@ export function executeQuery(
     }
 
     if (condType === 'sameSentence') {
-      const evalSelections = buildSpatialSelections(scopedSelections, codeCondition, source, content, cellScope, keep)
+      // Same Sentence finds the sentences itself: its text operands are
+      // the occurrences, whatever their own sentences option says.
+      const evalSelections = buildSpatialSelections(scopedSelections, codeCondition, source, content, cellScope, keep, true)
       results.push(...findSameSentences(codeCondition as SameSentenceCondition, evalSelections, source, content, codeMap))
       continue
     }
@@ -498,7 +502,7 @@ function withinFilter(
 
 /** Search full document for text occurrences */
 function textSearchDocument(
-  cond: { type: 'text'; searchText: string; caseSensitive?: boolean; wholeWord?: boolean },
+  cond: TextCondition,
   source: TextSource,
   content: string,
   cellScope?: TagCellScope,
@@ -587,7 +591,7 @@ function nextTextMatch(haystack: string, needle: string, wholeWord: boolean | un
 
 function findTextMatches(
   text: string,
-  cond: { searchText: string; caseSensitive?: boolean; wholeWord?: boolean }
+  cond: { searchText: string; caseSensitive?: boolean; wholeWord?: boolean; sentences?: boolean }
 ): TextMatch[] {
   const out: TextMatch[] = []
   const haystack = cond.caseSensitive ? text : text.toLowerCase()
@@ -603,6 +607,34 @@ function findTextMatches(
     out.push({ start: cpStart, end: cpEnd, matched, before, after })
     pos = idx + (cond.searchText.length || 1)
   }
+  return cond.sentences ? toSentences(text, out) : out
+}
+
+/** Widen each match to the sentence it occurs in (all the sentences, for
+ *  one that runs across a break), once per sentence. */
+function toSentences(text: string, matches: TextMatch[]): TextMatch[] {
+  if (matches.length === 0) return matches
+  const sentences = sentenceSpans(text)
+  const out: TextMatch[] = []
+  let i = 0
+  for (const m of matches) {
+    while (i < sentences.length && sentences[i].end <= m.start) i++
+    let j = i
+    while (j + 1 < sentences.length && sentences[j + 1].start < m.end) j++
+    const start = i < sentences.length ? Math.min(sentences[i].start, m.start) : m.start
+    const end = Math.max(j < sentences.length ? sentences[j].end : m.end, m.end)
+    const last = out[out.length - 1]
+    if (last && start < last.end) {
+      if (end > last.end) {
+        last.end = end
+        last.matched = codepointSlice(text, last.start, end)
+        last.after = getContext(text, last.start, end).after
+      }
+      continue
+    }
+    const { before, after } = getContext(text, start, end)
+    out.push({ start, end, matched: codepointSlice(text, start, end), before, after })
+  }
   return out
 }
 
@@ -610,7 +642,7 @@ function findTextMatches(
  *  (including inside logical and spatial operands). */
 function collectTextConditions(
   cond: CodeCondition
-): { type: 'text'; searchText: string; caseSensitive?: boolean; wholeWord?: boolean }[] {
+): TextCondition[] {
   switch (cond.type) {
     case 'text':
       return [cond]
@@ -653,9 +685,10 @@ function buildSpatialSelections(
   source: TextSource,
   content: string,
   cellScope: TagCellScope,
-  keep?: KeepMatch
+  keep?: KeepMatch,
+  occurrencesOnly = false
 ): EvalSelection[] {
-  const texts = collectTextConditions(cond)
+  const texts = collectTextConditions(cond).map((t) => (occurrencesOnly && t.sentences ? { ...t, sentences: false } : t))
   const survey = (source.formatData as SurveyFormatData | undefined)?.survey
 
   // Attach each base selection's indexable text for surveys (copied so we

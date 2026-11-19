@@ -863,7 +863,8 @@
     "in": "у {{name}}",
     "placeholder": "слово чи фраза…",
     "caseSensitive": "З урахуванням регістру",
-    "wholeWord": "Ціле слово"
+    "wholeWord": "Ціле слово",
+    "sentences": "Знайти речення, що містять"
   },
   "projectDetails": {
     "title": "Відомості про проєкт",
@@ -1176,6 +1177,7 @@
     "in": "У {{scope}}",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}} (з підкодами)",
+    "sentencesWith": "\"{{text}}\" (цілі речення)",
     "overlap": "{{a}} перетинається з {{b}}",
     "inside": "{{a}} усередині {{b}}",
     "outside": "{{a}} поза {{b}}",

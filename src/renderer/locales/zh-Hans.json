@@ -782,7 +782,8 @@
     "in": "在 {{name}} 中",
     "placeholder": "词或短语…",
     "caseSensitive": "区分大小写",
-    "wholeWord": "全词匹配"
+    "wholeWord": "全词匹配",
+    "sentences": "查找包含该内容的句子"
   },
   "projectDetails": {
     "title": "项目详情",
@@ -1062,6 +1063,7 @@
     "in": "在 {{scope}} 中",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}}（含子代码）",
+    "sentencesWith": "\"{{text}}\"（整句）",
     "overlap": "{{a}} 与 {{b}} 重叠",
     "inside": "{{a}} 在 {{b}} 内",
     "outside": "{{a}} 在 {{b}} 外",

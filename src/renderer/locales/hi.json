@@ -809,7 +809,8 @@
     "in": "{{name}} में",
     "placeholder": "शब्द या वाक्यांश…",
     "caseSensitive": "अक्षर-आकार संवेदी",
-    "wholeWord": "पूरा शब्द"
+    "wholeWord": "पूरा शब्द",
+    "sentences": "ऐसे वाक्य खोजें जिनमें यह हो"
   },
   "projectDetails": {
     "title": "परियोजना विवरण",
@@ -1100,6 +1101,7 @@
     "in": "{{scope}} में",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}} (उप-कोड सहित)",
+    "sentencesWith": "\"{{text}}\" (पूरे वाक्य)",
     "overlap": "{{a}}, {{b}} से ओवरलैप करता हुआ",
     "inside": "{{a}}, {{b}} के अंदर",
     "outside": "{{a}}, {{b}} के बाहर",

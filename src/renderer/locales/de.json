@@ -809,7 +809,8 @@
     "in": "in {{name}}",
     "placeholder": "Wort oder Wortgruppe …",
     "caseSensitive": "Groß-/Kleinschreibung beachten",
-    "wholeWord": "Ganzes Wort"
+    "wholeWord": "Ganzes Wort",
+    "sentences": "Sätze finden, die dies enthalten"
   },
   "projectDetails": {
     "title": "Projektdetails",
@@ -1100,6 +1101,7 @@
     "in": "IN {{scope}}",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}} (inkl. Subcodes)",
+    "sentencesWith": "\"{{text}}\" (ganze Sätze)",
     "overlap": "{{a}} überschneidet sich mit {{b}}",
     "inside": "{{a}} innerhalb von {{b}}",
     "outside": "{{a}} außerhalb von {{b}}",

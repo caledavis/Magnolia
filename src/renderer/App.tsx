@@ -129,7 +129,8 @@ function describeCondition(cond: CodeCondition, findCode: (guid: string) => Code
     case 'code':
       return cond.includeSubcodes ? t('queryDesc.inclSubcodes', { name: codeName(cond.codeGuid) }) : codeName(cond.codeGuid)
     case 'text':
-      return cond.searchText ? `"${cond.searchText}"` : t('queryBuilder.kind.text')
+      if (!cond.searchText) return t('queryBuilder.kind.text')
+      return cond.sentences ? t('queryDesc.sentencesWith', { text: cond.searchText }) : `"${cond.searchText}"`
     case 'and':
       return cond.conditions.map((c) => describeCondition(c, findCode, d + 1)).join(' AND ')
     case 'or':

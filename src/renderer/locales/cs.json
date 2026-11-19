@@ -863,7 +863,8 @@
     "in": "v {{name}}",
     "placeholder": "slovo nebo fráze…",
     "caseSensitive": "Rozlišovat velká a malá písmena",
-    "wholeWord": "Celé slovo"
+    "wholeWord": "Celé slovo",
+    "sentences": "Najít věty obsahující"
   },
   "projectDetails": {
     "title": "Podrobnosti projektu",
@@ -1176,6 +1177,7 @@
     "in": "V {{scope}}",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}} (vč. podkódů)",
+    "sentencesWith": "\"{{text}}\" (celé věty)",
     "overlap": "{{a}} překrývající {{b}}",
     "inside": "{{a}} uvnitř {{b}}",
     "outside": "{{a}} mimo {{b}}",

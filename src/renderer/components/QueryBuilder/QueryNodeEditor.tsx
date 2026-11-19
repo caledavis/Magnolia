@@ -28,6 +28,8 @@ interface GNode {
   searchText?: string
   caseSensitive?: boolean
   wholeWord?: boolean
+  /** Text node: find the sentences the text occurs in. */
+  sentences?: boolean
   /** For logical nodes: the single operator type */
   logicalOp?: LogicalOp
   /** @deprecated — old multi-op array, migrated to logicalOp on load */
@@ -62,7 +64,7 @@ const PORT_R = 6
 const SLOT_H = 22
 const HDR_H = 24
 const CODE_H = 34
-const TEXT_H = 82
+const TEXT_H = 95
 const RESULT_H = 36
 const LABEL_H = 20 // height of the operator echo/dropdown between slots
 const ADD_BTN_H = 20 // height of the "+ Add condition" button row
@@ -283,7 +285,7 @@ function walkNode(
   } else if (n.kind === 'any') {
     result = { type: 'any' }
   } else if (n.kind === 'text') {
-    result = n.searchText ? { type: 'text', searchText: n.searchText, caseSensitive: n.caseSensitive || undefined, wholeWord: n.wholeWord || undefined } : null
+    result = n.searchText ? { type: 'text', searchText: n.searchText, caseSensitive: n.caseSensitive || undefined, wholeWord: n.wholeWord || undefined, sentences: n.sentences || undefined } : null
   } else if (n.kind === 'logical') {
     const op = n.logicalOp
     if (!op) return null
@@ -426,7 +428,8 @@ function conditionToGraph(
         y,
         searchText: c.searchText,
         caseSensitive: c.caseSensitive,
-        wholeWord: c.wholeWord
+        wholeWord: c.wholeWord,
+        sentences: c.sentences
       })
       yCursor += TEXT_H + ROW_GAP
       return { id, yMin: y, yMax: y + TEXT_H }
@@ -1451,7 +1454,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                 </label>
               )}
 
-              {/* Text node: editable search field + case-sensitive checkbox */}
+              {/* Text node: editable search field + match options */}
               {node.kind === 'text' && (
                 <div style={{ padding: '0 6px 4px' }}>
                   <input
@@ -1537,6 +1540,35 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                       style={{ margin: 0, width: 10, height: 10 }}
                     />
                     {t('find.wholeWord')}
+                  </label>
+                  <label
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 3,
+                      marginTop: 3,
+                      fontSize: 8,
+                      color: 'var(--text-secondary)',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={node.sentences || false}
+                      onChange={(e) => {
+                        const val = e.target.checked
+                        setNodes((p) =>
+                          p.map((nd) =>
+                            nd.id === node.id ? { ...nd, sentences: val } : nd
+                          )
+                        )
+                      }}
+                      style={{ margin: 0, width: 10, height: 10 }}
+                    />
+                    {t('find.sentences')}
                   </label>
                 </div>
               )}

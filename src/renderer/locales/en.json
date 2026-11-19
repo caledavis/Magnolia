@@ -809,7 +809,8 @@
     "in": "in {{name}}",
     "placeholder": "word or phrase...",
     "caseSensitive": "Case sensitive",
-    "wholeWord": "Whole word"
+    "wholeWord": "Whole word",
+    "sentences": "Find sentences containing"
   },
   "projectDetails": {
     "title": "Project Details",
@@ -1100,6 +1101,7 @@
     "in": "IN {{scope}}",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}} (incl. subcodes)",
+    "sentencesWith": "\"{{text}}\" (whole sentences)",
     "overlap": "{{a}} overlapping {{b}}",
     "inside": "{{a}} inside {{b}}",
     "outside": "{{a}} outside {{b}}",

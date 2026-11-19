@@ -863,7 +863,8 @@
     "in": "dokumente {{name}}",
     "placeholder": "žodis ar frazė…",
     "caseSensitive": "Skirti didžiąsias ir mažąsias raides",
-    "wholeWord": "Visas žodis"
+    "wholeWord": "Visas žodis",
+    "sentences": "Rasti sakinius, kuriuose yra"
   },
   "projectDetails": {
     "title": "Projekto informacija",
@@ -1176,6 +1177,7 @@
     "in": "{{scope}} VIDUJE",
     "not": "NOT {{names}}",
     "inclSubcodes": "{{name}} (su subkodais)",
+    "sentencesWith": "\"{{text}}\" (ištisi sakiniai)",
     "overlap": "{{a}} persidengia su {{b}}",
     "inside": "{{a}} viduje {{b}}",
     "outside": "{{a}} už {{b}}",
