@@ -1454,10 +1454,25 @@ function CodedTextViewImpl({
       composingRef.current = selectionCps() ?? { start: 0, end: 0 }
     }
     const onCompositionEnd = (e: CompositionEvent) => {
-      const range = composingRef.current
+      let range = composingRef.current
       composingRef.current = null
+      const data = e.data ?? ''
+      if (!range) {
+        // macOS's inline predictions (the grey word completion) end a
+        // composition that never started, usually with nothing in it.
+        // Nothing changed then: remounting the lines would only drop the
+        // caret to the start of the note.
+        if (!data) return
+        // Text did go in, just before the caret.
+        const at = selectionCps()
+        if (!at) return
+        const start = Math.max(0, at.start - [...data].length)
+        range = { start, end: start }
+      }
       setEditEpoch((n) => n + 1)
-      if (range) applyEdit(range.start, range.end, e.data ?? '')
+      // applyEdit puts the caret back after the composed text once the
+      // lines have remounted — even when the text is unchanged.
+      applyEdit(range.start, range.end, data)
     }
     editor.addEventListener('keydown', onKeyDown)
     editor.addEventListener('beforeinput', onBeforeInput)
