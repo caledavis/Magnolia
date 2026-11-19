@@ -4,6 +4,18 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+- **Find whole sentences containing a word.** The Query Builder's Text box has a new **Find sentences containing** option: each result is the whole sentence the word or phrase occurs in, once per sentence, using the same idea of a sentence as **Same sentence**. It works with **Case sensitive** and **Whole word**, in surveys, and with the other boxes. In query names it shows as "word" (whole sentences).
+- **Magnolia remembers where its windows were.** The main window, a popped-out Query Results window and the Codes, Memos, Logbook and Inter-coder Agreement results windows open where you left them, at the same size, even on a second screen. If Query Results was popped out when you closed the project, it opens popped out again. A window whose screen is no longer connected opens on the main screen.
+- **Inter-coder Agreement results can be popped out** into a window of their own, to put them on a second screen beside the documents.
+
+### Changed
+- **Queries run in the background.** The Query Results panel calculates its results without holding up the window, so typing in the Query Builder's Text box stays smooth in large projects.
+
+### Fixed
+- **The caret no longer jumps to the start of a note while you write.** On a Mac, the grey word predictions macOS offers as you type could move the caret to the far left of the note and drop a letter, so the rest of the word went in at the start.
+- **Help → Manual and Help → Donate open in your browser,** as does **Sponsor on GitHub** in Preferences. Before, they did nothing.
+
 ## [2.1.0]
 
 ### Changes to how results are calculated
