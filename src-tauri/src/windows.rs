@@ -286,9 +286,10 @@ pub fn open_main(app: &AppHandle) -> Option<WebviewWindow> {
             height as f64 / m.scale_factor()
         })
         .unwrap_or(900.0);
+    let size = remembered_size(MAIN, (900.0, 600.0)).unwrap_or((1400.0, height));
     let b = base_builder(app, MAIN, "index.html")
         .title("Magnolia")
-        .inner_size(1400.0, height)
+        .inner_size(size.0, size.1)
         .min_inner_size(900.0, 600.0)
         .center();
     #[cfg(target_os = "macos")]
@@ -305,6 +306,7 @@ pub fn open_main(app: &AppHandle) -> Option<WebviewWindow> {
         }
     };
     keep_traffic_lights_placed(&w);
+    remember_size(&w);
     let handle = app.clone();
     w.on_window_event(move |e| match e {
         WindowEvent::CloseRequested { api, .. } => {
@@ -517,19 +519,70 @@ pub fn retitle(app: &AppHandle) {
     }
 }
 
-/// Windows whose place and size are remembered between runs (by the
-/// window-state plugin), so a layout across two screens — the main window
-/// on one, Query Results on the other — comes back after quitting. Memo
-/// windows are one per memo, so they aren't kept.
+/// Windows whose place and size are remembered between runs, so a layout
+/// across two screens — the main window on one, Query Results on the
+/// other — comes back after quitting. Memo windows are one per memo, so
+/// they aren't kept.
 const REMEMBERED: [&str; 6] = [MAIN, QUERY_RESULTS, INTERCODER_RESULTS, CODEBOOK, LOGBOOK, MEMOS];
 
+/// Place (and true maximising) is the window-state plugin's. Size isn't:
+/// the plugin keeps no size for a window that reports itself maximized,
+/// and on macOS a window zoomed or tiled to fill a screen does — so it
+/// came back in place but at its old size. Sizes are kept below instead.
 pub fn window_state_plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     use tauri_plugin_window_state::{Builder, StateFlags};
     Builder::new()
         // Not VISIBLE: windows show themselves once their page has loaded.
-        .with_state_flags(StateFlags::POSITION | StateFlags::SIZE | StateFlags::MAXIMIZED)
+        .with_state_flags(StateFlags::POSITION | StateFlags::MAXIMIZED)
         .with_filter(|label| REMEMBERED.contains(&label))
         .build()
+}
+
+/// Each remembered window's last size, in points.
+static SIZES: std::sync::LazyLock<std::sync::Mutex<serde_json::Map<String, Value>>> =
+    std::sync::LazyLock::new(|| std::sync::Mutex::new(storage::window_sizes()));
+
+fn remembers(label: &str) -> bool {
+    REMEMBERED.contains(&label) && !crate::automation::active()
+}
+
+/// The size `label` had when it was last open, no smaller than `min`.
+fn remembered_size(label: &str, min: (f64, f64)) -> Option<(f64, f64)> {
+    if !remembers(label) {
+        return None;
+    }
+    let sizes = SIZES.lock().unwrap();
+    let s = sizes.get(label)?;
+    let (w, h) = (s.get("width")?.as_f64()?, s.get("height")?.as_f64()?);
+    Some((w.max(min.0), h.max(min.1)))
+}
+
+/// Keep `w`'s size up to date as it changes (however it's resized:
+/// dragging, zooming or tiling), and on disk once it closes.
+fn remember_size(w: &WebviewWindow) {
+    let label = w.label().to_string();
+    if !remembers(&label) {
+        return;
+    }
+    let win = w.clone();
+    w.on_window_event(move |e| match e {
+        WindowEvent::Resized(size) => {
+            if size.width == 0
+                || size.height == 0
+                || win.is_minimized().unwrap_or(false)
+                || win.is_fullscreen().unwrap_or(false)
+            {
+                return;
+            }
+            let s = size.to_logical::<f64>(win.scale_factor().unwrap_or(1.0));
+            SIZES
+                .lock()
+                .unwrap()
+                .insert(label.clone(), json!({ "width": s.width.round(), "height": s.height.round() }));
+        }
+        WindowEvent::Destroyed => storage::save_window_sizes(&SIZES.lock().unwrap()),
+        _ => {}
+    });
 }
 
 struct ChildSpec {
@@ -553,9 +606,10 @@ fn open_child(app: &AppHandle, label: &str, spec: ChildSpec, data: Value) {
         emit_to(app, label, spec.init_event, data);
         return;
     }
+    let size = remembered_size(label, spec.min).unwrap_or(spec.size);
     let b = base_builder(app, label, spec.page)
         .title(i18n::t(spec.title))
-        .inner_size(spec.size.0, spec.size.1)
+        .inner_size(size.0, size.1)
         .min_inner_size(spec.min.0, spec.min.1);
     // A transparent title bar shows the window's background colour, which
     // the page keeps matched to its own (see syncWindowBackground in
@@ -564,6 +618,7 @@ fn open_child(app: &AppHandle, label: &str, spec: ChildSpec, data: Value) {
     let b = b.title_bar_style(tauri::TitleBarStyle::Transparent);
     match b.build() {
         Ok(w) => {
+            remember_size(&w);
             let handle = app.clone();
             let label = label.to_string();
             w.on_window_event(move |e| {

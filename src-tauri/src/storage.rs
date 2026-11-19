@@ -170,6 +170,20 @@ pub fn set_query_results_popped_out(popped_out: bool) {
     write_json(WINDOW_LAYOUT, &json!({ "queryResultsPoppedOut": popped_out }), true);
 }
 
+/// Each remembered window's last size in points (windows.rs).
+const WINDOW_SIZES: &str = "magnolia-window-sizes.json";
+
+pub fn window_sizes() -> serde_json::Map<String, Value> {
+    match read_json(WINDOW_SIZES) {
+        Some(Value::Object(m)) => m,
+        _ => serde_json::Map::new(),
+    }
+}
+
+pub fn save_window_sizes(sizes: &serde_json::Map<String, Value>) {
+    write_json(WINDOW_SIZES, &Value::Object(sizes.clone()), true);
+}
+
 // ── Updater state ──
 
 const UPDATE_STATE: &str = "magnolia-update-state.json";
