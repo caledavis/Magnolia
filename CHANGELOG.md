@@ -4,6 +4,8 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 
 ## [Unreleased]
 
+## [2.2.0]
+
 ### Added
 - **Find whole sentences containing a word.** The Query Builder's Text box has a new **Find sentences containing** option: each result is the whole sentence the word or phrase occurs in, once per sentence, using the same idea of a sentence as **Same sentence**. It works with **Case sensitive** and **Whole word**, in surveys, and with the other boxes. In query names it shows as "word" (whole sentences).
 - **Magnolia remembers where its windows were.** The main window, a popped-out Query Results window and the Codes, Memos, Logbook and Inter-coder Agreement results windows open where you left them, at the same size, even on a second screen. If Query Results was popped out when you closed the project, it opens popped out again. A window whose screen is no longer connected opens on the main screen.
