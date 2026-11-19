@@ -31,6 +31,7 @@
     "release:win": "node scripts/release.mjs release win",
     "release:linux": "node scripts/release.mjs release linux",
     "release:finish": "node scripts/release.mjs finish",
+    "release:all": "node scripts/release.mjs all",
     "i18n:review-export": "node scripts/translation-review.mjs export",
     "i18n:review-import": "node scripts/translation-review.mjs import",
     "i18n:sync": "node scripts/i18n-sync.mjs",

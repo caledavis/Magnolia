@@ -19,6 +19,14 @@
  *     signs with Magnolia's Developer ID unless APPLE_SIGNING_IDENTITY says
  *     otherwise, and builds both architectures.
  *
+ *   node scripts/release.mjs all
+ *     (npm run release:all, on the Mac.) Everything above at once: create
+ *     the vX.Y.Z draft if there isn't one, start the Windows and Linux
+ *     workflows and build the Mac version here at the same time (Windows
+ *     and Linux log to release/release-win.log and release-linux.log),
+ *     then, once all three are uploaded, `finish` — if the draft has its
+ *     release notes by then; if not, it says to write them and run finish.
+ *
  *   node scripts/release.mjs finish [notes-file]
  *     (npm run release:finish.) Download every asset of the draft release,
  *     write the update manifests and upload them. Their release notes come
@@ -41,8 +49,8 @@
  *     "Testing an update before release").
  */
 import { createHash } from 'node:crypto'
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
-import { execFileSync } from 'node:child_process'
+import { copyFileSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { execFileSync, spawn } from 'node:child_process'
 import { homedir, tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -257,6 +265,18 @@ const WORKFLOWS = {
   linux: { file: 'release-linux.yml', name: 'Linux' }
 }
 
+/** This checkout's commit, after checking it's what GitHub's main holds
+ *  (`what` names what has to match, for the error). */
+function pushedHead(what) {
+  run('git', ['fetch', '--quiet', 'origin', 'main'])
+  const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf-8', cwd: root }).trim()
+  const remote = execFileSync('git', ['rev-parse', 'origin/main'], { encoding: 'utf-8', cwd: root }).trim()
+  if (head !== remote) {
+    throw new Error(`This checkout (${head.slice(0, 7)}) isn't what's on GitHub's main (${remote.slice(0, 7)}): push or pull first, so ${what} of the same commit.`)
+  }
+  return head
+}
+
 /**
  * Run the platform's release workflow on GitHub for the pushed main branch
  * and follow it to the end. It builds, checks the result starts on clean
@@ -272,12 +292,7 @@ function releaseOnGitHub(platform) {
     throw new Error(`There's no ${tag} release on GitHub yet: create the draft first (see RELEASING.md).`)
   }
   // The workflow builds what's on GitHub, so that has to be this commit.
-  run('git', ['fetch', '--quiet', 'origin', 'main'])
-  const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf-8', cwd: root }).trim()
-  const remote = execFileSync('git', ['rev-parse', 'origin/main'], { encoding: 'utf-8', cwd: root }).trim()
-  if (head !== remote) {
-    throw new Error(`This checkout (${head.slice(0, 7)}) isn't what's on GitHub's main (${remote.slice(0, 7)}): push or pull first, so the ${name} build is of the same commit.`)
-  }
+  const head = pushedHead(`the ${name} build is`)
   const started = Date.now() - 5000
   console.log(`Starting the Release (${name}) workflow for ${tag} (${head.slice(0, 7)})…`)
   gh(['workflow', 'run', file, '--ref', 'main'])
@@ -328,6 +343,51 @@ function release(platform, upload) {
   console.log(`\nDone: ${collected.length} files uploaded to ${tag}.`)
 }
 
+/** The draft release's description: its release notes. */
+function draftNotes(tag) {
+  return execFileSync('gh', ['release', 'view', tag, '--json', 'body', '--jq', '.body', '--repo', REPO], { encoding: 'utf-8', shell: isWin }).trim()
+}
+
+/** Release every platform at once (see the top of this file). */
+async function all() {
+  const tag = `v${version()}`
+  // Everything that would stop a build, checked before any starts.
+  if (process.platform !== 'darwin') throw new Error('Run release:all on the Mac: it builds the Mac version here.')
+  releaseEnv('mac')
+  pushedHead('every platform is built')
+  // One draft, made before the builds start: made by each of them at
+  // once, there'd be three, with the uploads split between them.
+  try {
+    execFileSync('gh', ['release', 'view', tag, '--json', 'tagName', '--repo', REPO], { stdio: 'ignore', shell: isWin })
+    console.log(`Using the ${tag} draft.`)
+  } catch {
+    console.log(`Creating the ${tag} draft…`)
+    run('gh', ['release', 'create', tag, '--draft', '--title', `Magnolia ${version()}`, '--notes', '', '--repo', REPO])
+  }
+  const logs = join(root, 'release')
+  mkdirSync(logs, { recursive: true })
+  const build = (platform) =>
+    new Promise((done) => {
+      const log = platform === 'mac' ? null : join(logs, `release-${platform}.log`)
+      const out = log ? openSync(log, 'w') : 'inherit'
+      const child = spawn(process.execPath, [fileURLToPath(import.meta.url), 'release', platform], { cwd: root, stdio: ['ignore', out, out] })
+      child.on('error', () => done(false))
+      child.on('exit', (code) => done(code === 0))
+    })
+  console.log(`Building Windows and Linux on GitHub (follow them in release/release-win.log and release/release-linux.log) and the Mac version here…\n`)
+  const platforms = ['mac', 'win', 'linux']
+  const ok = await Promise.all(platforms.map(build))
+  const failed = platforms.filter((_, i) => !ok[i])
+  if (failed.length) {
+    throw new Error(`\nNot finished: the ${failed.join(' and ')} release failed (see the output above, or release/release-<platform>.log). Fix it and run that platform's release again, then npm run release:finish.`)
+  }
+  console.log('\nAll three platforms are uploaded.')
+  if (!draftNotes(tag)) {
+    throw new Error(`Write the release notes in the ${tag} draft on GitHub, then run npm run release:finish.`)
+  }
+  finish()
+}
+
 /** Write the update manifests from the release's assets and upload them. */
 function finish(notesFile) {
   const tag = `v${version()}`
@@ -340,7 +400,7 @@ function finish(notesFile) {
   // draft's own description on GitHub.
   let notes = notesFile ? resolve(notesFile) : undefined
   if (!notes) {
-    const body = execFileSync('gh', ['release', 'view', tag, '--json', 'body', '--jq', '.body', '--repo', REPO], { encoding: 'utf-8', shell: isWin }).trim()
+    const body = draftNotes(tag)
     if (!body) throw new Error(`The ${tag} draft has no release notes yet: write them on GitHub, or pass a notes file.`)
     notes = join(dir, 'release-notes.md')
     writeFileSync(notes, body + '\n')
@@ -358,12 +418,13 @@ const baseUrl = flag >= 0 ? argv.splice(flag, 2)[1] : undefined
 const noUpload = argv.includes('--no-upload')
 const [cmd, ...args] = argv.filter((a) => a !== '--no-upload')
 try {
-  if (cmd === 'release' && args[0]) release(args[0], !noUpload)
+  if (cmd === 'all') await all()
+  else if (cmd === 'release' && args[0]) release(args[0], !noUpload)
   else if (cmd === 'finish') finish(args[0])
   else if (cmd === 'collect' && args[0]) collect(args[0])
   else if (cmd === 'manifests' && args[0] && args[1]) manifests(args[0], resolve(args[1]), args[2], baseUrl)
   else {
-    console.error('usage: release.mjs release <mac|win|linux> [--no-upload]\n       release.mjs finish [notes-file]\n       release.mjs collect <mac-arm64|mac-x64|win|linux>\n       release.mjs manifests <version> <dir> [notes-file] [--base-url <url>]')
+    console.error('usage: release.mjs release <mac|win|linux> [--no-upload]\n       release.mjs all\n       release.mjs finish [notes-file]\n       release.mjs collect <mac-arm64|mac-x64|win|linux>\n       release.mjs manifests <version> <dir> [notes-file] [--base-url <url>]')
     process.exit(1)
   }
 } catch (e) {

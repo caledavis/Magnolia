@@ -39,6 +39,7 @@ Everyday commands:
 | `npm test` | Renderer tests (Vitest) + backend tests (`cargo test`) |
 | `npm run typecheck` | TypeScript check of the renderer |
 | `npm run build` | Release build + installers for this platform, into `target/…/release/bundle/` (for testing; nothing is uploaded) |
+| `npm run release:all` | The whole release, on the Mac: creates the draft if needed, runs the three below at once, then `release:finish` (see "Cutting a release") |
 | `npm run release:mac` | macOS release: builds arm64 + x64, collects and uploads to the draft (see "Cutting a release") |
 | `npm run release:win` | Windows release, from any machine: runs the **Release (Windows)** workflow on GitHub, which builds, tests and uploads (see "Building for Windows") |
 | `npm run release:linux` | Linux release, from any machine: runs the **Release (Linux)** workflow on GitHub, which builds on Ubuntu 22.04, tests and uploads (see "Building for Linux") |
@@ -248,6 +249,23 @@ can write releases, on every build machine.
 ```sh
 npm version X.Y.Z --no-git-tag-version   # and version = "X.Y.Z" in src-tauri/Cargo.toml
 (cd src-tauri && cargo build) && git commit -am "Bump version to X.Y.Z" && git push
+
+# On the Mac, everything at once — draft, all three platforms, manifests:
+npm run release:all
+# Then publish the draft on GitHub.
+```
+
+`release:all` creates the `vX.Y.Z` draft if there isn't one, then builds the
+Mac version here while the Windows and Linux workflows run on GitHub (their
+progress goes to `release/release-win.log` and `release/release-linux.log`).
+When all three are uploaded it runs `release:finish`, which needs the
+release notes: write them in the draft on GitHub while the builds run. If
+they aren't there yet, it stops and says so — write them, then run
+`npm run release:finish`. If a platform fails, the others still finish;
+run that platform's release again, then `release:finish`.
+
+**Or one platform at a time:**
+```sh
 gh release create vX.Y.Z --draft --title "Magnolia X.Y.Z" --notes ""
 
 # On the Mac (Apple ID and password from the "Magnolia notarization" keychain item):
