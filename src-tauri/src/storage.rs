@@ -152,6 +152,24 @@ pub fn set_last_import_dir(project: Option<&str>, dir: &Path) {
     write_json(IMPORT_DIRS, &all, true);
 }
 
+// ── Window layout ──
+
+const WINDOW_LAYOUT: &str = "magnolia-window-layout.json";
+
+/// Whether Query Results was popped out of the main window when that
+/// window last closed (windows.rs), so the next project opens it popped
+/// out again — e.g. on a second screen. Where each window sat is kept by
+/// the window-state plugin.
+pub fn query_results_popped_out() -> bool {
+    read_json(WINDOW_LAYOUT)
+        .and_then(|v| v.get("queryResultsPoppedOut")?.as_bool())
+        .unwrap_or(false)
+}
+
+pub fn set_query_results_popped_out(popped_out: bool) {
+    write_json(WINDOW_LAYOUT, &json!({ "queryResultsPoppedOut": popped_out }), true);
+}
+
 // ── Updater state ──
 
 const UPDATE_STATE: &str = "magnolia-update-state.json";

@@ -6,6 +6,7 @@
 use crate::i18n;
 use crate::menu;
 use crate::state::AppState;
+use crate::storage;
 use serde_json::{Value, json};
 use std::time::Duration;
 use tauri::{
@@ -368,6 +369,7 @@ fn on_main_destroyed(app: &AppHandle) {
         ui.queued_events.retain(|(label, _), _| label != MAIN);
         (ui.is_quitting, ui.restart_after_quit)
     };
+    storage::set_query_results_popped_out(app.get_webview_window(QUERY_RESULTS).is_some());
     // The update window belongs to the app, not the project: it stays up
     // (showing "Installing…" during Install and Relaunch).
     for (label, w) in app.webview_windows() {
@@ -513,6 +515,21 @@ pub fn retitle(app: &AppHandle) {
         };
         let _ = w.set_title(&i18n::t(key));
     }
+}
+
+/// Windows whose place and size are remembered between runs (by the
+/// window-state plugin), so a layout across two screens — the main window
+/// on one, Query Results on the other — comes back after quitting. Memo
+/// windows are one per memo, so they aren't kept.
+const REMEMBERED: [&str; 6] = [MAIN, QUERY_RESULTS, INTERCODER_RESULTS, CODEBOOK, LOGBOOK, MEMOS];
+
+pub fn window_state_plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+    use tauri_plugin_window_state::{Builder, StateFlags};
+    Builder::new()
+        // Not VISIBLE: windows show themselves once their page has loaded.
+        .with_state_flags(StateFlags::POSITION | StateFlags::SIZE | StateFlags::MAXIMIZED)
+        .with_filter(|label| REMEMBERED.contains(&label))
+        .build()
 }
 
 struct ChildSpec {

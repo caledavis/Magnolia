@@ -944,6 +944,12 @@ pub async fn open_child_window(app: AppHandle, kind: String, data: Value) -> Cmd
     Ok(())
 }
 
+/// Whether Query Results was popped out when the main window last closed.
+#[tauri::command]
+pub fn query_results_popped_out() -> bool {
+    storage::query_results_popped_out()
+}
+
 #[tauri::command]
 pub async fn update_query_results_window(app: AppHandle, data: Value) -> CmdResult<()> {
     windows::update_query_results(&app, data);

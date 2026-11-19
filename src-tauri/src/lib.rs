@@ -71,6 +71,13 @@ pub fn run() {
             }
         }))
     };
+    // Remember where windows sat — except under automation, whose
+    // screenshots need the same window every run.
+    let builder = if automation::active() {
+        builder
+    } else {
+        builder.plugin(windows::window_state_plugin())
+    };
     let app = builder
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
@@ -125,6 +132,7 @@ pub fn run() {
             commands::open_acknowledgements,
             commands::open_child_window,
             commands::update_query_results_window,
+            commands::query_results_popped_out,
             commands::update_intercoder_results_window,
             commands::close_child_window,
             commands::update_memos_window,

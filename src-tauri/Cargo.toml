@@ -35,6 +35,7 @@ icu_plurals = "2.4"
 icu_decimal = "2.4"
 icu_locale_core = "2.4"
 fixed_decimal = "0.7.3"
+tauri-plugin-window-state = "2"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"

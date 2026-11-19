@@ -698,6 +698,18 @@ function App() {
     setQueryResultsPoppedOut(true)
   }, [codeStore.findCode, documentStore.sources, tagStore.tags])
 
+  // Pop Query Results out again if it was popped out when this window last
+  // closed — the window-state plugin puts it back where it was (e.g. on a
+  // second screen). Once per main window; it keeps its own state after.
+  const restoredPopOutRef = useRef(false)
+  useEffect(() => {
+    if (restoredPopOutRef.current || !projectStore.filePath) return
+    restoredPopOutRef.current = true
+    void window.api.wasQueryResultsPoppedOut().then((out) => {
+      if (out) popOutQueryResults()
+    })
+  }, [projectStore.filePath, popOutQueryResults])
+
   const collectProject = useCallback((): Project => {
     const ats = useAnalysisTabsStore.getState()
     const ds = useDocumentStore.getState()

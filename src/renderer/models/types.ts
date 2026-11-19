@@ -774,6 +774,8 @@ export interface MagnoliaAPI {
   onIntercoderResultsClosed: (callback: () => void) => () => void
   // Query results window (pop-out)
   openQueryResultsWindow: (data: QueryResultsInitData) => void
+  /** Whether Query Results was popped out when the main window last closed. */
+  wasQueryResultsPoppedOut: () => Promise<boolean>
   updateQueryResultsWindow: (data: QueryResultsInitData) => void
   getQueryResultsData: () => Promise<QueryResultsInitData>
   onQueryResultsData: (callback: (data: QueryResultsInitData) => void) => () => void

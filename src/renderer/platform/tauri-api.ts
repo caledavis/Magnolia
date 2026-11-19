@@ -485,6 +485,7 @@ const api: MagnoliaAPI = {
 
   // Query results window (pop-out)
   openQueryResultsWindow: (data) => void invoke('open_child_window', { kind: 'query-results', data }),
+  wasQueryResultsPoppedOut: () => invoke('query_results_popped_out'),
   updateQueryResultsWindow: (data) => void invoke('update_query_results_window', { data }),
   getQueryResultsData: () => invoke('get_window_data'),
   onQueryResultsData: (callback) => on('query-results-init-data', callback),
