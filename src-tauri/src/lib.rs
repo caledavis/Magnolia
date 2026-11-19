@@ -90,6 +90,7 @@ pub fn run() {
         })
         .on_menu_event(|app, event| menu::handle_event(app, event.id().as_ref()))
         .invoke_handler(tauri::generate_handler![
+            commands::open_external,
             commands::open_project,
             zotero::zotero_get,
             zotero::zotero_file_path,

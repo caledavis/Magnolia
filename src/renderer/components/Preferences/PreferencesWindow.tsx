@@ -580,7 +580,7 @@ function UpdatesSettings() {
       {/* Persistent nudge when a newer release exists. Shown on every build so
           it also catches a silently-failed auto-update; the Download link is
           the reliable path for builds that can't self-update (portable exe).
-          The main window routes target=_blank through shell.openExternal. */}
+          platform/tauri-api.ts hands target=_blank links to the browser. */}
       {badge.available && (
         <div
           style={{
@@ -651,8 +651,8 @@ function SupportSettings() {
         {t('prefs.createdBy')}
       </p>
 
-      {/* The main window's setWindowOpenHandler routes target=_blank links
-          through shell.openExternal, so this opens in the default browser. */}
+      {/* platform/tauri-api.ts hands target=_blank links to the
+          default browser. */}
       <a
         href={SPONSOR_URL}
         target="_blank"

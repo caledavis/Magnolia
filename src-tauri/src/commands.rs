@@ -1044,6 +1044,19 @@ pub async fn track_recent_project(name: String, file_path: String) -> CmdResult<
     Ok(())
 }
 
+/// Open a web or mail link in the system's default handler. The webview
+/// can't: `window.open` and `target="_blank"` links make no new window in
+/// Tauri, so they did nothing (the ribbon's Manual and Donate buttons).
+#[tauri::command]
+pub fn open_external(app: AppHandle, url: String) -> CmdResult<()> {
+    use tauri_plugin_opener::OpenerExt;
+    let lower = url.to_ascii_lowercase();
+    if lower.starts_with("https://") || lower.starts_with("http://") || lower.starts_with("mailto:") {
+        let _ = app.opener().open_url(url, None::<&str>);
+    }
+    Ok(())
+}
+
 #[tauri::command]
 pub async fn welcome_action(
     app: AppHandle,
