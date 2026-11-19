@@ -9,6 +9,7 @@ import { useTagStore } from './tag-store'
 import { generateGuid } from '../utils/guid'
 import { useProjectStore } from './project-store'
 import { makeHmrSafe } from './hmr-preserve'
+import { runQueryInWorker } from '../workers/query-runner'
 
 interface QueryState {
   currentQuery: Query | null
@@ -86,10 +87,9 @@ function liveResolveFilter(df: Query['documentFilter']): {
   return { documentFilter: { ...df, sourceGuids: fresh }, noDocs: false }
 }
 
-/** Run a query against current data with the document filter re-resolved
- *  live (see liveResolveFilter). Everything that runs a saved query goes
- *  through here, so a query finds the same results wherever it's used. */
-export function runQueryLive(query: Query): { results: QueryResult[]; missingDocuments: string[] } {
+/** A query ready to execute: its document filter (and its `within`
+ *  queries' filters) resolved live against current data. */
+function prepareLiveRun(query: Query): { query: Query; noDocs: boolean; missingDocuments: string[] } {
   const docState = useDocumentStore.getState()
   const { documentFilter, noDocs } = liveResolveFilter(query.documentFilter)
   // "Missing documents" only applies to frozen (graph-less) filters. A
@@ -100,18 +100,56 @@ export function runQueryLive(query: Query): { results: QueryResult[]; missingDoc
     const existing = new Set(docState.sources.map((s) => s.guid))
     for (const sg of query.documentFilter.sourceGuids) if (!existing.has(sg)) missingDocuments.push(sg)
   }
-  const results = noDocs
-    ? []
-    : executeQuery(
-        { ...query, documentFilter, within: liveWithin(query.within) },
-        docState.sources,
-        docState.sourceContents,
-        useCodeStore.getState().flatCodes(),
-        useTagStore.getState().tags,
-        docState.sourceFolder,
-        docState.folders
-      )
-  return { results, missingDocuments }
+  return { query: { ...query, documentFilter, within: liveWithin(query.within) }, noDocs, missingDocuments }
+}
+
+function executeOnMainThread(query: Query): QueryResult[] {
+  const docState = useDocumentStore.getState()
+  return executeQuery(
+    query,
+    docState.sources,
+    docState.sourceContents,
+    useCodeStore.getState().flatCodes(),
+    useTagStore.getState().tags,
+    docState.sourceFolder,
+    docState.folders
+  )
+}
+
+/** Run a query against current data with the document filter re-resolved
+ *  live (see liveResolveFilter). Everything that runs a saved query goes
+ *  through here, so a query finds the same results wherever it's used. */
+export function runQueryLive(query: Query): { results: QueryResult[]; missingDocuments: string[] } {
+  const run = prepareLiveRun(query)
+  return { results: run.noDocs ? [] : executeOnMainThread(run.query), missingDocuments: run.missingDocuments }
+}
+
+/** runQueryLive in the query worker, so the window stays responsive while
+ *  it calculates. Null when a newer run replaced it before it started. */
+async function runQueryLiveInBackground(
+  query: Query
+): Promise<{ results: QueryResult[]; missingDocuments: string[] } | null> {
+  const run = prepareLiveRun(query)
+  if (run.noDocs) return { results: [], missingDocuments: run.missingDocuments }
+  const docState = useDocumentStore.getState()
+  const codeState = useCodeStore.getState()
+  let results: QueryResult[] | null
+  try {
+    results = await runQueryInWorker(run.query, {
+      sources: docState.sources,
+      sourceContents: docState.sourceContents,
+      codeTree: codeState.codes,
+      flatCodes: codeState.flatCodes,
+      tags: useTagStore.getState().tags,
+      sourceFolder: docState.sourceFolder,
+      folders: docState.folders
+    })
+  } catch {
+    // No worker (or it failed): run here, as before the worker existed.
+    // A query that itself throws throws again here, where it's reported.
+    results = executeOnMainThread(run.query)
+  }
+  return results && { results, missingDocuments: run.missingDocuments }
 }
 
 /** A query's `within` queries with their document filters resolved live.
@@ -172,25 +210,29 @@ export function flushPendingQueryLayout(): void {
  *  codings in a row) coalesce into one execution. */
 let runToken = 0
 
-/** Resolve after the next frame has been painted. Queries execute
- *  synchronously on the UI thread, so the loading bar must be on screen
- *  BEFORE the run starts or it would never appear. */
+/** Resolve after the next frame has been painted, so the loading bar is
+ *  on screen before the run starts (needed when a run falls back to the
+ *  main thread, which would otherwise block it from painting). */
 function afterNextPaint(): Promise<void> {
   if (typeof requestAnimationFrame === 'undefined') return Promise.resolve()
   return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)))
 }
 
-/** Show the loading bar, let it paint, then run `query` and publish its
- *  results — unless a newer run or a clear superseded it meanwhile. */
+/** Show the loading bar, let it paint, then run `query` in the background
+ *  and publish its results — unless a newer run or a clear superseded it
+ *  meanwhile. */
 function scheduleRun(query: Query, key: string = executionKey(query)): void {
   const token = ++runToken
   lastRunKey = key
   useQueryStore.setState({ isLoading: true })
-  void afterNextPaint().then(() => {
+  void afterNextPaint().then(async () => {
     if (token !== runToken) return
     try {
-      const { results, missingDocuments } = runQueryLive(query)
-      if (token === runToken) useQueryStore.setState({ results, missingDocuments, isLoading: false })
+      const run = await runQueryLiveInBackground(query)
+      // Null: replaced by a newer run, which will publish (and clear the bar).
+      if (run && token === runToken) {
+        useQueryStore.setState({ results: run.results, missingDocuments: run.missingDocuments, isLoading: false })
+      }
     } catch (err) {
       if (token === runToken) useQueryStore.setState({ isLoading: false })
       throw err
