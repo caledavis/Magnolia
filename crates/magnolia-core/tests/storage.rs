@@ -718,16 +718,84 @@ fn region_codings_survive_a_missing_pdf_or_image() {
 }
 
 #[test]
-fn compressed_media_is_inflated_once_for_range_reads() {
+fn compressed_media_is_unpacked_to_disk_once_for_range_reads() {
     let d = temp();
     let store = BinaryStore::new();
     store.set_active_project_path(Some(&audio_qdpx(&d, "deflated.qdpx", AUDIO_GUID)));
     let handle = archive_handle(AUDIO_GUID, "m4a");
     let first = store.locate(&handle).unwrap();
-    assert!(matches!(first, MediaSource::Memory(_)));
+    let MediaSource::Spilled { file: a, .. } = &first else { panic!("expected a temporary file") };
     assert_eq!(first.read(2, 6).unwrap(), &AUDIO[2..6]);
-    let (MediaSource::Memory(a), Some(MediaSource::Memory(b))) = (first, store.locate(&handle)) else {
-        panic!("expected memory sources");
+    let Some(MediaSource::Spilled { file: b, .. }) = store.locate(&handle) else {
+        panic!("expected a temporary file");
     };
-    assert!(std::sync::Arc::ptr_eq(&a, &b));
+    assert!(std::sync::Arc::ptr_eq(a, &b));
+}
+
+/// Bytes big enough to be kept in a temporary file rather than memory.
+fn big() -> Vec<u8> {
+    (0..17 << 20).map(|i: u32| (i % 251) as u8).collect()
+}
+
+#[test]
+fn large_imports_wait_on_disk_and_are_saved_from_there() {
+    let d = temp();
+    let path = p(&d, "big.qdpx");
+    make_zip(&path, &[("project.qde", QDE)]);
+    let store = BinaryStore::new();
+    store.set_active_project_path(Some(path.to_str().unwrap()));
+    let bytes = big();
+    let handle = store.put_overlay(bytes.clone(), "mp4");
+    let source = store.overlay_source(&handle).unwrap();
+    let MediaSource::Spilled { file, .. } = &source else { panic!("expected a temporary file") };
+    let tmp = file.path().to_path_buf();
+    drop(source);
+    assert!(tmp.exists());
+    write_qdpx(
+        &path,
+        &mut project_with_video(&handle),
+        &contents_for(GUID),
+        &opts(Some(&store), ""),
+    )
+    .unwrap();
+    assert_eq!(read_entry(&path, &format!("sources/{GUID}.mp4")).unwrap(), bytes);
+    // Embedded, so the temporary file has gone.
+    assert!(!tmp.exists());
+    assert!(store.overlay_source(&handle).is_none());
+}
+
+#[test]
+fn large_files_are_imported_without_loading_them() {
+    let d = temp();
+    let original = p(&d, "recording.mov");
+    let bytes = big();
+    std::fs::write(&original, &bytes).unwrap();
+    let store = BinaryStore::new();
+    let handle = store.put_overlay_file(&original, "mov").unwrap();
+    // The original can go: the import is a copy of it.
+    std::fs::remove_file(&original).unwrap();
+    let source = store.locate(&handle).unwrap();
+    assert!(matches!(source, MediaSource::Spilled { .. }));
+    assert_eq!(source.len(), bytes.len() as u64);
+    assert_eq!(source.read(1000, 1010).unwrap(), &bytes[1000..1010]);
+    // Small files are simply kept in memory.
+    let small = p(&d, "clip.m4a");
+    std::fs::write(&small, AUDIO).unwrap();
+    let h = store.put_overlay_file(&small, "m4a").unwrap();
+    assert!(matches!(store.locate(&h), Some(MediaSource::Memory(_))));
+}
+
+#[test]
+fn switching_projects_drops_waiting_imports_and_their_files() {
+    let d = temp();
+    let store = BinaryStore::new();
+    store.set_active_project_path(Some(&audio_qdpx(&d, "one.qdpx", AUDIO_GUID)));
+    let handle = store.put_overlay(big(), "mov");
+    let Some(MediaSource::Spilled { file, .. }) = store.overlay_source(&handle) else {
+        panic!("expected a temporary file");
+    };
+    let tmp = file.path().to_path_buf();
+    drop(file);
+    store.set_active_project_path(Some(&audio_qdpx(&d, "two.qdpx", AUDIO_GUID)));
+    assert!(!tmp.exists());
 }

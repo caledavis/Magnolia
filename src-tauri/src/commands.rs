@@ -574,22 +574,12 @@ fn read_document(
             }))
         }
         e if VIDEO.contains(&e) => {
-            let duration = convert::media::video_duration(&bytes).unwrap_or(0.0);
-            Ok(json!({
-                "name": name, "content": "", "extension": e,
-                "formatting": { "videoFilePath": state.store.put_overlay(bytes, e), "mimeType": video_mime(e), "duration": duration, "videoExt": e },
-            }))
+            let duration = convert::media::video_duration(&bytes);
+            Ok(video_doc(name, e, state.store.put_overlay(bytes, e), duration))
         }
         e if AUDIO.contains(&e) => {
             let meta = convert::media::audio_metadata(&bytes);
-            let (duration, channels, rate) = meta.map(|m| (m.duration, m.channels, m.sample_rate)).unwrap_or((0.0, 1, 44100));
-            Ok(json!({
-                "name": name, "content": "", "extension": e,
-                "formatting": {
-                    "audioFilePath": state.store.put_overlay(bytes, e), "mimeType": audio_mime(e),
-                    "duration": duration, "channels": channels, "sampleRate": rate,
-                },
-            }))
+            Ok(audio_doc(name, e, state.store.put_overlay(bytes, e), meta))
         }
         _ => Ok(json!({ "name": name, "content": String::from_utf8_lossy(&bytes), "extension": ext })),
     }
@@ -601,8 +591,45 @@ fn file_name(p: &Path) -> String {
         .unwrap_or_default()
 }
 
+fn video_doc(name: &str, ext: &str, handle: String, duration: Option<f64>) -> Value {
+    json!({
+        "name": name, "content": "", "extension": ext,
+        "formatting": { "videoFilePath": handle, "mimeType": video_mime(ext), "duration": duration.unwrap_or(0.0), "videoExt": ext },
+    })
+}
+
+fn audio_doc(name: &str, ext: &str, handle: String, meta: Option<convert::media::AudioMetadata>) -> Value {
+    let (duration, channels, rate) = meta.map(|m| (m.duration, m.channels, m.sample_rate)).unwrap_or((0.0, 1, 44100));
+    json!({
+        "name": name, "content": "", "extension": ext,
+        "formatting": {
+            "audioFilePath": handle, "mimeType": audio_mime(ext),
+            "duration": duration, "channels": channels, "sampleRate": rate,
+        },
+    })
+}
+
+/// Audio or video from disk: copied to the store as a file and its details
+/// read from the file, so a long recording is never loaded into memory.
+fn read_media_path(state: &AppState, name: &str, path: &Path, ext: &str) -> CmdResult<Value> {
+    let handle = state.store.put_overlay_file(path, ext).map_err(|e| {
+        log::warn!("could not read {}: {e}", path.display());
+        t("import.unreadable")
+    })?;
+    Ok(if VIDEO.contains(&ext) {
+        video_doc(name, ext, handle, convert::media::video_duration_file(path))
+    } else {
+        audio_doc(name, ext, handle, convert::media::audio_metadata_file(path))
+    })
+}
+
 fn read_document_path(state: &AppState, path: &Path) -> Value {
     let name = file_name(path);
+    let ext = ext_of(&name);
+    if VIDEO.contains(&ext.as_str()) || AUDIO.contains(&ext.as_str()) {
+        return read_media_path(state, &name, path, &ext)
+            .unwrap_or_else(|e| json!({ "name": name, "error": e }));
+    }
     match std::fs::read(path)
         .map_err(|e| {
             log::warn!("could not read {}: {e}", path.display());

@@ -9,7 +9,7 @@ use super::archive_write::AtomicZip;
 use super::checkout::{EDITOR_ENTRY, LOCK_ENTRY, PROJECT_ID_ENTRY};
 use super::serializer::{audio_extension_for, representation_guid_for, serialize_project};
 use super::transcript_refi::build_transcript;
-use crate::binary_store::BinaryStore;
+use crate::binary_store::{BinaryStore, MediaSource};
 use crate::message::{tr, tr_count};
 use crate::util::{Obj, get_arr, get_nonempty, get_str, has, now_iso, truthy};
 use base64::Engine;
@@ -384,23 +384,29 @@ pub fn write_qdpx(
             .map(str::to_string)
             .unwrap_or_else(|| internal.clone());
 
-        let mut bytes: Option<Vec<u8>> = None;
+        // Where the bytes to embed are: copied from there into the archive,
+        // so a large import (kept in a temporary file) is never read into
+        // memory to be saved.
+        let mut bytes: Option<MediaSource> = None;
         if kind == "pdf"
             && let Some(b64) = get_nonempty(fd, "pdfBase64")
         {
-            bytes = base64::engine::general_purpose::STANDARD.decode(b64).ok();
+            bytes = base64::engine::general_purpose::STANDARD
+                .decode(b64)
+                .ok()
+                .map(|b| MediaSource::Memory(std::sync::Arc::new(b)));
         } else if is_overlay {
-            bytes = opts
-                .store
-                .and_then(|st| st.overlay_bytes(handle.unwrap()))
-                .map(|b| b.as_ref().clone());
+            bytes = opts.store.and_then(|st| st.overlay_source(handle.unwrap()));
         } else if let Some(p) = handle.filter(|_| !is_handle) {
-            bytes = std::fs::read(p).ok();
+            bytes = std::fs::metadata(p)
+                .ok()
+                .filter(|m| m.is_file())
+                .map(|m| MediaSource::File { path: p.into(), offset: 0, len: m.len() });
         }
 
         let dest = format!("sources/{internal}");
         if let Some(b) = bytes {
-            zip.add(&dest, &b)?;
+            zip.add_source(&dest, &b)?;
             written.insert(guid.clone());
             if is_overlay {
                 persisted_overlays.push((handle.unwrap().to_string(), guid.clone()));

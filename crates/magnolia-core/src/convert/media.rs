@@ -5,6 +5,7 @@
 use lofty::file::AudioFile;
 use lofty::probe::Probe;
 use std::io::Cursor;
+use std::path::Path;
 
 pub struct AudioMetadata {
     pub duration: f64,
@@ -18,6 +19,16 @@ pub fn audio_metadata(bytes: &[u8]) -> Option<AudioMetadata> {
         .ok()?
         .read()
         .ok()?;
+    metadata_of(&file)
+}
+
+/// `audio_metadata` for a file on disk, read as needed rather than loaded.
+pub fn audio_metadata_file(path: &Path) -> Option<AudioMetadata> {
+    let file = Probe::open(path).ok()?.guess_file_type().ok()?.read().ok()?;
+    metadata_of(&file)
+}
+
+fn metadata_of(file: &lofty::file::TaggedFile) -> Option<AudioMetadata> {
     let p = file.properties();
     Some(AudioMetadata {
         duration: p.duration().as_secs_f64(),
@@ -38,6 +49,39 @@ pub fn video_duration(bytes: &[u8]) -> Option<f64> {
         (be_u32(mvhd, 12)? as f64, be_u32(mvhd, 16)? as f64)
     };
     (timescale > 0.0).then(|| duration / timescale)
+}
+
+/// `video_duration` for a file on disk: steps over the top-level boxes by
+/// their headers and reads only the moov box.
+pub fn video_duration_file(path: &Path) -> Option<f64> {
+    use std::io::{Read, Seek, SeekFrom};
+    let mut f = std::fs::File::open(path).ok()?;
+    let len = f.metadata().ok()?.len();
+    let mut pos = 0u64;
+    while pos + 8 <= len {
+        f.seek(SeekFrom::Start(pos)).ok()?;
+        let mut h = [0u8; 16];
+        let n = f.read(&mut h).ok()?;
+        let size32 = u32::from_be_bytes(h[0..4].try_into().ok()?) as u64;
+        let size = match size32 {
+            1 if n >= 16 => u64::from_be_bytes(h[8..16].try_into().ok()?),
+            0 => len - pos,
+            n => n,
+        };
+        if size < 8 {
+            return None;
+        }
+        if &h[4..8] == b"moov" {
+            // Don't trust a damaged size with a huge allocation.
+            let size = size.min(len - pos).min(256 << 20);
+            let mut moov = vec![0; size as usize];
+            f.seek(SeekFrom::Start(pos)).ok()?;
+            f.read_exact(&mut moov).ok()?;
+            return video_duration(&moov);
+        }
+        pos += size;
+    }
+    None
 }
 
 fn be_u32(b: &[u8], at: usize) -> Option<u32> {

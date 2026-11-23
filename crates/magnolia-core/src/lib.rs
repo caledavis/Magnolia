@@ -7,6 +7,7 @@ pub mod convert;
 pub mod message;
 pub mod pdf_info;
 pub mod qdpx;
+pub mod spill;
 pub mod util;
 pub mod xml_build;
 pub mod xml_read;

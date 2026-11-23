@@ -143,4 +143,24 @@ fn mp4_duration_from_mvhd() {
     .concat();
     assert_eq!(media::video_duration(&file), Some(2.5));
     assert_eq!(media::video_duration(b"RIFF....AVI "), None);
+
+    // From disk, past a large mdat (64-bit size) ahead of the moov.
+    let mut mdat = vec![0u8; 16 + 100_000];
+    mdat[0..4].copy_from_slice(&1u32.to_be_bytes());
+    mdat[4..8].copy_from_slice(b"mdat");
+    let mdat_len = mdat.len() as u64;
+    mdat[8..16].copy_from_slice(&mdat_len.to_be_bytes());
+    let on_disk = [
+        boxed(b"ftyp", b"qt  0000"),
+        mdat,
+        boxed(b"moov", &boxed(b"mvhd", &mvhd)),
+    ]
+    .concat();
+    let d = temp();
+    let path = p(&d, "v.mov");
+    std::fs::write(&path, &on_disk).unwrap();
+    assert_eq!(media::video_duration_file(&path), Some(2.5));
+    let avi = p(&d, "v.avi");
+    std::fs::write(&avi, b"RIFF....AVI ").unwrap();
+    assert_eq!(media::video_duration_file(&avi), None);
 }

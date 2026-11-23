@@ -6,10 +6,11 @@
 //!
 //! - `archive/<name>`: a binary already saved in the open .qdpx, read
 //!   straight out of `sources/<name>`.
-//! - `overlay/<token>.<ext>`: a fresh import not yet saved, held in memory
-//!   until the next save embeds it. After that the buffer is dropped and the
-//!   handle resolves from the archive through the token → guid map the save
-//!   recorded.
+//! - `overlay/<token>.<ext>`: a fresh import not yet saved, held until the
+//!   next save embeds it — in memory if it's small, otherwise in a temporary
+//!   file (`crate::spill`), so a long recording doesn't take its size in
+//!   memory. After the save it's dropped and the handle resolves from the
+//!   archive through the token → guid map the save recorded.
 
 use crate::qdpx::archive::Archive;
 use std::collections::HashMap;
@@ -18,14 +19,27 @@ use std::sync::{Arc, Mutex};
 
 const HANDLE_PREFIX: &str = "magnolia-bin://";
 
+/// Imports at least this big are kept in a temporary file, not in memory.
+const SPILL_BYTES: usize = 16 << 20;
+
 #[derive(Default)]
 struct Inner {
     active_project_path: Option<String>,
-    overlay: HashMap<String, (Arc<Vec<u8>>, String)>,
+    /// token → (bytes, extension).
+    overlay: HashMap<String, (MediaSource, String)>,
     token_to_guid: HashMap<String, String>,
     /// The last compressed archive binary `locate` had to inflate, so the
     /// range reads that follow (a player seeking) don't inflate it again.
-    inflated: Option<(String, Arc<Vec<u8>>)>,
+    inflated: Option<(String, MediaSource)>,
+}
+
+impl Inner {
+    /// Temporary files go with their last handle (`SpillFile`).
+    fn clear_overlay(&mut self) {
+        self.overlay.clear();
+        self.token_to_guid.clear();
+        self.inflated = None;
+    }
 }
 
 /// Where a binary's bytes are, for reading part of it (media streaming).
@@ -35,13 +49,16 @@ pub enum MediaSource {
     /// `len` bytes at `offset` in the file at `path`: an uncompressed
     /// archive entry (media is stored, not deflated) or a plain file.
     File { path: std::path::PathBuf, offset: u64, len: u64 },
+    /// A temporary file of ours (`crate::spill`), deleted once the last
+    /// clone of this goes.
+    Spilled { file: Arc<crate::spill::SpillFile>, len: u64 },
 }
 
 impl MediaSource {
     pub fn len(&self) -> u64 {
         match self {
             MediaSource::Memory(b) => b.len() as u64,
-            MediaSource::File { len, .. } => *len,
+            MediaSource::File { len, .. } | MediaSource::Spilled { len, .. } => *len,
         }
     }
 
@@ -49,20 +66,37 @@ impl MediaSource {
         self.len() == 0
     }
 
+    /// All of it, in memory.
+    pub fn bytes(&self) -> std::io::Result<Arc<Vec<u8>>> {
+        match self {
+            MediaSource::Memory(b) => Ok(b.clone()),
+            _ => self.read(0, self.len()).map(Arc::new),
+        }
+    }
+
     /// Bytes `start..end` (clamped to the binary's length).
     pub fn read(&self, start: u64, end: u64) -> std::io::Result<Vec<u8>> {
         let end = end.min(self.len());
         let start = start.min(end);
+        let Some((path, offset)) = self.file() else {
+            let MediaSource::Memory(b) = self else { unreachable!() };
+            return Ok(b[start as usize..end as usize].to_vec());
+        };
+        use std::io::{Read, Seek, SeekFrom};
+        let mut f = std::fs::File::open(path)?;
+        f.seek(SeekFrom::Start(offset + start))?;
+        let mut buf = vec![0; (end - start) as usize];
+        f.read_exact(&mut buf)?;
+        Ok(buf)
+    }
+
+    /// The file the bytes are in and where in it they start, unless they're
+    /// in memory.
+    pub fn file(&self) -> Option<(&Path, u64)> {
         match self {
-            MediaSource::Memory(b) => Ok(b[start as usize..end as usize].to_vec()),
-            MediaSource::File { path, offset, .. } => {
-                use std::io::{Read, Seek, SeekFrom};
-                let mut f = std::fs::File::open(path)?;
-                f.seek(SeekFrom::Start(offset + start))?;
-                let mut buf = vec![0; (end - start) as usize];
-                f.read_exact(&mut buf)?;
-                Ok(buf)
-            }
+            MediaSource::Memory(_) => None,
+            MediaSource::File { path, offset, .. } => Some((path, *offset)),
+            MediaSource::Spilled { file, .. } => Some((file.path(), 0)),
         }
     }
 }
@@ -137,9 +171,7 @@ impl BinaryStore {
         let mut s = self.inner.lock().unwrap();
         if let Some(p) = path.filter(|p| !p.is_empty()) {
             if s.active_project_path.as_deref() != Some(p) {
-                s.overlay.clear();
-                s.token_to_guid.clear();
-                s.inflated = None;
+                s.clear_overlay();
             }
             s.active_project_path = Some(p.to_string());
         }
@@ -157,29 +189,66 @@ impl BinaryStore {
         self.inner.lock().unwrap().active_project_path.clone()
     }
 
-    /// Register freshly-imported bytes and return a handle for them.
-    pub fn put_overlay(&self, bytes: Vec<u8>, ext: &str) -> String {
+    fn register(&self, source: MediaSource, ext: &str) -> String {
         let token = crate::util::new_guid();
         self.inner
             .lock()
             .unwrap()
             .overlay
-            .insert(token.clone(), (Arc::new(bytes), ext.to_string()));
+            .insert(token.clone(), (source, ext.to_string()));
         format!("{HANDLE_PREFIX}overlay/{token}.{ext}")
     }
 
-    pub fn overlay_bytes(&self, handle: &str) -> Option<Arc<Vec<u8>>> {
+    /// Register freshly-imported bytes and return a handle for them. Large
+    /// ones go to a temporary file, freeing the memory.
+    pub fn put_overlay(&self, bytes: Vec<u8>, ext: &str) -> String {
+        let source = if bytes.len() >= SPILL_BYTES {
+            spill_bytes(&bytes, ext).unwrap_or_else(|| MediaSource::Memory(Arc::new(bytes)))
+        } else {
+            MediaSource::Memory(Arc::new(bytes))
+        };
+        self.register(source, ext)
+    }
+
+    /// Register a file being imported, copied to a temporary file so the
+    /// original can move or go before the save embeds it — without reading
+    /// it into memory. (On APFS the copy is a clone: instant, and no extra
+    /// space until either changes. That needs a path that doesn't exist
+    /// yet, hence `reserve`.)
+    pub fn put_overlay_file(&self, path: &Path, ext: &str) -> std::io::Result<String> {
+        let len = std::fs::metadata(path)?.len();
+        let spill = (len >= SPILL_BYTES as u64)
+            .then(|| crate::spill::SpillFile::reserve(ext))
+            .flatten();
+        let source = match spill {
+            Some(tmp) => {
+                std::fs::copy(path, tmp.path())?;
+                MediaSource::Spilled { file: Arc::new(tmp), len }
+            }
+            None => MediaSource::Memory(Arc::new(std::fs::read(path)?)),
+        };
+        Ok(self.register(source, ext))
+    }
+
+    /// An unsaved import's bytes, wherever they're kept.
+    pub fn overlay_source(&self, handle: &str) -> Option<MediaSource> {
         let p = parse_handle(handle).filter(|p| matches!(p.kind, HandleKind::Overlay))?;
         self.inner
             .lock()
             .unwrap()
             .overlay
             .get(&p.id)
-            .map(|(b, _)| b.clone())
+            .map(|(source, _)| source.clone())
+    }
+
+    /// An unsaved import's bytes, in memory (read from its temporary file
+    /// if that's where it is).
+    pub fn overlay_bytes(&self, handle: &str) -> Option<Arc<Vec<u8>>> {
+        self.overlay_source(handle)?.bytes().ok()
     }
 
     /// After a save embedded an overlay binary as `sources/<guid>.<ext>`,
-    /// free the buffer and remember token → guid.
+    /// free it and remember token → guid.
     pub fn mark_persisted(&self, handle: &str, guid: &str) {
         if let Some(p) = parse_handle(handle).filter(|p| matches!(p.kind, HandleKind::Overlay)) {
             let mut s = self.inner.lock().unwrap();
@@ -196,8 +265,10 @@ impl BinaryStore {
             let s = self.inner.lock().unwrap();
             match p.kind {
                 HandleKind::Overlay => {
-                    if let Some((b, _)) = s.overlay.get(&p.id) {
-                        return Some(b.clone());
+                    if let Some((source, _)) = s.overlay.get(&p.id) {
+                        let source = source.clone();
+                        drop(s);
+                        return source.bytes().ok();
                     }
                     let guid = s.token_to_guid.get(&p.id)?;
                     let ext = &p.name[p.id.len() + 1..];
@@ -220,8 +291,8 @@ impl BinaryStore {
                 let s = self.inner.lock().unwrap();
                 match p.kind {
                     HandleKind::Overlay => {
-                        if let Some((b, _)) = s.overlay.get(&p.id) {
-                            return Some(MediaSource::Memory(b.clone()));
+                        if let Some((source, _)) = s.overlay.get(&p.id) {
+                            return Some(source.clone());
                         }
                         let guid = s.token_to_guid.get(&p.id)?;
                         let ext = &p.name[p.id.len() + 1..];
@@ -239,19 +310,23 @@ impl BinaryStore {
             }
         };
         let key = format!("{archive_path}\0{name}");
-        if let Some((k, b)) = &self.inner.lock().unwrap().inflated
+        if let Some((k, source)) = &self.inner.lock().unwrap().inflated
             && *k == key
         {
-            return Some(MediaSource::Memory(b.clone()));
+            return Some(source.clone());
         }
         let mut a = Archive::open(&archive_path).ok()?;
         let entry = find_source_entry(&a, &name)?;
         if let Some((offset, len)) = a.stored_range(&entry) {
             return Some(MediaSource::File { path: archive_path.into(), offset, len });
         }
-        let bytes = Arc::new(a.read(&entry)?);
-        self.inner.lock().unwrap().inflated = Some((key, bytes.clone()));
-        Some(MediaSource::Memory(bytes))
+        // Compressed (other tools write media that way): unpack it to a
+        // temporary file to stream from, or into memory if that fails.
+        let ext = name.rsplit_once('.').map(|(_, e)| e).unwrap_or("");
+        let source = inflate_to_spill(&mut a, &entry, ext)
+            .or_else(|| a.read(&entry).map(|b| MediaSource::Memory(Arc::new(b))))?;
+        self.inner.lock().unwrap().inflated = Some((key, source.clone()));
+        Some(source)
     }
 
     /// Recover a legacy real-path reference from the open .qdpx by basename.
@@ -259,6 +334,27 @@ impl BinaryStore {
         let path = self.active_project_path()?;
         read_from_archive(Path::new(&path), name)
     }
+}
+
+/// Write `bytes` to a new temporary file.
+fn spill_bytes(bytes: &[u8], ext: &str) -> Option<MediaSource> {
+    let file = crate::spill::SpillFile::create(ext)?;
+    std::fs::write(file.path(), bytes).ok()?;
+    Some(MediaSource::Spilled { file: Arc::new(file), len: bytes.len() as u64 })
+}
+
+/// Unpack an archive entry to a new temporary file, a buffer at a time.
+fn inflate_to_spill(a: &mut Archive, entry: &str, ext: &str) -> Option<MediaSource> {
+    let file = crate::spill::SpillFile::create(ext)?;
+    let len = (|| -> std::io::Result<u64> {
+        let mut out = std::io::BufWriter::new(std::fs::File::create(file.path())?);
+        let mut f = a.inner().by_name(entry).map_err(std::io::Error::other)?;
+        let len = std::io::copy(&mut f, &mut out)?;
+        std::io::Write::flush(&mut out)?;
+        Ok(len)
+    })()
+    .ok()?;
+    Some(MediaSource::Spilled { file: Arc::new(file), len })
 }
 
 /// `sources/<name>` from an archive, or any non-text `sources/<guid>.*`.

@@ -8,6 +8,7 @@
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
+use crate::binary_store::MediaSource;
 use zip::write::SimpleFileOptions;
 use zip::{CompressionMethod, ZipArchive, ZipWriter};
 
@@ -77,6 +78,30 @@ impl AtomicZip {
             .start_file(name, opts)
             .map_err(std::io::Error::other)?;
         self.zip().write_all(bytes)
+    }
+
+    /// Add an entry from wherever its bytes are, copying a file a buffer at
+    /// a time rather than reading it into memory first.
+    pub fn add_source(&mut self, name: &str, source: &MediaSource) -> std::io::Result<()> {
+        let (Some((path, offset)), len) = (source.file(), source.len()) else {
+            let MediaSource::Memory(bytes) = source else { unreachable!() };
+            return self.add(name, bytes);
+        };
+        use std::io::{Read, Seek, SeekFrom};
+        let mut f = File::open(path)?;
+        f.seek(SeekFrom::Start(offset))?;
+        let opts = options_for(name).large_file(len >= u32::MAX as u64);
+        self.zip()
+            .start_file(name, opts)
+            .map_err(std::io::Error::other)?;
+        let copied = std::io::copy(&mut f.take(len), self.zip())?;
+        if copied != len {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::UnexpectedEof,
+                format!("{} ended early", path.display()),
+            ));
+        }
+        Ok(())
     }
 
     /// Copy an entry from another archive without recompressing it — a
