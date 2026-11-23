@@ -111,7 +111,12 @@
       "codebookFileName": "Kod kitabı",
       "importCodebook": "Kod kitabını içe aktar",
       "qdcCodebook": "REFI-QDA kod kitabı",
-      "exportPdf": "PDF olarak dışa aktar"
+      "exportPdf": "PDF olarak dışa aktar",
+      "unsavedTitle": "Son değişiklikleriniz kaydedilemedi",
+      "unsavedMessage": "“{{name}}” projesindeki son değişiklikler kaydedilemedi: {{error}}\n\nDiğer projeyi şimdi açarsanız bu değişiklikler kaybolur.",
+      "unsavedLockedBy": "projenin denetimi artık {{name}} adlı kişide",
+      "openAnyway": "Yine de aç",
+      "cancel": "Vazgeç"
     },
     "import": {
       "legacyDoc": "Eski Microsoft Word .doc dosyaları desteklenmiyor. Dosyayı Word’de açıp .docx olarak kaydedin.",

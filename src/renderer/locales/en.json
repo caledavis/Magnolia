@@ -111,7 +111,12 @@
       "codebookFileName": "Codebook",
       "importCodebook": "Import Codebook",
       "qdcCodebook": "REFI-QDA Codebook",
-      "exportPdf": "Export as PDF"
+      "exportPdf": "Export as PDF",
+      "unsavedTitle": "Your latest changes couldn’t be saved",
+      "unsavedMessage": "The latest changes to “{{name}}” couldn’t be saved: {{error}}\n\nIf you open the other project now, they’ll be lost.",
+      "unsavedLockedBy": "{{name}} has control of the project now",
+      "openAnyway": "Open Anyway",
+      "cancel": "Cancel"
     },
     "import": {
       "legacyDoc": "Legacy Microsoft Word .doc files aren't supported. Please open the file in Word and save it as .docx.",

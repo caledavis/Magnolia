@@ -111,7 +111,12 @@
       "codebookFileName": "कोडबुक",
       "importCodebook": "कोडबुक आयात करें",
       "qdcCodebook": "REFI-QDA कोडबुक",
-      "exportPdf": "PDF के रूप में निर्यात करें"
+      "exportPdf": "PDF के रूप में निर्यात करें",
+      "unsavedTitle": "आपके नवीनतम परिवर्तन सहेजे नहीं जा सके",
+      "unsavedMessage": "“{{name}}” में किए गए नवीनतम परिवर्तन सहेजे नहीं जा सके: {{error}}\n\nयदि आप अभी दूसरी परियोजना खोलते हैं, तो वे खो जाएँगे।",
+      "unsavedLockedBy": "अब परियोजना का नियंत्रण {{name}} के पास है",
+      "openAnyway": "फिर भी खोलें",
+      "cancel": "रद्द करें"
     },
     "import": {
       "legacyDoc": "पुरानी Microsoft Word .doc फ़ाइलें समर्थित नहीं हैं। कृपया फ़ाइल को Word में खोलें और .docx के रूप में सहेजें।",

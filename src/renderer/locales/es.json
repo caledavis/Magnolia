@@ -111,7 +111,12 @@
       "codebookFileName": "Libro de códigos",
       "importCodebook": "Importar libro de códigos",
       "qdcCodebook": "Libro de códigos REFI-QDA",
-      "exportPdf": "Exportar como PDF"
+      "exportPdf": "Exportar como PDF",
+      "unsavedTitle": "No se han podido guardar los últimos cambios",
+      "unsavedMessage": "No se han podido guardar los últimos cambios en «{{name}}»: {{error}}\n\nSi abres el otro proyecto ahora, se perderán.",
+      "unsavedLockedBy": "{{name}} tiene ahora el control del proyecto",
+      "openAnyway": "Abrir de todos modos",
+      "cancel": "Cancelar"
     },
     "import": {
       "legacyDoc": "No se admiten los archivos .doc antiguos de Microsoft Word. Abre el archivo en Word y guárdalo como .docx.",

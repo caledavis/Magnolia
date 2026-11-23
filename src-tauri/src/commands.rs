@@ -466,6 +466,31 @@ pub async fn create_new_project_file(app: AppHandle, window: WebviewWindow) -> C
     })
 }
 
+/// Opening another project, but the current one's latest changes couldn't
+/// be saved (`error` says why, or `locked_by` names who now has control):
+/// ask whether to open it anyway, losing them. True to go ahead.
+#[tauri::command]
+pub async fn confirm_unsaved_switch(
+    app: AppHandle,
+    window: WebviewWindow,
+    name: String,
+    error: Option<String>,
+    locked_by: Option<String>,
+) -> bool {
+    use tauri_plugin_dialog::{MessageDialogButtons, MessageDialogKind};
+    let error = match locked_by {
+        Some(who) => t_with("dialog.unsavedLockedBy", &[("name", &who)]),
+        None => error.unwrap_or_default(),
+    };
+    app.dialog()
+        .message(t_with("dialog.unsavedMessage", &[("name", &name), ("error", &error)]))
+        .title(t("dialog.unsavedTitle"))
+        .kind(MessageDialogKind::Warning)
+        .parent(&window)
+        .buttons(MessageDialogButtons::OkCancelCustom(t("dialog.openAnyway"), t("dialog.cancel")))
+        .blocking_show()
+}
+
 fn error_box(app: &AppHandle, title: &str, message: &str) {
     use tauri_plugin_dialog::MessageDialogKind;
     app.dialog()

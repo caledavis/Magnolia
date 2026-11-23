@@ -806,6 +806,10 @@ export interface MagnoliaAPI {
   readImageFile: (filePath: string) => Promise<ArrayBuffer>
   // Video
   readVideoFile: (filePath: string) => Promise<ArrayBuffer>
+  /** Ask whether to open another project although the current one's
+   *  latest changes couldn't be saved (why: `error`, or who now has
+   *  control: `lockedBy`). True to open it anyway. */
+  confirmUnsavedSwitch: (projectName: string, error?: string, lockedBy?: string) => Promise<boolean>
   /** A URL the <audio>/<video> elements stream a media handle from,
    *  served as `mimeType` (else as its extension suggests). */
   mediaUrl: (handle: string, mimeType?: string) => string
@@ -1075,3 +1079,7 @@ export interface ByteSource {
   /** Bytes `start` up to (not including) `end`. */
   read: (start: number, end: number) => Promise<Uint8Array>
 }
+
+/** How a save went: `error` says why it failed, or `lockedBy` names who
+ *  took control of the project. */
+export type SaveOutcome = { ok: true; error?: undefined; lockedBy?: undefined } | { ok: false; error?: string; lockedBy?: string }

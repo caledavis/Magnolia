@@ -71,7 +71,7 @@ import { useSurveyViewStore } from './stores/survey-view-store'
 import { useAnalysisTabsStore } from './stores/analysis-tabs-store'
 import { isAnalysisTab, isMapTab, isQueryBuilderTab, isMergeTab, isNotebookTab, notebookGuidFromTabId, makeAnalysisTabId, makeMapTabId, makeQueryBuilderTabId, mapGuidFromTabId, parseAnalysisTabId, PREFERENCES_TAB_ID, MERGE_TAB_ID } from './utils/tab-ids'
 import { requestPreferencesCategory } from './components/Preferences/PreferencesWindow'
-import type { PersistedTab, PersistedTabState, MissingBinary, CheckoutMarker, ImportState } from './models/types'
+import type { PersistedTab, PersistedTabState, MissingBinary, CheckoutMarker, ImportState, SaveOutcome } from './models/types'
 import { MissingBinariesBanner } from './components/MissingBinariesBanner'
 import { CheckoutConflictDialog } from './components/CheckoutConflictDialog'
 import { StealBackDialog } from './components/StealBackDialog'
@@ -867,33 +867,15 @@ function App() {
   }, [])
 
   const handleNewProject = useCallback(async () => {
-    // Prompt for the file location before touching any in-memory state.
-    // If the user cancels, the current project is left exactly as-is.
-    // The main process writes an empty .qdpx at the chosen path so the
-    // file exists on disk from the moment the user starts working.
+    // Save the outgoing project first (asking before going on if that
+    // fails), then prompt for the new file's location. If the user
+    // cancels, the current project is left as it is, just saved. The
+    // main process writes an empty .qdpx at the chosen path so the file
+    // exists on disk from the moment the user starts working.
+    if (!(await saveBeforeSwitchingRef.current())) return
     const created = await window.api.createNewProjectFile()
     if (!created) return
     const { filePath, projectName } = created
-    // Hidden flush of the outgoing project before we tear down its state.
-    // Skipped if there's nothing to save or if the user happened to pick
-    // the same path (in which case the empty file we just wrote IS the
-    // outgoing project — nothing to preserve).
-    const outgoingPath = projectStore.filePath
-    if (projectStore.isDirty && outgoingPath && outgoingPath !== filePath) {
-      try {
-        const result = await window.api.saveProject({
-          project: collectProject(),
-          sourceContents: documentStore.sourceContents,
-          filePath: outgoingPath,
-          userName: usePreferencesStore.getState().userName.trim() || undefined
-        })
-        if (result && typeof result === 'object' && (result as any).conflict) {
-          console.warn('[pre-new-project flush] save refused — locked by', (result as any).marker?.userName)
-        }
-      } catch (err) {
-        console.error('Pre-new-project flush failed:', err)
-      }
-    }
     cancelPendingAutoSave()
     documentStore.clearAll()
     codeStore.clearAll()
@@ -915,7 +897,7 @@ function App() {
       savedAnalyses: []
     })
     window.api.trackRecentProject(projectName, filePath)
-  }, [projectStore, documentStore, codeStore, tagStore, queryStore, logbookStore, memoStore, collectProject, cancelPendingAutoSave])
+  }, [projectStore, documentStore, codeStore, tagStore, queryStore, logbookStore, memoStore, cancelPendingAutoSave])
 
   // Apply the checkout marker an open just returned, and surface the
   // conflict dialog if someone else currently holds it. Reading/browsing
@@ -938,6 +920,7 @@ function App() {
     // opened.
     const filePath = await window.api.pickProjectFile()
     if (!filePath) return
+    if (!(await saveBeforeSwitchingRef.current())) return
     loadInProgressRef.current = true
     cancelPendingAutoSave()
     setLoadProgress({ stage: t('app.opening'), current: 0, total: 0 })
@@ -1056,7 +1039,7 @@ function App() {
   // that sets it) so it's in scope above handleSaveProject's definition.
   const pendingAutoCheckOutRef = useRef<Promise<void> | null>(null)
 
-  const handleSaveProject = useCallback(async () => {
+  const handleSaveProject = useCallback(async (opts: { quiet?: boolean } = {}): Promise<SaveOutcome> => {
     // A save can fire from multiple independent triggers for the exact
     // same edit — the debounced autosave timer, or a manual Cmd+S the
     // user happens to hit right after editing — and neither one waits on
@@ -1082,7 +1065,7 @@ function App() {
     // partial-empty payload that the all-empty guards below don't catch.
     if (loadInProgressRef.current) {
       console.warn('[save-project guard] skipping save during project load')
-      return
+      return { ok: true }
     }
     // Captured before the save, not read again after: a brand-new
     // project has no filePath yet, so auto-checkout's clean→dirty trigger
@@ -1104,7 +1087,8 @@ function App() {
         '[save-project guard] refusing to save an empty project over',
         projectStore.filePath
       )
-      return
+      // Nothing worth keeping is lost: the file on disk keeps the data.
+      return { ok: true }
     }
     const result = await window.api.saveProject({
       project,
@@ -1125,12 +1109,14 @@ function App() {
       // clears stealBackConflict, same as CheckoutConflictDialog's Cancel
       // — the lock itself, and thus the alert, is unaffected either way).
       useProjectStore.getState().setCheckoutMarker((result as any).marker)
-      setStealBackConflict((result as any).marker)
-      return
+      // A quiet save (before opening another project) asks about this
+      // itself, rather than offering Steal Back for a project being left.
+      if (!opts.quiet) setStealBackConflict((result as any).marker)
+      return { ok: false, lockedBy: (result as any).marker?.userName || '?' }
     }
     if (result && typeof result === 'object' && (result as any).guardBlocked) {
       console.warn('[save-project guard]', (result as any).message)
-      return
+      return { ok: false, error: String((result as any).message) }
     }
     if (typeof result === 'string') {
       projectStore.setFilePath(result)
@@ -1152,7 +1138,27 @@ function App() {
         }
       }
     }
+    return { ok: true }
   }, [collectProject, documentStore, projectStore, isProjectPayloadEmpty])
+
+  // Before another project replaces this one: save it, rather than drop
+  // whatever the autosave hadn't written yet (an import, a code just
+  // applied). If that fails, ask before leaving; false means stay.
+  const saveBeforeSwitching = useCallback(async (): Promise<boolean> => {
+    cancelPendingAutoSave()
+    const ps = useProjectStore.getState()
+    if (!ps.isDirty || !ps.filePath) return true
+    let outcome: SaveOutcome
+    try {
+      outcome = await handleSaveProject({ quiet: true })
+    } catch (err: any) {
+      outcome = { ok: false, error: err?.message || String(err) }
+    }
+    if (outcome.ok) return true
+    return window.api.confirmUnsavedSwitch(ps.name, outcome.error, outcome.lockedBy)
+  }, [cancelPendingAutoSave, handleSaveProject])
+  const saveBeforeSwitchingRef = useRef(saveBeforeSwitching)
+  useEffect(() => { saveBeforeSwitchingRef.current = saveBeforeSwitching }, [saveBeforeSwitching])
 
   const handleSaveProjectAs = useCallback(async () => {
     const project = collectProject()
@@ -2246,6 +2252,7 @@ function App() {
   // Listen for open-recent-project from welcome screen
   useEffect(() => {
     const unsub = window.api.onOpenRecentProject(async (filePath) => {
+      if (!(await saveBeforeSwitchingRef.current())) return
       loadInProgressRef.current = true
       cancelPendingAutoSave()
       setLoadProgress({ stage: t('app.opening'), current: 0, total: 0 })

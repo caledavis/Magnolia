@@ -111,7 +111,12 @@
       "codebookFileName": "Kodbok",
       "importCodebook": "Importera kodbok",
       "qdcCodebook": "REFI-QDA-kodbok",
-      "exportPdf": "Exportera som PDF"
+      "exportPdf": "Exportera som PDF",
+      "unsavedTitle": "Dina senaste ändringar kunde inte sparas",
+      "unsavedMessage": "De senaste ändringarna i ”{{name}}” kunde inte sparas: {{error}}\n\nOm du öppnar det andra projektet nu går de förlorade.",
+      "unsavedLockedBy": "{{name}} har nu kontrollen över projektet",
+      "openAnyway": "Öppna ändå",
+      "cancel": "Avbryt"
     },
     "import": {
       "legacyDoc": "Äldre Microsoft Word-filer (.doc) stöds inte. Öppna filen i Word och spara den som .docx.",

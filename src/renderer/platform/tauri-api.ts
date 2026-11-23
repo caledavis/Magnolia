@@ -347,6 +347,8 @@ const api: MagnoliaAPI = {
   },
   saveProject: (data) => invoke('save_project', { data }),
   saveProjectAs: (data) => invoke('save_project_as', { data }),
+  confirmUnsavedSwitch: (name, error, lockedBy) =>
+    invoke<boolean>('confirm_unsaved_switch', { name, error: error ?? null, lockedBy: lockedBy ?? null }),
   createProjectCopy: (data) => invoke('create_project_copy', { data }),
   createNewProjectFile: () => invoke('create_new_project_file'),
   importTextFile: async () => {

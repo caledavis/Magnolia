@@ -111,7 +111,12 @@
       "codebookFileName": "Codeboek",
       "importCodebook": "Importeer codeboek",
       "qdcCodebook": "REFI-QDA-codeboek",
-      "exportPdf": "Exporteren als pdf"
+      "exportPdf": "Exporteren als pdf",
+      "unsavedTitle": "Je laatste wijzigingen konden niet worden bewaard",
+      "unsavedMessage": "De laatste wijzigingen in \"{{name}}\" konden niet worden bewaard: {{error}}\n\nAls je het andere project nu opent, gaan ze verloren.",
+      "unsavedLockedBy": "{{name}} heeft nu de controle over het project",
+      "openAnyway": "Toch openen",
+      "cancel": "Annuleer"
     },
     "import": {
       "legacyDoc": "Oude Microsoft Word-bestanden (.doc) worden niet ondersteund. Open het bestand in Word en bewaar het als .docx.",

@@ -111,7 +111,12 @@
       "codebookFileName": "Koodikirja",
       "importCodebook": "Tuo koodikirja",
       "qdcCodebook": "REFI-QDA-koodikirja",
-      "exportPdf": "Vie PDF-muodossa"
+      "exportPdf": "Vie PDF-muodossa",
+      "unsavedTitle": "Viimeisimpiä muutoksiasi ei voitu tallentaa",
+      "unsavedMessage": "Projektin ”{{name}}” viimeisimpiä muutoksia ei voitu tallentaa: {{error}}\n\nJos avaat toisen projektin nyt, ne menetetään.",
+      "unsavedLockedBy": "{{name}} hallitsee nyt projektia",
+      "openAnyway": "Avaa silti",
+      "cancel": "Kumoa"
     },
     "import": {
       "legacyDoc": "Vanhoja Microsoft Wordin .doc-tiedostoja ei tueta. Avaa tiedosto Wordissa ja tallenna se .docx-muotoon.",

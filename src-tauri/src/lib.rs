@@ -128,6 +128,7 @@ pub fn run() {
             commands::import_merge_binary,
             commands::read_compare_binary,
             commands::save_project,
+            commands::confirm_unsaved_switch,
             commands::save_project_as,
             commands::create_project_copy,
             commands::create_new_project_file,

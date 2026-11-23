@@ -111,7 +111,12 @@
       "codebookFileName": "コードブック",
       "importCodebook": "コードブックを読み込む",
       "qdcCodebook": "REFI-QDA コードブック",
-      "exportPdf": "PDF として書き出す"
+      "exportPdf": "PDF として書き出す",
+      "unsavedTitle": "最新の変更を保存できませんでした",
+      "unsavedMessage": "「{{name}}」への最新の変更を保存できませんでした：{{error}}\n\n今ほかのプロジェクトを開くと、これらの変更は失われます。",
+      "unsavedLockedBy": "{{name}} さんが現在このプロジェクトを操作しています",
+      "openAnyway": "このまま開く",
+      "cancel": "キャンセル"
     },
     "import": {
       "legacyDoc": "古い Microsoft Word の .doc ファイルには対応していません。Word でファイルを開き、.docx として保存してください。",

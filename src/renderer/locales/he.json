@@ -111,7 +111,12 @@
       "codebookFileName": "ספר קודים",
       "importCodebook": "ייבוא ספר קודים",
       "qdcCodebook": "ספר קודים של REFI-QDA",
-      "exportPdf": "ייצוא כ-PDF"
+      "exportPdf": "ייצוא כ-PDF",
+      "unsavedTitle": "לא ניתן היה לשמור את השינויים האחרונים שלך",
+      "unsavedMessage": "לא ניתן היה לשמור את השינויים האחרונים ב־\"{{name}}\": {{error}}\n\nאם תפתח/י עכשיו את הפרויקט האחר, הם יאבדו.",
+      "unsavedLockedBy": "{{name}} שולט/ת עכשיו בפרויקט",
+      "openAnyway": "לפתוח בכל זאת",
+      "cancel": "ביטול"
     },
     "import": {
       "legacyDoc": "קובצי ‎.doc ישנים של Microsoft Word אינם נתמכים. יש לפתוח את הקובץ ב-Word ולשמור אותו כ-‎.docx.",

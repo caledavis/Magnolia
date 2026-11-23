@@ -111,7 +111,12 @@
       "codebookFileName": "代码本",
       "importCodebook": "导入代码本",
       "qdcCodebook": "REFI-QDA 代码本",
-      "exportPdf": "导出为 PDF"
+      "exportPdf": "导出为 PDF",
+      "unsavedTitle": "无法保存您最近的更改",
+      "unsavedMessage": "无法保存对“{{name}}”的最近更改：{{error}}\n\n如果现在打开另一个项目，这些更改将会丢失。",
+      "unsavedLockedBy": "{{name}} 现在控制此项目",
+      "openAnyway": "仍然打开",
+      "cancel": "取消"
     },
     "import": {
       "legacyDoc": "不支持旧版 Microsoft Word .doc 文件。请在 Word 中打开该文件并另存为 .docx。",

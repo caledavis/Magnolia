@@ -111,7 +111,12 @@
       "codebookFileName": "دليل الرموز",
       "importCodebook": "استيراد دليل الرموز",
       "qdcCodebook": "دليل رموز REFI-QDA",
-      "exportPdf": "تصدير بتنسيق PDF"
+      "exportPdf": "تصدير بتنسيق PDF",
+      "unsavedTitle": "تعذّر حفظ أحدث تغييراتك",
+      "unsavedMessage": "تعذّر حفظ أحدث التغييرات على “{{name}}”: {{error}}\n\nإذا فتحت المشروع الآخر الآن، فستضيع هذه التغييرات.",
+      "unsavedLockedBy": "أصبح {{name}} يتحكم في المشروع الآن",
+      "openAnyway": "فتح على أي حال",
+      "cancel": "إلغاء"
     },
     "import": {
       "legacyDoc": "ملفات Microsoft Word القديمة ذات الامتداد ‎.doc غير مدعومة. يُرجى فتح الملف في Word وحفظه بتنسيق ‎.docx.",

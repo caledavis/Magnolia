@@ -111,7 +111,12 @@
       "codebookFileName": "Llibre de codis",
       "importCodebook": "Importa un llibre de codis",
       "qdcCodebook": "Llibre de codis REFI-QDA",
-      "exportPdf": "Exporta com a PDF"
+      "exportPdf": "Exporta com a PDF",
+      "unsavedTitle": "No s’han pogut desar els darrers canvis",
+      "unsavedMessage": "No s’han pogut desar els darrers canvis a «{{name}}»: {{error}}\n\nSi obriu l’altre projecte ara, es perdran.",
+      "unsavedLockedBy": "ara {{name}} té el control del projecte",
+      "openAnyway": "Obre igualment",
+      "cancel": "Cancel·la"
     },
     "import": {
       "legacyDoc": "Els fitxers .doc antics de Microsoft Word no s’admeten. Obriu el fitxer al Word i deseu-lo com a .docx.",

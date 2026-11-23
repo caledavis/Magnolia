@@ -111,7 +111,12 @@
       "codebookFileName": "Kodebog",
       "importCodebook": "Importér kodebog",
       "qdcCodebook": "REFI-QDA-kodebog",
-      "exportPdf": "Eksportér som PDF"
+      "exportPdf": "Eksportér som PDF",
+      "unsavedTitle": "Dine seneste ændringer kunne ikke gemmes",
+      "unsavedMessage": "De seneste ændringer i »{{name}}« kunne ikke gemmes: {{error}}\n\nHvis du åbner det andet projekt nu, går de tabt.",
+      "unsavedLockedBy": "{{name}} har nu kontrollen over projektet",
+      "openAnyway": "Åbn alligevel",
+      "cancel": "Annuller"
     },
     "import": {
       "legacyDoc": "Ældre Microsoft Word-filer (.doc) understøttes ikke. Åbn filen i Word, og gem den som .docx.",

@@ -111,7 +111,12 @@
       "codebookFileName": "Kodų knyga",
       "importCodebook": "Importuoti kodų knygą",
       "qdcCodebook": "REFI-QDA kodų knyga",
-      "exportPdf": "Eksportuoti kaip PDF"
+      "exportPdf": "Eksportuoti kaip PDF",
+      "unsavedTitle": "Naujausių pakeitimų nepavyko įrašyti",
+      "unsavedMessage": "Naujausių „{{name}}“ pakeitimų nepavyko įrašyti: {{error}}\n\nJei dabar atversite kitą projektą, jie bus prarasti.",
+      "unsavedLockedBy": "dabar projektą valdo {{name}}",
+      "openAnyway": "Vis tiek atverti",
+      "cancel": "Atšaukti"
     },
     "import": {
       "legacyDoc": "Senieji „Microsoft Word“ .doc failai nepalaikomi. Atverkite failą „Word“ programoje ir įrašykite jį kaip .docx.",

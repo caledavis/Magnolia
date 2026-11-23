@@ -111,7 +111,12 @@
       "codebookFileName": "Книга кодов",
       "importCodebook": "Импорт книги кодов",
       "qdcCodebook": "Книга кодов REFI-QDA",
-      "exportPdf": "Экспорт в PDF"
+      "exportPdf": "Экспорт в PDF",
+      "unsavedTitle": "Не удалось сохранить последние изменения",
+      "unsavedMessage": "Не удалось сохранить последние изменения в «{{name}}»: {{error}}\n\nЕсли открыть другой проект сейчас, они будут потеряны.",
+      "unsavedLockedBy": "проектом теперь управляет {{name}}",
+      "openAnyway": "Всё равно открыть",
+      "cancel": "Отмена"
     },
     "import": {
       "legacyDoc": "Старые файлы Microsoft Word .doc не поддерживаются. Откройте файл в Word и сохраните его в формате .docx.",

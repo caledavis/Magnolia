@@ -111,7 +111,12 @@
       "codebookFileName": "Kódovací kniha",
       "importCodebook": "Importovat kódovací knihu",
       "qdcCodebook": "Kódovací kniha REFI-QDA",
-      "exportPdf": "Exportovat jako PDF"
+      "exportPdf": "Exportovat jako PDF",
+      "unsavedTitle": "Vaše nejnovější změny se nepodařilo uložit",
+      "unsavedMessage": "Nejnovější změny v „{{name}}“ se nepodařilo uložit: {{error}}\n\nPokud teď otevřete jiný projekt, budou ztraceny.",
+      "unsavedLockedBy": "kontrolu nad projektem má teď {{name}}",
+      "openAnyway": "Přesto otevřít",
+      "cancel": "Zrušit"
     },
     "import": {
       "legacyDoc": "Starší soubory Microsoft Word .doc nejsou podporovány. Otevřete soubor ve Wordu a uložte jej jako .docx.",
