@@ -127,6 +127,7 @@ pub fn run() {
             commands::create_new_project_file,
             commands::pick_import_files,
             commands::read_text_files,
+            commands::dropped_file_path,
             commands::read_dropped_file,
             commands::reimport_document,
             commands::import_transcript,

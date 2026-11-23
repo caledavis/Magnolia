@@ -186,13 +186,19 @@ async function readImports(filePaths: string[]): Promise<any[]> {
 
 // ── OS file drops ─────────────────────────────────────────────────────
 // The webview gives dropped files' bytes but not their paths, so
-// getPathForFile returns a token and readTextFiles uploads the bytes.
+// getPathForFile returns a token, and readDroppedFile reads the file from
+// disk if the backend can find it there, otherwise uploads its bytes.
 
 const DROP_PREFIX = 'magnolia-drop://'
 const droppedFiles = new Map<string, File>()
 let nextDropId = 1
 
 async function readDroppedFile(file: File): Promise<any> {
+  // Read it from disk where the backend can find it (macOS): far quicker
+  // than reading a large video into the page and sending it over IPC.
+  const path = await invoke<string | null>('dropped_file_path', { name: file.name, size: file.size })
+    .catch(() => null)
+  if (path) return (await invoke<any[]>('read_text_files', { filePaths: [path] }))[0]
   let bytes: ArrayBuffer
   try {
     bytes = await file.arrayBuffer()

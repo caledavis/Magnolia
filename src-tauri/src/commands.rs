@@ -675,6 +675,56 @@ pub async fn read_text_files(
         .into())
 }
 
+/// Where a file dropped on the page lives on disk, if that can be found, so
+/// the import reads it from there (`read_text_files`) rather than having
+/// the page read it into memory and send it over IPC — for a long video
+/// that copied a gigabyte or more several times over and stalled the app.
+/// The webview hides dropped files' paths, but on macOS the drag pasteboard
+/// still holds them; the one with this name and size is the file.
+#[tauri::command]
+pub fn dropped_file_path(name: String, size: u64) -> Option<String> {
+    #[cfg(target_os = "macos")]
+    {
+        drag_pasteboard_paths().into_iter().find_map(|p| {
+            let same = p.file_name().is_some_and(|n| n.to_string_lossy() == name)
+                && std::fs::metadata(&p).is_ok_and(|m| m.is_file() && m.len() == size);
+            same.then(|| p.to_string_lossy().into_owned())
+        })
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (name, size);
+        None
+    }
+}
+
+/// The file paths on the pasteboard of the most recent drag.
+#[cfg(target_os = "macos")]
+fn drag_pasteboard_paths() -> Vec<PathBuf> {
+    use objc2::ClassType;
+    use objc2_app_kit::{NSPasteboard, NSPasteboardNameDrag};
+    use objc2_foundation::{NSArray, NSURL};
+    // SAFETY: plain pasteboard reads; the names are AppKit constants.
+    unsafe {
+        let pb = NSPasteboard::pasteboardWithName(NSPasteboardNameDrag);
+        let classes = NSArray::from_slice(&[NSURL::class()]);
+        let Some(items) = pb.readObjectsForClasses_options(&classes, None) else {
+            return Vec::new();
+        };
+        items
+            .iter()
+            .filter_map(|item| {
+                let url = item.downcast_ref::<NSURL>()?;
+                if !url.isFileURL() {
+                    return None;
+                }
+                // Resolves file reference URLs (file:///.file/id=…).
+                Some(PathBuf::from(url.filePathURL()?.path()?.to_string()))
+            })
+            .collect()
+    }
+}
+
 /// One file dropped from the OS: the webview has its bytes but not its path,
 /// so the renderer sends them as the raw request body with the file name in
 /// the `x-file-name` header (URI-encoded).
