@@ -6,7 +6,9 @@
 
 use super::archive::Archive;
 use super::archive_write::AtomicZip;
-use super::checkout::{EDITOR_ENTRY, LOCK_ENTRY, PROJECT_ID_ENTRY};
+use super::checkout::{
+    EDITOR_ENTRY, LOCK_ENTRY, PROJECT_ID_ENTRY, lock_entry_bytes, parse_lock_entry, parse_project_id,
+};
 use super::serializer::{audio_extension_for, representation_guid_for, serialize_project};
 use super::transcript_refi::build_transcript;
 use crate::binary_store::{BinaryStore, MediaSource};
@@ -521,16 +523,23 @@ pub fn write_qdpx(
     }
 
     // Carry the checkout lock + project id forward, re-reading them as late
-    // as possible: a check-out racing this save must not be erased by it.
-    if !opts.drop_lock
-        && let Ok(mut latest) = Archive::open(carry_path)
-    {
-        for name in [LOCK_ENTRY, PROJECT_ID_ENTRY] {
-            if let Some(b) = latest.read(name) {
-                zip.add(name, &b)?;
-            }
-        }
-    }
+    // as possible: a check-out racing this save must not be erased by it. A
+    // copy (drop_lock) starts unlocked, as a project of its own. Either way
+    // the lock is written as its fixed slot and the project gets an id, so
+    // checking out and in can update the slot in place (see checkout).
+    let (marker, project_id) = match Archive::open(carry_path) {
+        Ok(mut latest) if !opts.drop_lock => (
+            latest.read(LOCK_ENTRY).and_then(|b| parse_lock_entry(&b)),
+            latest.read(PROJECT_ID_ENTRY).and_then(|b| parse_project_id(&b)),
+        ),
+        _ => (None, None),
+    };
+    let project_id = project_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+    zip.add(
+        PROJECT_ID_ENTRY,
+        json!({ "projectId": project_id }).to_string().as_bytes(),
+    )?;
+    zip.add_stored(LOCK_ENTRY, &lock_entry_bytes(marker.as_ref()))?;
 
     // Who last saved this project, written fresh on every save.
     zip.add(

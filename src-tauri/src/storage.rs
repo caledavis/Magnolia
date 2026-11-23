@@ -42,7 +42,34 @@ fn write_json(name: &str, v: &Value, pretty: bool) {
         serde_json::to_string(v)
     }
     .unwrap_or_default();
-    let _ = std::fs::write(file(name), text);
+    if let Err(e) = write_atomically(&file(name), text.as_bytes()) {
+        log::warn!("could not save {name}: {e}");
+    }
+}
+
+/// Replace `path` with `bytes` all at once: write a temporary file beside
+/// it, flush it to disk, then rename it over. A crash or a full disk leaves
+/// the old file whole rather than half-written (and, for the preferences,
+/// the user's name — the project lock's identity — lost with it).
+fn write_atomically(path: &std::path::Path, bytes: &[u8]) -> std::io::Result<()> {
+    use std::io::Write;
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let tmp = path.with_extension(format!(
+        "{}.{}.tmp",
+        std::process::id(),
+        NEXT.fetch_add(1, Ordering::Relaxed)
+    ));
+    let result = (|| {
+        let mut f = std::fs::File::create(&tmp)?;
+        f.write_all(bytes)?;
+        f.sync_all()?;
+        std::fs::rename(&tmp, path)
+    })();
+    if result.is_err() {
+        let _ = std::fs::remove_file(&tmp);
+    }
+    result
 }
 
 // ── Preferences ──
@@ -197,4 +224,29 @@ pub fn skipped_version() -> Option<String> {
 
 pub fn set_skipped_version(v: &str) {
     write_json(UPDATE_STATE, &json!({ "skippedVersion": v }), true);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::write_atomically;
+
+    #[test]
+    fn replaces_the_file_whole_and_leaves_nothing_behind() {
+        let d = tempfile::tempdir().unwrap();
+        let path = d.path().join("magnolia-preferences.json");
+        std::fs::write(&path, "old").unwrap();
+        write_atomically(&path, b"{\"new\":true}").unwrap();
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "{\"new\":true}");
+        let names: Vec<_> = std::fs::read_dir(d.path()).unwrap().map(|e| e.unwrap().file_name()).collect();
+        assert_eq!(names.len(), 1, "{names:?}");
+    }
+
+    #[test]
+    fn a_failed_write_keeps_the_old_file() {
+        let d = tempfile::tempdir().unwrap();
+        // The target's folder is missing: the write fails before any rename.
+        let path = d.path().join("gone").join("prefs.json");
+        assert!(write_atomically(&path, b"x").is_err());
+        assert!(!path.exists());
+    }
 }

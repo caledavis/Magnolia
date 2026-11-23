@@ -3428,6 +3428,7 @@ dependencies = [
  "base64 0.23.1",
  "calamine",
  "chrono",
+ "crc32fast",
  "encoding_rs",
  "image",
  "lofty",

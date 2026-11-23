@@ -13,6 +13,7 @@ use magnolia_core::qdpx::archive::{
     Archive, decode_maybe_windows1252, read_archive_file, read_entry,
 };
 use magnolia_core::qdpx::checkout::{
+    LOCK_SLOT_LEN,
     CheckoutAction, read_checkout_marker, read_editor_info, write_checkout_marker,
 };
 use magnolia_core::qdpx::codebook::{deserialize_codebook, serialize_codebook};
@@ -291,13 +292,116 @@ fn save_preserves_lock_and_project_id() {
 }
 
 #[test]
-fn save_adds_no_lock_to_a_never_checked_out_project() {
+fn save_leaves_a_never_checked_out_project_unlocked() {
     let d = temp();
     let path = p(&d, "never.qdpx");
     make_zip(&path, &[("project.qde", QDE)]);
     write_qdpx(&path, &mut empty_project(), &Map::new(), &opts(None, "")).unwrap();
-    assert!(read_entry(&path, "magnolia-lock.json").is_none());
-    assert!(read_entry(&path, "magnolia-project-id.json").is_none());
+    assert!(read_checkout_marker(&path).is_none());
+    // The empty lock slot and an id are there, ready for checking out in place.
+    assert_eq!(read_entry(&path, "magnolia-lock.json").unwrap().len(), LOCK_SLOT_LEN);
+    assert!(json_entry(&path, "magnolia-project-id.json").unwrap()["projectId"].is_string());
+}
+
+/// Every entry reads back whole, CRC checked.
+fn all_entries_intact(path: &std::path::Path) {
+    use std::io::Read;
+    let mut z = zip::ZipArchive::new(std::fs::File::open(path).unwrap()).unwrap();
+    for i in 0..z.len() {
+        let mut f = z.by_index(i).unwrap();
+        let mut buf = Vec::new();
+        f.read_to_end(&mut buf).unwrap_or_else(|e| panic!("entry {i}: {e}"));
+    }
+}
+
+#[cfg(unix)]
+fn inode(path: &std::path::Path) -> u64 {
+    use std::os::unix::fs::MetadataExt;
+    std::fs::metadata(path).unwrap().ino()
+}
+
+#[test]
+fn checking_out_and_in_changes_only_the_lock_in_place() {
+    let d = temp();
+    let path = p(&d, "inplace.qdpx");
+    // Saved by this Magnolia: it has the slot and an id. A big entry stands
+    // in for a video, which must not be copied.
+    make_zip(&path, &[("project.qde", QDE)]);
+    let video = vec![7u8; 3 << 20];
+    write_qdpx(&path, &mut empty_project(), &Map::new(), &opts(None, "")).unwrap();
+    {
+        let mut z = zip::ZipWriter::new_append(std::fs::OpenOptions::new().read(true).write(true).open(&path).unwrap()).unwrap();
+        z.start_file("sources/big.mp4", zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored)).unwrap();
+        std::io::Write::write_all(&mut z, &video).unwrap();
+        z.finish().unwrap();
+    }
+    let size = std::fs::metadata(&path).unwrap().len();
+    #[cfg(unix)]
+    let ino = inode(&path);
+    let id = json_entry(&path, "magnolia-project-id.json").unwrap()["projectId"].clone();
+
+    let r = write_checkout_marker(&path, "Alice", CheckoutAction::CheckOut { steal: false }).unwrap();
+    assert!(r.ok);
+    assert_eq!(read_checkout_marker(&path).unwrap().user_name, "Alice");
+    assert_eq!(r.marker.unwrap().project_id, id.as_str().unwrap());
+    // The same file, the same size: written in place, not rebuilt.
+    assert_eq!(std::fs::metadata(&path).unwrap().len(), size);
+    #[cfg(unix)]
+    assert_eq!(inode(&path), ino);
+    all_entries_intact(&path);
+    assert_eq!(read_entry(&path, "sources/big.mp4").unwrap(), video);
+
+    // Someone else is refused, in place too.
+    let r = write_checkout_marker(&path, "Bob", CheckoutAction::CheckOut { steal: false }).unwrap();
+    assert!(!r.ok);
+    assert_eq!(read_checkout_marker(&path).unwrap().user_name, "Alice");
+
+    let r = write_checkout_marker(&path, "Alice", CheckoutAction::CheckIn).unwrap();
+    assert!(r.ok);
+    assert!(read_checkout_marker(&path).is_none());
+    assert_eq!(std::fs::metadata(&path).unwrap().len(), size);
+    #[cfg(unix)]
+    assert_eq!(inode(&path), ino);
+    all_entries_intact(&path);
+    // A save keeps the holder.
+    write_checkout_marker(&path, "Alice", CheckoutAction::CheckOut { steal: false }).unwrap();
+    let allowed = WriteOptions { allow_empty: true, ..opts(None, "") };
+    write_qdpx(&path, &mut empty_project(), &Map::new(), &allowed).unwrap();
+    assert_eq!(read_checkout_marker(&path).unwrap().user_name, "Alice");
+}
+
+#[test]
+fn an_old_style_lock_is_rewritten_once_then_updated_in_place() {
+    let d = temp();
+    let path = p(&d, "old.qdpx");
+    // As Magnolia 2.2 left it: a compressed lock entry, no slot.
+    let lock = json!({ "projectId": "old-id", "userName": "Alice", "checkedOutAt": "2024-01-01T00:00:00.000Z" });
+    make_zip(&path, &[("project.qde", QDE), ("magnolia-project-id.json", br#"{"projectId":"old-id"}"#), ("magnolia-lock.json", lock.to_string().as_bytes())]);
+    assert_eq!(read_checkout_marker(&path).unwrap().user_name, "Alice");
+    let r = write_checkout_marker(&path, "Alice", CheckoutAction::CheckIn).unwrap();
+    assert!(r.ok);
+    assert!(read_checkout_marker(&path).is_none());
+    assert_eq!(read_entry(&path, "magnolia-lock.json").unwrap().len(), LOCK_SLOT_LEN);
+    #[cfg(unix)]
+    let ino = inode(&path);
+    write_checkout_marker(&path, "Alice", CheckoutAction::CheckOut { steal: false }).unwrap();
+    #[cfg(unix)]
+    assert_eq!(inode(&path), ino);
+    assert_eq!(read_checkout_marker(&path).unwrap().project_id, "old-id");
+    all_entries_intact(&path);
+}
+
+#[test]
+fn a_name_too_long_for_the_slot_still_checks_out() {
+    let d = temp();
+    let path = p(&d, "long.qdpx");
+    make_zip(&path, &[("project.qde", QDE)]);
+    write_qdpx(&path, &mut empty_project(), &Map::new(), &opts(None, "")).unwrap();
+    let name = "N".repeat(600);
+    let r = write_checkout_marker(&path, &name, CheckoutAction::CheckOut { steal: false }).unwrap();
+    assert!(r.ok);
+    assert_eq!(read_checkout_marker(&path).unwrap().user_name, name);
+    all_entries_intact(&path);
 }
 
 #[test]

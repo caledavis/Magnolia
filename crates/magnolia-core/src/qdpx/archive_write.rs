@@ -80,6 +80,18 @@ impl AtomicZip {
         self.zip().write_all(bytes)
     }
 
+    /// Add an entry uncompressed, whatever its name (the lock slot, which is
+    /// later rewritten in place).
+    pub fn add_stored(&mut self, name: &str, bytes: &[u8]) -> std::io::Result<()> {
+        let opts = SimpleFileOptions::default()
+            .compression_method(CompressionMethod::Stored)
+            .large_file(false);
+        self.zip()
+            .start_file(name, opts)
+            .map_err(std::io::Error::other)?;
+        self.zip().write_all(bytes)
+    }
+
     /// Add an entry from wherever its bytes are, copying a file a buffer at
     /// a time rather than reading it into memory first.
     pub fn add_source(&mut self, name: &str, source: &MediaSource) -> std::io::Result<()> {
