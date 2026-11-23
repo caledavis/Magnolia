@@ -6,6 +6,10 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 
 ### Fixed
 - **Double-clicking a project opens it without a crash.** On a Mac, opening a .qdpx from the Finder when Magnolia wasn't running made it quit straight away, and macOS then warned that Magnolia had closed unexpectedly.
+- **Long videos import and open quickly.** Dragging a large video into a project (a screen recording of an hour or more, say) no longer holds up Magnolia, and a video now plays as soon as you open it, without waiting for the whole file to load. The waveform under the seek bar fills in alongside it.
+
+### Fixed
+- **Double-clicking a project opens it without a crash.** On a Mac, opening a .qdpx from the Finder when Magnolia wasn't running made it quit straight away, and macOS then warned that Magnolia had closed unexpectedly.
 - **Dropping a long video into a project no longer holds up Magnolia.** On a Mac, a dragged file is now read straight from disk, instead of the whole file being copied into Magnolia's window first — for a screen recording of an hour or more, that took over a minute.
 
 ### Fixed

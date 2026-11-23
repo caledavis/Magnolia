@@ -82,30 +82,22 @@ export function AudioDocumentViewer({ source, content }: Props) {
   } | undefined
   const hasAudio = !!(audioData?.audioFilePath)
 
-  // Load audio file via IPC → create blob URL (avoids file:// and protocol issues).
-  // The same bytes feed the seek bar's waveform; until decoding finishes
-  // (or if it fails) the seek bar shows the plain progress bar.
+  // Stream the audio (window.api.mediaUrl) rather than loading it whole.
+  // The waveform reads the file a range at a time; until it's decoded (or
+  // if that fails) the seek bar shows the plain progress bar.
   const [audioUrl, setAudioUrl] = useState('')
   const [peaks, setPeaks] = useState<Float32Array | null>(null)
   useEffect(() => {
     if (!hasAudio) return
-    let revoke: string | null = null
     const abort = new AbortController()
+    const handle = audioData!.audioFilePath!
     setPeaks(null)
-    window.api.readAudioFile(audioData!.audioFilePath!).then((buffer: ArrayBuffer) => {
-      if (abort.signal.aborted) return
-      const blob = new Blob([buffer], { type: audioData!.mimeType || 'audio/mpeg' })
-      const url = URL.createObjectURL(blob)
-      revoke = url
-      setAudioUrl(url)
-      decodePeaks(buffer, { signal: abort.signal, onProgress: setPeaks })
-        .then((p) => { if (!abort.signal.aborted) setPeaks(p) })
-        .catch((err: any) => { if (!abort.signal.aborted) console.warn('Waveform unavailable:', err) })
-    }).catch((err: any) => console.error('Failed to load audio:', err))
-    return () => {
-      abort.abort()
-      if (revoke) URL.revokeObjectURL(revoke)
-    }
+    setAudioUrl(window.api.mediaUrl(handle, audioData!.mimeType || 'audio/mpeg'))
+    window.api.openMedia(handle)
+      .then((media) => decodePeaks(media, { signal: abort.signal, onProgress: setPeaks }))
+      .then((p) => { if (!abort.signal.aborted) setPeaks(p) })
+      .catch((err: any) => { if (!abort.signal.aborted) console.warn('Waveform unavailable:', err) })
+    return () => abort.abort()
   }, [hasAudio, audioData?.audioFilePath]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Audio event handlers. The playhead is remembered between visits.

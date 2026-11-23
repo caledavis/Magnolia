@@ -12,12 +12,17 @@
  *    boundaries (FLAC/Ogg slices get the stream headers prepended) and
  *    each slice goes through decodeAudioData on its own.
  *
+ * The file is read a range at a time (a ByteSource), so a long recording
+ * is never all in memory: for MP4/MOV only the moov box (the index) and
+ * the audio itself are read, never the video between them.
+ *
  * Why not AudioContext.decodeAudioData on the whole file: it materialises
  * the whole track as float PCM at its native rate before any resampling
  * — ~1 GB for 20 minutes of 48 kHz stereo — which crashes the renderer on
  * long recordings.
  */
 import { createFile, MP4BoxBuffer } from 'mp4box'
+import type { ByteSource } from '../models/types'
 
 /** Peaks kept per file; bars are aggregated down from these at draw time. */
 export const PEAK_BUCKETS = 2000
@@ -28,6 +33,12 @@ const SLICE_BYTES = 1 << 20
 /** PCM frames per WAV read. */
 const WAV_CHUNK_FRAMES = 1 << 16
 const PROGRESS_INTERVAL_MS = 250
+/** Bytes read up front to recognise the format (and hold a WAV header). */
+const HEAD_BYTES = 1 << 16
+/** Most bytes in one range read; nearby audio frames share a read. */
+const READ_SPAN = 4 << 20
+/** Gap (e.g. interleaved video) worth reading through to save a read. */
+const READ_GAP = 64 << 10
 /** Top-level box types an MP4/MOV file can open with. */
 const MP4_FIRST_BOXES = new Set(['ftyp', 'moov', 'mdat', 'wide', 'free', 'skip'])
 
@@ -43,8 +54,9 @@ interface DecodeOptions {
  * Rejects for unrecognised containers (e.g. AVI), files without audio,
  * and codecs the platform can't decode.
  */
-export async function decodePeaks(buffer: ArrayBuffer, opts: DecodeOptions = {}): Promise<Float32Array> {
+export async function decodePeaks(input: ByteSource | ArrayBuffer, opts: DecodeOptions = {}): Promise<Float32Array> {
   const { buckets = PEAK_BUCKETS, signal, onProgress } = opts
+  const src = input instanceof ArrayBuffer ? bufferSource(input) : input
   let acc: PeakAccumulator | PeakTimeline | null = null
   let lastProgress = performance.now()
   // Between batches: bail if cancelled, report progress, and (via the
@@ -57,17 +69,20 @@ export async function decodePeaks(buffer: ArrayBuffer, opts: DecodeOptions = {})
     }
   }
 
-  const bytes = new Uint8Array(buffer)
-  if (ascii(bytes, 0, 4) === 'RIFF' && ascii(bytes, 8, 4) === 'WAVE') {
-    const wav = parseWav(new DataView(buffer))
+  const head = await src.read(0, Math.min(src.size, HEAD_BYTES))
+  if (ascii(head, 0, 4) === 'RIFF' && ascii(head, 8, 4) === 'WAVE') {
+    const wav = parseWav(new DataView(head.buffer, head.byteOffset, head.byteLength), src.size)
     acc = new PeakAccumulator(buckets, wav.duration)
-    await accumulatePcm(buffer, wav, acc, checkpoint)
-  } else if (MP4_FIRST_BOXES.has(ascii(bytes, 4, 4))) {
-    const audio = demuxAudio(buffer)
+    await accumulatePcm(src, wav, acc, checkpoint)
+  } else if (MP4_FIRST_BOXES.has(ascii(head, 4, 4))) {
+    const audio = await demuxAudio(src)
     acc = new PeakAccumulator(buckets, audio.duration)
-    if (audio.kind === 'pcm') await accumulatePcm(buffer, audio, acc, checkpoint)
-    else await accumulateCoded(audio, acc, checkpoint)
+    if (audio.kind === 'pcm') await accumulatePcm(src, audio, acc, checkpoint)
+    else await accumulateCoded(src, audio, acc, checkpoint)
   } else {
+    // MP3/AAC/FLAC/Ogg: audio-only files, sliced at frame boundaries found
+    // by scanning, so read whole.
+    const bytes = await src.read(0, src.size)
     const layout = sliceLayout(bytes)
     if (!layout) throw new Error('Unrecognised audio format')
     const timeline = new PeakTimeline(buckets)
@@ -77,11 +92,48 @@ export async function decodePeaks(buffer: ArrayBuffer, opts: DecodeOptions = {})
   return acc.result()
 }
 
+/** An in-memory file as a ByteSource. */
+export function bufferSource(buffer: ArrayBuffer): ByteSource {
+  const bytes = new Uint8Array(buffer)
+  return { size: bytes.length, read: async (start, end) => bytes.subarray(start, end) }
+}
+
+/**
+ * Read the byte ranges `parts` (in file order), coalescing neighbours into
+ * reads of up to READ_SPAN so a run of small audio frames costs a few reads,
+ * not one each. Yields each part's bytes, in order, a span at a time.
+ */
+export async function* readParts(
+  src: ByteSource,
+  parts: ReadonlyArray<{ offset: number; size: number }>
+): AsyncGenerator<Uint8Array[]> {
+  for (let i = 0; i < parts.length; ) {
+    const start = parts[i].offset
+    let end = start + parts[i].size
+    let j = i + 1
+    while (j < parts.length) {
+      const p = parts[j]
+      const pEnd = p.offset + p.size
+      if (p.offset < end || p.offset - end > READ_GAP || Math.max(end, pEnd) - start > READ_SPAN) break
+      end = Math.max(end, pEnd)
+      j++
+    }
+    const span = await src.read(start, end)
+    const out: Uint8Array[] = []
+    for (let k = i; k < j; k++) {
+      const from = parts[k].offset - start
+      out.push(span.subarray(from, Math.min(span.length, from + parts[k].size)))
+    }
+    yield out
+    i = j
+  }
+}
+
 function ascii(bytes: Uint8Array, offset: number, length: number): string {
   return String.fromCharCode(...bytes.subarray(offset, offset + length))
 }
 
-async function accumulateCoded(audio: CodedAudio, acc: PeakAccumulator, checkpoint: () => void): Promise<void> {
+async function accumulateCoded(src: ByteSource, audio: CodedAudio, acc: PeakAccumulator, checkpoint: () => void): Promise<void> {
   const { config, samples } = audio
   const support = await AudioDecoder.isConfigSupported(config)
   if (!support.supported) throw new Error(`Unsupported audio codec: ${config.codec}`)
@@ -107,36 +159,47 @@ async function accumulateCoded(audio: CodedAudio, acc: PeakAccumulator, checkpoi
 
   try {
     decoder.configure(config)
-    for (let i = 0; i < samples.length; i += DECODE_BATCH) {
+    let next = 0
+    let queued = 0
+    for await (const datas of readParts(src, samples)) {
       checkpoint()
-      for (const s of samples.slice(i, i + DECODE_BATCH)) {
+      for (const data of datas) {
+        const s = samples[next++]
         decoder.decode(new EncodedAudioChunk({
           type: s.key ? 'key' : 'delta',
           timestamp: s.time * 1e6,
           duration: s.duration * 1e6,
-          data: s.data
+          data
         }))
+        if (++queued >= DECODE_BATCH) {
+          queued = 0
+          await decoder.flush()
+          if (decodeError) throw decodeError
+        }
       }
-      await decoder.flush()
-      if (decodeError) throw decodeError
     }
+    await decoder.flush()
+    if (decodeError) throw decodeError
   } finally {
     if (decoder.state !== 'closed') decoder.close()
   }
 }
 
-async function accumulatePcm(buffer: ArrayBuffer, audio: PcmAudio, acc: PeakAccumulator, checkpoint: () => void): Promise<void> {
+async function accumulatePcm(src: ByteSource, audio: PcmAudio, acc: PeakAccumulator, checkpoint: () => void): Promise<void> {
   const { format, chunks } = audio
-  const view = new DataView(buffer)
+  const frameBytes = format.bytes * format.channels
+  const parts = chunks.map((c) => ({ offset: c.offset, size: c.frames * frameBytes }))
   let time = 0
-  for (let i = 0; i < chunks.length; i++) {
-    const { offset, frames } = chunks[i]
-    acc.add(readPcm(view, offset, frames, format), time, format.sampleRate)
-    time += frames / format.sampleRate
-    if (i % 16 === 15) {
-      await new Promise((r) => setTimeout(r, 0))
-      checkpoint()
+  let i = 0
+  for await (const datas of readParts(src, parts)) {
+    for (const data of datas) {
+      const view = new DataView(data.buffer, data.byteOffset, data.byteLength)
+      const { frames } = chunks[i++]
+      acc.add(readPcm(view, 0, frames, format), time, format.sampleRate)
+      time += frames / format.sampleRate
     }
+    await new Promise((r) => setTimeout(r, 0))
+    checkpoint()
   }
 }
 
@@ -317,8 +380,12 @@ async function accumulateSliced(bytes: Uint8Array, layout: SliceLayout, acc: Pea
   acc.estimatedDuration = time
 }
 
-/** Locate a WAV file's PCM data and describe it as chunked PcmAudio. */
-export function parseWav(view: DataView): PcmAudio {
+/**
+ * Locate a WAV file's PCM data and describe it as chunked PcmAudio. `view`
+ * need only hold the header (up to the data chunk); `fileSize` is the
+ * whole file's.
+ */
+export function parseWav(view: DataView, fileSize = view.byteLength): PcmAudio {
   let format: PcmFormat | null = null
   let dataOffset = -1
   let dataSize = 0
@@ -342,7 +409,7 @@ export function parseWav(view: DataView): PcmAudio {
     } else if (id === 'data') {
       dataOffset = body
       // Streaming writers leave the size 0 / 0xFFFFFFFF; take the rest.
-      dataSize = size === 0 || size === 0xffffffff ? view.byteLength - body : Math.min(size, view.byteLength - body)
+      dataSize = size === 0 || size === 0xffffffff ? fileSize - body : Math.min(size, fileSize - body)
       break
     }
     pos = body + size + (size & 1)
@@ -359,9 +426,10 @@ export function parseWav(view: DataView): PcmAudio {
   return { kind: 'pcm', format, chunks, duration: totalFrames / format.sampleRate }
 }
 
-/** One compressed audio frame, times in seconds. */
+/** One compressed audio frame: where it is in the file, times in seconds. */
 interface AudioFrame {
-  data: Uint8Array
+  offset: number
+  size: number
   time: number
   duration: number
   key: boolean
@@ -382,66 +450,60 @@ export interface PcmAudio {
   duration: number
 }
 
-/** Pull the first audio track's frames (compressed) or chunk map (PCM). */
-function demuxAudio(buffer: ArrayBuffer): CodedAudio | PcmAudio {
+/**
+ * Find the first audio track's frames (compressed) or chunk map (PCM) from
+ * the file's index alone: walk the top-level boxes by their headers to find
+ * the moov box, read just that (and the ftyp), and let mp4box build the sample table, whose offsets
+ * point into the file.
+ */
+async function demuxAudio(src: ByteSource): Promise<CodedAudio | PcmAudio> {
+  // The ftyp box too: mp4box reads QuickTime sound entries (and the AAC
+  // config inside their 'wave' box) only when the brand says QuickTime.
+  const { ftyp, moov } = await readIndex(src)
+  const buffer = new ArrayBuffer(ftyp.length + moov.length)
+  new Uint8Array(buffer).set(ftyp)
+  new Uint8Array(buffer).set(moov, ftyp.length)
   const file = createFile()
   const view = new DataView(buffer)
-  let trackId: number | null = null
-  let codec = ''
-  let pcm: PcmFormat | null = null
   let parseError: string | null = null
-  const samples: AudioFrame[] = []
-
-  // Extraction must be set up inside onReady: mp4box emits samples while
-  // the buffer is being parsed, not after.
-  file.onReady = (info) => {
-    // Find the sound track by handler: mp4box files sample entries it
-    // doesn't recognise (e.g. QuickTime 'lpcm') under metadataTracks.
-    const track = info.tracks.find((t) => file.getTrackById(t.id)?.mdia?.hdlr?.handler === 'soun')
-    if (!track) return
-    trackId = track.id
-    codec = track.codec
-    const entry = file.getTrackById(track.id).mdia.minf.stbl.stsd.entries[0]
-    pcm = entry.start === undefined ? null : parsePcmFormat(view, entry.start, entry.type)
-    // PCM has one "sample" per audio frame — far too many objects to
-    // extract; it's read by chunk instead.
-    if (pcm) return
-    file.setExtractionOptions(track.id, undefined, { nbSamples: 1000 })
-    file.start()
-  }
-  file.onSamples = (id, _user, batch) => {
-    // Keep our own reference to each frame's bytes: releaseUsedSamples
-    // clears `data` on mp4box's sample objects.
-    for (const s of batch) {
-      if (s.data) samples.push({ data: s.data, time: s.cts / s.timescale, duration: s.duration / s.timescale, key: s.is_sync })
-    }
-    file.releaseUsedSamples(id, batch[batch.length - 1].number)
-  }
   file.onError = (_module, message) => { parseError = message }
   file.appendBuffer(MP4BoxBuffer.fromArrayBuffer(buffer, 0))
   file.flush()
   if (parseError) throw new Error(parseError)
-  if (trackId === null) throw new Error('No audio track (or not an MP4/MOV file)')
 
-  const trak = file.getTrackById(trackId)
+  // Find the sound track by handler: mp4box files sample entries it
+  // doesn't recognise (e.g. QuickTime 'lpcm') under metadataTracks.
+  const trak: any = (file.moov?.traks ?? []).find((t: any) => t.mdia?.hdlr?.handler === 'soun')
+  if (!trak) throw new Error('No audio track (or not an MP4/MOV file)')
+  const entry: any = trak.mdia.minf.stbl.stsd.entries[0]
+  const pcm = entry?.start === undefined ? null : parsePcmFormat(view, entry.start, entry.type)
   if (pcm) {
-    const format: PcmFormat = pcm
-    const chunks = pcmChunks(trak.mdia.minf.stbl, format)
+    // PCM has one "sample" per audio frame — far too many to list; it's
+    // read by chunk instead.
+    const chunks = pcmChunks(trak.mdia.minf.stbl, pcm)
     const frames = chunks.reduce((n, c) => n + c.frames, 0)
     if (frames === 0) throw new Error('Audio track has no samples')
-    return { kind: 'pcm', format, chunks, duration: frames / format.sampleRate }
+    return { kind: 'pcm', format: pcm, chunks, duration: frames / pcm.sampleRate }
   }
 
+  const samples: AudioFrame[] = (trak.samples ?? []).map((s: any) => ({
+    offset: s.offset,
+    size: s.size,
+    time: s.cts / s.timescale,
+    duration: s.duration / s.timescale,
+    key: s.is_sync
+  }))
   if (samples.length === 0) throw new Error('Audio track has no samples')
   // AAC needs its AudioSpecificConfig (esds → DecoderConfig → DecSpecificInfo)
   // as the decoder description; other codecs go without.
-  const entry: any = trak.mdia.minf.stbl.stsd.entries[0]
-  const description: Uint8Array | undefined = entry?.esds?.esd?.descs?.[0]?.descs?.[0]?.data
-  const last = samples[samples.length - 1]
+  const esds = entry?.esds ?? entry?.wave?.esds
+  const description: Uint8Array | undefined = esds?.esd?.descs?.[0]?.descs?.[0]?.data
+  const last = samples.reduce((a, b) => (b.time > a.time ? b : a))
   return {
     kind: 'coded',
     config: {
-      codec,
+      // The codec string, e.g. "mp4a.40.2".
+      codec: entry.getCodec(),
       sampleRate: entry.samplerate,
       numberOfChannels: entry.channel_count,
       ...(description ? { description } : {})
@@ -449,6 +511,35 @@ function demuxAudio(buffer: ArrayBuffer): CodedAudio | PcmAudio {
     samples,
     duration: last.time + last.duration
   }
+}
+
+/**
+ * The ftyp (empty if the file has none) and moov boxes, found by stepping
+ * over the top-level boxes' headers.
+ */
+export async function readIndex(src: ByteSource): Promise<{ ftyp: Uint8Array; moov: Uint8Array }> {
+  let ftyp: Uint8Array = new Uint8Array(0)
+  for (let pos = 0; pos + 8 <= src.size; ) {
+    const h = await src.read(pos, Math.min(src.size, pos + 16))
+    const v = new DataView(h.buffer, h.byteOffset, h.byteLength)
+    const size32 = v.getUint32(0)
+    const type = ascii(h, 4, 4)
+    let size: number
+    if (size32 === 1) {
+      if (h.length < 16) break
+      size = Number(v.getBigUint64(8))
+    } else if (size32 === 0) {
+      size = src.size - pos
+    } else {
+      size = size32
+    }
+    if (size < 8) break
+    const box = () => src.read(pos, Math.min(src.size, pos + size))
+    if (type === 'ftyp' && size <= HEAD_BYTES) ftyp = await box()
+    if (type === 'moov') return { ftyp, moov: await box() }
+    pos += size
+  }
+  throw new Error('No moov box (or not an MP4/MOV file)')
 }
 
 /** Expand stsc/stco runs into one entry per chunk. */

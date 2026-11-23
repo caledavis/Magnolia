@@ -10,11 +10,11 @@
  * Import this module first in every entry point so `window.api` exists
  * before any component touches it.
  */
-import { invoke } from '@tauri-apps/api/core'
+import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { emit, emitTo } from '@tauri-apps/api/event'
 import { getCurrentWebview } from '@tauri-apps/api/webview'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
-import type { ImportItem, ImportState, MagnoliaAPI } from '../models/types'
+import type { ByteSource, ImportItem, ImportState, MagnoliaAPI } from '../models/types'
 import { base64ToBytes, extractPdfText } from './pdf-text'
 import { t } from '../i18n'
 import { withDocumentLanguage } from '../utils/document-language'
@@ -126,6 +126,27 @@ async function completeImports(result: any): Promise<any> {
 
 async function readMedia(handle: string): Promise<ArrayBuffer> {
   return invoke<ArrayBuffer>('read_media', { handle, archivePath: activeProjectPath })
+}
+
+// Audio and video are streamed (src-tauri/src/media.rs): the players load a
+// URL answered in byte ranges, and the waveform reads only what it needs —
+// never the whole recording at once.
+function mediaUrl(handle: string, mimeType?: string): string {
+  const query = new URLSearchParams()
+  if (activeProjectPath) query.set('project', activeProjectPath)
+  if (mimeType) query.set('type', mimeType)
+  const q = query.toString()
+  return convertFileSrc(handle, 'magnolia-media') + (q ? `?${q}` : '')
+}
+
+async function openMedia(handle: string): Promise<ByteSource> {
+  const archivePath = activeProjectPath
+  const size = await invoke<number>('media_size', { handle, archivePath })
+  return {
+    size,
+    read: async (start, end) =>
+      new Uint8Array(await invoke<ArrayBuffer>('read_media_range', { handle, start, end, archivePath }))
+  }
 }
 
 async function openedProject(data: any): Promise<any> {
@@ -350,6 +371,8 @@ const api: MagnoliaAPI = {
   readAudioFile: readMedia,
   readImageFile: readMedia,
   readVideoFile: readMedia,
+  mediaUrl,
+  openMedia,
   importTranscript: () => invoke('import_transcript'),
   // Every PDF export: in the interface's language and direction.
   exportPdf: (html, defaultName, dialogTitle, headerTemplate, footerTemplate) =>

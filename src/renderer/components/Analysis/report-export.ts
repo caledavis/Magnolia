@@ -681,48 +681,46 @@ function bytesToDataUrl(buf: ArrayBuffer, mime: string): string {
   return `data:${mime};base64,${btoa(binary)}`
 }
 
-/** Load a video off disk and grab its first frame as a PNG data URL.
- *  Resolves null on any failure (decode error, no codec, timeout) so the
- *  export still produces a frame-less video entry. */
+/** Stream a video and grab its first frame as a PNG data URL. Resolves
+ *  null on any failure (decode error, no codec, timeout) so the export
+ *  still produces a frame-less video entry. */
 function captureVideoFirstFrame(filePath: string, mimeType?: string): Promise<string | null> {
-  return window.api.readVideoFile(filePath).then(
-    (buf) =>
-      new Promise<string | null>((resolve) => {
-        const url = URL.createObjectURL(new Blob([buf], { type: mimeType || 'video/mp4' }))
-        const video = document.createElement('video')
-        let done = false
-        const finish = (result: string | null) => {
-          if (done) return
-          done = true
-          URL.revokeObjectURL(url)
-          resolve(result)
-        }
-        const timer = setTimeout(() => finish(null), 8000)
-        const capture = () => {
-          try {
-            const canvas = document.createElement('canvas')
-            canvas.width = video.videoWidth || 640
-            canvas.height = video.videoHeight || 360
-            const ctx = canvas.getContext('2d')
-            if (!ctx) { clearTimeout(timer); return finish(null) }
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-            clearTimeout(timer)
-            finish(canvas.toDataURL('image/png'))
-          } catch {
-            clearTimeout(timer)
-            finish(null)
-          }
-        }
-        video.muted = true
-        video.preload = 'auto'
-        video.addEventListener('error', () => { clearTimeout(timer); finish(null) }, { once: true })
-        video.addEventListener('seeked', capture, { once: true })
-        // Nudge off zero so a frame is guaranteed decoded before we draw.
-        video.addEventListener('loadeddata', () => {
-          try { video.currentTime = Math.min(0.1, (video.duration || 1) / 2) } catch { capture() }
-        }, { once: true })
-        video.src = url
-      }),
-    () => null
-  )
+  return new Promise<string | null>((resolve) => {
+    const video = document.createElement('video')
+    let done = false
+    const finish = (result: string | null) => {
+      if (done) return
+      done = true
+      video.removeAttribute('src')
+      video.load()
+      resolve(result)
+    }
+    const timer = setTimeout(() => finish(null), 8000)
+    const capture = () => {
+      try {
+        const canvas = document.createElement('canvas')
+        canvas.width = video.videoWidth || 640
+        canvas.height = video.videoHeight || 360
+        const ctx = canvas.getContext('2d')
+        if (!ctx) { clearTimeout(timer); return finish(null) }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        clearTimeout(timer)
+        finish(canvas.toDataURL('image/png'))
+      } catch {
+        clearTimeout(timer)
+        finish(null)
+      }
+    }
+    // The stream is another origin: CORS keeps the canvas readable.
+    video.crossOrigin = 'anonymous'
+    video.muted = true
+    video.preload = 'auto'
+    video.addEventListener('error', () => { clearTimeout(timer); finish(null) }, { once: true })
+    video.addEventListener('seeked', capture, { once: true })
+    // Nudge off zero so a frame is guaranteed decoded before we draw.
+    video.addEventListener('loadeddata', () => {
+      try { video.currentTime = Math.min(0.1, (video.duration || 1) / 2) } catch { capture() }
+    }, { once: true })
+    video.src = window.api.mediaUrl(filePath, mimeType || 'video/mp4')
+  })
 }

@@ -4,6 +4,7 @@
 mod automation;
 mod commands;
 mod i18n;
+mod media;
 mod menu;
 mod print;
 mod state;
@@ -102,6 +103,9 @@ pub fn run() {
             }
             .unwrap()
         })
+        .register_asynchronous_uri_scheme_protocol(media::SCHEME, |ctx, request, responder| {
+            media::handle(ctx.app_handle(), request, responder)
+        })
         .on_menu_event(|app, event| menu::handle_event(app, event.id().as_ref()))
         .invoke_handler(tauri::generate_handler![
             commands::open_external,
@@ -114,6 +118,8 @@ pub fn run() {
             commands::set_active_project_path,
             commands::get_file_size,
             commands::read_media,
+            media::media_size,
+            media::read_media_range,
             commands::read_checkout_marker,
             commands::check_out_project,
             commands::check_in_project,

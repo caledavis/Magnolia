@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
-  PeakAccumulator, PeakTimeline, adtsFrameLength, isFlacFrame, mpegFrameLength, parsePcmFormat, parseWav,
-  peakToHeight, readPcm, resamplePeaks, sliceLayout, type PcmFormat
+  PeakAccumulator, PeakTimeline, adtsFrameLength, bufferSource, decodePeaks, isFlacFrame, mpegFrameLength,
+  parsePcmFormat, parseWav, peakToHeight, readIndex, readPcm, readParts, resamplePeaks, sliceLayout, type PcmFormat
 } from '../../src/renderer/utils/waveform-peaks'
+import type { ByteSource } from '../../src/renderer/models/types'
 
 function hex(s: string): DataView {
   const bytes = s.replace(/\s+/g, '').match(/../g)!.map((b) => parseInt(b, 16))
@@ -229,5 +230,92 @@ describe('parseWav', () => {
     const ext = [...le16(0xfffe), ...le16(1), ...le32(48000), ...le32(192000), ...le16(4), ...le16(32),
       ...le16(22), ...le16(32), ...le32(4), ...le16(3), ...new Array(14).fill(0)]
     expect(parseWav(wav(ext, [0, 0, 0, 0])).format).toMatchObject({ float: true, bytes: 4 })
+  })
+})
+
+describe('WAV header only', () => {
+  it('takes the data size from the whole file when the header is all there is', () => {
+    const bytes = new Uint8Array(44)
+    const v = new DataView(bytes.buffer)
+    bytes.set([0x52, 0x49, 0x46, 0x46], 0); bytes.set([0x57, 0x41, 0x56, 0x45], 8)
+    bytes.set([0x66, 0x6d, 0x74, 0x20], 12); v.setUint32(16, 16, true)
+    v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 8000, true)
+    v.setUint32(28, 16000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true)
+    bytes.set([0x64, 0x61, 0x74, 0x61], 36); v.setUint32(40, 16000, true)
+    expect(parseWav(v, 44 + 16000).duration).toBe(1)
+  })
+})
+
+/** A ByteSource over `bytes` that records each read. */
+function counting(bytes: Uint8Array): ByteSource & { reads: Array<[number, number]> } {
+  const reads: Array<[number, number]> = []
+  return { size: bytes.length, reads, read: async (s, e) => { reads.push([s, e]); return bytes.slice(s, e) } }
+}
+
+describe('readParts', () => {
+  it('reads neighbouring parts together and slices them back out', async () => {
+    const bytes = Uint8Array.from({ length: 300 }, (_, i) => i)
+    const src = counting(bytes)
+    const parts = [{ offset: 0, size: 10 }, { offset: 20, size: 5 }, { offset: 200, size: 3 }]
+    const out: Uint8Array[] = []
+    for await (const batch of readParts(src, parts)) out.push(...batch)
+    expect(out.map((b) => Array.from(b))).toEqual([
+      Array.from({ length: 10 }, (_, i) => i),
+      [20, 21, 22, 23, 24],
+      [200, 201, 202]
+    ])
+    expect(src.reads).toEqual([[0, 203]])
+  })
+
+  it('reads past a large gap separately', async () => {
+    const src = counting(new Uint8Array(1 << 20))
+    for await (const _ of readParts(src, [{ offset: 0, size: 4 }, { offset: 900_000, size: 4 }])) { /* drain */ }
+    expect(src.reads).toEqual([[0, 4], [900_000, 900_004]])
+  })
+})
+
+describe('readIndex', () => {
+  it('steps over the other boxes (including a 64-bit sized mdat) by their headers', async () => {
+    const box = (type: string, body: number) => {
+      const b = new Uint8Array(8 + body)
+      new DataView(b.buffer).setUint32(0, b.length)
+      b.set([...type].map((c) => c.charCodeAt(0)), 4)
+      return b
+    }
+    const ftyp = box('ftyp', 8)
+    const mdat = new Uint8Array(16 + 5000)
+    const mv = new DataView(mdat.buffer)
+    mv.setUint32(0, 1); mdat.set([0x6d, 0x64, 0x61, 0x74], 4); mv.setBigUint64(8, BigInt(mdat.length))
+    const moov = box('moov', 20)
+    moov[30] = 7
+    const file = new Uint8Array(ftyp.length + mdat.length + moov.length)
+    file.set(ftyp); file.set(mdat, ftyp.length); file.set(moov, ftyp.length + mdat.length)
+    const src = counting(file)
+    const index = await readIndex(src)
+    expect(Array.from(index.ftyp)).toEqual(Array.from(ftyp))
+    expect(Array.from(index.moov)).toEqual(Array.from(moov))
+    // Box headers, the ftyp and the moov — never the mdat's contents.
+    expect(src.reads.every(([s, e]) => e - s <= 28)).toBe(true)
+  })
+})
+
+describe('decodePeaks', () => {
+  it('reads a WAV a range at a time', async () => {
+    const rate = 8000
+    const frames = 3 * rate
+    const bytes = new Uint8Array(44 + frames * 2)
+    const v = new DataView(bytes.buffer)
+    bytes.set([0x52, 0x49, 0x46, 0x46], 0); bytes.set([0x57, 0x41, 0x56, 0x45], 8)
+    bytes.set([0x66, 0x6d, 0x74, 0x20], 12); v.setUint32(16, 16, true)
+    v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true)
+    v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true)
+    bytes.set([0x64, 0x61, 0x74, 0x61], 36); v.setUint32(40, frames * 2, true)
+    // Silent first second, loud after.
+    for (let i = rate; i < frames; i++) v.setInt16(44 + i * 2, 0x4000, true)
+    const src = counting(bytes)
+    const peaks = await decodePeaks(src, { buckets: 3 })
+    expect(Array.from(peaks)).toEqual([0, 1, 1])
+    expect(await decodePeaks(bytes.buffer, { buckets: 3 })).toEqual(peaks)
+    expect(bufferSource(bytes.buffer).size).toBe(bytes.length)
   })
 })

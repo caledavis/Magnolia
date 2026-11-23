@@ -23,6 +23,48 @@ struct Inner {
     active_project_path: Option<String>,
     overlay: HashMap<String, (Arc<Vec<u8>>, String)>,
     token_to_guid: HashMap<String, String>,
+    /// The last compressed archive binary `locate` had to inflate, so the
+    /// range reads that follow (a player seeking) don't inflate it again.
+    inflated: Option<(String, Arc<Vec<u8>>)>,
+}
+
+/// Where a binary's bytes are, for reading part of it (media streaming).
+#[derive(Clone)]
+pub enum MediaSource {
+    Memory(Arc<Vec<u8>>),
+    /// `len` bytes at `offset` in the file at `path`: an uncompressed
+    /// archive entry (media is stored, not deflated) or a plain file.
+    File { path: std::path::PathBuf, offset: u64, len: u64 },
+}
+
+impl MediaSource {
+    pub fn len(&self) -> u64 {
+        match self {
+            MediaSource::Memory(b) => b.len() as u64,
+            MediaSource::File { len, .. } => *len,
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    /// Bytes `start..end` (clamped to the binary's length).
+    pub fn read(&self, start: u64, end: u64) -> std::io::Result<Vec<u8>> {
+        let end = end.min(self.len());
+        let start = start.min(end);
+        match self {
+            MediaSource::Memory(b) => Ok(b[start as usize..end as usize].to_vec()),
+            MediaSource::File { path, offset, .. } => {
+                use std::io::{Read, Seek, SeekFrom};
+                let mut f = std::fs::File::open(path)?;
+                f.seek(SeekFrom::Start(offset + start))?;
+                let mut buf = vec![0; (end - start) as usize];
+                f.read_exact(&mut buf)?;
+                Ok(buf)
+            }
+        }
+    }
 }
 
 #[derive(Default)]
@@ -97,6 +139,7 @@ impl BinaryStore {
             if s.active_project_path.as_deref() != Some(p) {
                 s.overlay.clear();
                 s.token_to_guid.clear();
+                s.inflated = None;
             }
             s.active_project_path = Some(p.to_string());
         }
@@ -166,6 +209,51 @@ impl BinaryStore {
         read_from_archive(Path::new(&archive_path), &name).map(Arc::new)
     }
 
+    /// Where `handle`'s bytes can be read from without loading them all:
+    /// in memory for a fresh import, in place for an uncompressed archive
+    /// entry. A compressed entry is inflated once and kept (just the last
+    /// one). Anything that isn't a handle is a legacy real path, read in
+    /// place or recovered from the archive by its basename.
+    pub fn locate(&self, handle: &str) -> Option<MediaSource> {
+        let (archive_path, name) = match parse_handle(handle) {
+            Some(p) => {
+                let s = self.inner.lock().unwrap();
+                match p.kind {
+                    HandleKind::Overlay => {
+                        if let Some((b, _)) = s.overlay.get(&p.id) {
+                            return Some(MediaSource::Memory(b.clone()));
+                        }
+                        let guid = s.token_to_guid.get(&p.id)?;
+                        let ext = &p.name[p.id.len() + 1..];
+                        (s.active_project_path.clone()?, format!("{guid}.{ext}"))
+                    }
+                    HandleKind::Archive => (s.active_project_path.clone()?, p.name.clone()),
+                }
+            }
+            None => {
+                if let Some(m) = std::fs::metadata(handle).ok().filter(|m| m.is_file()) {
+                    return Some(MediaSource::File { path: handle.into(), offset: 0, len: m.len() });
+                }
+                let name = Path::new(handle).file_name()?.to_string_lossy().into_owned();
+                (self.active_project_path()?, name)
+            }
+        };
+        let key = format!("{archive_path}\0{name}");
+        if let Some((k, b)) = &self.inner.lock().unwrap().inflated
+            && *k == key
+        {
+            return Some(MediaSource::Memory(b.clone()));
+        }
+        let mut a = Archive::open(&archive_path).ok()?;
+        let entry = find_source_entry(&a, &name)?;
+        if let Some((offset, len)) = a.stored_range(&entry) {
+            return Some(MediaSource::File { path: archive_path.into(), offset, len });
+        }
+        let bytes = Arc::new(a.read(&entry)?);
+        self.inner.lock().unwrap().inflated = Some((key, bytes.clone()));
+        Some(MediaSource::Memory(bytes))
+    }
+
     /// Recover a legacy real-path reference from the open .qdpx by basename.
     pub fn read_archive_by_name(&self, name: &str) -> Option<Vec<u8>> {
         let path = self.active_project_path()?;
@@ -176,20 +264,24 @@ impl BinaryStore {
 /// `sources/<name>` from an archive, or any non-text `sources/<guid>.*`.
 fn read_from_archive(archive_path: &Path, name: &str) -> Option<Vec<u8>> {
     let mut a = Archive::open(archive_path).ok()?;
+    let entry = find_source_entry(&a, name)?;
+    a.read(&entry)
+}
+
+/// The entry `read_from_archive` reads for `name`.
+fn find_source_entry(a: &Archive, name: &str) -> Option<String> {
     let dir = a.sources_dir();
     let exact = format!("{dir}/{name}");
     if a.has(&exact) {
-        return a.read(&exact);
+        return Some(exact);
     }
     let guid = match name.rfind('.') {
         Some(dot) => &name[..dot],
         None => name,
     };
     let prefix = format!("{dir}/{guid}.");
-    let alt = a
-        .names()
+    a.names()
         .iter()
         .find(|n| n.starts_with(&prefix) && !n.to_lowercase().ends_with(".txt"))
-        .cloned()?;
-    a.read(&alt)
+        .cloned()
 }

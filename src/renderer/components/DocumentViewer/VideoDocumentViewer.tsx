@@ -81,31 +81,23 @@ export function VideoDocumentViewer({ source, content }: Props) {
   const videoData = source.formatData as VideoFormatData | undefined
   const hasVideo = !!videoData?.videoFilePath
 
-  // Load video via IPC → blob URL, avoiding file:// protocol quirks.
-  // The same bytes feed the seek bar's waveform; until decoding finishes
-  // (or if it fails — unsupported codec, no audio track) the seek bar
-  // shows the plain progress bar.
+  // Stream the video (window.api.mediaUrl) rather than loading it whole —
+  // a long screen recording is over a gigabyte. The seek bar's waveform
+  // reads the file a range at a time; until it's decoded (or if that fails
+  // — unsupported codec, no audio track) it shows the plain progress bar.
   const [videoUrl, setVideoUrl] = useState('')
   const [peaks, setPeaks] = useState<Float32Array | null>(null)
   useEffect(() => {
     if (!hasVideo) return
-    let revoke: string | null = null
     const abort = new AbortController()
+    const handle = videoData!.videoFilePath!
     setPeaks(null)
-    window.api.readVideoFile(videoData!.videoFilePath!).then((buffer: ArrayBuffer) => {
-      if (abort.signal.aborted) return
-      const blob = new Blob([buffer], { type: videoData!.mimeType || 'video/mp4' })
-      const url = URL.createObjectURL(blob)
-      revoke = url
-      setVideoUrl(url)
-      decodePeaks(buffer, { signal: abort.signal, onProgress: setPeaks })
-        .then((p) => { if (!abort.signal.aborted) setPeaks(p) })
-        .catch((err: any) => { if (!abort.signal.aborted) console.warn('Waveform unavailable:', err) })
-    }).catch((err: any) => console.error('Failed to load video:', err))
-    return () => {
-      abort.abort()
-      if (revoke) URL.revokeObjectURL(revoke)
-    }
+    setVideoUrl(window.api.mediaUrl(handle, videoData!.mimeType || 'video/mp4'))
+    window.api.openMedia(handle)
+      .then((media) => decodePeaks(media, { signal: abort.signal, onProgress: setPeaks }))
+      .then((p) => { if (!abort.signal.aborted) setPeaks(p) })
+      .catch((err: any) => { if (!abort.signal.aborted) console.warn('Waveform unavailable:', err) })
+    return () => abort.abort()
   }, [hasVideo, videoData?.videoFilePath]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // The playhead is remembered between visits.

@@ -806,6 +806,11 @@ export interface MagnoliaAPI {
   readImageFile: (filePath: string) => Promise<ArrayBuffer>
   // Video
   readVideoFile: (filePath: string) => Promise<ArrayBuffer>
+  /** A URL the <audio>/<video> elements stream a media handle from,
+   *  served as `mimeType` (else as its extension suggests). */
+  mediaUrl: (handle: string, mimeType?: string) => string
+  /** Read a media handle a range at a time (for the waveform). */
+  openMedia: (handle: string) => Promise<ByteSource>
   // Transcript import
   importTranscript: () => Promise<{ name: string; content: string } | null>
   // Preferences
@@ -1062,4 +1067,11 @@ declare global {
   interface Window {
     api: MagnoliaAPI
   }
+}
+
+/** A file read a range at a time, so a long recording is never all in memory. */
+export interface ByteSource {
+  size: number
+  /** Bytes `start` up to (not including) `end`. */
+  read: (start: number, end: number) => Promise<Uint8Array>
 }

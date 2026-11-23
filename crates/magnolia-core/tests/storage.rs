@@ -7,7 +7,7 @@
 mod common;
 use common::*;
 use magnolia_core::binary_store::{
-    BinaryStore, archive_file_name_from_handle, archive_handle, archive_handle_for_file,
+    BinaryStore, MediaSource, archive_file_name_from_handle, archive_handle, archive_handle_for_file,
 };
 use magnolia_core::qdpx::archive::{
     Archive, decode_maybe_windows1252, read_archive_file, read_entry,
@@ -430,6 +430,35 @@ fn successful_save_frees_the_overlay_buffer() {
     assert_eq!(store.resolve(&handle).unwrap().as_slice(), BYTES);
 }
 
+#[test]
+fn media_is_located_for_range_reads_wherever_it_is() {
+    let d = temp();
+    let path = p(&d, "stream.qdpx");
+    make_zip(&path, &[("project.qde", QDE)]);
+    let store = BinaryStore::new();
+    store.set_active_project_path(Some(path.to_str().unwrap()));
+    let handle = store.put_overlay(BYTES.to_vec(), "mp4");
+    // A fresh import: in memory.
+    let fresh = store.locate(&handle).unwrap();
+    assert!(matches!(fresh, MediaSource::Memory(_)));
+    assert_eq!(fresh.read(4, 10).unwrap(), &BYTES[4..10]);
+    write_qdpx(
+        &path,
+        &mut project_with_video(&handle),
+        &contents_for(GUID),
+        &opts(Some(&store), ""),
+    )
+    .unwrap();
+    // Saved: video is stored uncompressed, so it's read in place.
+    let saved = store.locate(&handle).unwrap();
+    assert!(matches!(saved, MediaSource::File { .. }));
+    assert_eq!(saved.len(), BYTES.len() as u64);
+    assert_eq!(saved.read(0, 3).unwrap(), &BYTES[..3]);
+    assert_eq!(saved.read(10, 1000).unwrap(), &BYTES[10..]);
+    let archived = store.locate(&archive_handle(GUID, "mp4")).unwrap();
+    assert_eq!(archived.read(0, 1000).unwrap(), BYTES);
+}
+
 // ── Binary store ──
 
 const AUDIO_GUID: &str = "ED6E609B-72F3-48E9-8DFB-EC04843AA865";
@@ -686,4 +715,19 @@ fn region_codings_survive_a_missing_pdf_or_image() {
         assert_eq!(r["pdfRegion"]["width"].as_f64(), Some(100.0));
         assert_eq!(r["codings"][0]["codeGuid"], CODE);
     }
+}
+
+#[test]
+fn compressed_media_is_inflated_once_for_range_reads() {
+    let d = temp();
+    let store = BinaryStore::new();
+    store.set_active_project_path(Some(&audio_qdpx(&d, "deflated.qdpx", AUDIO_GUID)));
+    let handle = archive_handle(AUDIO_GUID, "m4a");
+    let first = store.locate(&handle).unwrap();
+    assert!(matches!(first, MediaSource::Memory(_)));
+    assert_eq!(first.read(2, 6).unwrap(), &AUDIO[2..6]);
+    let (MediaSource::Memory(a), Some(MediaSource::Memory(b))) = (first, store.locate(&handle)) else {
+        panic!("expected memory sources");
+    };
+    assert!(std::sync::Arc::ptr_eq(&a, &b));
 }

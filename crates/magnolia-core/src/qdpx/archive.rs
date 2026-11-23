@@ -48,6 +48,16 @@ impl Archive {
         Some(buf)
     }
 
+    /// Where an uncompressed entry's bytes sit in the archive file (offset,
+    /// length), so they can be read in place; `None` if it's compressed.
+    pub fn stored_range(&mut self, name: &str) -> Option<(u64, u64)> {
+        let f = self.zip.by_name(name).ok()?;
+        if f.compression() != zip::CompressionMethod::Stored {
+            return None;
+        }
+        Some((f.data_start()?, f.size()))
+    }
+
     /// Read a text entry, tolerating Windows-1252 transcripts from other tools.
     pub fn read_text(&mut self, name: &str) -> Option<String> {
         self.read(name).map(|b| decode_maybe_windows1252(&b))

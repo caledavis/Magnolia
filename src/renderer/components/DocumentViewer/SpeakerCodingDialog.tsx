@@ -102,23 +102,10 @@ export function SpeakerCodingDialog({ open, speakers, source, onApply, onClose }
 
   useEffect(() => {
     if (!open || !mediaHandle) return
-    let revoke: string | null = null
-    let cancelled = false
-    const read = source?.sourceType === 'video' ? window.api.readVideoFile : window.api.readAudioFile
-    read(mediaHandle)
-      .then((buffer: ArrayBuffer) => {
-        if (cancelled) return
-        const url = URL.createObjectURL(new Blob([buffer], { type: mimeType }))
-        revoke = url
-        setMediaUrl(url)
-      })
-      .catch((err: unknown) => console.error('Speaker preview: failed to load media:', err))
-    return () => {
-      cancelled = true
-      if (revoke) URL.revokeObjectURL(revoke)
-      setMediaUrl('')
-    }
-  }, [open, mediaHandle, mimeType, source?.sourceType])
+    // Streamed, so a long recording isn't loaded whole for a few clips.
+    setMediaUrl(window.api.mediaUrl(mediaHandle, mimeType))
+    return () => setMediaUrl('')
+  }, [open, mediaHandle, mimeType])
 
   const playPreview = (sp: DetectedSpeaker) => {
     const a = audioRef.current
