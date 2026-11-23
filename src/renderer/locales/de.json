@@ -188,7 +188,12 @@
         "missingFiles_one": "„{{file}}“ wird nicht gespeichert: Der Inhalt von {{count}} importierten Dokument wurde nicht gefunden ({{names}}). Er war weder im Speicher noch im temporären Cache noch in der vorhandenen Projektdatei; jetzt zu speichern würde es leer speichern. Importieren Sie das Dokument erneut und versuchen Sie es noch einmal.",
         "missingFiles_other": "„{{file}}“ wird nicht gespeichert: Der Inhalt von {{count}} importierten Dokumenten wurde nicht gefunden ({{names}}). Er war weder im Speicher noch im temporären Cache noch in der vorhandenen Projektdatei; jetzt zu speichern würde sie leer speichern. Importieren Sie die Dokumente erneut und versuchen Sie es noch einmal."
       },
-      "typesetFailed": "Magnolia konnte dieses Dokument nicht in Seiten setzen. Speichern Sie es im ursprünglichen Programm erneut, oder speichern Sie es als PDF und importieren Sie dieses."
+      "typesetFailed": "Magnolia konnte dieses Dokument nicht in Seiten setzen. Speichern Sie es im ursprünglichen Programm erneut, oder speichern Sie es als PDF und importieren Sie dieses.",
+      "save": {
+        "noPermission": "Magnolia darf die Projektdatei oder den Ordner, in dem sie liegt, nicht ändern. Prüfen Sie, ob der Ordner gesperrt oder schreibgeschützt ist, oder sichern Sie eine Kopie an einem anderen Ort.",
+        "diskFull": "Auf dem Datenträger ist nicht genug Platz frei. Schaffen Sie etwas Platz und versuchen Sie es erneut.",
+        "notFound": "Der Ordner des Projekts wurde nicht gefunden. Er wurde vielleicht verschoben oder umbenannt oder liegt auf einem Datenträger, der nicht angeschlossen ist."
+      }
     }
   },
   "tools": {

@@ -191,7 +191,12 @@
         "missingFiles_many": "O Magnolia não vai guardar “{{file}}”: o conteúdo de {{count}} documentos importados não foi encontrado ({{names}}). Eles não estavam na memória, no cache temporário nem no ficheiro do projeto, então guardar agora os deixaria vazios. Importe os documentos de novo e tente outra vez.",
         "missingFiles_other": "O Magnolia não vai guardar “{{file}}”: o conteúdo de {{count}} documentos importados não foi encontrado ({{names}}). Eles não estavam na memória, no cache temporário nem no ficheiro do projeto, então guardar agora os deixaria vazios. Importe os documentos de novo e tente outra vez."
       },
-      "typesetFailed": "O Magnolia não conseguiu paginar este documento. Experimente guardá-lo novamente no programa de origem, ou guardá-lo como PDF e importar esse ficheiro."
+      "typesetFailed": "O Magnolia não conseguiu paginar este documento. Experimente guardá-lo novamente no programa de origem, ou guardá-lo como PDF e importar esse ficheiro.",
+      "save": {
+        "noPermission": "O Magnolia não tem permissão para alterar o ficheiro do projeto nem a pasta onde está. Verifique se a pasta não está bloqueada nem é só de leitura, ou guarde uma cópia noutro local.",
+        "diskFull": "Não há espaço livre suficiente no disco. Liberte algum espaço e tente novamente.",
+        "notFound": "Não é possível encontrar a pasta do projeto. Pode ter sido movida ou mudado de nome, ou estar num disco que não está ligado."
+      }
     }
   },
   "tools": {

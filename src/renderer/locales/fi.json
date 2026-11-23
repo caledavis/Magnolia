@@ -188,7 +188,12 @@
         "missingFiles_one": "Tiedostoa ”{{file}}” ei tallenneta: {{count}} tuodun dokumentin sisältöä ei löytynyt ({{names}}). Se ei ollut muistissa, väliaikaisessa välimuistissa eikä nykyisessä projektitiedostossa, joten tallentaminen nyt tallentaisi sen tyhjänä. Tuo dokumentti uudelleen ja yritä uudelleen.",
         "missingFiles_other": "Tiedostoa ”{{file}}” ei tallenneta: {{count}} tuodun dokumentin sisältöä ei löytynyt ({{names}}). Ne eivät olleet muistissa, väliaikaisessa välimuistissa eivätkä nykyisessä projektitiedostossa, joten tallentaminen nyt tallentaisi ne tyhjinä. Tuo dokumentit uudelleen ja yritä uudelleen."
       },
-      "typesetFailed": "Magnolia ei voinut taittaa tätä dokumenttia sivuiksi. Kokeile tallentaa se uudelleen ohjelmassa, josta se on peräisin, tai tallenna se PDF:ksi ja tuo se."
+      "typesetFailed": "Magnolia ei voinut taittaa tätä dokumenttia sivuiksi. Kokeile tallentaa se uudelleen ohjelmassa, josta se on peräisin, tai tallenna se PDF:ksi ja tuo se.",
+      "save": {
+        "noPermission": "Magnolialla ei ole lupaa muuttaa projektitiedostoa tai kansiota, jossa se on. Tarkista, ettei kansio ole lukittu tai vain luku -tilassa, tai tallenna kopio muualle.",
+        "diskFull": "Levyllä ei ole tarpeeksi vapaata tilaa. Vapauta tilaa ja yritä uudelleen.",
+        "notFound": "Projektin kansiota ei löydy. Se on ehkä siirretty tai nimetty uudelleen, tai se on levyllä, joka ei ole liitettynä."
+      }
     }
   },
   "tools": {

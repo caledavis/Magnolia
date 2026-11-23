@@ -188,7 +188,12 @@
         "missingFiles_one": "Magnolia bewaart “{{file}}” niet: de inhoud van {{count}} geïmporteerd document is niet gevonden ({{names}}). Die stond niet in het geheugen, de tijdelijke cache of het bestaande projectbestand, dus nu bewaren zou het leeg bewaren. Importeer het document opnieuw en probeer het nog eens.",
         "missingFiles_other": "Magnolia bewaart “{{file}}” niet: de inhoud van {{count}} geïmporteerde documenten is niet gevonden ({{names}}). Die stond niet in het geheugen, de tijdelijke cache of het bestaande projectbestand, dus nu bewaren zou ze leeg bewaren. Importeer de documenten opnieuw en probeer het nog eens."
       },
-      "typesetFailed": "Magnolia kon dit document niet in pagina’s opmaken. Sla het opnieuw op in het programma waar het vandaan komt, of sla het op als pdf en importeer die."
+      "typesetFailed": "Magnolia kon dit document niet in pagina’s opmaken. Sla het opnieuw op in het programma waar het vandaan komt, of sla het op als pdf en importeer die.",
+      "save": {
+        "noPermission": "Magnolia mag het projectbestand of de map waarin het staat niet wijzigen. Controleer of de map niet vergrendeld of alleen-lezen is, of bewaar een kopie ergens anders.",
+        "diskFull": "Er is niet genoeg vrije ruimte op de schijf. Maak ruimte vrij en probeer het opnieuw.",
+        "notFound": "De map van het project is niet te vinden. Misschien is die verplaatst of hernoemd, of staat die op een schijf die niet is aangesloten."
+      }
     }
   },
   "tools": {

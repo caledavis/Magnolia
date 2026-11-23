@@ -194,7 +194,12 @@
         "missingFiles_many": "Soubor „{{file}}“ nebyl uložen: obsah {{count}} importovaných dokumentů nebyl nalezen ({{names}}). Nebyl v paměti, v dočasné mezipaměti ani v existujícím souboru projektu, takže uložení by je nyní uložilo prázdné. Importujte dokumenty znovu a zkuste to znovu.",
         "missingFiles_other": "Soubor „{{file}}“ nebyl uložen: obsah {{count}} importovaných dokumentů nebyl nalezen ({{names}}). Nebyl v paměti, v dočasné mezipaměti ani v existujícím souboru projektu, takže uložení by je nyní uložilo prázdné. Importujte dokumenty znovu a zkuste to znovu."
       },
-      "typesetFailed": "Magnolia nemohla tento dokument rozvrhnout na stránky. Zkuste jej znovu uložit v programu, ze kterého pochází, nebo jej uložte jako PDF a importujte to."
+      "typesetFailed": "Magnolia nemohla tento dokument rozvrhnout na stránky. Zkuste jej znovu uložit v programu, ze kterého pochází, nebo jej uložte jako PDF a importujte to.",
+      "save": {
+        "noPermission": "Magnolia nemá oprávnění měnit soubor projektu ani složku, ve které je. Zkontrolujte, že složka není zamčená ani jen pro čtení, nebo uložte kopii jinam.",
+        "diskFull": "Na disku není dost volného místa. Uvolněte trochu místa a zkuste to znovu.",
+        "notFound": "Složku projektu nelze najít. Možná byla přesunuta nebo přejmenována, nebo je na disku, který není připojený."
+      }
     }
   },
   "tools": {

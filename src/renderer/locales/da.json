@@ -188,7 +188,12 @@
         "missingFiles_one": "Nægter at gemme »{{file}}«: indholdet af {{count}} importeret dokument blev ikke fundet ({{names}}). Det var ikke i hukommelsen, den midlertidige cache eller den eksisterende projektfil, så at gemme nu ville gemme det tomt. Importér dokumentet igen, og prøv igen.",
         "missingFiles_other": "Nægter at gemme »{{file}}«: indholdet af {{count}} importerede dokumenter blev ikke fundet ({{names}}). De var ikke i hukommelsen, den midlertidige cache eller den eksisterende projektfil, så at gemme nu ville gemme dem tomme. Importér dokumenterne igen, og prøv igen."
       },
-      "typesetFailed": "Magnolia kunne ikke sætte dokumentet op som sider. Prøv at gemme det igen i det program, det kom fra, eller gem det som PDF, og importér den."
+      "typesetFailed": "Magnolia kunne ikke sætte dokumentet op som sider. Prøv at gemme det igen i det program, det kom fra, eller gem det som PDF, og importér den.",
+      "save": {
+        "noPermission": "Magnolia har ikke tilladelse til at ændre projektfilen eller den mappe, den ligger i. Kontrollér, at mappen ikke er låst eller skrivebeskyttet, eller gem en kopi et andet sted.",
+        "diskFull": "Der er ikke nok ledig plads på disken. Frigør noget plads, og prøv igen.",
+        "notFound": "Projektets mappe kan ikke findes. Den er måske flyttet eller omdøbt, eller ligger på en disk, der ikke er tilsluttet."
+      }
     }
   },
   "tools": {

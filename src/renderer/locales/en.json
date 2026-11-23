@@ -188,7 +188,12 @@
         "missingFiles_one": "Refusing to save “{{file}}”: the contents of {{count}} imported document couldn’t be found ({{names}}). They weren’t in memory, the temporary cache or the existing project file, so saving now would save it empty. Import the document again and try again.",
         "missingFiles_other": "Refusing to save “{{file}}”: the contents of {{count}} imported documents couldn’t be found ({{names}}). They weren’t in memory, the temporary cache or the existing project file, so saving now would save them empty. Import the documents again and try again."
       },
-      "typesetFailed": "Magnolia couldn’t lay this document out as pages. Try saving it again in the program it came from, or saving it as a PDF and importing that."
+      "typesetFailed": "Magnolia couldn’t lay this document out as pages. Try saving it again in the program it came from, or saving it as a PDF and importing that.",
+      "save": {
+        "noPermission": "Magnolia isn’t allowed to change the project file or the folder it’s in. Check that the folder isn’t locked or read-only, or save a copy somewhere else.",
+        "diskFull": "There isn’t enough free space on the disk. Free up some space and try again.",
+        "notFound": "The project’s folder can’t be found. It may have been moved or renamed, or be on a disk that isn’t connected."
+      }
     }
   },
   "tools": {

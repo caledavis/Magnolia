@@ -188,7 +188,12 @@
         "missingFiles_one": "Vägrar spara ”{{file}}”: innehållet i {{count}} importerat dokument kunde inte hittas ({{names}}). Det fanns inte i minnet, i den tillfälliga cachen eller i den befintliga projektfilen, så att spara nu skulle spara det tomt. Importera dokumentet igen och försök på nytt.",
         "missingFiles_other": "Vägrar spara ”{{file}}”: innehållet i {{count}} importerade dokument kunde inte hittas ({{names}}). De fanns inte i minnet, i den tillfälliga cachen eller i den befintliga projektfilen, så att spara nu skulle spara dem tomma. Importera dokumenten igen och försök på nytt."
       },
-      "typesetFailed": "Magnolia kunde inte sätta upp dokumentet som sidor. Försök spara det igen i programmet det kom från, eller spara det som PDF och importera den."
+      "typesetFailed": "Magnolia kunde inte sätta upp dokumentet som sidor. Försök spara det igen i programmet det kom från, eller spara det som PDF och importera den.",
+      "save": {
+        "noPermission": "Magnolia får inte ändra projektfilen eller mappen den ligger i. Kontrollera att mappen inte är låst eller skrivskyddad, eller spara en kopia någon annanstans.",
+        "diskFull": "Det finns inte tillräckligt med ledigt utrymme på disken. Frigör utrymme och försök igen.",
+        "notFound": "Projektets mapp hittas inte. Den kan ha flyttats eller bytt namn, eller ligga på en disk som inte är ansluten."
+      }
     }
   },
   "tools": {

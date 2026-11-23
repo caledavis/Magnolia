@@ -191,7 +191,12 @@
         "missingFiles_many": "Magnolia no guardará «{{file}}»: no se encontró el contenido de {{count}} documentos importados ({{names}}). No estaban en la memoria, en la caché temporal ni en el archivo del proyecto, así que guardar ahora los dejaría vacíos. Vuelve a importar los documentos e inténtalo de nuevo.",
         "missingFiles_other": "Magnolia no guardará «{{file}}»: no se encontró el contenido de {{count}} documentos importados ({{names}}). No estaban en la memoria, en la caché temporal ni en el archivo del proyecto, así que guardar ahora los dejaría vacíos. Vuelve a importar los documentos e inténtalo de nuevo."
       },
-      "typesetFailed": "Magnolia no pudo maquetar este documento en páginas. Prueba a guardarlo de nuevo en el programa del que procede, o a guardarlo como PDF e importar ese archivo."
+      "typesetFailed": "Magnolia no pudo maquetar este documento en páginas. Prueba a guardarlo de nuevo en el programa del que procede, o a guardarlo como PDF e importar ese archivo.",
+      "save": {
+        "noPermission": "Magnolia no tiene permiso para modificar el archivo del proyecto ni la carpeta en la que está. Comprueba que la carpeta no esté bloqueada ni sea de solo lectura, o guarda una copia en otro lugar.",
+        "diskFull": "No hay suficiente espacio libre en el disco. Libera espacio e inténtalo de nuevo.",
+        "notFound": "No se encuentra la carpeta del proyecto. Puede que se haya movido o cambiado de nombre, o que esté en un disco que no está conectado."
+      }
     }
   },
   "tools": {

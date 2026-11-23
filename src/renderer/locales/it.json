@@ -191,7 +191,12 @@
         "missingFiles_many": "Salvataggio di «{{file}}» rifiutato: impossibile trovare il contenuto di {{count}} documenti importati ({{names}}). Non erano in memoria, nella cache temporanea né nel file del progetto esistente, quindi salvare ora li salverebbe vuoti. Importa di nuovo i documenti e riprova.",
         "missingFiles_other": "Salvataggio di «{{file}}» rifiutato: impossibile trovare il contenuto di {{count}} documenti importati ({{names}}). Non erano in memoria, nella cache temporanea né nel file del progetto esistente, quindi salvare ora li salverebbe vuoti. Importa di nuovo i documenti e riprova."
       },
-      "typesetFailed": "Magnolia non è riuscito a impaginare questo documento. Prova a salvarlo di nuovo nel programma da cui proviene, oppure a salvarlo come PDF e a importare quello."
+      "typesetFailed": "Magnolia non è riuscito a impaginare questo documento. Prova a salvarlo di nuovo nel programma da cui proviene, oppure a salvarlo come PDF e a importare quello.",
+      "save": {
+        "noPermission": "Magnolia non ha il permesso di modificare il file del progetto o la cartella in cui si trova. Controlla che la cartella non sia bloccata o di sola lettura, oppure salva una copia altrove.",
+        "diskFull": "Non c’è abbastanza spazio libero sul disco. Libera un po’ di spazio e riprova.",
+        "notFound": "Impossibile trovare la cartella del progetto. Potrebbe essere stata spostata o rinominata, oppure trovarsi su un disco non collegato."
+      }
     }
   },
   "tools": {

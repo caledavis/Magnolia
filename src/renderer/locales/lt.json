@@ -194,7 +194,12 @@
         "missingFiles_many": "Atsisakyta įrašyti „{{file}}“: nepavyko rasti {{count}} importuoto dokumento turinio ({{names}}). Jo nebuvo nei atmintyje, nei laikinojoje talpykloje, nei esamame projekto faile, todėl įrašius dabar jie būtų tušti. Importuokite dokumentus dar kartą ir bandykite vėl.",
         "missingFiles_other": "Atsisakyta įrašyti „{{file}}“: nepavyko rasti {{count}} importuotų dokumentų turinio ({{names}}). Jo nebuvo nei atmintyje, nei laikinojoje talpykloje, nei esamame projekto faile, todėl įrašius dabar jie būtų tušti. Importuokite dokumentus dar kartą ir bandykite vėl."
       },
-      "typesetFailed": "Magnolia nepavyko išdėstyti šio dokumento puslapiais. Pabandykite vėl jį įrašyti programoje, iš kurios jis atkeliavo, arba įrašykite jį kaip PDF ir importuokite tą failą."
+      "typesetFailed": "Magnolia nepavyko išdėstyti šio dokumento puslapiais. Pabandykite vėl jį įrašyti programoje, iš kurios jis atkeliavo, arba įrašykite jį kaip PDF ir importuokite tą failą.",
+      "save": {
+        "noPermission": "Magnolia neturi leidimo keisti projekto failo ar aplanko, kuriame jis yra. Patikrinkite, ar aplankas neužrakintas ir nėra skirtas tik skaityti, arba įrašykite kopiją kitur.",
+        "diskFull": "Diske nepakanka laisvos vietos. Atlaisvinkite vietos ir bandykite dar kartą.",
+        "notFound": "Nepavyksta rasti projekto aplanko. Galbūt jis perkeltas ar pervadintas arba yra neprijungtame diske."
+      }
     }
   },
   "tools": {

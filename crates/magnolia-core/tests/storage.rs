@@ -17,7 +17,7 @@ use magnolia_core::qdpx::checkout::{
 };
 use magnolia_core::qdpx::codebook::{deserialize_codebook, serialize_codebook};
 use magnolia_core::qdpx::reader::read_qdpx;
-use magnolia_core::qdpx::writer::{WriteError, WriteOptions, write_qdpx};
+use magnolia_core::qdpx::writer::{WriteError, WriteOptions, save_error_text, write_qdpx};
 use serde_json::{Map, Value, json};
 use std::path::Path;
 
@@ -798,4 +798,32 @@ fn switching_projects_drops_waiting_imports_and_their_files() {
     drop(file);
     store.set_active_project_path(Some(&audio_qdpx(&d, "two.qdpx", AUDIO_GUID)));
     assert!(!tmp.exists());
+}
+
+#[test]
+fn save_errors_are_put_in_plain_words() {
+    use std::io::{Error, ErrorKind};
+    assert!(save_error_text(&Error::from(ErrorKind::PermissionDenied)).contains("isn’t allowed to change"));
+    assert!(save_error_text(&Error::from(ErrorKind::StorageFull)).contains("enough free space"));
+    assert!(save_error_text(&Error::from(ErrorKind::NotFound)).contains("folder can’t be found"));
+    // Anything less common keeps the system's own message.
+    assert_eq!(save_error_text(&Error::other("zip trouble")), "zip trouble");
+}
+
+#[cfg(unix)]
+#[test]
+fn saving_into_a_read_only_folder_says_so_plainly() {
+    use std::os::unix::fs::PermissionsExt;
+    let d = temp();
+    let dir = d.path().join("locked");
+    std::fs::create_dir(&dir).unwrap();
+    let path = dir.join("p.qdpx");
+    make_zip(&path, &[("project.qde", QDE)]);
+    std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o555)).unwrap();
+    let result = write_qdpx(&path, &mut empty_project(), &Map::new(), &opts(None, ""));
+    std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o755)).unwrap();
+    match result {
+        Err(WriteError::Io(m)) => assert!(m.contains("isn’t allowed to change"), "{m}"),
+        other => panic!("expected an I/O error, got {other:?}"),
+    }
 }

@@ -188,7 +188,12 @@
         "missingFiles_one": "“{{file}}” kaydedilmedi: içe aktarılan {{count}} belgenin içeriği bulunamadı ({{names}}). İçerik bellekte, geçici önbellekte ya da mevcut proje dosyasında değildi; şimdi kaydetmek belgeyi boş kaydeder. Belgeyi yeniden içe aktarıp tekrar deneyin.",
         "missingFiles_other": "“{{file}}” kaydedilmedi: içe aktarılan {{count}} belgenin içeriği bulunamadı ({{names}}). İçerikler bellekte, geçici önbellekte ya da mevcut proje dosyasında değildi; şimdi kaydetmek belgeleri boş kaydeder. Belgeleri yeniden içe aktarıp tekrar deneyin."
       },
-      "typesetFailed": "Magnolia bu belgeyi sayfalara dizemedi. Belgeyi geldiği programda yeniden kaydetmeyi ya da PDF olarak kaydedip onu içe aktarmayı deneyin."
+      "typesetFailed": "Magnolia bu belgeyi sayfalara dizemedi. Belgeyi geldiği programda yeniden kaydetmeyi ya da PDF olarak kaydedip onu içe aktarmayı deneyin.",
+      "save": {
+        "noPermission": "Magnolia’nın proje dosyasını veya bulunduğu klasörü değiştirme izni yok. Klasörün kilitli ya da salt okunur olmadığını denetleyin veya bir kopyasını başka bir yere kaydedin.",
+        "diskFull": "Diskte yeterli boş alan yok. Biraz yer açın ve yeniden deneyin.",
+        "notFound": "Projenin klasörü bulunamıyor. Taşınmış ya da yeniden adlandırılmış veya bağlı olmayan bir diskte olabilir."
+      }
     }
   },
   "tools": {

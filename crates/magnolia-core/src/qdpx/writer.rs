@@ -34,7 +34,32 @@ impl std::fmt::Display for WriteError {
 
 impl From<std::io::Error> for WriteError {
     fn from(e: std::io::Error) -> Self {
-        WriteError::Io(e.to_string())
+        WriteError::Io(save_error_text(&e))
+    }
+}
+
+/// Why a save failed, in words a person can act on ("Permission denied
+/// (os error 13)" says little); the system's own message for anything
+/// less common.
+pub fn save_error_text(e: &std::io::Error) -> String {
+    use std::io::ErrorKind;
+    match e.kind() {
+        ErrorKind::PermissionDenied | ErrorKind::ReadOnlyFilesystem => tr(
+            "save.noPermission",
+            "Magnolia isn’t allowed to change the project file or the folder it’s in. Check that the folder isn’t locked or read-only, or save a copy somewhere else.",
+            &[],
+        ),
+        ErrorKind::StorageFull | ErrorKind::QuotaExceeded => tr(
+            "save.diskFull",
+            "There isn’t enough free space on the disk. Free up some space and try again.",
+            &[],
+        ),
+        ErrorKind::NotFound => tr(
+            "save.notFound",
+            "The project’s folder can’t be found. It may have been moved or renamed, or be on a disk that isn’t connected.",
+            &[],
+        ),
+        _ => e.to_string(),
     }
 }
 

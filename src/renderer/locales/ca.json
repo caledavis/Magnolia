@@ -191,7 +191,12 @@
         "missingFiles_many": "No es desa «{{file}}»: no s’ha trobat el contingut de {{count}} documents importats ({{names}}). No eren a la memòria, a la memòria cau temporal ni al fitxer del projecte existent, de manera que desar ara els desaria buits. Torneu a importar els documents i torneu-ho a provar.",
         "missingFiles_other": "No es desa «{{file}}»: no s’ha trobat el contingut de {{count}} documents importats ({{names}}). No eren a la memòria, a la memòria cau temporal ni al fitxer del projecte existent, de manera que desar ara els desaria buits. Torneu a importar els documents i torneu-ho a provar."
       },
-      "typesetFailed": "El Magnolia no ha pogut compondre aquest document en pàgines. Proveu de tornar-lo a desar amb el programa d’on prové, o de desar-lo com a PDF i importar-lo."
+      "typesetFailed": "El Magnolia no ha pogut compondre aquest document en pàgines. Proveu de tornar-lo a desar amb el programa d’on prové, o de desar-lo com a PDF i importar-lo.",
+      "save": {
+        "noPermission": "Magnolia no té permís per modificar el fitxer del projecte ni la carpeta on és. Comproveu que la carpeta no estigui bloquejada ni sigui de només lectura, o deseu-ne una còpia en un altre lloc.",
+        "diskFull": "No hi ha prou espai lliure al disc. Allibereu espai i torneu-ho a provar.",
+        "notFound": "No es troba la carpeta del projecte. Potser s’ha mogut o se n’ha canviat el nom, o és en un disc que no està connectat."
+      }
     }
   },
   "tools": {

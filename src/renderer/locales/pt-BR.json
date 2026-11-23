@@ -191,7 +191,12 @@
         "missingFiles_many": "O Magnolia não vai salvar “{{file}}”: o conteúdo de {{count}} documentos importados não foi encontrado ({{names}}). Eles não estavam na memória, no cache temporário nem no arquivo do projeto, então salvar agora os deixaria vazios. Importe os documentos de novo e tente outra vez.",
         "missingFiles_other": "O Magnolia não vai salvar “{{file}}”: o conteúdo de {{count}} documentos importados não foi encontrado ({{names}}). Eles não estavam na memória, no cache temporário nem no arquivo do projeto, então salvar agora os deixaria vazios. Importe os documentos de novo e tente outra vez."
       },
-      "typesetFailed": "O Magnolia não conseguiu diagramar este documento em páginas. Tente salvá-lo novamente no programa de origem, ou salvá-lo como PDF e importar esse arquivo."
+      "typesetFailed": "O Magnolia não conseguiu diagramar este documento em páginas. Tente salvá-lo novamente no programa de origem, ou salvá-lo como PDF e importar esse arquivo.",
+      "save": {
+        "noPermission": "O Magnolia não tem permissão para alterar o arquivo do projeto nem a pasta em que ele está. Verifique se a pasta não está bloqueada ou somente leitura, ou salve uma cópia em outro lugar.",
+        "diskFull": "Não há espaço livre suficiente no disco. Libere espaço e tente novamente.",
+        "notFound": "A pasta do projeto não foi encontrada. Ela pode ter sido movida ou renomeada, ou estar em um disco que não está conectado."
+      }
     }
   },
   "tools": {
