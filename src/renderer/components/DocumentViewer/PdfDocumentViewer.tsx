@@ -25,6 +25,7 @@ import { ApplyCodeMenuList } from './ApplyCodeMenuList'
 import { roundRegionToWholePixels } from '../../utils/region-rounding'
 import { useTranslation } from 'react-i18next'
 import { digitKey } from '../../utils/keys'
+import { loadPdfjs, pdfParams } from '../../utils/pdfjs'
 
 function flattenCodes(codes: Code[], depth = 0): { code: Code; depth: number }[] {
   const result: { code: Code; depth: number }[] = []
@@ -293,12 +294,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
     let cancelled = false
 
     const loadPdf = async () => {
-      const pdfjsLib = await import('pdfjs-dist')
-      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).href
-      // Point pdfjs at its bundled font/cmap directories so it doesn't warn
-      // about missing standard fonts or fall back to CoreText system fonts.
-      const standardFontDataUrl = new URL('pdfjs-dist/standard_fonts/', import.meta.url).href
-      const cMapUrl = new URL('pdfjs-dist/cmaps/', import.meta.url).href
+      const pdfjsLib = await loadPdfjs()
 
       let bytes: Uint8Array
       if (fd.pdfFilePath) {
@@ -310,12 +306,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
       }
       if (cancelled) return
 
-      const doc = await pdfjsLib.getDocument({
-        data: bytes,
-        standardFontDataUrl,
-        cMapUrl,
-        cMapPacked: true
-      }).promise
+      const doc = await pdfjsLib.getDocument(pdfParams(bytes)).promise
       if (!cancelled) {
         pagesRenderedCount.current = 0
         setAllPagesRendered(false)

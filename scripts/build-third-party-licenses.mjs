@@ -48,6 +48,19 @@ for (const [pkgName, info] of Object.entries(packages).sort()) {
   out.push('')
 }
 
+// ── Fonts pdf.js ships beside its code ──
+// Copied into the app at /pdfjs/standard_fonts (vite.config.mts), each
+// family under its own licence, which pdf.js keeps beside the fonts.
+const fontDir = join('node_modules', 'pdfjs-dist', 'standard_fonts')
+for (const file of readdirSync(fontDir).filter((f) => f.startsWith('LICENSE_')).sort()) {
+  out.push('─'.repeat(72))
+  out.push(`pdf.js standard fonts: ${file.slice('LICENSE_'.length)} (${readdirSync(fontDir).filter((f) => !f.startsWith('LICENSE_')).filter((f) => f.toUpperCase().includes(file.slice('LICENSE_'.length))).join(', ')})`)
+  out.push('')
+  out.push(readFileSync(join(fontDir, file), 'utf8').trim())
+  out.push('')
+  out.push('')
+}
+
 // ── Rust crates ──
 // Normal (non-dev, non-build) dependencies of the app on every target.
 const tree = execSync('cargo tree -p magnolia -e normal --target all --prefix none --format "{p}"', {

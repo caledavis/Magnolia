@@ -10,6 +10,7 @@ import { usePreferencesStore } from '../../../stores/preferences-store'
 import { mediaPathField } from '../../../utils/binary-handles'
 import { t } from '../../../i18n'
 import { OPEN_PROJECT_ID, type CoderProject, type DocExtents, type MatchedDoc } from './intercoder-model'
+import { loadPdfjs, pdfParams } from '../../../utils/pdfjs'
 
 const baseName = (p: string): string => p.split(/[/\\]/).pop() ?? p
 
@@ -62,10 +63,9 @@ async function readBinary(p: CoderProject, handle: string, sourceType: string): 
 }
 
 async function pdfPageAreas(bytes: Uint8Array): Promise<Record<string, number>> {
-  const pdfjsLib = await import('pdfjs-dist')
-  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).href
+  const pdfjsLib = await loadPdfjs()
   // pdfjs takes ownership of the buffer; give it a copy.
-  const doc = await pdfjsLib.getDocument({ data: bytes.slice() }).promise
+  const doc = await pdfjsLib.getDocument(pdfParams(bytes.slice())).promise
   try {
     const out: Record<string, number> = {}
     for (let n = 1; n <= doc.numPages; n++) {

@@ -168,7 +168,7 @@ pub fn automation_set_position(window: WebviewWindow, x: f64, y: f64) -> Result<
 #[tauri::command]
 pub async fn automation_pdf(app: AppHandle, html: String, path: String) -> Result<(), String> {
     check()?;
-    let pdf = crate::print::html_to_pdf(&app, &html, &crate::print::PdfOptions::export("A4", None, None))?;
+    let pdf = crate::print::html_to_pdf(&app, &html, None, &crate::print::PdfOptions::export("A4", None, None))?;
     std::fs::write(&path, pdf).map_err(|e| e.to_string())
 }
 
@@ -176,6 +176,15 @@ pub async fn automation_pdf(app: AppHandle, html: String, path: String) -> Resul
 pub fn automation_log(message: String) -> Result<(), String> {
     check()?;
     eprintln!("[automation] {message}");
+    Ok(())
+}
+
+/// Treat `path` as chosen by the user (see `access`), standing in for the
+/// file dialog or drop a script can't drive.
+#[tauri::command]
+pub fn automation_grant(path: String) -> Result<(), String> {
+    check()?;
+    crate::access::grant(path);
     Ok(())
 }
 

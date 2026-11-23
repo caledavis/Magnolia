@@ -21,8 +21,10 @@ pub const SCHEME: &str = "magnolia-media";
 const MAX_RANGE: u64 = 4 << 20;
 
 fn locate(state: &AppState, handle: &str, archive_path: Option<&str>) -> Option<MediaSource> {
-    state.store.note_active_project_path(archive_path);
-    state.store.locate(handle)
+    crate::commands::note_archive(state, archive_path);
+    // A legacy real path is read in place only if the user chose that
+    // file; otherwise the store finds the copy saved in the project.
+    state.store.locate(handle, crate::access::is_granted(handle))
 }
 
 /// Answer a request on its own thread: reading the file mustn't hold up

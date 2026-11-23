@@ -1,9 +1,37 @@
-import { resolve } from 'path'
-import { readFileSync } from 'fs'
-import { defineConfig } from 'vite'
+import { join, resolve, sep } from 'path'
+import { cpSync, createReadStream, readFileSync, statSync } from 'fs'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
 const appVersion: string = JSON.parse(readFileSync(resolve('package.json'), 'utf-8')).version
+
+/** pdf.js's standard fonts and CMaps (see src/renderer/utils/pdfjs.ts), at
+ *  /pdfjs/<dir>/ beside the pages: served from node_modules in development,
+ *  copied into the build. */
+function pdfjsAssets(): Plugin {
+  const dirs = ['standard_fonts', 'cmaps']
+  const from = resolve('node_modules/pdfjs-dist')
+  return {
+    name: 'magnolia-pdfjs-assets',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const m = /^\/pdfjs\/(standard_fonts|cmaps)\/([^?#]+)/.exec(req.url ?? '')
+        if (!m) return next()
+        const dir = join(from, m[1])
+        const file = join(dir, decodeURIComponent(m[2]))
+        if (!file.startsWith(dir + sep) || !statSync(file, { throwIfNoEntry: false })?.isFile()) {
+          res.statusCode = 404
+          return res.end()
+        }
+        res.setHeader('Content-Type', 'application/octet-stream')
+        createReadStream(file).pipe(res)
+      })
+    },
+    writeBundle(options) {
+      for (const dir of dirs) cpSync(join(from, dir), join(options.dir!, 'pdfjs', dir), { recursive: true })
+    }
+  }
+}
 
 // The renderer: one page per window. Tauri serves out/renderer in builds
 // and this dev server (port fixed in src-tauri/tauri.conf.json) in dev.
@@ -37,5 +65,5 @@ export default defineConfig({
       }
     }
   },
-  plugins: [react()]
+  plugins: [react(), pdfjsAssets()]
 })

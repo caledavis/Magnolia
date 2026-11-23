@@ -7,6 +7,7 @@
  */
 import { useEffect, useMemo, useState } from 'react'
 import { mediaPathField } from './binary-handles'
+import { loadPdfjs, pdfParams } from './pdfjs'
 
 /** Page key ('p1', 'p2', …) → width and height. */
 export type PageSizes = Record<string, { w: number; h: number }>
@@ -32,9 +33,8 @@ async function readSizes(sourceType: string, handle: string): Promise<PageSizes 
       const raw = await window.api.readPdfFile(handle)
       if (!raw) return null
       const bytes = raw instanceof Uint8Array ? raw : new Uint8Array(raw as ArrayBuffer)
-      const pdfjsLib = await import('pdfjs-dist')
-      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).href
-      const doc = await pdfjsLib.getDocument({ data: bytes.slice() }).promise
+      const pdfjsLib = await loadPdfjs()
+      const doc = await pdfjsLib.getDocument(pdfParams(bytes.slice())).promise
       try {
         const out: PageSizes = {}
         for (let n = 1; n <= doc.numPages; n++) {

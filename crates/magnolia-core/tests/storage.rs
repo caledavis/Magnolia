@@ -439,7 +439,7 @@ fn media_is_located_for_range_reads_wherever_it_is() {
     store.set_active_project_path(Some(path.to_str().unwrap()));
     let handle = store.put_overlay(BYTES.to_vec(), "mp4");
     // A fresh import: in memory.
-    let fresh = store.locate(&handle).unwrap();
+    let fresh = store.locate(&handle, false).unwrap();
     assert!(matches!(fresh, MediaSource::Memory(_)));
     assert_eq!(fresh.read(4, 10).unwrap(), &BYTES[4..10]);
     write_qdpx(
@@ -450,12 +450,12 @@ fn media_is_located_for_range_reads_wherever_it_is() {
     )
     .unwrap();
     // Saved: video is stored uncompressed, so it's read in place.
-    let saved = store.locate(&handle).unwrap();
+    let saved = store.locate(&handle, false).unwrap();
     assert!(matches!(saved, MediaSource::File { .. }));
     assert_eq!(saved.len(), BYTES.len() as u64);
     assert_eq!(saved.read(0, 3).unwrap(), &BYTES[..3]);
     assert_eq!(saved.read(10, 1000).unwrap(), &BYTES[10..]);
-    let archived = store.locate(&archive_handle(GUID, "mp4")).unwrap();
+    let archived = store.locate(&archive_handle(GUID, "mp4"), false).unwrap();
     assert_eq!(archived.read(0, 1000).unwrap(), BYTES);
 }
 
@@ -723,10 +723,10 @@ fn compressed_media_is_unpacked_to_disk_once_for_range_reads() {
     let store = BinaryStore::new();
     store.set_active_project_path(Some(&audio_qdpx(&d, "deflated.qdpx", AUDIO_GUID)));
     let handle = archive_handle(AUDIO_GUID, "m4a");
-    let first = store.locate(&handle).unwrap();
+    let first = store.locate(&handle, false).unwrap();
     let MediaSource::Spilled { file: a, .. } = &first else { panic!("expected a temporary file") };
     assert_eq!(first.read(2, 6).unwrap(), &AUDIO[2..6]);
-    let Some(MediaSource::Spilled { file: b, .. }) = store.locate(&handle) else {
+    let Some(MediaSource::Spilled { file: b, .. }) = store.locate(&handle, false) else {
         panic!("expected a temporary file");
     };
     assert!(std::sync::Arc::ptr_eq(a, &b));
@@ -774,7 +774,7 @@ fn large_files_are_imported_without_loading_them() {
     let handle = store.put_overlay_file(&original, "mov").unwrap();
     // The original can go: the import is a copy of it.
     std::fs::remove_file(&original).unwrap();
-    let source = store.locate(&handle).unwrap();
+    let source = store.locate(&handle, false).unwrap();
     assert!(matches!(source, MediaSource::Spilled { .. }));
     assert_eq!(source.len(), bytes.len() as u64);
     assert_eq!(source.read(1000, 1010).unwrap(), &bytes[1000..1010]);
@@ -782,7 +782,7 @@ fn large_files_are_imported_without_loading_them() {
     let small = p(&d, "clip.m4a");
     std::fs::write(&small, AUDIO).unwrap();
     let h = store.put_overlay_file(&small, "m4a").unwrap();
-    assert!(matches!(store.locate(&h), Some(MediaSource::Memory(_))));
+    assert!(matches!(store.locate(&h, false), Some(MediaSource::Memory(_))));
 }
 
 #[test]

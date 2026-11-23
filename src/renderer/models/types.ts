@@ -659,7 +659,10 @@ export interface MagnoliaAPI {
     defaultName: string,
     dialogTitle?: string,
     headerTemplate?: string,
-    footerTemplate?: string
+    footerTemplate?: string,
+    /** Script to run in the print window before printing. The HTML itself
+     *  may run none: it's built from project content. */
+    script?: string
   ) => Promise<string | null>
   exportCodebook: (codes: Code[]) => Promise<string | null>
   importCodebook: () => Promise<Code[] | null>

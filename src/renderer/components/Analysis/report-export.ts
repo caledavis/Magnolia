@@ -288,9 +288,11 @@ function pageMetrics(): { h: number; w: number } {
  *  Chromium printToPDF has no target-counter — and writes the numbers in.
  *  Pagination is simulated over the body's flow blocks (the report blocks
  *  are break-inside:avoid, so a block that won't fit jumps to the next
- *  page), starting after the TOC's own page break. */
+ *  page), starting after the TOC's own page break. It's handed to the print
+ *  window apart from the HTML (which is built from project content and so
+ *  may run no script of its own), and allowed there by a one-time nonce. */
 function buildExportScript(pageH: number, pageW: number): string {
-  return `<script>
+  return `
 (function () {
   var PAGE_H = ${pageH}, PAGE_W = ${pageW};
   if (PAGE_W > 0) document.body.style.width = PAGE_W + 'px';
@@ -336,7 +338,7 @@ function buildExportScript(pageH: number, pageW: number): string {
     if (pageOf[id] != null) spans[s].textContent = pageOf[id];
   }
 })();
-</script>`
+`
 }
 
 /** Hierarchical number (1, 1.1, 1.1.1) and indent depth for every item
@@ -404,7 +406,7 @@ function buildReportBody(items: ReportItem[], assets: Map<string, DocAsset>): st
   // heading that shares the first page). Injected here because the cap
   // depends on the user's chosen paper size.
   const mediaCss = `<style>.report-media-img,.report-pdf-img{max-width:100%;max-height:${Math.max(120, h - 30)}px;}</style>`
-  return mediaCss + tocHtml + body + buildExportScript(h, w)
+  return mediaCss + tocHtml + body
 }
 
 function renderItem(item: ReportItem, assets: Map<string, DocAsset>, num: string): string {
@@ -617,7 +619,8 @@ export async function exportReportPdf(
   const exportedAt = formatDateTime(new Date())
   const html = buildReportHtml(title, items, exportedAt, assets)
   const safeName = (title.trim() || t('reports.report')).replace(/[^\p{L}\p{N} _-]/gu, '').slice(0, 80) || t('reports.report')
-  return exportPdfWithHeader(html, safeName, t('reports.exportDialog'))
+  const { h, w } = pageMetrics()
+  return exportPdfWithHeader(html, safeName, t('reports.exportDialog'), undefined, undefined, buildExportScript(h, w))
 }
 
 // ── Media resolution ───────────────────────────────────────────────

@@ -23,7 +23,8 @@ use tauri::{AppHandle, WebviewUrl, WebviewWindowBuilder};
 pub const SCHEME: &str = "magnolia-print";
 pub const LABEL_PREFIX: &str = "print-";
 
-static PAGES: Mutex<Option<HashMap<String, String>>> = Mutex::new(None);
+/// Pages being printed: id → (HTML, Content-Security-Policy).
+static PAGES: Mutex<Option<HashMap<String, (String, String)>>> = Mutex::new(None);
 static NEXT: AtomicU64 = AtomicU64::new(1);
 
 /// Page geometry and chrome, in inches.
@@ -79,10 +80,30 @@ impl PdfOptions {
     }
 }
 
-/// Serve a registered print page.
-pub fn serve(path: &str) -> Option<String> {
+/// Serve a registered print page: its HTML and the Content-Security-Policy
+/// to send with it.
+pub fn serve(path: &str) -> Option<(String, String)> {
     let id = path.trim_start_matches('/');
     PAGES.lock().unwrap().as_ref()?.get(id).cloned()
+}
+
+/// The page to print, and the policy that keeps it inert. Its HTML is built
+/// from project content (document text, memos, code names), so nothing in
+/// it may run or load anything: no script but `script` (the export's own,
+/// given separately and allowed by a one-time nonce), and no network.
+fn print_page(html: &str, script: Option<&str>) -> (String, String) {
+    let base = "default-src 'none'; img-src data: blob:; style-src 'unsafe-inline'; font-src data:";
+    let Some(script) = script.filter(|s| !s.trim().is_empty()) else {
+        return (html.to_string(), format!("{base}; script-src 'none'"));
+    };
+    let nonce = magnolia_core::util::new_guid().replace('-', "");
+    // "</" can't end the element early (e.g. a "</script>" in a string).
+    let tag = format!("<script nonce=\"{nonce}\">{}</script>", script.replace("</", "<\\/"));
+    let page = match html.rfind("</body>") {
+        Some(i) => format!("{}{tag}{}", &html[..i], &html[i..]),
+        None => format!("{html}{tag}"),
+    };
+    (page, format!("{base}; script-src 'nonce-{nonce}'"))
 }
 
 fn page_url(id: &str) -> tauri::Url {
@@ -95,15 +116,21 @@ fn page_url(id: &str) -> tauri::Url {
     tauri::Url::parse(&url).unwrap()
 }
 
-/// Render `html` to PDF bytes. Blocks; call from a worker thread.
-pub fn html_to_pdf(app: &AppHandle, html: &str, opts: &PdfOptions) -> Result<Vec<u8>, String> {
+/// Render `html` (with `script`, the export's own, run before printing) to
+/// PDF bytes. Blocks; call from a worker thread.
+pub fn html_to_pdf(
+    app: &AppHandle,
+    html: &str,
+    script: Option<&str>,
+    opts: &PdfOptions,
+) -> Result<Vec<u8>, String> {
     let n = NEXT.fetch_add(1, Ordering::Relaxed);
     let id = format!("{n}");
     PAGES
         .lock()
         .unwrap()
         .get_or_insert_with(HashMap::new)
-        .insert(id.clone(), html.to_string());
+        .insert(id.clone(), print_page(html, script));
     let out = std::env::temp_dir().join(format!("magnolia-print-{}-{n}.pdf", std::process::id()));
     let result = render(app, &id, &out, opts);
     PAGES.lock().unwrap().as_mut().map(|m| m.remove(&id));
@@ -161,4 +188,32 @@ fn print_to_file(
     return windows::print(app, window, out, opts);
     #[cfg(target_os = "linux")]
     return linux::print(app, window, out, opts);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::print_page;
+
+    #[test]
+    fn pages_without_a_script_run_none() {
+        let (html, csp) = print_page("<body><p>x</p></body>", None);
+        assert_eq!(html, "<body><p>x</p></body>");
+        assert!(csp.contains("script-src 'none'"));
+        assert!(csp.contains("default-src 'none'"));
+    }
+
+    #[test]
+    fn only_the_exports_own_script_may_run() {
+        let (html, csp) = print_page("<body><p>x</p><script>evil()</script></body>", Some("go('</script>')"));
+        let nonce = csp.split("'nonce-").nth(1).unwrap().split('\'').next().unwrap();
+        assert!(nonce.len() >= 32);
+        // The export's script, with the nonce, before </body>; it can't close
+        // its own element early.
+        assert!(html.contains(&format!("<script nonce=\"{nonce}\">go('<\\/script>')</script></body>")));
+        // A script that came with the page has no nonce, so it won't run.
+        assert!(html.contains("<script>evil()</script>"));
+        // A fresh nonce each time.
+        let (_, again) = print_page("<body></body>", Some("go()"));
+        assert_ne!(csp, again);
+    }
 }

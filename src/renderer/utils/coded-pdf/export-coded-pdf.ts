@@ -15,6 +15,7 @@ import { base64ToBytes } from '../../platform/pdf-text'
 import { joinPageText, pageTextContent } from '../pdf-page-text'
 import { sourceTypeFromFilename } from '../format-registry'
 import { noteData } from '../notes'
+import { loadPdfjs, pdfParams } from '../pdfjs'
 import {
   CODED_PDF_CSS,
   DEFAULT_CODE_COLOUR,
@@ -118,14 +119,8 @@ async function loadPdfBytes(source: TextSource): Promise<Uint8Array> {
 }
 
 async function pdfBody(source: TextSource, lookup: Map<string, CodeRef>, wide: boolean): Promise<string> {
-  const pdfjsLib = await import('pdfjs-dist')
-  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).href
-  const doc = await pdfjsLib.getDocument({
-    data: await loadPdfBytes(source),
-    standardFontDataUrl: new URL('pdfjs-dist/standard_fonts/', import.meta.url).href,
-    cMapUrl: new URL('pdfjs-dist/cmaps/', import.meta.url).href,
-    cMapPacked: true
-  }).promise
+  const pdfjsLib = await loadPdfjs()
+  const doc = await pdfjsLib.getDocument(pdfParams(await loadPdfBytes(source))).promise
 
   const textSels = source.selections
     .filter((s) => !s.pdfRegion)

@@ -2,7 +2,9 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capabilities for every Magnolia window. File access, dialogs and media all go through Magnolia's own commands; the webview gets only window control and event plumbing.",
-  "windows": ["*"],
+  "windows": [
+    "*"
+  ],
   "permissions": [
     "core:default",
     "core:event:allow-emit",
@@ -17,6 +19,7 @@
     "core:window:allow-start-dragging",
     "core:window:allow-set-title",
     "core:window:allow-set-background-color",
-    "core:webview:allow-set-webview-zoom"
+    "core:webview:allow-set-webview-zoom",
+    "notification:allow-is-permission-granted"
   ]
 }

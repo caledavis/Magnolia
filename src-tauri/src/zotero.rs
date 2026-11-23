@@ -137,8 +137,10 @@ pub async fn zotero_file_path(library: String, key: String) -> Result<Option<Str
     if reply.status != 200 {
         return Ok(None);
     }
+    // An attachment of an item the user chose to import: theirs to read.
     Ok(file_url_to_path(&reply.body)
         .filter(|p| p.is_file())
+        .inspect(|p| crate::access::grant(p))
         .map(|p| p.to_string_lossy().into_owned()))
 }
 

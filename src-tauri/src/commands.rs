@@ -5,6 +5,7 @@
 //! reads and writes can take a while on large projects, and native dialogs
 //! opened with the plugin's blocking API must not block the event loop.
 
+use crate::access;
 use crate::print;
 use crate::state::AppState;
 use crate::i18n::{t, t_with};
@@ -48,11 +49,12 @@ fn to_path(p: tauri_plugin_dialog::FilePath) -> Option<PathBuf> {
 }
 
 pub fn pick_qdpx(app: &AppHandle, parent: Option<&WebviewWindow>) -> Option<String> {
-    dialog(app, parent, &t("dialog.openProject"))
+    let path = dialog(app, parent, &t("dialog.openProject"))
         .add_filter(t("dialog.qdpxProjects"), &["qdpx"])
         .blocking_pick_file()
-        .and_then(to_path)
-        .map(|p| p.to_string_lossy().into_owned())
+        .and_then(to_path)?;
+    access::grant(&path);
+    Some(path.to_string_lossy().into_owned())
 }
 
 fn save_dialog(
@@ -73,6 +75,7 @@ fn save_dialog(
     {
         path.set_extension(ext);
     }
+    access::grant(&path);
     Some(path)
 }
 
@@ -83,6 +86,9 @@ fn path_str(p: &Path) -> String {
 // ── Project open / read ──
 
 fn load_project(window: &WebviewWindow, state: &AppState, path: &str) -> CmdResult<Value> {
+    access::check_project(path)?;
+    // Opened, so it's the user's project: theirs to save, too.
+    access::grant(path);
     let label = window.label().to_string();
     let app = window.app_handle().clone();
     let progress = move |stage: &str, current: usize, total: usize| {
@@ -129,6 +135,7 @@ pub async fn pick_project_files(app: AppHandle, window: WebviewWindow) -> CmdRes
         .unwrap_or_default()
         .into_iter()
         .filter_map(to_path)
+        .inspect(|p| access::grant(p))
         .map(|p| p.to_string_lossy().into_owned())
         .collect())
 }
@@ -147,13 +154,24 @@ pub async fn set_active_project_path(
     state: State<'_, AppState>,
     file_path: Option<String>,
 ) -> CmdResult<()> {
+    if let Some(p) = file_path.as_deref().filter(|p| !p.is_empty()) {
+        access::check_granted(p)?;
+    }
     state.store.set_active_project_path(file_path.as_deref());
     Ok(())
 }
 
 #[tauri::command]
 pub async fn get_file_size(file_path: String) -> CmdResult<Option<u64>> {
+    access::check_granted(&file_path)?;
     Ok(std::fs::metadata(file_path).ok().map(|m| m.len()))
+}
+
+/// The archive a media read names, if it's a project the user opened.
+pub(crate) fn note_archive(state: &AppState, archive_path: Option<&str>) {
+    if let Some(p) = archive_path.filter(|p| access::is_granted(p)) {
+        state.store.note_active_project_path(Some(p));
+    }
 }
 
 /// Media bytes for a viewer: a `magnolia-bin://` handle, or a legacy real
@@ -164,9 +182,7 @@ pub async fn read_media(
     handle: String,
     archive_path: Option<String>,
 ) -> CmdResult<Response> {
-    state
-        .store
-        .note_active_project_path(archive_path.as_deref());
+    note_archive(&state, archive_path.as_deref());
     if is_binary_handle(&handle) {
         return state
             .store
@@ -174,21 +190,22 @@ pub async fn read_media(
             .map(|b| Response::new(b.as_ref().clone()))
             .ok_or_else(|| format!("ENOENT: binary not available: {handle}"));
     }
-    match std::fs::read(&handle) {
-        Ok(b) => Ok(Response::new(b)),
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            let name = Path::new(&handle)
-                .file_name()
-                .map(|n| n.to_string_lossy().into_owned())
-                .unwrap_or_default();
-            state
-                .store
-                .read_archive_by_name(&name)
-                .map(Response::new)
-                .ok_or_else(|| format!("ENOENT: {e}"))
-        }
-        Err(e) => Err(e.to_string()),
+    // A legacy real path: read it only if the user chose that file;
+    // otherwise (and if it's gone) take the copy saved in the project.
+    if access::is_granted(&handle)
+        && let Ok(b) = std::fs::read(&handle)
+    {
+        return Ok(Response::new(b));
     }
+    let name = Path::new(&handle)
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    state
+        .store
+        .read_archive_by_name(&name)
+        .map(Response::new)
+        .ok_or_else(|| format!("ENOENT: {handle}"))
 }
 
 // ── Check-out / check-in ──
@@ -197,6 +214,7 @@ pub async fn read_media(
 pub async fn read_checkout_marker(
     file_path: String,
 ) -> CmdResult<Option<checkout::CheckoutMarker>> {
+    access::check_project(&file_path)?;
     Ok(checkout::read_checkout_marker(Path::new(&file_path)))
 }
 
@@ -206,6 +224,7 @@ pub async fn check_out_project(
     user_name: String,
     steal: Option<bool>,
 ) -> CmdResult<checkout::CheckoutWriteResult> {
+    access::check_granted(&file_path)?;
     let action = checkout::CheckoutAction::CheckOut {
         steal: steal.unwrap_or(false),
     };
@@ -218,6 +237,7 @@ pub async fn check_in_project(
     file_path: String,
     user_name: String,
 ) -> CmdResult<checkout::CheckoutWriteResult> {
+    access::check_granted(&file_path)?;
     checkout::write_checkout_marker(
         Path::new(&file_path),
         &user_name,
@@ -238,6 +258,7 @@ pub async fn missing_files(paths: Vec<String>) -> CmdResult<Vec<String>> {
 /// Load a second .qdpx for comparison without touching the active project.
 #[tauri::command]
 pub async fn read_qdpx_for_compare(file_path: String) -> CmdResult<Value> {
+    access::check_project(&file_path)?;
     let mut data = reader::read_qdpx(Path::new(&file_path), None)?;
     data["filePath"] = file_path.clone().into();
     data["editorInfo"] =
@@ -253,6 +274,7 @@ pub async fn import_merge_binary(
     comparison_file_path: String,
     handle: String,
 ) -> CmdResult<Option<String>> {
+    access::check_project(&comparison_file_path)?;
     let Some(name) = archive_file_name_from_handle(&handle) else {
         return Ok(None);
     };
@@ -269,6 +291,7 @@ pub async fn read_compare_binary(
     comparison_file_path: String,
     handle: String,
 ) -> CmdResult<Response> {
+    access::check_project(&comparison_file_path)?;
     let bytes = archive_file_name_from_handle(&handle)
         .and_then(|name| archive::read_archive_file(&comparison_file_path, &name));
     Ok(Response::new(bytes.unwrap_or_default()))
@@ -321,7 +344,10 @@ pub async fn save_project(
     data: SaveData,
 ) -> CmdResult<Value> {
     let path = match data.file_path.as_deref().filter(|p| !p.is_empty()) {
-        Some(p) => PathBuf::from(p),
+        Some(p) => {
+            access::check_granted(p)?;
+            PathBuf::from(p)
+        }
         None => {
             let name = format!(
                 "{}.qdpx",
@@ -384,6 +410,9 @@ pub async fn save_project_as(
         return Ok(Value::Null);
     };
     let carry = data.current_file_path.clone().map(PathBuf::from);
+    if let Some(c) = &carry {
+        access::check_project(c)?;
+    }
     if let Some(blocked) = write(&app, &state, &path, data, carry.as_deref(), false)? {
         return Ok(blocked);
     }
@@ -400,6 +429,7 @@ pub async fn create_project_copy(
     data: SaveData,
 ) -> CmdResult<Value> {
     let current = PathBuf::from(data.current_file_path.clone().unwrap_or_default());
+    access::check_granted(&current)?;
     let dir = current.parent().map(Path::to_path_buf).unwrap_or_default();
     let base = current
         .file_name()
@@ -425,6 +455,7 @@ pub async fn create_project_copy(
         candidate = dir.join(format!("{prefix} {base} ({n}).qdpx"));
         n += 1;
     }
+    access::grant(&candidate);
     if let Some(blocked) = write(&app, &state, &candidate, data, Some(&current), true)? {
         return Ok(blocked);
     }
@@ -747,6 +778,7 @@ pub async fn pick_import_files(
         return Ok(Value::Null);
     };
     let paths: Vec<PathBuf> = paths.into_iter().filter_map(to_path).collect();
+    paths.iter().for_each(access::grant);
     if let Some(dir) = paths.first().and_then(|p| p.parent()) {
         storage::set_last_import_dir(project.as_deref(), dir);
     }
@@ -767,6 +799,9 @@ pub async fn read_text_files(
         .iter()
         .map(|fp| {
             let p = Path::new(fp);
+            if let Err(e) = access::check_granted(p) {
+                return json!({ "name": file_name(p), "error": e });
+            }
             match reject_reason(p) {
                 Some(r) => json!({ "name": file_name(p), "error": r }),
                 None => read_document_path(&state, p),
@@ -789,7 +824,11 @@ pub fn dropped_file_path(name: String, size: u64) -> Option<String> {
         drag_pasteboard_paths().into_iter().find_map(|p| {
             let same = p.file_name().is_some_and(|n| n.to_string_lossy() == name)
                 && std::fs::metadata(&p).is_ok_and(|m| m.is_file() && m.len() == size);
-            same.then(|| p.to_string_lossy().into_owned())
+            // The user dragged it here: theirs to import.
+            same.then(|| {
+                access::grant(&p);
+                p.to_string_lossy().into_owned()
+            })
         })
     }
     #[cfg(not(target_os = "macos"))]
@@ -937,6 +976,8 @@ pub async fn import_transcript(
 // ── Export ──
 
 #[tauri::command]
+// The page passes each of these by name; bundling them would only move the list.
+#[allow(clippy::too_many_arguments)]
 pub async fn export_pdf(
     app: AppHandle,
     window: WebviewWindow,
@@ -945,6 +986,7 @@ pub async fn export_pdf(
     dialog_title: Option<String>,
     header_template: Option<String>,
     footer_template: Option<String>,
+    script: Option<String>,
 ) -> CmdResult<Option<String>> {
     let title = dialog_title.unwrap_or_else(|| t("dialog.exportPdf"));
     let file_name = format!("{default_name}.pdf");
@@ -958,7 +1000,7 @@ pub async fn export_pdf(
         header_template.as_deref(),
         footer_template.as_deref(),
     );
-    let pdf = print::html_to_pdf(&app, &html, &opts)?;
+    let pdf = print::html_to_pdf(&app, &html, script.as_deref(), &opts)?;
     std::fs::write(&path, pdf).map_err(|e| e.to_string())?;
     Ok(Some(path_str(&path)))
 }
@@ -1205,6 +1247,7 @@ pub async fn get_recent_projects() -> CmdResult<Vec<Value>> {
 
 #[tauri::command]
 pub async fn track_recent_project(name: String, file_path: String) -> CmdResult<()> {
+    access::check_granted(&file_path)?;
     storage::track_recent_project(&name, &file_path);
     Ok(())
 }

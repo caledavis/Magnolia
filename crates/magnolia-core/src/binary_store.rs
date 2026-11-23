@@ -283,9 +283,10 @@ impl BinaryStore {
     /// Where `handle`'s bytes can be read from without loading them all:
     /// in memory for a fresh import, in place for an uncompressed archive
     /// entry. A compressed entry is inflated once and kept (just the last
-    /// one). Anything that isn't a handle is a legacy real path, read in
-    /// place or recovered from the archive by its basename.
-    pub fn locate(&self, handle: &str) -> Option<MediaSource> {
+    /// one). Anything that isn't a handle is a legacy real path: read in
+    /// place if `read_real_path` (the caller vouches for that file),
+    /// otherwise recovered from the archive by its basename.
+    pub fn locate(&self, handle: &str, read_real_path: bool) -> Option<MediaSource> {
         let (archive_path, name) = match parse_handle(handle) {
             Some(p) => {
                 let s = self.inner.lock().unwrap();
@@ -302,7 +303,7 @@ impl BinaryStore {
                 }
             }
             None => {
-                if let Some(m) = std::fs::metadata(handle).ok().filter(|m| m.is_file()) {
+                if let Some(m) = std::fs::metadata(handle).ok().filter(|m| read_real_path && m.is_file()) {
                     return Some(MediaSource::File { path: handle.into(), offset: 0, len: m.len() });
                 }
                 let name = Path::new(handle).file_name()?.to_string_lossy().into_owned();

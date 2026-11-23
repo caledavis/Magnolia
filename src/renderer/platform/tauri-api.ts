@@ -380,8 +380,8 @@ const api: MagnoliaAPI = {
   openMedia,
   importTranscript: () => invoke('import_transcript'),
   // Every PDF export: in the interface's language and direction.
-  exportPdf: (html, defaultName, dialogTitle, headerTemplate, footerTemplate) =>
-    invoke('export_pdf', { html: withDocumentLanguage(html), defaultName, dialogTitle, headerTemplate, footerTemplate }),
+  exportPdf: (html, defaultName, dialogTitle, headerTemplate, footerTemplate, script) =>
+    invoke('export_pdf', { html: withDocumentLanguage(html), defaultName, dialogTitle, headerTemplate, footerTemplate, script: script ?? null }),
   exportCodebook: (codes) => invoke('export_codebook', { codes }),
   importCodebook: () => invoke('import_codebook'),
   showNewQueryDialog: () => {},

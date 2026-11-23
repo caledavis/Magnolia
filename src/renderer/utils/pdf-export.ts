@@ -79,14 +79,16 @@ export function exportPdfWithHeader(
   defaultName: string,
   dialogTitle?: string,
   headerTemplate?: string,
-  footerTemplate?: string
+  footerTemplate?: string,
+  script?: string
 ): Promise<string | null> {
   return window.api.exportPdf(
     html,
     defaultName,
     dialogTitle,
     headerTemplate ?? MAGNOLIA_PDF_HEADER_TEMPLATE,
-    footerTemplate ?? MAGNOLIA_PDF_FOOTER_TEMPLATE
+    footerTemplate ?? MAGNOLIA_PDF_FOOTER_TEMPLATE,
+    script
   )
 }
 

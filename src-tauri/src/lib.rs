@@ -1,6 +1,7 @@
 //! Magnolia desktop app: a Tauri shell around the React renderer, with all
 //! project I/O, conversion and system integration in Rust.
 
+mod access;
 mod automation;
 mod commands;
 mod i18n;
@@ -94,11 +95,13 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(AppState::default())
         .register_uri_scheme_protocol(print::SCHEME, |_ctx, request| {
-            let body = print::serve(request.uri().path());
             let builder =
                 tauri::http::Response::builder().header("Content-Type", "text/html; charset=utf-8");
-            match body {
-                Some(html) => builder.status(200).body(html.into_bytes()),
+            match print::serve(request.uri().path()) {
+                Some((html, csp)) => builder
+                    .header("Content-Security-Policy", csp)
+                    .status(200)
+                    .body(html.into_bytes()),
                 None => builder.status(404).body(Vec::new()),
             }
             .unwrap()
@@ -187,6 +190,7 @@ pub fn run() {
             automation::automation_input,
             automation::automation_window_frame,
             automation::automation_set_position,
+            automation::automation_grant,
         ])
         .setup(|app| {
             storage::init(app.handle());

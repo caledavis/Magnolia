@@ -17,6 +17,7 @@
  * Rendering runs in the renderer process (pdfjs is already loaded there),
  * off the main paint path thanks to the async pipeline.
  */
+import { loadPdfjs, pdfParams } from './pdfjs'
 
 interface ThumbnailOptions {
   /** Path on disk. Provide one of filePath or pdfBase64. */
@@ -51,13 +52,7 @@ async function loadPdfDoc(opts: ThumbnailOptions): Promise<any> {
   let promise = docCache.get(key)
   if (!promise) {
     promise = (async () => {
-      const pdfjsLib = await import('pdfjs-dist')
-      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-        'pdfjs-dist/build/pdf.worker.mjs',
-        import.meta.url
-      ).href
-      const standardFontDataUrl = new URL('pdfjs-dist/standard_fonts/', import.meta.url).href
-      const cMapUrl = new URL('pdfjs-dist/cmaps/', import.meta.url).href
+      const pdfjsLib = await loadPdfjs()
       let bytes: Uint8Array
       if (opts.filePath) {
         bytes = await window.api.readPdfFile(opts.filePath)
@@ -68,12 +63,7 @@ async function loadPdfDoc(opts: ThumbnailOptions): Promise<any> {
       } else {
         throw new Error('renderPdfRegionThumbnail: no PDF source provided')
       }
-      return await pdfjsLib.getDocument({
-        data: bytes,
-        standardFontDataUrl,
-        cMapUrl,
-        cMapPacked: true
-      }).promise
+      return await pdfjsLib.getDocument(pdfParams(bytes)).promise
     })()
     docCache.set(key, promise)
   }
