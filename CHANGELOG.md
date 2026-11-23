@@ -5,6 +5,7 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 ## [Unreleased]
 
 ### Fixed
+- **Magnolia asks before deleting a memo or a notebook again.** Deleting a memo from its own window, deleting a notebook with notes in it, moving a memo to Project Memos, and removing a Framework Matrix row or column with summaries all went ahead without asking, because the question never appeared. Messages such as a survey file that couldn't be read, or a coded PDF that couldn't be exported, didn't appear either. They now show in a proper dialog.
 - **Opening another project saves the one you're leaving first.** Before, changes made in the last moments before you opened another project (from Open Project, Recent Projects, or by double-clicking one in the Finder) could be lost, because Magnolia hadn't saved them yet. If they can't be saved, Magnolia now says why and asks before opening the other project. New Project saves first too, and asks in the same way.
 - **Double-clicking a project opens it without a crash.** On a Mac, opening a .qdpx from the Finder when Magnolia wasn't running made it quit straight away, and macOS then warned that Magnolia had closed unexpectedly.
 - **Long videos import and open quickly.** Dragging a large video into a project (a screen recording of an hour or more, say) no longer holds up Magnolia, and a video now plays as soon as you open it, without waiting for the whole file to load. The waveform under the seek bar fills in alongside it.

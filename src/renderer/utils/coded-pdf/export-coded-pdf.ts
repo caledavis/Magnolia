@@ -337,7 +337,7 @@ export async function exportDocumentPdf(source: TextSource, content: string, wit
     return await exportPdfWithHeader(html, fileName, withCodes ? t('codedPdf.dialogTitle') : undefined)
   } catch (e) {
     console.error('PDF export failed:', e)
-    window.alert(t('codedPdf.failed', { detail: e instanceof Error ? e.message : String(e) }))
+    void window.api.showMessage(t('codedPdf.failed', { detail: e instanceof Error ? e.message : String(e) }), 'error')
     return null
   }
 }
@@ -393,7 +393,7 @@ export async function exportNotebookPdf(
     return await exportPdfWithHeader(html, fileName, withCodes ? t('codedPdf.dialogTitle') : undefined)
   } catch (e) {
     console.error('Notebook PDF export failed:', e)
-    window.alert(t('codedPdf.failed', { detail: e instanceof Error ? e.message : String(e) }))
+    void window.api.showMessage(t('codedPdf.failed', { detail: e instanceof Error ? e.message : String(e) }), 'error')
     return null
   }
 }

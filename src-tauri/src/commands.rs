@@ -491,6 +491,48 @@ pub async fn confirm_unsaved_switch(
         .blocking_show()
 }
 
+/// A native message dialog over `window`, for the page: `window.alert`
+/// and `window.confirm` show nothing in the webview (Tauri's dialog plugin
+/// swaps them for calls the app's capabilities don't allow, and its
+/// `confirm` answers with a Promise, which reads as yes). The first
+/// paragraph is the dialog's bold title, the rest its explanation.
+fn page_dialog(
+    app: &AppHandle,
+    window: &WebviewWindow,
+    message: &str,
+    kind: Option<&str>,
+) -> tauri_plugin_dialog::MessageDialogBuilder<tauri::Wry> {
+    use tauri_plugin_dialog::MessageDialogKind;
+    let (title, detail) = message.split_once("\n\n").unwrap_or((message, ""));
+    let kind = match kind {
+        Some("error") => MessageDialogKind::Error,
+        Some("warning") => MessageDialogKind::Warning,
+        _ => MessageDialogKind::Info,
+    };
+    app.dialog().message(detail).title(title).kind(kind).parent(window)
+}
+
+/// Show a message (`kind`: "info", "warning" or "error") and wait for OK.
+#[tauri::command]
+pub async fn show_message(app: AppHandle, window: WebviewWindow, message: String, kind: Option<String>) {
+    page_dialog(&app, &window, &message, kind.as_deref()).blocking_show();
+}
+
+/// Ask a yes-or-no question; true if the first button (`ok_label`) was chosen.
+#[tauri::command]
+pub async fn ask_confirm(
+    app: AppHandle,
+    window: WebviewWindow,
+    message: String,
+    ok_label: String,
+    cancel_label: String,
+) -> bool {
+    use tauri_plugin_dialog::MessageDialogButtons;
+    page_dialog(&app, &window, &message, Some("warning"))
+        .buttons(MessageDialogButtons::OkCancelCustom(ok_label, cancel_label))
+        .blocking_show()
+}
+
 fn error_box(app: &AppHandle, title: &str, message: &str) {
     use tauri_plugin_dialog::MessageDialogKind;
     app.dialog()

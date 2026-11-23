@@ -64,9 +64,9 @@ export function MemoEditWindow() {
     setTimeout(() => window.close(), 200)
   }, [handleSave])
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (!memo) return
-    if (!window.confirm(t('memoEdit.deleteConfirm', { title: memo.title || t('common.untitled') }))) return
+    if (!(await window.api.askConfirm(t('memoEdit.deleteConfirm', { title: memo.title || t('common.untitled') }), t('common.delete')))) return
     // For an unsaved draft (isNew), there's nothing to remove from the
     // store yet — just close. Otherwise tell the main window to drop
     // it and propagate to anything that references the memo.

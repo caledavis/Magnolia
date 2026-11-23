@@ -129,6 +129,8 @@ pub fn run() {
             commands::read_compare_binary,
             commands::save_project,
             commands::confirm_unsaved_switch,
+            commands::show_message,
+            commands::ask_confirm,
             commands::save_project_as,
             commands::create_project_copy,
             commands::create_new_project_file,

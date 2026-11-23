@@ -457,19 +457,19 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
     return out
   }, [data, codeGuids])
 
-  const confirmLoss = (message: string) => window.confirm(message)
+  const confirmLoss = (message: string) => window.api.askConfirm(message, t('common.remove'))
 
-  const removeEntry = useCallback((row: DisplayRow) => {
+  const removeEntry = useCallback(async (row: DisplayRow) => {
     if (row.entryIndex === undefined) return
     const nextRows = rows.filter((_, i) => i !== row.entryIndex)
     const nextSummaries = pruneSummaries(nextRows, summaries)
-    if (Object.keys(nextSummaries).length < Object.keys(summaries).length && !confirmLoss(t('framework.confirmRemoveRow', { name: row.label }))) return
+    if (Object.keys(nextSummaries).length < Object.keys(summaries).length && !(await confirmLoss(t('framework.confirmRemoveRow', { name: row.label })))) return
     setRows(nextRows)
     setSummaries(nextSummaries)
     setCollapsed((prev) => prev.filter((p) => p !== row.path && !p.startsWith(row.path + '/')))
   }, [rows, summaries, pruneSummaries])
 
-  const discardOrphan = useCallback((row: DisplayRow) => {
+  const discardOrphan = useCallback(async (row: DisplayRow) => {
     const topPath = row.path.split('/')[0]
     const nextRows = rows.map((entry) =>
       entryKey(entry) === topPath && 'kept' in entry
@@ -477,14 +477,14 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
         : entry
     )
     const nextSummaries = pruneSummaries(nextRows, summaries)
-    if (Object.keys(nextSummaries).length < Object.keys(summaries).length && !confirmLoss(t('framework.confirmRemoveRow', { name: row.label }))) return
+    if (Object.keys(nextSummaries).length < Object.keys(summaries).length && !(await confirmLoss(t('framework.confirmRemoveRow', { name: row.label })))) return
     setRows(nextRows)
     setSummaries(nextSummaries)
   }, [rows, summaries, pruneSummaries])
 
-  const removeCode = useCallback((codeGuid: string) => {
+  const removeCode = useCallback(async (codeGuid: string) => {
     const hasText = Object.entries(summaries).some(([k, v]) => k.endsWith(`|${codeGuid}`) && v.trim() !== '')
-    if (hasText && !confirmLoss(t('framework.confirmRemoveColumn', { name: codeMap.get(codeGuid)?.name ?? t('framework.code') }))) return
+    if (hasText && !(await confirmLoss(t('framework.confirmRemoveColumn', { name: codeMap.get(codeGuid)?.name ?? t('framework.code') })))) return
     setCodeGuids((prev) => prev.filter((g) => g !== codeGuid))
     setSummaries((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => !k.endsWith(`|${codeGuid}`))))
   }, [summaries, codeMap])

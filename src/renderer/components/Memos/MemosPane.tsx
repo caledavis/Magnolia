@@ -543,7 +543,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
     anchorGuidRef.current = null
   }, [bulkDeleteConfirm, removeMemo])
 
-  const handleDropOnProject = useCallback((e: React.DragEvent) => {
+  const handleDropOnProject = useCallback(async (e: React.DragEvent) => {
     e.preventDefault()
     const data = e.dataTransfer.getData('application/x-magnolia-memo')
     if (!data) return
@@ -551,7 +551,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
     const memo = findMemo(guid)
     if (!memo || memo.type === 'project') return
     if (memo.type === 'document' || memo.type === 'content') {
-      if (!confirm(t('memos.moveToProjectConfirm'))) return
+      if (!(await window.api.askConfirm(t('memos.moveToProjectConfirm'), t('common.continue')))) return
     }
     changeMemoType(guid, 'project', { sourceGuids: undefined, sourceGuid: undefined, startPosition: undefined, endPosition: undefined })
   }, [findMemo, changeMemoType])

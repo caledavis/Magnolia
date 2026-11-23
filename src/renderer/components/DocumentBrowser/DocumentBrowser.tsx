@@ -2605,7 +2605,7 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
       }
     }
     if (errors.length > 0) {
-      window.alert(t('documents.importFailed', { count: errors.length, errors: errors.join('\n') }))
+      void window.api.showMessage(t('documents.importFailed', { count: errors.length, errors: errors.join('\n') }), 'error')
     }
   }, [addSource, onSurveyImport])
 
@@ -3399,14 +3399,15 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
             className="context-menu-item"
             style={{ color: 'var(--menu-fg-danger)' }}
             title={lockedBy ? checkoutLockedTitle(lockedBy) : undefined}
-            onClick={() => {
+            onClick={async () => {
               closeContextMenu()
               if (lockedBy) { promptCheckoutLocked(); return }
+              const folderGuid = contextMenu.folderGuid!
               if (menuNotebook) {
-                const count = sources.filter((s) => sourceFolder[s.guid] === contextMenu.folderGuid).length
-                if (count > 0 && !window.confirm(t('documents.deleteNotebookConfirm', { name: menuFolder!.name, count }))) return
+                const count = sources.filter((s) => sourceFolder[s.guid] === folderGuid).length
+                if (count > 0 && !(await window.api.askConfirm(t('documents.deleteNotebookConfirm', { name: menuFolder!.name, count }), t('common.delete')))) return
               }
-              removeFolder(contextMenu.folderGuid!)
+              removeFolder(folderGuid)
             }}
           >
             {menuNotebook ? t('documents.deleteNotebook') : t('documents.deleteFolder')}

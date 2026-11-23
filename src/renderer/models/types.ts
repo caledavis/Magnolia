@@ -806,6 +806,14 @@ export interface MagnoliaAPI {
   readImageFile: (filePath: string) => Promise<ArrayBuffer>
   // Video
   readVideoFile: (filePath: string) => Promise<ArrayBuffer>
+  /** Show a message in a native dialog over this window. Use this, not
+   *  window.alert, which shows nothing here. A blank line separates the
+   *  dialog's bold title from the rest. */
+  showMessage: (message: string, kind?: 'info' | 'warning' | 'error') => Promise<void>
+  /** Ask a yes-or-no question in a native dialog; true for `okLabel`
+   *  (default OK). Use this, not window.confirm, whose answer here is a
+   *  Promise — which reads as yes. */
+  askConfirm: (message: string, okLabel?: string) => Promise<boolean>
   /** Ask whether to open another project although the current one's
    *  latest changes couldn't be saved (why: `error`, or who now has
    *  control: `lockedBy`). True to open it anyway. */

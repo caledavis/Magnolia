@@ -352,7 +352,7 @@ function App() {
           }
         ])
       } catch (err: any) {
-        window.alert(t('app.parseFailed', { name: suggestedName, error: err?.message || String(err) }))
+        void window.api.showMessage(t('app.parseFailed', { name: suggestedName, error: err?.message || String(err) }), 'error')
       }
     },
     []

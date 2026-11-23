@@ -198,7 +198,7 @@ export function MemoFab(props: Props) {
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (isUnsaved) {
-      window.alert(t(kind === 'saved-query' ? 'memoFab.saveFirst.query' : 'memoFab.saveFirst.analysis'))
+      void window.api.showMessage(t(kind === 'saved-query' ? 'memoFab.saveFirst.query' : 'memoFab.saveFirst.analysis'))
       return
     }
     if (memo) {
