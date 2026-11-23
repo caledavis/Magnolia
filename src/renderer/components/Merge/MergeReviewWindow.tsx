@@ -14,6 +14,7 @@ import { PdfRegionThumbnail } from '../DocumentViewer/PdfRegionThumbnail'
 import { stripFormatting } from '../../utils/strip-formatting'
 import type { Code, DocumentFolder } from '../../models/types'
 import { t } from '../../i18n'
+import { emptySaveAllowed, noteStateMatchesFile } from '../../stores/empty-save-guard'
 
 interface MergeReviewWindowProps {
   onClose: () => void
@@ -783,7 +784,8 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
         project: collectCurrentProject(),
         sourceContents: ds.sourceContents,
         filePath: ps.filePath ?? undefined,
-        userName: myName || undefined
+        userName: myName || undefined,
+        allowEmpty: emptySaveAllowed()
       })
       if (result && typeof result === 'object' && 'guardBlocked' in result) {
         setSaveError((result as { message: string }).message)
@@ -799,6 +801,7 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
         return
       }
       if (typeof result === 'string') {
+        noteStateMatchesFile()
         ps.setFilePath(result)
         ps.markClean()
         ds.promoteImportedBinariesToArchive()

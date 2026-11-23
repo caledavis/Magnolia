@@ -345,6 +345,20 @@ fn refuses_to_wipe_sources_with_an_empty_payload() {
     assert_eq!(read_entry(&path, "project.qde").unwrap(), xml);
 }
 
+#[test]
+fn saves_a_project_the_user_emptied() {
+    let d = temp();
+    let path = p(&d, "emptied.qdpx");
+    let xml = br#"<Project name="T"><Sources><TextSource guid="A" name="a"/></Sources></Project>"#;
+    // Big enough for the all-empty guard to apply as well.
+    let padding = vec![b' '; 4096];
+    make_zip(&path, &[("project.qde", xml), ("padding.txt", &padding)]);
+    let allowed = WriteOptions { allow_empty: true, ..opts(None, "") };
+    write_qdpx(&path, &mut empty_project(), &Map::new(), &allowed).unwrap();
+    let qde = String::from_utf8(read_entry(&path, "Test.qde").unwrap()).unwrap();
+    assert!(!qde.contains("TextSource"), "{qde}");
+}
+
 // ── Writer + overlay binaries ──
 
 const GUID: &str = "C06D37BE-2934-4343-B59C-F690339B066B";

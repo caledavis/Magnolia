@@ -4,6 +4,7 @@ import { generateGuid } from '../utils/guid'
 import type { Quote, PdfRegionSelection } from '../models/types'
 import { makeHmrSafe } from './hmr-preserve'
 import { adjustRange, type TextEdit } from '../utils/text-edit-offsets'
+import { noteBulkReset } from './empty-save-guard'
 
 interface QuoteState {
   quotes: Quote[]
@@ -79,7 +80,10 @@ export const useQuoteStore = create<QuoteState>((set, get) => ({
     return get().quotes.filter((q) => q.sourceGuid === sourceGuid)
   },
 
-  clearAll: () => set({ quotes: [] })
+  clearAll: () => {
+    noteBulkReset()
+    set({ quotes: [] })
+  }
 }))
 
 makeHmrSafe('quoteStore', useQuoteStore)

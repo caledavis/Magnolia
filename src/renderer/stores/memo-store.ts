@@ -4,6 +4,7 @@ import { generateGuid } from '../utils/guid'
 import { useProjectStore } from './project-store'
 import { makeHmrSafe } from './hmr-preserve'
 import { adjustRange, adjustOffset, type TextEdit } from '../utils/text-edit-offsets'
+import { noteBulkReset } from './empty-save-guard'
 
 interface MemoState {
   memos: Memo[]
@@ -129,7 +130,10 @@ export const useMemoStore = create<MemoState>((set, get) => ({
     useProjectStore.getState().markDirty()
   },
 
-  clearAll: () => set({ memos: [] })
+  clearAll: () => {
+    noteBulkReset()
+    set({ memos: [] })
+  }
 }))
 
 makeHmrSafe('memoStore', useMemoStore)

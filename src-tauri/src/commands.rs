@@ -307,6 +307,11 @@ pub struct SaveData {
     file_path: Option<String>,
     current_file_path: Option<String>,
     user_name: Option<String>,
+    /// The user emptied the project themselves (renderer
+    /// stores/empty-save-guard), so the writer's empty-project guards
+    /// stand down.
+    #[serde(default)]
+    allow_empty: bool,
 }
 
 fn write(
@@ -323,6 +328,7 @@ fn write(
         carry_forward_from: carry,
         store: Some(&state.store),
         drop_lock,
+        allow_empty: data.allow_empty,
         app_version: &version,
         editor_name: &editor,
     };

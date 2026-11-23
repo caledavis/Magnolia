@@ -72,6 +72,10 @@ pub struct WriteOptions<'a> {
     pub store: Option<&'a BinaryStore>,
     /// "Create a Copy": don't carry the checkout lock / project id forward.
     pub drop_lock: bool,
+    /// The caller knows the project was emptied on purpose (the user
+    /// deleted everything): skip the guards against overwriting a file
+    /// that has content with an empty project.
+    pub allow_empty: bool,
     pub app_version: &'a str,
     /// Stamped into magnolia-editor.json (from the user's preferences).
     pub editor_name: &'a str,
@@ -139,8 +143,9 @@ pub fn write_qdpx(
 ) -> Result<(), WriteError> {
     let sources = get_arr(project, "sources").to_vec();
 
-    // Document-loss guard: never overwrite on-disk sources with zero sources.
-    if sources.is_empty() {
+    // Document-loss guard: never overwrite on-disk sources with zero sources
+    // — unless the user deleted them.
+    if sources.is_empty() && !opts.allow_empty {
         let on_disk = existing_source_count_on_disk(path);
         if on_disk > 0 {
             return Err(WriteError::Guard(tr_count(
@@ -153,7 +158,8 @@ pub fn write_qdpx(
         }
     }
     // All-empty safety net.
-    if is_payload_empty(project)
+    if !opts.allow_empty
+        && is_payload_empty(project)
         && let Some(size) = file_size(path).filter(|s| *s > 2048)
     {
         return Err(WriteError::Guard(tr(

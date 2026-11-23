@@ -10,6 +10,7 @@ import { generateGuid } from '../utils/guid'
 import { useProjectStore } from './project-store'
 import { makeHmrSafe } from './hmr-preserve'
 import { runQueryInWorker } from '../workers/query-runner'
+import { noteBulkReset } from './empty-save-guard'
 
 interface QueryState {
   currentQuery: Query | null
@@ -364,6 +365,7 @@ export const useQueryStore = create<QueryState>((set, get) => ({
   setSavedQueries: (queries) => set({ savedQueries: queries }),
 
   clearAll: () => {
+    noteBulkReset()
     runToken++
     lastRunKey = null
     dropPendingLayout()

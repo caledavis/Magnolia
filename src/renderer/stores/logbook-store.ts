@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { LogbookEntry } from '../models/types'
 import { generateGuid } from '../utils/guid'
 import { useProjectStore } from './project-store'
+import { noteBulkReset } from './empty-save-guard'
 
 interface LogbookState {
   entries: LogbookEntry[]
@@ -50,5 +51,8 @@ export const useLogbookStore = create<LogbookState>((set) => ({
     useProjectStore.getState().markDirty()
   },
 
-  clearAll: () => set({ entries: [] })
+  clearAll: () => {
+    noteBulkReset()
+    set({ entries: [] })
+  }
 }))

@@ -4,6 +4,7 @@ import { generateGuid } from '../utils/guid'
 import { useProjectStore } from './project-store'
 import { useDocumentStore } from './document-store'
 import { makeHmrSafe } from './hmr-preserve'
+import { noteBulkReset } from './empty-save-guard'
 
 interface CodeState {
   codes: Code[]
@@ -264,7 +265,10 @@ export const useCodeStore = create<CodeState>((set, get) => ({
 
   flatCodes: () => flattenCodes(get().codes),
 
-  clearAll: () => set({ codes: [] })
+  clearAll: () => {
+    noteBulkReset()
+    set({ codes: [] })
+  }
 }))
 
 makeHmrSafe('codeStore', useCodeStore)

@@ -104,6 +104,7 @@ import { buildSurveyEntityLabels } from './utils/survey/survey-labels'
 import { useTranslation } from 'react-i18next'
 import { t } from './i18n'
 import { isLetterKey } from './utils/keys'
+import { emptySaveAllowed, noteBulkReset, noteStateMatchesFile } from './stores/empty-save-guard'
 
 /** Fold the survey-cell scope carried by an analysis cell-click into the
  *  documentFilter of the Query being generated, so it re-runs against the
@@ -907,6 +908,8 @@ function App() {
       filePath,
       savedAnalyses: []
     })
+    // The new file is empty, and so is the project now.
+    noteStateMatchesFile()
     window.api.trackRecentProject(projectName, filePath)
   }, [projectStore, documentStore, codeStore, tagStore, queryStore, logbookStore, memoStore, cancelPendingAutoSave])
 
@@ -933,6 +936,7 @@ function App() {
     if (!filePath) return
     if (!(await saveBeforeSwitchingRef.current())) return
     loadInProgressRef.current = true
+    noteBulkReset()
     cancelPendingAutoSave()
     setLoadProgress({ stage: t('app.opening'), current: 0, total: 0 })
     try {
@@ -1006,6 +1010,7 @@ function App() {
       // write is what got interrupted and truncated the project. Genuine
       // edits after this re-dirty it normally.
       useProjectStore.getState().markClean()
+      noteStateMatchesFile()
       setMissingBinaries((data as any).missingBinaries ?? [])
       applyCheckoutInfo(data)
       if ((data as any).filePath) {
@@ -1016,32 +1021,6 @@ function App() {
       liftLoadSuppression()
     }
   }, [projectStore, documentStore, codeStore, tagStore, queryStore, logbookStore, memoStore, cancelPendingAutoSave, liftLoadSuppression, restoreTabState, applyCheckoutInfo])
-
-  // Returns true if the project payload has no user-authored content at
-  // all. Used by the save guard to refuse overwriting a real project file
-  // with a wiped-state payload (e.g. after an HMR store reset).
-  const isProjectPayloadEmpty = useCallback((p: Project): boolean => {
-    return (
-      !p.sources?.length &&
-      !p.codes?.length &&
-      !p.sets?.length &&
-      !(p.savedQueries?.length) &&
-      !(p.memos?.length) &&
-      !(p.quotes?.length) &&
-      !(p.savedAnalyses?.length)
-    )
-  }, [])
-
-  // Ref tracking the most recent time we saw the project populated. Used
-  // to decide whether "stores look empty" is suspicious. If we ever had
-  // data in this session, treat empty-stores-at-save as a bug.
-  const everHadDataRef = useRef(false)
-  useEffect(() => {
-    // Latches: once true it never resets, so stop rebuilding the whole
-    // project payload (collectProject changes on every store update).
-    if (everHadDataRef.current) return
-    if (!isProjectPayloadEmpty(collectProject())) everHadDataRef.current = true
-  }, [collectProject, isProjectPayloadEmpty])
 
   // Set by the auto-checkout-on-first-edit effect (further down) for the
   // duration of its own checkOutProject call, cleared when it resolves.
@@ -1093,21 +1072,14 @@ function App() {
     // Renderer-side safety guard: refuse to overwrite an existing file on
     // disk with an all-empty payload when we've previously seen data in
     // this session. The main process has a last-resort guard too.
-    if (isProjectPayloadEmpty(project) && projectStore.filePath && everHadDataRef.current) {
-      console.warn(
-        '[save-project guard] refusing to save an empty project over',
-        projectStore.filePath
-      )
-      // Nothing worth keeping is lost: the file on disk keeps the data.
-      return { ok: true }
-    }
     let result: unknown
     try {
       result = await window.api.saveProject({
         project,
         sourceContents: documentStore.sourceContents,
         filePath: projectStore.filePath ?? undefined,
-        userName: usePreferencesStore.getState().userName.trim() || undefined
+        userName: usePreferencesStore.getState().userName.trim() || undefined,
+        allowEmpty: emptySaveAllowed()
       })
     } catch (err: any) {
       // Most saves are autosaves nobody waits on: without this the failure
@@ -1142,6 +1114,7 @@ function App() {
     }
     if (typeof result === 'string') {
       setSaveFailure(null)
+      noteStateMatchesFile()
       projectStore.setFilePath(result)
       projectStore.markClean()
       // Freshly-imported binaries are now embedded in the .qdpx: graduate their
@@ -1162,7 +1135,7 @@ function App() {
       }
     }
     return { ok: true }
-  }, [collectProject, documentStore, projectStore, isProjectPayloadEmpty])
+  }, [collectProject, documentStore, projectStore])
 
   // Before another project replaces this one: save it, rather than drop
   // whatever the autosave hadn't written yet (an import, a code just
@@ -1202,7 +1175,8 @@ function App() {
     const result = await window.api.saveProjectAs({
       project,
       sourceContents: documentStore.sourceContents,
-      currentFilePath: projectStore.filePath ?? undefined
+      currentFilePath: projectStore.filePath ?? undefined,
+      allowEmpty: emptySaveAllowed()
     })
     if (result && typeof result === 'object' && (result as any).guardBlocked) {
       console.warn('[save-project-as guard]', (result as any).message)
@@ -1210,6 +1184,7 @@ function App() {
     }
     if (typeof result === 'string') {
       setSaveFailure(null)
+      noteStateMatchesFile()
       projectStore.setFilePath(result)
       projectStore.markClean()
       documentStore.promoteImportedBinariesToArchive()
@@ -1297,7 +1272,8 @@ function App() {
       project,
       sourceContents: documentStore.sourceContents,
       currentFilePath: filePath,
-      userName: usePreferencesStore.getState().userName.trim()
+      userName: usePreferencesStore.getState().userName.trim(),
+      allowEmpty: emptySaveAllowed()
     })
     if (result && typeof result === 'object' && (result as any).guardBlocked) {
       console.warn('[create-project-copy guard]', (result as any).message)
@@ -1306,6 +1282,7 @@ function App() {
       return
     }
     if (typeof result === 'string') {
+      noteStateMatchesFile()
       projectStore.setFilePath(result)
       // create-project-copy writes the copy with dropLock — it's never
       // stamped with a lock, unlike a normal Save As — but the marker on
@@ -2292,6 +2269,7 @@ function App() {
     const unsub = window.api.onOpenRecentProject(async (filePath) => {
       if (!(await saveBeforeSwitchingRef.current())) return
       loadInProgressRef.current = true
+      noteBulkReset()
       cancelPendingAutoSave()
       setLoadProgress({ stage: t('app.opening'), current: 0, total: 0 })
       setMissingBinaries([])
@@ -2355,6 +2333,7 @@ function App() {
         // a post-load autosave (a needless full-archive rewrite). See the
         // matching note in the file-picker open path above.
         useProjectStore.getState().markClean()
+        noteStateMatchesFile()
         setMissingBinaries((data as any).missingBinaries ?? [])
         applyCheckoutInfo(data)
         window.api.trackRecentProject(project.name, filePath)
@@ -2395,7 +2374,8 @@ function App() {
               project: collectProjectRef.current(),
               sourceContents: useDocumentStore.getState().sourceContents,
               filePath: ps.filePath,
-              userName: usePreferencesStore.getState().userName.trim() || undefined
+              userName: usePreferencesStore.getState().userName.trim() || undefined,
+              allowEmpty: emptySaveAllowed()
             })
             // Someone else now holds the lock — same staleness check as
             // the normal save path. There's no room for a Merge
@@ -2475,6 +2455,7 @@ function App() {
         filePath,
         savedAnalyses: []
       })
+      noteStateMatchesFile()
       window.api.trackRecentProject(projectName, filePath)
     })
     return unsub

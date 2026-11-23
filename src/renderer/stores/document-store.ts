@@ -22,6 +22,7 @@ import { computeTextEdit, adjustRange } from '../utils/text-edit-offsets'
 import { promotedArchiveHandle, mediaPathField } from '../utils/binary-handles'
 import { makeHmrSafe } from './hmr-preserve'
 import { noteName, noteData } from '../utils/notes'
+import { noteBulkReset } from './empty-save-guard'
 
 // Re-export so callers that already imported from this store don't break.
 export type { DocumentFolder }
@@ -971,8 +972,10 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     // upgraded the in-memory handle that points at it.
   },
 
-  clearAll: () =>
+  clearAll: () => {
+    noteBulkReset()
     set({ sources: [], selectedDocumentGuids: new Set<string>(), selectedSurveyEntities: new Set<string>(), viewedDocumentGuid: null, openTabs: [], sourceContents: {}, folders: [], sourceFolder: {} })
+  }
 }))
 
 makeHmrSafe('documentStore', useDocumentStore)

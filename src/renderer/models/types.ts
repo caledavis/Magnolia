@@ -595,6 +595,9 @@ export interface MagnoliaAPI {
   saveProject: (data: {
     project: Project
     sourceContents: Record<string, string>
+    /** The project may be saved empty over a file that has content: the
+     *  user emptied it (see stores/empty-save-guard). */
+    allowEmpty?: boolean
     filePath?: string
     /** Current user's name (Preferences). Enables the save-time staleness
      *  check: if the on-disk checkout lock now names someone else, the
@@ -606,6 +609,9 @@ export interface MagnoliaAPI {
   saveProjectAs: (data: {
     project: Project
     sourceContents: Record<string, string>
+    /** The project may be saved empty over a file that has content: the
+     *  user emptied it (see stores/empty-save-guard). */
+    allowEmpty?: boolean
     /** Path of the project currently open, so the writer can carry
      *  imported binaries forward to the new file even if their temp
      *  working copies have been reaped. */
@@ -619,6 +625,9 @@ export interface MagnoliaAPI {
   createProjectCopy: (data: {
     project: Project
     sourceContents: Record<string, string>
+    /** The project may be saved empty over a file that has content: the
+     *  user emptied it (see stores/empty-save-guard). */
+    allowEmpty?: boolean
     currentFilePath: string
     /** Current user's name (Preferences), stamped into the copy's
      *  filename. Omit or pass '' to skip the name portion. */

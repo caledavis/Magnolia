@@ -3,6 +3,7 @@ import type { QDASet, TagCategory, TagCategoryType } from '../models/types'
 import { generateGuid } from '../utils/guid'
 import { useProjectStore } from './project-store'
 import { makeHmrSafe } from './hmr-preserve'
+import { noteBulkReset } from './empty-save-guard'
 
 interface TagState {
   tags: QDASet[]
@@ -203,7 +204,10 @@ export const useTagStore = create<TagState>((set, get) => ({
     useProjectStore.getState().markDirty()
   },
 
-  clearAll: () => set({ tags: [], categories: [] })
+  clearAll: () => {
+    noteBulkReset()
+    set({ tags: [], categories: [] })
+  }
 }))
 
 makeHmrSafe('tagStore', useTagStore)
