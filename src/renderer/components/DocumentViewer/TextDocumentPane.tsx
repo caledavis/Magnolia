@@ -24,20 +24,13 @@ import { CodedTextView, type CodingRightClickContext } from './CodedTextView'
 import type { Code, MemoEditInitData, SourceType, TextSource } from '../../models/types'
 import { useTranslation } from 'react-i18next'
 import { digitKey } from '../../utils/keys'
+import { flattenCodesWithDepth } from '../../utils/code-tree'
+import { draggedCodeGuids } from '../../utils/code-drag'
 
 /** After a long jump, how many frames the target must stay put, and how
  *  long to keep re-centring it at most. */
 const SETTLE_STILL_FRAMES = 20
 const SETTLE_MAX_MS = 2000
-
-function flattenCodes(codes: Code[], depth = 0): { code: Code; depth: number }[] {
-  const result: { code: Code; depth: number }[] = []
-  for (const code of codes) {
-    result.push({ code, depth })
-    result.push(...flattenCodes(code.children, depth + 1))
-  }
-  return result
-}
 
 interface Props {
   source: TextSource
@@ -233,7 +226,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
     skipRestore: active && !!scrollTarget
   })
 
-  const flatCodes = useMemo(() => flattenCodes(codes), [codes])
+  const flatCodes = useMemo(() => flattenCodesWithDepth(codes), [codes])
 
   // Build hotkey map: number -> code
   const hotkeyMap = useMemo(() => {
@@ -427,23 +420,8 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
           setIsDragOver(false)
           onActivate()
           if (lockedBy) { promptCheckoutLocked(); return }
-          // Check for multi-code drop first
-          const multiData = e.dataTransfer.getData('application/x-magnolia-codes')
-          if (multiData) {
-            try {
-              const codes = JSON.parse(multiData) as { guid: string }[]
-              handleDrop(codes.map((c) => c.guid))
-            } catch { /* ignore */ }
-            return
-          }
-          const data = e.dataTransfer.getData('application/x-magnolia-code')
-          if (!data) return
-          try {
-            const codeData = JSON.parse(data) as { guid: string }
-            handleDrop([codeData.guid])
-          } catch {
-            // ignore
-          }
+          const guids = draggedCodeGuids(e)
+          if (guids.length > 0) handleDrop(guids)
         }}
       >
         {pendingSelection && <SelectionMenuButton containerRef={containerRef} anchor={textSelectionAnchor} />}

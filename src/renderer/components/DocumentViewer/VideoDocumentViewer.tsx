@@ -25,6 +25,7 @@ import { useRememberedPlayhead } from '../../utils/use-remembered-playhead'
 import type { TextSource, VideoFormatData } from '../../models/types'
 import { useTranslation } from 'react-i18next'
 import { keyCombo } from '../../utils/keys'
+import { draggedCodeGuids } from '../../utils/code-drag'
 
 interface Props {
   source: TextSource
@@ -290,16 +291,7 @@ export function VideoDocumentViewer({ source, content }: Props) {
         onDrop={(e) => {
           // Forward a drop on the video frame to the CodeTrack's create-
           // at-playhead logic — same behaviour as dropping on the track.
-          const multi = e.dataTransfer.getData('application/x-magnolia-codes')
-          let codeGuids: string[] = []
-          if (multi) {
-            try { codeGuids = JSON.parse(multi).map((c: any) => c.guid) } catch { /* noop */ }
-          } else {
-            const single = e.dataTransfer.getData('application/x-magnolia-code')
-            if (single) {
-              try { codeGuids = [JSON.parse(single).guid] } catch { /* noop */ }
-            }
-          }
+          const codeGuids = draggedCodeGuids(e)
           if (codeGuids.length === 0) return
           e.preventDefault()
           // Snap to whole seconds — see CodeTrack's drop handler for the

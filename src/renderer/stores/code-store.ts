@@ -5,6 +5,7 @@ import { useProjectStore } from './project-store'
 import { useDocumentStore } from './document-store'
 import { makeHmrSafe } from './hmr-preserve'
 import { noteBulkReset } from './empty-save-guard'
+import { flattenCodes } from '../utils/code-tree'
 
 interface CodeState {
   codes: Code[]
@@ -38,15 +39,6 @@ function findInTree(codes: Code[], guid: string): Code | undefined {
     if (found) return found
   }
   return undefined
-}
-
-function flattenCodes(codes: Code[]): Code[] {
-  const result: Code[] = []
-  for (const code of codes) {
-    result.push(code)
-    result.push(...flattenCodes(code.children))
-  }
-  return result
 }
 
 function removeFromTree(codes: Code[], guid: string): Code[] {

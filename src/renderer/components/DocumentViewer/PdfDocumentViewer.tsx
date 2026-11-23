@@ -25,15 +25,8 @@ import { roundRegionToWholePixels } from '../../utils/region-rounding'
 import { useTranslation } from 'react-i18next'
 import { digitKey } from '../../utils/keys'
 import { loadPdfjs, pdfParams } from '../../utils/pdfjs'
-
-function flattenCodes(codes: Code[], depth = 0): { code: Code; depth: number }[] {
-  const result: { code: Code; depth: number }[] = []
-  for (const code of codes) {
-    result.push({ code, depth })
-    result.push(...flattenCodes(code.children, depth + 1))
-  }
-  return result
-}
+import { flattenCodesWithDepth } from '../../utils/code-tree'
+import { draggedCodeGuids } from '../../utils/code-drag'
 
 function buildCodeMap(codes: Code[]): Map<string, Code> {
   const m = new Map<string, Code>()
@@ -263,7 +256,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
   })
 
   const codeMap = useMemo(() => buildCodeMap(codes), [codes])
-  const flatCodes = useMemo(() => flattenCodes(codes), [codes])
+  const flatCodes = useMemo(() => flattenCodesWithDepth(codes), [codes])
   const hotkeyMap = useMemo(() => {
     const map = new Map<number, Code>()
     for (const { code } of flatCodes) {
@@ -788,10 +781,8 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
         }}
         onDrop={(e) => {
           e.preventDefault()
-          const multiData = e.dataTransfer.getData('application/x-magnolia-codes')
-          if (multiData) { try { handleDrop(JSON.parse(multiData).map((c: any) => c.guid), e.clientX, e.clientY) } catch {} return }
-          const data = e.dataTransfer.getData('application/x-magnolia-code')
-          if (data) { try { handleDrop([JSON.parse(data).guid], e.clientX, e.clientY) } catch {} }
+          const guids = draggedCodeGuids(e)
+          if (guids.length > 0) handleDrop(guids, e.clientX, e.clientY)
         }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>

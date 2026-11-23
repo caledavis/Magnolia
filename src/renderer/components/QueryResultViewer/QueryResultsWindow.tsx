@@ -12,6 +12,7 @@ import { QueryLoadingBar } from './QueryLoadingBar'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
 import { useTranslation } from 'react-i18next'
+import { draggedCodeGuids } from '../../utils/code-drag'
 
 // Fallbacks that are the same value every render, so hooks that depend on
 // them don't rerun for nothing.
@@ -150,18 +151,10 @@ export function QueryResultsWindow() {
   const handleDropCodes = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setDropOver(false)
-    const multiJson = e.dataTransfer.getData('application/x-magnolia-codes')
-    const singleJson = e.dataTransfer.getData('application/x-magnolia-code')
-    try {
-      let codeItems: { guid: string }[]
-      if (multiJson) codeItems = JSON.parse(multiJson)
-      else if (singleJson) codeItems = [JSON.parse(singleJson)]
-      else return
-      for (const c of codeItems) {
-        window.api.sendQueryResultsAction('code-all-existing-code', { guid: c.guid })
-      }
-      setCodeAllMenu(null)
-    } catch { /* ignore malformed drag payload */ }
+    const guids = draggedCodeGuids(e)
+    if (guids.length === 0) return
+    for (const guid of guids) window.api.sendQueryResultsAction('code-all-existing-code', { guid })
+    setCodeAllMenu(null)
   }, [])
 
   // Mirror handleSelectDocuments — fires an IPC; main does the selection

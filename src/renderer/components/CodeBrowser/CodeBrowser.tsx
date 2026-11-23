@@ -11,6 +11,7 @@ import { isMac, modKey } from '../../utils/platform'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 import { usePreferencesStore } from '../../stores/preferences-store'
 import { codeColourPresetsFor, useCodeColourPresets } from '../../utils/code-colours'
+import { CODES_DRAG_TYPE, codeGuidsFromJson } from '../../utils/code-drag'
 
 interface Props {
   onNewCode: () => void
@@ -274,10 +275,10 @@ function CodeTreeItem({
           if (lockedBy) { promptCheckoutLocked(); return }
 
           // Read multi-selection data, fall back to single guid
-          const multiData = e.dataTransfer.getData('application/x-magnolia-codes')
+          const multiData = e.dataTransfer.getData(CODES_DRAG_TYPE)
           const singleGuid = e.dataTransfer.getData('application/x-magnolia-code-reorder')
           const draggedGuids: string[] = multiData
-            ? (JSON.parse(multiData) as { guid: string }[]).map((c) => c.guid)
+            ? codeGuidsFromJson(multiData)
             : singleGuid ? [singleGuid] : []
           if (draggedGuids.length === 0 || draggedGuids.includes(code.guid)) return
 
@@ -949,10 +950,10 @@ export function CodeBrowser({ onNewCode, onClose, onPopOut, isPoppedOut }: Props
         // Drop on empty space = move to top level
         if (e.dataTransfer.types.includes('application/x-magnolia-code-reorder')) {
           if (lockedBy) { useProjectStore.getState().promptCheckoutConflict(); return }
-          const multiData = e.dataTransfer.getData('application/x-magnolia-codes')
+          const multiData = e.dataTransfer.getData(CODES_DRAG_TYPE)
           const singleGuid = e.dataTransfer.getData('application/x-magnolia-code-reorder')
           const guids: string[] = multiData
-            ? (JSON.parse(multiData) as { guid: string }[]).map((c) => c.guid)
+            ? codeGuidsFromJson(multiData)
             : singleGuid ? [singleGuid] : []
           for (const g of guids) moveCode(g, null)
         }

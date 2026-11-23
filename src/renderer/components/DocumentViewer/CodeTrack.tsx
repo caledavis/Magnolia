@@ -34,6 +34,7 @@ import {
 } from './video-time-utils'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
+import { draggedCodeGuids } from '../../utils/code-drag'
 
 /** Format a duration in seconds with tenths (M:SS.t) — used on track labels
  *  where sub-second precision matters for code boundary placement. */
@@ -286,16 +287,7 @@ export function CodeTrack({
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragOver(false)
-    const multi = e.dataTransfer.getData('application/x-magnolia-codes')
-    let codeGuids: string[] = []
-    if (multi) {
-      try { codeGuids = JSON.parse(multi).map((c: any) => c.guid) } catch { /* noop */ }
-    } else {
-      const single = e.dataTransfer.getData('application/x-magnolia-code')
-      if (single) {
-        try { codeGuids = [JSON.parse(single).guid] } catch { /* noop */ }
-      }
-    }
+    const codeGuids = draggedCodeGuids(e)
     if (codeGuids.length === 0) return
 
     // Default length: 4 seconds, clamped so the code never extends

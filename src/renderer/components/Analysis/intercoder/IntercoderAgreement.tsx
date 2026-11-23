@@ -53,6 +53,7 @@ import { toCsv } from '../analysis-helpers'
 import { descendantFolderGuids } from '../group-by'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../../i18n'
+import { draggedCodeGuids, isCodeDrag } from '../../../utils/code-drag'
 import {
   OPEN_PROJECT_ID,
   matchDocuments,
@@ -116,10 +117,6 @@ function isDocDrag(e: React.DragEvent): boolean {
   return types.includes('application/x-magnolia-docs') || types.includes('application/x-magnolia-folder')
 }
 
-function isCodeDrag(e: React.DragEvent): boolean {
-  const types = e.dataTransfer.types
-  return types.includes('application/x-magnolia-code') || types.includes('application/x-magnolia-codes')
-}
 
 /** Document guids from a Document Browser drag: the selected documents,
  *  or every document in a folder and its subfolders. */
@@ -136,14 +133,6 @@ function parseDocDrop(e: React.DragEvent): string[] {
   } catch { return [] }
 }
 
-function parseCodeDrop(e: React.DragEvent): string[] {
-  try {
-    const multi = e.dataTransfer.getData('application/x-magnolia-codes')
-    const single = e.dataTransfer.getData('application/x-magnolia-code')
-    const codes = (multi ? JSON.parse(multi) : single ? [JSON.parse(single)] : []) as { guid?: string }[]
-    return codes.map((c) => c.guid).filter((g): g is string => typeof g === 'string')
-  } catch { return [] }
-}
 
 /** Drag-over / leave / drop handlers for a pane that accepts `accepts`
  *  drags, lighting it while one is over it. Drops are stopped here so a
@@ -300,7 +289,7 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
     if (fresh.length) setDocGuids((prev) => appendNew(prev, fresh))
   })
   const codeDrop = dropHandlers(isCodeDrag, (o) => setDropOver(o ? 'codes' : null), (e) => {
-    const fresh = parseCodeDrop(e)
+    const fresh = draggedCodeGuids(e)
     if (fresh.length) setCodeGuids((prev) => appendNew(prev, fresh))
   })
 

@@ -31,6 +31,7 @@ import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { useThemeSvgColors, SVG_FONT_FAMILY } from '../../utils/use-theme-svg-colors'
 import { useTranslation } from 'react-i18next'
 import { formatPercent, t as tr } from '../../i18n'
+import { draggedCodeGuids } from '../../utils/code-drag'
 
 interface Props {
   data: AnalysisInitData
@@ -224,18 +225,12 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
-    const multiJson = e.dataTransfer.getData('application/x-magnolia-codes')
-    const singleJson = e.dataTransfer.getData('application/x-magnolia-code')
-    try {
-      let codes: { guid: string }[]
-      if (multiJson) codes = JSON.parse(multiJson)
-      else if (singleJson) codes = [JSON.parse(singleJson)]
-      else return
-      setCodeGuids((prev) => {
-        const existing = new Set(prev)
-        return [...prev, ...codes.filter((c) => !existing.has(c.guid)).map((c) => c.guid)]
-      })
-    } catch { /* ignore */ }
+    const guids = draggedCodeGuids(e)
+    if (guids.length === 0) return
+    setCodeGuids((prev) => {
+      const existing = new Set(prev)
+      return [...prev, ...guids.filter((g) => !existing.has(g))]
+    })
   }, [])
 
   const handleExportCsv = useCallback(() => {

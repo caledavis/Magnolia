@@ -231,11 +231,11 @@ interface FlatCode {
   parentGuid: string | null
 }
 
-function flattenCodes(codes: Code[], parentGuid: string | null = null): Map<string, FlatCode> {
+function indexCodes(codes: Code[], parentGuid: string | null = null): Map<string, FlatCode> {
   const map = new Map<string, FlatCode>()
   for (const c of codes) {
     map.set(c.guid, { code: c, parentGuid })
-    for (const [guid, flat] of flattenCodes(c.children, c.guid)) map.set(guid, flat)
+    for (const [guid, flat] of indexCodes(c.children, c.guid)) map.set(guid, flat)
   }
   return map
 }
@@ -243,8 +243,8 @@ function flattenCodes(codes: Code[], parentGuid: string | null = null): Map<stri
 const CODE_FIELDS: (keyof Code)[] = ['name', 'color', 'description', 'hotkey', 'isCodable']
 
 function diffCodes(mine: Code[], theirs: Code[]): CodeDiffItem[] {
-  const mineFlat = flattenCodes(mine)
-  const theirsFlat = flattenCodes(theirs)
+  const mineFlat = indexCodes(mine)
+  const theirsFlat = indexCodes(theirs)
   const allGuids = new Set([...mineFlat.keys(), ...theirsFlat.keys()])
   const items: CodeDiffItem[] = []
   for (const guid of allGuids) {

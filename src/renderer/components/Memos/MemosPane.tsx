@@ -10,12 +10,10 @@ import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import type { Memo, MemoType, MemoEditInitData, SavedAnalysis } from '../../models/types'
 import { showMemoLocation } from '../../utils/show-memo'
 import { useTranslation } from 'react-i18next'
-import { formatLocale, compareText, formatNumber } from '../../i18n'
+import { compareText, formatDate, formatNumber } from '../../i18n'
 
-function formatDate(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleDateString(formatLocale(), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-}
+/** How memo times are shown here: day and time, no year. */
+const MEMO_TIME: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
 
 function MemoItem({
   memo,
@@ -85,7 +83,7 @@ function MemoItem({
         </span>
       </div>
       <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-        {formatDate(memo.createdDateTime)}
+        {formatDate(memo.createdDateTime, MEMO_TIME)}
         {memo.content && (
           <span> — <span className="user-text">{memo.content.slice(0, 40)}{memo.content.length > 40 ? '...' : ''}</span></span>
         )}

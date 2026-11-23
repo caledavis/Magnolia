@@ -1,4 +1,4 @@
-import { formatDateTime, formatLocale, formatNumber } from '../../i18n'
+import { formatDate, formatDateTime, formatNumber } from '../../i18n'
 import { useState, useCallback, useEffect } from 'react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { Icon, faPlus } from '../Icon'
@@ -9,16 +9,8 @@ import { generateGuid } from '../../utils/guid'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { useTranslation } from 'react-i18next'
 
-function formatDate(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleDateString(formatLocale(), {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+/** How logbook times are shown: date and time. */
+const ENTRY_TIME: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
 
 function EntryRow({
   entry,
@@ -54,9 +46,9 @@ function EntryRow({
         {entry.title || t('logbook.untitledEntry')}
       </div>
       <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
-        {formatDate(entry.createdDateTime)}
+        {formatDate(entry.createdDateTime, ENTRY_TIME)}
         {entry.modifiedDateTime && (
-          <span> · {t('common.editedOn', { date: formatDate(entry.modifiedDateTime) })}</span>
+          <span> · {t('common.editedOn', { date: formatDate(entry.modifiedDateTime, ENTRY_TIME) })}</span>
         )}
       </div>
     </div>
@@ -135,9 +127,9 @@ function EntryDetailPane({ entry }: { entry: LogbookEntry | null }) {
         {entry.title || t('logbook.untitledEntry')}
       </div>
       <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>
-        {t('common.createdOn', { date: formatDate(entry.createdDateTime) })}
+        {t('common.createdOn', { date: formatDate(entry.createdDateTime, ENTRY_TIME) })}
         {entry.modifiedDateTime && (
-          <span> · {t('common.editedOn', { date: formatDate(entry.modifiedDateTime) })}</span>
+          <span> · {t('common.editedOn', { date: formatDate(entry.modifiedDateTime, ENTRY_TIME) })}</span>
         )}
       </div>
       {entry.content ? (
@@ -219,7 +211,7 @@ export function LogbookWindow() {
       const contentHtml = e.content ? markdownToHtml(e.content) : `<em>${escHtml(t('common.noContent'))}</em>`
       return `<div class="entry">
         <div class="entry-title">${escHtml(e.title || t('logbook.untitledEntry'))}</div>
-        <div class="entry-date">${escHtml(formatDate(e.createdDateTime))}${e.modifiedDateTime ? ` · ${escHtml(t('common.editedOn', { date: formatDate(e.modifiedDateTime) }))}` : ''}</div>
+        <div class="entry-date">${escHtml(formatDate(e.createdDateTime, ENTRY_TIME))}${e.modifiedDateTime ? ` · ${escHtml(t('common.editedOn', { date: formatDate(e.modifiedDateTime, ENTRY_TIME) }))}` : ''}</div>
         <div class="entry-content">${contentHtml}</div>
       </div>`
     }).join('')

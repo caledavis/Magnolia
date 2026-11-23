@@ -15,6 +15,7 @@ import { QueryResultsBody, groupByDocument } from './QueryResultsBody'
 import { QueryLoadingBar } from './QueryLoadingBar'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { useTranslation } from 'react-i18next'
+import { draggedCodeGuids } from '../../utils/code-drag'
 
 interface Props {
   onSaveQuery?: () => void
@@ -136,18 +137,10 @@ export function QueryResultViewer({ onSaveQuery, onEditQuery, queryName, onCodeA
   const handleDropCodes = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setDropOver(false)
-    const multiJson = e.dataTransfer.getData('application/x-magnolia-codes')
-    const singleJson = e.dataTransfer.getData('application/x-magnolia-code')
-    try {
-      let codeItems: { guid: string }[]
-      if (multiJson) codeItems = JSON.parse(multiJson)
-      else if (singleJson) codeItems = [JSON.parse(singleJson)]
-      else return
-      for (const c of codeItems) {
-        onApplyCodeToResults?.(c.guid)
-      }
-      setCodeAllMenu(null)
-    } catch { /* ignore */ }
+    const guids = draggedCodeGuids(e)
+    if (guids.length === 0) return
+    for (const g of guids) onApplyCodeToResults?.(g)
+    setCodeAllMenu(null)
   }, [onApplyCodeToResults])
 
   const groups = useMemo(() => groupByDocument(results), [results])

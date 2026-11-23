@@ -10,15 +10,7 @@ import { useCodeColourPresets } from '../../utils/code-colours'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { useTranslation } from 'react-i18next'
 import { t, formatDateTime, formatNumber } from '../../i18n'
-
-function flattenCodes(codes: Code[]): Code[] {
-  const result: Code[] = []
-  for (const c of codes) {
-    result.push(c)
-    result.push(...flattenCodes(c.children))
-  }
-  return result
-}
+import { flattenCodes } from '../../utils/code-tree'
 
 /** A row of the code list, drawn exactly like a row of the Codes pane
  *  (CodeTreeItem in CodeBrowser.tsx): chevron slot, colour pip, name,

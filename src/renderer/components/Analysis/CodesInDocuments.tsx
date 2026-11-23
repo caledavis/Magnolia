@@ -32,6 +32,7 @@ import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { visualBoxColour } from '../../utils/code-colours'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
+import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
 
 interface Props {
   data: AnalysisInitData
@@ -59,22 +60,7 @@ interface Props {
   }
 }
 
-function parseDraggedCodes(e: React.DragEvent): string[] {
-  const multiJson = e.dataTransfer.getData('application/x-magnolia-codes')
-  const singleJson = e.dataTransfer.getData('application/x-magnolia-code')
-  try {
-    let codes: { guid: string }[]
-    if (multiJson) codes = JSON.parse(multiJson)
-    else if (singleJson) codes = [JSON.parse(singleJson)]
-    else return []
-    return codes.map((c) => c.guid)
-  } catch { return [] }
-}
 
-function isCodeDrag(e: React.DragEvent): boolean {
-  return e.dataTransfer.types.includes('application/x-magnolia-code') ||
-    e.dataTransfer.types.includes('application/x-magnolia-codes')
-}
 
 /** Framework Matrix rows matching the grid's columns, in column order:
  *  a tag, category or folder stays a group (its members nest under it),
@@ -282,7 +268,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setDropOver(false)
-    const guids = parseDraggedCodes(e)
+    const guids = draggedCodeGuids(e)
     if (guids.length > 0) addCodes(guids)
   }, [addCodes])
 

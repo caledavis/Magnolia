@@ -31,6 +31,8 @@ import { SelectionMenuButton, boxSelectionAnchor } from './SelectionMenuButton'
 import { ApplyCodeMenuList } from './ApplyCodeMenuList'
 import { useTranslation } from 'react-i18next'
 import { digitKey } from '../../utils/keys'
+import { flattenCodesWithDepth } from '../../utils/code-tree'
+import { draggedCodeGuids } from '../../utils/code-drag'
 
 // Horizontal space the right-hand RichMarginColumn + its 8-px gap actually
 // occupy in the flex row. The margin column has flex-basis 260 plus an 8-px
@@ -43,15 +45,6 @@ const FIT_MAX_ZOOM = 1.0
 // Hard zoom range users can reach via wheel / repeated 100% taps.
 const MIN_ZOOM = 0.1
 const MAX_ZOOM = 6
-
-function flattenCodes(codes: Code[], depth = 0): { code: Code; depth: number }[] {
-  const result: { code: Code; depth: number }[] = []
-  for (const code of codes) {
-    result.push({ code, depth })
-    result.push(...flattenCodes(code.children, depth + 1))
-  }
-  return result
-}
 
 function buildCodeMap(codes: Code[]): Map<string, Code> {
   const m = new Map<string, Code>()
@@ -259,7 +252,7 @@ export function ImageDocumentViewer({ source }: Props) {
   }, [])
 
   const codeMap = useMemo(() => buildCodeMap(codes), [codes])
-  const flatCodes = useMemo(() => flattenCodes(codes), [codes])
+  const flatCodes = useMemo(() => flattenCodesWithDepth(codes), [codes])
   const hotkeyMap = useMemo(() => {
     const map = new Map<number, Code>()
     for (const { code } of flatCodes) {
@@ -548,10 +541,8 @@ export function ImageDocumentViewer({ source }: Props) {
         }}
         onDrop={(e) => {
           e.preventDefault()
-          const multiData = e.dataTransfer.getData('application/x-magnolia-codes')
-          if (multiData) { try { handleDrop(JSON.parse(multiData).map((c: any) => c.guid), e.clientX, e.clientY) } catch {} return }
-          const data = e.dataTransfer.getData('application/x-magnolia-code')
-          if (data) { try { handleDrop([JSON.parse(data).guid], e.clientX, e.clientY) } catch {} }
+          const guids = draggedCodeGuids(e)
+          if (guids.length > 0) handleDrop(guids, e.clientX, e.clientY)
         }}
       >
         {/* Outer flex row fills the scroll container's inner area. A

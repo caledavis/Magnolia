@@ -11,6 +11,7 @@ import { SegmentedControl } from './SegmentedControl'
 import { codeSet } from './word-counts'
 import { runQueryLive, useQueryStore } from '../../stores/query-store'
 import { useTranslation } from 'react-i18next'
+import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
 
 /** What the words are counted in: whole documents, the passages coded
  *  with the chosen codes, or the results of the chosen saved queries
@@ -65,20 +66,7 @@ function isQueryDrag(e: React.DragEvent): boolean {
   return e.dataTransfer.types.includes('application/x-magnolia-query')
 }
 
-function parseDraggedCodes(e: React.DragEvent): string[] {
-  const multiJson = e.dataTransfer.getData('application/x-magnolia-codes')
-  const singleJson = e.dataTransfer.getData('application/x-magnolia-code')
-  try {
-    if (multiJson) return (JSON.parse(multiJson) as { guid: string }[]).map((c) => c.guid)
-    if (singleJson) return [(JSON.parse(singleJson) as { guid: string }).guid]
-  } catch { /* not a code drag */ }
-  return []
-}
 
-function isCodeDrag(e: React.DragEvent): boolean {
-  return e.dataTransfer.types.includes('application/x-magnolia-code') ||
-    e.dataTransfer.types.includes('application/x-magnolia-codes')
-}
 
 /** Each chosen code still in the project, mapped to the codes whose
  *  passages it reads (itself plus, when included, its subcodes). Codes
@@ -203,7 +191,7 @@ export function CodesSection({ codes, codeSets, onChangeCodes, includeSubcodes, 
       hint={t('words.dragCodesHere')}
       accepts={isCodeDrag}
       onDrop={(e) => {
-        const dropped = parseDraggedCodes(e)
+        const dropped = draggedCodeGuids(e)
         if (dropped.length > 0) onChangeCodes((p) => [...p, ...dropped.filter((g) => !p.includes(g))])
       }}
     >

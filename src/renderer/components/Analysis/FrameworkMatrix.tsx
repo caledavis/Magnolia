@@ -65,6 +65,7 @@ import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { useAnalysisTabsStore } from '../../stores/analysis-tabs-store'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
+import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
 
 interface Props {
   data: AnalysisInitData
@@ -120,22 +121,7 @@ const CELL_W = 260
 const GROUP_TINT = 'color-mix(in srgb, var(--text-secondary) 6%, var(--bg-panel))'
 const EMPTY_TINT = 'color-mix(in srgb, var(--text-secondary) 4%, var(--bg-panel))'
 
-function isCodeDrag(e: React.DragEvent): boolean {
-  return e.dataTransfer.types.includes('application/x-magnolia-code') ||
-    e.dataTransfer.types.includes('application/x-magnolia-codes')
-}
 
-function parseDraggedCodes(e: React.DragEvent): string[] {
-  const multiJson = e.dataTransfer.getData('application/x-magnolia-codes')
-  const singleJson = e.dataTransfer.getData('application/x-magnolia-code')
-  try {
-    let codes: { guid: string }[]
-    if (multiJson) codes = JSON.parse(multiJson)
-    else if (singleJson) codes = [JSON.parse(singleJson)]
-    else return []
-    return codes.map((c) => c.guid)
-  } catch { return [] }
-}
 
 /** True for anything the matrix accepts: codes, or a row source. The
  *  respondent payload is plain application/json, so (as with the
@@ -370,7 +356,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
     e.preventDefault()
     setDropOver(false)
     if (isCodeDrag(e)) {
-      const guids = parseDraggedCodes(e)
+      const guids = draggedCodeGuids(e)
       setCodeGuids((prev) => [...prev, ...guids.filter((g) => !prev.includes(g))])
       return
     }

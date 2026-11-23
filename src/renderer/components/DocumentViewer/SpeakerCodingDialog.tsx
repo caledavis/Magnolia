@@ -3,6 +3,7 @@ import { Icon, faPlay, faPause } from '../Icon'
 import type { DetectedSpeaker } from '../../utils/transcript-speakers'
 import { useCodeColourPresets } from '../../utils/code-colours'
 import { useTranslation } from 'react-i18next'
+import { CODE_DRAG_TYPE, CODES_DRAG_TYPE } from '../../utils/code-drag'
 
 /** Seconds of audio the play button previews. */
 const CLIP_SECONDS = 5
@@ -136,8 +137,9 @@ export function SpeakerCodingDialog({ open, speakers, source, onApply, onClose }
     e.preventDefault()
     setDragOver(null)
     const raw =
-      e.dataTransfer.getData('application/x-magnolia-code') ||
-      e.dataTransfer.getData('application/x-magnolia-codes')
+      // The dragged code itself, ahead of a multi-selection's first.
+      e.dataTransfer.getData(CODE_DRAG_TYPE) ||
+      e.dataTransfer.getData(CODES_DRAG_TYPE)
     if (!raw) return
     try {
       const parsed = JSON.parse(raw)

@@ -28,6 +28,7 @@ import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { useThemeSvgColors, SVG_FONT_FAMILY } from '../../utils/use-theme-svg-colors'
 import { useTranslation } from 'react-i18next'
 import { formatPercent } from '../../i18n'
+import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
 
 interface Props {
   data: AnalysisInitData
@@ -49,22 +50,7 @@ interface Props {
   }
 }
 
-function parseDraggedCodes(e: React.DragEvent): string[] {
-  const multiJson = e.dataTransfer.getData('application/x-magnolia-codes')
-  const singleJson = e.dataTransfer.getData('application/x-magnolia-code')
-  try {
-    let codes: { guid: string }[]
-    if (multiJson) codes = JSON.parse(multiJson)
-    else if (singleJson) codes = [JSON.parse(singleJson)]
-    else return []
-    return codes.map((c) => c.guid)
-  } catch { return [] }
-}
 
-function isCodeDrag(e: React.DragEvent): boolean {
-  return e.dataTransfer.types.includes('application/x-magnolia-code') ||
-    e.dataTransfer.types.includes('application/x-magnolia-codes')
-}
 
 /** Build a color stripe for a single document showing code positions along a normalized line. */
 interface CodeSegment {
@@ -350,7 +336,7 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setDropOver(false)
-    const guids = parseDraggedCodes(e)
+    const guids = draggedCodeGuids(e)
     if (guids.length > 0) {
       setCodeGuids((prev) => {
         const existing = new Set(prev)

@@ -7,6 +7,7 @@ import { modKey, altClickHint } from '../../utils/platform'
 import { useTranslation } from 'react-i18next'
 import { t } from '../../i18n'
 import { isLetterKey } from '../../utils/keys'
+import { draggedCodes, isCodeDrag } from '../../utils/code-drag'
 
 /* ═══════════════════════════════════════════════════
    Types
@@ -1052,18 +1053,11 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       // Drop code node(s) — check for multi-code first
-      const multiJson = e.dataTransfer.getData('application/x-magnolia-codes')
-      const codeJson = e.dataTransfer.getData('application/x-magnolia-code')
-      if (multiJson || codeJson) {
+      if (isCodeDrag(e)) {
         e.preventDefault()
         try {
           const [mx, my] = cpos(e)
-          let codeList: { guid: string; name: string; color?: string }[]
-          if (multiJson) {
-            codeList = JSON.parse(multiJson)
-          } else {
-            codeList = [JSON.parse(codeJson)]
-          }
+          const codeList = draggedCodes<{ guid: string; name: string; color?: string }>(e)
           setNodes((p) => [
             ...p,
             ...codeList.map((data, i) => ({

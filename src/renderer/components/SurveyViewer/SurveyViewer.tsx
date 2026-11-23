@@ -83,6 +83,7 @@ import { ApplyCodeMenuList } from '../DocumentViewer/ApplyCodeMenuList'
 import { useTranslation } from 'react-i18next'
 import { t, formatDateTime, formatPercent, formatNumber, compareText } from '../../i18n'
 import { digitKey } from '../../utils/keys'
+import { draggedCodeGuids, isCodeDrag } from '../../utils/code-drag'
 
 interface Props {
   source: TextSource
@@ -2565,19 +2566,11 @@ export function SurveyViewer({ source }: Props) {
   // Drop code anywhere in the viewer → apply to every pending cell.
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
-      const multi = e.dataTransfer.getData('application/x-magnolia-codes')
-      const single = e.dataTransfer.getData('application/x-magnolia-code')
-      if (!multi && !single) return
+      if (!isCodeDrag(e)) return
       e.preventDefault()
       e.stopPropagation()
       if (!pending) return
-      const guids: string[] = []
-      if (multi) {
-        try { guids.push(...(JSON.parse(multi) as { guid: string }[]).map((c) => c.guid)) } catch { /* */ }
-      } else if (single) {
-        try { guids.push((JSON.parse(single) as { guid: string }).guid) } catch { /* */ }
-      }
-      for (const g of guids) applyCodeToPending(g)
+      for (const g of draggedCodeGuids(e)) applyCodeToPending(g)
     },
     [pending, applyCodeToPending]
   )

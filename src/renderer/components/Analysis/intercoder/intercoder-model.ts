@@ -120,12 +120,12 @@ function comparableText(p: CoderProject, s: TextSource): string {
 
 interface FlatCode { code: Code; depth: number; path: string }
 
-function flattenCodes(codes: Code[], depth = 0, prefix = ''): FlatCode[] {
+function flattenCodesWithPaths(codes: Code[], depth = 0, prefix = ''): FlatCode[] {
   const out: FlatCode[] = []
   for (const c of codes) {
     const path = prefix ? `${prefix} > ${c.name}` : c.name
     out.push({ code: c, depth, path })
-    out.push(...flattenCodes(c.children ?? [], depth + 1, path))
+    out.push(...flattenCodesWithPaths(c.children ?? [], depth + 1, path))
   }
   return out
 }
@@ -136,7 +136,7 @@ export function matchCodes(projects: CoderProject[]): MatchedCode[] {
   const codes: MatchedCode[] = []
   const byGuid = new Map<string, MatchedCode>()
   for (const p of projects) {
-    for (const f of flattenCodes(p.codes)) {
+    for (const f of flattenCodesWithPaths(p.codes)) {
       let m = byGuid.get(f.code.guid)
       if (m && m.members[p.id]) m = undefined
       if (!m) m = codes.find((x) => !x.members[p.id] && x.path === f.path)

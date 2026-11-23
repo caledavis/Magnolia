@@ -1,4 +1,4 @@
-import { formatDateTime, formatLocale, formatNumber } from '../../i18n'
+import { formatDate, formatDateTime, formatNumber } from '../../i18n'
 /**
  * The Memos window: every memo in the project, wherever it is attached.
  * The Saved Memos pane shows only project memos and the memos of the
@@ -25,9 +25,8 @@ import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { useTranslation } from 'react-i18next'
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(formatLocale(), { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-}
+/** How memo times are shown here: date and time. */
+const MEMO_TIME: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
 
 function MemoRow({ memo, place, selected, onClick, onDoubleClick, onContextMenu }: {
   memo: Memo
@@ -50,7 +49,7 @@ function MemoRow({ memo, place, selected, onClick, onDoubleClick, onContextMenu 
         {memo.title || t('memos.untitled')}
       </div>
       <div style={{ fontSize: 10, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {place && place.groupKey !== 'project' ? `${place.detail} · ` : ''}{formatDate(memo.modifiedDateTime ?? memo.createdDateTime)}
+        {place && place.groupKey !== 'project' ? `${place.detail} · ` : ''}{formatDate(memo.modifiedDateTime ?? memo.createdDateTime, MEMO_TIME)}
       </div>
     </div>
   )
@@ -84,8 +83,8 @@ function MemoDetail({ memo, place, onEdit, onShow }: {
         </div>
       )}
       <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>
-        {t('common.createdOn', { date: formatDate(memo.createdDateTime) })}
-        {memo.modifiedDateTime && <span> · {t('common.editedOn', { date: formatDate(memo.modifiedDateTime) })}</span>}
+        {t('common.createdOn', { date: formatDate(memo.createdDateTime, MEMO_TIME) })}
+        {memo.modifiedDateTime && <span> · {t('common.editedOn', { date: formatDate(memo.modifiedDateTime, MEMO_TIME) })}</span>}
       </div>
       {memo.content ? (
         <Markdown text={memo.content} className="user-text" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }} />
@@ -178,7 +177,7 @@ export function MemosWindow() {
         return `<div class="memo">
           <div class="memo-title">${escHtml(m.title || t('memos.untitled'))}</div>
           ${where}
-          <div class="memo-date">${escHtml(formatDate(m.createdDateTime))}${m.modifiedDateTime ? ` · ${escHtml(t('common.editedOn', { date: formatDate(m.modifiedDateTime) }))}` : ''}</div>
+          <div class="memo-date">${escHtml(formatDate(m.createdDateTime, MEMO_TIME))}${m.modifiedDateTime ? ` · ${escHtml(t('common.editedOn', { date: formatDate(m.modifiedDateTime, MEMO_TIME) }))}` : ''}</div>
           <div class="memo-content">${m.content ? markdownToHtml(m.content) : `<em>${escHtml(t('common.noContent'))}</em>`}</div>
         </div>`
       }).join('')}`).join('')

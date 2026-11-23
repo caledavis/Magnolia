@@ -30,6 +30,8 @@ import { ApplyCodeMenuList } from './ApplyCodeMenuList'
 import { useTranslation } from 'react-i18next'
 import { t, formatDateTime } from '../../i18n'
 import { digitKey } from '../../utils/keys'
+import { flattenCodesWithDepth } from '../../utils/code-tree'
+import { draggedCodeGuids } from '../../utils/code-drag'
 
 interface Props {
   sourceGuid: string
@@ -52,15 +54,6 @@ interface Props {
     endCp: number
     timeRange?: { startTime: number; endTime: number }
   } | null
-}
-
-function flattenCodes(codes: Code[], depth = 0): { code: Code; depth: number }[] {
-  const result: { code: Code; depth: number }[] = []
-  for (const code of codes) {
-    result.push({ code, depth })
-    result.push(...flattenCodes(code.children, depth + 1))
-  }
-  return result
 }
 
 /**
@@ -234,7 +227,7 @@ export function TranscriptEditor({
     skipRestore: !!externalHighlight
   })
 
-  const flatCodes = useMemo(() => flattenCodes(codes), [codes])
+  const flatCodes = useMemo(() => flattenCodesWithDepth(codes), [codes])
   const hotkeyMap = useMemo(() => {
     const map = new Map<number, Code>()
     for (const { code } of flatCodes) {
@@ -510,10 +503,8 @@ export function TranscriptEditor({
             e.preventDefault()
             dragCounterRef.current = 0
             setIsDragOver(false)
-            const multiData = e.dataTransfer.getData('application/x-magnolia-codes')
-            if (multiData) { try { handleDrop(JSON.parse(multiData).map((c: any) => c.guid)) } catch {} return }
-            const data = e.dataTransfer.getData('application/x-magnolia-code')
-            if (data) { try { handleDrop([JSON.parse(data).guid]) } catch {} }
+            const guids = draggedCodeGuids(e)
+            if (guids.length > 0) handleDrop(guids)
           }}
         >
           {pendingSelection && <SelectionMenuButton containerRef={codingAreaRef} anchor={textSelectionAnchor} />}
