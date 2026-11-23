@@ -774,6 +774,10 @@ function App() {
       tabState
     }
   }, [projectStore, documentStore, codeStore, tagStore, queryStore, logbookStore, memoStore])
+  // collectProject changes with every edit; listeners that must stay
+  // registered (the flush-and-close one) read it through this instead.
+  const collectProjectRef = useRef(collectProject)
+  useEffect(() => { collectProjectRef.current = collectProject }, [collectProject])
 
   // Suppress the post-load auto-save burst: declared here so every load
   // path (dialog open, recent-project, drag-drop, etc) can set it. The
@@ -2337,6 +2341,10 @@ function App() {
   // large project keeps the window open indefinitely. notifyFlushComplete
   // fires regardless of save outcome so a thrown writer error doesn't
   // trap the user inside a window they asked to close.
+  //
+  // Registered once: re-registering whenever collectProject changed
+  // (every edit) left a moment with no listener, and a close that landed
+  // in it got no save — the watchdog closed the window after 4 s.
   useEffect(() => {
     const unsub = window.api.onFlushAndClose(async () => {
       flushViewPositions()
@@ -2348,7 +2356,7 @@ function App() {
         window.api.sendFlushHeartbeat()
         try {
           const result = await window.api.saveProject({
-            project: collectProject(),
+            project: collectProjectRef.current(),
             sourceContents: useDocumentStore.getState().sourceContents,
             filePath: ps.filePath,
             userName: usePreferencesStore.getState().userName.trim() || undefined
@@ -2403,7 +2411,7 @@ function App() {
       window.api.notifyFlushComplete()
     })
     return unsub
-  }, [collectProject])
+  }, [])
 
   // Listen for new-project-at-path from the welcome screen. The main
   // process has already written an empty .qdpx at filePath; we just need
