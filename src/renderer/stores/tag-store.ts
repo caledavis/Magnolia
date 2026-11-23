@@ -13,6 +13,8 @@ interface TagState {
   setCategories: (categories: TagCategory[]) => void
   createTag: (name: string, categoryGuid?: string, value?: string) => string
   deleteTag: (guid: string) => void
+  /** Take a removed document (or survey) off every tag it was applied to. */
+  forgetSource: (sourceGuid: string) => void
   renameTag: (guid: string, name: string) => void
   assignTagToDocument: (tagGuid: string, sourceGuid: string) => void
   removeTagFromDocument: (tagGuid: string, sourceGuid: string) => void
@@ -30,6 +32,31 @@ interface TagState {
   renameCategory: (guid: string, name: string) => void
   updateCategoryListOptions: (guid: string, options: string[]) => void
   clearAll: () => void
+}
+
+/** The tags with only the members whose document (or survey) `keep`
+ *  accepts: a tag can't list a document the project doesn't have. Returns
+ *  `tags` itself when nothing is dropped. */
+export function tagsWithMembersIn(tags: QDASet[], keep: (sourceGuid: string) => boolean): QDASet[] {
+  let changed = false
+  const out = tags.map((tag) => {
+    const sources = tag.memberSourceGuids.filter(keep)
+    const respondents = tag.memberSurveyRespondents?.filter((r) => keep(r.sourceGuid))
+    const questions = tag.memberSurveyQuestions?.filter((q) => keep(q.sourceGuid))
+    if (
+      sources.length === tag.memberSourceGuids.length &&
+      respondents?.length === tag.memberSurveyRespondents?.length &&
+      questions?.length === tag.memberSurveyQuestions?.length
+    ) return tag
+    changed = true
+    return {
+      ...tag,
+      memberSourceGuids: sources,
+      ...(respondents ? { memberSurveyRespondents: respondents } : {}),
+      ...(questions ? { memberSurveyQuestions: questions } : {})
+    }
+  })
+  return changed ? out : tags
 }
 
 export const useTagStore = create<TagState>((set, get) => ({
@@ -57,6 +84,11 @@ export const useTagStore = create<TagState>((set, get) => ({
   deleteTag: (guid) => {
     set((state) => ({ tags: state.tags.filter((t) => t.guid !== guid) }))
     useProjectStore.getState().markDirty()
+  },
+
+  forgetSource: (sourceGuid) => {
+    const tags = tagsWithMembersIn(get().tags, (guid) => guid !== sourceGuid)
+    if (tags !== get().tags) set({ tags })
   },
 
   renameTag: (guid, name) => {

@@ -45,7 +45,7 @@ import { useWindowCornerPanels } from './utils/window-corner-panels'
 import { useMergeReviewStore } from './stores/merge-review-store'
 import { useDocumentStore } from './stores/document-store'
 import { useCodeStore } from './stores/code-store'
-import { useTagStore } from './stores/tag-store'
+import { useTagStore, tagsWithMembersIn } from './stores/tag-store'
 import { useQueryStore } from './stores/query-store'
 import { useLogbookStore } from './stores/logbook-store'
 import { useMemoStore } from './stores/memo-store'
@@ -715,7 +715,10 @@ function App() {
         {
           label: t('app.step.tags'),
           run: () => {
-            tagStore.setTags(project.sets)
+            // A file from before documents were taken off their tags when
+            // removed may still list them.
+            const sourceGuids = new Set(project.sources.map((s) => s.guid))
+            tagStore.setTags(tagsWithMembersIn(project.sets, (guid) => sourceGuids.has(guid)))
             tagStore.setCategories(project.tagCategories ?? [])
           }
         },
@@ -1701,7 +1704,8 @@ function App() {
           {
             label: t('app.step.tags'),
             run: () => {
-              useTagStore.getState().setTags(project.sets)
+              const sourceGuids = new Set(project.sources.map((s) => s.guid))
+              useTagStore.getState().setTags(tagsWithMembersIn(project.sets, (guid) => sourceGuids.has(guid)))
               useTagStore.getState().setCategories(project.tagCategories ?? [])
             }
           },

@@ -4,6 +4,7 @@ import { generateGuid } from '../utils/guid'
 import { useProjectStore } from './project-store'
 import { useMemoStore } from './memo-store'
 import { useQuoteStore } from './quote-store'
+import { useTagStore } from './tag-store'
 import { deriveLineAnchorsFromTimeRange, deriveVideoTimeRange, lineStartOffsets, lineForChar } from '../components/DocumentViewer/video-time-utils'
 
 /** Code-point span of transcript lines startLine..endLine (inclusive),
@@ -337,6 +338,8 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     const qs = useQuoteStore.getState()
     const linkedQuotes = qs.quotes.filter((q) => q.sourceGuid === guid)
     for (const q of linkedQuotes) qs.removeQuote(q.guid)
+    // …and take it off its tags.
+    useTagStore.getState().forgetSource(guid)
 
     useProjectStore.getState().markDirty()
   },

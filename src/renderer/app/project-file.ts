@@ -4,7 +4,7 @@
 import { useProjectStore } from '../stores/project-store'
 import { useDocumentStore } from '../stores/document-store'
 import { useCodeStore } from '../stores/code-store'
-import { useTagStore } from '../stores/tag-store'
+import { tagsWithMembersIn, useTagStore } from '../stores/tag-store'
 import { useQueryStore } from '../stores/query-store'
 import { useLogbookStore } from '../stores/logbook-store'
 import { useMemoStore } from '../stores/memo-store'
@@ -21,6 +21,7 @@ export function collectProject(): Project {
   const documentStore = useDocumentStore.getState()
   const codeStore = useCodeStore.getState()
   const tagStore = useTagStore.getState()
+  const sourceGuids = new Set(documentStore.sources.map((s) => s.guid))
   const ats = useAnalysisTabsStore.getState()
   const ds = documentStore
   const persistedTabs: PersistedTab[] = ds.openTabs.map((id): PersistedTab => {
@@ -71,7 +72,7 @@ export function collectProject(): Project {
     users: projectStore.users,
     codes: codeStore.codes,
     sources: documentStore.sources,
-    sets: tagStore.tags,
+    sets: tagsWithMembersIn(tagStore.tags, (guid) => sourceGuids.has(guid)),
     notes: [],
     tagCategories: tagStore.categories,
     savedQueries: useQueryStore.getState().savedQueries,
