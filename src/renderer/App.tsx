@@ -4,7 +4,6 @@ import { DocumentBrowser } from './components/DocumentBrowser/DocumentBrowser'
 import { CodeBrowser, CodeEditDialog } from './components/CodeBrowser/CodeBrowser'
 import { DocumentViewer } from './components/DocumentViewer/DocumentViewer'
 import { QueryResultViewer } from './components/QueryResultViewer/QueryResultViewer'
-import { wordCondition, sentenceCondition, type WordQueryCodes } from './components/Analysis/word-counts'
 import { SavedQueries } from './components/SavedQueries/SavedQueries'
 import { SavedAnalyses } from './components/SavedAnalyses/SavedAnalyses'
 import {
@@ -24,14 +23,13 @@ import { LicenceDialog } from './components/Licence/LicenceDialog'
 import { ImportProgressDialog } from './components/ImportProgressDialog'
 import { ZoteroImportDialog } from './components/ZoteroImportDialog'
 import { importZoteroItems, type ZoteroImport } from './utils/zotero-import'
-import { isMac } from './utils/platform'
 import { sourceTypeFromExtension } from './utils/format-registry'
 import { parseSurveyGrid, type SurveyFormat } from './utils/survey/survey-parser'
 import { parseCsv } from './utils/survey/csv-parser'
 import { detectSurveyFormat } from './utils/survey/format-detect'
 import { SurveyImportDialog } from './components/SurveyImportDialog'
 import type { SurveyData, SurveyFormatData } from './models/types'
-import type { CodebookInitData, QueryResultsInitData } from './models/types'
+import type { QueryResultsInitData } from './models/types'
 
 /** A tool's name for its ad-hoc tab titles ("Code Frequencies (3)"); a
  *  report tab is "Report". */
@@ -42,24 +40,22 @@ function analysisToolTitle(toolType: string): string | undefined {
 
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle, isUntitledName } from './stores/project-store'
 import { usePreferencesStore } from './stores/preferences-store'
-import { useCodeColourPresets, nextCodeColour, codeColourPresetsFor } from './utils/code-colours'
+import { useCodeColourPresets, nextCodeColour } from './utils/code-colours'
 import { useWindowCornerPanels } from './utils/window-corner-panels'
 import { useMergeReviewStore } from './stores/merge-review-store'
-import { useDocumentStore, surveyEntityKey } from './stores/document-store'
+import { useDocumentStore } from './stores/document-store'
 import { useCodeStore } from './stores/code-store'
 import { useTagStore } from './stores/tag-store'
 import { useQueryStore } from './stores/query-store'
-import { useUndoStore } from './stores/undo-store'
 import { useLogbookStore } from './stores/logbook-store'
 import { useMemoStore } from './stores/memo-store'
 import { useQuoteStore } from './stores/quote-store'
 import { flushViewPositions } from './stores/view-position-store'
 import { useRelationshipMapStore } from './stores/relationship-map-store'
-import { useSurveyViewStore } from './stores/survey-view-store'
 import { useAnalysisTabsStore } from './stores/analysis-tabs-store'
-import { isAnalysisTab, isMapTab, isQueryBuilderTab, isMergeTab, isNotebookTab, notebookGuidFromTabId, makeAnalysisTabId, makeMapTabId, makeQueryBuilderTabId, mapGuidFromTabId, parseAnalysisTabId, PREFERENCES_TAB_ID, MERGE_TAB_ID } from './utils/tab-ids'
+import { isAnalysisTab, isMapTab, isQueryBuilderTab, isMergeTab, makeAnalysisTabId, makeMapTabId, makeQueryBuilderTabId, parseAnalysisTabId, PREFERENCES_TAB_ID, MERGE_TAB_ID } from './utils/tab-ids'
 import { requestPreferencesCategory } from './components/Preferences/PreferencesWindow'
-import type { PersistedTab, PersistedTabState, MissingBinary, CheckoutMarker, ImportState, SaveOutcome } from './models/types'
+import type { PersistedTabState, MissingBinary, CheckoutMarker, ImportState, SaveOutcome } from './models/types'
 import { MissingBinariesBanner } from './components/MissingBinariesBanner'
 import { SaveFailedBanner } from './components/SaveFailedBanner'
 import { CheckoutConflictDialog } from './components/CheckoutConflictDialog'
@@ -82,134 +78,19 @@ import { AnalysisPopover } from './components/Toolbar/AnalysisPopover'
 import { StudioPopover } from './components/Toolbar/StudioPopover'
 import { HelpPopover, MANUAL_URL, SPONSOR_URL, HELP_ICONS } from './components/Toolbar/HelpPopover'
 import { PANE_ICONS } from './utils/pane-icons'
-import { memoPlacer, type MemoPlace } from './utils/memo-places'
-import { showMemoLocation } from './utils/show-memo'
 import { RibbonTabs, RibbonBody, useRibbon, scrollRoom, type RibbonButtonDef, type RibbonTabDef } from './components/Toolbar/Ribbon'
 import { TOOL_REGISTRY } from './utils/tool-registry'
 import { WindowControls } from './components/Toolbar/WindowControls'
-import type { Project, Query, CodeCondition, Code, TextSource, QDASet, LogbookInitData, AnalysisToolType, Memo, MemoEditInitData, MemosWindowData, SurveyCellScopeArgs } from './models/types'
-import { buildSurveyEntityLabels } from './utils/survey/survey-labels'
+import type { LogbookInitData, AnalysisToolType, Memo, MemoEditInitData } from './models/types'
 import { useTranslation } from 'react-i18next'
 import { t } from './i18n'
-import { isLetterKey } from './utils/keys'
 import { emptySaveAllowed, noteBulkReset, noteStateMatchesFile } from './stores/empty-save-guard'
+import { memosWindowData, sendCodebookData } from './app/other-windows'
+import { describeQuery } from './app/query-description'
+import { useCodebookMessages, useLogbookMessages, useMemoWindowMessages, useQueryBuilderMessages, useQueryResultsWindowMessages, useQueryResultsWindowUpdates, useAnalysisMessages } from './app/window-messages'
+import { useProjectShortcuts } from './app/keyboard-shortcuts'
+import { collectProject } from './app/project-file'
 
-/** Fold the survey-cell scope carried by an analysis cell-click into the
- *  documentFilter of the Query being generated, so it re-runs against the
- *  same subset the cell represented. Tag scope unions with any existing
- *  tagGuids; question/respondent scope is set directly. */
-function applySurveyScopeToFilter(
-  df: Query['documentFilter'],
-  scope?: SurveyCellScopeArgs
-): Query['documentFilter'] {
-  if (!scope) return df
-  const next: Query['documentFilter'] = { ...df }
-  if (scope.tagGuids?.length) {
-    next.tagGuids = Array.from(new Set([...(df.tagGuids ?? []), ...scope.tagGuids]))
-  }
-  if (scope.questionScope?.length) next.questionScope = scope.questionScope
-  if (scope.respondentScope?.length) next.respondentScope = scope.respondentScope
-  return next
-}
-
-function describeCondition(cond: CodeCondition, findCode: (guid: string) => Code | undefined, depth?: number): string {
-  const d = depth ?? 0
-  const codeName = (guid: string) => findCode(guid)?.name ?? t('queryBuilder.code')
-  switch (cond.type) {
-    case 'code':
-      return cond.includeSubcodes ? t('queryDesc.inclSubcodes', { name: codeName(cond.codeGuid) }) : codeName(cond.codeGuid)
-    case 'text':
-      if (!cond.searchText) return t('queryBuilder.kind.text')
-      return cond.sentences ? t('queryDesc.sentencesWith', { text: cond.searchText }) : `"${cond.searchText}"`
-    case 'and':
-      return cond.conditions.map((c) => describeCondition(c, findCode, d + 1)).join(' AND ')
-    case 'or':
-      return cond.conditions.map((c) => describeCondition(c, findCode, d + 1)).join(' OR ')
-    case 'xor':
-      return cond.conditions.map((c) => describeCondition(c, findCode, d + 1)).join(' XOR ')
-    case 'not':
-      return t('queryDesc.not', { names: describeCondition(cond.condition, findCode, d + 1) })
-    case 'overlap':
-      return t('queryDesc.overlap', { a: `(${describeCondition(cond.condition1, findCode, d + 1)})`, b: `(${describeCondition(cond.condition2, findCode, d + 1)})` })
-    case 'inside':
-      return t('queryDesc.inside', { a: `(${describeCondition(cond.condition1, findCode, d + 1)})`, b: `(${describeCondition(cond.condition2, findCode, d + 1)})` })
-    case 'outside':
-      return t('queryDesc.outside', { a: `(${describeCondition(cond.condition1, findCode, d + 1)})`, b: `(${describeCondition(cond.condition2, findCode, d + 1)})` })
-    case 'before':
-      return t('queryDesc.before', { a: `(${describeCondition(cond.condition1, findCode, d + 1)})`, b: `(${describeCondition(cond.condition2, findCode, d + 1)})` })
-    case 'followedBy':
-      return t('queryDesc.followedBy', { a: `(${describeCondition(cond.condition1, findCode, d + 1)})`, b: `(${describeCondition(cond.condition2, findCode, d + 1)})` })
-    case 'sameSentence':
-      return t('queryDesc.sameSentence', { a: `(${describeCondition(cond.condition1, findCode, d + 1)})`, b: `(${describeCondition(cond.condition2, findCode, d + 1)})` })
-    default:
-      return t('queryDesc.query')
-  }
-}
-
-/** The saved queries a word search is limited to (see Query.within), or
- *  undefined when the word tool wasn't counting query results. */
-function withinQueries(queryGuids: string[] | undefined): Query[] | undefined {
-  if (!queryGuids) return undefined
-  const saved = useQueryStore.getState().savedQueries
-  return queryGuids.flatMap((g) => {
-    const q = saved.find((sq) => sq.guid === g)?.query
-    return q ? [q] : []
-  })
-}
-
-function describeQuery(
-  query: Query,
-  findCode: (guid: string) => Code | undefined,
-  sources: TextSource[],
-  tags: QDASet[]
-): string {
-  let name = describeCondition(query.codeCondition, findCode)
-  const df = query.documentFilter
-  const parts: string[] = []
-  // Name explicitly-picked documents only — not the full resolved source
-  // list. For a tag-based filter the sourceGuids are just the tags' output,
-  // so naming them duplicates the tags (and bloats the name). Use the
-  // selector graph's explicit `docs` nodes when present; older queries with
-  // no graph fall back to the resolved sourceGuids.
-  const docGuids = (df as { graph?: { nodes: { kind?: string; docGuids?: string[] }[] } }).graph
-    ? (df as { graph: { nodes: { kind?: string; docGuids?: string[] }[] } }).graph.nodes
-        .filter((n) => n?.kind === 'docs')
-        .flatMap((n) => n.docGuids ?? [])
-    : df.sourceGuids ?? []
-  if (docGuids.length > 0) {
-    const names = docGuids
-      .map((g) => sources.find((s) => s.guid === g)?.name)
-      .filter(Boolean) as string[]
-    if (names.length > 0) parts.push(names.length <= 2 ? names.join(', ') : t('queryDesc.docs', { count: names.length }))
-  }
-  if (df.tagGuids && df.tagGuids.length > 0) {
-    const tagNames = df.tagGuids
-      .map((g) => tags.find((tg) => tg.guid === g)?.name)
-      .filter(Boolean) as string[]
-    if (tagNames.length > 0) parts.push(tagNames.join(', '))
-  }
-  if (df.tagExcludeGuids && df.tagExcludeGuids.length > 0) {
-    const excludeNames = df.tagExcludeGuids
-      .map((g) => tags.find((tg) => tg.guid === g)?.name)
-      .filter(Boolean) as string[]
-    if (excludeNames.length > 0) parts.push(t('queryDesc.not', { names: excludeNames.join(', ') }))
-  }
-  if (df.questionScope?.length || df.respondentScope?.length) {
-    // Resolve respondent/question display names from the survey sources.
-    const labels = buildSurveyEntityLabels(sources)
-    if (df.questionScope?.length) {
-      const names = df.questionScope.map((r) => labels?.[r.sourceGuid]?.questions?.[r.id]).filter(Boolean) as string[]
-      parts.push(names.length > 0 && names.length <= 2 ? names.join(', ') : t('survey.questionCount', { count: df.questionScope.length }))
-    }
-    if (df.respondentScope?.length) {
-      const names = df.respondentScope.map((r) => labels?.[r.sourceGuid]?.respondents?.[r.id]).filter(Boolean) as string[]
-      parts.push(names.length > 0 && names.length <= 2 ? names.join(', ') : t('survey.respondentCount', { count: df.respondentScope.length }))
-    }
-  }
-  if (parts.length > 0) name += ' ' + t('queryDesc.in', { scope: parts.join(', ') })
-  if (query.within) name += ' ' + t('queryDesc.within', { count: query.within.length })
-  return name
-}
 
 /** Toolbar pill layout: groups a set of related buttons in a row. The
  *  rounded chip background/padding itself (macOS Mail-style) is CSS,
@@ -226,69 +107,6 @@ const TOOLBAR_PILL_STYLE: React.CSSProperties = {
  *  uses: dividers inside a group, plain gaps between groups). */
 function ToolbarDivider(): JSX.Element {
   return <div style={{ width: 1, height: 16, background: 'var(--border-color)', margin: '0 4px', flexShrink: 0 }} />
-}
-
-/** Send the Codebook window the current codes and their coded-segment
- *  counts (counted as the Codes pane counts them), opening it if it
- *  isn't open. `renameGuid` asks it to start renaming that code. */
-function sendCodebookData(renameGuid?: string): void {
-  const codeCounts: Record<string, number> = {}
-  for (const source of useDocumentStore.getState().sources) {
-    for (const sel of source.selections) {
-      for (const coding of sel.codings) codeCounts[coding.codeGuid] = (codeCounts[coding.codeGuid] || 0) + 1
-    }
-  }
-  const initData: CodebookInitData = {
-    codes: useCodeStore.getState().codes,
-    codeCounts,
-    renameGuid,
-    theme: document.documentElement.getAttribute('data-theme') || ''
-  }
-  window.api.openCodebookWindow(initData)
-}
-
-/** Who has the project checked out, when it isn't this user: the same
- *  test as useCheckoutLockedBy, outside a component. */
-function checkoutLockedByNow(): string | null {
-  const marker = useProjectStore.getState().checkoutMarker
-  if (!marker) return null
-  return marker.userName !== usePreferencesStore.getState().userName.trim() ? marker.userName : null
-}
-
-/** What the Memos window shows: every memo, where each is attached, and
- *  whether edits are locked by someone else's checkout. */
-function memosWindowData(): MemosWindowData {
-  const memos = useMemoStore.getState().memos
-  const place = memoPlacer({
-    sources: useDocumentStore.getState().sources,
-    contents: useDocumentStore.getState().sourceContents,
-    savedQueries: useQueryStore.getState().savedQueries,
-    savedAnalyses: useProjectStore.getState().savedAnalyses ?? []
-  })
-  const places: Record<string, MemoPlace> = {}
-  for (const m of memos) places[m.guid] = place(m)
-  return { memos, places, lockedBy: checkoutLockedByNow(), theme: document.documentElement.getAttribute('data-theme') || '' }
-}
-
-/** Removes a memo, and its boxes on any relationship map. */
-function deleteMemoEverywhere(guid: string): void {
-  useMemoStore.getState().removeMemo(guid)
-  const rmStore = useRelationshipMapStore.getState()
-  for (const m of Object.values(rmStore.maps)) {
-    const nextElements = m.elements.filter((el) => !(el.kind === 'memo' && el.entityGuid === guid))
-    if (nextElements.length !== m.elements.length) rmStore.setElements(m.guid, nextElements)
-  }
-}
-
-/** Opens a memo in its own edit window; `isNew` for a draft that is only
- *  created when saved. */
-function openMemoEditor(memo: Memo, isNew = false): void {
-  const initData: MemoEditInitData = {
-    memo,
-    theme: document.documentElement.getAttribute('data-theme') || '',
-    ...(isNew ? { isNew: true } : {})
-  }
-  window.api.openMemoEditWindow(initData)
 }
 
 /** How often a failing save is retried. */
@@ -705,74 +523,6 @@ function App() {
     })
   }, [projectStore.filePath, popOutQueryResults])
 
-  const collectProject = useCallback((): Project => {
-    const ats = useAnalysisTabsStore.getState()
-    const ds = useDocumentStore.getState()
-    const persistedTabs: PersistedTab[] = ds.openTabs.map((id): PersistedTab => {
-      if (isMapTab(id)) {
-        return { id, kind: 'map', mapGuid: mapGuidFromTabId(id) ?? '' }
-      }
-      if (isAnalysisTab(id)) {
-        const parsed = parseAnalysisTabId(id)
-        const inst = ats.instances[id]
-        return {
-          id,
-          kind: 'analysis',
-          toolType: parsed?.toolType ?? inst?.toolType ?? '',
-          title: inst?.title ?? '',
-          savedAnalysisGuid: inst?.savedAnalysisGuid,
-          // Only persist adhocConfig for unsaved tabs — saved-analysis-backed
-          // tabs read their config from project.savedAnalyses on rehydrate.
-          adhocConfig: inst?.savedAnalysisGuid ? undefined : inst?.config
-        }
-      }
-      if (isQueryBuilderTab(id)) {
-        const inst = ats.instances[id]
-        return {
-          id,
-          kind: 'query-builder',
-          title: inst?.title ?? '',
-          adhocConfig: inst?.config
-        }
-      }
-      if (isNotebookTab(id)) {
-        return { id, kind: 'notebook', folderGuid: notebookGuidFromTabId(id) ?? '' }
-      }
-      return { id, kind: 'document' }
-    })
-    const tabState: PersistedTabState = {
-      openTabs: persistedTabs,
-      activeTabId: ds.viewedDocumentGuid,
-      perToolCounters: ats.perToolCounters
-    }
-    return {
-      name: projectStore.name,
-      origin: projectStore.origin,
-      description: projectStore.description,
-      creatingUserGUID: projectStore.creatingUserGUID,
-      creationDateTime: projectStore.creationDateTime,
-      modifyingUserGUID: projectStore.modifyingUserGUID,
-      modifiedDateTime: projectStore.modifiedDateTime,
-      users: projectStore.users,
-      codes: codeStore.codes,
-      sources: documentStore.sources,
-      sets: tagStore.tags,
-      notes: [],
-      tagCategories: tagStore.categories,
-      savedQueries: queryStore.savedQueries,
-      logbookEntries: logbookStore.entries,
-      memos: memoStore.memos,
-      quotes: useQuoteStore.getState().quotes,
-      savedAnalyses: projectStore.savedAnalyses,
-      folders: documentStore.folders,
-      sourceFolder: documentStore.sourceFolder,
-      tabState
-    }
-  }, [projectStore, documentStore, codeStore, tagStore, queryStore, logbookStore, memoStore])
-  // collectProject changes with every edit; listeners that must stay
-  // registered (the flush-and-close one) read it through this instead.
-  const collectProjectRef = useRef(collectProject)
-  useEffect(() => { collectProjectRef.current = collectProject }, [collectProject])
 
   // Suppress the post-load auto-save burst: declared here so every load
   // path (dialog open, recent-project, drag-drop, etc) can set it. The
@@ -1122,7 +872,7 @@ function App() {
       }
     }
     return { ok: true }
-  }, [collectProject, documentStore, projectStore])
+  }, [documentStore, projectStore])
 
   // Before another project replaces this one: save it, rather than drop
   // whatever the autosave hadn't written yet (an import, a code just
@@ -1197,7 +947,7 @@ function App() {
         }
       }
     }
-  }, [collectProject, documentStore, projectStore])
+  }, [documentStore, projectStore])
 
   // "Check Out Anyway" from the checkout-conflict dialog shown right after
   // opening a project someone else already holds (see applyCheckoutInfo).
@@ -1290,7 +1040,7 @@ function App() {
     // comes next (e.g. Merge, from handleStealBack) with no way to dismiss it.
     dismissCheckoutConflict()
     setStealBackConflict(null)
-  }, [collectProject, documentStore, projectStore, dismissCheckoutConflict])
+  }, [documentStore, projectStore, dismissCheckoutConflict])
 
   // "Steal Back" from StealBackDialog: a save was refused because someone
   // else now holds the lock. Re-take it (steal — this IS the deliberate
@@ -1882,68 +1632,10 @@ function App() {
   })
   useEffect(() => window.api.onMenuAction((action) => menuActionRef.current(action)), [])
 
-  // Custom keyboard shortcuts for project-level operations.
-  // Native text undo/redo/selectAll is handled by the menu's predefined items.
-  // When no text input is focused, these shortcuts trigger project-level actions instead.
-  useEffect(() => {
-    const isTextInput = () => {
-      const el = document.activeElement
-      if (!el) return false
-      const tag = el.tagName.toLowerCase()
-      return tag === 'input' || tag === 'textarea' || (el as HTMLElement).isContentEditable
-    }
-    // A note's editor keeps no native undo history (every keystroke is a
-    // project edit — see CodedTextView), so undo there is project undo.
-    const inNoteEditor = () => !!(document.activeElement as HTMLElement | null)?.closest?.('[data-note-editor]')
-    const handleKeydown = (e: KeyboardEvent) => {
-      if (!(e.metaKey || e.ctrlKey)) return
-      // The other standard pair for switching tabs (the View menu has
-      // Ctrl+Tab / Ctrl+Shift+Tab): Cmd+Shift+] / [ on macOS, as in
-      // Safari and Finder; Ctrl+PageDown / PageUp elsewhere.
-      const tabStep = isMac
-        ? (e.metaKey && e.shiftKey && !e.altKey && !e.ctrlKey
-            ? (e.code === 'BracketRight' ? 1 : e.code === 'BracketLeft' ? -1 : 0)
-            : 0)
-        : (e.ctrlKey && !e.shiftKey && !e.altKey
-            ? (e.key === 'PageDown' ? 1 : e.key === 'PageUp' ? -1 : 0)
-            : 0)
-      if (tabStep !== 0) {
-        e.preventDefault()
-        useDocumentStore.getState().showAdjacentTab(tabStep)
-        return
-      }
-      if (isLetterKey(e, 'a') && !isTextInput()) {
-        if (activePanelRef.current === 'documents') {
-          e.preventDefault()
-          const docStore = useDocumentStore.getState()
-          docStore.selectDocuments(new Set(docStore.sources.map((s) => s.guid)))
-        } else if (activePanelRef.current === 'codes') {
-          e.preventDefault()
-          window.dispatchEvent(new CustomEvent('magnolia-select-all-codes'))
-        }
-      } else if (isLetterKey(e, 'z') && !e.shiftKey && (!isTextInput() || inNoteEditor())) {
-        e.preventDefault()
-        useUndoStore.getState().undo()
-      } else if (isLetterKey(e, 'z') && e.shiftKey && (!isTextInput() || inNoteEditor())) {
-        e.preventDefault()
-        useUndoStore.getState().redo()
-      } else if (isLetterKey(e, 'f')) {
-        // Find is the only global Cmd/Ctrl+F behaviour — fires even
-        // when a text input is focused (e.g. while the user is
-        // selecting text in a transcript). Only available when a
-        // document is actually open in the viewer. Opening the popup
-        // also un-hides the Query Results pane so the results are
-        // visible after the user runs Find.
-        const guid = useDocumentStore.getState().viewedDocumentGuid
-        if (!guid) return
-        e.preventDefault()
-        setQueryResultsClosed(false)
-        setShowFindDialog(true)
-      }
-    }
-    window.addEventListener('keydown', handleKeydown)
-    return () => window.removeEventListener('keydown', handleKeydown)
-  }, [])
+  useProjectShortcuts(activePanelRef, useCallback(() => {
+    setQueryResultsClosed(false)
+    setShowFindDialog(true)
+  }, []))
 
   // Update window title with project file name and dirty indicator
   useEffect(() => {
@@ -1962,286 +1654,9 @@ function App() {
     document.title = `${name}${dirty} — Magnolia`
   }, [projectStore.name, projectStore.filePath, projectStore.isDirty, t])
 
-  // Listen for memo updates from the memo edit window
-  useEffect(() => {
-    const unsub = window.api.onMemoUpdate((memo: any) => {
-      const store = useMemoStore.getState()
-      let payload: { guid: string; title: string; content: string }
-      if (memo._isNew) {
-        // First save of a draft memo — create it in the store
-        const { _isNew, ...memoData } = memo
-        store.addMemoFromDraft(memoData)
-        payload = memoData
-      } else {
-        store.updateMemo(memo)
-        payload = memo
-      }
-      // Propagate the edit to any memo element on relationship-map
-      // tabs in this window.
-      const rmStore = useRelationshipMapStore.getState()
-      for (const m of Object.values(rmStore.maps)) {
-        let changed = false
-        const nextElements = m.elements.map((el) => {
-          if (el.kind === 'memo' && el.entityGuid === payload.guid) {
-            changed = true
-            return { ...el, label: payload.title, snippet: payload.content }
-          }
-          return el
-        })
-        if (changed) rmStore.setElements(m.guid, nextElements)
-      }
-      // Memo edits come from an explicit "Save & Close" click, so flush
-      // the project to disk immediately instead of waiting for the
-      // 2-second auto-save debounce. Otherwise users who close the memo
-      // window and immediately reopen the project see stale content.
-      setTimeout(() => { saveProjectRef.current() }, 0)
-    })
-    return unsub
-  }, [])
+  useMemoWindowMessages(saveProjectRef)
 
-  // Listen for memo deletes from the memo edit window. Mirrors the
-  // memo-update flow: remove from the store, drop matching memo
-  // elements from any relationship-map tab, then flush the project
-  // so the deletion sticks.
-  useEffect(() => {
-    const unsub = window.api.onMemoDelete((guid: string) => {
-      deleteMemoEverywhere(guid)
-      setTimeout(() => { saveProjectRef.current() }, 0)
-    })
-    return unsub
-  }, [])
-
-  // The Memos window's actions. Edits are refused with the checkout
-  // prompt while someone else has the project, as in the Saved Memos pane.
-  useEffect(() => {
-    const unsub = window.api.onMemosWindowAction((action, ...args) => {
-      const memo = (guid: unknown) => useMemoStore.getState().findMemo(String(guid))
-      if (action === 'show') {
-        const m = memo(args[0])
-        if (m) showMemoLocation(m)
-        return
-      }
-      if (checkoutLockedByNow()) {
-        useProjectStore.getState().promptCheckoutConflict()
-        return
-      }
-      if (action === 'edit') {
-        const m = memo(args[0])
-        if (m) openMemoEditor(m)
-      } else if (action === 'new') {
-        openMemoEditor({ guid: generateGuid(), type: 'project', title: '', content: '', createdDateTime: new Date().toISOString() }, true)
-      } else if (action === 'delete') {
-        for (const guid of (args[0] as string[]) ?? []) deleteMemoEverywhere(guid)
-        setTimeout(() => { saveProjectRef.current() }, 0)
-      }
-    })
-    return unsub
-  }, [])
-
-  // Keep the Memos window up to date (a no-op while it's closed): memos,
-  // and the names of what they're attached to, change from many places.
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null
-    const push = () => {
-      if (timer) clearTimeout(timer)
-      timer = setTimeout(() => { timer = null; window.api.updateMemosWindow(memosWindowData()) }, 150)
-    }
-    const watch = <S, T>(store: { subscribe: (l: (s: S, p: S) => void) => () => void }, pick: (s: S) => T) =>
-      store.subscribe((s, p) => { if (pick(s) !== pick(p)) push() })
-    const unsubs = [
-      watch(useMemoStore, (s) => s.memos),
-      watch(useDocumentStore, (s) => s.sources),
-      watch(useDocumentStore, (s) => s.sourceContents),
-      watch(useQueryStore, (s) => s.savedQueries),
-      watch(useProjectStore, (s) => s.savedAnalyses),
-      watch(useProjectStore, (s) => s.checkoutMarker)
-    ]
-    return () => { unsubs.forEach((u) => u()); if (timer) clearTimeout(timer) }
-  }, [])
-
-  // Listen for analysis actions (save, run-query)
-  useEffect(() => {
-    const unsub = window.api.onAnalysisAction((action, ...args) => {
-      if (action === 'save-analysis') {
-        const [analysis] = args as [{ guid: string; toolType: string; name: string; config: any }]
-        const ps = useProjectStore.getState()
-        const existing = ps.savedAnalyses ?? []
-        const idx = existing.findIndex((a) => a.guid === analysis.guid)
-        const now = new Date().toISOString()
-        const entry = {
-          guid: analysis.guid,
-          toolType: analysis.toolType as any,
-          name: analysis.name,
-          config: analysis.config,
-          createdDateTime: idx >= 0 ? existing[idx].createdDateTime : now,
-          modifiedDateTime: now
-        }
-        if (idx >= 0) {
-          const updated = [...existing]
-          updated[idx] = entry
-          ps.setSavedAnalyses(updated)
-        } else {
-          ps.setSavedAnalyses([...existing, entry])
-        }
-      } else if (action === 'run-cooccurrence-query') {
-        // Build an overlap query for two codes, including document filter
-        // and any survey-cell (question) scope the tool was narrowed to.
-        const [codeGuidA, codeGuidB, filteredGuids, scope] = args as [string, string, string[] | undefined, SurveyCellScopeArgs | undefined]
-        const baseFilter: Query['documentFilter'] = filteredGuids && filteredGuids.length > 0 ? { sourceGuids: filteredGuids } : {}
-        const query: Query = {
-          documentFilter: applySurveyScopeToFilter(baseFilter, scope),
-          codeCondition: {
-            type: 'overlap',
-            condition1: { type: 'code', codeGuid: codeGuidA },
-            condition2: { type: 'code', codeGuid: codeGuidB }
-          }
-        }
-        useQueryStore.getState().setComplexQuery(query)
-      } else if (action === 'run-code-in-doc-query') {
-        // Build a query for a code in specific documents
-        const [codeGuid, sourceGuids, filteredGuids, scope] = args as [string, string[], string[] | undefined, SurveyCellScopeArgs | undefined]
-        const docGuids = filteredGuids && filteredGuids.length > 0 ? sourceGuids.filter((g) => filteredGuids.includes(g)) : sourceGuids
-        const query: Query = {
-          documentFilter: applySurveyScopeToFilter({ sourceGuids: docGuids }, scope),
-          codeCondition: { type: 'code', codeGuid }
-        }
-        useQueryStore.getState().setComplexQuery(query)
-      } else if (action === 'run-codes-in-doc-query') {
-        // Build an OR query for multiple codes in specific documents (for totals)
-        const [codeGuids, sourceGuids, scope] = args as [string[], string[], SurveyCellScopeArgs | undefined]
-        const codeCondition = codeGuids.length === 1
-          ? { type: 'code' as const, codeGuid: codeGuids[0] }
-          : { type: 'or' as const, conditions: codeGuids.map((g) => ({ type: 'code' as const, codeGuid: g })) }
-        const query: Query = {
-          documentFilter: applySurveyScopeToFilter({ sourceGuids }, scope),
-          codeCondition
-        }
-        useQueryStore.getState().setComplexQuery(query)
-      } else if (action === 'open-framework-matrix') {
-        // Codes in Documents → "Open as Framework Matrix": a fresh,
-        // unsaved matrix seeded with the grid's codes and documents.
-        const [config] = args as [any]
-        openAnalysis('framework-matrix', config)
-      } else if (action === 'run-code-in-tag-query') {
-        // Build a query for a code filtered by tag (include or exclude)
-        const [codeGuid, tagGuid, excludeTagGuids, scope] = args as [string, string | null, string[] | undefined, SurveyCellScopeArgs | undefined]
-        const filter: Query['documentFilter'] = {}
-        if (tagGuid) {
-          filter.tagGuids = [tagGuid]
-        }
-        if (excludeTagGuids && excludeTagGuids.length > 0) {
-          filter.tagExcludeGuids = excludeTagGuids
-        }
-        const query: Query = {
-          documentFilter: applySurveyScopeToFilter(filter, scope),
-          codeCondition: { type: 'code', codeGuid }
-        }
-        useQueryStore.getState().setComplexQuery(query)
-      } else if (action === 'run-query-in-docs') {
-        // Run a saved query scoped to specific documents
-        const [query, sourceGuids, scope] = args as [Query, string[], SurveyCellScopeArgs | undefined]
-        const scopedQuery: Query = {
-          documentFilter: applySurveyScopeToFilter({ sourceGuids }, scope),
-          codeCondition: query.codeCondition
-        }
-        useQueryStore.getState().setComplexQuery(scopedQuery)
-      } else if (action === 'run-word-query') {
-        // Build a text search query for a word in specific documents,
-        // limited to coded passages, or to saved queries' results, when
-        // the tool counted those.
-        const [word, filteredGuids, scope, codes, queryGuids] = args as [string, string[] | undefined, SurveyCellScopeArgs | undefined, WordQueryCodes | undefined, string[] | undefined]
-        const query: Query = {
-          documentFilter: applySurveyScopeToFilter(filteredGuids && filteredGuids.length > 0 ? { sourceGuids: filteredGuids } : {}, scope),
-          codeCondition: wordCondition(word, codes),
-          within: withinQueries(queryGuids)
-        }
-        useQueryStore.getState().setComplexQuery(query)
-      } else if (action === 'run-sentence-query') {
-        // The sentences containing both words (Word Combinations' associations).
-        const [word1, word2, filteredGuids, scope, codes, queryGuids] = args as [string, string, string[] | undefined, SurveyCellScopeArgs | undefined, WordQueryCodes | undefined, string[] | undefined]
-        const query: Query = {
-          documentFilter: applySurveyScopeToFilter(filteredGuids && filteredGuids.length > 0 ? { sourceGuids: filteredGuids } : {}, scope),
-          codeCondition: sentenceCondition(word1, word2, codes),
-          within: withinQueries(queryGuids)
-        }
-        useQueryStore.getState().setComplexQuery(query)
-      } else if (action === 'open-document') {
-        const [sourceGuid] = args as [string]
-        useDocumentStore.getState().viewDocument(sourceGuid)
-      } else if (action === 'view-document-at') {
-        const [sourceGuid, startCp, endCp] = args as [string, number, number]
-        useDocumentStore.getState().viewDocumentAt(sourceGuid, startCp, endCp)
-      } else if (action === 'run-code-query') {
-        const [codeGuid] = args as [string]
-        const query: Query = {
-          documentFilter: {},
-          codeCondition: { type: 'code', codeGuid }
-        }
-        useQueryStore.getState().setComplexQuery(query)
-      } else if (action === 'open-memo') {
-        const [memoGuid] = args as [string]
-        const memo = useMemoStore.getState().findMemo(memoGuid)
-        if (memo) {
-          window.api.openMemoEditWindow({
-            memo,
-            theme: document.documentElement.getAttribute('data-theme') || ''
-          })
-        }
-      } else if (action === 'run-saved-query') {
-        const [queryGuid] = args as [string]
-        useQueryStore.getState().runSavedQuery(queryGuid)
-      } else if (action === 'select-tag-documents') {
-        const [tagGuid] = args as [string]
-        const tag = useTagStore.getState().tags.find((t) => t.guid === tagGuid)
-        if (tag) {
-          useDocumentStore.getState().selectDocuments(new Set(tag.memberSourceGuids))
-        }
-      } else if (action === 'select-tag-category-documents') {
-        const [categoryGuid] = args as [string]
-        const tgStore = useTagStore.getState()
-        const categoryTags = tgStore.tags.filter((t) => t.categoryGuid === categoryGuid)
-        const allGuids = new Set<string>()
-        for (const tag of categoryTags) {
-          for (const guid of tag.memberSourceGuids) allGuids.add(guid)
-        }
-        useDocumentStore.getState().selectDocuments(allGuids)
-      } else if (action === 'select-folder-documents') {
-        const [folderGuid] = args as [string]
-        const ds = useDocumentStore.getState()
-        // Recursively walk sub-folders so descendant docs are included,
-        // matching how Group-by-folder resolves a folder's source set.
-        const folderSet = new Set<string>([folderGuid])
-        let added = true
-        while (added) {
-          added = false
-          for (const f of ds.folders) {
-            if (f.parentGuid && folderSet.has(f.parentGuid) && !folderSet.has(f.guid)) {
-              folderSet.add(f.guid)
-              added = true
-            }
-          }
-        }
-        const docs = new Set<string>()
-        for (const s of ds.sources) {
-          const fg = ds.sourceFolder[s.guid]
-          if (fg && folderSet.has(fg)) docs.add(s.guid)
-        }
-        ds.selectDocuments(docs)
-      } else if (action === 'open-saved-analysis') {
-        const [toolType, savedConfig] = args as [string, any]
-        // Callers from other analysis windows only know the guid/name — look
-        // up the full saved config from the project store.
-        let finalConfig = savedConfig
-        if (savedConfig?.guid) {
-          const ps = useProjectStore.getState()
-          const sa = (ps.savedAnalyses ?? []).find((a) => a.guid === savedConfig.guid)
-          if (sa) finalConfig = { ...sa.config, guid: sa.guid, name: sa.name }
-        }
-        openSavedAnalysis(toolType as any, finalConfig)
-      }
-    })
-    return unsub
-  }, [openSavedAnalysis, openAnalysis])
+  useAnalysisMessages(openAnalysis, openSavedAnalysis)
 
   // Listen for open-recent-project from welcome screen
   useEffect(() => {
@@ -2350,7 +1765,7 @@ function App() {
           let why: { error?: string; lockedBy?: string } | null = null
           try {
             const result = await window.api.saveProject({
-              project: collectProjectRef.current(),
+              project: collectProject(),
               sourceContents: useDocumentStore.getState().sourceContents,
               filePath: ps.filePath,
               userName: usePreferencesStore.getState().userName.trim() || undefined,
@@ -2440,239 +1855,23 @@ function App() {
     return unsub
   }, [])
 
-  // Listen for live preview queries from the query builder window
-  // Use getState() inside callbacks to avoid re-subscribing on every store change
-  useEffect(() => {
-    const unsub = window.api.onPreviewFromBuilder((query, graphLayout) => {
-      if (query) {
-        useQueryStore.getState().setComplexQuery(query, graphLayout)
-      } else {
-        useQueryStore.getState().clearQuery()
-      }
-    })
-    return unsub
-  }, [])
+  useQueryBuilderMessages(setPulsedQueryGuid)
 
-  // Listen for save-query requests from the query builder window
-  useEffect(() => {
-    const unsub = window.api.onSaveQueryFromBuilder((query, name, graphLayout, savedGuid) => {
-      useQueryStore.getState().setComplexQuery(query, graphLayout)
-      // Honour the builder-supplied guid so the builder can flip its
-      // own editGuid state in the same render — title-row inline name
-      // appears immediately instead of after a re-mount.
-      useQueryStore.getState().saveCurrentQuery(name, graphLayout, savedGuid)
-    })
-    return unsub
-  }, [])
+  useCodebookMessages()
 
-  // Listen for codebook updates from the codebook window. Actions from
-  // its right-click menu mirror the Codes pane's; each that changes the
-  // codes sends the Codebook its codes again so it shows the change.
-  useEffect(() => {
-    const unsub = window.api.onCodebookUpdate((action, ...args) => {
-      const cs = useCodeStore.getState()
-      const lockedMutation = ['rename-code', 'recolor-code', 'add-child-code', 'move-code-to-top', 'delete-code'].includes(action)
-      if (lockedMutation && checkoutLockedByNow()) {
-        useProjectStore.getState().promptCheckoutConflict()
-        return
-      }
-      switch (action) {
-        case 'rename-code': {
-          const [guid, name] = args
-          if (typeof name === 'string' && name.trim()) cs.renameCode(guid, name.trim())
-          sendCodebookData()
-          break
-        }
-        case 'recolor-code': {
-          const [guid, color] = args
-          cs.recolorCode(guid, color)
-          sendCodebookData()
-          break
-        }
-        case 'add-child-code': {
-          // As in the Codes pane: a "New Code" in the parent's colour,
-          // which the Codebook then opens for renaming.
-          const [parentGuid] = args
-          const parent = cs.findCode(parentGuid)
-          const color = parent?.color || codeColourPresetsFor(usePreferencesStore.getState())[0]
-          const guid = cs.addCode(t('codes.defaultName'), color, parentGuid)
-          sendCodebookData(guid)
-          break
-        }
-        case 'move-code-to-top': {
-          const [guid] = args
-          cs.moveCode(guid, null)
-          sendCodebookData()
-          break
-        }
-        case 'delete-code': {
-          const [guid] = args
-          cs.removeCode(guid)
-          sendCodebookData()
-          break
-        }
-        case 'show-in-all-documents': {
-          const [codeGuid] = args
-          useQueryStore.getState().setComplexQuery({ documentFilter: {}, codeCondition: { type: 'code', codeGuid } })
-          break
-        }
-        case 'show-in-active-document': {
-          const [codeGuid] = args
-          const viewedGuid = useDocumentStore.getState().viewedDocumentGuid
-          if (!viewedGuid) break
-          useQueryStore.getState().setComplexQuery({ documentFilter: { sourceGuids: [viewedGuid] }, codeCondition: { type: 'code', codeGuid } })
-          break
-        }
-        case 'save-code': {
-          const [guid, name, color, description, hotkey] = args
-          cs.renameCode(guid, name)
-          cs.recolorCode(guid, color)
-          cs.setCodeDescription(guid, description)
-          cs.setCodeHotkey(guid, hotkey)
-          break
-        }
-        case 'merge-codes': {
-          const [imported] = args
-          cs.mergeCodes(imported)
-          break
-        }
-      }
-    })
-    return unsub
-  }, [t])
-
-  // Listen for query results window close (pop back in)
-  useEffect(() => {
-    const unsub = window.api.onQueryResultsClosed(() => {
-      setQueryResultsPoppedOut(false)
-    })
-    return unsub
-  }, [])
-
-  // Listen for double-click jumps from the popped-out query results
-  // window. Equivalent to calling viewDocumentAt directly when the
-  // results are inline in the main window.
-  useEffect(() => {
-    const unsub = window.api.onJumpToQueryResult((target) => {
-      // Survey-cell results: prime the survey viewer with the
-      // matching respondent + scroll target before opening the tab,
-      // mirroring the inline-panel path.
-      if (target.surveyCell) {
-        const svs = useSurveyViewStore.getState()
-        svs.setView(target.sourceGuid, 'respondent', target.surveyCell.respondentId)
-        svs.setScrollTarget({
-          surveyGuid: target.sourceGuid,
-          respondentId: target.surveyCell.respondentId,
-          questionId: target.surveyCell.questionId
-        })
-      }
-      useDocumentStore.getState().viewDocumentAt(
-        target.sourceGuid,
-        target.startPosition,
-        target.endPosition,
-        target.pdfRegion,
-        target.timeRange
-      )
-    })
-    return unsub
-  }, [])
-
-  // Handle actions from popped-out query results window
-  useEffect(() => {
-    const unsub = window.api.onQueryResultsAction((action, payload) => {
-      switch (action) {
-        case 'edit-query': {
-          const qs = useQueryStore.getState()
-          const saved = qs.savedQueries.find(
-            (sq) => JSON.stringify(sq.query) === JSON.stringify(qs.currentQuery)
-          )
-          if (saved) {
-            openQueryBuilder(saved.guid)
-          } else {
-            openQueryBuilder(undefined, true)
-          }
-          break
-        }
-        case 'clear-query':
-          useQueryStore.getState().clearQuery()
-          break
-        case 'close-panel':
-          // The pop-out's × closes the pane too, as the popped-in one's does.
-          setQueryResultsClosed(true)
-          break
-        case 'save-query': {
-          const q = useQueryStore.getState().currentQuery
-          const defaultName = q
-            ? describeQuery(q, codeStore.findCode, documentStore.sources, tagStore.tags)
-            : ''
-          setSaveQueryName(defaultName)
-          setShowSaveQueryDialog(true)
-          break
-        }
-        case 'code-all-new-code':
-          setPendingCodeAllNewCode(true)
-          setShowNewCodeDialog(true)
-          break
-        case 'code-all-existing-code': {
-          // Mirror onApplyCodeToResults from the popped-in
-          // QueryResultViewer: apply the dropped code to every
-          // result. Survey-cell / region results carry real
-          // selectionGuids; text-match results get a new selection
-          // created on the fly so the code can attach.
-          if (payload?.guid) {
-            const qs = useQueryStore.getState()
-            const ds = useDocumentStore.getState()
-            for (const r of qs.results) {
-              const isRealSelection = !r.selectionGuid.startsWith('text-match-')
-              if (isRealSelection) {
-                const alreadyApplied = r.matchedCodes.some((c) => c.guid === payload.guid)
-                if (!alreadyApplied) {
-                  ds.addCodingToSelection(r.sourceGuid, r.selectionGuid, payload.guid)
-                }
-              } else {
-                const selGuid = ds.addSelection(r.sourceGuid, r.startPosition, r.endPosition, r.matchedText)
-                ds.addCodingToSelection(r.sourceGuid, selGuid, payload.guid)
-              }
-            }
-          }
-          break
-        }
-        case 'select-documents': {
-          // Mirror handleSelectDocuments from QueryResultViewer:
-          // select every source document + every survey respondent
-          // the current results came from, so the user can drag a
-          // tag onto the Document Browser to tag them all.
-          const qs = useQueryStore.getState()
-          const ds = useDocumentStore.getState()
-          const docGuids = new Set<string>()
-          const entityKeys = new Set<string>()
-          for (const r of qs.results) {
-            if (r.surveyCell) entityKeys.add(surveyEntityKey('resp', r.sourceGuid, r.surveyCell.respondentId))
-            else docGuids.add(r.sourceGuid)
-          }
-          ds.selectDocuments(docGuids)
-          ds.selectSurveyEntities(entityKeys)
-          break
-        }
-        // Saved-query actions from the popped-out Saved Queries
-        // sidebar. Each carries a guid (and optionally a new name)
-        // in the payload so the main app can dispatch to its store.
-        case 'run-saved-query':
-          if (payload?.guid) useQueryStore.getState().runSavedQuery(payload.guid)
-          break
-        case 'delete-saved-query':
-          if (payload?.guid) useQueryStore.getState().deleteSavedQuery(payload.guid)
-          break
-        case 'rename-saved-query':
-          if (payload?.guid && payload?.name) useQueryStore.getState().renameSavedQuery(payload.guid, payload.name)
-          break
-        case 'edit-saved-query':
-          if (payload?.guid) openQueryBuilder(payload.guid)
-          break
-      }
-    })
-    return unsub
-  }, [codeStore.findCode, documentStore.sources, tagStore.tags, openQueryBuilder])
+  useQueryResultsWindowMessages({
+    openQueryBuilder,
+    setPoppedOut: setQueryResultsPoppedOut,
+    setClosed: setQueryResultsClosed,
+    askToSaveQuery: useCallback((defaultName: string) => {
+      setSaveQueryName(defaultName)
+      setShowSaveQueryDialog(true)
+    }, []),
+    askForCodeForAll: useCallback(() => {
+      setPendingCodeAllNewCode(true)
+      setShowNewCodeDialog(true)
+    }, [])
+  })
 
   // Keep query-builder tab titles in sync with their backing saved-query
   // names — when a user renames a saved query (in-window or in the popped
@@ -2692,117 +1891,11 @@ function App() {
     }
   }, [queryStore.savedQueries])
 
-  // Push live updates to popped-out query results window
-  useEffect(() => {
-    if (!queryResultsPoppedOut) return
-    const qs = useQueryStore.getState()
-    const theme = document.documentElement.getAttribute('data-theme') || ''
-    const qName = qs.currentQuery
-      ? (() => {
-          const saved = qs.savedQueries.find(
-            (sq) => JSON.stringify(sq.query) === JSON.stringify(qs.currentQuery)
-          )
-          return saved
-            ? saved.name
-            : describeQuery(qs.currentQuery!, codeStore.findCode, documentStore.sources, tagStore.tags)
-        })()
-      : t('results.title')
-    const isUnsaved = qs.isActive && qs.currentQuery
-      ? !qs.savedQueries.some((sq) => JSON.stringify(sq.query) === JSON.stringify(qs.currentQuery))
-      : false
-    const docStore = useDocumentStore.getState()
-    const cdStore = useCodeStore.getState()
-    const sourceSelections: Record<string, any[]> = {}
-    const pdfFilePaths: Record<string, string> = {}
-    const pdfPageOffsets: Record<string, number[]> = {}
-    const videoFilePaths: Record<string, string> = {}
-    const videoMimeTypes: Record<string, string> = {}
-    const surveysByGuid: Record<string, SurveyData> = {}
-    for (const src of docStore.sources) {
-      if (src.selections.length > 0) sourceSelections[src.guid] = src.selections
-      const fp = (src as any).formatData?.pdfFilePath ?? (src as any).formatData?.imageFilePath
-      if (fp) pdfFilePaths[src.guid] = fp
-      const po = (src as any).formatData?.pdfPageOffsets
-      if (po?.length) pdfPageOffsets[src.guid] = po
-      const vp = (src as any).formatData?.videoFilePath
-      if (vp) {
-        videoFilePaths[src.guid] = vp
-        videoMimeTypes[src.guid] = (src as any).formatData?.mimeType || 'video/mp4'
-      }
-      if (src.sourceType === 'survey') {
-        const survey = (src.formatData as SurveyFormatData | undefined)?.survey
-        if (survey) surveysByGuid[src.guid] = survey
-      }
-    }
-    const codes = cdStore.flatCodes().map((c) => ({ guid: c.guid, name: c.name, color: c.color }))
-
-    const initData: QueryResultsInitData = {
-      results: qs.results,
-      queryName: qName,
-      isActive: qs.isActive,
-      isLoading: qs.isLoading,
-      isUnsaved,
-      theme,
-      sourceSelections,
-      surveysByGuid,
-      pdfFilePaths,
-      pdfPageOffsets,
-      videoFilePaths,
-      videoMimeTypes,
-      codes,
-      savedQueries: qs.savedQueries,
-      currentQuery: qs.currentQuery ?? undefined
-    }
-    window.api.updateQueryResultsWindow(initData)
-  }, [queryResultsPoppedOut, queryStore.results, queryStore.currentQuery, queryStore.isActive, queryStore.isLoading, queryStore.savedQueries, codeStore.findCode, documentStore.sources, tagStore.tags, t])
+  useQueryResultsWindowUpdates(queryResultsPoppedOut)
 
 
-  // Listen for logbook updates from the logbook window
-  useEffect(() => {
-    const unsub = window.api.onLogbookUpdate((action, ...args) => {
-      const ls = useLogbookStore.getState()
-      switch (action) {
-        case 'add-entry': {
-          const [entry] = args
-          ls.setEntries([entry, ...ls.entries])
-          useProjectStore.getState().markDirty()
-          break
-        }
-        case 'update-entry': {
-          const [guid, title, content] = args
-          ls.updateEntry(guid, title, content)
-          break
-        }
-        case 'remove-entry': {
-          const [guid] = args
-          ls.removeEntry(guid)
-          break
-        }
-      }
-    })
-    return unsub
-  }, [])
+  useLogbookMessages()
 
-  // Listen for final query results from the query builder window
-  useEffect(() => {
-    const unsub = window.api.onQueryFromBuilder((query, editSavedQueryGuid, graphLayout) => {
-      if (editSavedQueryGuid) {
-        const qs = useQueryStore.getState()
-        // Update the saved query's payload + graph layout, but
-        // preserve its existing name. The user may have renamed the
-        // query inline via the title-row suffix, and subsequent
-        // edits + Update Query should never silently overwrite
-        // that with an auto-generated description.
-        qs.updateSavedQuery(editSavedQueryGuid, query, graphLayout)
-        qs.runSavedQuery(editSavedQueryGuid)
-        setPulsedQueryGuid(editSavedQueryGuid)
-        setTimeout(() => setPulsedQueryGuid(null), 1500)
-      } else {
-        useQueryStore.getState().setComplexQuery(query, graphLayout)
-      }
-    })
-    return unsub
-  }, [])
 
   // ── Ribbon (Toolbar Style "Ribbon") ── Every button runs the same
   // action as its counterpart in the icon toolbar and its popovers.
