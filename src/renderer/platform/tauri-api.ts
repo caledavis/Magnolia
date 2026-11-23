@@ -350,8 +350,8 @@ const api: MagnoliaAPI = {
   showMessage: (message, kind) => invoke('show_message', { message, kind: kind ?? null }),
   askConfirm: (message, okLabel) =>
     invoke<boolean>('ask_confirm', { message, okLabel: okLabel ?? t('common.ok'), cancelLabel: t('common.cancel') }),
-  confirmUnsavedSwitch: (name, error, lockedBy) =>
-    invoke<boolean>('confirm_unsaved_switch', { name, error: error ?? null, lockedBy: lockedBy ?? null }),
+  confirmLosingChanges: (name, why) =>
+    invoke<boolean>('confirm_losing_changes', { name, error: why.error ?? null, lockedBy: why.lockedBy ?? null, closing: !!why.closing }),
   createProjectCopy: (data) => invoke('create_project_copy', { data }),
   createNewProjectFile: () => invoke('create_new_project_file'),
   importTextFile: async () => {
@@ -440,6 +440,7 @@ const api: MagnoliaAPI = {
   onNewProjectAtPath: (callback) => onQueued<{ filePath: string; projectName: string }>('new-project-at-path', callback),
   onFlushAndClose: (callback) => on('flush-and-close', () => callback()),
   notifyFlushComplete: () => void invoke('flush_complete'),
+  cancelFlush: () => void invoke('flush_cancelled'),
   sendFlushHeartbeat: () => void invoke('flush_heartbeat'),
   trackRecentProject: (name, filePath) => void invoke('track_recent_project', { name, filePath }),
   onRecentProjectsChanged: (callback) => on('recent-projects-changed', () => callback()),

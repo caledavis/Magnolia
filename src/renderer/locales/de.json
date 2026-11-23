@@ -114,8 +114,10 @@
       "exportPdf": "Als PDF exportieren",
       "unsavedTitle": "Ihre letzten Änderungen konnten nicht gespeichert werden",
       "unsavedMessage": "Die letzten Änderungen an „{{name}}“ konnten nicht gespeichert werden: {{error}}\n\nWenn Sie jetzt das andere Projekt öffnen, gehen sie verloren.",
+      "unsavedMessageClose": "Die letzten Änderungen an „{{name}}“ konnten nicht gespeichert werden: {{error}}\n\nWenn Sie es jetzt schließen, gehen sie verloren.",
       "unsavedLockedBy": "{{name}} hat jetzt die Kontrolle über das Projekt",
       "openAnyway": "Trotzdem öffnen",
+      "closeAnyway": "Trotzdem schließen",
       "cancel": "Abbrechen"
     },
     "import": {
@@ -190,7 +192,7 @@
       },
       "typesetFailed": "Magnolia konnte dieses Dokument nicht in Seiten setzen. Speichern Sie es im ursprünglichen Programm erneut, oder speichern Sie es als PDF und importieren Sie dieses.",
       "save": {
-        "noPermission": "Magnolia darf die Projektdatei oder den Ordner, in dem sie liegt, nicht ändern. Prüfen Sie, ob der Ordner gesperrt oder schreibgeschützt ist, oder sichern Sie eine Kopie an einem anderen Ort.",
+        "noPermission": "Magnolia darf die Projektdatei oder den Ordner, in dem sie liegt, nicht ändern. Prüfen Sie, ob der Ordner gesperrt oder schreibgeschützt ist, oder speichern Sie eine Kopie an einem anderen Ort.",
         "diskFull": "Auf dem Datenträger ist nicht genug Platz frei. Schaffen Sie etwas Platz und versuchen Sie es erneut.",
         "notFound": "Der Ordner des Projekts wurde nicht gefunden. Er wurde vielleicht verschoben oder umbenannt oder liegt auf einem Datenträger, der nicht angeschlossen ist."
       }
@@ -866,6 +868,14 @@
     "text_other": "Ihr Inhalt wurde nie in der .qdpx-Datei gespeichert und kann daraus nicht wiederhergestellt werden. Importieren Sie die Originale erneut, um das Projekt zu reparieren – Ihre Codes bleiben erhalten, und beim nächsten Speichern werden die Dateien dauerhaft eingebettet.",
     "reimport": "Erneut importieren …",
     "reimporting": "Wird erneut importiert …"
+  },
+  "saveFailed": {
+    "title": "Ihre Änderungen werden nicht gespeichert",
+    "retrying": "Magnolia versucht es weiter. Sie können das Projekt auch an einem anderen Ort speichern.",
+    "tryAgain": "Erneut versuchen",
+    "saveAs": "Speichern unter …",
+    "saving": "Wird gespeichert …",
+    "lockedBy": "{{name}} hat jetzt die Kontrolle über das Projekt."
   },
   "memoEdit": {
     "deleteConfirm": "Memo „{{title}}“ löschen? Das kann nicht widerrufen werden.",

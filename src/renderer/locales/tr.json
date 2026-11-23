@@ -114,8 +114,10 @@
       "exportPdf": "PDF olarak dışa aktar",
       "unsavedTitle": "Son değişiklikleriniz kaydedilemedi",
       "unsavedMessage": "“{{name}}” projesindeki son değişiklikler kaydedilemedi: {{error}}\n\nDiğer projeyi şimdi açarsanız bu değişiklikler kaybolur.",
+      "unsavedMessageClose": "“{{name}}” projesindeki son değişiklikler kaydedilemedi: {{error}}\n\nŞimdi kapatırsanız bu değişiklikler kaybolur.",
       "unsavedLockedBy": "projenin denetimi artık {{name}} adlı kişide",
       "openAnyway": "Yine de aç",
+      "closeAnyway": "Yine de kapat",
       "cancel": "Vazgeç"
     },
     "import": {
@@ -866,6 +868,14 @@
     "text_other": "İçerikleri .qdpx dosyasına hiç kaydedilmemiş ve dosyadan kurtarılamaz. Projeyi onarmak için özgün dosyaları yeniden içe aktarın — kodlarınız korunur ve bir sonraki kayıt dosyaları kalıcı olarak gömer.",
     "reimport": "Yeniden içe aktar…",
     "reimporting": "Yeniden içe aktarılıyor…"
+  },
+  "saveFailed": {
+    "title": "Değişiklikleriniz kaydedilmiyor",
+    "retrying": "Magnolia denemeye devam ediyor. Projeyi başka bir yere de kaydedebilirsiniz.",
+    "tryAgain": "Yeniden dene",
+    "saveAs": "Farklı kaydet…",
+    "saving": "Kaydediliyor…",
+    "lockedBy": "Projenin denetimi artık {{name}} adlı kişide."
   },
   "memoEdit": {
     "deleteConfirm": "“{{title}}” memosu silinsin mi? Bu işlem geri alınamaz.",

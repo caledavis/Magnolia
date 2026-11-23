@@ -466,28 +466,35 @@ pub async fn create_new_project_file(app: AppHandle, window: WebviewWindow) -> C
     })
 }
 
-/// Opening another project, but the current one's latest changes couldn't
-/// be saved (`error` says why, or `locked_by` names who now has control):
-/// ask whether to open it anyway, losing them. True to go ahead.
+/// The project's latest changes couldn't be saved (`error` says why, or
+/// `locked_by` names who now has control), and it's about to be replaced
+/// by another project, or closed (`closing`): ask whether to go ahead and
+/// lose them. True to go ahead.
 #[tauri::command]
-pub async fn confirm_unsaved_switch(
+pub async fn confirm_losing_changes(
     app: AppHandle,
     window: WebviewWindow,
     name: String,
     error: Option<String>,
     locked_by: Option<String>,
+    closing: bool,
 ) -> bool {
     use tauri_plugin_dialog::{MessageDialogButtons, MessageDialogKind};
     let error = match locked_by {
         Some(who) => t_with("dialog.unsavedLockedBy", &[("name", &who)]),
         None => error.unwrap_or_default(),
     };
+    let (message, go) = if closing {
+        ("dialog.unsavedMessageClose", "dialog.closeAnyway")
+    } else {
+        ("dialog.unsavedMessage", "dialog.openAnyway")
+    };
     app.dialog()
-        .message(t_with("dialog.unsavedMessage", &[("name", &name), ("error", &error)]))
+        .message(t_with(message, &[("name", &name), ("error", &error)]))
         .title(t("dialog.unsavedTitle"))
         .kind(MessageDialogKind::Warning)
         .parent(&window)
-        .buttons(MessageDialogButtons::OkCancelCustom(t("dialog.openAnyway"), t("dialog.cancel")))
+        .buttons(MessageDialogButtons::OkCancelCustom(t(go), t("dialog.cancel")))
         .blocking_show()
 }
 
@@ -1163,6 +1170,14 @@ pub async fn update_panel_visibility(
 #[tauri::command]
 pub async fn flush_complete(app: AppHandle) -> CmdResult<()> {
     windows::flush_complete(&app);
+    Ok(())
+}
+
+/// The renderer couldn't save before closing and was told to stay open:
+/// the close (or quit) is off.
+#[tauri::command]
+pub async fn flush_cancelled(app: AppHandle) -> CmdResult<()> {
+    windows::flush_cancelled(&app);
     Ok(())
 }
 

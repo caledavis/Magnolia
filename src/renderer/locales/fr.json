@@ -114,8 +114,10 @@
       "exportPdf": "Exporter en PDF",
       "unsavedTitle": "Vos dernières modifications n’ont pas pu être enregistrées",
       "unsavedMessage": "Les dernières modifications de « {{name}} » n’ont pas pu être enregistrées : {{error}}\n\nSi vous ouvrez l’autre projet maintenant, elles seront perdues.",
+      "unsavedMessageClose": "Les dernières modifications de « {{name}} » n’ont pas pu être enregistrées : {{error}}\n\nSi vous le fermez maintenant, elles seront perdues.",
       "unsavedLockedBy": "{{name}} a désormais le contrôle du projet",
       "openAnyway": "Ouvrir quand même",
+      "closeAnyway": "Fermer quand même",
       "cancel": "Annuler"
     },
     "import": {
@@ -895,6 +897,14 @@
     "text_other": "Leur contenu n’a jamais été stocké dans le .qdpx et ne peut pas être récupéré à partir du fichier. Réimportez les originaux pour réparer le projet — vos codes sont conservés et le prochain enregistrement intègre les fichiers définitivement.",
     "reimport": "Réimporter…",
     "reimporting": "Réimportation…"
+  },
+  "saveFailed": {
+    "title": "Vos modifications ne sont pas enregistrées",
+    "retrying": "Magnolia continue d’essayer. Vous pouvez aussi enregistrer le projet ailleurs.",
+    "tryAgain": "Réessayer",
+    "saveAs": "Enregistrer sous…",
+    "saving": "Enregistrement…",
+    "lockedBy": "{{name}} a désormais le contrôle du projet."
   },
   "memoEdit": {
     "deleteConfirm": "Supprimer le mémo « {{title}} » ? Cette action est irréversible.",

@@ -114,8 +114,10 @@
       "exportPdf": "Vie PDF-muodossa",
       "unsavedTitle": "Viimeisimpiä muutoksiasi ei voitu tallentaa",
       "unsavedMessage": "Projektin ”{{name}}” viimeisimpiä muutoksia ei voitu tallentaa: {{error}}\n\nJos avaat toisen projektin nyt, ne menetetään.",
+      "unsavedMessageClose": "Projektin ”{{name}}” viimeisimpiä muutoksia ei voitu tallentaa: {{error}}\n\nJos suljet sen nyt, ne menetetään.",
       "unsavedLockedBy": "{{name}} hallitsee nyt projektia",
       "openAnyway": "Avaa silti",
+      "closeAnyway": "Sulje silti",
       "cancel": "Kumoa"
     },
     "import": {
@@ -866,6 +868,14 @@
     "text_other": "Niiden sisältöä ei koskaan tallennettu .qdpx-tiedostoon, eikä sitä voi palauttaa tiedostosta. Korjaa projekti tuomalla alkuperäiset uudelleen – koodisi säilyvät, ja seuraava tallennus upottaa tiedostot pysyvästi.",
     "reimport": "Tuo uudelleen…",
     "reimporting": "Tuodaan uudelleen…"
+  },
+  "saveFailed": {
+    "title": "Muutoksiasi ei tallenneta",
+    "retrying": "Magnolia yrittää edelleen. Voit myös tallentaa projektin muualle.",
+    "tryAgain": "Yritä uudelleen",
+    "saveAs": "Tallenna nimellä…",
+    "saving": "Tallennetaan…",
+    "lockedBy": "{{name}} hallitsee nyt projektia."
   },
   "memoEdit": {
     "deleteConfirm": "Poistetaanko muistio ”{{title}}”? Toimintoa ei voi kumota.",

@@ -114,8 +114,10 @@
       "exportPdf": "导出为 PDF",
       "unsavedTitle": "无法保存您最近的更改",
       "unsavedMessage": "无法保存对“{{name}}”的最近更改：{{error}}\n\n如果现在打开另一个项目，这些更改将会丢失。",
+      "unsavedMessageClose": "无法保存对“{{name}}”的最近更改：{{error}}\n\n如果现在关闭，这些更改将会丢失。",
       "unsavedLockedBy": "{{name}} 现在控制此项目",
       "openAnyway": "仍然打开",
+      "closeAnyway": "仍然关闭",
       "cancel": "取消"
     },
     "import": {
@@ -187,7 +189,7 @@
       },
       "typesetFailed": "Magnolia 无法将此文档排版成页面。请尝试在原来的程序中重新存储它，或将其存储为 PDF 后导入该文件。",
       "save": {
-        "noPermission": "Magnolia 无权更改项目文件或其所在的文件夹。请检查该文件夹是否已锁定或为只读，或将副本存储到其他位置。",
+        "noPermission": "Magnolia 无权更改项目文件或其所在的文件夹。请检查该文件夹是否已锁定或为只读，或将副本保存到其他位置。",
         "diskFull": "磁盘上没有足够的可用空间。请释放一些空间后重试。",
         "notFound": "找不到项目所在的文件夹。它可能已被移动或重命名，或位于未连接的磁盘上。"
       }
@@ -837,6 +839,14 @@
     "text_other": "它们的内容从未存储在 .qdpx 中，无法从文件恢复。请重新导入原始文件以修复项目——您的代码会保留，下次保存时文件将被永久嵌入。",
     "reimport": "重新导入…",
     "reimporting": "正在重新导入…"
+  },
+  "saveFailed": {
+    "title": "您的更改未能保存",
+    "retrying": "Magnolia 会继续尝试。您也可以将项目保存到其他位置。",
+    "tryAgain": "重试",
+    "saveAs": "另存为…",
+    "saving": "正在保存…",
+    "lockedBy": "{{name}} 现在控制此项目。"
   },
   "memoEdit": {
     "deleteConfirm": "删除备忘录“{{title}}”？此操作无法撤销。",

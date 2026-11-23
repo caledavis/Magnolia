@@ -114,8 +114,10 @@
       "exportPdf": "Exporteren als pdf",
       "unsavedTitle": "Je laatste wijzigingen konden niet worden bewaard",
       "unsavedMessage": "De laatste wijzigingen in \"{{name}}\" konden niet worden bewaard: {{error}}\n\nAls je het andere project nu opent, gaan ze verloren.",
+      "unsavedMessageClose": "De laatste wijzigingen in \"{{name}}\" konden niet worden bewaard: {{error}}\n\nAls je het nu sluit, gaan ze verloren.",
       "unsavedLockedBy": "{{name}} heeft nu de controle over het project",
       "openAnyway": "Toch openen",
+      "closeAnyway": "Toch sluiten",
       "cancel": "Annuleer"
     },
     "import": {
@@ -866,6 +868,14 @@
     "text_other": "De inhoud is nooit in het .qdpx-bestand opgeslagen en kan daar niet uit worden hersteld. Importeer de originelen opnieuw om het project te herstellen: je codes blijven behouden en bij de volgende keer bewaren worden de bestanden blijvend opgenomen.",
     "reimport": "Opnieuw importeren…",
     "reimporting": "Opnieuw importeren…"
+  },
+  "saveFailed": {
+    "title": "Je wijzigingen worden niet bewaard",
+    "retrying": "Magnolia blijft het proberen. Je kunt het project ook ergens anders bewaren.",
+    "tryAgain": "Probeer opnieuw",
+    "saveAs": "Bewaar als…",
+    "saving": "Bewaren…",
+    "lockedBy": "{{name}} heeft nu de controle over het project."
   },
   "memoEdit": {
     "deleteConfirm": "Memo \"{{title}}\" verwijderen? Dit kan niet ongedaan worden gemaakt.",

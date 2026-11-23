@@ -114,8 +114,10 @@
       "exportPdf": "Eksporter som PDF",
       "unsavedTitle": "De siste endringene dine kunne ikke lagres",
       "unsavedMessage": "De siste endringene i «{{name}}» kunne ikke lagres: {{error}}\n\nHvis du åpner det andre prosjektet nå, går de tapt.",
+      "unsavedMessageClose": "De siste endringene i «{{name}}» kunne ikke lagres: {{error}}\n\nHvis du lukker det nå, går de tapt.",
       "unsavedLockedBy": "{{name}} har nå kontrollen over prosjektet",
       "openAnyway": "Åpne likevel",
+      "closeAnyway": "Lukk likevel",
       "cancel": "Avbryt"
     },
     "import": {
@@ -866,6 +868,14 @@
     "text_other": "Innholdet ble aldri lagret i .qdpx-filen og kan ikke gjenopprettes fra den. Importer originalene på nytt for å reparere prosjektet – kodene dine beholdes, og neste lagring bygger inn filene permanent.",
     "reimport": "Importer på nytt …",
     "reimporting": "Importerer på nytt …"
+  },
+  "saveFailed": {
+    "title": "Endringene dine blir ikke lagret",
+    "retrying": "Magnolia fortsetter å prøve. Du kan også lagre prosjektet et annet sted.",
+    "tryAgain": "Prøv igjen",
+    "saveAs": "Lagre som …",
+    "saving": "Lagrer …",
+    "lockedBy": "{{name}} har nå kontrollen over prosjektet."
   },
   "memoEdit": {
     "deleteConfirm": "Slette memoen «{{title}}»? Dette kan ikke angres.",

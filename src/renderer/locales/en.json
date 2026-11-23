@@ -114,8 +114,10 @@
       "exportPdf": "Export as PDF",
       "unsavedTitle": "Your latest changes couldn’t be saved",
       "unsavedMessage": "The latest changes to “{{name}}” couldn’t be saved: {{error}}\n\nIf you open the other project now, they’ll be lost.",
+      "unsavedMessageClose": "The latest changes to “{{name}}” couldn’t be saved: {{error}}\n\nIf you close it now, they’ll be lost.",
       "unsavedLockedBy": "{{name}} has control of the project now",
       "openAnyway": "Open Anyway",
+      "closeAnyway": "Close Anyway",
       "cancel": "Cancel"
     },
     "import": {
@@ -866,6 +868,14 @@
     "text_other": "Their content was never stored in the .qdpx and can't be recovered from the file. Re-import the originals to repair the project — your codes are kept, and the next save embeds the files permanently.",
     "reimport": "Re-import…",
     "reimporting": "Re-importing…"
+  },
+  "saveFailed": {
+    "title": "Your changes aren’t being saved",
+    "retrying": "Magnolia keeps trying. You can also save the project somewhere else.",
+    "tryAgain": "Try Again",
+    "saveAs": "Save As…",
+    "saving": "Saving…",
+    "lockedBy": "{{name}} has control of the project now."
   },
   "memoEdit": {
     "deleteConfirm": "Delete memo \"{{title}}\"? This cannot be undone.",

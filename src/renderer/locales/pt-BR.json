@@ -114,8 +114,10 @@
       "exportPdf": "Exportar como PDF",
       "unsavedTitle": "Não foi possível salvar suas últimas alterações",
       "unsavedMessage": "Não foi possível salvar as últimas alterações em \"{{name}}\": {{error}}\n\nSe você abrir o outro projeto agora, elas serão perdidas.",
+      "unsavedMessageClose": "Não foi possível salvar as últimas alterações em \"{{name}}\": {{error}}\n\nSe você fechar agora, elas serão perdidas.",
       "unsavedLockedBy": "{{name}} tem o controle do projeto agora",
       "openAnyway": "Abrir mesmo assim",
+      "closeAnyway": "Fechar mesmo assim",
       "cancel": "Cancelar"
     },
     "import": {
@@ -895,6 +897,14 @@
     "text_other": "O conteúdo nunca foi armazenado no .qdpx e não pode ser recuperado do arquivo. Reimporte os originais para reparar o projeto: seus códigos são mantidos e o próximo salvamento incorpora os arquivos de forma permanente.",
     "reimport": "Reimportar…",
     "reimporting": "Reimportando…"
+  },
+  "saveFailed": {
+    "title": "Suas alterações não estão sendo salvas",
+    "retrying": "O Magnolia continua tentando. Você também pode salvar o projeto em outro lugar.",
+    "tryAgain": "Tentar novamente",
+    "saveAs": "Salvar como…",
+    "saving": "Salvando…",
+    "lockedBy": "{{name}} tem o controle do projeto agora."
   },
   "memoEdit": {
     "deleteConfirm": "Excluir o memo \"{{title}}\"? Não é possível desfazer.",

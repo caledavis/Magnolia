@@ -73,6 +73,7 @@ import { isAnalysisTab, isMapTab, isQueryBuilderTab, isMergeTab, isNotebookTab, 
 import { requestPreferencesCategory } from './components/Preferences/PreferencesWindow'
 import type { PersistedTab, PersistedTabState, MissingBinary, CheckoutMarker, ImportState, SaveOutcome } from './models/types'
 import { MissingBinariesBanner } from './components/MissingBinariesBanner'
+import { SaveFailedBanner } from './components/SaveFailedBanner'
 import { CheckoutConflictDialog } from './components/CheckoutConflictDialog'
 import { StealBackDialog } from './components/StealBackDialog'
 import { NameGateOverlay } from './components/NameGateOverlay'
@@ -301,6 +302,9 @@ function openMemoEditor(memo: Memo, isNew = false): void {
   window.api.openMemoEditWindow(initData)
 }
 
+/** How often a failing save is retried. */
+const SAVE_RETRY_MS = 20_000
+
 function App() {
   const { t } = useTranslation()
   const [showNewCodeDialog, setShowNewCodeDialog] = useState(false)
@@ -379,6 +383,9 @@ function App() {
   // local edits behind it, so its resolution path (Merge, not reload) is
   // different — see StealBackDialog.
   const [stealBackConflict, setStealBackConflict] = useState<CheckoutMarker | null>(null)
+  // Why saving the project last failed, while it keeps failing (shown by
+  // SaveFailedBanner; cleared by the next save that works).
+  const [saveFailure, setSaveFailure] = useState<string | null>(null)
 
   useEffect(() => {
     return window.api.onProjectLoadProgress((p) => setLoadProgress(p))
@@ -1094,12 +1101,22 @@ function App() {
       // Nothing worth keeping is lost: the file on disk keeps the data.
       return { ok: true }
     }
-    const result = await window.api.saveProject({
-      project,
-      sourceContents: documentStore.sourceContents,
-      filePath: projectStore.filePath ?? undefined,
-      userName: usePreferencesStore.getState().userName.trim() || undefined
-    })
+    let result: unknown
+    try {
+      result = await window.api.saveProject({
+        project,
+        sourceContents: documentStore.sourceContents,
+        filePath: projectStore.filePath ?? undefined,
+        userName: usePreferencesStore.getState().userName.trim() || undefined
+      })
+    } catch (err: any) {
+      // Most saves are autosaves nobody waits on: without this the failure
+      // went only to the console, and changes went unsaved unnoticed.
+      const error = err?.message || String(err)
+      console.error('[save-project] failed:', err)
+      setSaveFailure(error)
+      return { ok: false, error }
+    }
     if (result && typeof result === 'object' && (result as any).conflict) {
       // Someone else now holds the lock — refused rather than blindly
       // overwriting their already-saved changes. Route to Steal Back
@@ -1120,9 +1137,11 @@ function App() {
     }
     if (result && typeof result === 'object' && (result as any).guardBlocked) {
       console.warn('[save-project guard]', (result as any).message)
+      setSaveFailure(String((result as any).message))
       return { ok: false, error: String((result as any).message) }
     }
     if (typeof result === 'string') {
+      setSaveFailure(null)
       projectStore.setFilePath(result)
       projectStore.markClean()
       // Freshly-imported binaries are now embedded in the .qdpx: graduate their
@@ -1159,10 +1178,24 @@ function App() {
       outcome = { ok: false, error: err?.message || String(err) }
     }
     if (outcome.ok) return true
-    return window.api.confirmUnsavedSwitch(ps.name, outcome.error, outcome.lockedBy)
+    return window.api.confirmLosingChanges(ps.name, { error: outcome.error, lockedBy: outcome.lockedBy })
   }, [cancelPendingAutoSave, handleSaveProject])
   const saveBeforeSwitchingRef = useRef(saveBeforeSwitching)
   useEffect(() => { saveBeforeSwitchingRef.current = saveBeforeSwitching }, [saveBeforeSwitching])
+
+  // While saving fails, try again every so often: the autosave only fires
+  // when the project goes from saved to changed, which it doesn't while
+  // it stays unsaved, so nothing else would retry.
+  useEffect(() => {
+    if (!saveFailure) return
+    const timer = setInterval(() => {
+      const ps = useProjectStore.getState()
+      if (ps.isDirty && ps.filePath && !loadInProgressRef.current) void saveProjectRef.current()
+    }, SAVE_RETRY_MS)
+    return () => clearInterval(timer)
+  }, [saveFailure])
+  // A failure belongs to the project it happened in.
+  useEffect(() => { setSaveFailure(null) }, [projectStore.filePath])
 
   const handleSaveProjectAs = useCallback(async () => {
     const project = collectProject()
@@ -1176,6 +1209,7 @@ function App() {
       return
     }
     if (typeof result === 'string') {
+      setSaveFailure(null)
       projectStore.setFilePath(result)
       projectStore.markClean()
       documentStore.promoteImportedBinariesToArchive()
@@ -2338,9 +2372,9 @@ function App() {
   // close, write the current project to disk before letting the window go.
   // While the save is in flight we ping a heartbeat to main every second
   // — main's watchdog only fires on silence, so a multi-minute save on a
-  // large project keeps the window open indefinitely. notifyFlushComplete
-  // fires regardless of save outcome so a thrown writer error doesn't
-  // trap the user inside a window they asked to close.
+  // large project keeps the window open indefinitely. If the save fails,
+  // the person is asked whether to close anyway (losing the changes) or
+  // stay; a writer error never traps them in a window they asked to close.
   //
   // Registered once: re-registering whenever collectProject changed
   // (every edit) left a moment with no listener, and a close that landed
@@ -2355,24 +2389,35 @@ function App() {
         // first interval tick (which is a full second away).
         window.api.sendFlushHeartbeat()
         try {
-          const result = await window.api.saveProject({
-            project: collectProjectRef.current(),
-            sourceContents: useDocumentStore.getState().sourceContents,
-            filePath: ps.filePath,
-            userName: usePreferencesStore.getState().userName.trim() || undefined
-          })
-          // Someone else now holds the lock — same staleness check as the
-          // normal save path. There's no room for a Merge-reconciliation
-          // dialog in the middle of closing the window, so this window's
-          // last few seconds of unsaved edits are dropped rather than
-          // risking a blind overwrite of the other person's already-saved
-          // changes; the far worse outcome. The next open will show the
-          // normal checkout-conflict dialog naming who holds it now.
-          if (result && typeof result === 'object' && (result as any).conflict) {
-            console.warn('[flush-and-close] save refused — locked by', (result as any).marker?.userName)
+          let why: { error?: string; lockedBy?: string } | null = null
+          try {
+            const result = await window.api.saveProject({
+              project: collectProjectRef.current(),
+              sourceContents: useDocumentStore.getState().sourceContents,
+              filePath: ps.filePath,
+              userName: usePreferencesStore.getState().userName.trim() || undefined
+            })
+            // Someone else now holds the lock — same staleness check as
+            // the normal save path. There's no room for a Merge
+            // reconciliation in the middle of closing the window, and
+            // overwriting the other person's already-saved changes would
+            // be far worse, so this is a save that failed: ask below.
+            if (result && typeof result === 'object' && (result as any).conflict) {
+              why = { lockedBy: (result as any).marker?.userName || '?' }
+            } else if (result && typeof result === 'object' && (result as any).guardBlocked) {
+              why = { error: String((result as any).message) }
+            }
+          } catch (err: any) {
+            console.error('Pre-close flush failed:', err)
+            why = { error: err?.message || String(err) }
           }
-        } catch (err) {
-          console.error('Pre-close flush failed:', err)
+          // The changes would be lost: ask first (heartbeats keep the
+          // watchdog away meanwhile). Cancel keeps the window open.
+          if (why && !(await window.api.confirmLosingChanges(ps.name, { ...why, closing: true }))) {
+            window.api.cancelFlush()
+            setSaveFailure(why.error ?? t('saveFailed.lockedBy', { name: why.lockedBy }))
+            return
+          }
         } finally {
           clearInterval(heartbeat)
         }
@@ -3671,6 +3716,12 @@ function App() {
           />
         )
       })()}
+
+      <SaveFailedBanner
+        error={saveFailure}
+        onRetry={() => saveProjectRef.current()}
+        onSaveAs={() => handleSaveProjectAs().catch((err: any) => setSaveFailure(err?.message || String(err)))}
+      />
 
       <MissingBinariesBanner
         missing={missingBinaries}

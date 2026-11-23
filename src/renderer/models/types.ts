@@ -699,6 +699,8 @@ export interface MagnoliaAPI {
   onNewProjectAtPath: (callback: (data: { filePath: string; projectName: string }) => void) => () => void
   onFlushAndClose: (callback: () => void) => () => void
   notifyFlushComplete: () => void
+  /** The pre-close save failed and the person chose to stay: the close is off. */
+  cancelFlush: () => void
   sendFlushHeartbeat: () => void
   trackRecentProject: (name: string, filePath: string) => void
   onRecentProjectsChanged: (callback: () => void) => () => void
@@ -814,10 +816,10 @@ export interface MagnoliaAPI {
    *  (default OK). Use this, not window.confirm, whose answer here is a
    *  Promise — which reads as yes. */
   askConfirm: (message: string, okLabel?: string) => Promise<boolean>
-  /** Ask whether to open another project although the current one's
-   *  latest changes couldn't be saved (why: `error`, or who now has
-   *  control: `lockedBy`). True to open it anyway. */
-  confirmUnsavedSwitch: (projectName: string, error?: string, lockedBy?: string) => Promise<boolean>
+  /** Ask whether to open another project, or close this one (`closing`),
+   *  although its latest changes couldn't be saved (why: `error`, or who
+   *  now has control: `lockedBy`). True to go ahead and lose them. */
+  confirmLosingChanges: (projectName: string, why: { error?: string; lockedBy?: string; closing?: boolean }) => Promise<boolean>
   /** A URL the <audio>/<video> elements stream a media handle from,
    *  served as `mimeType` (else as its extension suggests). */
   mediaUrl: (handle: string, mimeType?: string) => string

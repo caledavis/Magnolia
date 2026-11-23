@@ -114,8 +114,10 @@
       "exportPdf": "Eksportér som PDF",
       "unsavedTitle": "Dine seneste ændringer kunne ikke gemmes",
       "unsavedMessage": "De seneste ændringer i »{{name}}« kunne ikke gemmes: {{error}}\n\nHvis du åbner det andet projekt nu, går de tabt.",
+      "unsavedMessageClose": "De seneste ændringer i »{{name}}« kunne ikke gemmes: {{error}}\n\nHvis du lukker det nu, går de tabt.",
       "unsavedLockedBy": "{{name}} har nu kontrollen over projektet",
       "openAnyway": "Åbn alligevel",
+      "closeAnyway": "Luk alligevel",
       "cancel": "Annuller"
     },
     "import": {
@@ -866,6 +868,14 @@
     "text_other": "Indholdet blev aldrig gemt i .qdpx-filen og kan ikke gendannes fra den. Genimportér originalerne for at reparere projektet – dine koder bevares, og næste gang du gemmer, indlejres filerne permanent.",
     "reimport": "Genimportér…",
     "reimporting": "Genimporterer…"
+  },
+  "saveFailed": {
+    "title": "Dine ændringer bliver ikke gemt",
+    "retrying": "Magnolia bliver ved med at prøve. Du kan også gemme projektet et andet sted.",
+    "tryAgain": "Prøv igen",
+    "saveAs": "Gem som…",
+    "saving": "Gemmer…",
+    "lockedBy": "{{name}} har nu kontrollen over projektet."
   },
   "memoEdit": {
     "deleteConfirm": "Slet memoet »{{title}}«? Det kan ikke fortrydes.",

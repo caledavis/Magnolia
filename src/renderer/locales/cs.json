@@ -114,8 +114,10 @@
       "exportPdf": "Exportovat jako PDF",
       "unsavedTitle": "Vaše nejnovější změny se nepodařilo uložit",
       "unsavedMessage": "Nejnovější změny v „{{name}}“ se nepodařilo uložit: {{error}}\n\nPokud teď otevřete jiný projekt, budou ztraceny.",
+      "unsavedMessageClose": "Nejnovější změny v „{{name}}“ se nepodařilo uložit: {{error}}\n\nPokud ho teď zavřete, budou ztraceny.",
       "unsavedLockedBy": "kontrolu nad projektem má teď {{name}}",
       "openAnyway": "Přesto otevřít",
+      "closeAnyway": "Přesto zavřít",
       "cancel": "Zrušit"
     },
     "import": {
@@ -924,6 +926,14 @@
     "text_other": "Jejich obsah nebyl nikdy uložen do .qdpx a ze souboru jej nelze obnovit. Projekt opravíte opětovným importem originálů – vaše kódy zůstanou zachovány a při příštím uložení se soubory trvale vloží.",
     "reimport": "Znovu importovat…",
     "reimporting": "Opětovný import…"
+  },
+  "saveFailed": {
+    "title": "Vaše změny se neukládají",
+    "retrying": "Magnolia to zkouší dál. Projekt můžete také uložit jinam.",
+    "tryAgain": "Zkusit znovu",
+    "saveAs": "Uložit jako…",
+    "saving": "Ukládání…",
+    "lockedBy": "Kontrolu nad projektem má teď {{name}}."
   },
   "memoEdit": {
     "deleteConfirm": "Smazat poznámku „{{title}}“? Tuto akci nelze vrátit.",

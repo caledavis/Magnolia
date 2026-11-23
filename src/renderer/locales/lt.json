@@ -114,8 +114,10 @@
       "exportPdf": "Eksportuoti kaip PDF",
       "unsavedTitle": "Naujausių pakeitimų nepavyko įrašyti",
       "unsavedMessage": "Naujausių „{{name}}“ pakeitimų nepavyko įrašyti: {{error}}\n\nJei dabar atversite kitą projektą, jie bus prarasti.",
+      "unsavedMessageClose": "Naujausių „{{name}}“ pakeitimų nepavyko įrašyti: {{error}}\n\nJei dabar jį užversite, jie bus prarasti.",
       "unsavedLockedBy": "dabar projektą valdo {{name}}",
       "openAnyway": "Vis tiek atverti",
+      "closeAnyway": "Vis tiek užverti",
       "cancel": "Atšaukti"
     },
     "import": {
@@ -924,6 +926,14 @@
     "text_other": "Jų turinys niekada nebuvo išsaugotas .qdpx faile ir jo negalima atkurti iš failo. Iš naujo importuokite originalus, kad pataisytumėte projektą – jūsų kodai išliks, o kitą kartą įrašant failai bus įterpti visam laikui.",
     "reimport": "Importuoti iš naujo…",
     "reimporting": "Importuojama iš naujo…"
+  },
+  "saveFailed": {
+    "title": "Jūsų pakeitimai neįrašomi",
+    "retrying": "Magnolia vis bando. Projektą taip pat galite įrašyti kitur.",
+    "tryAgain": "Bandyti dar kartą",
+    "saveAs": "Įrašyti kaip…",
+    "saving": "Įrašoma…",
+    "lockedBy": "Dabar projektą valdo {{name}}."
   },
   "memoEdit": {
     "deleteConfirm": "Šalinti pastabą „{{title}}“? Šio veiksmo atšaukti negalima.",

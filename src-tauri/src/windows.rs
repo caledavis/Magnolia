@@ -355,6 +355,17 @@ pub fn arm_flush_watchdog(app: &AppHandle) {
     });
 }
 
+/// The close is off: the renderer couldn't save and the person chose to
+/// stay. Disarms the watchdog and forgets any quit (or update restart)
+/// that started it.
+pub fn flush_cancelled(app: &AppHandle) {
+    let mut ui = state(app).ui.lock().unwrap();
+    ui.flush_pending = false;
+    ui.flush_generation += 1;
+    ui.is_quitting = false;
+    ui.restart_after_quit = false;
+}
+
 /// Renderer finished its flush-on-close save.
 pub fn flush_complete(app: &AppHandle) {
     if let Some(w) = app.get_webview_window(MAIN) {

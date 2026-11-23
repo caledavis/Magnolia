@@ -114,8 +114,10 @@
       "exportPdf": "Exportera som PDF",
       "unsavedTitle": "Dina senaste ändringar kunde inte sparas",
       "unsavedMessage": "De senaste ändringarna i ”{{name}}” kunde inte sparas: {{error}}\n\nOm du öppnar det andra projektet nu går de förlorade.",
+      "unsavedMessageClose": "De senaste ändringarna i ”{{name}}” kunde inte sparas: {{error}}\n\nOm du stänger det nu går de förlorade.",
       "unsavedLockedBy": "{{name}} har nu kontrollen över projektet",
       "openAnyway": "Öppna ändå",
+      "closeAnyway": "Stäng ändå",
       "cancel": "Avbryt"
     },
     "import": {
@@ -866,6 +868,14 @@
     "text_other": "Innehållet sparades aldrig i .qdpx-filen och kan inte återskapas från den. Importera originalen igen för att reparera projektet – dina koder behålls, och nästa sparning bäddar in filerna permanent.",
     "reimport": "Importera igen…",
     "reimporting": "Importerar igen…"
+  },
+  "saveFailed": {
+    "title": "Dina ändringar sparas inte",
+    "retrying": "Magnolia fortsätter att försöka. Du kan också spara projektet någon annanstans.",
+    "tryAgain": "Försök igen",
+    "saveAs": "Spara som…",
+    "saving": "Sparar…",
+    "lockedBy": "{{name}} har nu kontrollen över projektet."
   },
   "memoEdit": {
     "deleteConfirm": "Radera memot ”{{title}}”? Det går inte att ångra.",
