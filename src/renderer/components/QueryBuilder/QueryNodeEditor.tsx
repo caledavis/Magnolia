@@ -804,10 +804,19 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
   }, [])
 
   /* --- notify parent --- */
+  // The parent's callbacks, latest: the effect below reports the query
+  // when the graph (or the codes it names) changes, not whenever the parent
+  // re-renders with fresh callbacks.
+  const onChangeRef = useRef(onChange)
+  const onGraphChangeRef = useRef(onGraphChange)
   useEffect(() => {
-    onChange(graphToCondition(nodes, conns, codes))
-    onGraphChange?.({ nodes, conns })
-  }, [nodes, conns])
+    onChangeRef.current = onChange
+    onGraphChangeRef.current = onGraphChange
+  })
+  useEffect(() => {
+    onChangeRef.current(graphToCondition(nodes, conns, codes))
+    onGraphChangeRef.current?.({ nodes, conns })
+  }, [nodes, conns, codes])
 
   /*
    * Document-level mousemove/mouseup for reliable drag tracking.

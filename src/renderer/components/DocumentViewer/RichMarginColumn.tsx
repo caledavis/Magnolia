@@ -8,7 +8,7 @@
  * - Quote icon column (18px) with badge count
  * - Memo icon column (18px) with badge count
  */
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { PlainTextSelection, Code, Memo } from '../../models/types'
 import { layoutBrackets, capGeometry, bracketPieces, COL_W, LABEL_H, LABEL_GAP } from './bracketLayout'
 import { CodeLabel } from './CodeLabel'
@@ -283,7 +283,12 @@ export function RichMarginColumn({ contentRef, containerRef, selections, codes, 
     return Math.max(LABEL_W, available)
   }
   const [iconGroups, setIconGroups] = useState<IconGroup[]>([])
-  const codeMap = buildCodeMap(codes)
+  const codeMap = useMemo(() => buildCodeMap(codes), [codes])
+  // labelMaxWidthFor measures the DOM and is new every render; the
+  // measuring effect below reads the latest through this ref rather than
+  // rerunning (and setting state) on every render.
+  const labelMaxWidthForRef = useRef(labelMaxWidthFor)
+  useEffect(() => { labelMaxWidthForRef.current = labelMaxWidthFor })
 
   useEffect(() => {
     if (!rendered || !contentRef.current || !containerRef.current) return
@@ -364,13 +369,13 @@ export function RichMarginColumn({ contentRef, containerRef, selections, codes, 
         )
       })
       const baseGroups = layoutIcons(items)
-      const packedGroups = computeIconLefts(baseGroups, newBrackets, labelMaxWidthFor)
+      const packedGroups = computeIconLefts(baseGroups, newBrackets, labelMaxWidthForRef.current)
       setBrackets(newBrackets)
       setIconGroups(packedGroups)
     }, 150)
 
     return () => clearTimeout(timer)
-  }, [rendered, selections, contentMemos, quotes, codes, measureTick])
+  }, [rendered, selections, contentMemos, quotes, codeMap, measureTick, contentRef, containerRef])
 
   const maxCol = brackets.length > 0 ? Math.max(...brackets.map((b) => b.column)) : 0
   const bracketZoneW = (maxCol + 1) * COL_W + 6

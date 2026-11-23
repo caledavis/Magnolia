@@ -348,7 +348,7 @@ function App() {
         void window.api.showMessage(t('app.parseFailed', { name: suggestedName, error: err?.message || String(err) }), 'error')
       }
     },
-    []
+    [t]
   )
   const [showProjectDetails, setShowProjectDetails] = useState(false)
   const [showZoteroImport, setShowZoteroImport] = useState(false)
@@ -581,7 +581,7 @@ function App() {
       poppedOut: false
     })
     ds.openToolTab(tabId)
-  }, [])
+  }, [t])
 
   const openSavedAnalysis = useCallback((toolType: AnalysisToolType, savedConfig: any) => {
     // Saved relationship maps open as a tab.
@@ -627,7 +627,7 @@ function App() {
       poppedOut: false
     })
     ds.openToolTab(tabId)
-  }, [])
+  }, [t])
 
   const popOutQueryResults = useCallback(() => {
     const qs = useQueryStore.getState()
@@ -910,7 +910,7 @@ function App() {
     useProjectStore.getState().setCheckoutMarker(marker)
     const myName = usePreferencesStore.getState().userName.trim()
     if (marker && marker.userName !== myName) setCheckoutConflict(marker)
-  }, [])
+  }, [setCheckoutConflict])
 
   const handleOpenProject = useCallback(async () => {
     // Show the native file picker FIRST, before flipping any loading
@@ -1007,7 +1007,7 @@ function App() {
       setLoadProgress(null)
       liftLoadSuppression()
     }
-  }, [projectStore, documentStore, codeStore, tagStore, queryStore, logbookStore, memoStore, cancelPendingAutoSave, liftLoadSuppression, restoreTabState, applyCheckoutInfo])
+  }, [cancelPendingAutoSave, t, documentStore, applyCheckoutInfo, projectStore, codeStore, tagStore, queryStore, logbookStore, memoStore, restoreTabState, liftLoadSuppression])
 
   // Set by the auto-checkout-on-first-edit effect (further down) for the
   // duration of its own checkOutProject call, cleared when it resolves.
@@ -1415,7 +1415,7 @@ function App() {
         if (pendingAutoCheckOutRef.current === claim) pendingAutoCheckOutRef.current = null
       })
     pendingAutoCheckOutRef.current = claim
-  }, [projectStore.isDirty, projectStore.filePath, projectStore.checkoutMarker])
+  }, [projectStore.isDirty, projectStore.filePath, projectStore.checkoutMarker, setCheckoutConflict])
 
   // Keep the main process told which .qdpx is open, so it can regenerate
   // any media temp file the OS reaps mid-session straight from the archive
@@ -1573,7 +1573,7 @@ function App() {
       poppedOut: false
     })
     ds.openToolTab(tabId)
-  }, [queryStore])
+  }, [queryStore.savedQueries, t])
 
   const handleNewCode = useCallback(() => {
     if (checkoutLockedBy) { setCheckoutConflict(); return }
@@ -1774,11 +1774,15 @@ function App() {
         }
       }
     }
-  }, [codeStore, pendingCodeAllNewCode])
+  }, [codeStore, pendingCodeAllNewCode, t])
 
-  // Handle actions from the native application menu
+  // Handle actions from the native application menu. The listener is
+  // registered once and calls the latest handler through a ref:
+  // re-registering whenever a handler changed (which is on every edit)
+  // left moments with no listener, in which a menu choice was lost.
+  const menuActionRef = useRef<(action: string) => void>(() => {})
   useEffect(() => {
-    const unsubscribe = window.api.onMenuAction((action) => {
+    menuActionRef.current = (action) => {
       switch (action) {
         case 'new-project':
           handleNewProject()
@@ -1874,21 +1878,9 @@ function App() {
           break
         }
       }
-    })
-    return unsubscribe
-  }, [
-    handleNewProject,
-    handleOpenProject,
-    handleSaveProject,
-    handleSaveProjectAs,
-    handleImportDocument,
-    handleNewCode,
-    openQueryBuilder,
-    openCodebook,
-    openLogbook,
-    openAnalysis,
-    queryStore
-  ])
+    }
+  })
+  useEffect(() => window.api.onMenuAction((action) => menuActionRef.current(action)), [])
 
   // Custom keyboard shortcuts for project-level operations.
   // Native text undo/redo/selectAll is handled by the menu's predefined items.
@@ -2332,7 +2324,7 @@ function App() {
       }
     })
     return unsub
-  }, [cancelPendingAutoSave, liftLoadSuppression, applyCheckoutInfo])
+  }, [cancelPendingAutoSave, liftLoadSuppression, applyCheckoutInfo, t, restoreTabState])
 
   // Hidden flush-on-close: when the main process intercepts the window
   // close, write the current project to disk before letting the window go.
@@ -2423,7 +2415,7 @@ function App() {
       window.api.notifyFlushComplete()
     })
     return unsub
-  }, [])
+  }, [t])
 
   // Listen for new-project-at-path from the welcome screen. The main
   // process has already written an empty .qdpx at filePath; we just need
@@ -2547,7 +2539,7 @@ function App() {
       }
     })
     return unsub
-  }, [])
+  }, [t])
 
   // Listen for query results window close (pop back in)
   useEffect(() => {
@@ -2762,7 +2754,7 @@ function App() {
       currentQuery: qs.currentQuery ?? undefined
     }
     window.api.updateQueryResultsWindow(initData)
-  }, [queryResultsPoppedOut, queryStore.results, queryStore.currentQuery, queryStore.isActive, queryStore.isLoading, queryStore.savedQueries, codeStore.findCode, documentStore.sources, tagStore.tags])
+  }, [queryResultsPoppedOut, queryStore.results, queryStore.currentQuery, queryStore.isActive, queryStore.isLoading, queryStore.savedQueries, codeStore.findCode, documentStore.sources, tagStore.tags, t])
 
 
   // Listen for logbook updates from the logbook window

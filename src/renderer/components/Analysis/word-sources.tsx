@@ -29,6 +29,9 @@ export interface QueryRun {
  *  the project or a query changes. */
 export function useQueryRuns(data: AnalysisInitData, queryGuids: string[], active: boolean): Map<string, QueryRun> {
   const savedQueries = useQueryStore((s) => s.savedQueries)
+  // runQueries reads the project itself; `data` and the saved queries say
+  // when it must again (see above).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   return useMemo(() => (active ? runQueries(queryGuids) : new Map()), [data, savedQueries, queryGuids, active])
 }
 

@@ -7,7 +7,7 @@ import { Icon, faChevronDown, faChevronRight, faXmark, faUpRightFromSquare, faDo
 import { generateGuid } from '../../utils/guid'
 import { isToolTab } from '../../utils/tab-ids'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
-import type { Memo, MemoType, MemoEditInitData } from '../../models/types'
+import type { Memo, MemoType, MemoEditInitData, SavedAnalysis } from '../../models/types'
 import { showMemoLocation } from '../../utils/show-memo'
 import { useTranslation } from 'react-i18next'
 import { formatLocale, compareText, formatNumber } from '../../i18n'
@@ -312,6 +312,9 @@ interface Props {
   isPoppedOut?: boolean
 }
 
+/** One empty list, so "no analyses" is the same value every render. */
+const NO_ANALYSES: SavedAnalysis[] = []
+
 export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
   const { t } = useTranslation()
   // Enforced checkout lock: reading existing memos stays live; the
@@ -350,7 +353,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
       const q = trimmedSearch.toLowerCase()
       return list.filter((m) => (m.title || t('memos.untitled')).toLowerCase().includes(q))
     },
-    [trimmedSearch]
+    [t, trimmedSearch]
   )
 
   const projectMemos = useMemo(() => memos.filter((m) => m.type === 'project'), [memos])
@@ -378,7 +381,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
     [memos, viewedDocumentGuid]
   )
   const analysisMemos = useMemo(() => memos.filter((m) => m.type === 'analysis'), [memos])
-  const savedAnalyses = useProjectStore((s) => s.savedAnalyses) ?? []
+  const savedAnalyses = useProjectStore((s) => s.savedAnalyses) ?? NO_ANALYSES
   // Group analysis memos by the map (savedAnalysis) they belong to, so
   // the sidebar reads "Analysis Memos → <map name> → <memos>".
   const analysisMemoGroups = useMemo(() => {
@@ -399,7 +402,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
       .map(([guid, list]) => ({ guid, name: nameFor(guid), memos: list }))
       .sort((a, b) => compareText(a.name, b.name))
     return { groups, unattached }
-  }, [analysisMemos, savedAnalyses])
+  }, [analysisMemos, savedAnalyses, t])
 
   const openMemoEdit = useCallback((guid: string) => {
     const memo = useMemoStore.getState().findMemo(guid)
@@ -553,7 +556,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
       if (!(await window.api.askConfirm(t('memos.moveToProjectConfirm'), t('common.continue')))) return
     }
     changeMemoType(guid, 'project', { sourceGuids: undefined, sourceGuid: undefined, startPosition: undefined, endPosition: undefined })
-  }, [findMemo, changeMemoType])
+  }, [findMemo, changeMemoType, t])
 
   return (
     <div className="panel">

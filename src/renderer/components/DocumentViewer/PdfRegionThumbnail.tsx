@@ -110,7 +110,7 @@ export function PdfRegionThumbnail({ sourceGuid, filePath: filePathProp, page, x
     return () => {
       cancelled = true
     }
-  }, [nearViewport, filePath, pdfBase64, sourceGuid, isImage, page, x, y, width, height])
+  }, [nearViewport, filePath, pdfBase64, sourceGuid, isImage, page, x, y, width, height, t])
 
   // Keep aspect ratio while fitting inside maxW × maxH.
   const aspect = width > 0 && height > 0 ? width / height : 1

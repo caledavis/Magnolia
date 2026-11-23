@@ -62,6 +62,9 @@ function columnLabel(col: { label: string; sourceGuids: string[] }, max?: number
   return isAverageColumn(col) ? tr('codeFreq.averageLabel', { label: name }) : name
 }
 
+/** Colours for the chart's series, one per column. */
+const SERIES_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16']
+
 export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
   const { t } = useTranslation()
   const [docFilter, setDocFilter] = useState<DocumentFilterState>(documentFilterFromConfig(savedConfig))
@@ -114,11 +117,11 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
     () => ({ codeGuids, docFilter, groupBy }),
     [codeGuids, docFilter, groupBy]
   )
-  const initialBaseline = useMemo(() => ({
+  const [initialBaseline] = useState(() => ({
     codeGuids: savedConfig?.codeGuids ?? [],
     docFilter: documentFilterFromConfig(savedConfig),
     groupBy: savedConfig?.groupBy ?? migrateLegacyGroupBy(savedConfig?.groupByTags),
-  }), [])
+  }))
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
 
   const handleDiscard = useCallback(() => {
@@ -242,7 +245,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
       rows.push([codeMap.get(codeGuids[i])?.name || '', ...grid[i].map((v) => v.toFixed(1) + '%')])
     }
     window.api.exportCsv(toCsv(rows), 'code-frequencies.csv')
-  }, [columns, codeGuids, grid, codeMap])
+  }, [columns, t, codeGuids, codeMap, grid])
 
   const handleTagDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -255,7 +258,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
     dismissAutoGroup(entry)
     const key = groupByKey(entry)
     setGroupBy((p) => p.filter((e) => groupByKey(e) !== key))
-  }, [])
+  }, [dismissAutoGroup])
 
   const handleRename = useCallback((newName: string) => {
     setAnalysisName(newName)
@@ -311,8 +314,6 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
   const barMaxH = chartH - marginBottom - 10
   const maxPct = useMemo(() => Math.max(1, ...grid.flat()), [grid])
 
-  // Assign colors to columns for chart series
-  const seriesColors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16']
 
   const handleExportChart = useCallback(() => {
     if (!chartRef.current) return
@@ -335,7 +336,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
     const items = columns.map((col, ci) => {
       const label = columnLabel(col, 20)
       return {
-        color: seriesColors[ci % seriesColors.length],
+        color: SERIES_COLORS[ci % SERIES_COLORS.length],
         label,
         width: SWATCH + SWATCH_GAP + label.length * CHAR_W
       }
@@ -381,7 +382,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
     const combined = `<svg xmlns="http://www.w3.org/2000/svg" width="${chartW}" height="${totalH}" viewBox="0 0 ${chartW} ${totalH}"><rect width="${chartW}" height="${totalH}" fill="#ffffff"/>${legendParts.join('')}<g transform="translate(0, ${legendH})">${chartHtml}</g></svg>`
 
     window.api.exportSvg(combined, 'code-frequencies-chart.svg')
-  }, [columns, seriesColors, themeColors, chartW, chartH])
+  }, [columns, themeColors, chartW, chartH])
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -683,7 +684,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
             <div style={{ display: 'flex', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
               {columns.map((col, ci) => (
                 <div key={col.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10 }}>
-                  <div style={{ width: 10, height: 10, background: seriesColors[ci % seriesColors.length], borderRadius: 2 }} />
+                  <div style={{ width: 10, height: 10, background: SERIES_COLORS[ci % SERIES_COLORS.length], borderRadius: 2 }} />
                   {columnLabel(col, 20)}
                 </div>
               ))}
@@ -722,7 +723,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                             y={barY}
                             width={12}
                             height={Math.max(0, barH)}
-                            fill={seriesColors[si % seriesColors.length]}
+                            fill={SERIES_COLORS[si % SERIES_COLORS.length]}
                             opacity={0.85}
                             rx={1}
                             style={{ cursor: val > 0 ? 'pointer' : undefined }}

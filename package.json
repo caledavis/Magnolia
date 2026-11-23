@@ -22,6 +22,7 @@
     "build:web": "vite build",
     "tauri": "tauri",
     "typecheck": "tsc -p tsconfig.web.json --noEmit",
+    "lint": "eslint src/renderer",
     "test": "vitest run && cargo test --workspace",
     "test:watch": "vitest",
     "licenses": "node scripts/build-third-party-licenses.mjs > THIRD-PARTY-LICENSES.txt",
@@ -73,8 +74,11 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^6.3.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "jsdom": "^26.1.0",
     "typescript": "^5.7.3",
+    "typescript-eslint": "^8.74.0",
     "vite": "^8.3.8",
     "vitest": "^5.1.1"
   }

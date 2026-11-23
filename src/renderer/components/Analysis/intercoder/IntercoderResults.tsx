@@ -159,6 +159,8 @@ export function IntercoderResults(p: Props) {
   // Where each column's group (all coders, a pair, a coder) starts and ends.
   const groupStarts = cols.map((c, i) => i === 0 || columnGroup(cols[i - 1]) !== columnGroup(c))
   const groupEnds = cols.map((c, i) => i === cols.length - 1 || columnGroup(cols[i + 1]) !== columnGroup(c))
+  // The measured cells exist only once there's a snapshot to show.
+  const hasSnapshot = snapshot !== null
   // The header's first row, measured so the second sticks just below it.
   const headRowRef = useRef<HTMLTableRowElement>(null)
   const [headRowHeight, setHeadRowHeight] = useState(0)
@@ -170,7 +172,7 @@ export function IntercoderResults(p: Props) {
     const ro = new ResizeObserver(measure)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [snapshot !== null])
+  }, [hasSnapshot])
   // The all-coders column stays beside the code column when the table
   // scrolls sideways: each pair or coder is read against it (a coder's
   // "Alpha without" against everyone's alpha). Measure the code column
@@ -186,7 +188,7 @@ export function IntercoderResults(p: Props) {
     const ro = new ResizeObserver(measure)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [snapshot !== null])
+  }, [hasSnapshot])
   const pinned = (top?: number): React.CSSProperties => ({
     position: 'sticky', insetInlineStart: codeColWidth, borderInlineEnd: '1px solid var(--border-color)',
     ...(top === undefined ? { zIndex: 1 } : { top, zIndex: 3 })
@@ -651,7 +653,6 @@ function RegionPreview({ coder, sourceType, formatData, passage, segs, colour }:
       : renderImageRegionThumbnail(opts)
     p.then((url) => { if (!cancelled) setImg(url) }).catch(() => {})
     return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coder.filePath, sourceType, formatData, passage.line, view.x, view.y, view.w, view.h])
   const maxW = 320
   const scale = Math.min(maxW / view.w, 200 / view.h)

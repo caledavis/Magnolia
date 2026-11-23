@@ -235,7 +235,7 @@ export function Reports({ savedConfig, inTab }: Props) {
   void savedQueries; void savedAnalyses; void quotes; void memos; void sources
 
   const currentConfig = useMemo(() => ({ items }), [items])
-  const initialBaseline = useMemo(() => ({ items: savedConfig?.items ?? [] }), [])
+  const [initialBaseline] = useState(() => ({ items: savedConfig?.items ?? [] }))
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
 
   const insertItemsAt = useCallback((index: number, newItems: ReportItem[]) => {
@@ -416,7 +416,7 @@ export function Reports({ savedConfig, inTab }: Props) {
     if (!dirty || !savedRef.current) return
     const timer = setTimeout(() => persistSaved(nameRef.current.trim() || analysisName.trim() || t('reports.untitledReport')), 800)
     return () => clearTimeout(timer)
-  }, [dirty, analysisName, persistSaved])
+  }, [dirty, analysisName, persistSaved, t])
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>

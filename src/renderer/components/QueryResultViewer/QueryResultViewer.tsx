@@ -282,7 +282,7 @@ export function QueryResultViewer({ onSaveQuery, onEditQuery, queryName, onCodeA
 
     const safeName = (queryName || t('results.title')).replace(/[^\p{L}\p{N} _-]/gu, '').trim()
     await exportPdfWithHeader(html, safeName)
-  }, [groups, results, queryName])
+  }, [groups, queryName, t, results.length, sourceSelectionsMap, sources])
 
   const toggleExpand = (key: string) => {
     setExpandedKeys((prev) => {

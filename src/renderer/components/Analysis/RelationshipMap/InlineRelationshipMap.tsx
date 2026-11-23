@@ -317,7 +317,7 @@ export function InlineRelationshipMap({ mapGuid }: Props) {
       }
       setElements((prev) => [...prev, newEl])
     },
-    [setElements]
+    [setElements, t]
   )
 
   // Double-click on map element → invoke the same project-level actions
@@ -578,7 +578,7 @@ export function InlineRelationshipMap({ mapGuid }: Props) {
     useRelationshipMapStore.getState().setName(mapGuid, trimmed)
     setShowSaveDialog(false)
     flushMapSave()
-  }, [mapGuid, flushMapSave])
+  }, [t, mapGuid, flushMapSave])
 
   // Register the save handler so the TabBar's unsaved-changes dialog
   // can fire it when the user picks Save while closing this tab.

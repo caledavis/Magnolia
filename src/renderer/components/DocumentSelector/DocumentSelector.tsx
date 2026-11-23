@@ -759,6 +759,12 @@ export function DocumentSelector({
   }, [])
 
   /* --- notify parent --- */
+  // The parent's onChange, latest: the effect below reports a new filter
+  // when the graph or its data changes, not whenever the parent re-renders
+  // with a fresh callback.
+  const onChangeRef = useRef(onChange)
+  useEffect(() => { onChangeRef.current = onChange })
+
   useEffect(() => {
     const resolved = resolveDocGraph(nodes, conns, docGraphData)
     // Emit the tag guids the graph used (include/exclude) alongside the
@@ -786,8 +792,8 @@ export function DocumentSelector({
       questionScope: inSelection(questionScope),
       respondentScope: inSelection(respondentScope)
     }
-    onChange(newFilter)
-  }, [nodes, conns, sources, tagMembers, folders, sourceFolder, questionScope, respondentScope])
+    onChangeRef.current(newFilter)
+  }, [nodes, conns, docGraphData, questionScope, respondentScope])
 
   /* --- survey questions & respondents --- */
   const setSurveyScope = useCallback((kind: 'questions' | 'respondents', surveyGuid: string, ids: string[]) => {
@@ -877,7 +883,7 @@ export function DocumentSelector({
     document.addEventListener('mousemove', onMove)
     document.addEventListener('mouseup', onUp)
     return () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp) }
-  }, [cpos, setDrag, updateWire])
+  }, [cpos, selNodes, setDrag, updateWire])
 
   /* --- port mousedown --- */
   const portDown = useCallback((e: React.MouseEvent, nodeId: string, side: 'out' | 'in', idx: number) => {
@@ -925,7 +931,7 @@ export function DocumentSelector({
     }
 
     setDrag({ t: 'node', id: nodeId, ox: mx - n.x, oy: my - n.y })
-  }, [cpos, setDrag, updateWire])
+  }, [cpos, selNodes, setDrag, updateWire])
 
   /* --- connection click --- */
   const connClick = useCallback((e: React.MouseEvent, connId: string) => {
@@ -941,7 +947,7 @@ export function DocumentSelector({
     const [mx, my] = cpos(e)
     setDrag({ t: 'marquee', sx: mx, sy: my, cx: mx, cy: my })
     dragRef.current = { t: 'marquee', sx: mx, sy: my, cx: mx, cy: my }
-  }, [cpos])
+  }, [cpos, setDrag])
 
   /* --- HTML5 drag-and-drop: accept docs, tags, and toolbar nodes --- */
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -1040,7 +1046,7 @@ export function DocumentSelector({
         ])
       } catch { /* ignore */ }
     }
-  }, [cpos, tags])
+  }, [categories, cpos, t, tags])
 
   /* --- source name lookup --- */
   const sourceMap = useMemo(() => {
@@ -1117,7 +1123,7 @@ export function DocumentSelector({
       result.set(sg, { respondents: sortNames(rNames), questions: sortNames(qNames) })
     }
     return result
-  }, [nodes, conns, tagMembers, respondentTagMembers, questionTagMembers, surveyEntityLabels])
+  }, [nodes, conns, tagMembers, respondentTagMembers, questionTagMembers, surveyEntityLabels, t])
 
   /* ═══ Render ═══ */
 

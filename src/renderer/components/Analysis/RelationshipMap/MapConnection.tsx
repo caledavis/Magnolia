@@ -209,12 +209,20 @@ export function MapConnectionComponent({
       : '#9a9288'
   const sw = selected ? 2 : isEmphasised ? 1.6 : 1.25
   const strokeOpacity = isDimmed ? 0.18 : 1
+  // The arrowheads' inputs as plain values: `result` is a new object every
+  // render, so the effect below can't depend on it without rerunning (and
+  // setting state) every time.
+  const hasResult = !!result
+  const fromX = result?.fromEdge.x ?? 0
+  const fromY = result?.fromEdge.y ?? 0
+  const toX = result?.toEdge.x ?? 0
+  const toY = result?.toEdge.y ?? 0
   const CHEV_SIZE = selected ? 7 : 6
 
   // After the path mounts, compute chevron positions from the actual SVG path geometry
   useEffect(() => {
     const p = pathRef.current
-    if (!p || !result) { setChevrons({ from: '', to: '' }); return }
+    if (!p || !hasResult) { setChevrons({ from: '', to: '' }); return }
     const len = p.getTotalLength()
     if (len < 1) { setChevrons({ from: '', to: '' }); return }
 
@@ -242,8 +250,8 @@ export function MapConnectionComponent({
       ].join(' ')
     }
 
-    const fe = result.fromEdge
-    const te = result.toEdge
+    const fe = { x: fromX, y: fromY }
+    const te = { x: toX, y: toY }
 
     // Tangent at start: direction line LEAVES from-box (forward along arc)
     const fromTang = tangentAt(0, 'forward')
@@ -256,7 +264,7 @@ export function MapConnectionComponent({
     const toChev = makeChev(te, toTang)
 
     setChevrons({ from: fromChev, to: toChev })
-  }, [path, result?.fromEdge.x, result?.fromEdge.y, result?.toEdge.x, result?.toEdge.y])
+  }, [path, hasResult, fromX, fromY, toX, toY, CHEV_SIZE])
 
   if (!result) return null
 

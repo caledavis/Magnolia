@@ -199,7 +199,7 @@ export function MemosWindow() {
       extraCss
     })
     await exportPdfWithHeader(html, t('memos.windowTitle'))
-  }, [data])
+  }, [data.memos, data.places, t])
 
   const toggleGroup = (key: string) => setCollapsed((prev) => {
     const next = new Set(prev)

@@ -913,7 +913,7 @@ export function CodeBrowser({ onNewCode, onClose, onPopOut, isPoppedOut }: Props
       const guid = addCode(t('codes.defaultName'), color, parentGuid)
       setEditingCodeGuid(guid)
     },
-    [addCode, findCode]
+    [addCode, findCode, t]
   )
 
   const handleQueryAllDocs = useCallback((codeGuid: string) => {

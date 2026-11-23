@@ -427,6 +427,14 @@ function CodedTextViewImpl({
     }
   }, [text, onTextSelected, editable, onSelectionCleared])
 
+  // Precompute memo ranges for highlighting
+  const memoRanges = useMemo(() => {
+    if (!contentMemos || contentMemos.length === 0) return []
+    return contentMemos
+      .filter((m) => m.startPosition !== undefined && m.endPosition !== undefined && m.startPosition !== m.endPosition)
+      .map((m) => ({ startCp: m.startPosition!, endCp: m.endPosition!, title: m.title }))
+  }, [contentMemos])
+
   const handleContextMenu = useCallback(
     (e: React.MouseEvent, span: Span) => {
       e.preventDefault()
@@ -486,7 +494,7 @@ function CodedTextViewImpl({
         overlappingMemos: overlappingMemos.length > 0 ? overlappingMemos : undefined
       })
     },
-    [text, onCodingRightClick]
+    [memoRanges, onCodingRightClick, text, contentMemos, t, selections]
   )
 
   // Build margin annotations: map each line to its active codings
@@ -765,14 +773,6 @@ function CodedTextViewImpl({
     }
   }, [activeRange, text, onTextSelected, externalHighlightRange, lockedRange, editable])
 
-  // Precompute memo ranges for highlighting
-  const memoRanges = useMemo(() => {
-    if (!contentMemos || contentMemos.length === 0) return []
-    return contentMemos
-      .filter((m) => m.startPosition !== undefined && m.endPosition !== undefined && m.startPosition !== m.endPosition)
-      .map((m) => ({ startCp: m.startPosition!, endCp: m.endPosition!, title: m.title }))
-  }, [contentMemos])
-
   type SpanAtom = { cpStart: number; cpEnd: number; node: React.ReactNode }
 
   const buildSpanAtoms = (span: LineSpan, key: string): SpanAtom[] => {
@@ -981,6 +981,10 @@ function CodedTextViewImpl({
       if (frameId) cancelAnimationFrame(frameId)
     }
   }, [])
+  // Measures the laid-out text after every render, so it has no dependency
+  // list. It can't loop: it sets bracketLabels only through updaters that
+  // hand back the previous value when nothing changed.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!containerRef.current || !bracketOverlayRef.current) return
     const container = containerRef.current

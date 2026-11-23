@@ -138,11 +138,11 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
     () => ({ codeGuids, docFilter, groupBy }),
     [codeGuids, docFilter, groupBy]
   )
-  const initialBaseline = useMemo(() => ({
+  const [initialBaseline] = useState(() => ({
     codeGuids: savedConfig?.codeGuids ?? [],
     docFilter: documentFilterFromConfig(savedConfig),
     groupBy: savedConfig?.groupBy ?? migrateLegacyGroupBy(savedConfig?.groupByTags),
-  }), [])
+  }))
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
 
   const handleDiscard = useCallback(() => {
@@ -359,7 +359,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
     totalRow.push(String(showGrandTotal), csvPctOfTotal(showGrandTotal, showGrandTotal))
     rows.push(totalRow)
     window.api.exportCsv(toCsv(rows), 'codes-in-documents.csv')
-  }, [columns, codeGuids, showGrid, codeMap, showRowTotals, showColTotals, showGrandTotal, binaryMode])
+  }, [t, columns, showGrandTotal, codeGuids, codeMap, showRowTotals, showGrid, binaryMode, showColTotals])
 
   // Sankey view: codes flow into document columns. Subtotal columns are
   // left out — they would double-count their child columns' flows.
@@ -394,7 +394,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
     dismissAutoGroup(entry)
     const key = groupByKey(entry)
     setGroupBy((p) => p.filter((e) => groupByKey(e) !== key))
-  }, [])
+  }, [dismissAutoGroup])
 
   const handleRename = useCallback((newName: string) => {
     setAnalysisName(newName)

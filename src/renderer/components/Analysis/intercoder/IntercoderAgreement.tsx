@@ -215,6 +215,8 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
   const storeCodes = useCodeStore((s) => s.codes)
   const userName = usePreferencesStore((s) => s.userName)
   const projectPath = useProjectStore((s) => s.filePath)
+  // openProjectCoder reads the stores itself; these say when it must again.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const openCoder = useMemo(() => openProjectCoder(), [docSources, docContents, storeCodes, userName, projectPath])
 
   useEffect(() => {
@@ -363,14 +365,14 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
   const nameRef = useRef(analysisName)
 
   const currentConfig = useMemo(() => ({ paths, docGuids, codeGuids, measure, view, threshold }), [paths, docGuids, codeGuids, measure, view, threshold])
-  const initialBaseline = useMemo(() => ({
+  const [initialBaseline] = useState(() => ({
     paths: savedConfig?.paths ?? [OPEN_PROJECT_ID],
     docGuids: savedConfig?.docGuids ?? [],
     codeGuids: savedConfig?.codeGuids ?? [],
     measure: savedConfig?.measure ?? 'characters',
     view: savedConfig?.view ?? 'pairs',
     threshold: savedConfig?.threshold ?? DEFAULT_THRESHOLD
-  }), [])
+  }))
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
 
   const persistMountRef = useRef(true)
@@ -378,7 +380,7 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
     if (persistMountRef.current) { persistMountRef.current = false; return }
     const tabId = inTab?.tabId
     if (tabId) useAnalysisTabsStore.getState().setConfig(tabId, { ...currentConfig, snapshot: savedSnapshot })
-  }, [currentConfig, inTab?.tabId])
+  }, [currentConfig, inTab?.tabId, savedSnapshot])
 
   const handleSave = useCallback((name: string) => {
     setAnalysisName(name)

@@ -297,7 +297,7 @@ export function RelationshipMap({ data, savedConfig }: Props) {
       }
       setElements((prev) => [...prev, newEl])
     },
-    []
+    [t]
   )
 
   const handleElementMove = useCallback((id: string, x: number, y: number) => {
@@ -529,7 +529,7 @@ export function RelationshipMap({ data, savedConfig }: Props) {
     })
     setIsExisting(true)
     setLastSavedSnapshot({ elements, freeTexts, connections, pan })
-  }, [analysisGuid, saveName, elements, freeTexts, connections, pan])
+  }, [saveName, t, elements, freeTexts, connections, pan, analysisGuid])
 
   const handleDiscardChanges = useCallback(() => {
     setElements(lastSavedSnapshot.elements)

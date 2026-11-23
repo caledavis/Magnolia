@@ -13,6 +13,11 @@ import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
 import { useTranslation } from 'react-i18next'
 
+// Fallbacks that are the same value every render, so hooks that depend on
+// them don't rerun for nothing.
+const NO_SELECTIONS: Record<string, PlainTextSelection[]> = {}
+const NO_PATHS: Record<string, string> = {}
+
 export function QueryResultsWindow() {
   const { t } = useTranslation()
   const [data, setData] = useState<QueryResultsInitData | null>(null)
@@ -47,8 +52,8 @@ export function QueryResultsWindow() {
 
   const findCode = useCallback((guid: string) => codeMap.get(guid), [codeMap])
 
-  const sourceSelections = data?.sourceSelections ?? {}
-  const pdfFilePaths = data?.pdfFilePaths ?? {}
+  const sourceSelections = data?.sourceSelections ?? NO_SELECTIONS
+  const pdfFilePaths = data?.pdfFilePaths ?? NO_PATHS
 
   const handleOpenResult = useCallback((result: QueryResult) => {
     const selections = sourceSelections[result.sourceGuid] || []
@@ -278,7 +283,7 @@ export function QueryResultsWindow() {
 
     const safeName = (data.queryName || t('results.title')).replace(/[^\p{L}\p{N} _-]/gu, '').trim()
     await exportPdfWithHeader(html, safeName)
-  }, [data, groups])
+  }, [data, groups, pdfFilePaths, sourceSelections, t])
 
   // sourceSelections is plain Record<sourceGuid, selections> in the IPC
   // payload; QueryResultsBody wants a Map for O(1) lookup, so wrap once.

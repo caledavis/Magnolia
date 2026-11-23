@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import type { MapElement as MapElementType, MapConnection as MapConnectionType, FreeTextElement } from './types'
 import { clampPan, computeRoundedPortPosition, computeOutwardNormal, bezPathFromPorts } from './bezier-utils'
 import { cornerRadiusFor } from './MapConnection'
@@ -163,10 +163,10 @@ export function MapCanvas({
   dragRef.current = drag
 
   // All nodes for pan clamping
-  const allNodes = [
+  const allNodes = useMemo(() => [
     ...elements.map((e) => ({ x: e.x, y: e.y, width: e.width, height: e.height })),
     ...freeTexts.map((f) => ({ x: f.x, y: f.y, width: f.width, height: f.height }))
-  ]
+  ], [elements, freeTexts])
 
   // Convert mouse event to canvas coordinates
   const cpos = useCallback(

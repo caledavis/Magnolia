@@ -305,7 +305,7 @@ export function ImageDocumentViewer({ source }: Props) {
       }
       setPendingBoxSelection(null)
     },
-    [source, addSelection, addCodingToSelection]
+    [source.selections, source.guid, addCodingToSelection, t, addSelection]
   )
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
@@ -367,7 +367,7 @@ export function ImageDocumentViewer({ source }: Props) {
     if (ps || existingCodings.length > 0 || overlappingMemos.length > 0 || source) {
       setContextMenu({ x: e.clientX, y: e.clientY, context: { existingCodings, pendingSelection: ps, pdfPoint, overlappingMemos } })
     }
-  }, [pendingBoxSelection, source, contentMemos, clientToImageCoords, findPageEl])
+  }, [pendingBoxSelection, findPageEl, source, t, clientToImageCoords, contentMemos])
 
   const handleApplyCode = useCallback((codeGuid: string) => {
     if (!contextMenu?.context.pendingSelection) return

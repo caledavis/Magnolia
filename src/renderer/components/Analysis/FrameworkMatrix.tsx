@@ -221,11 +221,11 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
   // Collapse state is saved with the analysis but is view state, so it
   // doesn't count as an unsaved change.
   const currentConfig = useMemo(() => ({ rows, codeGuids, summaries }), [rows, codeGuids, summaries])
-  const initialBaseline = useMemo(() => ({
+  const [initialBaseline] = useState(() => ({
     rows: savedConfig?.rows ?? [],
     codeGuids: savedConfig?.codeGuids ?? [],
     summaries: savedConfig?.summaries ?? {}
-  }), [])
+  }))
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
 
   const codeMap = useMemo(() => new Map(data.codes.map((c) => [c.guid, c])), [data.codes])
@@ -290,7 +290,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
     if (!dirty || !savedRef.current) return
     const timer = setTimeout(() => persistSaved(nameRef.current.trim() || t('common.untitled')), 800)
     return () => clearTimeout(timer)
-  }, [dirty, persistSaved])
+  }, [dirty, persistSaved, t])
 
   // Collapse state isn't part of `dirty`, so the auto-save above never
   // fires for it alone; persist it directly once the analysis is saved.
@@ -457,7 +457,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
     return out
   }, [data, codeGuids])
 
-  const confirmLoss = (message: string) => window.api.askConfirm(message, t('common.remove'))
+  const confirmLoss = useCallback((message: string) => window.api.askConfirm(message, t('common.remove')), [t])
 
   const removeEntry = useCallback(async (row: DisplayRow) => {
     if (row.entryIndex === undefined) return
@@ -467,7 +467,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
     setRows(nextRows)
     setSummaries(nextSummaries)
     setCollapsed((prev) => prev.filter((p) => p !== row.path && !p.startsWith(row.path + '/')))
-  }, [rows, summaries, pruneSummaries])
+  }, [rows, pruneSummaries, summaries, confirmLoss, t])
 
   const discardOrphan = useCallback(async (row: DisplayRow) => {
     const topPath = row.path.split('/')[0]
@@ -480,14 +480,14 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
     if (Object.keys(nextSummaries).length < Object.keys(summaries).length && !(await confirmLoss(t('framework.confirmRemoveRow', { name: row.label })))) return
     setRows(nextRows)
     setSummaries(nextSummaries)
-  }, [rows, summaries, pruneSummaries])
+  }, [rows, pruneSummaries, summaries, confirmLoss, t])
 
   const removeCode = useCallback(async (codeGuid: string) => {
     const hasText = Object.entries(summaries).some(([k, v]) => k.endsWith(`|${codeGuid}`) && v.trim() !== '')
     if (hasText && !(await confirmLoss(t('framework.confirmRemoveColumn', { name: codeMap.get(codeGuid)?.name ?? t('framework.code') })))) return
     setCodeGuids((prev) => prev.filter((g) => g !== codeGuid))
     setSummaries((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => !k.endsWith(`|${codeGuid}`))))
-  }, [summaries, codeMap])
+  }, [summaries, confirmLoss, t, codeMap])
 
   // ── Export ────────────────────────────────────────────────────────
 
@@ -506,7 +506,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
       ])
     }
     window.api.exportCsv(toCsv(out), 'framework-matrix.csv')
-  }, [data, rows, codeGuids, summaries, collapsed, codeMap])
+  }, [data, rows, codeGuids, summaries, collapsed, t, codeMap])
 
   // ── Render ────────────────────────────────────────────────────────
 

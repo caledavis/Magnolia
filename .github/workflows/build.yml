@@ -45,13 +45,14 @@ jobs:
 
       - run: npm ci
 
-      - name: Renderer typecheck and tests
+      - name: Renderer typecheck, lint and tests
         run: |
           npm run typecheck
+          npm run lint
           npx vitest run
 
-      - name: Core tests (QDPX, converters)
-        run: cargo test -p magnolia-core
+      - name: Rust tests (core and app)
+        run: cargo test --workspace
 
       - name: Build the app
         run: npx tauri build --no-bundle

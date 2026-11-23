@@ -43,7 +43,6 @@ export function makeHmrSafe<S extends object>(key: string, store: ZustandLike<S>
     // Merge data into the fresh store — methods from the new creator win.
     store.setState(cached, false)
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const hot = (import.meta as any).hot
   if (hot) {
     hot.dispose(() => {

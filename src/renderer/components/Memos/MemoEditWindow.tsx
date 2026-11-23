@@ -72,7 +72,7 @@ export function MemoEditWindow() {
     // it and propagate to anything that references the memo.
     if (!isNew) window.api.sendMemoDelete(memo.guid)
     window.close()
-  }, [memo, isNew])
+  }, [memo, t, isNew])
 
   if (!memo) {
     return (

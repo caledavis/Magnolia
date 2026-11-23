@@ -2603,7 +2603,7 @@ export function DocumentBrowser({ onSurveyImport, showManageDocTags, onCloseMana
     if (errors.length > 0) {
       void window.api.showMessage(t('documents.importFailed', { count: errors.length, errors: errors.join('\n') }), 'error')
     }
-  }, [addSource, onSurveyImport])
+  }, [addSource, onSurveyImport, t])
 
   // Top-level (root) folders and documents
   const rootFolders = visibleFolders.filter((f) => f.parentGuid === null)

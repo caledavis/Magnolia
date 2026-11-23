@@ -279,19 +279,22 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
   //   1. formatData.pdfFilePath — temp-file path, bytes fetched via IPC
   //      (fast; no base64 decode, no huge IPC payload).
   //   2. formatData.pdfBase64 — legacy path for PDFs already in memory.
+  // The PDF is reloaded only when where its bytes come from changes, not
+  // when other formatData (page sizes, say) is filled in.
+  const pdfFilePath: string | undefined = source.formatData?.pdfFilePath
+  const pdfBase64: string | undefined = source.formatData?.pdfBase64
   useEffect(() => {
-    const fd = source.formatData
-    if (!fd?.pdfFilePath && !fd?.pdfBase64) return
+    if (!pdfFilePath && !pdfBase64) return
     let cancelled = false
 
     const loadPdf = async () => {
       const pdfjsLib = await loadPdfjs()
 
       let bytes: Uint8Array
-      if (fd.pdfFilePath) {
-        bytes = await window.api.readPdfFile(fd.pdfFilePath)
+      if (pdfFilePath) {
+        bytes = await window.api.readPdfFile(pdfFilePath)
       } else {
-        const binary = atob(fd.pdfBase64)
+        const binary = atob(pdfBase64!)
         bytes = new Uint8Array(binary.length)
         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
       }
@@ -307,7 +310,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
 
     loadPdf().catch(console.error)
     return () => { cancelled = true }
-  }, [source.formatData?.pdfBase64, source.formatData?.pdfFilePath])
+  }, [pdfBase64, pdfFilePath])
 
   const applyCodingToRange = useCallback(
     (codeGuid: string, startCp: number, endCp: number, text: string) => {
@@ -365,7 +368,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
       }
       setPendingBoxSelection(null)
     },
-    [source, addSelection, addCodingToSelection]
+    [source.selections, source.guid, addCodingToSelection, t, addSelection]
   )
 
   const handleMouseUp = useCallback(() => {
@@ -499,7 +502,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
     if (ps || existingCodings.length > 0 || overlappingMemos.length > 0 || source) {
       setContextMenu({ x: e.clientX, y: e.clientY, context: { existingCodings, pendingSelection: ps, codepointOffset: clickCp ?? undefined, pdfPoint, overlappingMemos } })
     }
-  }, [content, pendingSelection, pendingBoxSelection, source, contentMemos, clientToPdfCoords, findPageEl])
+  }, [pendingSelection, pendingBoxSelection, findPageEl, source, content, t, clientToPdfCoords, contentMemos])
 
   const handleApplyCode = useCallback((codeGuid: string) => {
     if (!contextMenu?.context.pendingSelection) return

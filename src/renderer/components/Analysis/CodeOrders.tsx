@@ -199,11 +199,11 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
     () => ({ codeGuids, docFilter, groupBy }),
     [codeGuids, docFilter, groupBy]
   )
-  const initialBaseline = useMemo(() => ({
+  const [initialBaseline] = useState(() => ({
     codeGuids: savedConfig?.codeGuids ?? [],
     docFilter: documentFilterFromConfig(savedConfig),
     groupBy: savedConfig?.groupBy ?? migrateLegacyGroupBy(savedConfig?.groupByTags),
-  }), [])
+  }))
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
 
   const handleDiscard = useCallback(() => {
@@ -370,7 +370,7 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
     dismissAutoGroup(entry)
     const key = groupByKey(entry)
     setGroupBy((p) => p.filter((e) => groupByKey(e) !== key))
-  }, [])
+  }, [dismissAutoGroup])
 
   const handleRename = useCallback((newName: string) => {
     setAnalysisName(newName)

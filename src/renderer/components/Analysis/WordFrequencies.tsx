@@ -156,6 +156,9 @@ function useThemeAccentHsl(): { h: number; s: number; l: number } {
   return useMemo(() => {
     const raw = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()
     return parseColorToHsl(raw) ?? { h: 211, s: 100, l: 50 }
+    // The colour comes from the page's CSS, which React can't see change:
+    // `tick` (bumped when the theme does) says when to read it again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick])
 }
 
@@ -194,7 +197,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     () => ({ docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes, queryGuids }),
     [docFilter, includeWords, excludeWords, wordCount, groupBy, textSource, codeGuids, includeSubcodes, queryGuids]
   )
-  const initialBaseline = useMemo(() => ({
+  const [initialBaseline] = useState(() => ({
     docFilter: documentFilterFromConfig(savedConfig),
     includeWords: savedConfig?.includeWords ?? '',
     excludeWords: savedConfig?.excludeWords ?? stopWordsText(currentLanguage()),
@@ -204,7 +207,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     codeGuids: savedConfig?.codeGuids ?? [],
     includeSubcodes: savedConfig?.includeSubcodes ?? true,
     queryGuids: savedConfig?.queryGuids ?? []
-  }), [])
+  }))
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
 
   const handleDiscard = useCallback(() => {
@@ -251,7 +254,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     dismissAutoGroup(entry)
     const key = groupByKey(entry)
     setGroupBy((p) => p.filter((e) => groupByKey(e) !== key))
-  }, [])
+  }, [dismissAutoGroup])
 
   const filter = useMemo(() => wordFilter(includeWords, excludeWords), [includeWords, excludeWords])
 
@@ -309,7 +312,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     }
     const built = buildSurveyAwareColumns(groupBy, data, filteredSourceGuids, sourceMap, { includeSubtotals: true })
     return { series: built.columns as Series[], seriesGroups: built.headerGroups }
-  }, [coded, codeSets, codeMap, byQuery, queryRuns, groupBy, filteredSourceGuids, data, sourceMap])
+  }, [coded, byQuery, groupBy, data, filteredSourceGuids, sourceMap, codeSets, codeMap, queryRuns, t])
 
   const seriesColor = useCallback(
     (si: number) => series[si]?.color || SERIES_COLORS[si % SERIES_COLORS.length],
@@ -369,7 +372,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
       rows.push([word, String(count)])
     }
     window.api.exportCsv(toCsv(rows), 'word-frequencies.csv')
-  }, [wordFreqs])
+  }, [t, wordFreqs])
 
   const handleExportChart = useCallback(() => {
     if (!chartRef.current) return

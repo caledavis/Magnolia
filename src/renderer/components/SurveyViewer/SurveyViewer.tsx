@@ -62,7 +62,7 @@ import type {
   SurveyRespondent,
   TextSource
 } from '../../models/types'
-import { useSurveyViewStore, type SurveyView, type SurveyViewMode } from '../../stores/survey-view-store'
+import { useSurveyViewStore, type SurveyView } from '../../stores/survey-view-store'
 import { getViewSetting, setViewSetting } from '../../stores/view-position-store'
 import { useRememberedScroll } from '../../utils/use-remembered-scroll'
 import { useDocumentStore } from '../../stores/document-store'
@@ -1966,7 +1966,7 @@ function SummaryView({
     const fallback = t('survey.summaryDefaultName')
     const safeName = (displayName || fallback).replace(/[^\p{L}\p{N} _-]/gu, '').trim() || fallback
     await exportPdfWithHeader(html, safeName, t('survey.exportSummaryDialog'))
-  }, [survey, displayName])
+  }, [survey, displayName, t])
   // Without codes, the export is the summary, which already includes
   // each respondent's open answers.
   const pdfExport = usePdfExportItems(source, '', {
@@ -2153,11 +2153,15 @@ const summaryTdStyle: React.CSSProperties = {
 
 // ── Main viewer ────────────────────────────────────────────────────
 
+/** The view a survey opens in until one is chosen; one value, so hooks
+ *  that depend on the view don't rerun every render. */
+const DEFAULT_VIEW: SurveyView = { mode: 'summary' }
+
 export function SurveyViewer({ source }: Props) {
   const { t } = useTranslation()
   const survey: SurveyData | undefined = (source.formatData as SurveyFormatData | undefined)?.survey
   const chosenView = useSurveyViewStore((s) => s.viewBySurveyGuid[source.guid])
-  const view = chosenView ?? { mode: 'summary' as SurveyViewMode }
+  const view = chosenView ?? DEFAULT_VIEW
   const setView = useSurveyViewStore((s) => s.setView)
   const scrollTarget = useSurveyViewStore((s) => s.scrollTarget)
   const clearScrollTarget = useSurveyViewStore((s) => s.setScrollTarget)
@@ -2680,7 +2684,7 @@ export function SurveyViewer({ source }: Props) {
         overlappingMemos: overlapping
       })
     },
-    [memos, source.guid]
+    [memos, source.guid, t]
   )
 
   // Close menu on outside click / Escape.

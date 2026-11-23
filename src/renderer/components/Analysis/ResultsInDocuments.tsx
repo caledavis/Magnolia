@@ -143,7 +143,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     () => ({ queryGuids, groupBy, questionScope }),
     [queryGuids, groupBy, questionScope]
   )
-  const initialBaseline = useMemo(() => {
+  const [initialBaseline] = useState(() => {
     let initialGroupBy: GroupByEntry[] = []
     if (savedConfig?.groupBy) initialGroupBy = savedConfig.groupBy
     else if (savedConfig?.groupByTags) {
@@ -154,7 +154,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
       groupBy: initialGroupBy,
       questionScope: savedConfig?.questionScope ?? []
     }
-  }, [])
+  })
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
 
   const handleDiscard = useCallback(() => {
@@ -366,7 +366,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
   const colourPresets = useCodeColourPresets()
   const sankeyLeft = useMemo(
     () => queryGuids.map((g, i) => ({ id: g, label: queryMap.get(g)?.name || t('analysis.query'), color: colourPresets[i % colourPresets.length] })),
-    [queryGuids, queryMap, colourPresets]
+    [queryGuids, queryMap, t, colourPresets]
   )
   const sankeyRight = useMemo(() => columns.map((c) => ({ id: c.id, label: c.label })), [columns])
   const sankeyExclude = useMemo(
@@ -399,7 +399,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     totalRow.push(t('resultsInDocs.totalWithDocs', { docs: resultDocLabel }), ...showRowTotals.map(String), String(showGrandTotal), csvPctOfTotal(showGrandTotal, showGrandTotal))
     rows.push(totalRow)
     window.api.exportCsv(toCsv(rows), 'results-in-documents.csv')
-  }, [columns, rowLayout, queryGuids, showGrid, queryMap, showRowTotals, showColTotals, showGrandTotal, hasGroupedHeader, resultDocLabel])
+  }, [queryGuids, hasGroupedHeader, t, resultDocLabel, showRowTotals, showGrandTotal, queryMap, columns, rowLayout, showColTotals, showGrid])
 
   const handleTagDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -414,7 +414,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     dismissAutoGroup(entry)
     const key = groupByKey(entry)
     setGroupBy((p) => p.filter((e) => groupByKey(e) !== key))
-  }, [])
+  }, [dismissAutoGroup])
 
   const handleRename = useCallback((newName: string) => {
     setAnalysisName(newName)

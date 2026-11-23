@@ -118,11 +118,11 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
     () => ({ rowCodeGuids, colCodeGuids, docFilter }),
     [rowCodeGuids, colCodeGuids, docFilter]
   )
-  const initialBaseline = useMemo(() => ({
+  const [initialBaseline] = useState(() => ({
     rowCodeGuids: savedConfig?.rowCodeGuids ?? [],
     colCodeGuids: savedConfig?.colCodeGuids ?? [],
     docFilter: documentFilterFromConfig(savedConfig),
-  }), [])
+  }))
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
 
   const handleDiscard = useCallback(() => {
@@ -251,7 +251,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
     }
     rows.push([t('analysis.total'), ...showColTotals.map(String), String(showGrandTotal), csvPctOfTotal(showGrandTotal, showGrandTotal)])
     window.api.exportCsv(toCsv(rows), 'code-cooccurrences.csv')
-  }, [rowCodeGuids, colCodeGuids, showMatrix, codeMap, showRowTotals, showColTotals, showGrandTotal])
+  }, [colCodeGuids, rowCodeGuids, t, showColTotals, showGrandTotal, codeMap, showMatrix, showRowTotals])
 
   const handleRename = useCallback((newName: string) => {
     setAnalysisName(newName)

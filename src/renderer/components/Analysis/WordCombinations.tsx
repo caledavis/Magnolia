@@ -259,10 +259,10 @@ const tdStyle: React.CSSProperties = { padding: '2px 6px', borderBottom: '1px so
 
 export function WordCombinations({ data: propData, savedConfig, inTab }: Props) {
   const { t } = useTranslation()
-  const initial = useMemo((): WordCombinationsConfig => {
+  const [initial] = useState((): WordCombinationsConfig => {
     const { guid: _guid, name: _name, ...saved } = savedConfig ?? { guid: '', name: '' }
     return { ...defaultCombinationsConfig(), ...saved }
-  }, [])
+  })
   const [docFilter, setDocFilter] = useState<DocumentFilterState>(initial.docFilter)
   const [textSource, setTextSource] = useState<TextSource>(initial.textSource)
   const [codeGuids, setCodeGuids] = useState<string[]>(initial.codeGuids)
@@ -371,8 +371,8 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
   const queryCodes = useCallback((): WordQueryCodes | undefined => (
     coded ? { codeGuids: [...codeSets.keys()], includeSubcodes } : undefined
   ), [coded, codeSets, includeSubcodes])
-  const searchSources = byQuery ? [] : filteredSourceGuids
-  const withinGuids = byQuery ? [...queryRuns.keys()] : undefined
+  const searchSources = useMemo(() => (byQuery ? [] : filteredSourceGuids), [byQuery, filteredSourceGuids])
+  const withinGuids = useMemo(() => (byQuery ? [...queryRuns.keys()] : undefined), [byQuery, queryRuns])
 
   const searchFor = useCallback((text: string) => {
     window.api.sendAnalysisAction('run-word-query', text, searchSources, surveyScope(), queryCodes(), withinGuids)
@@ -401,7 +401,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
       ]
       window.api.exportCsv(toCsv(rows), `word-combinations-${focus}.csv`)
     }
-  }, [view, phrases, associations, tree, focus])
+  }, [view, associations, t, phrases, tree, focus])
 
   const handleExportSvg = useCallback(() => {
     if (networkShown) {

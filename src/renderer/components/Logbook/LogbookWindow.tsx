@@ -244,7 +244,7 @@ export function LogbookWindow() {
     })
 
     await exportPdfWithHeader(html, t('logbook.title'))
-  }, [entries])
+  }, [entries, t])
 
   const selectedEntry = selectedGuid ? entries.find((e) => e.guid === selectedGuid) ?? null : null
 

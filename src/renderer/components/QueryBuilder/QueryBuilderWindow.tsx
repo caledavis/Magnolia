@@ -224,7 +224,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
     () => ({ docFilter: docFilterForCompare, codeCondition }),
     [docFilterForCompare, codeCondition]
   )
-  const initialBaseline = useMemo(() => ({
+  const [initialBaseline] = useState(() => ({
     docFilter: initData?.editQuery
       ? {
           sourceGuids: initData.editQuery.documentFilter.sourceGuids ?? [],
@@ -236,7 +236,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
         }
       : { sourceGuids: [], tagGuids: [], tagExcludeGuids: [], folderGuids: [], questionScope: [], respondentScope: [] },
     codeCondition: (initData?.editQuery?.codeCondition ?? null) as CodeCondition | null
-  }), [])
+  }))
   const { dirty, baseline, setBaseline } = useToolDirtyState(currentConfig, initialBaseline, inTab)
 
   const handleDiscard = useCallback(() => {

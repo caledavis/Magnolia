@@ -76,5 +76,8 @@ export function useThemeSvgColors(): ThemeSvgColors {
       bgPanel: read('--bg-panel', FALLBACKS.bgPanel),
       accent: read('--accent', FALLBACKS.accent)
     }
+    // The colours come from the page's CSS, which React can't see change:
+    // `tick` (bumped when the theme does) says when to read them again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick])
 }

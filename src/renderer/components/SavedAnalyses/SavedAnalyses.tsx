@@ -44,6 +44,9 @@ const TOOL_ORDER: AnalysisToolType[] = [
   'relationship-map'
 ]
 
+/** One empty list, so "no analyses" is the same value every render. */
+const NO_ANALYSES: SavedAnalysis[] = []
+
 export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemoGuidForAnalysis, onOpenAnalysisMemo }: Props) {
   const { t } = useTranslation()
   // Enforced checkout lock: opening/browsing saved analyses stays live;
@@ -52,7 +55,7 @@ export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemo
   // lock, rather than performing the mutation or silently doing nothing.
   const lockedBy = useCheckoutLockedBy()
   const promptCheckoutLocked = () => useProjectStore.getState().promptCheckoutConflict()
-  const savedAnalyses = useProjectStore((s) => s.savedAnalyses) ?? []
+  const savedAnalyses = useProjectStore((s) => s.savedAnalyses) ?? NO_ANALYSES
   const setSavedAnalyses = useProjectStore((s) => s.setSavedAnalyses)
 
   // Inter-coder analyses with a coder's project that's no longer where it

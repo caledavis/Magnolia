@@ -444,7 +444,7 @@ export function CodebookWindow() {
   const handleExportPdf = useCallback(async () => {
     const html = buildCodebookHtml(codes)
     await exportPdfWithHeader(html, t('codebook.title'))
-  }, [codes])
+  }, [codes, t])
 
   const handleExportQdc = useCallback(async () => {
     await window.api.exportCodebook(codes)
