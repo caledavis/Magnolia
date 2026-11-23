@@ -6,7 +6,7 @@ import { t } from '../i18n'
  * the macOS symbols (⌘/⌥) only make sense on macOS; every other platform
  * should read the literal key name ("Ctrl"/"Alt").
  */
-export const isMac = ((window as any).api?.platform as string | undefined) === 'darwin'
+export const isMac = window.api?.platform === 'darwin'
 
 /** OS-appropriate "Cmd/Ctrl+<key>" label, e.g. modKey(5) → "⌘5" on macOS,
  *  "Ctrl+5" elsewhere. */

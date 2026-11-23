@@ -9,7 +9,7 @@ import './components/Update/update-window.css'
 // The update window imitates a native system panel, so it takes its look
 // from the OS (light/dark, system font) rather than Magnolia's theme and
 // interface scale.
-document.documentElement.dataset.platform = (window.api as unknown as { platform: string }).platform
+document.documentElement.dataset.platform = window.api.platform
 
 // The first frame is already in the user's language (see i18n/index.ts).
 await initLanguage()

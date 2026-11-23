@@ -1458,15 +1458,15 @@ function App() {
     let addedDirect = false
     for (const f of files) {
       // Files that couldn't be read are listed in the import dialog.
-      if ((f as any).error) continue
-      const ext = (f as any).extension || f.name.split('.').pop()?.toLowerCase() || ''
+      if (f.error !== undefined) continue
+      const ext = f.extension || f.name.split('.').pop()?.toLowerCase() || ''
       if (ext === 'csv' || ext === 'xlsx') {
         const suggestedName = f.name.replace(/\.(csv|xlsx)$/i, '')
         queueSurveyImport(f.content, suggestedName)
         continue
       }
       const sourceType = sourceTypeFromExtension(ext)
-      const formatting = (f as any).formatting
+      const formatting = f.formatting
       documentStore.addSource(f.name, f.content, sourceType !== 'text' ? sourceType : undefined, formatting)
       addedDirect = true
     }
@@ -1508,8 +1508,8 @@ function App() {
     let addedDirect = false
     for (const file of fileArray) {
       // Files that couldn't be read are listed in the import dialog.
-      if ((file as any).error) continue
-      const ext = (file as any).extension || file.name.split('.').pop()?.toLowerCase() || ''
+      if (file.error !== undefined) continue
+      const ext = file.extension || file.name.split('.').pop()?.toLowerCase() || ''
       // CSV / XLSX → defer to the survey-import preview dialog
       // (queueSurveyImport handles parse errors itself). XLSX files
       // are converted to CSV text in the main process so the same
@@ -1520,7 +1520,7 @@ function App() {
         continue
       }
       const sourceType = sourceTypeFromExtension(ext)
-      const formatting = (file as any).formatting
+      const formatting = file.formatting
       documentStore.addSource(file.name, file.content, sourceType !== 'text' ? sourceType : undefined, formatting)
       addedDirect = true
     }

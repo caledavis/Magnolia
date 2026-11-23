@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Query, QueryResult, SavedQuery } from '../models/types'
+import type { Query, QueryResult, SavedQuery, QueryGraphLayout } from '../models/types'
 import { executeQuery } from '../utils/query-engine'
 import { resolveDocGraph, type DocGraphData } from '../utils/document-graph'
 import type { SurveyEntityRef } from '../models/types'
@@ -21,7 +21,7 @@ interface QueryState {
    *  reopen the builder from the authored graph rather than re-deriving
    *  (and expanding "And subcodes") from the flattened condition. Null
    *  for queries set by drilldowns / Find, which carry no authored graph. */
-  currentGraphLayout: { nodes: any[]; conns: any[] } | null
+  currentGraphLayout: QueryGraphLayout | null
   results: QueryResult[]
   isActive: boolean
   /** True while a run is scheduled or executing — drives the Query
@@ -32,7 +32,7 @@ interface QueryState {
   missingDocuments: string[]
   savedQueries: SavedQuery[]
 
-  setComplexQuery: (query: Query, graphLayout?: { nodes: any[]; conns: any[] }) => void
+  setComplexQuery: (query: Query, graphLayout?: QueryGraphLayout) => void
   clearQuery: () => void
   runQuery: () => void
   /** Persists `currentQuery` as a SavedQuery. The optional `guid` lets
@@ -40,9 +40,9 @@ interface QueryState {
    *  identifier so they can reference the saved query immediately,
    *  before the round-tripped savedQueries change re-renders the
    *  rest of the app. Falls back to a fresh guid when omitted. */
-  saveCurrentQuery: (name: string, graphLayout?: { nodes: any[]; conns: any[] }, guid?: string) => string | null
+  saveCurrentQuery: (name: string, graphLayout?: QueryGraphLayout, guid?: string) => string | null
   deleteSavedQuery: (guid: string) => void
-  updateSavedQuery: (guid: string, query: Query, graphLayout?: { nodes: any[]; conns: any[] }) => void
+  updateSavedQuery: (guid: string, query: Query, graphLayout?: QueryGraphLayout) => void
   renameSavedQuery: (guid: string, name: string) => void
   runSavedQuery: (guid: string) => void
   setSavedQueries: (queries: SavedQuery[]) => void
@@ -188,7 +188,7 @@ let lastRunKey: string | null = null
  *  been still for LAYOUT_COMMIT_MS, or immediately via
  *  flushPendingQueryLayout. */
 const LAYOUT_COMMIT_MS = 250
-let pendingLayout: { query: Query; graphLayout: { nodes: any[]; conns: any[] } | null } | null = null
+let pendingLayout: { query: Query; graphLayout: QueryGraphLayout | null } | null = null
 let layoutTimer: ReturnType<typeof setTimeout> | null = null
 
 function dropPendingLayout(): void {

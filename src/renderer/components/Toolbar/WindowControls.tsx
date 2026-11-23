@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next'
  */
 export function WindowControls(): JSX.Element | null {
   const { t } = useTranslation()
-  const platform = ((window as any).api?.platform as string) ?? ''
+  const platform = window.api?.platform ?? ''
   const [maximized, setMaximized] = useState(false)
 
   useEffect(() => {

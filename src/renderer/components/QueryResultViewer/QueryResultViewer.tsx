@@ -108,11 +108,11 @@ export function QueryResultViewer({ onSaveQuery, onEditQuery, queryName, onCodeA
   // Suppress raising child windows while the drop-zone is open
   useEffect(() => {
     if (codeAllMenu === 'drop-zone') {
-      ;(window as any).__suppressRaiseChildWindows = true
+      window.__suppressRaiseChildWindows = true
     } else {
-      ;(window as any).__suppressRaiseChildWindows = false
+      window.__suppressRaiseChildWindows = false
     }
-    return () => { (window as any).__suppressRaiseChildWindows = false }
+    return () => { window.__suppressRaiseChildWindows = false }
   }, [codeAllMenu])
 
   // Compute popover position when opening. Anchors above the button;

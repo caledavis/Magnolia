@@ -14,7 +14,7 @@ import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { emit, emitTo } from '@tauri-apps/api/event'
 import { getCurrentWebview } from '@tauri-apps/api/webview'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
-import type { ByteSource, ImportItem, ImportState, MagnoliaAPI } from '../models/types'
+import type { ByteSource, ImportedFile, ImportItem, ImportState, MagnoliaAPI, MemosWindowAction, Project, Query, QueryGraphLayout, TextSource } from '../models/types'
 import { base64ToBytes, extractPdfText } from './pdf-text'
 import { t } from '../i18n'
 import { withDocumentLanguage } from '../utils/document-language'
@@ -23,7 +23,7 @@ import { guardComposition } from '../utils/keys'
 const current = getCurrentWebviewWindow()
 const MAIN = 'main'
 
-const platform = /Mac/i.test(navigator.userAgent)
+const platform: MagnoliaAPI['platform'] = /Mac/i.test(navigator.userAgent)
   ? 'darwin'
   : /Windows/i.test(navigator.userAgent)
     ? 'win32'
@@ -66,21 +66,36 @@ function onQueued<T>(event: string, callback: (payload: T) => void): () => void 
 // ── PDF text ──────────────────────────────────────────────────────────
 
 type ProgressCallback = (p: { stage: string; current: number; total: number }) => void
+
+/** Messages between windows, as they travel: an action and its arguments,
+ *  or an action and one payload. (What each action carries is up to the
+ *  windows that send and receive it.) */
+type ActionMessage = { action: string; args: unknown[] }
+type PayloadMessage = { action: string; payload?: unknown }
+
+/** A project as the backend reads it, before its PDFs' text is filled in:
+ *  sources the backend couldn't read text from are flagged. */
+type LoadedProject = Project & { sourceContents: Record<string, string> }
+type PendingPdfText = { _pendingPdfText?: boolean }
+
+/** A file as the backend reads it for import: a PDF's text is still to be
+ *  read here (from formatting.pdfBase64) when it's flagged. */
+type RawImport = ImportedFile & PendingPdfText
 const localProgress = new Set<ProgressCallback>()
 
 /** Fill in text + page offsets for PDFs the backend flagged
  *  `_pendingPdfText` in a loaded project. `readBytes` fetches a source's
  *  PDF by its handle. */
-async function completeProjectPdfText(
-  data: any,
+async function completeProjectPdfText<T extends LoadedProject | null>(
+  data: T,
   readBytes: (handle: string) => Promise<Uint8Array | null>,
   /** Report progress to the project-loading overlay. Off for a file read
    *  alongside the open project (merge, inter-coder agreement): nothing
    *  would close the overlay afterwards. */
   reportProgress = true
-): Promise<any> {
+): Promise<T> {
   if (!data?.sources) return data
-  const pending = data.sources.filter((s: any) => s._pendingPdfText)
+  const pending = (data.sources as (TextSource & PendingPdfText)[]).filter((s) => s._pendingPdfText)
   let done = 0
   for (const source of pending) {
     delete source._pendingPdfText
@@ -104,25 +119,22 @@ async function completeProjectPdfText(
 }
 
 /** Same for an imported document: `formatting.pdfBase64` → content. */
-async function completeImportedPdf(doc: any): Promise<any> {
-  if (!doc?._pendingPdfText) return doc
+async function completeImportedPdf(doc: RawImport): Promise<ImportedFile> {
+  if (!doc._pendingPdfText || doc.error !== undefined) return doc
   delete doc._pendingPdfText
   try {
     const { text, pageOffsets } = await extractPdfText(base64ToBytes(doc.formatting.pdfBase64))
     doc.content = text
     doc.formatting.pdfPageOffsets = pageOffsets
     return doc
-  } catch (err: any) {
+  } catch (err) {
     // pdf.js's messages are technical; say what's wrong in plain words.
     console.error(`Could not read the PDF ${doc.name}:`, err)
-    return { name: doc.name, error: t(err?.name === 'PasswordException' ? 'importProgress.pdfPassword' : 'importProgress.pdfDamaged') }
+    const password = err instanceof Error && err.name === 'PasswordException'
+    return { name: doc.name, error: t(password ? 'importProgress.pdfPassword' : 'importProgress.pdfDamaged') }
   }
 }
 
-async function completeImports(result: any): Promise<any> {
-  if (Array.isArray(result)) return Promise.all(result.map(completeImportedPdf))
-  return completeImportedPdf(result)
-}
 
 async function readMedia(handle: string): Promise<ArrayBuffer> {
   return invoke<ArrayBuffer>('read_media', { handle, archivePath: activeProjectPath })
@@ -149,7 +161,7 @@ async function openMedia(handle: string): Promise<ByteSource> {
   }
 }
 
-async function openedProject(data: any): Promise<any> {
+async function openedProject<T extends LoadedProject | null>(data: T): Promise<T> {
   if (!data) return data
   return completeProjectPdfText(data, async (h) => new Uint8Array(await readMedia(h)))
 }
@@ -162,7 +174,7 @@ async function openedProject(data: any): Promise<any> {
 const importProgress = new Set<(s: ImportState) => void>()
 const OFFICE = /\.(docx|rtf|odt)$/i
 
-async function readImports(filePaths: string[]): Promise<any[]> {
+async function readImports(filePaths: string[]): Promise<ImportedFile[]> {
   const items: ImportItem[] = filePaths.map((p) => ({
     name: droppedFiles.get(p)?.name ?? p.split(/[\\/]/).pop() ?? p,
     stage: 'waiting'
@@ -171,27 +183,27 @@ async function readImports(filePaths: string[]): Promise<any[]> {
     const state = { items: items.map((it) => ({ ...it })), finished }
     for (const cb of importProgress) cb(state)
   }
-  const out: any[] = []
+  const out: ImportedFile[] = []
   for (const [i, p] of filePaths.entries()) {
     const item = items[i]
     item.stage = OFFICE.test(item.name) ? 'converting' : 'reading'
     report()
-    let doc: any
+    let doc: RawImport
     try {
       const file = droppedFiles.get(p)
       if (file) {
         droppedFiles.delete(p)
         doc = await readDroppedFile(file)
       } else {
-        doc = (await invoke<any[]>('read_text_files', { filePaths: [p] }))[0]
+        doc = (await invoke<RawImport[]>('read_text_files', { filePaths: [p] }))[0]
       }
       if (doc?._pendingPdfText) {
         item.stage = 'readingText'
         report()
       }
       doc = await completeImportedPdf(doc)
-    } catch (err: any) {
-      doc = { name: item.name, error: err?.message || String(err) }
+    } catch (err) {
+      doc = { name: item.name, error: (err instanceof Error && err.message) || String(err) }
     }
     if (doc?.error) {
       item.stage = 'failed'
@@ -214,12 +226,12 @@ const DROP_PREFIX = 'magnolia-drop://'
 const droppedFiles = new Map<string, File>()
 let nextDropId = 1
 
-async function readDroppedFile(file: File): Promise<any> {
+async function readDroppedFile(file: File): Promise<RawImport> {
   // Read it from disk where the backend can find it (macOS): far quicker
   // than reading a large video into the page and sending it over IPC.
   const path = await invoke<string | null>('dropped_file_path', { name: file.name, size: file.size })
     .catch(() => null)
-  if (path) return (await invoke<any[]>('read_text_files', { filePaths: [path] }))[0]
+  if (path) return (await invoke<RawImport[]>('read_text_files', { filePaths: [path] }))[0]
   let bytes: ArrayBuffer
   try {
     bytes = await file.arrayBuffer()
@@ -299,7 +311,7 @@ window.addEventListener('DOMContentLoaded', syncTitle)
 // drop targets are reachable.
 window.addEventListener('dragstart', () => {
   if (current.label !== MAIN) return
-  if ((window as any).__suppressRaiseChildWindows) return
+  if (window.__suppressRaiseChildWindows) return
   void invoke('raise_other_windows')
 })
 
@@ -310,6 +322,7 @@ const toMain = (event: string, payload?: unknown): void => {
 }
 
 const api: MagnoliaAPI = {
+  platform,
   getFileSize: (filePath) => invoke('get_file_size', { filePath }),
   readPdfFile: async (filePath) => new Uint8Array(await readMedia(filePath)),
   setActiveProjectPath: async (filePath) => {
@@ -333,7 +346,7 @@ const api: MagnoliaAPI = {
   checkOutProject: (filePath, userName, steal) => invoke('check_out_project', { filePath, userName, steal }),
   checkInProject: (filePath, userName) => invoke('check_in_project', { filePath, userName }),
   readQdpxForCompare: async (filePath) => {
-    const data = await invoke<any>('read_qdpx_for_compare', { filePath })
+    const data = await invoke<Awaited<ReturnType<MagnoliaAPI['readQdpxForCompare']>>>('read_qdpx_for_compare', { filePath })
     // The comparison file isn't the active archive: read its PDFs from it.
     return completeProjectPdfText(data, async (handle) => {
       const buf = await invoke<ArrayBuffer>('read_compare_binary', { comparisonFilePath: filePath, handle })
@@ -370,7 +383,10 @@ const api: MagnoliaAPI = {
     droppedFiles.set(token, file)
     return token
   },
-  reimportDocument: async (sourceType) => completeImports(await invoke('reimport_document', { sourceType })),
+  reimportDocument: async (sourceType) => {
+    const doc = await invoke<RawImport | null>('reimport_document', { sourceType })
+    return doc && completeImportedPdf(doc)
+  },
   openLicence: () => invoke('open_licence'),
   openAcknowledgements: () => invoke('open_acknowledgements'),
   readAudioFile: readMedia,
@@ -388,7 +404,7 @@ const api: MagnoliaAPI = {
 
   // Query builder (runs in a main-window tab; round-trips main → main).
   onQueryFromBuilder: (callback) =>
-    on<{ query: any; editSavedQueryGuid?: string; graphLayout?: any }>('qb-query-result', (p) =>
+    on<{ query: Query; editSavedQueryGuid?: string; graphLayout?: QueryGraphLayout }>('qb-query-result', (p) =>
       callback(p.query, p.editSavedQueryGuid, p.graphLayout)
     ),
   sendQueryToMain: (query, editSavedQueryGuid, graphLayout) => {
@@ -396,10 +412,12 @@ const api: MagnoliaAPI = {
     toMain('qb-query-result', { query, editSavedQueryGuid, graphLayout })
   },
   sendPreviewToMain: (query, graphLayout) => toMain('qb-preview-result', { query, graphLayout }),
-  onPreviewFromBuilder: (callback) => on<any>('qb-preview-result', (p) => callback(p.query, p.graphLayout)),
+  onPreviewFromBuilder: (callback) =>
+    on<{ query: Query; graphLayout?: QueryGraphLayout }>('qb-preview-result', (p) => callback(p.query, p.graphLayout)),
   sendSaveQueryToMain: (query, name, graphLayout, savedGuid) => toMain('qb-save-query-result', { query, name, graphLayout, savedGuid }),
   onSaveQueryFromBuilder: (callback) =>
-    on<any>('qb-save-query-result', (p) => callback(p.query, p.name, p.graphLayout, p.savedGuid)),
+    on<{ query: Query; name: string; graphLayout?: QueryGraphLayout; savedGuid?: string }>('qb-save-query-result', (p) =>
+      callback(p.query, p.name, p.graphLayout, p.savedGuid)),
   onMenuAction: (callback) => on<string>('menu-action', callback),
 
   // Theme and interface scale broadcast to every other window.
@@ -431,7 +449,7 @@ const api: MagnoliaAPI = {
   getCodebookData: () => invoke('get_window_data'),
   onCodebookData: (callback) => on('codebook-init-data', callback),
   sendCodebookUpdate: (action, ...args) => toMain('codebook-update', { action, args }),
-  onCodebookUpdate: (callback) => on<any>('codebook-update', (p) => callback(p.action, ...p.args)),
+  onCodebookUpdate: (callback) => on<ActionMessage>('codebook-update', (p) => callback(p.action, ...p.args)),
 
   // Welcome window
   sendWelcomeAction: (action) => void invoke('welcome_action', { action }),
@@ -459,7 +477,7 @@ const api: MagnoliaAPI = {
   getLogbookData: () => invoke('get_window_data'),
   onLogbookData: (callback) => on('logbook-init-data', callback),
   sendLogbookUpdate: (action, ...args) => toMain('logbook-update', { action, args }),
-  onLogbookUpdate: (callback) => on<any>('logbook-update', (p) => callback(p.action, ...p.args)),
+  onLogbookUpdate: (callback) => on<ActionMessage>('logbook-update', (p) => callback(p.action, ...p.args)),
 
   // Memos window (every memo in the project)
   openMemosWindow: (data) => void invoke('open_child_window', { kind: 'memos', data }),
@@ -468,11 +486,11 @@ const api: MagnoliaAPI = {
   onMemosWindowData: (callback) => on('memos-init-data', callback),
   sendMemosWindowAction: (action, ...args) => toMain('memos-window-action', { action, args }),
   focusMainWindow: () => void invoke('focus_main_window'),
-  onMemosWindowAction: (callback) => on<any>('memos-window-action', (p) => callback(p.action, ...p.args)),
+  onMemosWindowAction: (callback) => on<ActionMessage & { action: MemosWindowAction }>('memos-window-action', (p) => callback(p.action, ...p.args)),
 
   // Analysis actions (main → main)
   sendAnalysisAction: (action, ...args) => toMain('analysis-action', { action, args }),
-  onAnalysisAction: (callback) => on<any>('analysis-action', (p) => callback(p.action, ...p.args)),
+  onAnalysisAction: (callback) => on<ActionMessage>('analysis-action', (p) => callback(p.action, ...p.args)),
 
   exportCsv: (content, defaultName) => invoke('export_csv', { content, defaultName }),
   exportSvg: (content, defaultName) => invoke('export_svg', { content, defaultName }),
@@ -504,9 +522,9 @@ const api: MagnoliaAPI = {
   fitUpdateWindow: (delta) => void invoke('update_window_fit', { delta }),
   getAppVersion: () => invoke('get_app_version'),
   checkForUpdates: () => void invoke('check_for_updates'),
-  onUpdateStatus: (callback) => on('update:status', callback as any),
+  onUpdateStatus: (callback) => on('update:status', callback),
   getUpdateBadge: () => invoke('get_update_badge'),
-  onUpdateBadge: (callback) => on('update:badge', callback as any),
+  onUpdateBadge: (callback) => on('update:badge', callback),
 
   // Inter-coder Agreement results window (pop-out)
   openIntercoderResultsWindow: (data) => void invoke('open_child_window', { kind: 'intercoder-results', data }),
@@ -515,7 +533,7 @@ const api: MagnoliaAPI = {
   getIntercoderResultsData: () => invoke('get_window_data'),
   onIntercoderResultsData: (callback) => on('intercoder-results-init-data', callback),
   sendIntercoderResultsAction: (action, payload) => toMain('intercoder-results-action', { action, payload }),
-  onIntercoderResultsAction: (callback) => on<any>('intercoder-results-action', (p) => callback(p.action, p.payload)),
+  onIntercoderResultsAction: (callback) => on<PayloadMessage>('intercoder-results-action', (p) => callback(p.action, p.payload)),
   onIntercoderResultsClosed: (callback) => on('intercoder-results-window-closed', () => callback()),
 
   // Query results window (pop-out)
@@ -525,7 +543,7 @@ const api: MagnoliaAPI = {
   getQueryResultsData: () => invoke('get_window_data'),
   onQueryResultsData: (callback) => on('query-results-init-data', callback),
   sendQueryResultsAction: (action, payload) => toMain('query-results-action', { action, payload }),
-  onQueryResultsAction: (callback) => on<any>('query-results-action', (p) => callback(p.action, p.payload)),
+  onQueryResultsAction: (callback) => on<PayloadMessage>('query-results-action', (p) => callback(p.action, p.payload)),
   jumpToQueryResult: (target) => {
     toMain('query-results-jump', target)
     void invoke('focus_main_window')
@@ -543,8 +561,7 @@ const api: MagnoliaAPI = {
 }
 
 // Synchronous at startup so CSS / components can branch on it.
-;(api as any).platform = platform
-;(window as any).api = api
+;window.api = api
 
 // In a web view, window.close() only closes windows a page opened itself,
 // so in a pop-out (memo editor, Query Results, …) it did nothing. Close the

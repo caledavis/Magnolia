@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
-import type { CodeCondition } from '../../models/types'
+import type { CodeCondition, QueryGraphConn, QueryGraphLayout, QueryGraphLogicalOp, QueryGraphNode, QueryGraphNodeKind } from '../../models/types'
 import { validateCondition } from '../../utils/query-validate'
 import { Icon, faExclamationTriangle, faCircle, faXmark } from '../Icon'
 import { PaletteGroup, PaletteDivider, PaletteButton } from '../NodePalette'
@@ -13,40 +13,10 @@ import { draggedCodes, isCodeDrag } from '../../utils/code-drag'
    Types
    ═══════════════════════════════════════════════════ */
 
-type NodeKind = 'code' | 'any' | 'text' | 'logical' | 'overlap' | 'inside' | 'outside' | 'before' | 'followedBy' | 'sameSentence' | 'result'
-
-type LogicalOp = 'and' | 'or' | 'not' | 'xor'
-
-interface GNode {
-  id: string
-  kind: NodeKind
-  x: number
-  y: number
-  codeGuid?: string
-  codeName?: string
-  codeColor?: string
-  includeSubcodes?: boolean
-  searchText?: string
-  caseSensitive?: boolean
-  wholeWord?: boolean
-  /** Text node: find the sentences the text occurs in. */
-  sentences?: boolean
-  /** For logical nodes: the single operator type */
-  logicalOp?: LogicalOp
-  /** @deprecated — old multi-op array, migrated to logicalOp on load */
-  logicalOps?: (LogicalOp | undefined)[]
-  /** For multi-input operators (and/or): how many input slots */
-  inputCount?: number
-  /** Inline NOT toggle — wraps this node's condition in { type: 'not' } */
-  isNegated?: boolean
-}
-
-interface GConn {
-  id: string
-  from: string
-  to: string
-  toPort: number
-}
+type NodeKind = QueryGraphNodeKind
+type LogicalOp = QueryGraphLogicalOp
+type GNode = QueryGraphNode
+type GConn = QueryGraphConn
 
 type DragState =
   | null
@@ -560,9 +530,9 @@ function conditionToGraph(
 
 interface Props {
   onChange: (condition: CodeCondition | null) => void
-  onGraphChange?: (graph: { nodes: any[]; conns: any[] }) => void
+  onGraphChange?: (graph: QueryGraphLayout) => void
   initialCondition?: CodeCondition
-  initialGraphLayout?: { nodes: any[]; conns: any[] }
+  initialGraphLayout?: QueryGraphLayout
   codes?: CodeInfo[]
 }
 

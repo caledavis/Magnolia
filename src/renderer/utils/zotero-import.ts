@@ -51,9 +51,9 @@ export async function importZoteroItems(get: ZoteroGet, job: ZoteroImport): Prom
   let added = false
   let folder: string | undefined
   for (const [i, item] of items.entries()) {
-    const file = read[i] as any
-    if (!file || file.error) continue
-    const ext = file.extension || String(file.name ?? '').split('.').pop()?.toLowerCase() || ''
+    const file = read[i]
+    if (!file || file.error !== undefined) continue
+    const ext = file.extension || file.name.split('.').pop()?.toLowerCase() || ''
     const sourceType = sourceTypeFromExtension(ext)
     const guid = useDocumentStore.getState().addSource(
       itemTitle(item), file.content, sourceType !== 'text' ? sourceType : undefined, file.formatting

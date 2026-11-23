@@ -2577,8 +2577,8 @@ export function DocumentBrowser({ onSurveyImport, showManageDocTags, onCloseMana
     const errors: string[] = []
     for (const f of files) {
       // Files that couldn't be read are listed in the import dialog.
-      if ((f as any).error) continue
-      const ext = (f as any).extension || f.name.split('.').pop()?.toLowerCase() || ''
+      if (f.error !== undefined) continue
+      const ext = f.extension || f.name.split('.').pop()?.toLowerCase() || ''
       // CSV / XLSX → defer to the survey-import preview dialog
       // (handled in App.tsx). XLSX is converted to CSV text in the
       // main process so the same pipeline handles both. Without this
@@ -2594,7 +2594,7 @@ export function DocumentBrowser({ onSurveyImport, showManageDocTags, onCloseMana
         continue
       }
       const st = sourceTypeFromExtension(ext)
-      const formatting = (f as any).formatting
+      const formatting = f.formatting
       const guid = addSource(f.name, f.content, st !== 'text' ? st : undefined, formatting)
       if (folderGuid) {
         useDocumentStore.getState().moveSourceToFolder(guid, folderGuid)

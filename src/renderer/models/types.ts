@@ -1,3 +1,5 @@
+import type { DConn, DNode } from '../utils/document-graph'
+import type { Preferences } from '../stores/preferences-store'
 /** Magnolia-specific document folder. The REFI-QDA standard has no
  *  folder concept — these are persisted in a `magnolia-folders.json`
  *  side table inside the .qdpx alongside the per-doc folder mapping. */
@@ -420,7 +422,7 @@ export interface Query {
      *  collapses every combiner to a union and re-adds resolved docs as
      *  explicit nodes). Optional for backward-compat with queries saved
      *  before this field existed. */
-    graph?: { nodes: any[]; conns: any[] }
+    graph?: { nodes: DNode[]; conns: DConn[] }
   }
   codeCondition: CodeCondition
   /** Only keep text matches that fall inside the results of these queries
@@ -445,7 +447,7 @@ export interface SavedQuery {
   name: string
   query: Query
   createdDateTime: string
-  graphLayout?: { nodes: any[]; conns: any[] }
+  graphLayout?: QueryGraphLayout
 }
 
 export interface QueryResult {
@@ -487,7 +489,7 @@ export interface QueryBuilderInitData {
   // When editing an existing saved query:
   editSavedQueryGuid?: string
   editQuery?: Query
-  editGraphLayout?: { nodes: any[]; conns: any[] }
+  editGraphLayout?: QueryGraphLayout
   // Snapshot of the active query before the builder opened (for Cancel to restore)
   priorQuery?: Query | null
 }
@@ -555,6 +557,8 @@ export interface ImportItem { name: string; stage: ImportStage; error?: string }
 export interface ImportState { items: ImportItem[]; finished: boolean }
 
 export interface MagnoliaAPI {
+  /** The operating system Magnolia runs on. */
+  platform: 'darwin' | 'win32' | 'linux'
   getFileSize: (filePath: string) => Promise<number | null>
   readPdfFile: (filePath: string) => Promise<Uint8Array>
   onProjectLoadProgress: (callback: (p: { stage: string; current: number; total: number }) => void) => () => void
@@ -638,10 +642,10 @@ export interface MagnoliaAPI {
    *  open. */
   setActiveProjectPath: (filePath: string | null) => Promise<void>
   createNewProjectFile: () => Promise<{ filePath: string; projectName: string } | null>
-  importTextFile: () => Promise<{ name: string; content: string }[] | null>
+  importTextFile: () => Promise<ImportedFile[] | null>
   /** How an import is going: each file's stage, and whether it's finished. */
   onImportProgress: (callback: (s: ImportState) => void) => () => void
-  readTextFiles: (filePaths: string[]) => Promise<{ name: string; content: string }[] | null>
+  readTextFiles: (filePaths: string[]) => Promise<ImportedFile[] | null>
   /** GET from the Zotero app's local API (a path under /api/). Rejects
    *  with "zotero-not-running" when Zotero isn't open. */
   zoteroGet: (path: string) => Promise<{ status: number; total: number | null; body: string }>
@@ -654,11 +658,7 @@ export interface MagnoliaAPI {
    *  re-attached to the existing source), an error, or null if cancelled. */
   reimportDocument: (
     sourceType: string
-  ) => Promise<
-    | { name: string; content: string; extension: string; formatting?: any }
-    | { name: string; error: string }
-    | null
-  >
+  ) => Promise<ImportedFile | null>
   /** Open the bundled LICENSE (EUPL-1.2) in the OS's default text viewer. */
   openLicence: () => Promise<void>
   /** Open the bundled THIRD-PARTY-LICENSES.txt in the OS's default text viewer. */
@@ -676,12 +676,12 @@ export interface MagnoliaAPI {
   exportCodebook: (codes: Code[]) => Promise<string | null>
   importCodebook: () => Promise<Code[] | null>
   showNewQueryDialog: () => void
-  onQueryFromBuilder: (callback: (query: Query, editSavedQueryGuid?: string, graphLayout?: any) => void) => () => void
-  sendQueryToMain: (query: Query, editSavedQueryGuid?: string, graphLayout?: any) => void
-  sendPreviewToMain: (query: Query, graphLayout?: any) => void
-  onPreviewFromBuilder: (callback: (query: Query, graphLayout?: any) => void) => () => void
-  sendSaveQueryToMain: (query: Query, name: string, graphLayout?: any, savedGuid?: string) => void
-  onSaveQueryFromBuilder: (callback: (query: Query, name: string, graphLayout?: any, savedGuid?: string) => void) => () => void
+  onQueryFromBuilder: (callback: (query: Query, editSavedQueryGuid?: string, graphLayout?: QueryGraphLayout) => void) => () => void
+  sendQueryToMain: (query: Query, editSavedQueryGuid?: string, graphLayout?: QueryGraphLayout) => void
+  sendPreviewToMain: (query: Query, graphLayout?: QueryGraphLayout) => void
+  onPreviewFromBuilder: (callback: (query: Query, graphLayout?: QueryGraphLayout) => void) => () => void
+  sendSaveQueryToMain: (query: Query, name: string, graphLayout?: QueryGraphLayout, savedGuid?: string) => void
+  onSaveQueryFromBuilder: (callback: (query: Query, name: string, graphLayout?: QueryGraphLayout, savedGuid?: string) => void) => () => void
   onMenuAction: (callback: (action: string) => void) => () => void
   broadcastTheme: (theme: string) => void
   onThemeChanged: (callback: (theme: string) => void) => () => void
@@ -767,13 +767,7 @@ export interface MagnoliaAPI {
   fitUpdateWindow: (delta: number) => void
   getAppVersion: () => Promise<string>
   checkForUpdates: () => void
-  onUpdateStatus: (
-    callback: (status: {
-      state: 'checking' | 'up-to-date' | 'available' | 'error' | 'dev-disabled'
-      version?: string
-      message?: string
-    }) => void
-  ) => () => void
+  onUpdateStatus: (callback: (status: UpdateStatus) => void) => () => void
   getUpdateBadge: () => Promise<UpdateBadgeState>
   onUpdateBadge: (callback: (state: UpdateBadgeState) => void) => () => void
   // Inter-coder Agreement results window (pop-out). The data is the
@@ -840,10 +834,11 @@ export interface MagnoliaAPI {
   // Transcript import
   importTranscript: () => Promise<{ name: string; content: string } | null>
   // Preferences
-  loadPreferences: () => Promise<any>
-  savePreferences: (prefs: any) => Promise<void>
-  sendPreferencesUpdate: (prefs: any) => void
-  onPreferencesUpdate: (callback: (prefs: any) => void) => () => void
+  /** The saved preferences, or null if there are none yet. */
+  loadPreferences: () => Promise<SavedPreferences | null>
+  savePreferences: (prefs: SavedPreferences) => Promise<void>
+  sendPreferencesUpdate: (prefs: SavedPreferences) => void
+  onPreferencesUpdate: (callback: (prefs: SavedPreferences) => void) => () => void
 }
 
 export interface CodebookInitData {
@@ -1092,7 +1087,17 @@ export interface SavedAnalysis {
 declare global {
   interface Window {
     api: MagnoliaAPI
+    /** Set while Query Results starts a drag of its own, so the main window
+     *  doesn't raise the other windows over it (platform/tauri-api). */
+    __suppressRaiseChildWindows?: boolean
   }
+}
+
+/** Where a check for updates has got to. */
+export interface UpdateStatus {
+  state: 'checking' | 'up-to-date' | 'available' | 'error' | 'dev-disabled'
+  version?: string
+  message?: string
 }
 
 /** A file read a range at a time, so a long recording is never all in memory. */
@@ -1105,3 +1110,62 @@ export interface ByteSource {
 /** How a save went: `error` says why it failed, or `lockedBy` names who
  *  took control of the project. */
 export type SaveOutcome = { ok: true; error?: undefined; lockedBy?: undefined } | { ok: false; error?: string; lockedBy?: string }
+
+/** A file read for import: the document it becomes (its text, its
+ *  extension, and for media the details the source keeps as formatData),
+ *  or why it couldn't be read. */
+export type ImportedFile =
+  | { name: string; content: string; extension: string; formatting?: TextSource['formatData']; error?: undefined }
+  | { name: string; error: string; content?: undefined; extension?: undefined; formatting?: undefined }
+
+// ── Query Builder graph ──
+
+/** A Query Builder node's kind. */
+export type QueryGraphNodeKind = 'code' | 'any' | 'text' | 'logical' | 'overlap' | 'inside' | 'outside' | 'before' | 'followedBy' | 'sameSentence' | 'result'
+
+export type QueryGraphLogicalOp = 'and' | 'or' | 'not' | 'xor'
+
+/** A node in the Query Builder's graph (saved with the query, so it reopens as drawn). */
+export interface QueryGraphNode {
+  id: string
+  kind: QueryGraphNodeKind
+  x: number
+  y: number
+  codeGuid?: string
+  codeName?: string
+  codeColor?: string
+  includeSubcodes?: boolean
+  searchText?: string
+  caseSensitive?: boolean
+  wholeWord?: boolean
+  /** Text node: find the sentences the text occurs in. */
+  sentences?: boolean
+  /** For logical nodes: the single operator type */
+  logicalOp?: QueryGraphLogicalOp
+  /** @deprecated — old multi-op array, migrated to logicalOp on load */
+  logicalOps?: (QueryGraphLogicalOp | undefined)[]
+  /** For multi-input operators (and/or): how many input slots */
+  inputCount?: number
+  /** Inline NOT toggle — wraps this node's condition in { type: 'not' } */
+  isNegated?: boolean
+}
+
+/** A wire from one node's output to another's input port. */
+export interface QueryGraphConn {
+  id: string
+  from: string
+  to: string
+  toPort: number
+}
+
+/** The Query Builder's graph, as saved with a query. */
+export interface QueryGraphLayout {
+  nodes: QueryGraphNode[]
+  conns: QueryGraphConn[]
+}
+
+/** The preferences file: the store's preferences, and how numbers are
+ *  written (`digits`, which i18n applies). Saved by an older Magnolia, any
+ *  of it may be missing. */
+export type SavedPreferences = Partial<Preferences> & { digits?: string }
+

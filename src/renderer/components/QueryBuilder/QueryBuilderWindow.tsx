@@ -6,12 +6,7 @@ import {
   emptyDocumentFilter,
   type DocumentFilterState
 } from '../DocumentSelector/DocumentSelector'
-import type {
-  CodeCondition,
-  Query,
-  QueryBuilderInitData,
-  SurveyEntityRef
-} from '../../models/types'
+import type { CodeCondition, Query, QueryBuilderInitData, SurveyEntityRef, QueryGraphLayout } from '../../models/types'
 import { EditableTitleSuffix } from '../EditableTitleSuffix'
 import { chosenEntries } from '../DocumentSelector/SurveyScope'
 import { documentsSummary } from '../Analysis/documents-filter'
@@ -163,7 +158,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
     return Boolean(df.sourceGuids?.length || df.tagGuids?.length || df.tagExcludeGuids?.length || df.folderGuids?.length || df.questionScope?.length || df.respondentScope?.length)
   })
   const [codeCondition, setCodeCondition] = useState<CodeCondition | null>(null)
-  const [currentGraph, setCurrentGraph] = useState<{ nodes: any[]; conns: any[] } | null>(null)
+  const [currentGraph, setCurrentGraph] = useState<QueryGraphLayout | null>(null)
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [saveQueryName, setSaveQueryName] = useState('')
   // Survey questions and respondents, chosen on each survey in the
@@ -189,7 +184,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
     useQueryStore.getState().renameSavedQuery(editGuid, newName)
     if (inTab) inTab.onSaved(newName)
   }, [editGuid, inTab])
-  const [initialGraphLayout, setInitialGraphLayout] = useState<{ nodes: any[]; conns: any[] } | undefined>(
+  const [initialGraphLayout, setInitialGraphLayout] = useState<QueryGraphLayout | undefined>(
     initData?.editGraphLayout
   )
   // Document-selector graph to restore on Discard. Kept in a ref rather

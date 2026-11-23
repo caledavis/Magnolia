@@ -37,7 +37,7 @@ export function MissingBinariesBanner({
     try {
       const res = await window.api.reimportDocument(m.sourceType)
       if (!res) return // cancelled
-      if ('error' in res) {
+      if (res.error !== undefined) {
         setErrors((e) => ({ ...e, [m.guid]: res.error }))
         return
       }
