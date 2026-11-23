@@ -295,3 +295,30 @@ fn keeps_newlines_in_attribute_values() {
         "line one\n\nline two"
     );
 }
+
+#[test]
+fn case_values_keep_dates_and_read_numeric_booleans() {
+    let xml = r#"<Project name="T" xmlns="urn:QDA-XML:project:1.0">
+  <Variables>
+    <Variable guid="11111111-1111-1111-1111-111111111111" name="Born" typeOfVariable="Date"/>
+    <Variable guid="22222222-2222-2222-2222-222222222222" name="Seen" typeOfVariable="DateTime"/>
+    <Variable guid="33333333-3333-3333-3333-333333333333" name="Consent" typeOfVariable="Boolean"/>
+    <Variable guid="44444444-4444-4444-4444-444444444444" name="Opt out" typeOfVariable="Boolean"/>
+  </Variables>
+  <Cases>
+    <Case guid="55555555-5555-5555-5555-555555555555" name="P1">
+      <VariableValue><VariableRef targetGUID="11111111-1111-1111-1111-111111111111"/><DateValue>1990-04-01</DateValue></VariableValue>
+      <VariableValue><VariableRef targetGUID="22222222-2222-2222-2222-222222222222"/><DateTimeValue>2024-05-06T10:30:00Z</DateTimeValue></VariableValue>
+      <VariableValue><VariableRef targetGUID="33333333-3333-3333-3333-333333333333"/><BooleanValue>1</BooleanValue></VariableValue>
+      <VariableValue><VariableRef targetGUID="44444444-4444-4444-4444-444444444444"/><BooleanValue>0</BooleanValue></VariableValue>
+    </Case>
+  </Cases>
+</Project>"#;
+    let project = deserialize_project(xml).unwrap();
+    let values = &project["_refiCases"][0]["values"];
+    assert_eq!(values[0]["dateValue"], "1990-04-01");
+    assert_eq!(values[1]["dateTimeValue"], "2024-05-06T10:30:00Z");
+    assert_eq!(values[2]["booleanValue"], true);
+    assert_eq!(values[3]["booleanValue"], false);
+}
+

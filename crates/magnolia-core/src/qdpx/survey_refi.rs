@@ -314,7 +314,7 @@ fn value_to_string(val: &Value) -> String {
     if let Some(b) = val.get("booleanValue").and_then(Value::as_bool) {
         return if b { "true" } else { "false" }.into();
     }
-    for k in ["integerValue", "floatValue"] {
+    for k in ["integerValue", "floatValue", "dateValue", "dateTimeValue"] {
         if let Some(n) = val.get(k).filter(|v| !v.is_null()) {
             return crate::util::js_to_string(n);
         }
@@ -607,3 +607,21 @@ pub fn refi_to_survey(
         doc_to_respondent,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::value_to_string;
+    use serde_json::json;
+
+    #[test]
+    fn shows_every_kind_of_value() {
+        assert_eq!(value_to_string(&json!({ "textValue": "hi" })), "hi");
+        assert_eq!(value_to_string(&json!({ "booleanValue": true })), "true");
+        assert_eq!(value_to_string(&json!({ "integerValue": 3 })), "3");
+        assert_eq!(value_to_string(&json!({ "floatValue": 2.5 })), "2.5");
+        assert_eq!(value_to_string(&json!({ "dateValue": "1990-04-01" })), "1990-04-01");
+        assert_eq!(value_to_string(&json!({ "dateTimeValue": "2024-05-06T10:30:00Z" })), "2024-05-06T10:30:00Z");
+        assert_eq!(value_to_string(&json!({})), "");
+    }
+}
+

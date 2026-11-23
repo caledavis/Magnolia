@@ -302,11 +302,17 @@ fn parse_variable_value(n: Node) -> Value {
     if let Some(t) = child_text(n, "TextValue") {
         o.insert("textValue".into(), t.into());
     } else if let Some(b) = child_text(n, "BooleanValue") {
-        o.insert("booleanValue".into(), (b == "true").into());
+        // xs:boolean: "true"/"false" or "1"/"0".
+        let b = b.trim();
+        o.insert("booleanValue".into(), (b == "true" || b == "1").into());
     } else if let Some(i) = child_text(n, "IntegerValue") {
         o.insert("integerValue".into(), js_number(&i));
     } else if let Some(f) = child_text(n, "FloatValue") {
         o.insert("floatValue".into(), js_number(&f));
+    } else if let Some(d) = child_text(n, "DateValue") {
+        o.insert("dateValue".into(), d.trim().into());
+    } else if let Some(d) = child_text(n, "DateTimeValue") {
+        o.insert("dateTimeValue".into(), d.trim().into());
     }
     Value::Object(o)
 }

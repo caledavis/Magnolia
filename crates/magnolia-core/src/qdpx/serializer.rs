@@ -468,6 +468,10 @@ fn serialize_case(c: &Value) -> El {
             vv.push(El::text("IntegerValue", js_to_string(i)));
         } else if let Some(f) = present("floatValue") {
             vv.push(El::text("FloatValue", js_to_string(f)));
+        } else if let Some(d) = present("dateValue") {
+            vv.push(El::text("DateValue", js_to_string(d)));
+        } else if let Some(d) = present("dateTimeValue") {
+            vv.push(El::text("DateTimeValue", js_to_string(d)));
         }
         el.push(vv);
     }
@@ -814,3 +818,21 @@ pub fn serialize_project(project: &Value, app_version: &str) -> String {
         "guid|targetGUID|representedGUID|sourceVertex|targetVertex|creatingUser(?:GUID)?|modifyingUser(?:GUID)?",
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::serialize_case;
+    use serde_json::json;
+
+    #[test]
+    fn writes_date_values_back() {
+        let case = json!({ "guid": "G", "name": "P1", "values": [
+            { "variableGuid": "A", "dateValue": "1990-04-01" },
+            { "variableGuid": "B", "dateTimeValue": "2024-05-06T10:30:00Z" }
+        ] });
+        let xml = crate::xml_build::document(&[], &serialize_case(&case));
+        assert!(xml.contains("<DateValue>1990-04-01</DateValue>"), "{xml}");
+        assert!(xml.contains("<DateTimeValue>2024-05-06T10:30:00Z</DateTimeValue>"), "{xml}");
+    }
+}
+
