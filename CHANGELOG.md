@@ -4,6 +4,9 @@ All notable changes to Magnolia are documented here. The format follows [Keep a 
 
 ## [Unreleased]
 
+### Fixed
+- **Double-clicking a project opens it without a crash.** On a Mac, opening a .qdpx from the Finder when Magnolia wasn't running made it quit straight away, and macOS then warned that Magnolia had closed unexpectedly.
+
 ## [2.2.0]
 
 ### Added

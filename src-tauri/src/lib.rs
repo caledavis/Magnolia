@@ -28,6 +28,13 @@ fn open_path(app: &AppHandle, path: String) {
     windows::open_project_in_main(app, &path);
 }
 
+/// Finder opens that arrive before `setup` has run. macOS delivers the
+/// double-clicked file as `RunEvent::Opened` before the app has finished
+/// launching, when storage, preferences and the menu aren't set up yet —
+/// opening a window then panicked (storage::init not called), which
+/// macOS reports as a crash. `None` once setup is done.
+static EARLY_OPENS: std::sync::Mutex<Option<Vec<String>>> = std::sync::Mutex::new(Some(Vec::new()));
+
 /// Underline misspelt words as you type, in every window. WebKit checks
 /// spelling while typing only when its `WebContinuousSpellCheckingEnabled`
 /// default is on, which apps must ask for (Safari does). Registered as a
@@ -179,7 +186,8 @@ pub fn run() {
             // Launched by double-clicking a project (or with a path argument):
             // skip the welcome screen.
             let args: Vec<String> = std::env::args().collect();
-            match qdpx_from_args(&args) {
+            let early = EARLY_OPENS.lock().unwrap().take().unwrap_or_default();
+            match qdpx_from_args(&args).or_else(|| early.last().cloned()) {
                 Some(path) => open_path(app.handle(), path),
                 None => {
                     // macOS delivers Finder opens as RunEvent::Opened right
@@ -208,7 +216,12 @@ pub fn run() {
                         .extension()
                         .is_some_and(|e| e.eq_ignore_ascii_case("qdpx"))
                 {
-                    open_path(app, path.to_string_lossy().into_owned());
+                    let path = path.to_string_lossy().into_owned();
+                    if let Some(early) = EARLY_OPENS.lock().unwrap().as_mut() {
+                        early.push(path);
+                    } else {
+                        open_path(app, path);
+                    }
                 }
             }
         }
