@@ -29,7 +29,6 @@ import type {
   QueryResult,
   PlainTextSelection,
   PdfRegionSelection,
-  TimeRange,
   SourceType,
   SurveyData
 } from '../../models/types'

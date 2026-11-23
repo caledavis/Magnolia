@@ -1,14 +1,10 @@
 import { useState, useMemo, useCallback, useRef } from 'react'
 import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
 import { Icon, faBarsStaggered } from '../Icon'
-import { toolColors } from '../../utils/tool-colors'
-import {
-  emptyDocumentFilter,
-  type DocumentFilterState
-} from '../DocumentSelector/DocumentSelector'
+import { type DocumentFilterState } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
-import { truncate, toCsv, resolveFilteredSources, applySurveyCellScope } from './analysis-helpers'
+import { truncate, resolveFilteredSources, applySurveyCellScope } from './analysis-helpers'
 import { generateGuid } from '../../utils/guid'
 import {
   type GroupByEntry,

@@ -19,7 +19,6 @@ import { useQuoteStore } from '../../stores/quote-store'
 import { ImagePageRenderer } from './ImagePageRenderer'
 import { RichMarginColumn } from './RichMarginColumn'
 import { Icon, QUOTE_ICON, MEMO_POINT_ICON, MEMO_RANGED_ICON } from '../Icon'
-import { ViewerZoomToolbar } from './ViewerZoomToolbar'
 import { DocumentToolbarPortal } from './DocumentToolbar'
 import type { CodingRightClickContext } from './CodedTextView'
 import type { Code, Memo, MemoEditInitData, TextSource, PdfRegionSelection } from '../../models/types'
@@ -123,8 +122,6 @@ export function ImageDocumentViewer({ source }: Props) {
     }
   }, [pendingBoxSelection, source.guid, setGlobalPendingSelection])
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; context: CodingRightClickContext } | null>(null)
-  const [menuHighlight, setMenuHighlight] = useState<{ startCp: number; endCp: number } | null>(null)
-  const [hoveredRange, setHoveredRange] = useState<{ startCp: number; endCp: number } | null>(null)
   const [lockedRange, setLockedRange] = useState<{ startCp: number; endCp: number } | null>(null)
   const [hoveredSelGuid, setHoveredSelGuid] = useState<string | null>(null)
   const [hoveredRegion, setHoveredRegion] = useState<PdfRegionSelection | null>(null)
@@ -376,14 +373,14 @@ export function ImageDocumentViewer({ source }: Props) {
     if (!contextMenu?.context.pendingSelection) return
     const ps = contextMenu.context.pendingSelection
     if (ps.pdfRegion) applyCodingToRegion(codeGuid, ps.pdfRegion)
-    setContextMenu(null); setMenuHighlight(null)
+    setContextMenu(null)
   }, [contextMenu, applyCodingToRegion])
 
   const handleRemoveCoding = useCallback((selectionGuid: string, codingGuid: string) => {
     removeCoding(source.guid, selectionGuid, codingGuid)
     const sel = source.selections.find((s) => s.guid === selectionGuid)
     if (sel && sel.codings.length <= 1) removeSelection(source.guid, selectionGuid)
-    setContextMenu(null); setMenuHighlight(null)
+    setContextMenu(null)
   }, [source, removeCoding, removeSelection])
 
   const handleCreateMemo = useCallback((startCp: number, endCp: number, pdfRegion?: PdfRegionSelection) => {
@@ -443,7 +440,7 @@ export function ImageDocumentViewer({ source }: Props) {
       if (e.key === 'Escape') {
         if (boxDrag) { setBoxDrag(null); return }
         if (pendingBoxSelection) { setPendingBoxSelection(null); return }
-        if (contextMenu) { setContextMenu(null); setMenuHighlight(null); return }
+        if (contextMenu) { setContextMenu(null); return }
         return
       }
       if (!e.metaKey && !e.ctrlKey) return
@@ -468,7 +465,7 @@ export function ImageDocumentViewer({ source }: Props) {
       style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
       onMouseDown={(e) => {
         if (contextMenu && !(e.target as HTMLElement).closest('.context-menu')) {
-          setContextMenu(null); setMenuHighlight(null)
+          setContextMenu(null)
         }
         // Clear margin-column lock when clicking outside a margin label /
         // popup, matching the plain-text + PDF viewer behavior.
@@ -476,7 +473,6 @@ export function ImageDocumentViewer({ source }: Props) {
           const t = e.target as HTMLElement
           if (!t.closest('.context-menu') && !t.closest('[data-margin-label="1"]')) {
             setLockedRange(null)
-            setHoveredRange(null)
           }
         }
       }}
@@ -619,7 +615,6 @@ export function ImageDocumentViewer({ source }: Props) {
               alignRight
               viewportRef={scrollContainerRef}
               lockedRange={lockedRange}
-              onHoverRange={setHoveredRange}
               onHoverSelectionGuid={setHoveredSelGuid}
               onHoverRegion={setHoveredRegion}
               onLockRange={setLockedRange}
@@ -667,7 +662,7 @@ export function ImageDocumentViewer({ source }: Props) {
               the current text/region selection via handleCreateCode. */}
           <div className="context-menu-item" onClick={() => {
             useNewCodeTriggerStore.getState().request()
-            setContextMenu(null); setMenuHighlight(null)
+            setContextMenu(null)
           }}>
             {t('viewer.newCode')}
           </div>
@@ -687,8 +682,6 @@ export function ImageDocumentViewer({ source }: Props) {
                 return (
                   <div key={ec.codingGuid} className="context-menu-item" style={{ color: 'var(--menu-fg-danger)' }}
                     onClick={() => handleRemoveCoding(ec.selectionGuid, ec.codingGuid)}
-                    onMouseEnter={() => setMenuHighlight({ startCp: ec.startCp, endCp: ec.endCp })}
-                    onMouseLeave={() => setMenuHighlight(null)}
                   >
                     <span className="color-pip" style={{ background: code?.color || '#888' }} />
                     {code?.name ?? t('common.unknown')}
@@ -728,9 +721,7 @@ export function ImageDocumentViewer({ source }: Props) {
               <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, userSelect: 'none' }}>{t('viewer.deleteMemo')}</div>
               {contextMenu.context.overlappingMemos.map((m) => (
                 <div key={m.guid} className="context-menu-item" style={{ color: 'var(--menu-fg-danger)' }}
-                  onMouseEnter={() => setHoveredRange({ startCp: m.startCp, endCp: m.endCp })}
-                  onMouseLeave={() => setHoveredRange(null)}
-                  onClick={() => { removeMemo(m.guid); setContextMenu(null); setMenuHighlight(null) }}
+                  onClick={() => { removeMemo(m.guid); setContextMenu(null) }}
                 >
                   {m.title || t('memos.untitled')}
                 </div>
@@ -743,7 +734,7 @@ export function ImageDocumentViewer({ source }: Props) {
       {/* Memo / quote popup — matches PdfDocumentViewer exactly */}
       {memoPopup && (
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => { setMemoPopup(null); setLockedRange(null); setHoveredRange(null) }} />
+          <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => { setMemoPopup(null); setLockedRange(null) }} />
           <div
             className="context-menu"
             style={{
@@ -759,12 +750,6 @@ export function ImageDocumentViewer({ source }: Props) {
                 key={m.guid}
                 className="context-menu-item"
                 style={{ display: 'flex', alignItems: 'center' }}
-                onMouseEnter={() => {
-                  if (m.startPosition !== undefined && m.endPosition !== undefined && m.startPosition !== m.endPosition) {
-                    setHoveredRange({ startCp: m.startPosition, endCp: m.endPosition })
-                  }
-                }}
-                onMouseLeave={() => setHoveredRange(null)}
                 onClick={() => {
                   if (m.startPosition !== undefined && m.endPosition !== undefined && m.startPosition !== m.endPosition) {
                     setLockedRange({ startCp: m.startPosition, endCp: m.endPosition })
@@ -790,17 +775,10 @@ export function ImageDocumentViewer({ source }: Props) {
                     key={`del-${m.guid}`}
                     className="context-menu-item"
                     style={{ color: 'var(--menu-fg-danger)' }}
-                    onMouseEnter={() => {
-                      if (m.startPosition !== undefined && m.endPosition !== undefined) {
-                        setHoveredRange({ startCp: m.startPosition, endCp: m.endPosition })
-                      }
-                    }}
-                    onMouseLeave={() => setHoveredRange(null)}
                     onClick={() => {
                       useQuoteStore.getState().removeQuote(m.guid)
                       setMemoPopup(null)
                       setLockedRange(null)
-                      setHoveredRange(null)
                     }}
                   >
                     {t('viewer.deleteNamed', { name: (m.title || t('viewer.quote')).slice(0, 20) })}

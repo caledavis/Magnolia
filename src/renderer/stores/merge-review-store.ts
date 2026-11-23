@@ -122,7 +122,7 @@ function emptyApproved(): Record<FlatCategory, Set<string>> {
   }
 }
 
-export const useMergeReviewStore = create<MergeReviewState>((set, get) => ({
+export const useMergeReviewStore = create<MergeReviewState>((set) => ({
   comparisonFilePath: null,
   comparisonEditedBy: null,
   comparisonProject: null,

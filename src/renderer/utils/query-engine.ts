@@ -826,34 +826,6 @@ function evaluateCondition(
   }
 }
 
-/** Collect all code guids referenced in a condition tree */
-function collectReferencedCodes(condition: CodeCondition, out: Set<string>): void {
-  switch (condition.type) {
-    case 'code':
-      out.add(condition.codeGuid)
-      break
-    case 'any':
-      break // wildcard — no specific code to reference
-    case 'and':
-    case 'or':
-    case 'xor':
-      for (const c of condition.conditions) collectReferencedCodes(c, out)
-      break
-    case 'not':
-      collectReferencedCodes(condition.condition, out)
-      break
-    case 'overlap':
-    case 'inside':
-    case 'outside':
-    case 'before':
-    case 'followedBy':
-    case 'sameSentence':
-      collectReferencedCodes(condition.condition1, out)
-      collectReferencedCodes(condition.condition2, out)
-      break
-  }
-}
-
 /** Check if a selection matches a condition (works for code, logical, text, etc.) */
 /**
  * Check if a selection matches a condition. For simple conditions (code, text, and/or/not/xor),
@@ -960,7 +932,6 @@ function selectionMatchesCondition(
 
 /** Collect all matched code info from a condition tree (for display in results) */
 function collectMatchedCodes(
-  condition: CodeCondition,
   codeGuids: Set<string>,
   codeMap: Map<string, Code>
 ): QueryResult['matchedCodes'] {
@@ -1006,7 +977,7 @@ function findOverlapIntersections(
       seenRanges.add(timeKey)
       const allCodes = new Set([...selection.codings.map((c) => c.codeGuid), ...other.codings.map((c) => c.codeGuid)])
       const r = buildResult(source, { guid: selection.guid, startPosition: 0, endPosition: 0, timeRange: time, codings: [] }, content, allCodes, codeMap)
-      results.push({ ...r, matchedCodes: collectMatchedCodes(condition.condition1, allCodes, codeMap) })
+      results.push({ ...r, matchedCodes: collectMatchedCodes(allCodes, codeMap) })
       continue
     }
 
@@ -1038,7 +1009,7 @@ function findOverlapIntersections(
       matchedText,
       contextBefore: before,
       contextAfter: after,
-      matchedCodes: collectMatchedCodes(condition.condition1, allCodes, codeMap),
+      matchedCodes: collectMatchedCodes(allCodes, codeMap),
       // Survey intersections index into one cell's text; say which.
       surveyCell: selection.surveyCell
     })

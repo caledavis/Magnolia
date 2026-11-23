@@ -97,8 +97,7 @@ function typeOptionsForRow(row: EditorRow): { value: SurveyColumnType; labelKey:
  *  detected type. */
 function sampleForRow(
   row: EditorRow,
-  respondents: SurveyRespondent[],
-  columns: SurveyColumn[]
+  respondents: SurveyRespondent[]
 ): string {
   const N = 3
   if (row.kind === 'question') {
@@ -349,7 +348,7 @@ export function SurveyImportDialog({
                     ? stripHtml(row.question.text)
                     : row.column.cleanHeader || t('surveyImport.emptyHeader')
                 const opts = typeOptionsForRow(row)
-                const sample = sampleForRow(row, survey.respondents, survey.columns)
+                const sample = sampleForRow(row, survey.respondents)
                 const isSkipped = currentType === 'skip'
                 return (
                   <tr

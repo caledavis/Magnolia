@@ -11,7 +11,6 @@ import { useQuoteStore } from '../../stores/quote-store'
 import { PdfPageRenderer } from './PdfPageRenderer'
 import { RichMarginColumn } from './RichMarginColumn'
 import { Icon, QUOTE_ICON, MEMO_POINT_ICON, MEMO_RANGED_ICON, faCrosshairs, faICursor } from '../Icon'
-import { ViewerZoomToolbar } from './ViewerZoomToolbar'
 import { DocumentToolbarPortal } from './DocumentToolbar'
 import type { CodingRightClickContext } from './CodedTextView'
 import type { Code, Memo, MemoEditInitData, TextSource, PdfRegionSelection } from '../../models/types'
@@ -275,14 +274,6 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
 
   const pageOffsets: number[] = source.formatData?.pdfPageOffsets || []
   const numPages = pdfDocument ? pdfDocument.numPages : 0
-
-  // Extract each page's text from the full content using pageOffsets
-  const contentCps = useMemo(() => [...content], [content])
-  const getPageText = useCallback((pageIdx: number): string => {
-    const start = pageOffsets[pageIdx] || 0
-    const end = pageIdx + 1 < pageOffsets.length ? pageOffsets[pageIdx + 1] - 1 : contentCps.length // -1 for page separator \n
-    return contentCps.slice(start, end).join('')
-  }, [pageOffsets, contentCps])
 
   // Load PDF document. Two supported sources:
   //   1. formatData.pdfFilePath — temp-file path, bytes fetched via IPC
@@ -812,12 +803,10 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
                 pdfDocument={pdfDocument}
                 pageNumber={i + 1}
                 pageTextOffset={pageOffsets[i] || 0}
-                pageText={getPageText(i)}
                 scale={zoom}
                 selections={source.selections}
                 codeMap={codeMap}
                 contentMemos={contentMemos}
-                quotes={quoteRanges}
                 externalHighlightRange={menuHighlight}
                 pulseRegion={pulseRegion}
                 hoverHighlightRange={lockedRange || hoveredRange}

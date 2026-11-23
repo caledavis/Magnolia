@@ -87,13 +87,6 @@ const KIND_COLOR: Record<NodeKind, string> = {
 /** A node kind's name (queryBuilder.kind.<kind>); code nodes show their code instead. */
 const kindLabel = (kind: NodeKind): string => (kind === 'code' ? '' : t(`queryBuilder.kind.${kind}`))
 
-const LOGICAL_OP_LABEL: Record<LogicalOp, string> = {
-  and: 'AND',
-  or: 'OR',
-  not: 'NOT',
-  xor: 'XOR'
-}
-
 const LOGICAL_OP_COLOR: Record<LogicalOp, string> = {
   and: '#6366f1',
   or: '#10b981',
@@ -617,7 +610,6 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const panRef = useRef(pan)
   panRef.current = pan
-  const [showRecentre, setShowRecentre] = useState(false)
 
   const dragRef = useRef<DragState>(null)
   const nodesRef = useRef(nodes)
@@ -770,7 +762,6 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
       e.preventDefault()
       setPan((p) => {
         const next = clampPan(p.x - e.deltaX, p.y - e.deltaY, nodesRef.current, el, nodeW, nodeH)
-        if (next.x !== p.x || next.y !== p.y) setShowRecentre(true)
         return next
       })
     }
@@ -781,7 +772,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
   const handleCentre = useCallback(() => {
     const ns = nodesRef.current
     const el = canvasRef.current
-    if (ns.length === 0 || !el) { setPan({ x: 0, y: 0 }); setShowRecentre(false); return }
+    if (ns.length === 0 || !el) { setPan({ x: 0, y: 0 }); return }
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
     for (const n of ns) {
       minX = Math.min(minX, n.x)
@@ -800,7 +791,6 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
       const cx = (minX + maxX) / 2
       setPan({ x: el.clientWidth / 2 - cx, y: el.clientHeight / 2 - cy })
     }
-    setShowRecentre(false)
   }, [])
 
   // Auto-centre the canvas on the loaded graph the first time the

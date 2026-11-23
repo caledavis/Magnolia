@@ -40,7 +40,6 @@ import {
   ListOrdered,
   Type,
   Network,
-  Share2,
   Search,
   ArrowLeftRight,
   Palette,
@@ -86,7 +85,6 @@ import {
   SquaresIntersect,
   Book,
   NotebookPen,
-  NotebookTabs,
   PenLine,
   Settings,
   MessageSquare,
@@ -98,7 +96,6 @@ import {
   AppWindow,
   ClockArrowRight,
   ClockArrowLeft,
-  GitMerge,
   Heart,
   WholeWord,
   createLucideIcon

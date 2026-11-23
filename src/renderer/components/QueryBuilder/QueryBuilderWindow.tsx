@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { QueryNodeEditor } from './QueryNodeEditor'
 import { Icon, faChevronDown, faChevronRight, faMagnifyingGlass } from '../Icon'
-import { toolColors } from '../../utils/tool-colors'
 import {
   DocumentSelector,
   emptyDocumentFilter,

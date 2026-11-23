@@ -1,7 +1,6 @@
 import { useState, useMemo, useCallback } from 'react'
 import type { AnalysisInitData, Query, QueryResult, SurveyEntityRef, SurveyCellScopeArgs } from '../../models/types'
-import { Icon, faFileSearchCorner, faChevronDown, faChevronRight, faXmark } from '../Icon'
-import { toolColors } from '../../utils/tool-colors'
+import { Icon, faFileSearchCorner, faXmark } from '../Icon'
 import { runQueryLive } from '../../stores/query-store'
 import { truncate, toCsv, pctOfTotal, csvPctOfTotal, binarizeGrid, resultsInColumn, resultRowTotal } from './analysis-helpers'
 import { generateGuid } from '../../utils/guid'

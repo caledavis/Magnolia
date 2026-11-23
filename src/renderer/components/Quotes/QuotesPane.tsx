@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useQuoteStore } from '../../stores/quote-store'
 import { useDocumentStore } from '../../stores/document-store'
 import { Icon, QUOTE_ICON, faChevronDown, faChevronRight, faXmark, faUpRightFromSquare, faDownLeftAndUpRightToCenter, faMagnifyingGlass } from '../Icon'

@@ -579,10 +579,6 @@ export function RelationshipMap({ data, savedConfig }: Props) {
     }
   }, [isExisting, handleSave])
 
-  const handleClose = useCallback(() => {
-    handleCloseRequest()
-  }, [handleCloseRequest])
-
   // Intercept the OS window-close (X button / Cmd-W). When dirty, route
   // through the in-window confirm dialog instead of letting the window
   // disappear silently — autosave no longer rescues unsaved edits.

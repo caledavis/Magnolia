@@ -23,12 +23,10 @@ interface Props {
   pdfDocument: any  // PDFDocumentProxy
   pageNumber: number  // 1-based
   pageTextOffset: number  // codepoint offset where this page's text starts
-  pageText: string  // the actual extracted text for this page (ground truth)
   scale: number
   selections: PlainTextSelection[]
   codeMap: Map<string, Code>
   contentMemos?: Memo[]
-  quotes?: { guid: string; startCp: number; endCp: number }[]
   /** Persistent yellow highlight — used by the context menu's hover-over-
    *  "Remove Code" preview. Static, no animation. */
   externalHighlightRange?: { startCp: number; endCp: number } | null
@@ -53,8 +51,8 @@ interface Props {
 }
 
 export function PdfPageRenderer({
-  pdfDocument, pageNumber, pageTextOffset, pageText, scale,
-  selections, codeMap, contentMemos, quotes, externalHighlightRange, pulseRegion, hoveredRegion, hoverHighlightRange, hoveredSelGuid,
+  pdfDocument, pageNumber, pageTextOffset, scale,
+  selections, codeMap, contentMemos, externalHighlightRange, pulseRegion, hoveredRegion, hoverHighlightRange, hoveredSelGuid,
   boxDragPreview, pendingBoxRegion, onMemoDoubleClick, onMemoMove, onRendered
 }: Props) {
   const { t } = useTranslation()

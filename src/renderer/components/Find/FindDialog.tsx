@@ -14,7 +14,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQueryStore } from '../../stores/query-store'
 import { Icon, faMagnifyingGlass } from '../Icon'
-import { toolColors } from '../../utils/tool-registry'
 import type { Query } from '../../models/types'
 import { useTranslation } from 'react-i18next'
 

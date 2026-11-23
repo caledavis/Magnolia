@@ -7,10 +7,6 @@ import { t } from '../i18n'
  * Supports parsing various input formats for transcript import.
  */
 
-// Regex for canonical timestamps at the start of lines: "HH:MM:SS " or "[HH:MM:SS] " (legacy/import)
-// Also matches escaped brackets from Tiptap: "\[HH:MM:SS\]"
-const TIMESTAMP_LINE_REGEX = /^(?:\\?\[)?(\d{1,2}):(\d{2}):(\d{2})(?:\\?\])? /gm
-
 /** Format seconds as "HH:MM:SS" (no brackets — safe for markdown) */
 export function formatTimestamp(seconds: number): string {
   const total = Math.max(0, Math.floor(seconds))

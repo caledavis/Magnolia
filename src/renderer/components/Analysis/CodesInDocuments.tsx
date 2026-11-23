@@ -1,11 +1,7 @@
 import { Fragment, useState, useMemo, useCallback } from 'react'
 import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
 import { Icon, faFileCodeCorner } from '../Icon'
-import { toolColors } from '../../utils/tool-colors'
-import {
-  emptyDocumentFilter,
-  type DocumentFilterState
-} from '../DocumentSelector/DocumentSelector'
+import { type DocumentFilterState } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
 import { truncate, countCodeInSource, toCsv, pctOfTotal, csvPctOfTotal, resolveFilteredSources, applySurveyCellScope, binarizeGrid, columnScopedData, codeRowTotal } from './analysis-helpers'

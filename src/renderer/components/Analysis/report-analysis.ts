@@ -51,7 +51,7 @@ import { escHtml } from '../../utils/pdf-export'
 import { visualBoxHex } from '../../utils/code-colours'
 import { TOOL_REGISTRY } from '../../utils/tool-registry'
 import { useProjectStore } from '../../stores/project-store'
-import type { AnalysisInitData, QueryResult } from '../../models/types'
+import type { AnalysisInitData } from '../../models/types'
 import type { AnalysisItemOptions, ReportItem } from './report-export'
 import { t, formatPercent, formatFixed, formatNumber } from '../../i18n'
 
@@ -326,7 +326,7 @@ function resultsInDocumentsHtml(config: any, options: AnalysisItemOptions): stri
 
 // ── Code Frequencies (percentage grid, no totals/subtotals) ─────────
 
-function codeFrequenciesHtml(config: any, options: AnalysisItemOptions): string {
+function codeFrequenciesHtml(config: any, _options: AnalysisItemOptions): string {
   const codeGuids: string[] = config?.codeGuids ?? []
   if (codeGuids.length === 0) return `<div class="empty">${escHtml(t('reports.noCodes'))}</div>`
   const { data, docFilter } = scopedData('code-frequencies', config)

@@ -2,9 +2,8 @@ import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { useDocumentStore, surveyEntityKey, parseSurveyEntityKey, type DocumentFolder } from '../../stores/document-store'
 import { useTagStore } from '../../stores/tag-store'
-import { Icon, faFolder, faFolderPlus, faFile, faFileAlt, faTag, faTags, faChevronDown, faChevronRight, faXmark, faUpRightFromSquare, faDownLeftAndUpRightToCenter, faHeadphones, faVideo, faImage, faPlus, faMagnifyingGlass, faNotebookPen, faStickyNote, SURVEY_ICON, SURVEY_RESPONDENT_ICON, SURVEY_QUESTION_ICON } from '../Icon'
+import { Icon, faFolder, faFolderPlus, faFile, faTag, faChevronDown, faChevronRight, faXmark, faUpRightFromSquare, faDownLeftAndUpRightToCenter, faHeadphones, faVideo, faImage, faPlus, faMagnifyingGlass, faNotebookPen, faStickyNote, SURVEY_ICON, SURVEY_RESPONDENT_ICON, SURVEY_QUESTION_ICON } from '../Icon'
 import type { TextSource, TagCategory, TagCategoryType, SurveyFormatData, SurveyEntityRef } from '../../models/types'
-import { toolColors } from '../../utils/tool-colors'
 import { sourceTypeFromExtension, sourceTypeFromFilename } from '../../utils/format-registry'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { useIconTint, iconTintKindForSourceType, PALETTE_ICON_CLASS } from '../../utils/icon-tint'
@@ -38,7 +37,6 @@ function iconForSource(source: { name: string; sourceType?: string }) {
 }
 
 interface Props {
-  onImport: () => void
   /** Called when the user drags a CSV onto the document browser. The
    *  caller is responsible for parsing the CSV, queuing the survey-
    *  preview dialog, and (on confirm) adding the source to the right
@@ -524,7 +522,7 @@ function DocItem({
           }
         }
       }}
-      onDragLeave={(e) => {
+      onDragLeave={() => {
         tagDragCounter.current--
         if (tagDragCounter.current <= 0) {
           tagDragCounter.current = 0
@@ -2110,7 +2108,7 @@ function ManageDocumentTagsDialog({
   )
 }
 
-export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, onCloseManageDocTags, onClose, onPopOut, isPoppedOut }: Props) {
+export function DocumentBrowser({ onSurveyImport, showManageDocTags, onCloseManageDocTags, onClose, onPopOut, isPoppedOut }: Props) {
   const { t } = useTranslation()
   // Enforced checkout lock: reading/browsing documents stays live no
   // matter who holds the lock. The mutating controls below (new folder,
@@ -2354,8 +2352,6 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
   const [tagContextMenu, setTagContextMenu] = useState<{ x: number; y: number; tagGuid: string } | null>(null)
   const [betweenFilter, setBetweenFilter] = useState<{ tagGuid: string; categoryGuid: string; value2: string; mode: 'between' | 'not-between' } | null>(null)
 
-  const dragCounterRef = useRef(0)
-  const [isDragOverRoot, setIsDragOverRoot] = useState(false)
 
   const handleTagDrop = useCallback((tagGuids: string[], sourceGuid: string) => {
     // If the dropped-on document is part of the current selection, the
@@ -2701,8 +2697,6 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
             e.dataTransfer.types.includes('Files')
           ) {
             e.preventDefault()
-            dragCounterRef.current++
-            setIsDragOverRoot(true)
           }
         }}
         onDragOver={(e) => {
@@ -2716,18 +2710,9 @@ export function DocumentBrowser({ onImport, onSurveyImport, showManageDocTags, o
             e.dataTransfer.dropEffect = e.dataTransfer.types.includes('Files') ? 'copy' : 'move'
           }
         }}
-        onDragLeave={() => {
-          dragCounterRef.current--
-          if (dragCounterRef.current <= 0) {
-            dragCounterRef.current = 0
-            setIsDragOverRoot(false)
-          }
-        }}
         onDrop={(e) => {
           e.preventDefault()
           e.stopPropagation()
-          dragCounterRef.current = 0
-          setIsDragOverRoot(false)
           if (lockedBy) { promptCheckoutLocked(); return }
 
           // Handle file drops from OS

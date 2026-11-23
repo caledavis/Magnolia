@@ -2,11 +2,7 @@ import { Trans } from 'react-i18next'
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
 import { Icon, faChartBar, faCircleInfo } from '../Icon'
-import { toolColors } from '../../utils/tool-colors'
-import {
-  emptyDocumentFilter,
-  type DocumentFilterState
-} from '../DocumentSelector/DocumentSelector'
+import { type DocumentFilterState } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
 import { truncate, codeFrequencyInSource, sizeEstimated, isAverageColumn, toCsv, resolveFilteredSources, applySurveyCellScope } from './analysis-helpers'

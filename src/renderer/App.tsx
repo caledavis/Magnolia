@@ -40,18 +40,6 @@ function analysisToolTitle(toolType: string): string | undefined {
   return toolType === 'relationship-map' ? undefined : TOOL_REGISTRY[toolType]?.label
 }
 
-/** Flatten a code tree, tagging each code with its parent guid */
-function flattenCodesWithParent(
-  codes: Code[],
-  parentGuid?: string
-): { guid: string; name: string; color?: string; isCodable: boolean; parentGuid?: string }[] {
-  const result: { guid: string; name: string; color?: string; isCodable: boolean; parentGuid?: string }[] = []
-  for (const c of codes) {
-    result.push({ guid: c.guid, name: c.name, color: c.color, isCodable: c.isCodable, parentGuid })
-    result.push(...flattenCodesWithParent(c.children, c.guid))
-  }
-  return result
-}
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle, isUntitledName } from './stores/project-store'
 import { usePreferencesStore } from './stores/preferences-store'
 import { useCodeColourPresets, nextCodeColour, codeColourPresetsFor } from './utils/code-colours'
@@ -99,7 +87,7 @@ import { showMemoLocation } from './utils/show-memo'
 import { RibbonTabs, RibbonBody, useRibbon, scrollRoom, type RibbonButtonDef, type RibbonTabDef } from './components/Toolbar/Ribbon'
 import { TOOL_REGISTRY } from './utils/tool-registry'
 import { WindowControls } from './components/Toolbar/WindowControls'
-import type { Project, Query, CodeCondition, Code, TextSource, QDASet, LogbookInitData, AnalysisInitData, AnalysisToolType, PlainTextSelection, Memo, MemoEditInitData, MemosWindowData, SurveyCellScopeArgs } from './models/types'
+import type { Project, Query, CodeCondition, Code, TextSource, QDASet, LogbookInitData, AnalysisToolType, Memo, MemoEditInitData, MemosWindowData, SurveyCellScopeArgs } from './models/types'
 import { buildSurveyEntityLabels } from './utils/survey/survey-labels'
 import { useTranslation } from 'react-i18next'
 import { t } from './i18n'
@@ -552,7 +540,6 @@ function App() {
   // component below reads independently rather than threading this value
   // through props.
   const checkoutLockedBy = useCheckoutLockedBy()
-  const checkoutLocked = !!checkoutLockedBy
   const logbookStore = useLogbookStore()
   const memoStore = useMemoStore()
 
@@ -3402,7 +3389,6 @@ function App() {
                       <Panel key="documents" defaultSize={35} minSize={15}>
                         <div style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : undefined} onMouseDown={() => setActivePanel('documents')}>
                           <DocumentBrowser
-                            onImport={handleImportDocument}
                             onSurveyImport={queueSurveyImport}
                             showManageDocTags={showManageDocTags}
                             onCloseManageDocTags={() => setShowManageDocTags(false)}

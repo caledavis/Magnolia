@@ -1,11 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import type { AnalysisInitData, SurveyCellScopeArgs } from '../../models/types'
 import { Icon, faSquaresIntersect } from '../Icon'
-import { toolColors } from '../../utils/tool-colors'
-import {
-  emptyDocumentFilter,
-  type DocumentFilterState
-} from '../DocumentSelector/DocumentSelector'
+import { type DocumentFilterState } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
 import { truncate, countCoOccurrences, toCsv, pctOfTotal, csvPctOfTotal, resolveFilteredSources, applySurveyCellScope, binarizeGrid } from './analysis-helpers'

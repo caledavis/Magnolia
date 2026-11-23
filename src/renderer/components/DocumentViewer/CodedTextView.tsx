@@ -3,7 +3,7 @@ import type { PlainTextSelection, Code, Memo, SourceType } from '../../models/ty
 import { codepointCount } from '../../utils/unicode'
 import { Icon, QUOTE_ICON, MEMO_POINT_ICON, MEMO_RANGED_ICON } from '../Icon'
 import { useQuoteStore } from '../../stores/quote-store'
-import { getFormat, type LineAnnotation, type InlineRange } from '../../utils/format-registry'
+import { getFormat, type LineAnnotation } from '../../utils/format-registry'
 import { layoutBrackets, capGeometry, bracketPieces, COL_W, LABEL_H, LABEL_GAP } from './bracketLayout'
 import { layoutIcons, buildIconItems, iconRoomAt, ICON_COL_W, LABEL_TO_ICON_GAP, LINE_GROUP_TOLERANCE, type IconGroup } from './iconLayout'
 import { measureLabelWidth } from '../../utils/measure-text'
@@ -431,8 +431,6 @@ function CodedTextViewImpl({
     (e: React.MouseEvent, span: Span) => {
       e.preventDefault()
 
-      const hasExisting = span.activeCodes.length > 0
-
       // Also check if there's a pending text selection
       const sel = window.getSelection()
       let pendingSelection: CodingRightClickContext['pendingSelection'] | undefined
@@ -775,12 +773,6 @@ function CodedTextViewImpl({
       .map((m) => ({ startCp: m.startPosition!, endCp: m.endPosition!, title: m.title }))
   }, [contentMemos])
 
-  // Precompute quote ranges for highlighting
-  const quoteRanges = useMemo(() => {
-    if (!quotesProp || quotesProp.length === 0) return []
-    return quotesProp.map((q) => ({ startCp: q.startCp, endCp: q.endCp, guid: q.guid }))
-  }, [quotesProp])
-
   type SpanAtom = { cpStart: number; cpEnd: number; node: React.ReactNode }
 
   const buildSpanAtoms = (span: LineSpan, key: string): SpanAtom[] => {
@@ -939,8 +931,7 @@ function CodedTextViewImpl({
   // Breathing room kept clear between a fully-expanded label and the
   // true right edge of the pane.
   const LABEL_EDGE_PAD = 8
-  const LABEL_LINE_H = 14 // height per label row
-  const { perLine, maxCol } = marginAnnotations
+  const { maxCol } = marginAnnotations
   // Always reserve margin space so adding the first code doesn't cause a reflow.
   const effectiveMaxCol = Math.max(maxCol, 1)
   const bracketZoneW = effectiveMaxCol * MARGIN_COL_W + 6
@@ -974,7 +965,7 @@ function CodedTextViewImpl({
   // Re-measure on container resize (e.g. when the user drags a split-pane).
   // The overlay effect below has no deps and re-runs on every render; this
   // state bump triggers that re-render after the resize has settled.
-  const [resizeTick, setResizeTick] = useState(0)
+  const [, setResizeTick] = useState(0)
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
@@ -1747,7 +1738,6 @@ function CodedTextViewImpl({
         />
       </div>
       {wrapEditable(renderLines((line, lineIdx) => {
-        const lineAnns = perLine[lineIdx]?.annotations ?? []
         const fmtLine = formatAnnotations?.[lineIdx]
         // While the caret is on a line its Markdown syntax shows (muted)
         // instead of collapsing, so it can be edited.

@@ -170,7 +170,6 @@ function collectTextNodes(container: HTMLElement): { node: Text; cpStart: number
 }
 
 function getRangeYBounds(
-  contentEl: HTMLElement,
   containerEl: HTMLElement,
   cpStart: number,
   cpEnd: number,
@@ -314,7 +313,7 @@ export function RichMarginColumn({ contentRef, containerRef, selections, codes, 
         if (sel.pdfRegion) {
           bounds = getPdfRegionYBounds(containerRef.current!, sel.pdfRegion)
         } else {
-          bounds = getRangeYBounds(contentRef.current!, containerRef.current!, sel.startPosition, sel.endPosition, textNodes)
+          bounds = getRangeYBounds(containerRef.current!, sel.startPosition, sel.endPosition, textNodes)
         }
         if (!bounds) continue
 
@@ -360,7 +359,7 @@ export function RichMarginColumn({ contentRef, containerRef, selections, codes, 
         if (pdfRegion) return getPdfRegionYBounds(containerRef.current!, pdfRegion)
         if (startPosition === undefined) return null
         return getRangeYBounds(
-          contentRef.current!, containerRef.current!,
+          containerRef.current!,
           startPosition, endPosition ?? startPosition + 1, textNodes
         )
       })

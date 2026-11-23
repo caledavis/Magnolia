@@ -1,11 +1,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
 import { Icon, faFont } from '../Icon'
-import { toolColors } from '../../utils/tool-colors'
-import {
-  emptyDocumentFilter,
-  type DocumentFilterState
-} from '../DocumentSelector/DocumentSelector'
+import { type DocumentFilterState } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
 import { toCsv, resolveFilteredSources, applySurveyCellScope, columnData } from './analysis-helpers'

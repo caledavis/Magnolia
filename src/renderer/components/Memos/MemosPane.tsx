@@ -322,7 +322,6 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
   const lockedBy = useCheckoutLockedBy()
   const promptCheckoutLocked = () => useProjectStore.getState().promptCheckoutConflict()
   const memos = useMemoStore((s) => s.memos)
-  const addMemo = useMemoStore((s) => s.addMemo)
   const removeMemo = useMemoStore((s) => s.removeMemo)
   const findMemo = useMemoStore((s) => s.findMemo)
   const changeMemoType = useMemoStore((s) => s.changeMemoType)

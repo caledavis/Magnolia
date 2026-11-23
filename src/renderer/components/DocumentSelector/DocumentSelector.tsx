@@ -112,12 +112,6 @@ const KIND_COLOR: Record<DNodeKind, string> = {
 
 const kindLabel = (kind: DNodeKind): string => t(`docSelector.kind.${kind}`)
 
-const SET_OP_LABEL: Record<SetOp, string> = {
-  union: 'Union',
-  intersect: 'Intersect',
-  subtract: 'Subtract'
-}
-
 const SET_OP_COLOR: Record<SetOp, string> = {
   union: '#10b981',
   intersect: '#6366f1',
@@ -213,8 +207,6 @@ function graphFromFilter(
 
   // Handle tag exclusions: ALL DOCS subtract excluded tags
   if (hasTagExclude) {
-    const excludeStartRow = nextRow
-
     // Create ALL DOCS node
     const allDocsId = uid()
     const allDocsNode: DNode = {
@@ -608,7 +600,6 @@ export function DocumentSelector({
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const panRef = useRef(pan)
   panRef.current = pan
-  const [showRecentre, setShowRecentre] = useState(false)
 
   const dragRef = useRef<DragState>(null)
   const nodesRef = useRef(nodes)
@@ -736,7 +727,6 @@ export function DocumentSelector({
       e.preventDefault()
       setPan((p) => {
         const next = clampPan(p.x - e.deltaX, p.y - e.deltaY, nodesRef.current, el, nodeW, nodeH)
-        if (next.x !== p.x || next.y !== p.y) setShowRecentre(true)
         return next
       })
     }
@@ -747,7 +737,7 @@ export function DocumentSelector({
   const handleCentre = useCallback(() => {
     const ns = nodesRef.current
     const el = canvasRef.current
-    if (ns.length === 0 || !el) { setPan({ x: 0, y: 0 }); setShowRecentre(false); return }
+    if (ns.length === 0 || !el) { setPan({ x: 0, y: 0 }); return }
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
     for (const n of ns) {
       minX = Math.min(minX, n.x)
@@ -758,7 +748,6 @@ export function DocumentSelector({
     const cx = (minX + maxX) / 2
     const cy = (minY + maxY) / 2
     setPan({ x: el.clientWidth / 2 - cx, y: el.clientHeight / 2 - cy })
-    setShowRecentre(false)
   }, [])
 
   // Auto-centre on mount so a loaded selector graph (e.g. one
@@ -1894,9 +1883,8 @@ export function DocumentSelector({
         </svg>
         </div>{/* end pan wrapper */}
 
-        {/* Re-centre button — always visible so the user can snap back
-            even when the canvas hasn't been panned far enough to trip
-            the showRecentre heuristic. */}
+        {/* Re-centre button — always visible, so the user can snap back
+            however far the canvas has been panned. */}
         <button
           onClick={(e) => { e.stopPropagation(); handleCentre() }}
           style={{

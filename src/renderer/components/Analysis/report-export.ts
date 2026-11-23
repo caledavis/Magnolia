@@ -400,7 +400,7 @@ function buildReportBody(items: ReportItem[], assets: Map<string, DocAsset>): st
     : ''
 
   const body = items.map((it) => renderItem(it, assets, numbers.get(it.id)?.num ?? '')).join('')
-  const { h, w } = pageMetrics()
+  const { h } = pageMetrics()
   // Cap embedded media to the page box so an image / PDF page / video frame
   // scales down to fit (a little headroom leaves room for the document
   // heading that shares the first page). Injected here because the cap

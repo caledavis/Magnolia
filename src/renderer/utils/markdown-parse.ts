@@ -92,7 +92,6 @@ export function parseMarkdownDocument(
   function processToken(token: Token, searchFrom: number): void {
     const rawIdx = text.indexOf(token.raw, searchFrom)
     if (rawIdx === -1) return
-    const rawEnd = rawIdx + token.raw.length
 
     switch (token.type) {
       case 'heading': {

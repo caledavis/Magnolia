@@ -14,8 +14,7 @@ import {
   faCircleNodes,
   faChevronRight,
   SURVEY_RESPONDENT_ICON,
-  SURVEY_QUESTION_ICON,
-  SURVEY_ICON
+  SURVEY_QUESTION_ICON
 } from '../../Icon'
 import { buildCellText } from '../../../utils/survey/cell-text'
 import { TOOL_REGISTRY } from '../../../utils/tool-registry'
@@ -215,7 +214,6 @@ function DocumentTree({ sources, folders, sourceFolder, depth, filter }: {
   depth: number
   filter: string
 }) {
-  const childFolders = folders.filter((f) => f.parentGuid === null || !folders.some((p) => p.guid === f.parentGuid))
   const nestedFolders = (parentGuid: string | null) =>
     folders.filter((f) => f.parentGuid === parentGuid)
   const docsInFolder = (folderGuid: string) =>

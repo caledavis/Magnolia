@@ -87,10 +87,8 @@ function insertNearSibling(
   position: 'before' | 'after'
 ): Code[] {
   const result: Code[] = []
-  let found = false
   for (const c of codes) {
     if (c.guid === siblingGuid) {
-      found = true
       if (position === 'before') {
         result.push(code, c)
       } else {
@@ -101,16 +99,6 @@ function insertNearSibling(
     }
   }
   return result
-}
-
-/** Find the parent guid of a code, or null if it's at root */
-function findParentGuid(codes: Code[], targetGuid: string): string | null | undefined {
-  for (const c of codes) {
-    if (c.children.some((ch) => ch.guid === targetGuid)) return c.guid
-    const found = findParentGuid(c.children, targetGuid)
-    if (found !== undefined) return found
-  }
-  return undefined // not found at all
 }
 
 export const useCodeStore = create<CodeState>((set, get) => ({

@@ -157,7 +157,6 @@ function emitBox(el: Element, computed: CSSStyleDeclaration, ctx: WalkContext) {
 }
 
 function emitTextNode(
-  parentEl: Element,
   textNode: Text,
   computed: CSSStyleDeclaration,
   ctx: WalkContext
@@ -353,7 +352,7 @@ function walk(el: Element, ctx: WalkContext) {
   // here (they need the parent's computed style for font/colour).
   for (const child of Array.from(el.childNodes)) {
     if (child.nodeType === Node.TEXT_NODE) {
-      emitTextNode(el, child as Text, computed, ctx)
+      emitTextNode(child as Text, computed, ctx)
     } else if (child.nodeType === Node.ELEMENT_NODE) {
       walk(child as Element, ctx)
     }
