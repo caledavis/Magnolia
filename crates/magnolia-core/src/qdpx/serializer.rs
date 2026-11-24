@@ -351,9 +351,12 @@ pub fn representation_guid_for(source_guid: &str) -> String {
     crate::util::flip_first_nibble(source_guid, false)
 }
 
-/// A PDF box coding as `<PDFSelection>`: Magnolia stores top-left origin with
-/// 1-based pages; other tools expect PDF-native bottom-left with 0-based
-/// pages, so flip Y by the page height when known.
+/// A PDF box coding as `<PDFSelection>`, as the standard has it (§10.3):
+/// the page counted from 0, and the corners in PDF points from the
+/// bottom-left of the page's media box. Magnolia keeps a region as drawn
+/// (top-left origin, pages from 1), so it's converted with the page's
+/// geometry. Without that (the PDF is missing), the coordinates the region
+/// was read with are written back as they were.
 fn serialize_pdf_selection(sel: &Value, page_sizes: Option<&Vec<Value>>) -> Option<El> {
     let (x, y, w, h, r) = region_rect(sel)?;
     let page_num = r
@@ -361,22 +364,36 @@ fn serialize_pdf_selection(sel: &Value, page_sizes: Option<&Vec<Value>>) -> Opti
         .filter(|p| !p.is_null())
         .and_then(Value::as_f64)
         .unwrap_or(1.0);
-    let page = (page_num - 1.0).max(0.0);
-    let height = page_sizes
+    let geometry = page_sizes
         .and_then(|ps| ps.get(page_num as usize))
-        .and_then(|p| get_f64(p, "height"))
-        .filter(|h| *h > 0.0);
-    let (first_y, second_y) = match height {
-        Some(ph) => (js_round(ph - (y + h)), js_round(ph - y)),
-        None => (js_round(y), js_round(y + h)),
+        .and_then(crate::pdf_info::PageGeometry::of);
+    let int = |v: f64| js_num_to_string(js_round(v));
+    let (page, corners) = match (geometry, sel.get("refiRect").filter(|v| truthy(v))) {
+        (Some(g), _) => {
+            let (ax, ay) = g.to_standard(x, y);
+            let (bx, by) = g.to_standard(x + w, y + h);
+            let c = [ax.min(bx), ay.min(by), ax.max(bx), ay.max(by)];
+            (js_num_to_string((page_num - 1.0).max(0.0)), c.map(int))
+        }
+        (None, Some(rr)) => {
+            let v = |k: &str| rr.get(k).map(js_to_string).unwrap_or_default();
+            (v("page"), [v("firstX"), v("firstY"), v("secondX"), v("secondY")])
+        }
+        // Neither: a region drawn on a PDF Magnolia hasn't measured; its
+        // page size unknown, written as drawn.
+        (None, None) => (
+            js_num_to_string((page_num - 1.0).max(0.0)),
+            [x, y, x + w, y + h].map(int),
+        ),
     };
+    let [fx, fy, sx, sy] = corners;
     let mut el = El::new("PDFSelection")
         .attr("guid", get_str(sel, "guid").unwrap_or(""))
-        .attr("page", js_num_to_string(page))
-        .attr("firstX", round_str(x))
-        .attr("firstY", js_num_to_string(first_y))
-        .attr("secondX", round_str(x + w))
-        .attr("secondY", js_num_to_string(second_y));
+        .attr("page", page)
+        .attr("firstX", fx)
+        .attr("firstY", fy)
+        .attr("secondX", sx)
+        .attr("secondY", sy);
     el.set_opt("name", get_nonempty(sel, "name"));
     audit(&mut el, sel);
     if let Some(d) = get_nonempty(sel, "description") {

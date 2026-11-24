@@ -439,3 +439,105 @@ fn memos_on_areas_stay_attached_and_descriptions_become_memos() {
         assert_eq!(memos.len(), 2, "{memos:?}");
     }
 }
+
+/// A one-page PDF with the given boxes and rotation.
+fn pdf(media: [i64; 4], crop: Option<[i64; 4]>, rotate: i64) -> Vec<u8> {
+    use lopdf::{Document, Object, dictionary};
+    let mut doc = Document::with_version("1.5");
+    let pages_id = doc.new_object_id();
+    let rect = |r: [i64; 4]| Object::Array(r.iter().map(|v| Object::Integer(*v)).collect());
+    let mut page = dictionary! { "Type" => "Page", "Parent" => pages_id, "MediaBox" => rect(media), "Rotate" => rotate };
+    if let Some(c) = crop {
+        page.set("CropBox", rect(c));
+    }
+    let page_id = doc.add_object(page);
+    doc.objects.insert(pages_id, Object::Dictionary(dictionary! { "Type" => "Pages", "Kids" => vec![page_id.into()], "Count" => 1 }));
+    let catalog = doc.add_object(dictionary! { "Type" => "Catalog", "Pages" => pages_id });
+    doc.trailer.set("Root", catalog);
+    let mut out = Vec::new();
+    doc.save_to(&mut out).unwrap();
+    out
+}
+
+fn pdf_project(selection: &str) -> String {
+    project_xml(&format!(
+        r#"<Sources>
+  <PDFSource guid="40000000-0000-0000-0000-000000000003" name="doc.pdf" path="internal://40000000-0000-0000-0000-000000000003.pdf">
+    {selection}
+    <Representation guid="70000000-0000-0000-0000-000000000003" plainTextPath="internal://70000000-0000-0000-0000-000000000003.txt">
+      <PlainTextSelection guid="50000000-0000-0000-0000-000000000003" startPosition="12" endPosition="22">
+        <Coding guid="60000000-0000-0000-0000-000000000003"><CodeRef targetGUID="20000000-0000-0000-0000-000000000001"/></Coding>
+      </PlainTextSelection>
+    </Representation>
+  </PDFSource>
+</Sources>"#
+    ))
+}
+const REPRESENTATION: &str = "The reading Diet  study of the PDF, as its program made it.";
+
+#[test]
+fn a_pdfs_text_is_the_representation_its_file_carries() {
+    let bytes = pdf([0, 0, 612, 792], None, 0);
+    let (first, again, saved) = read_and_resave(
+        &pdf_project(""),
+        &[
+            ("sources/40000000-0000-0000-0000-000000000003.pdf", &bytes),
+            ("sources/70000000-0000-0000-0000-000000000003.txt", REPRESENTATION.as_bytes()),
+        ],
+    );
+    validate(&saved).unwrap();
+    for project in [&first, &again] {
+        let guid = "40000000-0000-0000-0000-000000000003";
+        assert_eq!(project["sourceContents"][guid], REPRESENTATION);
+        let sel = &source(project, "doc.pdf")["selections"][0];
+        // Exactly where the file put it: "Diet  stud".
+        assert_eq!((sel["startPosition"].as_u64(), sel["endPosition"].as_u64()), (Some(12), Some(22)));
+    }
+    assert_eq!(first["sources"][0]["_textFromFile"], true);
+}
+
+#[test]
+fn pdf_areas_are_read_and_written_as_the_standard_has_them() {
+    // Page 1 (0 in the file); a crop box inset from the media box. The area
+    // is 100 × 50 points, 72 in from the media box's left and 600 up from
+    // its bottom.
+    let area = r#"<PDFSelection guid="50000000-0000-0000-0000-000000000004" page="0" firstX="72" firstY="600" secondX="172" secondY="650">
+      <Coding guid="60000000-0000-0000-0000-000000000004"><CodeRef targetGUID="20000000-0000-0000-0000-000000000001"/></Coding>
+    </PDFSelection>"#;
+    for (crop, rotate, drawn) in [
+        // As drawn: top-left of the crop box, y down.
+        (None, 0, serde_json::json!({ "page": 1, "x": 72, "y": 142, "width": 100, "height": 50 })),
+        (Some([36, 36, 576, 756]), 0, serde_json::json!({ "page": 1, "x": 36, "y": 106, "width": 100, "height": 50 })),
+        (Some([36, 36, 576, 756]), 90, serde_json::json!({ "page": 1, "x": 564, "y": 36, "width": 50, "height": 100 })),
+    ] {
+        let bytes = pdf([0, 0, 612, 792], crop, rotate);
+        let (first, again, saved) = read_and_resave(
+            &pdf_project(area),
+            &[
+                ("sources/40000000-0000-0000-0000-000000000003.pdf", &bytes),
+                ("sources/70000000-0000-0000-0000-000000000003.txt", REPRESENTATION.as_bytes()),
+            ],
+        );
+        validate(&saved).unwrap();
+        let region = |p: &Value| {
+            source(p, "doc.pdf")["selections"].as_array().unwrap().iter().find(|s| s["pdfRegion"].is_object()).unwrap()["pdfRegion"].clone()
+        };
+        assert_eq!(region(&first), drawn, "crop {crop:?} rotate {rotate}");
+        assert_eq!(region(&again), drawn, "crop {crop:?} rotate {rotate}, after saving");
+        // Written back exactly as it came.
+        for (k, v) in [("page", 0), ("firstX", 72), ("firstY", 600), ("secondX", 172), ("secondY", 650)] {
+            assert_eq!(int_attr(&saved, "PDFSelection", k), v, "{k}, crop {crop:?} rotate {rotate}");
+        }
+    }
+}
+
+#[test]
+fn a_pdf_area_keeps_its_coordinates_when_the_pdf_is_missing() {
+    let area = r#"<PDFSelection guid="50000000-0000-0000-0000-000000000004" page="2" firstX="72" firstY="600" secondX="172" secondY="650">
+      <Coding guid="60000000-0000-0000-0000-000000000004"><CodeRef targetGUID="20000000-0000-0000-0000-000000000001"/></Coding>
+    </PDFSelection>"#;
+    let (_, _, saved) = read_and_resave(&pdf_project(area), &[("sources/70000000-0000-0000-0000-000000000003.txt", REPRESENTATION.as_bytes())]);
+    for (k, v) in [("page", 2), ("firstX", 72), ("firstY", 600), ("secondX", 172), ("secondY", 650)] {
+        assert_eq!(int_attr(&saved, "PDFSelection", k), v, "{k}");
+    }
+}

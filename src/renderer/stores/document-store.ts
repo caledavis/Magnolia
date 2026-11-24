@@ -24,6 +24,7 @@ import { promotedArchiveHandle, mediaPathField } from '../utils/binary-handles'
 import { makeHmrSafe } from './hmr-preserve'
 import { noteName, noteData } from '../utils/notes'
 import { noteBulkReset } from './empty-save-guard'
+import { buildPdfTextMap, forgetDrawnText, setDrawnText } from '../utils/pdf-text-map'
 
 // Re-export so callers that already imported from this store don't break.
 export type { DocumentFolder }
@@ -295,7 +296,20 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
       // let an empty re-import wipe an existing transcript — keep the current
       // content when the re-imported file brings none. (PDFs etc. bring their
       // extracted text and legitimately replace it.)
-      const nextContent = content && content.length > 0 ? content : (state.sourceContents[guid] ?? '')
+      let nextContent = content && content.length > 0 ? content : (state.sourceContents[guid] ?? '')
+      // A PDF keeps its text (where its passages are, REFI-QDA §10.3); the
+      // re-imported file's reading of it is only what's drawn.
+      const existing = state.sourceContents[guid] ?? ''
+      const isPdf = state.sources.find((s) => s.guid === guid)?.sourceType === 'pdf'
+      if (isPdf && existing.length > 0 && formatData) {
+        const map = buildPdfTextMap(existing, content ?? '')
+        const drawnOffsets: number[] = formatData.pdfPageOffsets ?? []
+        setDrawnText(guid, map, drawnOffsets)
+        formatData = { ...formatData, pdfPageOffsets: drawnOffsets.map((o) => map.toDoc(o, 'start')) }
+        nextContent = existing
+      } else {
+        forgetDrawnText(guid)
+      }
       return {
         sources: state.sources.map((s) =>
           s.guid === guid

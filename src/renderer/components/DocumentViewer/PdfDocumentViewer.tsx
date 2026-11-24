@@ -27,6 +27,7 @@ import { digitKey } from '../../utils/keys'
 import { loadPdfjs, pdfParams } from '../../utils/pdfjs'
 import { flattenCodesWithDepth } from '../../utils/code-tree'
 import { draggedCodeGuids } from '../../utils/code-drag'
+import { drawnText } from '../../utils/pdf-text-map'
 
 function buildCodeMap(codes: Code[]): Map<string, Code> {
   const m = new Map<string, Code>()
@@ -99,10 +100,49 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
   const removeMemo = useMemoStore((s) => s.removeMemo)
   const contentMemos = useMemoStore((s) => s.getContentMemosForSource(source.guid))
   const sourceQuotes = useQuoteStore((s) => s.getQuotesForSource(source.guid))
-  const quoteRanges = useMemo(() =>
-    sourceQuotes.map((q) => ({ guid: q.guid, startCp: q.startPosition, endCp: q.endPosition, pdfRegion: q.pdfRegion })),
-    [sourceQuotes]
+  // The PDF's text (`content`, where its passages are) and the text pdf.js
+  // draws can differ (utils/pdf-text-map.ts): this viewer works in drawn
+  // positions, and converts to and from the PDF's text at its edges.
+  const pdfPageOffsetsOfText: number[] | undefined = source.formatData?.pdfPageOffsets
+  const { map: textMap, pageOffsets } = useMemo(
+    () => drawnText(source.guid, pdfPageOffsetsOfText || []),
+    [source.guid, pdfPageOffsetsOfText]
   )
+  const viewSelections = useMemo(
+    () => source.selections.map((sel) => (sel.pdfRegion ? sel : {
+      ...sel,
+      startPosition: textMap.toView(sel.startPosition, 'start'),
+      endPosition: textMap.toView(sel.endPosition, 'end')
+    })),
+    [source.selections, textMap]
+  )
+  const viewMemos = useMemo(
+    () => contentMemos.map((m) => (m.pdfRegion || m.startPosition === undefined || m.endPosition === undefined ? m : {
+      ...m,
+      startPosition: textMap.toView(m.startPosition, 'start'),
+      endPosition: textMap.toView(m.endPosition, 'end')
+    })),
+    [contentMemos, textMap]
+  )
+  const quoteRanges = useMemo(() =>
+    sourceQuotes.map((q) => ({
+      guid: q.guid,
+      startCp: q.pdfRegion ? q.startPosition : textMap.toView(q.startPosition, 'start'),
+      endCp: q.pdfRegion ? q.endPosition : textMap.toView(q.endPosition, 'end'),
+      pdfRegion: q.pdfRegion
+    })),
+    [sourceQuotes, textMap]
+  )
+  /** A drawn span as positions in the PDF's text. */
+  const toText = useCallback(
+    (startCp: number, endCp: number) => ({ start: textMap.toDoc(startCp, 'start'), end: textMap.toDoc(endCp, 'end') }),
+    [textMap]
+  )
+  /** The PDF's text a drawn span covers. */
+  const textOf = useCallback((startCp: number, endCp: number) => {
+    const { start, end } = toText(startCp, endCp)
+    return [...content].slice(start, end).join('')
+  }, [content, toText])
 
   const [pdfDocument, setPdfDocument] = useState<any>(null)
   const [pendingSelection, setPendingSelection] = useState<{ startCp: number; endCp: number; selectedText: string } | null>(null)
@@ -137,11 +177,12 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
         pdfRegion: pendingBoxSelection.pdfRegion
       })
     } else if (pendingSelection) {
-      setGlobalPendingSelection({ kind: 'text', sourceGuid: source.guid, ...pendingSelection })
+      const { start, end } = toText(pendingSelection.startCp, pendingSelection.endCp)
+      setGlobalPendingSelection({ kind: 'text', sourceGuid: source.guid, ...pendingSelection, startCp: start, endCp: end })
     } else {
       setGlobalPendingSelection(null)
     }
-  }, [active, pendingSelection, pendingBoxSelection, source.guid, setGlobalPendingSelection])
+  }, [active, pendingSelection, pendingBoxSelection, source.guid, setGlobalPendingSelection, toText])
   // A half of a split view that stops being active drops its selection, so
   // the New Code dialog can never code a stale selection in the other half.
   const wasActiveRef = useRef(active)
@@ -203,12 +244,12 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
     } else if (scrollTarget.startCp < scrollTarget.endCp) {
       // Text quote — mirror the plain-text viewer: scroll to the range
       // and natively select it via lockedRange. No yellow overlay.
-      const r = { startCp: scrollTarget.startCp, endCp: scrollTarget.endCp }
+      const r = { startCp: textMap.toView(scrollTarget.startCp, 'start'), endCp: textMap.toView(scrollTarget.endCp, 'end') }
       setLockedRange(r)
       setPendingTextScroll(r)
     }
     clearScrollTarget()
-  }, [scrollTarget, clearScrollTarget, active])
+  }, [scrollTarget, clearScrollTarget, active, textMap])
 
   // Perform the deferred region scroll once the target page's DOM exists.
   // allPagesRendered is the cheap way to know the layout has settled.
@@ -265,7 +306,6 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
     return map
   }, [flatCodes])
 
-  const pageOffsets: number[] = source.formatData?.pdfPageOffsets || []
   const numPages = pdfDocument ? pdfDocument.numPages : 0
 
   // Load PDF document. Two supported sources:
@@ -306,9 +346,10 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
   }, [pdfBase64, pdfFilePath])
 
   const applyCodingToRange = useCallback(
-    (codeGuid: string, startCp: number, endCp: number, text: string) => {
+    (codeGuid: string, drawnStart: number, drawnEnd: number, text: string) => {
+      const { start: startCp, end: endCp } = toText(drawnStart, drawnEnd)
       const existingSel = source.selections.find(
-        (s) => s.startPosition === startCp && s.endPosition === endCp
+        (s) => !s.pdfRegion && s.startPosition === startCp && s.endPosition === endCp
       )
       if (existingSel) {
         if (!existingSel.codings.some((c) => c.codeGuid === codeGuid)) {
@@ -320,7 +361,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
         addCodingToSelection(source.guid, selGuid, codeGuid)
       }
     },
-    [source, addSelection, addCodingToSelection]
+    [source, addSelection, addCodingToSelection, toText]
   )
 
   /** Convert a client mouse position into PDF user-space coords on a page. */
@@ -375,9 +416,8 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
 
     const lo = Math.min(startCp, endCp)
     const hi = Math.max(startCp, endCp)
-    const selectedText = [...content].slice(lo, hi).join('')
-    setPendingSelection({ startCp: lo, endCp: hi, selectedText })
-  }, [content])
+    setPendingSelection({ startCp: lo, endCp: hi, selectedText: textOf(lo, hi) })
+  }, [textOf])
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     const sel = window.getSelection()
@@ -389,7 +429,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
       if (s !== null && en !== null && s !== en) {
         const lo = Math.min(s, en)
         const hi = Math.max(s, en)
-        ps = { startCp: lo, endCp: hi, selectedText: [...content].slice(lo, hi).join('') }
+        ps = { startCp: lo, endCp: hi, selectedText: textOf(lo, hi) }
       }
     }
     if (!ps && pendingSelection) ps = pendingSelection
@@ -417,7 +457,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
     }
     const existingCodings: CodingRightClickContext['existingCodings'] = []
     if (clickCp !== null) {
-      for (const sel2 of source.selections) {
+      for (const sel2 of viewSelections) {
         if (sel2.pdfRegion) continue // handled by box hit-test below
         if (clickCp >= sel2.startPosition && clickCp < sel2.endPosition) {
           for (const coding of sel2.codings) {
@@ -466,7 +506,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
 
     const overlappingMemos: CodingRightClickContext['overlappingMemos'] = []
     if (clickCp !== null) {
-      for (const m of contentMemos || []) {
+      for (const m of viewMemos) {
         if (m.pdfRegion) continue // handled below
         if (m.startPosition !== undefined && m.endPosition !== undefined && clickCp >= m.startPosition && clickCp < m.endPosition) {
           overlappingMemos.push({ guid: m.guid, title: m.title, startCp: m.startPosition, endCp: m.endPosition })
@@ -495,7 +535,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
     if (ps || existingCodings.length > 0 || overlappingMemos.length > 0 || source) {
       setContextMenu({ x: e.clientX, y: e.clientY, context: { existingCodings, pendingSelection: ps, codepointOffset: clickCp ?? undefined, pdfPoint, overlappingMemos } })
     }
-  }, [pendingSelection, pendingBoxSelection, findPageEl, source, content, t, clientToPdfCoords, contentMemos])
+  }, [pendingSelection, pendingBoxSelection, findPageEl, source, viewSelections, viewMemos, textOf, t, clientToPdfCoords, contentMemos])
 
   const handleApplyCode = useCallback((codeGuid: string) => {
     if (!contextMenu?.context.pendingSelection) return
@@ -515,12 +555,13 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
     setContextMenu(null); setMenuHighlight(null)
   }, [source, removeCoding, removeSelection])
 
-  const handleCreateMemo = useCallback((startCp: number, endCp: number, pdfRegion?: PdfRegionSelection) => {
-    const guid = addMemo('content', '', { sourceGuid: source.guid, startPosition: startCp, endPosition: endCp, pdfRegion })
+  const handleCreateMemo = useCallback((drawnStart: number, drawnEnd: number, pdfRegion?: PdfRegionSelection) => {
+    const { start, end } = pdfRegion ? { start: drawnStart, end: drawnEnd } : toText(drawnStart, drawnEnd)
+    const guid = addMemo('content', '', { sourceGuid: source.guid, startPosition: start, endPosition: end, pdfRegion })
     const memo = useMemoStore.getState().findMemo(guid)
     if (memo) window.api.openMemoEditWindow({ memo, theme: document.documentElement.getAttribute('data-theme') || '' } as MemoEditInitData)
     setContextMenu(null)
-  }, [source.guid, addMemo])
+  }, [source.guid, addMemo, toText])
 
   // Drag-drop coding. Priority order:
   //   1. Pending TEXT selection — user explicitly selected text before drag.
@@ -546,7 +587,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
       const e = resolveCp(range.endContainer, range.endOffset)
       if (s !== null && e !== null && s !== e) {
         const lo = Math.min(s, e); const hi = Math.max(s, e)
-        for (const cg of codeGuids) applyCodingToRange(cg, lo, hi, [...content].slice(lo, hi).join(''))
+        for (const cg of codeGuids) applyCodingToRange(cg, lo, hi, textOf(lo, hi))
         return
       }
     }
@@ -589,7 +630,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
         }
       }
     }
-  }, [pendingSelection, pendingBoxSelection, applyCodingToRange, applyCodingToRegion, content, source, addCodingToSelection, clientToPdfCoords, contentMemos])
+  }, [pendingSelection, pendingBoxSelection, applyCodingToRange, applyCodingToRegion, textOf, source, addCodingToSelection, clientToPdfCoords, contentMemos])
 
   // Cmd/Ctrl + wheel zoom. Native addEventListener with passive:false so
   // preventDefault() actually stops the page-level scroll. Mirrors
@@ -798,9 +839,9 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
                 pageNumber={i + 1}
                 pageTextOffset={pageOffsets[i] || 0}
                 scale={zoom}
-                selections={source.selections}
+                selections={viewSelections}
                 codeMap={codeMap}
-                contentMemos={contentMemos}
+                contentMemos={viewMemos}
                 externalHighlightRange={menuHighlight}
                 pulseRegion={pulseRegion}
                 hoverHighlightRange={lockedRange || hoveredRange}
@@ -836,9 +877,9 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
             <RichMarginColumn
           contentRef={pagesContentRef}
           containerRef={pagesContentRef}
-          selections={source.selections}
+          selections={viewSelections}
           codes={codes}
-          contentMemos={contentMemos}
+          contentMemos={viewMemos}
           quotes={quoteRanges}
           rendered={allPagesRendered}
           alignRight
@@ -928,7 +969,8 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
               <div className="context-menu-separator" />
               <div className="context-menu-item" onClick={() => {
                 const ps = contextMenu.context.pendingSelection!
-                useQuoteStore.getState().addQuote(source.guid, source.name, ps.startCp, ps.endCp, ps.selectedText, ps.pdfRegion)
+                const q = ps.pdfRegion ? { start: ps.startCp, end: ps.endCp } : toText(ps.startCp, ps.endCp)
+                useQuoteStore.getState().addQuote(source.guid, source.name, q.start, q.end, ps.selectedText, ps.pdfRegion)
                 setPendingBoxSelection(null)
                 setContextMenu(null)
               }}>{t('viewer.addAsQuote')}</div>

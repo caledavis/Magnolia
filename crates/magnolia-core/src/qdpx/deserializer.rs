@@ -287,6 +287,10 @@ fn parse_pdf_source(n: Node) -> Value {
     if let Some(p) = repr.and_then(|r| attr(r, "plainTextPath")) {
         o.insert("_representationPlainTextPath".into(), p.into());
     }
+    // Or its text held inline.
+    if let Some(t) = repr.and_then(|r| child_text(r, "PlainTextContent")) {
+        o.insert("_representationText".into(), t.into());
+    }
     // The text representation's description and whole-document codings
     // are the PDF's.
     if let Some(r) = repr {

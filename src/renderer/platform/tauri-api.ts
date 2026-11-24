@@ -19,6 +19,7 @@ import { base64ToBytes, extractPdfText } from './pdf-text'
 import { t } from '../i18n'
 import { withDocumentLanguage } from '../utils/document-language'
 import { guardComposition } from '../utils/keys'
+import { buildPdfTextMap, forgetDrawnText, setDrawnText } from '../utils/pdf-text-map'
 
 const current = getCurrentWebviewWindow()
 const MAIN = 'main'
@@ -71,6 +72,8 @@ type ProgressCallback = (p: { stage: string; current: number; total: number }) =
  *  sources the backend couldn't read text from are flagged. */
 type LoadedProject = Project & { sourceContents: Record<string, string> }
 type PendingPdfText = { _pendingPdfText?: boolean }
+/** A PDF whose text came from its project file (its REFI-QDA representation). */
+type FromFile = { _textFromFile?: boolean }
 /** A whole-document coding's passage on a PDF whose text isn't read yet
  *  (magnolia-core reader.rs place_document_codings). */
 type WholeDocument = TextSource['selections'][number] & { _wholeDocument?: boolean }
@@ -92,18 +95,33 @@ async function completeProjectPdfText<T extends LoadedProject | null>(
   reportProgress = true
 ): Promise<T> {
   if (!data?.sources) return data
+  // Only the open project's PDFs are drawn by the viewer.
+  const forViewer = reportProgress
+  if (forViewer) forgetDrawnText()
   const pending = (data.sources as (TextSource & PendingPdfText)[]).filter((s) => s._pendingPdfText)
   let done = 0
   for (const source of pending) {
     delete source._pendingPdfText
     const fd = source.formatData ?? {}
+    const fromFileFlag = (source as FromFile)._textFromFile
+    delete (source as FromFile)._textFromFile
     const handle = fd.pdfFilePath
     try {
       const bytes = fd.pdfBase64 ? base64ToBytes(fd.pdfBase64) : handle ? await readBytes(handle) : null
       if (bytes) {
-        const { text, pageOffsets } = await extractPdfText(bytes)
-        data.sourceContents[source.guid] = text
-        if (!fd.pdfPageOffsets?.length) source.formatData = { ...fd, pdfPageOffsets: pageOffsets }
+        const { text: drawnText, pageOffsets: drawnPageOffsets } = await extractPdfText(bytes)
+        // The PDF's text is the one its file carries, where its passages
+        // are (magnolia-core reader.rs); pdf.js's reading is what's drawn.
+        const fromFile = fromFileFlag === true
+        const text = fromFile ? data.sourceContents[source.guid] : drawnText
+        if (!fromFile) data.sourceContents[source.guid] = text
+        const map = buildPdfTextMap(text, drawnText)
+        if (forViewer) setDrawnText(source.guid, map, drawnPageOffsets)
+        // Page offsets are positions in the PDF's text: kept if the file
+        // has them, else where each drawn page starts.
+        if (!fd.pdfPageOffsets?.length) {
+          source.formatData = { ...fd, pdfPageOffsets: drawnPageOffsets.map((o) => map.toDoc(o, 'start')) }
+        }
         // A coding of the whole PDF (from another program) covers all of
         // its text, now that there is some.
         source.selections = source.selections.map((sel) => {

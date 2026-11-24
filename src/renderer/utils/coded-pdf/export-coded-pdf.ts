@@ -13,6 +13,7 @@ import { formatTimestamp } from '../timestamp-parser'
 import { buildCellText } from '../survey/cell-text'
 import { base64ToBytes } from '../../platform/pdf-text'
 import { joinPageText, pageTextContent } from '../pdf-page-text'
+import { drawnText } from '../pdf-text-map'
 import { sourceTypeFromFilename } from '../format-registry'
 import { noteData } from '../notes'
 import { loadPdfjs, pdfParams } from '../pdfjs'
@@ -122,16 +123,22 @@ async function pdfBody(source: TextSource, lookup: Map<string, CodeRef>, wide: b
   const pdfjsLib = await loadPdfjs()
   const doc = await pdfjsLib.getDocument(pdfParams(await loadPdfBytes(source))).promise
 
+  // Highlights go on the text as pdf.js draws it, which can differ from
+  // the PDF's text the passages are positions in (utils/pdf-text-map.ts).
+  const { map, pageOffsets: drawnPageOffsets } = drawnText(source.guid, source.formatData?.pdfPageOffsets ?? [])
   const textSels = source.selections
     .filter((s) => !s.pdfRegion)
-    .map((s) => ({ sel: s, codes: codesOf(s, lookup) }))
+    .map((s) => ({
+      sel: { ...s, startPosition: map.toView(s.startPosition, 'start'), endPosition: map.toView(s.endPosition, 'end') },
+      codes: codesOf(s, lookup)
+    }))
     .filter((s) => s.codes.length > 0 && s.sel.endPosition > s.sel.startPosition)
   const figures: string[] = []
   const canvas = document.createElement('canvas')
   try {
     // Page text offsets: the stored ones the viewer uses, else as
     // pdf-text.ts counts them (each page's text, then one separator).
-    const storedOffsets: number[] = source.formatData?.pdfPageOffsets ?? []
+    const storedOffsets: number[] = drawnPageOffsets
     let pageOffset = 0
     for (let p = 1; p <= doc.numPages; p++) {
       if (storedOffsets.length > 0) pageOffset = storedOffsets[p - 1] ?? pageOffset

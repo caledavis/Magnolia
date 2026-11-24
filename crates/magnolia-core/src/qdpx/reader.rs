@@ -123,56 +123,39 @@ fn convert_picture_selection(raw: &Value) -> Value {
     finish_selection(o, raw)
 }
 
-/// Per-origin quirks for `<PDFSelection>` coordinates. The spec says points
-/// with a top-left origin; MAXQDA and Atlas.ti write PDF-native bottom-left
-/// coordinates with 0-based pages.
-struct PdfQuirks {
-    page_base: i64,
-    unit_scale: f64,
-    y_flip: bool,
-}
-
-fn pdf_quirks(origin: &str) -> PdfQuirks {
-    let o = origin.to_lowercase();
-    if o.starts_with("maxqda") || o.starts_with("atlas") {
-        PdfQuirks {
-            page_base: 1,
-            unit_scale: 1.0,
-            y_flip: true,
-        }
-    } else {
-        PdfQuirks {
-            page_base: 0,
-            unit_scale: 1.0,
-            y_flip: false,
-        }
-    }
-}
-
-/// A standalone `<PDFSelection>` is a box coding and stays one.
-fn convert_pdf_selection(raw: &Value, q: &PdfQuirks, page_sizes: &[Value]) -> Value {
-    let page = raw
-        .get("page")
-        .and_then(Value::as_i64)
-        .map(|p| p + q.page_base);
+/// A `<PDFSelection>` is a box coding and stays one. The standard (§10.3)
+/// gives its page (counted from 0, as its examples do) and its corners in
+/// PDF points from the bottom-left of the page's media box; Magnolia keeps a
+/// region as drawn (top-left origin, pages from 1). Without the PDF there's
+/// no page geometry to convert with: the region is then approximate, and
+/// the file's own coordinates are kept (`refiRect`) to be written back as
+/// they were.
+fn convert_pdf_selection(raw: &Value, page_sizes: &[Value]) -> Value {
+    let page = raw.get("page").and_then(Value::as_i64).map(|p| p + 1);
     let (fx, fy, sx, sy) = raw_rect(raw);
-    let s = q.unit_scale;
-    let x = fx.min(sx) * s;
-    let width = (sx - fx).abs() * s;
-    let height = (sy - fy).abs() * s;
-    let page_height = page
+    let geometry = page
         .and_then(|p| usize::try_from(p).ok())
         .and_then(|p| page_sizes.get(p))
-        .and_then(|p| get_f64(p, "height"));
-    let y = match (q.y_flip, page_height) {
-        (true, Some(ph)) => ph - fy.max(sy) * s,
-        _ => fy.min(sy) * s,
+        .and_then(crate::pdf_info::PageGeometry::of);
+    let (x, y, width, height) = match geometry {
+        Some(g) => {
+            let (ax, ay) = g.from_standard(fx, fy);
+            let (bx, by) = g.from_standard(sx, sy);
+            (ax.min(bx), ay.min(by), (bx - ax).abs(), (by - ay).abs())
+        }
+        None => (fx.min(sx), fy.min(sy), (sx - fx).abs(), (sy - fy).abs()),
     };
     let mut o = selection_from_raw(raw);
     o.insert(
         "pdfRegion".into(),
         json!({ "page": page.map(Value::from).unwrap_or(Value::Null), "x": num(x), "y": num(y), "width": num(width), "height": num(height) }),
     );
+    if geometry.is_none() {
+        o.insert(
+            "refiRect".into(),
+            json!({ "page": raw.get("page"), "firstX": raw.get("firstX"), "firstY": raw.get("firstY"), "secondX": raw.get("secondX"), "secondY": raw.get("secondY") }),
+        );
+    }
     finish_selection(o, raw)
 }
 
@@ -265,7 +248,6 @@ pub fn read_qdpx(path: &Path, progress: Option<Progress>) -> Result<Value, Strin
         }
     }
 
-    let origin = get_str(&project, "origin").unwrap_or("").to_string();
     let mut source_contents = Map::new();
     let mut sources: Vec<Value> = take(&mut project, "sources")
         .and_then(|v| v.as_array().cloned())
@@ -277,7 +259,6 @@ pub fn read_qdpx(path: &Path, progress: Option<Progress>) -> Result<Value, Strin
             source,
             &mut zip,
             &sources_dir,
-            &origin,
             &mut source_contents,
         );
         report(&loading, done + 1, total);
@@ -461,7 +442,6 @@ fn load_source(
     source: &mut Value,
     zip: &mut Archive,
     sources_dir: &str,
-    origin: &str,
     contents: &mut Map<String, Value>,
 ) {
     let guid = get_str(source, "guid").unwrap_or("").to_string();
@@ -534,7 +514,6 @@ fn load_source(
                 .cloned()
                 .unwrap_or_default();
             if !raw.is_empty() {
-                let q = pdf_quirks(origin);
                 let existing: HashSet<String> =
                     get_arr(&Value::Object(obj.clone()), "selections")
                         .iter()
@@ -548,7 +527,7 @@ fn load_source(
                 sels.extend(
                     raw.iter()
                         .filter(|r| !existing.contains(get_str(r, "guid").unwrap_or("")))
-                        .map(|r| convert_pdf_selection(r, &q, &page_sizes)),
+                        .map(|r| convert_pdf_selection(r, &page_sizes)),
                 );
                 obj.insert("selections".into(), sels.into());
             }
@@ -560,8 +539,26 @@ fn load_source(
                 obj.insert("_pendingPdfText".into(), true.into());
                 contents.insert(guid.clone(), "".into());
             }
+            // The PDF's text is its plain-text representation, which the
+            // file carries (REFI-QDA §10.3): its text selections are
+            // positions in it. The renderer still reads the PDF with pdf.js,
+            // to draw it, and takes that reading as the text only when the
+            // file has none.
+            let representation = obj
+                .remove("_representationText")
+                .and_then(|v| v.as_str().map(str::to_string))
+                .or_else(|| {
+                    internal_name(obj.get("_representationPlainTextPath").and_then(Value::as_str))
+                        .and_then(|m| zip.read_text(&in_sources(m)))
+                })
+                .filter(|t| !t.is_empty());
+            if let Some(t) = representation {
+                contents.insert(guid.clone(), t.into());
+                obj.insert("_textFromFile".into(), true.into());
+            }
             obj.remove("plainTextPath");
             obj.remove("_rawPdfSelections");
+            obj.remove("_representationPlainTextPath");
             contents.entry(guid).or_insert("".into());
         }
         "video" if has_path => {
@@ -1213,13 +1210,7 @@ fn place_document_codings(
                 let size = binary_ref_by_guid
                     .get(&guid)
                     .and_then(|name| zip.read(&format!("{sources_dir}/{name}")))
-                    .and_then(|bytes| {
-                        image::ImageReader::new(std::io::Cursor::new(bytes))
-                            .with_guessed_format()
-                            .ok()?
-                            .into_dimensions()
-                            .ok()
-                    });
+                    .and_then(|bytes| displayed_image_size(&bytes));
                 let Some((w, h)) = size else {
                     continue;
                 };
@@ -1252,6 +1243,24 @@ fn place_document_codings(
         sels.push(Value::Object(sel));
         source["selections"] = sels.into();
     }
+}
+
+/// A picture's size as shown: turned as its EXIF orientation says, which
+/// is the space the standard's picture coordinates are in (§9.1.5).
+fn displayed_image_size(bytes: &[u8]) -> Option<(u32, u32)> {
+    use image::ImageDecoder;
+    use image::metadata::Orientation;
+    let mut decoder = image::ImageReader::new(std::io::Cursor::new(bytes))
+        .with_guessed_format()
+        .ok()?
+        .into_decoder()
+        .ok()?;
+    let (w, h) = decoder.dimensions();
+    let turned = matches!(
+        decoder.orientation().unwrap_or(Orientation::NoTransforms),
+        Orientation::Rotate90 | Orientation::Rotate270 | Orientation::Rotate90FlipH | Orientation::Rotate270FlipH
+    );
+    Some(if turned { (h, w) } else { (w, h) })
 }
 
 /// Memos another program attached to an area of a PDF or picture, or to a
