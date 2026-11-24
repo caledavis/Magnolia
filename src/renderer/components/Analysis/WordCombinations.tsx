@@ -710,7 +710,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                     {associations.rows.slice(0, ASSOCIATION_ROWS).map((r) => (
                       <tr key={r.word} onClick={() => searchSentences(r.word)} style={{ cursor: 'pointer' }} title={t('combos.findSentences', { a: focus, b: r.word })}>
                         <td style={tdStyle}>{r.word}</td>
-                        <td style={{ ...tdStyle, textAlign: 'end' }}>{r.together}</td>
+                        <td style={{ ...tdStyle, textAlign: 'end' }}>{formatNumber(r.together)}</td>
                         <td style={{ ...tdStyle, textAlign: 'end' }}>{formatPercent(r.share * 100)}</td>
                         <td style={{ ...tdStyle, textAlign: 'end', color: r.g2 < 3.84 ? 'var(--text-muted)' : undefined }}>{formatFixed(r.g2, 1)}</td>
                       </tr>
