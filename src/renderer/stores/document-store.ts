@@ -486,6 +486,10 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
   },
 
   addCodingToSelection: (sourceGuid, selectionGuid, codeGuid) => {
+    // A passage has a code once: applying it again does nothing (it would
+    // count the passage twice everywhere).
+    const existing = get().sources.find((s) => s.guid === sourceGuid)?.selections.find((sel) => sel.guid === selectionGuid)
+    if (existing?.codings.some((c) => c.codeGuid === codeGuid)) return
     const codingGuid = generateGuid()
     const now = new Date().toISOString()
     const userGuid = useProjectStore.getState().creatingUserGUID
