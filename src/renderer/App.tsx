@@ -91,6 +91,7 @@ import { useCodebookMessages, useLogbookMessages, useMemoWindowMessages, useQuer
 import { useProjectShortcuts } from './app/keyboard-shortcuts'
 import { collectProject } from './app/project-file'
 import { codeAllResults } from './app/code-results'
+import { useLatest } from './utils/use-latest'
 
 
 /** Toolbar pill layout: groups a set of related buttons in a row. The
@@ -115,6 +116,9 @@ const SAVE_RETRY_MS = 20_000
 
 function App() {
   const { t } = useTranslation()
+  // For listeners registered once (see useLatest): `t` changes with the
+  // language, and re-registering could miss a message.
+  const latestT = useLatest(t)
   const [showNewCodeDialog, setShowNewCodeDialog] = useState(false)
   const [pendingCodeAllNewCode, setPendingCodeAllNewCode] = useState(false)
   const [showManageDocTags, setShowManageDocTags] = useState(false)
@@ -1655,6 +1659,7 @@ function App() {
   // Listen for open-recent-project from welcome screen
   useEffect(() => {
     const unsub = window.api.onOpenRecentProject(async (filePath) => {
+      const t = latestT.current
       if (!(await saveBeforeSwitchingRef.current())) return
       loadInProgressRef.current = true
       noteBulkReset()
@@ -1734,7 +1739,7 @@ function App() {
       }
     })
     return unsub
-  }, [cancelPendingAutoSave, liftLoadSuppression, applyCheckoutInfo, t, restoreTabState])
+  }, [cancelPendingAutoSave, liftLoadSuppression, applyCheckoutInfo, latestT, restoreTabState])
 
   // Hidden flush-on-close: when the main process intercepts the window
   // close, write the current project to disk before letting the window go.
@@ -1749,6 +1754,7 @@ function App() {
   // in it got no save — the watchdog closed the window after 4 s.
   useEffect(() => {
     const unsub = window.api.onFlushAndClose(async () => {
+      const t = latestT.current
       flushViewPositions()
       const ps = useProjectStore.getState()
       if (ps.isDirty && ps.filePath) {
@@ -1825,7 +1831,7 @@ function App() {
       window.api.notifyFlushComplete()
     })
     return unsub
-  }, [t])
+  }, [latestT])
 
   // Listen for new-project-at-path from the welcome screen. The main
   // process has already written an empty .qdpx at filePath; we just need

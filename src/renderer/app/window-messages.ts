@@ -3,6 +3,8 @@
  * each window sends it (each hook subscribes once and acts on the project's
  * stores), and what it keeps them up to date with.
  */
+import { t } from '../i18n'
+import { useLatest } from '../utils/use-latest'
 import { codeAllResults } from './code-results'
 import { liveResolveFilter, useQueryStore } from '../stores/query-store'
 import { narrowQueryToCell, queryForCell, type CellScope } from '../utils/narrow-query'
@@ -58,7 +60,8 @@ export function useLogbookMessages(): void {
 /** Act on the Codebook window's right-click menu and edits, mirroring
  *  the Codes pane, and send it the codes again after each change. */
 export function useCodebookMessages(): void {
-  const { t } = useTranslation()
+  // Subscribed once: `t` (the module's) translates into whatever the
+  // language is when a message comes.
   // Listen for codebook updates from the codebook window. Actions from
   // its right-click menu mirror the Codes pane's; each that changes the
   // codes sends the Codebook its codes again so it shows the change.
@@ -133,7 +136,7 @@ export function useCodebookMessages(): void {
       }
     })
     return unsub
-  }, [t])
+  }, [])
 }
 
 /** The memo windows: act on memo edits, deletions and the Memos window's
@@ -304,14 +307,18 @@ export interface QueryResultsWindowHandlers {
 }
 
 /** Act on the popped-out Query Results window. */
-export function useQueryResultsWindowMessages({ openQueryBuilder, setPoppedOut, setClosed, askToSaveQuery, askForCodeForAll }: QueryResultsWindowHandlers): void {
+export function useQueryResultsWindowMessages(handlers: QueryResultsWindowHandlers): void {
+  // Each listener subscribes once and calls the latest handlers: App makes
+  // some of them anew as the project changes (openQueryBuilder with the
+  // saved queries), and subscribing again could miss a message.
+  const latest = useLatest(handlers)
   // Listen for query results window close (pop back in)
   useEffect(() => {
     const unsub = window.api.onQueryResultsClosed(() => {
-      setPoppedOut(false)
+      latest.current.setPoppedOut(false)
     })
     return unsub
-  }, [setPoppedOut])
+  }, [latest])
 
   // Listen for double-click jumps from the popped-out query results
   // window. Equivalent to calling viewDocumentAt directly when the
@@ -344,6 +351,7 @@ export function useQueryResultsWindowMessages({ openQueryBuilder, setPoppedOut, 
   // Handle actions from popped-out query results window
   useEffect(() => {
     const unsub = window.api.onQueryResultsAction(({ action, payload }) => {
+      const { openQueryBuilder, setClosed, askToSaveQuery, askForCodeForAll } = latest.current
       switch (action) {
         case 'edit-query': {
           const qs = useQueryStore.getState()
@@ -414,7 +422,7 @@ export function useQueryResultsWindowMessages({ openQueryBuilder, setPoppedOut, 
       }
     })
     return unsub
-  }, [openQueryBuilder, setClosed, askToSaveQuery, askForCodeForAll])
+  }, [latest])
 }
 
 /** Act on the analysis tools (in their tabs or popped out): save and
@@ -436,9 +444,12 @@ export function useAnalysisMessages(
   openAnalysis: (toolType: AnalysisToolType, config?: any) => void,
   openSavedAnalysis: (toolType: AnalysisToolType, savedConfig: any) => void
 ): void {
+  // Subscribed once, calling the latest functions (see useLatest).
+  const latest = useLatest({ openAnalysis, openSavedAnalysis })
   // Listen for analysis actions (save, run-query)
   useEffect(() => {
     const unsub = window.api.onAnalysisAction(({ action, args }) => {
+      const { openAnalysis, openSavedAnalysis } = latest.current
       if (action === 'save-analysis') {
         const [analysis] = args
         const ps = useProjectStore.getState()
@@ -580,7 +591,7 @@ export function useAnalysisMessages(
       }
     })
     return unsub
-  }, [openSavedAnalysis, openAnalysis])
+  }, [latest])
 }
 
 /** While Query Results is popped out, send its window the results, and
