@@ -469,12 +469,24 @@ export function applySurveyCellScope(
     return true
   }
 
+  // Only a survey's cells can be out of scope, and with no tag constraint
+  // only the surveys the respondent / question scopes name: every other
+  // document keeps its selections as they are (not copied). A grid with a
+  // column per respondent scopes the data once per column, so copying
+  // every document's selections each time made a large project's
+  // respondent columns take seconds.
+  const surveys = new Set(data.sources.filter((s) => s.sourceType === 'survey').map((s) => s.guid))
+  const named = scope.hasConstraint
+    ? null
+    : new Set([...(filter.respondentScope ?? []), ...(filter.questionScope ?? [])].map((r) => r.sourceGuid))
+  const affected = (sg: string) => surveys.has(sg) && (!named || named.has(sg))
+
   const scoped: Record<string, PlainTextSelection[]> = {}
   for (const sg of Object.keys(data.sourceSelections)) {
     const sels = data.sourceSelections[sg]
-    scoped[sg] = sels.filter(
-      (sel) => !sel.surveyCell || cellKept(sg, sel.surveyCell.respondentId, sel.surveyCell.questionId)
-    )
+    scoped[sg] = affected(sg)
+      ? sels.filter((sel) => !sel.surveyCell || cellKept(sg, sel.surveyCell.respondentId, sel.surveyCell.questionId))
+      : sels
   }
   // Scope the codable-cell denominator the same way, so "% of survey"
   // is relative to the in-scope cells (not the whole survey) when a
@@ -483,7 +495,7 @@ export function applySurveyCellScope(
   if (scopedCells) {
     const next: NonNullable<AnalysisInitData['surveyCodableCells']> = {}
     for (const sg of Object.keys(scopedCells)) {
-      next[sg] = scopedCells[sg].filter((c) => cellKept(sg, c.respondentId, c.questionId))
+      next[sg] = affected(sg) ? scopedCells[sg].filter((c) => cellKept(sg, c.respondentId, c.questionId)) : scopedCells[sg]
     }
     scopedCells = next
   }
