@@ -2006,5 +2006,28 @@
     "title": "Opened read-only",
     "text": "This project was saved by a newer version of Magnolia ({{savedBy}}). You can look through it here, but changes won’t be saved, so that nothing the newer version added is lost. Update Magnolia to work on it.",
     "cantSave": "This project was saved by a newer version of Magnolia ({{savedBy}}), so this version can’t save it or a copy of it. Update Magnolia to work on it."
+  },
+  "notKept": {
+    "title": "Some of this project can’t be kept in Magnolia",
+    "intro": "It was made in another program, and holds things Magnolia has no place for:",
+    "documentCodings_one": "{{count}} coding of a whole document",
+    "documentCodings_other": "{{count}} codings of whole documents",
+    "memoCodings_one": "{{count}} coding in a memo",
+    "memoCodings_other": "{{count}} codings in memos",
+    "memoAttachments_one": "{{count}} memo attached to a code, a coding, an area or a stretch of a recording (the memo is kept, but not attached)",
+    "memoAttachments_other": "{{count}} memos attached to codes, codings, areas or stretches of recordings (the memos are kept, but not attached)",
+    "descriptions_one": "{{count}} description of a document, transcript, memo or variable",
+    "descriptions_other": "{{count}} descriptions of documents, transcripts, memos or variables",
+    "attachedTexts_one": "{{count}} text attached to a picture or an area of a PDF",
+    "attachedTexts_other": "{{count}} texts attached to pictures or areas of PDFs",
+    "links_one": "{{count}} link between two items",
+    "links_other": "{{count}} links between items",
+    "caseLinks_one": "{{count}} link from a case to a code or a passage",
+    "caseLinks_other": "{{count}} links from cases to codes or passages",
+    "setMemos_one": "{{count}} memo in a set",
+    "setMemos_other": "{{count}} memos in sets",
+    "extraTranscripts_one": "{{count}} extra transcript of a recording (only a recording’s first is kept)",
+    "extraTranscripts_other": "{{count}} extra transcripts of recordings (only each recording’s first is kept)",
+    "advice": "Nothing has changed in the file yet, but once Magnolia saves the project over it, these will be gone from it. To keep the original as it is, save the project as a new file now."
   }
 }

@@ -55,10 +55,11 @@ import { useRelationshipMapStore } from './stores/relationship-map-store'
 import { useAnalysisTabsStore } from './stores/analysis-tabs-store'
 import { isAnalysisTab, isMapTab, isQueryBuilderTab, isMergeTab, makeAnalysisTabId, makeMapTabId, makeQueryBuilderTabId, parseAnalysisTabId, PREFERENCES_TAB_ID, MERGE_TAB_ID } from './utils/tab-ids'
 import { requestPreferencesCategory } from './components/Preferences/PreferencesWindow'
-import type { PersistedTabState, MissingBinary, CheckoutMarker, ImportState, SaveOutcome } from './models/types'
+import type { PersistedTabState, MissingBinary, CheckoutMarker, ImportState, SaveOutcome, OpenedProject } from './models/types'
 import { MissingBinariesBanner } from './components/MissingBinariesBanner'
 import { SaveFailedBanner } from './components/SaveFailedBanner'
 import { NewerFormatBanner } from './components/NewerFormatBanner'
+import { NotKeptBanner } from './components/NotKeptBanner'
 import { CheckoutConflictDialog } from './components/CheckoutConflictDialog'
 import { StealBackDialog } from './components/StealBackDialog'
 import { NameGateOverlay } from './components/NameGateOverlay'
@@ -181,6 +182,8 @@ function App() {
   // Documents whose binary content is missing from the just-opened .qdpx —
   // drives the re-import banner so the user can repair the project.
   const [missingBinaries, setMissingBinaries] = useState<MissingBinary[]>([])
+  // What the project just opened holds that Magnolia can't keep.
+  const [notKept, setNotKept] = useState<OpenedProject['notKept'] | null>(null)
   // Someone else's checkout marker found on a just-opened project, hit by a
   // first-edit auto-checkout attempt that lost the race, or clicked into
   // from any mutating control app-wide — see project-store.ts's
@@ -632,6 +635,7 @@ function App() {
     if (!created) return
     const { filePath, projectName } = created
     cancelPendingAutoSave()
+    setNotKept(null)
     documentStore.clearAll()
     codeStore.clearAll()
     tagStore.clearAll()
@@ -759,6 +763,7 @@ function App() {
       noteStateMatchesFile()
       setMissingBinaries(data.missingBinaries ?? [])
       useProjectStore.getState().setNewerFormat(data.newerFormat?.savedBy ?? null)
+      setNotKept(data.notKept ?? null)
       applyCheckoutInfo(data)
       if (data.filePath) {
         window.api.trackRecentProject(project.name, data.filePath)
@@ -923,11 +928,12 @@ function App() {
   // A failure belongs to the project it happened in.
   useEffect(() => { setSaveFailure(null) }, [projectStore.filePath])
 
-  const handleSaveProjectAs = useCallback(async () => {
+  /** Whether the project was saved (not cancelled or refused). */
+  const handleSaveProjectAs = useCallback(async (): Promise<boolean> => {
     const newerFormat = useProjectStore.getState().newerFormat
     if (newerFormat) {
       await window.api.showMessage(t('newerFormat.cantSave', { savedBy: newerFormat }), 'info')
-      return
+      return false
     }
     const project = collectProject()
     const result = await window.api.saveProjectAs({
@@ -937,8 +943,10 @@ function App() {
       allowEmpty: emptySaveAllowed()
     })
     if (result && typeof result === 'object' && (result as any).guardBlocked) {
+      // Refused (see the writer's guards): say why, rather than nothing.
       console.warn('[save-project-as guard]', (result as any).message)
-      return
+      await window.api.showMessage(String((result as any).message), 'warning')
+      return false
     }
     if (typeof result === 'string') {
       setSaveFailure(null)
@@ -967,7 +975,9 @@ function App() {
           console.error('[save-as check-out] failed:', err)
         }
       }
+      return true
     }
+    return false
   }, [documentStore, projectStore, t])
 
   // "Check Out Anyway" from the checkout-conflict dialog shown right after
@@ -1745,6 +1755,7 @@ function App() {
         noteStateMatchesFile()
         setMissingBinaries(data.missingBinaries ?? [])
         useProjectStore.getState().setNewerFormat(data.newerFormat?.savedBy ?? null)
+        setNotKept(data.notKept ?? null)
         applyCheckoutInfo(data)
         window.api.trackRecentProject(project.name, filePath)
       } catch (err) {
@@ -2772,6 +2783,12 @@ function App() {
       })()}
 
       <NewerFormatBanner />
+
+      <NotKeptBanner
+        counts={notKept ?? null}
+        onSaveAs={() => handleSaveProjectAs().then((saved) => { if (saved) setNotKept(null) }).catch((err: any) => setSaveFailure(err?.message || String(err)))}
+        onDismiss={() => setNotKept(null)}
+      />
 
       <SaveFailedBanner
         error={saveFailure}

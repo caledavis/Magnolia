@@ -339,3 +339,39 @@ fn cases_without_documents_are_still_a_surveys_respondents() {
     assert_eq!(project["sources"].as_array().unwrap().len(), 3);
     assert!(project["sets"].as_array().unwrap().is_empty());
 }
+
+#[test]
+fn what_cant_be_kept_is_counted_and_magnolias_own_save_reports_nothing() {
+    let xml = project_xml(
+        r#"<Sources>
+  <TextSource guid="40000000-0000-0000-0000-000000000001" name="Interview A.txt" plainTextPath="internal://40000000-0000-0000-0000-000000000001.txt">
+    <Description>Second interview with A.</Description>
+    <PlainTextSelection guid="50000000-0000-0000-0000-000000000001" startPosition="0" endPosition="4">
+      <Coding guid="60000000-0000-0000-0000-000000000001"><CodeRef targetGUID="20000000-0000-0000-0000-000000000001"/>
+        <NoteRef targetGUID="a0000000-0000-0000-0000-000000000003"/></Coding>
+      <NoteRef targetGUID="a0000000-0000-0000-0000-000000000002"/>
+    </PlainTextSelection>
+    <Coding guid="60000000-0000-0000-0000-000000000002"><CodeRef targetGUID="20000000-0000-0000-0000-000000000001"/></Coding>
+    <NoteRef targetGUID="a0000000-0000-0000-0000-000000000001"/>
+  </TextSource>
+  <TextSource guid="40000000-0000-0000-0000-000000000002" name="Interview B.txt" plainTextPath="internal://40000000-0000-0000-0000-000000000002.txt">
+    <Description>   </Description>
+  </TextSource>
+</Sources>
+<Notes>
+  <Note guid="a0000000-0000-0000-0000-000000000001" name="On A"><PlainTextContent>About A.</PlainTextContent></Note>
+  <Note guid="a0000000-0000-0000-0000-000000000002" name="On a passage"><PlainTextContent>About diet.</PlainTextContent></Note>
+  <Note guid="a0000000-0000-0000-0000-000000000003" name="On a coding"><PlainTextContent>Why coded.</PlainTextContent></Note>
+</Notes>
+<Links><Link guid="b0000000-0000-0000-0000-000000000001" originGUID="20000000-0000-0000-0000-000000000001" targetGUID="40000000-0000-0000-0000-000000000001"/></Links>
+<Sets><Set guid="c0000000-0000-0000-0000-000000000001" name="Memos"><MemberNote targetGUID="a0000000-0000-0000-0000-000000000001"/></Set></Sets>"#,
+    );
+    let (first, again, _) = read_and_resave(&xml, &TWO_TEXTS);
+    // The memos on the document and on the passage are kept attached; the
+    // one on the coding isn't; the blank description doesn't count.
+    assert_eq!(
+        first["notKept"],
+        serde_json::json!({ "descriptions": 1, "documentCodings": 1, "links": 1, "memoAttachments": 1, "setMemos": 1 })
+    );
+    assert!(again.get("notKept").is_none(), "{:?}", again["notKept"]);
+}

@@ -35,7 +35,23 @@ export interface OpenedProject extends Project {
   /** Saved by a newer Magnolia, in a format this one may not fully
    *  understand: opened read-only. */
   newerFormat?: { savedBy: string }
+  /** What the file holds that Magnolia can't keep, by kind (from another
+   *  program, usually): shown by NotKeptBanner. */
+  notKept?: Partial<Record<NotKeptKind, number>>
 }
+
+/** Kinds of things in a project file Magnolia can't keep (magnolia-core
+ *  qdpx/deserializer.rs `not_kept`). */
+export type NotKeptKind =
+  | 'documentCodings'
+  | 'memoCodings'
+  | 'memoAttachments'
+  | 'descriptions'
+  | 'attachedTexts'
+  | 'links'
+  | 'caseLinks'
+  | 'setMemos'
+  | 'extraTranscripts'
 
 export interface Project {
   name: string

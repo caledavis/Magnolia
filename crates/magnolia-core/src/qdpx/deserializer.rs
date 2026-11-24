@@ -458,6 +458,84 @@ fn scan_note_refs(src: Node, anchors: &mut Map<String, Value>) {
     }
 }
 
+const SOURCES: [&str; 5] = ["TextSource", "PDFSource", "PictureSource", "AudioSource", "VideoSource"];
+
+/// What a file holds that Magnolia can't keep, by kind: how many of each.
+/// Opening the file is fine, but saving it over the original leaves these
+/// out, so the app tells the user (and suggests Save As). Only things
+/// Magnolia never writes itself are counted, so its own projects report
+/// nothing.
+pub fn not_kept(proj: Node) -> Map<String, Value> {
+    let name = |n: Node| n.tag_name().name().to_string();
+    let parent = |n: Node| n.parent_element().map(name).unwrap_or_default();
+    let within = |n: Node, tag: &str| n.ancestors().skip(1).any(|a| a.is_element() && a.tag_name().name() == tag);
+    let edge_links: std::collections::HashSet<String> = proj
+        .descendants()
+        .filter(|n| n.is_element() && n.tag_name().name() == "Edge")
+        .filter_map(|e| attr(e, "representedGUID").map(|g| normalize_guid(Some(&g))))
+        .collect();
+    let mut counts: std::collections::BTreeMap<&str, u64> = Default::default();
+    for n in proj.descendants().filter(Node::is_element) {
+        let kind = match n.tag_name().name() {
+            // Links between items, except those a map's arrows stand for.
+            "Link" if !attr(n, "guid").is_some_and(|g| edge_links.contains(&normalize_guid(Some(&g)))) => Some("links"),
+            // A coding of a whole document (not of a passage in it).
+            "Coding" if SOURCES.contains(&parent(n).as_str()) || ["Representation", "TextDescription"].contains(&parent(n).as_str()) => {
+                if within(n, "Note") { Some("memoCodings") } else { Some("documentCodings") }
+            }
+            // Codings inside memos.
+            "Coding" if within(n, "Note") => Some("memoCodings"),
+            // Text attached to a picture, or to an area of a PDF (if there's
+            // any: text, a text file, or coding in it).
+            "TextDescription" | "Representation"
+                if (name(n) == "TextDescription" || parent(n) == "PDFSelection")
+                    && (child_text(n, "PlainTextContent").is_some_and(|t| !t.trim().is_empty())
+                        || attr(n, "plainTextPath").is_some_and(|p| !p.is_empty())
+                        || child(n, "PlainTextSelection").is_some()
+                        || child(n, "Coding").is_some()) =>
+            {
+                Some("attachedTexts")
+            }
+            // A memo attached where Magnolia can't attach one: to a code, a
+            // coding, a link, a memo, an area or a stretch of a recording.
+            // (On a document, or on a passage of its text, it is kept.)
+            "NoteRef" => {
+                let p = parent(n);
+                let on_document = SOURCES.contains(&p.as_str());
+                let on_passage = p == "PlainTextSelection"
+                    && n.parent_element().and_then(|s| s.parent_element()).is_some_and(|d| {
+                        let t = name(d);
+                        t == "TextSource" || (t == "Representation" && d.parent_element().is_some_and(|x| name(x) == "PDFSource"))
+                    });
+                let on_project = p == "Project";
+                (!on_document && !on_passage && !on_project && !within(n, "Note")).then_some("memoAttachments")
+            }
+            // Descriptions of documents, transcripts, memos and variables
+            // (Magnolia's own survey variables excepted).
+            "Description" if n.text().is_some_and(|t| !t.trim().is_empty()) => {
+                let p = parent(n);
+                let in_attached_text = p == "Representation" && n.parent_element().and_then(|r| r.parent_element()).is_some_and(|x| name(x) == "PDFSelection");
+                let own_variable = p == "Variable" && n.text().is_some_and(|t| t.trim_start().starts_with("magnolia:v1:"));
+                ((SOURCES.contains(&p.as_str()) || ["Transcript", "Note", "Representation"].contains(&p.as_str()) || p == "Variable")
+                    && !own_variable
+                    && !in_attached_text)
+                    .then_some("descriptions")
+            }
+            // A case's links to codes and to passages.
+            "CodeRef" | "SelectionRef" if parent(n) == "Case" => Some("caseLinks"),
+            // Memos in sets.
+            "MemberNote" => Some("setMemos"),
+            // A recording's transcripts after the first.
+            "Transcript" if n.prev_sibling_element().is_some_and(|p| name(p) == "Transcript") => Some("extraTranscripts"),
+            _ => None,
+        };
+        if let Some(k) = kind {
+            *counts.entry(k).or_default() += 1;
+        }
+    }
+    counts.into_iter().map(|(k, v)| (k.to_string(), v.into())).collect()
+}
+
 pub fn deserialize_project(xml: &str) -> Result<Value, String> {
     let xml = crate::xml_read::repair_if_needed(xml);
     let doc = crate::xml_read::parse(&xml).map_err(|e| {
@@ -621,5 +699,9 @@ pub fn deserialize_project(xml: &str) -> Result<Value, String> {
     }
     transient(&mut o, "_refiGraphs", refi_graphs);
     transient(&mut o, "_refiLinks", refi_links);
+    let left_out = not_kept(proj);
+    if !left_out.is_empty() {
+        o.insert("notKept".into(), Value::Object(left_out));
+    }
     Ok(Value::Object(o))
 }

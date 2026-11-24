@@ -100,10 +100,12 @@ function workspace(from, fileName = 'Project.qdpx') {
   return { dir, project, data }
 }
 
-/** Run the qdpx_tool example (crates/magnolia-core/examples) with `args`. */
+/** Run the qdpx_tool example (crates/magnolia-core/examples) with `args`;
+ *  returns what it printed. */
 function qdpxTool(...args) {
-  const r = spawnSync('cargo', ['run', '-q', '-p', 'magnolia-core', '--example', 'qdpx_tool', '--', ...args], { cwd: ROOT, stdio: 'inherit' })
+  const r = spawnSync('cargo', ['run', '-q', '-p', 'magnolia-core', '--example', 'qdpx_tool', '--', ...args], { cwd: ROOT, stdio: ['ignore', 'pipe', 'inherit'], maxBuffer: 1 << 28 })
   if (r.status !== 0) throw new Error(`qdpx_tool ${args[0]} failed`)
+  return r.stdout.toString('utf8')
 }
 
 const harness = readFileSync(join(HERE, 'harness.js'), 'utf8')
