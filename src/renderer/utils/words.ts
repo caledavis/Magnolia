@@ -11,7 +11,12 @@
 
 const SEGMENTER = new Intl.Segmenter(undefined, { granularity: 'word' })
 const HAS_LETTER = /\p{L}/u
-const WORD_CHAR_RE = /[\p{L}\p{M}\p{Nd}']/u
+const WORD_CHAR_RE = /[\p{L}\p{M}\p{Nd}'\u2019]/u
+/** Straight and curly apostrophes: part of a word only between letters
+ *  ("don't", "zo'n"), as the word-break rules have it; at a word's end
+ *  ("students'") or start they're punctuation. */
+const APOSTROPHE_RE = /['\u2019]/
+const LETTER_RE = /[\p{L}\p{M}]/u
 /** Scripts written without spaces between words, where only the
  *  dictionary can say where a word ends. */
 const NO_SPACE_RE = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Thai}\p{Script=Lao}\p{Script=Khmer}\p{Script=Myanmar}]/u
@@ -89,6 +94,10 @@ export function isWordEdge(text: string, index: number): boolean {
   const before = index > 0 ? text[index - 1] : undefined
   const after = index < text.length ? text[index] : undefined
   if (isWordBoundary(before) || isWordBoundary(after)) return true
+  // An apostrophe beside the edge: inside a word only between letters.
+  const inner = (i: number) => LETTER_RE.test(text[i - 1] ?? '') && LETTER_RE.test(text[i + 1] ?? '')
+  if (APOSTROPHE_RE.test(before!) && !inner(index - 1)) return true
+  if (APOSTROPHE_RE.test(after!) && !inner(index)) return true
   if (!NO_SPACE_RE.test(before!) && !NO_SPACE_RE.test(after!)) return false
   return segmentEdges(text).has(index)
 }
