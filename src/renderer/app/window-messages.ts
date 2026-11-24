@@ -3,6 +3,7 @@
  * each window sends it (each hook subscribes once and acts on the project's
  * stores), and what it keeps them up to date with.
  */
+import { codeAllResults } from './code-results'
 import { liveResolveFilter, useQueryStore } from '../stores/query-store'
 import { narrowQueryToCell, queryForCell, type CellScope } from '../utils/narrow-query'
 import { tagMembershipFromTags } from '../utils/survey-cell-scope'
@@ -374,30 +375,10 @@ export function useQueryResultsWindowMessages({ openQueryBuilder, setPoppedOut, 
         case 'code-all-new-code':
           askForCodeForAll()
           break
-        case 'code-all-existing-code': {
-          // Mirror onApplyCodeToResults from the popped-in
-          // QueryResultViewer: apply the dropped code to every
-          // result. Survey-cell / region results carry real
-          // selectionGuids; text-match results get a new selection
-          // created on the fly so the code can attach.
-          if (payload?.guid) {
-            const qs = useQueryStore.getState()
-            const ds = useDocumentStore.getState()
-            for (const r of qs.results) {
-              const isRealSelection = !r.selectionGuid.startsWith('text-match-')
-              if (isRealSelection) {
-                const alreadyApplied = r.matchedCodes.some((c) => c.guid === payload.guid)
-                if (!alreadyApplied) {
-                  ds.addCodingToSelection(r.sourceGuid, r.selectionGuid, payload.guid)
-                }
-              } else {
-                const selGuid = ds.addSelection(r.sourceGuid, r.startPosition, r.endPosition, r.matchedText)
-                ds.addCodingToSelection(r.sourceGuid, selGuid, payload.guid)
-              }
-            }
-          }
+        case 'code-all-existing-code':
+          // As from the pane: every result gets the code.
+          codeAllResults(payload.guid)
           break
-        }
         case 'select-documents': {
           // Mirror handleSelectDocuments from QueryResultViewer:
           // select every source document + every survey respondent

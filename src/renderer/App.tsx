@@ -90,6 +90,7 @@ import { describeQuery } from './app/query-description'
 import { useCodebookMessages, useLogbookMessages, useMemoWindowMessages, useQueryBuilderMessages, useQueryResultsWindowMessages, useQueryResultsWindowUpdates, useAnalysisMessages } from './app/window-messages'
 import { useProjectShortcuts } from './app/keyboard-shortcuts'
 import { collectProject } from './app/project-file'
+import { codeAllResults } from './app/code-results'
 
 
 /** Toolbar pill layout: groups a set of related buttons in a row. The
@@ -1423,17 +1424,7 @@ function App() {
     // If this was triggered from "Code All > New Code", apply to all results
     if (pendingCodeAllNewCode && guid) {
       setPendingCodeAllNewCode(false)
-      const qs = useQueryStore.getState()
-      const ds = useDocumentStore.getState()
-      for (const r of qs.results) {
-        const isRealSelection = !r.selectionGuid.startsWith('text-match-')
-        if (isRealSelection) {
-          ds.addCodingToSelection(r.sourceGuid, r.selectionGuid, guid)
-        } else {
-          const selGuid = ds.addSelection(r.sourceGuid, r.startPosition, r.endPosition, r.matchedText)
-          ds.addCodingToSelection(r.sourceGuid, selGuid, guid)
-        }
-      }
+      codeAllResults(guid)
       return
     }
 
@@ -2642,22 +2633,7 @@ function App() {
               setPendingCodeAllNewCode(true)
               setShowNewCodeDialog(true)
             }}
-            onApplyCodeToResults={(codeGuid) => {
-              const qs = useQueryStore.getState()
-              const ds = useDocumentStore.getState()
-              for (const r of qs.results) {
-                const isRealSelection = !r.selectionGuid.startsWith('text-match-')
-                if (isRealSelection) {
-                  const alreadyApplied = r.matchedCodes.some((c) => c.guid === codeGuid)
-                  if (!alreadyApplied) {
-                    ds.addCodingToSelection(r.sourceGuid, r.selectionGuid, codeGuid)
-                  }
-                } else {
-                  const selGuid = ds.addSelection(r.sourceGuid, r.startPosition, r.endPosition, r.matchedText)
-                  ds.addCodingToSelection(r.sourceGuid, selGuid, codeGuid)
-                }
-              }
-            }}
+            onApplyCodeToResults={codeAllResults}
           />
           </div>
         </Panel>
