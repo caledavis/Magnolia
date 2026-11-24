@@ -4,10 +4,10 @@
  * stores), and what it keeps them up to date with.
  */
 import { liveResolveFilter, useQueryStore } from '../stores/query-store'
-import { narrowQueryToCell } from '../utils/narrow-query'
+import { narrowQueryToCell, queryForCell, type CellScope } from '../utils/narrow-query'
 import { tagMembershipFromTags } from '../utils/survey-cell-scope'
 import { useEffect, type MutableRefObject } from 'react'
-import type { SurveyData, SurveyFormatData, QueryResultsInitData, AnalysisToolType, Query } from '../models/types'
+import type { SurveyData, SurveyFormatData, QueryResultsInitData, AnalysisToolType, Query, CodeCondition } from '../models/types'
 import { useProjectStore } from '../stores/project-store'
 import { usePreferencesStore } from '../stores/preferences-store'
 import { codeColourPresetsFor } from '../utils/code-colours'
@@ -20,7 +20,7 @@ import { useRelationshipMapStore } from '../stores/relationship-map-store'
 import { generateGuid } from '../utils/guid'
 import { useTranslation } from 'react-i18next'
 import { memosWindowData, sendCodebookData, checkoutLockedByNow, deleteMemoEverywhere, openMemoEditor } from './other-windows'
-import { describeQuery, applySurveyScopeToFilter, withinQueries } from './query-description'
+import { describeQuery, withinQueries } from './query-description'
 import { wordCondition, sentenceCondition } from '../components/Analysis/word-counts'
 import { useSurveyViewStore } from '../stores/survey-view-store'
 import { showMemoLocation } from '../utils/show-memo'
@@ -439,6 +439,18 @@ export function useQueryResultsWindowMessages({ openQueryBuilder, setPoppedOut, 
 /** Act on the analysis tools (in their tabs or popped out): save and
  *  delete analyses, run the queries their cells and rows stand for, and
  *  open tools and saved analyses. */
+/** Run a clicked number's query: `codeCondition` (and any `within`) in
+ *  `docs` (none for all) under the tool's filter, narrowed to the clicked
+ *  column (see queryForCell). */
+function runCellQuery(codeCondition: CodeCondition, docs: string[] | undefined, scope: CellScope | undefined, within?: Query[]): void {
+  const sources = useDocumentStore.getState().sources
+  const sourceGuids = docs?.length ? docs : sources.map((s) => s.guid)
+  const surveys = new Set(sources.filter((s) => s.sourceType === 'survey').map((s) => s.guid))
+  const membership = tagMembershipFromTags(useTagStore.getState().tags)
+  const query = queryForCell({ documentFilter: {}, codeCondition, ...(within ? { within } : {}) }, sourceGuids, scope, membership, surveys)
+  if (query) useQueryStore.getState().setComplexQuery(query)
+}
+
 export function useAnalysisMessages(
   openAnalysis: (toolType: AnalysisToolType, config?: any) => void,
   openSavedAnalysis: (toolType: AnalysisToolType, savedConfig: any) => void
@@ -468,59 +480,29 @@ export function useAnalysisMessages(
           ps.setSavedAnalyses([...existing, entry])
         }
       } else if (action === 'run-cooccurrence-query') {
-        // Build an overlap query for two codes, including document filter
-        // and any survey-cell (question) scope the tool was narrowed to.
+        // Where two codes overlap, in the tool's documents and filter.
         const [codeGuidA, codeGuidB, filteredGuids, scope] = args
-        const baseFilter: Query['documentFilter'] = filteredGuids && filteredGuids.length > 0 ? { sourceGuids: filteredGuids } : {}
-        const query: Query = {
-          documentFilter: applySurveyScopeToFilter(baseFilter, scope),
-          codeCondition: {
-            type: 'overlap',
-            condition1: { type: 'code', codeGuid: codeGuidA },
-            condition2: { type: 'code', codeGuid: codeGuidB }
-          }
-        }
-        useQueryStore.getState().setComplexQuery(query)
+        runCellQuery({
+          type: 'overlap',
+          condition1: { type: 'code', codeGuid: codeGuidA },
+          condition2: { type: 'code', codeGuid: codeGuidB }
+        }, filteredGuids, scope)
       } else if (action === 'run-code-in-doc-query') {
-        // Build a query for a code in specific documents
+        // A code in some documents (a column's, within the tool's).
         const [codeGuid, sourceGuids, filteredGuids, scope] = args
-        const docGuids = filteredGuids && filteredGuids.length > 0 ? sourceGuids.filter((g) => filteredGuids.includes(g)) : sourceGuids
-        const query: Query = {
-          documentFilter: applySurveyScopeToFilter({ sourceGuids: docGuids }, scope),
-          codeCondition: { type: 'code', codeGuid }
-        }
-        useQueryStore.getState().setComplexQuery(query)
+        const docs = filteredGuids?.length ? sourceGuids.filter((g) => filteredGuids.includes(g)) : sourceGuids
+        runCellQuery({ type: 'code', codeGuid }, docs, scope)
       } else if (action === 'run-codes-in-doc-query') {
-        // Build an OR query for multiple codes in specific documents (for totals)
+        // Any of several codes in some documents (a total).
         const [codeGuids, sourceGuids, scope] = args
-        const codeCondition = codeGuids.length === 1
-          ? { type: 'code' as const, codeGuid: codeGuids[0] }
-          : { type: 'or' as const, conditions: codeGuids.map((g) => ({ type: 'code' as const, codeGuid: g })) }
-        const query: Query = {
-          documentFilter: applySurveyScopeToFilter({ sourceGuids }, scope),
-          codeCondition
-        }
-        useQueryStore.getState().setComplexQuery(query)
+        runCellQuery(codeGuids.length === 1
+          ? { type: 'code', codeGuid: codeGuids[0] }
+          : { type: 'or', conditions: codeGuids.map((g) => ({ type: 'code' as const, codeGuid: g })) }, sourceGuids, scope)
       } else if (action === 'open-framework-matrix') {
         // Codes in Documents → "Open as Framework Matrix": a fresh,
         // unsaved matrix seeded with the grid's codes and documents.
         const [config] = args
         openAnalysis('framework-matrix', config)
-      } else if (action === 'run-code-in-tag-query') {
-        // Build a query for a code filtered by tag (include or exclude)
-        const [codeGuid, tagGuid, excludeTagGuids, scope] = args
-        const filter: Query['documentFilter'] = {}
-        if (tagGuid) {
-          filter.tagGuids = [tagGuid]
-        }
-        if (excludeTagGuids && excludeTagGuids.length > 0) {
-          filter.tagExcludeGuids = excludeTagGuids
-        }
-        const query: Query = {
-          documentFilter: applySurveyScopeToFilter(filter, scope),
-          codeCondition: { type: 'code', codeGuid }
-        }
-        useQueryStore.getState().setComplexQuery(query)
       } else if (action === 'run-query-in-docs') {
         // A saved query's results in a cell (or total) of Results in
         // Documents: the query as it is, narrowed to the cell, so it shows
@@ -531,25 +513,14 @@ export function useAnalysisMessages(
         const narrowed = noDocs ? null : narrowQueryToCell({ ...query, documentFilter }, { sourceGuids, scope }, membership)
         if (narrowed) useQueryStore.getState().setComplexQuery(narrowed)
       } else if (action === 'run-word-query') {
-        // Build a text search query for a word in specific documents,
-        // limited to coded passages, or to saved queries' results, when
-        // the tool counted those.
+        // A word in the tool's documents, limited to coded passages, or
+        // to saved queries' results, when the tool counted those.
         const [word, filteredGuids, scope, codes, queryGuids] = args
-        const query: Query = {
-          documentFilter: applySurveyScopeToFilter(filteredGuids && filteredGuids.length > 0 ? { sourceGuids: filteredGuids } : {}, scope),
-          codeCondition: wordCondition(word, codes),
-          within: withinQueries(queryGuids)
-        }
-        useQueryStore.getState().setComplexQuery(query)
+        runCellQuery(wordCondition(word, codes), filteredGuids, scope, withinQueries(queryGuids))
       } else if (action === 'run-sentence-query') {
         // The sentences containing both words (Word Combinations' associations).
         const [word1, word2, filteredGuids, scope, codes, queryGuids] = args
-        const query: Query = {
-          documentFilter: applySurveyScopeToFilter(filteredGuids && filteredGuids.length > 0 ? { sourceGuids: filteredGuids } : {}, scope),
-          codeCondition: sentenceCondition(word1, word2, codes),
-          within: withinQueries(queryGuids)
-        }
-        useQueryStore.getState().setComplexQuery(query)
+        runCellQuery(sentenceCondition(word1, word2, codes), filteredGuids, scope, withinQueries(queryGuids))
       } else if (action === 'open-document') {
         const [sourceGuid] = args
         useDocumentStore.getState().viewDocument(sourceGuid)

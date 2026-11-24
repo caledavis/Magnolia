@@ -588,6 +588,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
                 <div style={{ marginTop: 10, minHeight: 200 }}>
                   <DocumentSelector
                     key={docFilterKey}
+                    flatFilter="intersect"
                     sources={data.sources}
                     tags={data.tags}
                     categories={data.categories}

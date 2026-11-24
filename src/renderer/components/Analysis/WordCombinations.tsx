@@ -11,14 +11,14 @@
  *     merged into branches (see word-tree.ts).
  */
 import { useState, useMemo, useCallback, useRef } from 'react'
-import type { AnalysisInitData, SurveyCellScopeArgs } from '../../models/types'
+import type { AnalysisInitData } from '../../models/types'
 import { Icon, faWholeWord } from '../Icon'
 import {
   emptyDocumentFilter,
   type DocumentFilterState
 } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
-import { toCsv, resolveFilteredSources, applySurveyCellScope } from './analysis-helpers'
+import { toCsv, filteredSourcesOf, applySurveyCellScope, cellScopeOf } from './analysis-helpers'
 import { stopWordsText } from './stop-words'
 import { StopWordsPicker } from './StopWordsPicker'
 import {
@@ -55,6 +55,7 @@ import { useThemeSvgColors, SVG_FONT_FAMILY } from '../../utils/use-theme-svg-co
 import { buildPhraseNetwork, layoutPhraseNetwork, linkTitle, neighbours, LABEL_GAP, type NetworkLayout } from './phrase-network'
 import { useTranslation } from 'react-i18next'
 import { formatPercent, formatFixed, formatNumber, currentLanguage } from '../../i18n'
+import type { CellScope } from '../../utils/narrow-query'
 
 export type CombinationsView = 'phrases' | 'associations' | 'tree'
 /** How Phrases are shown. */
@@ -313,7 +314,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
   }, [baseline])
 
   const filteredSourceGuids = useMemo(
-    () => resolveFilteredSources(data, docFilter.sourceGuids, docFilter.tagGuids, docFilter.tagExcludeGuids, docFilter.typeInclude, docFilter.typeExclude),
+    () => filteredSourcesOf(data, docFilter),
     [data, docFilter]
   )
   const codeSets = useCodeSets(data.codes, codeGuids, includeSubcodes)
@@ -363,11 +364,8 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
   // Searches run in the same documents, survey questions and (when
   // counting coded passages) codes as the analysis, or inside the chosen
   // queries' results, which carry their own documents.
-  const surveyScope = useCallback((): SurveyCellScopeArgs | undefined => (
-    !byQuery && (docFilter.questionScope?.length || docFilter.respondentScope?.length)
-      ? { questionScope: docFilter.questionScope, respondentScope: docFilter.respondentScope }
-      : undefined
-  ), [docFilter, byQuery])
+  // Counting within saved queries' results, those queries are the limit.
+  const surveyScope = useCallback((): CellScope | undefined => (byQuery ? undefined : cellScopeOf(docFilter)), [docFilter, byQuery])
   const queryCodes = useCallback((): WordQueryCodes | undefined => (
     coded ? { codeGuids: [...codeSets.keys()], includeSubcodes } : undefined
   ), [coded, codeSets, includeSubcodes])

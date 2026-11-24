@@ -214,3 +214,89 @@ export function cellOfColumns(
     scope: scope.respondentScope || scope.questionScope ? scope : undefined
   }
 }
+
+/** What a clicked number in an analysis tool covers, besides its
+ *  documents: the tool's own filter's limits (which it counts under), and
+ *  the clicked column's (or row's). */
+export interface CellScope {
+  /** The tool's document filter: any of its tags, none of its excluded
+   *  tags, and its chosen survey questions and respondents. */
+  filter?: Pick<Query['documentFilter'], 'tagGuids' | 'tagExcludeGuids' | 'questionScope' | 'respondentScope'>
+  /** The clicked column: a tag column's tags (any of them), or one
+   *  survey respondent. */
+  column?: { tagGuids?: string[]; respondentRef?: SurveyEntityRef }
+}
+
+/**
+ * The query for a clicked number in an analysis tool: `query` (its
+ * condition, and any `within`) in `docs`, the tool's filtered documents,
+ * under the tool's filter, narrowed to the clicked column. Null when
+ * nothing can be in it.
+ *
+ * `docs` are already what the tool's filter selects, so the filter's tags
+ * only narrow survey cells, as the tool counts them (applySurveyCellScope):
+ * a survey keeps the respondents or questions the tags are on, or all of
+ * it if it's tagged whole, and none if they aren't on it. `surveys` says
+ * which documents are surveys.
+ */
+export function queryForCell(
+  query: Query,
+  docs: string[],
+  scope: CellScope | undefined,
+  membership: TagMembership,
+  surveys: Set<string>
+): Query | null {
+  const filter = scope?.filter ?? {}
+  let sourceGuids = docs
+  let respondents = intersectScopes(filter.respondentScope, undefined)
+  let questions = intersectScopes(filter.questionScope, undefined)
+  const filterTags = filter.tagGuids ?? []
+  if (filterTags.length > 0) {
+    const whole = new Set(filterTags.flatMap((t) => membership.sourceMembersByTag[t] ?? []))
+    const tagRespondents = filterTags.flatMap((t) => membership.respondentMembersByTag[t] ?? [])
+    const tagQuestions = filterTags.flatMap((t) => membership.questionMembersByTag[t] ?? [])
+    const extraRespondents: SurveyEntityRef[] = []
+    const extraQuestions: SurveyEntityRef[] = []
+    sourceGuids = docs.filter((g) => {
+      if (!surveys.has(g) || whole.has(g)) return true
+      const resp = tagRespondents.filter((r) => r.sourceGuid === g)
+      const quest = tagQuestions.filter((q) => q.sourceGuid === g)
+      if (resp.length === 0 && quest.length === 0) return false
+      // On respondents and questions of this survey both: the cells
+      // either covers aren't a scope, so the survey is taken whole.
+      if (resp.length > 0 && quest.length > 0) return true
+      extraRespondents.push(...resp)
+      extraQuestions.push(...quest)
+      return true
+    })
+    if (extraRespondents.length > 0) {
+      const r = intersectScopes(respondents.refs, extraRespondents)
+      respondents = { refs: r.refs, emptied: new Set([...respondents.emptied, ...r.emptied]) }
+    }
+    if (extraQuestions.length > 0) {
+      const q = intersectScopes(questions.refs, extraQuestions)
+      questions = { refs: q.refs, emptied: new Set([...questions.emptied, ...q.emptied]) }
+    }
+  }
+  sourceGuids = sourceGuids.filter((g) => !respondents.emptied.has(g) && !questions.emptied.has(g))
+  if (sourceGuids.length === 0) return null
+  const own: Query = {
+    ...query,
+    documentFilter: {
+      ...query.documentFilter,
+      sourceGuids,
+      ...(filter.tagExcludeGuids?.length ? { tagExcludeGuids: filter.tagExcludeGuids } : {}),
+      ...(questions.refs ? { questionScope: questions.refs } : {}),
+      ...(respondents.refs ? { respondentScope: respondents.refs } : {})
+    }
+  }
+  const column = scope?.column
+  if (!column?.tagGuids?.length && !column?.respondentRef) return own
+  return narrowQueryToCell(own, {
+    sourceGuids,
+    scope: {
+      ...(column.tagGuids?.length ? { tagGuids: column.tagGuids } : {}),
+      ...(column.respondentRef ? { respondentScope: [column.respondentRef] } : {})
+    }
+  }, membership)
+}

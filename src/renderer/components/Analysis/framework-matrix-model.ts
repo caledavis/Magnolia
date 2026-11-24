@@ -16,8 +16,9 @@
  * it later leaves the group while its summaries still have text, it
  * stays in the group as an orphaned row instead of silently vanishing.
  */
-import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
+import type { AnalysisInitData, SurveyEntityRef } from '../../models/types'
 import { t } from '../../i18n'
+import type { CellScope } from '../../utils/narrow-query'
 
 /** One thing the user dropped into the rows area. A group's
  *  `sourceGuids`, when set, limits it to those documents — set when the
@@ -442,10 +443,13 @@ export function countInScope(data: Pick<SummaryData, 'sourceSelections'>, scope:
 }
 
 /** Arguments for the 'run-code-in-doc-query' analysis action: the
- *  documents to search plus the survey-cell scope. Tag groups scope by
- *  their tags (which unions tagged respondents and questions, exactly
- *  like the count); a single respondent or question row scopes to it. */
-export function queryArgsForScope(scope: RowScope): { sourceGuids: string[]; cellScope?: SurveyCellScopeArgs } | null {
+ *  documents to search, and what of them the row covers. Tag groups cover
+ *  their tags' cells (tagged respondents and questions, exactly like the
+ *  count); respondent and question rows cover those respondents or
+ *  questions. A group with both respondents and questions of one survey
+ *  counts either, which a respondent scope and a question scope (each
+ *  limiting on its own) can't say, so that survey is taken whole. */
+export function queryArgsForScope(scope: RowScope): { sourceGuids: string[]; cellScope?: CellScope } | null {
   const sourceGuids = [...new Set([
     ...scope.docs,
     ...scope.respondents.map((r) => r.sourceGuid),
@@ -453,9 +457,12 @@ export function queryArgsForScope(scope: RowScope): { sourceGuids: string[]; cel
   ])]
   if (sourceGuids.length === 0) return null
   if (scope.respondents.length === 0 && scope.questions.length === 0) return { sourceGuids }
-  if (scope.tagGuids?.length) return { sourceGuids, cellScope: { tagGuids: scope.tagGuids } }
-  const cellScope: SurveyCellScopeArgs = {}
-  if (scope.respondents.length > 0) cellScope.respondentScope = scope.respondents
-  if (scope.questions.length > 0) cellScope.questionScope = scope.questions
-  return { sourceGuids, cellScope }
+  if (scope.tagGuids?.length) return { sourceGuids, cellScope: { column: { tagGuids: scope.tagGuids } } }
+  const bothIn = new Set(scope.respondents.map((r) => r.sourceGuid).filter((g) => scope.questions.some((q) => q.sourceGuid === g)))
+  const respondentScope = scope.respondents.filter((r) => !bothIn.has(r.sourceGuid))
+  const questionScope = scope.questions.filter((q) => !bothIn.has(q.sourceGuid))
+  const filter: NonNullable<CellScope['filter']> = {}
+  if (respondentScope.length > 0) filter.respondentScope = respondentScope
+  if (questionScope.length > 0) filter.questionScope = questionScope
+  return { sourceGuids, ...(filter.respondentScope || filter.questionScope ? { cellScope: { filter } } : {}) }
 }

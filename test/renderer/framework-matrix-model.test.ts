@@ -168,11 +168,11 @@ describe('framework matrix counts and queries', () => {
     expect(queryArgsForScope(scope(['d1']))).toEqual({ sourceGuids: ['d1'] })
     expect(queryArgsForScope(scope([], [{ sourceGuid: 's1', id: 'r1' }]))).toEqual({
       sourceGuids: ['s1'],
-      cellScope: { respondentScope: [{ sourceGuid: 's1', id: 'r1' }] }
+      cellScope: { filter: { respondentScope: [{ sourceGuid: 's1', id: 'r1' }] } }
     })
     expect(queryArgsForScope(scope([], [], [{ sourceGuid: 's1', id: 'q1' }]))).toEqual({
       sourceGuids: ['s1'],
-      cellScope: { questionScope: [{ sourceGuid: 's1', id: 'q1' }] }
+      cellScope: { filter: { questionScope: [{ sourceGuid: 's1', id: 'q1' }] } }
     })
     expect(queryArgsForScope(scope([]))).toBeNull()
   })
@@ -180,7 +180,17 @@ describe('framework matrix counts and queries', () => {
   it('scopes tag groups by their tag, so tagged respondents and questions union', () => {
     const data = makeData({ questionTagMembers: { t2: [{ sourceGuid: 's1', id: 'q2' }] } })
     const [group] = buildDisplayRows(data, config([{ kind: 'tag', tagGuid: 't2' }]))
-    expect(queryArgsForScope(group.scope)).toEqual({ sourceGuids: ['d2', 's1'], cellScope: { tagGuids: ['t2'] } })
+    expect(queryArgsForScope(group.scope)).toEqual({ sourceGuids: ['d2', 's1'], cellScope: { column: { tagGuids: ['t2'] } } })
+  })
+
+  it('takes a survey whole when a group has both its respondents and its questions', () => {
+    const r1 = { sourceGuid: 's1', id: 'r1' }
+    const q1 = { sourceGuid: 's1', id: 'q1' }
+    const q9 = { sourceGuid: 's2', id: 'q9' }
+    expect(queryArgsForScope(scope([], [r1], [q1, q9]))).toEqual({
+      sourceGuids: ['s1', 's2'],
+      cellScope: { filter: { questionScope: [q9] } }
+    })
   })
 })
 

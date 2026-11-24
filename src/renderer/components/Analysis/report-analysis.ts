@@ -12,7 +12,7 @@
 import { buildAnalysisInitData } from '../../utils/build-analysis-init-data'
 import {
   applySurveyCellScope,
-  resolveFilteredSources,
+  filteredSourcesOf,
   countCodeInSource,
   codeFrequencyInSource,
   sizeEstimated,
@@ -275,7 +275,7 @@ function codesInDocumentsHtml(config: any, options: AnalysisItemOptions): string
   const codeGuids: string[] = config?.codeGuids ?? []
   if (codeGuids.length === 0) return `<div class="empty">${escHtml(t('reports.noCodes'))}</div>`
   const { data, docFilter } = scopedData('codes-in-documents', config)
-  const filtered = resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids ?? [], docFilter.typeInclude ?? [], docFilter.typeExclude ?? [])
+  const filtered = filteredSourcesOf(data, docFilter)
   const sourceMap = new Map<string, string>(data.sources.map((s) => [s.guid, s.name]))
   const codeMap = new Map(data.codes.map((c) => [c.guid, c]))
   const { columns, headerGroups } = buildSurveyAwareColumns(config?.groupBy ?? [], data, filtered, sourceMap)
@@ -330,7 +330,7 @@ function codeFrequenciesHtml(config: any, _options: AnalysisItemOptions): string
   const codeGuids: string[] = config?.codeGuids ?? []
   if (codeGuids.length === 0) return `<div class="empty">${escHtml(t('reports.noCodes'))}</div>`
   const { data, docFilter } = scopedData('code-frequencies', config)
-  const filtered = resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids ?? [], docFilter.typeInclude ?? [], docFilter.typeExclude ?? [])
+  const filtered = filteredSourcesOf(data, docFilter)
   const sourceMap = new Map<string, string>(data.sources.map((s) => [s.guid, s.name]))
   const codeMap = new Map(data.codes.map((c) => [c.guid, c]))
   const { columns } = buildSurveyAwareColumns(config?.groupBy ?? [], data, filtered, sourceMap, { includeSubtotals: false })
@@ -369,7 +369,7 @@ function codeCoOccurrencesHtml(config: any, options: AnalysisItemOptions): strin
   const colCodeGuids: string[] = config?.colCodeGuids ?? []
   if (rowCodeGuids.length === 0 || colCodeGuids.length === 0) return `<div class="empty">${escHtml(t('reports.noCodes'))}</div>`
   const { data, docFilter } = scopedData('code-cooccurrences', config)
-  const filtered = resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids ?? [], docFilter.typeInclude ?? [], docFilter.typeExclude ?? [])
+  const filtered = filteredSourcesOf(data, docFilter)
   const codeMap = new Map(data.codes.map((c) => [c.guid, c]))
 
   let matrix = rowCodeGuids.map((rg) => colCodeGuids.map((cg) => (rg === cg ? 0 : countCoOccurrences(data, filtered, rg, cg))))
@@ -464,7 +464,7 @@ function codeOrdersHtml(config: any, _options: AnalysisItemOptions): string {
   const codeGuids: string[] = config?.codeGuids ?? []
   if (codeGuids.length === 0) return `<div class="empty">${escHtml(t('reports.noCodes'))}</div>`
   const { data, docFilter } = scopedData('code-orders', config)
-  const filtered = resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids ?? [], docFilter.typeInclude ?? [], docFilter.typeExclude ?? [])
+  const filtered = filteredSourcesOf(data, docFilter)
   const sourceMap = new Map<string, string>(data.sources.map((s) => [s.guid, s.name]))
   const codeMap = new Map(data.codes.map((c) => [c.guid, { name: c.name, color: c.color }]))
   const { columns: rows } = buildSurveyAwareColumns(config?.groupBy ?? [], data, filtered, sourceMap, { includeSubtotals: false })
@@ -606,7 +606,7 @@ type WordSeries = AnalysisColumn & { codeGuid?: string; queryGuid?: string; colo
 
 function wordFrequenciesHtml(config: any, options: AnalysisItemOptions): string {
   const { data, docFilter } = scopedData('word-frequencies', config)
-  const filtered = resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids ?? [], docFilter.typeInclude ?? [], docFilter.typeExclude ?? [])
+  const filtered = filteredSourcesOf(data, docFilter)
   const sourceMap = new Map<string, string>(data.sources.map((s) => [s.guid, s.name]))
   const filter = wordFilter(config?.includeWords ?? '', config?.excludeWords ?? '')
   const wordCount: number = config?.wordCount ?? 30
@@ -680,7 +680,7 @@ const COMBINATION_ROWS = 30
 function wordCombinationsHtml(config: any): string {
   const cfg = { ...defaultCombinationsConfig(), ...config }
   const { data, docFilter } = scopedData('word-combinations', config)
-  const filtered = resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids ?? [], docFilter.typeInclude ?? [], docFilter.typeExclude ?? [])
+  const filtered = filteredSourcesOf(data, docFilter)
   const known = new Set(data.codes.map((c) => c.guid))
   const codeSets = new Map<string, Set<string>>()
   for (const g of cfg.codeGuids as string[]) if (known.has(g)) codeSets.set(g, codeSet(data.codes, g, cfg.includeSubcodes))

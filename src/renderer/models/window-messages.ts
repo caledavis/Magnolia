@@ -14,6 +14,7 @@ import type { ResultsView } from '../components/Analysis/intercoder/intercoder-t
 import type { Measure } from '../components/Analysis/intercoder/intercoder-model'
 import type { FrameworkMatrixConfig } from '../components/Analysis/framework-matrix-model'
 import type { WordQueryCodes } from '../components/Analysis/word-counts'
+import type { CellScope } from '../utils/narrow-query'
 import type { AnalysisToolType, Code, LogbookEntry, Memo, Query, SavedAnalysis, SurveyCellScopeArgs } from './types'
 
 /** A conversation's actions, each with the values it carries. (Keyed by
@@ -66,20 +67,21 @@ export interface MemosWindowMessages {
   delete: [memoGuids: string[]]
 }
 
-/** The analysis tools (in tabs or popped out) → the main window. Each
- *  `scope` is the survey cell a clicked number stands for. */
+/** The analysis tools (in tabs or popped out) → the main window. A
+ *  clicked number's query runs in `filteredGuids` (the tool's filtered
+ *  documents; none for all) under `scope`: the tool's filter and the
+ *  clicked column (see CellScope). */
 export interface AnalysisMessages {
   'save-analysis': [analysis: Pick<SavedAnalysis, 'guid' | 'toolType' | 'name' | 'config'>]
-  'run-cooccurrence-query': [codeGuidA: string, codeGuidB: string, filteredGuids?: string[], scope?: SurveyCellScopeArgs]
-  'run-code-in-doc-query': [codeGuid: string, sourceGuids: string[], filteredGuids?: string[], scope?: SurveyCellScopeArgs]
-  'run-codes-in-doc-query': [codeGuids: string[], sourceGuids: string[], scope?: SurveyCellScopeArgs]
+  'run-cooccurrence-query': [codeGuidA: string, codeGuidB: string, filteredGuids?: string[], scope?: CellScope]
+  'run-code-in-doc-query': [codeGuid: string, sourceGuids: string[], filteredGuids?: string[], scope?: CellScope]
+  'run-codes-in-doc-query': [codeGuids: string[], sourceGuids: string[], scope?: CellScope]
   /** Codes in Documents → "Open as Framework Matrix". */
   'open-framework-matrix': [config: FrameworkMatrixConfig]
-  /** A code within a tag's documents (`tagGuid`), or outside some tags' (`excludeTagGuids`). */
-  'run-code-in-tag-query': [codeGuid: string, tagGuid: string | null, excludeTagGuids?: string[], scope?: SurveyCellScopeArgs]
+  /** Results in Documents: a saved query, narrowed to a cell (see narrowQueryToCell). */
   'run-query-in-docs': [query: Query, sourceGuids: string[], scope?: SurveyCellScopeArgs]
-  'run-word-query': [word: string, filteredGuids?: string[], scope?: SurveyCellScopeArgs, codes?: WordQueryCodes, queryGuids?: string[]]
-  'run-sentence-query': [word1: string, word2: string, filteredGuids?: string[], scope?: SurveyCellScopeArgs, codes?: WordQueryCodes, queryGuids?: string[]]
+  'run-word-query': [word: string, filteredGuids?: string[], scope?: CellScope, codes?: WordQueryCodes, queryGuids?: string[]]
+  'run-sentence-query': [word1: string, word2: string, filteredGuids?: string[], scope?: CellScope, codes?: WordQueryCodes, queryGuids?: string[]]
   'open-document': [sourceGuid: string]
   'view-document-at': [sourceGuid: string, startPosition: number, endPosition: number]
   'run-code-query': [codeGuid: string]

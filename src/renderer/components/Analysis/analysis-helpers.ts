@@ -1,5 +1,7 @@
 import type { PlainTextSelection, AnalysisInitData, SurveyEntityRef } from '../../models/types'
 import { resolveTagCellScope } from '../../utils/survey-cell-scope'
+import { resolveDocGraph, type DocumentFilterState } from '../../utils/document-graph'
+import type { CellScope } from '../../utils/narrow-query'
 import { formatPercent } from '../../i18n'
 import { deriveVideoTimeRange, transcriptTimeRange } from '../DocumentViewer/video-time-utils'
 import { selectionsOverlap, placeInTime } from '../../utils/query-engine'
@@ -324,6 +326,35 @@ export function toCsv(rows: string[][]): string {
     .join('\n')
 }
 
+/**
+ * The documents a tool's filter selects. A filter drawn as a graph is
+ * resolved from the graph, live (as the query engine does), so documents
+ * added since count; its tags are only for narrowing survey cells (see
+ * applySurveyCellScope). Its documents and tags mustn't be added up: for
+ * "tag A AND tag B" that would take every document with either. A filter
+ * saved before graphs (or a graph selecting nothing) adds its parts up as
+ * it always has (resolveFilteredSources).
+ */
+export function filteredSourcesOf(
+  data: AnalysisInitData,
+  docFilter: Partial<Pick<DocumentFilterState, 'sourceGuids' | 'tagGuids' | 'tagExcludeGuids' | 'typeInclude' | 'typeExclude' | 'graph'>>
+): string[] {
+  const graph = docFilter.graph
+  if (graph?.nodes?.length) {
+    const resolved = resolveDocGraph(graph.nodes, graph.conns, {
+      sources: data.sources,
+      tags: data.tags,
+      tagMembers: data.tagMembers,
+      folders: data.folders,
+      sourceFolder: data.sourceFolder ?? {},
+      respondentTagMembers: data.respondentTagMembers ?? {},
+      questionTagMembers: data.questionTagMembers ?? {}
+    })
+    if (resolved.length > 0) return resolved
+  }
+  return resolveFilteredSources(data, docFilter.sourceGuids ?? [], docFilter.tagGuids ?? [], docFilter.tagExcludeGuids, docFilter.typeInclude, docFilter.typeExclude)
+}
+
 /** Resolve which source guids are active based on the doc filter (union/inclusive, then exclude) */
 export function resolveFilteredSources(
   data: AnalysisInitData,
@@ -606,4 +637,24 @@ export function resultRowTotal<R extends { sourceGuid: string; selectionGuid?: s
  *  value is the average of their percentages (one per document). */
 export function isAverageColumn(col: { sourceGuids: string[] }): boolean {
   return col.sourceGuids.length > 1
+}
+
+/** What a clicked number covers (see CellScope): the tool's own filter,
+ *  which it counts under, and the clicked column's tags or respondent. */
+export function cellScopeOf(
+  docFilter: { tagGuids?: string[]; tagExcludeGuids?: string[]; questionScope?: SurveyEntityRef[]; respondentScope?: SurveyEntityRef[] },
+  col?: { tagScopeGuids?: string[]; respondentRef?: SurveyEntityRef }
+): CellScope | undefined {
+  const filter: NonNullable<CellScope['filter']> = {}
+  if (docFilter.tagGuids?.length) filter.tagGuids = docFilter.tagGuids
+  if (docFilter.tagExcludeGuids?.length) filter.tagExcludeGuids = docFilter.tagExcludeGuids
+  if (docFilter.questionScope?.length) filter.questionScope = docFilter.questionScope
+  if (docFilter.respondentScope?.length) filter.respondentScope = docFilter.respondentScope
+  const column: NonNullable<CellScope['column']> = {}
+  if (col?.tagScopeGuids?.length) column.tagGuids = col.tagScopeGuids
+  if (col?.respondentRef) column.respondentRef = col.respondentRef
+  const scope: CellScope = {}
+  if (Object.keys(filter).length > 0) scope.filter = filter
+  if (Object.keys(column).length > 0) scope.column = column
+  return scope.filter || scope.column ? scope : undefined
 }

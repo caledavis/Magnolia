@@ -1,10 +1,10 @@
 import { useState, useMemo, useCallback } from 'react'
-import type { AnalysisInitData, SurveyCellScopeArgs } from '../../models/types'
+import type { AnalysisInitData } from '../../models/types'
 import { Icon, faSquaresIntersect } from '../Icon'
 import { type DocumentFilterState } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
-import { truncate, countCoOccurrences, toCsv, pctOfTotal, csvPctOfTotal, resolveFilteredSources, applySurveyCellScope, binarizeGrid } from './analysis-helpers'
+import { truncate, countCoOccurrences, toCsv, pctOfTotal, csvPctOfTotal, filteredSourcesOf, applySurveyCellScope, binarizeGrid, cellScopeOf } from './analysis-helpers'
 import type { QuestionScopeRef } from './survey-grouping'
 import { generateGuid } from '../../utils/guid'
 import { useLiveAnalysisData } from './use-live-analysis-data'
@@ -18,6 +18,7 @@ import { visualBoxColour } from '../../utils/code-colours'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
+import type { CellScope } from '../../utils/narrow-query'
 
 interface Props {
   data: AnalysisInitData
@@ -117,17 +118,13 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
   }, [baseline])
 
   const filteredSourceGuids = useMemo(
-    () => resolveFilteredSources(data, docFilter.sourceGuids, docFilter.tagGuids, docFilter.tagExcludeGuids, docFilter.typeInclude, docFilter.typeExclude),
+    () => filteredSourcesOf(data, docFilter),
     [data, docFilter]
   )
 
   // Survey-cell scope carried into a generated drill-down query so it
   // re-runs against the same subset the table reflects.
-  const surveyScope = useCallback((): SurveyCellScopeArgs | undefined => {
-    const { questionScope, respondentScope } = docFilter
-    if (!questionScope?.length && !respondentScope?.length) return undefined
-    return { questionScope, respondentScope }
-  }, [docFilter])
+  const surveyScope = useCallback((): CellScope | undefined => cellScopeOf(docFilter), [docFilter])
 
   const codeMap = useMemo(() => {
     const m = new Map<string, { name: string; color?: string; parentGuid?: string }>()

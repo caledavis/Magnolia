@@ -52,6 +52,7 @@ export function DocumentsSection({ data, filter, onChange, filteredSourceGuids }
       {open && (
         <div style={{ marginTop: 10, minHeight: 160 }}>
           <DocumentSelector
+            flatFilter="union"
             sources={data.sources}
             tags={data.tags}
             categories={data.categories}

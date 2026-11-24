@@ -1,11 +1,11 @@
 import { Trans } from 'react-i18next'
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
+import type { AnalysisInitData, SurveyEntityRef } from '../../models/types'
 import { Icon, faChartBar, faCircleInfo } from '../Icon'
 import { type DocumentFilterState } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
-import { truncate, codeFrequencyInSource, sizeEstimated, isAverageColumn, toCsv, resolveFilteredSources, applySurveyCellScope } from './analysis-helpers'
+import { truncate, codeFrequencyInSource, sizeEstimated, isAverageColumn, toCsv, filteredSourcesOf, applySurveyCellScope, cellScopeOf } from './analysis-helpers'
 import { usePageSizes } from '../../utils/region-sizes'
 import { useDocumentStore } from '../../stores/document-store'
 import { generateGuid } from '../../utils/guid'
@@ -32,6 +32,7 @@ import { useThemeSvgColors, SVG_FONT_FAMILY } from '../../utils/use-theme-svg-co
 import { useTranslation } from 'react-i18next'
 import { formatPercent, t as tr } from '../../i18n'
 import { draggedCodeGuids } from '../../utils/code-drag'
+import type { CellScope } from '../../utils/narrow-query'
 
 interface Props {
   data: AnalysisInitData
@@ -132,7 +133,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
   }, [baseline])
 
   const filteredSourceGuids = useMemo(
-    () => resolveFilteredSources(data, docFilter.sourceGuids, docFilter.tagGuids, docFilter.tagExcludeGuids, docFilter.typeInclude, docFilter.typeExclude),
+    () => filteredSourcesOf(data, docFilter),
     [data, docFilter]
   )
 
@@ -140,14 +141,10 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
   // against the same subset: the survey questions and respondents
   // chosen in From these documents plus, for a
   // respondent / tagged column, that column's narrowing.
-  const surveyScope = useCallback((col?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): SurveyCellScopeArgs | undefined => {
-    const s: SurveyCellScopeArgs = {}
-    if (docFilter.questionScope?.length) s.questionScope = docFilter.questionScope
-    if (docFilter.respondentScope?.length) s.respondentScope = docFilter.respondentScope
-    if (col?.respondentRef) s.respondentScope = [col.respondentRef]
-    if (col?.tagScopeGuids?.length) s.tagGuids = col.tagScopeGuids
-    return s.questionScope || s.respondentScope || s.tagGuids ? s : undefined
-  }, [docFilter.questionScope, docFilter.respondentScope])
+  const surveyScope = useCallback(
+    (col?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): CellScope | undefined => cellScopeOf(docFilter, col),
+    [docFilter]
+  )
 
   // Auto-add a Group-by chip for each survey and notebook in scope.
   const dismissAutoGroup = useAutoGroupBy(filteredSourceGuids, data, savedConfig, setGroupBy)
@@ -723,18 +720,8 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                             rx={1}
                             style={{ cursor: val > 0 ? 'pointer' : undefined }}
                             onClick={() => {
-                              if (val > 0) {
-                                if (groupBy.length > 0) {
-                                  if (col.id === '__other') {
-                                    const tagGuids = groupBy.flatMap((g) => g.kind === 'tag' ? [g.tagGuid] : [])
-                                    window.api.sendAnalysisAction('run-code-in-tag-query', codeGuid, null, tagGuids, surveyScope())
-                                  } else {
-                                    window.api.sendAnalysisAction('run-code-in-tag-query', codeGuid, col.id, undefined, surveyScope())
-                                  }
-                                } else {
-                                  window.api.sendAnalysisAction('run-code-in-doc-query', codeGuid, col.sourceGuids, filteredSourceGuids, surveyScope(col))
-                                }
-                              }
+                              // As in the table: the code in the column's cells.
+                              if (val > 0) window.api.sendAnalysisAction('run-code-in-doc-query', codeGuid, col.sourceGuids, filteredSourceGuids, surveyScope(col))
                             }}
                           >
                             <title>{t('codeFreq.barTitle', { code: codeMap.get(codeGuid)?.name, value: formatPercent(val), column: columnLabel(col) })}</title>

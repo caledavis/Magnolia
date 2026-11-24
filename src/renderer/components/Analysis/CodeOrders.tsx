@@ -1,10 +1,10 @@
 import { useState, useMemo, useCallback, useRef } from 'react'
-import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
+import type { AnalysisInitData, SurveyEntityRef } from '../../models/types'
 import { Icon, faBarsStaggered } from '../Icon'
 import { type DocumentFilterState } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
-import { truncate, resolveFilteredSources, applySurveyCellScope } from './analysis-helpers'
+import { truncate, filteredSourcesOf, applySurveyCellScope, cellScopeOf } from './analysis-helpers'
 import { generateGuid } from '../../utils/guid'
 import {
   type GroupByEntry,
@@ -29,6 +29,7 @@ import { useThemeSvgColors, SVG_FONT_FAMILY } from '../../utils/use-theme-svg-co
 import { useTranslation } from 'react-i18next'
 import { formatPercent } from '../../i18n'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
+import type { CellScope } from '../../utils/narrow-query'
 
 interface Props {
   data: AnalysisInitData
@@ -199,7 +200,7 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
   }, [baseline])
 
   const filteredSourceGuids = useMemo(
-    () => resolveFilteredSources(data, docFilter.sourceGuids, docFilter.tagGuids, docFilter.tagExcludeGuids, docFilter.typeInclude, docFilter.typeExclude),
+    () => filteredSourcesOf(data, docFilter),
     [data, docFilter]
   )
 
@@ -207,14 +208,10 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
   // against the same subset: the survey questions and respondents
   // chosen in From these documents plus, for a
   // respondent / tagged row, that row's narrowing.
-  const surveyScope = useCallback((row?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): SurveyCellScopeArgs | undefined => {
-    const s: SurveyCellScopeArgs = {}
-    if (docFilter.questionScope?.length) s.questionScope = docFilter.questionScope
-    if (docFilter.respondentScope?.length) s.respondentScope = docFilter.respondentScope
-    if (row?.respondentRef) s.respondentScope = [row.respondentRef]
-    if (row?.tagScopeGuids?.length) s.tagGuids = row.tagScopeGuids
-    return s.questionScope || s.respondentScope || s.tagGuids ? s : undefined
-  }, [docFilter.questionScope, docFilter.respondentScope])
+  const surveyScope = useCallback(
+    (col?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): CellScope | undefined => cellScopeOf(docFilter, col),
+    [docFilter]
+  )
 
   // Auto-add a Group-by chip for each survey and notebook in scope.
   const dismissAutoGroup = useAutoGroupBy(filteredSourceGuids, data, savedConfig, setGroupBy)

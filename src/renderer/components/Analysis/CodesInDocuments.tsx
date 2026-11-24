@@ -1,10 +1,10 @@
 import { Fragment, useState, useMemo, useCallback } from 'react'
-import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
+import type { AnalysisInitData, SurveyEntityRef } from '../../models/types'
 import { Icon, faFileCodeCorner } from '../Icon'
 import { type DocumentFilterState } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
-import { truncate, countCodeInSource, toCsv, pctOfTotal, csvPctOfTotal, resolveFilteredSources, applySurveyCellScope, binarizeGrid, columnScopedData, codeRowTotal } from './analysis-helpers'
+import { truncate, countCodeInSource, toCsv, pctOfTotal, csvPctOfTotal, filteredSourcesOf, applySurveyCellScope, binarizeGrid, columnScopedData, codeRowTotal, cellScopeOf } from './analysis-helpers'
 import { generateGuid } from '../../utils/guid'
 import {
   type GroupByEntry,
@@ -33,6 +33,7 @@ import { visualBoxColour } from '../../utils/code-colours'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
+import type { CellScope } from '../../utils/narrow-query'
 
 interface Props {
   data: AnalysisInitData
@@ -138,7 +139,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
   }, [baseline])
 
   const filteredSourceGuids = useMemo(
-    () => resolveFilteredSources(data, docFilter.sourceGuids, docFilter.tagGuids, docFilter.tagExcludeGuids, docFilter.typeInclude, docFilter.typeExclude),
+    () => filteredSourcesOf(data, docFilter),
     [data, docFilter]
   )
 
@@ -278,24 +279,18 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
   // for a respondent or tagged column,
   // that column's respondent / tag narrowing. Returns undefined when
   // there's nothing to scope (the common non-survey case).
-  const surveyScope = useCallback((col?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): SurveyCellScopeArgs | undefined => {
-    const s: SurveyCellScopeArgs = {}
-    if (docFilter.questionScope?.length) s.questionScope = docFilter.questionScope
-    if (docFilter.respondentScope?.length) s.respondentScope = docFilter.respondentScope
-    if (col?.respondentRef) s.respondentScope = [col.respondentRef]
-    if (col?.tagScopeGuids?.length) s.tagGuids = col.tagScopeGuids
-    return s.questionScope || s.respondentScope || s.tagGuids ? s : undefined
-  }, [docFilter.questionScope, docFilter.respondentScope])
+  const surveyScope = useCallback(
+    (col?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): CellScope | undefined => cellScopeOf(docFilter, col),
+    [docFilter]
+  )
 
   const handleDoubleClick = useCallback((rowIdx: number, colIdx: number) => {
     const val = grid[rowIdx][colIdx]
     if (val === 0) return
     const col = columns[colIdx]
-    // Always run the query against the column's actual sourceGuids
-    // (works for tags, category sub-tags, category subtotals, folders,
-    // folder docs, folder subtotals, and the catch-all "Other"). The
-    // legacy run-code-in-tag-query path was specific to the old flat-
-    // tag world and didn't generalise; the doc-scoped query does.
+    // Run against the column's own documents (works for tags, category
+    // sub-tags, subtotals, folders and the catch-all "Other"), under the
+    // tool's filter and the column's survey cells.
     window.api.sendAnalysisAction('run-code-in-doc-query', codeGuids[rowIdx], col.sourceGuids, filteredSourceGuids, surveyScope(col))
   }, [grid, codeGuids, columns, filteredSourceGuids, surveyScope])
 

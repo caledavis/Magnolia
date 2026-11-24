@@ -1,10 +1,10 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import type { AnalysisInitData, SurveyCellScopeArgs, SurveyEntityRef } from '../../models/types'
+import type { AnalysisInitData, SurveyEntityRef } from '../../models/types'
 import { Icon, faFont } from '../Icon'
 import { type DocumentFilterState } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
-import { toCsv, resolveFilteredSources, applySurveyCellScope, columnData } from './analysis-helpers'
+import { toCsv, filteredSourcesOf, applySurveyCellScope, columnData, cellScopeOf } from './analysis-helpers'
 import { stopWordsText } from './stop-words'
 import { StopWordsPicker } from './StopWordsPicker'
 import { countWords, sourceTexts, codedPassageTexts, queryPassageTexts, wordFilter, type WordQueryCodes } from './word-counts'
@@ -43,6 +43,7 @@ import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { SegmentedControl } from './SegmentedControl'
 import { useTranslation } from 'react-i18next'
 import { formatNumber, currentLanguage } from '../../i18n'
+import type { CellScope } from '../../utils/narrow-query'
 
 interface Props {
   data: AnalysisInitData
@@ -223,7 +224,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
   }, [baseline])
 
   const filteredSourceGuids = useMemo(
-    () => resolveFilteredSources(data, docFilter.sourceGuids, docFilter.tagGuids, docFilter.tagExcludeGuids, docFilter.typeInclude, docFilter.typeExclude),
+    () => filteredSourcesOf(data, docFilter),
     [data, docFilter]
   )
 
@@ -231,14 +232,10 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
   // questions and respondents chosen in From these documents plus, for a
   // respondent / tagged series, that series'
   // narrowing.
-  const surveyScope = useCallback((series?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): SurveyCellScopeArgs | undefined => {
-    const s: SurveyCellScopeArgs = {}
-    if (docFilter.questionScope?.length) s.questionScope = docFilter.questionScope
-    if (docFilter.respondentScope?.length) s.respondentScope = docFilter.respondentScope
-    if (series?.respondentRef) s.respondentScope = [series.respondentRef]
-    if (series?.tagScopeGuids?.length) s.tagGuids = series.tagScopeGuids
-    return s.questionScope || s.respondentScope || s.tagGuids ? s : undefined
-  }, [docFilter.questionScope, docFilter.respondentScope])
+  const surveyScope = useCallback(
+    (col?: { respondentRef?: SurveyEntityRef; tagScopeGuids?: string[] }): CellScope | undefined => cellScopeOf(docFilter, col),
+    [docFilter]
+  )
 
   // Auto-add a Group-by chip for each survey and notebook in scope.
   const dismissAutoGroup = useAutoGroupBy(filteredSourceGuids, data, savedConfig, setGroupBy)

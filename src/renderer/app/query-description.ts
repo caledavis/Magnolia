@@ -1,29 +1,11 @@
 /**
  * Plain-language descriptions of queries, for result titles and reports,
- * and the scope helpers they share.
+ * and the saved-query helper they share.
  */
 import { useQueryStore } from '../stores/query-store'
-import type { Query, CodeCondition, Code, TextSource, QDASet, SurveyCellScopeArgs } from '../models/types'
+import type { Query, CodeCondition, Code, TextSource, QDASet } from '../models/types'
 import { buildSurveyEntityLabels } from '../utils/survey/survey-labels'
 import { t } from '../i18n'
-
-/** Fold the survey-cell scope carried by an analysis cell-click into the
- *  documentFilter of the Query being generated, so it re-runs against the
- *  same subset the cell represented. Tag scope unions with any existing
- *  tagGuids; question/respondent scope is set directly. */
-export function applySurveyScopeToFilter(
-  df: Query['documentFilter'],
-  scope?: SurveyCellScopeArgs
-): Query['documentFilter'] {
-  if (!scope) return df
-  const next: Query['documentFilter'] = { ...df }
-  if (scope.tagGuids?.length) {
-    next.tagGuids = Array.from(new Set([...(df.tagGuids ?? []), ...scope.tagGuids]))
-  }
-  if (scope.questionScope?.length) next.questionScope = scope.questionScope
-  if (scope.respondentScope?.length) next.respondentScope = scope.respondentScope
-  return next
-}
 
 export function describeCondition(cond: CodeCondition, findCode: (guid: string) => Code | undefined, depth?: number): string {
   const d = depth ?? 0

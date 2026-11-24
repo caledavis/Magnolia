@@ -143,16 +143,22 @@ function advanceUidPast(nodes: DNode[], conns: DConn[]): void {
 }
 
 /**
- * Draw a graph for a filter saved without one (a query made by clicking a
- * number in an analysis, or saved before graphs). The query engine applies
- * a filter's parts together: its documents, AND any of its tags, AND any
- * of its folders, AND not its excluded tags. So each part is drawn as a
- * group (several tags or folders joined by union, exclusions subtracted
- * from all documents) and the groups are joined by intersect.
+ * Draw a graph for a filter saved without one, so it selects what it did.
+ * What a flat filter means depends on where it was saved:
+ * - 'intersect', a query's (one made by clicking a number in an analysis,
+ *   or saved before graphs): the query engine applies its parts together,
+ *   its documents AND any of its tags AND any of its folders AND not its
+ *   excluded tags. Each part is a group (several tags or folders joined by
+ *   union; all documents less the excluded tags), and the groups are
+ *   intersected.
+ * - 'union', an analysis tool's (saved before graphs): its documents,
+ *   tags and folders add up (see resolveFilteredSources), less the
+ *   excluded tags.
  */
 export function graphFromFilter(
   filter: DocumentFilterState,
-  tags: DocumentSelectorTag[]
+  tags: DocumentSelectorTag[],
+  combine: 'intersect' | 'union' = 'intersect'
 ): { nodes: DNode[]; conns: DConn[] } | null {
   const sourceGuids = filter.sourceGuids ?? []
   const tagGuids = filter.tagGuids ?? []
@@ -187,18 +193,32 @@ export function graphFromFilter(
   /** One node standing for several: the node itself, or their union. */
   const anyOf = (leaves: DNode[]): DNode => (leaves.length === 1 ? leaves[0] : op(leaves, 'union', COL_GROUP))
 
-  const groups: DNode[] = []
-  if (sourceGuids.length > 0) groups.push(leaf({ kind: 'docs', docGuids: [...sourceGuids] }))
-  if (tagGuids.length > 0) groups.push(anyOf(tagGuids.map(tagLeaf)))
-  if (folderGuids.length > 0) groups.push(anyOf(folderGuids.map((folderGuid) => leaf({ kind: 'folder', folderGuid }))))
-  if (excludeGuids.length > 0) {
-    const all = leaf({ kind: 'allDocs' })
-    const excluded = excludeGuids.map(tagLeaf)
-    const x = excluded.length > 1 ? COL_SUBTRACT : COL_GROUP
-    groups.push(op([all, anyOf(excluded)], 'subtract', x))
+  let last: DNode
+  if (combine === 'intersect') {
+    const groups: DNode[] = []
+    if (sourceGuids.length > 0) groups.push(leaf({ kind: 'docs', docGuids: [...sourceGuids] }))
+    if (tagGuids.length > 0) groups.push(anyOf(tagGuids.map(tagLeaf)))
+    if (folderGuids.length > 0) groups.push(anyOf(folderGuids.map((folderGuid) => leaf({ kind: 'folder', folderGuid }))))
+    if (excludeGuids.length > 0) {
+      const all = leaf({ kind: 'allDocs' })
+      const excluded = excludeGuids.map(tagLeaf)
+      groups.push(op([all, anyOf(excluded)], 'subtract', excluded.length > 1 ? COL_SUBTRACT : COL_GROUP))
+    }
+    last = groups.length === 1 ? groups[0] : op(groups, 'intersect', COL_COMBINE)
+  } else {
+    const included: DNode[] = []
+    if (sourceGuids.length > 0) included.push(leaf({ kind: 'docs', docGuids: [...sourceGuids] }))
+    included.push(...tagGuids.map(tagLeaf))
+    included.push(...folderGuids.map((folderGuid) => leaf({ kind: 'folder', folderGuid })))
+    if (excludeGuids.length === 0) {
+      last = anyOf(included)
+    } else {
+      const from = included.length > 0 ? anyOf(included) : leaf({ kind: 'allDocs' })
+      const excluded = excludeGuids.map(tagLeaf)
+      const minus = excluded.length === 1 ? excluded[0] : op(excluded, 'union', COL_GROUP)
+      last = op([from, minus], 'subtract', included.length > 1 || excluded.length > 1 ? COL_SUBTRACT : COL_GROUP)
+    }
   }
-
-  const last = groups.length === 1 ? groups[0] : op(groups, 'intersect', COL_COMBINE)
   const resultX = Math.max(COL_SUBTRACT, last.x + nodeW(last) + 120)
   nodes.push({ id: 'result', kind: 'result', x: resultX, y: last.y })
   conns.push({ id: uid(), from: last.id, to: 'result', toPort: 0 })
@@ -401,6 +421,9 @@ function scopeListItems(items: string[], max = 50): string[] {
 }
 
 interface Props {
+  /** What a filter saved without a graph means (see graphFromFilter):
+   *  a query's parts apply together; an analysis tool's add up. */
+  flatFilter: 'intersect' | 'union'
   sources: DocumentSelectorSource[]
   tags: DocumentSelectorTag[]
   categories: DocumentSelectorCategory[]
@@ -424,7 +447,7 @@ interface Props {
 
 export function DocumentSelector({
   sources, tags, categories, folders, sourceFolder = {}, tagMembers = {},
-  respondentTagMembers = {}, questionTagMembers = {}, surveyEntityLabels = {}, filter, onChange
+  respondentTagMembers = {}, questionTagMembers = {}, surveyEntityLabels = {}, filter, onChange, flatFilter
 }: Props) {
   const { t } = useTranslation()
   const canvasRef = useRef<HTMLDivElement>(null)
@@ -448,7 +471,7 @@ export function DocumentSelector({
       return filter.graph
     }
     // Synthesize graph from flat sourceGuids/tagGuids when no graph is persisted
-    const synth = graphFromFilter(filter, tags)
+    const synth = graphFromFilter(filter, tags, flatFilter)
     if (synth) {
       advanceUidPast(synth.nodes, synth.conns)
       return synth

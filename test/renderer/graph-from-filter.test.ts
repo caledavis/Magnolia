@@ -3,6 +3,8 @@ import { describe, it, expect } from 'vitest'
 import { graphFromFilter } from '../../src/renderer/components/DocumentSelector/DocumentSelector'
 import { emptyDocumentFilter, resolveDocGraph, type DocGraphData } from '../../src/renderer/utils/document-graph'
 import { executeQuery } from '../../src/renderer/utils/query-engine'
+import { resolveFilteredSources } from '../../src/renderer/components/Analysis/analysis-helpers'
+import type { AnalysisInitData } from '../../src/renderer/models/types'
 import type { Code, QDASet, TextSource } from '../../src/renderer/models/types'
 
 // A filter saved without a graph (e.g. a query made by clicking a number in
@@ -50,6 +52,23 @@ describe('graphFromFilter', () => {
       const graph = graphFromFilter({ ...emptyDocumentFilter(), ...f }, graphData.tags)!
       const drawn = new Set(resolveDocGraph(graph.nodes, graph.conns, graphData))
       expect([...drawn].sort()).toEqual([...engine].sort())
+    })
+  }
+
+  // An analysis tool's flat filter adds its parts up (resolveFilteredSources).
+  const toolFilters = {
+    'documents and a tag': { sourceGuids: ['d4'], tagGuids: ['A'] },
+    'two tags less one': { tagGuids: ['A', 'B'], tagExcludeGuids: ['B'] },
+    'documents less a tag': { sourceGuids: ['d1', 'd2', 'd4'], tagExcludeGuids: ['A'] },
+    'only excluded tags': { tagExcludeGuids: ['A', 'B'] },
+    'one tag': { tagGuids: ['B'] }
+  }
+  const analysisData = { sources: graphData.sources, tagMembers: graphData.tagMembers } as unknown as AnalysisInitData
+  for (const [name, f] of Object.entries(toolFilters)) {
+    it(`draws a tool’s filter as the tool reads it: ${name}`, () => {
+      const tool = resolveFilteredSources(analysisData, f.sourceGuids ?? [], f.tagGuids ?? [], f.tagExcludeGuids)
+      const graph = graphFromFilter({ ...emptyDocumentFilter(), ...f }, graphData.tags, 'union')!
+      expect(resolveDocGraph(graph.nodes, graph.conns, graphData).sort()).toEqual(tool.sort())
     })
   }
 
