@@ -25,6 +25,9 @@ check; `E2E_TIMEOUT` sets a spec's time limit in seconds (600).
   `foo.after.js`, run next on the same project after it's reopened, and a
   `foo.prepare.mjs`, which changes the project file before the app opens it
   (for a file Magnolia wouldn't write itself; see `newer-format.prepare.mjs`).
+- `specs/accessibility.js` runs axe-core (a dev dependency, never shipped) over
+  the main views; `__E2E_ROOT__` in a spec is the repository's folder, for
+  `/@fs/` URLs to files outside the app.
 - `fixture/sample.qdpx` — the sample project: four interviews, a survey with
   closed and open-ended questions, codes, tags on documents, respondents and a
   question, a folder, saved queries, a memo. All made up. Rebuild it with

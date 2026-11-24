@@ -128,7 +128,10 @@ export function RibbonTabs({ ribbon }: { ribbon: RibbonState }) {
     strip?.querySelectorAll<HTMLButtonElement>('.ribbon-tab')[next]?.focus()
   }
   return (
-    <div className={`ribbon-tabs${collapsed && !peek ? ' ribbon-collapsed' : ''}`} role="tablist" aria-label={t('toolbar.label')}>
+    <div className={`ribbon-tabs${collapsed && !peek ? ' ribbon-collapsed' : ''}`}>
+      {/* The tabs alone are the tab list (the show/hide button isn't a
+          tab); it takes no box of its own, so the layout is the strip's. */}
+      <div role="tablist" aria-label={t('toolbar.label')} style={{ display: 'contents' }}>
       {tabs.map((tab, index) => (
         <button
           key={tab.id}
@@ -144,6 +147,7 @@ export function RibbonTabs({ ribbon }: { ribbon: RibbonState }) {
           {tab.label}
         </button>
       ))}
+      </div>
       <button
         type="button"
         className="ribbon-collapse"

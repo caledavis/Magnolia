@@ -109,7 +109,8 @@ function qdpxTool(...args) {
 }
 
 const harness = readFileSync(join(HERE, 'harness.js'), 'utf8')
-const withHarness = (spec) => `${spec}\n${harness}`
+// `__E2E_ROOT__` in a spec is the repository's folder (for /@fs/ URLs).
+const withHarness = (spec) => `${spec.replaceAll('__E2E_ROOT__', ROOT)}\n${harness}`
 
 /** Print a script's report; returns whether it passed. */
 function report(name, lines) {
