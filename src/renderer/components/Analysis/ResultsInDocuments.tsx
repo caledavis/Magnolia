@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
-import type { AnalysisInitData, Query, QueryResult, SurveyEntityRef, SurveyCellScopeArgs, CodeCondition } from '../../models/types'
+import type { AnalysisInitData, Query, QueryResult, SurveyEntityRef, SurveyCellScopeArgs } from '../../models/types'
 import { Icon, faFileSearchCorner, faXmark } from '../Icon'
 import { runQueryLive } from '../../stores/query-store'
 import { truncate, toCsv, pctOfTotal, csvPctOfTotal, binarizeGrid, resultsInColumn, resultRowTotal } from './analysis-helpers'
@@ -25,6 +25,7 @@ import { useToolDirtyState } from '../../hooks/use-tool-dirty-state'
 import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
+import { cellOfColumns } from '../../utils/narrow-query'
 
 /** Each "Group by" entry is one of:
  *   - a single tag → one row in the grid;
@@ -326,39 +327,48 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     window.api.sendAnalysisAction('run-query-in-docs', sq.query, col.sourceGuids, surveyScope(col))
   }, [grid, queryGuids, queryMap, columns, surveyScope])
 
+  // A total's drill-down shows what it adds up: its columns' cells (not
+  // every document with results, which can hold cells no column covers).
+  const membership = useMemo(() => ({
+    sourceMembersByTag: data.tagMembers,
+    respondentMembersByTag: data.respondentTagMembers ?? {},
+    questionMembersByTag: data.questionTagMembers ?? {}
+  }), [data.tagMembers, data.respondentTagMembers, data.questionTagMembers])
+  const allColumnsCell = useMemo(
+    () => cellOfColumns(columns, surveyScope()?.questionScope, membership),
+    [columns, surveyScope, membership]
+  )
+
+  // Several queries' totals drill down to one query that finds what any
+  // of them does: possible when they share their document filter (and
+  // `within`). Otherwise there's no one query to show, and those totals
+  // aren't clickable.
+  const combinedQuery = useMemo((): Query | null => {
+    const queries = queryGuids.map((g) => queryMap.get(g)?.query).filter((q): q is Query => !!q)
+    if (queries.length === 0) return null
+    if (queries.length === 1) return queries[0]
+    const shared = (q: Query) => JSON.stringify({ documentFilter: q.documentFilter, within: q.within ?? null })
+    if (queries.some((q) => shared(q) !== shared(queries[0]))) return null
+    return { ...queries[0], codeCondition: { type: 'or', conditions: queries.map((q) => q.codeCondition) } }
+  }, [queryGuids, queryMap])
+
   const handleRowTotalClick = useCallback((rowIdx: number) => {
     if (rowTotals[rowIdx] === 0) return
-    const qGuid = queryGuids[rowIdx]
-    const sq = queryMap.get(qGuid)
+    const sq = queryMap.get(queryGuids[rowIdx])
     if (!sq?.query) return
-    // Run query across all result documents
-    window.api.sendAnalysisAction('run-query-in-docs', sq.query, resultSourceGuids, surveyScope())
-  }, [rowTotals, queryGuids, queryMap, resultSourceGuids, surveyScope])
+    window.api.sendAnalysisAction('run-query-in-docs', sq.query, allColumnsCell.sourceGuids, allColumnsCell.scope)
+  }, [rowTotals, queryGuids, queryMap, allColumnsCell])
 
   const handleColTotalClick = useCallback((colIdx: number) => {
-    if (colTotals[colIdx] === 0) return
+    if (colTotals[colIdx] === 0 || !combinedQuery) return
     const col = columns[colIdx]
-    // Run all queries scoped to this column's documents, combined as OR
-    const allQueries = queryGuids.map((g) => queryMap.get(g)?.query).filter((q): q is Query => !!q)
-    if (allQueries.length === 1) {
-      window.api.sendAnalysisAction('run-query-in-docs', allQueries[0], col.sourceGuids, surveyScope(col))
-    } else if (allQueries.length > 1) {
-      // Combine code conditions with OR
-      const combined: CodeCondition = { type: 'or', conditions: allQueries.map((q) => q.codeCondition) }
-      window.api.sendAnalysisAction('run-query-in-docs', { documentFilter: {}, codeCondition: combined }, col.sourceGuids, surveyScope(col))
-    }
-  }, [colTotals, columns, queryGuids, queryMap, surveyScope])
+    window.api.sendAnalysisAction('run-query-in-docs', combinedQuery, col.sourceGuids, surveyScope(col))
+  }, [colTotals, columns, combinedQuery, surveyScope])
 
   const handleGrandTotalClick = useCallback(() => {
-    if (grandTotal === 0) return
-    const allQueries = queryGuids.map((g) => queryMap.get(g)?.query).filter((q): q is Query => !!q)
-    if (allQueries.length === 1) {
-      window.api.sendAnalysisAction('run-query-in-docs', allQueries[0], resultSourceGuids, surveyScope())
-    } else if (allQueries.length > 1) {
-      const combined: CodeCondition = { type: 'or', conditions: allQueries.map((q) => q.codeCondition) }
-      window.api.sendAnalysisAction('run-query-in-docs', { documentFilter: {}, codeCondition: combined }, resultSourceGuids, surveyScope())
-    }
-  }, [grandTotal, queryGuids, queryMap, resultSourceGuids, surveyScope])
+    if (grandTotal === 0 || !combinedQuery) return
+    window.api.sendAnalysisAction('run-query-in-docs', combinedQuery, allColumnsCell.sourceGuids, allColumnsCell.scope)
+  }, [grandTotal, combinedQuery, allColumnsCell])
 
   // Sankey view: queries flow into document columns. Queries have no
   // colour of their own, so they walk the code colour presets. Subtotal
@@ -829,7 +839,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                           background: col.isSubtotal ? 'color-mix(in srgb, var(--text-secondary) 6%, transparent)' : undefined,
                           textAlign: 'center',
                           fontWeight: 700,
-                          cursor: showColTotals[j] > 0 ? 'pointer' : 'default',
+                          cursor: showColTotals[j] > 0 && combinedQuery ? 'pointer' : 'default',
                           color: showColTotals[j] === 0 ? 'var(--text-muted)' : undefined,
                           opacity: showColTotals[j] === 0 ? 0.4 : 1
                         }}>
@@ -870,7 +880,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                         color: rt === 0 ? 'var(--text-muted)' : undefined,
                         opacity: rt === 0 ? 0.4 : 1
                       }}>
-                        {rt}
+                        {formatNumber(rt)}
                       </td>
                     ))}
                     <td onClick={handleGrandTotalClick} style={{
@@ -879,7 +889,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                       borderInlineStart: '2px solid var(--border-color)',
                       textAlign: 'center',
                       fontWeight: 700,
-                      cursor: showGrandTotal > 0 ? 'pointer' : 'default',
+                      cursor: showGrandTotal > 0 && combinedQuery ? 'pointer' : 'default',
                       color: showGrandTotal === 0 ? 'var(--text-muted)' : undefined,
                       opacity: showGrandTotal === 0 ? 0.4 : 1
                     }}>

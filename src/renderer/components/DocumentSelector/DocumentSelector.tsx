@@ -143,179 +143,65 @@ function advanceUidPast(nodes: DNode[], conns: DConn[]): void {
 }
 
 /**
- * Synthesize a graph from flat filter arrays (sourceGuids / tagGuids)
- * when no persisted graph layout exists.
+ * Draw a graph for a filter saved without one (a query made by clicking a
+ * number in an analysis, or saved before graphs). The query engine applies
+ * a filter's parts together: its documents, AND any of its tags, AND any
+ * of its folders, AND not its excluded tags. So each part is drawn as a
+ * group (several tags or folders joined by union, exclusions subtracted
+ * from all documents) and the groups are joined by intersect.
  */
-function graphFromFilter(
+export function graphFromFilter(
   filter: DocumentFilterState,
   tags: DocumentSelectorTag[]
 ): { nodes: DNode[]; conns: DConn[] } | null {
-  const hasSourceGuids = filter.sourceGuids && filter.sourceGuids.length > 0
-  const hasTagGuids = filter.tagGuids && filter.tagGuids.length > 0
-  const hasTagExclude = filter.tagExcludeGuids && filter.tagExcludeGuids.length > 0
-  if (!hasSourceGuids && !hasTagGuids && !hasTagExclude) return null
+  const sourceGuids = filter.sourceGuids ?? []
+  const tagGuids = filter.tagGuids ?? []
+  const excludeGuids = filter.tagExcludeGuids ?? []
+  const folderGuids = filter.folderGuids ?? []
+  if (sourceGuids.length === 0 && tagGuids.length === 0 && excludeGuids.length === 0 && folderGuids.length === 0) return null
 
   const nodes: DNode[] = []
   const conns: DConn[] = []
+  const COL_SOURCES = 30   // leaves: documents, tags, folders, all documents
+  const COL_GROUP = 240    // union of several tags or folders; the subtraction
+  const COL_SUBTRACT = 420 // the subtraction, after a union of excluded tags
+  const COL_COMBINE = 580  // intersect of the groups
+  const ROW_GAP = 90
+  let row = 0
+  const leaf = (node: Omit<DNode, 'id' | 'x' | 'y'>): DNode => {
+    const n: DNode = { ...node, id: uid(), x: COL_SOURCES, y: 30 + row++ * ROW_GAP } as DNode
+    nodes.push(n)
+    return n
+  }
+  const tagLeaf = (tagGuid: string): DNode => {
+    const tag = tags.find((t) => t.guid === tagGuid)
+    return leaf({ kind: 'tag', tagCategoryGuid: tag?.categoryGuid, tagGuid, tagName: tag?.value || tag?.name || t('common.tag') })
+  }
+  const op = (inputs: DNode[], setOp: SetOp, x: number): DNode => {
+    const ys = inputs.map((n) => n.y)
+    const n: DNode = { id: uid(), kind: 'setOp', x, y: (Math.min(...ys) + Math.max(...ys)) / 2, setOps: Array(inputs.length - 1).fill(setOp) }
+    nodes.push(n)
+    inputs.forEach((input, i) => conns.push({ id: uid(), from: input.id, to: n.id, toPort: i }))
+    return n
+  }
+  /** One node standing for several: the node itself, or their union. */
+  const anyOf = (leaves: DNode[]): DNode => (leaves.length === 1 ? leaves[0] : op(leaves, 'union', COL_GROUP))
 
-  // Layout columns (x positions) with generous horizontal gaps
-  const COL_SOURCES = 30           // leftmost: source leaves (docs, tags, allDocs)
-  const COL_EXCLUDE_OP = 240       // union op for multiple excluded tags
-  const COL_SUBTRACT = 420         // subtract op (allDocs − excluded tags)
-  const COL_COMBINE = 560          // union op when mixing include + exclude groups
-  const COL_RESULT = 700           // result node
-  const ROW_GAP = 90               // vertical gap between rows
-
-  const sourceNodes: DNode[] = []  // nodes that feed into the final result
-  let nextRow = 0                  // running row counter for vertical layout
-
-  // Create a docs node for explicit source guids
-  if (hasSourceGuids) {
-    const docsId = uid()
-    const docsNode: DNode = {
-      id: docsId,
-      kind: 'docs',
-      x: COL_SOURCES,
-      y: 30 + nextRow * ROW_GAP,
-      docGuids: [...filter.sourceGuids]
-    }
-    nodes.push(docsNode)
-    sourceNodes.push(docsNode)
-    nextRow++
+  const groups: DNode[] = []
+  if (sourceGuids.length > 0) groups.push(leaf({ kind: 'docs', docGuids: [...sourceGuids] }))
+  if (tagGuids.length > 0) groups.push(anyOf(tagGuids.map(tagLeaf)))
+  if (folderGuids.length > 0) groups.push(anyOf(folderGuids.map((folderGuid) => leaf({ kind: 'folder', folderGuid }))))
+  if (excludeGuids.length > 0) {
+    const all = leaf({ kind: 'allDocs' })
+    const excluded = excludeGuids.map(tagLeaf)
+    const x = excluded.length > 1 ? COL_SUBTRACT : COL_GROUP
+    groups.push(op([all, anyOf(excluded)], 'subtract', x))
   }
 
-  // Create a tag node for each included tag guid
-  if (hasTagGuids) {
-    for (let i = 0; i < filter.tagGuids.length; i++) {
-      const tagGuid = filter.tagGuids[i]
-      const tag = tags.find((t) => t.guid === tagGuid)
-      const tagId = uid()
-      const tagNode: DNode = {
-        id: tagId,
-        kind: 'tag',
-        x: COL_SOURCES,
-        y: 30 + nextRow * ROW_GAP,
-        tagCategoryGuid: tag?.categoryGuid,
-        tagGuid,
-        tagName: tag?.value || tag?.name || t('common.tag')
-      }
-      nodes.push(tagNode)
-      sourceNodes.push(tagNode)
-      nextRow++
-    }
-  }
-
-  // Handle tag exclusions: ALL DOCS subtract excluded tags
-  if (hasTagExclude) {
-    // Create ALL DOCS node
-    const allDocsId = uid()
-    const allDocsNode: DNode = {
-      id: allDocsId,
-      kind: 'allDocs',
-      x: COL_SOURCES,
-      y: 30 + nextRow * ROW_GAP
-    }
-    nodes.push(allDocsNode)
-    nextRow++
-
-    // Create tag nodes for each excluded tag
-    const excludeTagNodes: DNode[] = []
-    for (let i = 0; i < filter.tagExcludeGuids.length; i++) {
-      const tagGuid = filter.tagExcludeGuids[i]
-      const tag = tags.find((t) => t.guid === tagGuid)
-      const tagId = uid()
-      const tagNode: DNode = {
-        id: tagId,
-        kind: 'tag',
-        x: COL_SOURCES,
-        y: 30 + nextRow * ROW_GAP,
-        tagCategoryGuid: tag?.categoryGuid,
-        tagGuid,
-        tagName: tag?.value || tag?.name || t('common.tag')
-      }
-      nodes.push(tagNode)
-      excludeTagNodes.push(tagNode)
-      nextRow++
-    }
-
-    // If multiple excluded tags, union them first
-    let excludeSourceId: string
-    if (excludeTagNodes.length === 1) {
-      excludeSourceId = excludeTagNodes[0].id
-    } else {
-      const unionId = uid()
-      // Centre the union op vertically among the excluded tag nodes
-      const firstTagY = excludeTagNodes[0].y
-      const lastTagY = excludeTagNodes[excludeTagNodes.length - 1].y
-      const unionNode: DNode = {
-        id: unionId,
-        kind: 'setOp',
-        x: COL_EXCLUDE_OP,
-        y: (firstTagY + lastTagY) / 2,
-        setOps: Array(excludeTagNodes.length - 1).fill('union' as SetOp)
-      }
-      nodes.push(unionNode)
-      for (let i = 0; i < excludeTagNodes.length; i++) {
-        conns.push({ id: uid(), from: excludeTagNodes[i].id, to: unionId, toPort: i })
-      }
-      excludeSourceId = unionId
-    }
-
-    // Subtract excluded tags from ALL DOCS — centre between allDocs and last excluded tag
-    const subtractId = uid()
-    const subtractY = (allDocsNode.y + excludeTagNodes[excludeTagNodes.length - 1].y) / 2
-    const subtractNode: DNode = {
-      id: subtractId,
-      kind: 'setOp',
-      x: excludeTagNodes.length > 1 ? COL_SUBTRACT : COL_EXCLUDE_OP,
-      y: subtractY,
-      setOps: ['subtract' as SetOp]
-    }
-    nodes.push(subtractNode)
-    conns.push({ id: uid(), from: allDocsId, to: subtractId, toPort: 0 })
-    conns.push({ id: uid(), from: excludeSourceId, to: subtractId, toPort: 1 })
-
-    sourceNodes.push(subtractNode)
-  }
-
-  // Position result node — vertically centred among all source nodes
-  const allSourceY = sourceNodes.map((n) => n.y)
-  const resultY = allSourceY.length > 0
-    ? (Math.min(...allSourceY) + Math.max(...allSourceY)) / 2
-    : 130
-
-  // Determine result x based on how deep the graph is
-  const maxSourceX = Math.max(...sourceNodes.map((n) => n.x + nodeW(n)))
-  const resultX = sourceNodes.length === 1 && !hasTagExclude
-    ? Math.max(COL_SUBTRACT, maxSourceX + 120)  // simple case: source → result
-    : COL_RESULT
-
-  const resultNode: DNode = { id: 'result', kind: 'result', x: resultX, y: resultY }
-  nodes.push(resultNode)
-
-  // Wire source nodes to result
-  if (sourceNodes.length === 1) {
-    conns.push({ id: uid(), from: sourceNodes[0].id, to: 'result', toPort: 0 })
-  } else if (sourceNodes.length > 1) {
-    // Multiple source nodes: connect via a union set-op node
-    const opId = uid()
-    const combineX = hasTagExclude ? COL_COMBINE : COL_SUBTRACT
-    const opNode: DNode = {
-      id: opId,
-      kind: 'setOp',
-      x: combineX,
-      y: resultY,
-      setOps: Array(sourceNodes.length - 1).fill('union' as SetOp)
-    }
-    nodes.push(opNode)
-    // Shift result further right to make room
-    resultNode.x = combineX + OP_W + 120
-    for (let i = 0; i < sourceNodes.length; i++) {
-      conns.push({ id: uid(), from: sourceNodes[i].id, to: opId, toPort: i })
-    }
-    conns.push({ id: uid(), from: opId, to: 'result', toPort: 0 })
-  }
-
+  const last = groups.length === 1 ? groups[0] : op(groups, 'intersect', COL_COMBINE)
+  const resultX = Math.max(COL_SUBTRACT, last.x + nodeW(last) + 120)
+  nodes.push({ id: 'result', kind: 'result', x: resultX, y: last.y })
+  conns.push({ id: uid(), from: last.id, to: 'result', toPort: 0 })
   return { nodes, conns }
 }
 

@@ -57,7 +57,7 @@ interface QueryState {
  *  graph that resolves to zero documents must produce no results, NOT fall
  *  through executeQuery's "empty sourceGuids = all documents" shortcut.
  *  Filters with no graph (drilldowns, legacy saves) pass through untouched. */
-function liveResolveFilter(df: Query['documentFilter']): {
+export function liveResolveFilter(df: Query['documentFilter']): {
   documentFilter: Query['documentFilter']
   noDocs: boolean
 } {

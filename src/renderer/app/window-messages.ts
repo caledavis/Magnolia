@@ -3,6 +3,9 @@
  * each window sends it (each hook subscribes once and acts on the project's
  * stores), and what it keeps them up to date with.
  */
+import { liveResolveFilter, useQueryStore } from '../stores/query-store'
+import { narrowQueryToCell } from '../utils/narrow-query'
+import { tagMembershipFromTags } from '../utils/survey-cell-scope'
 import { useEffect, type MutableRefObject } from 'react'
 import type { SurveyData, SurveyFormatData, QueryResultsInitData, AnalysisToolType, Query } from '../models/types'
 import { useProjectStore } from '../stores/project-store'
@@ -11,7 +14,6 @@ import { codeColourPresetsFor } from '../utils/code-colours'
 import { useDocumentStore, surveyEntityKey } from '../stores/document-store'
 import { useCodeStore } from '../stores/code-store'
 import { useTagStore } from '../stores/tag-store'
-import { useQueryStore } from '../stores/query-store'
 import { useLogbookStore } from '../stores/logbook-store'
 import { useMemoStore } from '../stores/memo-store'
 import { useRelationshipMapStore } from '../stores/relationship-map-store'
@@ -520,13 +522,14 @@ export function useAnalysisMessages(
         }
         useQueryStore.getState().setComplexQuery(query)
       } else if (action === 'run-query-in-docs') {
-        // Run a saved query scoped to specific documents
+        // A saved query's results in a cell (or total) of Results in
+        // Documents: the query as it is, narrowed to the cell, so it shows
+        // what was counted there.
         const [query, sourceGuids, scope] = args
-        const scopedQuery: Query = {
-          documentFilter: applySurveyScopeToFilter({ sourceGuids }, scope),
-          codeCondition: query.codeCondition
-        }
-        useQueryStore.getState().setComplexQuery(scopedQuery)
+        const { documentFilter, noDocs } = liveResolveFilter(query.documentFilter)
+        const membership = tagMembershipFromTags(useTagStore.getState().tags)
+        const narrowed = noDocs ? null : narrowQueryToCell({ ...query, documentFilter }, { sourceGuids, scope }, membership)
+        if (narrowed) useQueryStore.getState().setComplexQuery(narrowed)
       } else if (action === 'run-word-query') {
         // Build a text search query for a word in specific documents,
         // limited to coded passages, or to saved queries' results, when
