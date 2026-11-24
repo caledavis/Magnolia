@@ -74,7 +74,7 @@ describe('Same sentence', () => {
       formatData: {
         rawCsv: '',
         survey: {
-          questions: [{ id: 'q1', text: 'Why?' }],
+          questions: [{ id: 'q1', text: 'Why?', type: 'open-ended' }],
           respondents: [
             { id: 'r1', answers: { q1: 'I trust teachers. Lunch is late.' } },
             { id: 'r2', answers: { q1: 'Trust is rare. Teachers leave.' } }
@@ -134,9 +134,24 @@ describe('Text: find sentences containing', () => {
   it('works within survey cells', () => {
     const source = {
       guid: 'srv', name: 'Survey.csv', plainTextContent: 'raw,csv', selections: [],
-      formatData: { rawCsv: '', survey: { questions: [{ id: 'q1', text: 'Why?' }], respondents: [{ id: 'r1', answers: { q1: 'Lunch is late. I trust teachers.' } }] } }
+      formatData: { rawCsv: '', survey: { questions: [{ id: 'q1', text: 'Why?', type: 'open-ended' }], respondents: [{ id: 'r1', answers: { q1: 'Lunch is late. I trust teachers.' } }] } }
     } as unknown as TextSource
     const results = executeQuery({ documentFilter: {}, codeCondition: sentences('trust') }, [source], {}, codes, [])
     expect(results.map((r) => r.matchedText)).toEqual(['I trust teachers.'])
+  })
+
+  it('searches only open-ended answers in a survey (the ones that can be coded)', () => {
+    const source = {
+      guid: 'srv', name: 'Survey.csv', plainTextContent: 'raw,csv', selections: [],
+      formatData: { rawCsv: '', survey: {
+        questions: [{ id: 'q1', text: 'Why?', type: 'open-ended' }, { id: 'q2', text: 'Status', type: 'single-choice' }],
+        respondents: [{ id: 'r1', answers: { q1: 'Domestic fees are high.', q2: 'Domestic' } }]
+      } }
+    } as unknown as TextSource
+    const word: CodeCondition = { type: 'text', searchText: 'domestic', caseSensitive: false, wholeWord: true }
+    const results = executeQuery({ documentFilter: {}, codeCondition: word }, [source], {}, codes, [])
+    expect(results.map((r) => r.surveyCell)).toEqual([{ respondentId: 'r1', questionId: 'q1' }])
+    const inSentences = executeQuery({ documentFilter: {}, codeCondition: sentences('domestic') }, [source], {}, codes, [])
+    expect(inSentences.map((r) => r.surveyCell?.questionId)).toEqual(['q1'])
   })
 })

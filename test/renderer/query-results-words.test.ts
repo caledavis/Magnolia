@@ -78,7 +78,7 @@ describe('Query.within', () => {
       guid: 'srv', name: 'Survey.csv', plainTextContent: 'raw,csv',
       // A coded 0–27, B coded 8–39: they overlap on "high and placements".
       selections: [sel('A', 0, 27, cell('r1')), sel('B', 8, 39, cell('r1'))],
-      formatData: { rawCsv: '', survey: { questions: [{ id: 'q1', text: 'Why?' }], respondents: [{ id: 'r1', answers: { q1: answer } }] } }
+      formatData: { rawCsv: '', survey: { questions: [{ id: 'q1', text: 'Why?', type: 'open-ended' }], respondents: [{ id: 'r1', answers: { q1: answer } }] } }
     } as unknown as TextSource
     const overlap: Query = { documentFilter: {}, codeCondition: { type: 'overlap', condition1: { type: 'code', codeGuid: 'A' }, condition2: { type: 'code', codeGuid: 'B' } } }
     const exec = (q: Query) => executeQuery(q, [survey], {}, codes, [])

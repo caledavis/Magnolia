@@ -513,12 +513,14 @@ function textSearchDocument(
   // Surveys store their answers in formatData.survey, NOT in the
   // source's content (which is the raw CSV). Searching the CSV would
   // surface matches against header text and metadata cells, so scan
-  // each cell's cleaned text instead — that's what the user actually
-  // sees and codes against.
+  // each open-ended answer's cleaned text instead: what the user sees
+  // and codes, and what the word tools count. (A closed answer can't be
+  // coded; it's for filtering, by tags and the survey's choices.)
   const survey = (source.formatData as SurveyFormatData | undefined)?.survey
   if (survey) {
+    const openEnded = survey.questions.filter((q) => q.type === 'open-ended')
     for (const respondent of survey.respondents) {
-      for (const question of survey.questions) {
+      for (const question of openEnded) {
         if (cellScope && !cellScope.cellInScope(source.guid, respondent.id, question.id)) continue
         const cellText = buildCellText(respondent.answers[question.id])
         if (!cellText) continue
@@ -725,8 +727,10 @@ function buildSpatialSelections(
   for (const t of texts) {
     if (!t.searchText) continue
     if (survey) {
+      // Open-ended answers only, as in textSearchDocument.
+      const openEnded = survey.questions.filter((q) => q.type === 'open-ended')
       for (const respondent of survey.respondents) {
-        for (const question of survey.questions) {
+        for (const question of openEnded) {
           if (cellScope.hasConstraint && !cellScope.cellInScope(source.guid, respondent.id, question.id)) continue
           const cellText = buildCellText(respondent.answers[question.id])
           if (!cellText) continue
