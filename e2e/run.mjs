@@ -6,6 +6,8 @@
 //   node e2e/run.mjs                 every spec in e2e/specs
 //   node e2e/run.mjs analysis-tools  just those named
 //   node e2e/run.mjs --make-fixture  rebuild e2e/fixture/sample.qdpx
+//   node e2e/run.mjs --make-large    build e2e/perf/large.qdpx (not kept in git)
+//   node e2e/run.mjs --perf          time the app on it (e2e/perf/measure.js)
 //
 // Needs a development build (`cargo build -p magnolia`): automation is
 // compiled out of release builds. The runner starts the Vite dev server the
@@ -21,13 +23,16 @@ import { fileURLToPath } from 'node:url'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
-const FIXTURE = join(HERE, 'fixture', 'sample.qdpx')
+const LARGE = join(HERE, 'perf', 'large.qdpx')
+const perf = process.argv.includes('--perf')
+const FIXTURE = perf ? LARGE : join(HERE, 'fixture', 'sample.qdpx')
 const BIN = process.env.MAGNOLIA_BIN || join(ROOT, 'target', 'debug', process.platform === 'win32' ? 'magnolia.exe' : 'magnolia')
 const PORT = 5173
 const SPEC_TIMEOUT_S = Number(process.env.E2E_TIMEOUT || 600)
 
 const args = process.argv.slice(2)
-const makeFixture = args.includes('--make-fixture')
+const makeLarge = args.includes('--make-large')
+const makeFixture = args.includes('--make-fixture') || makeLarge
 const named = args.filter((a) => !a.startsWith('--'))
 
 async function serverUp() {
@@ -123,19 +128,21 @@ async function main() {
       writeFileSync(seed, JSON.stringify({ project: { name: 'Sample', origin: 'Magnolia e2e', sources: [], codes: [], sets: [] }, sourceContents: {} }))
       const w = spawnSync('cargo', ['run', '-q', '-p', 'magnolia-core', '--example', 'qdpx_tool', '--', 'write', seed, ws.project], { cwd: ROOT, stdio: 'inherit' })
       if (w.status !== 0) throw new Error('could not write the seed project')
-      const lines = await runInApp('make-sample', withHarness(readFileSync(join(HERE, 'fixture', 'make-sample.js'), 'utf8')), ws.project, ws.data)
-      allOk = report('make-sample', lines)
+      const maker = makeLarge ? join(HERE, 'perf', 'make-large.js') : join(HERE, 'fixture', 'make-sample.js')
+      const out = makeLarge ? LARGE : FIXTURE
+      const lines = await runInApp('make', withHarness(readFileSync(maker, 'utf8')), ws.project, ws.data)
+      allOk = report(makeLarge ? 'make-large' : 'make-sample', lines)
       if (allOk) {
-        copyFileSync(ws.project, FIXTURE)
-        console.log(`wrote ${FIXTURE}`)
+        copyFileSync(ws.project, out)
+        console.log(`wrote ${out}`)
       }
       rmSync(ws.dir, { recursive: true, force: true })
       return allOk
     }
-    if (!existsSync(FIXTURE)) throw new Error('no sample project: run `node e2e/run.mjs --make-fixture`')
-    const specDir = join(HERE, 'specs')
+    if (!existsSync(FIXTURE)) throw new Error(perf ? 'no large project: run `node e2e/run.mjs --make-large`' : 'no sample project: run `node e2e/run.mjs --make-fixture`')
+    const specDir = join(HERE, perf ? 'perf' : 'specs')
     const specs = readdirSync(specDir)
-      .filter((f) => f.endsWith('.js') && !f.endsWith('.after.js'))
+      .filter((f) => f.endsWith('.js') && !f.endsWith('.after.js') && !f.startsWith('make-'))
       .map((f) => f.slice(0, -3))
       .filter((n) => named.length === 0 || named.includes(n))
       .sort()
