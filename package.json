@@ -36,7 +36,8 @@
     "i18n:review-export": "node scripts/translation-review.mjs export",
     "i18n:review-import": "node scripts/translation-review.mjs import",
     "i18n:sync": "node scripts/i18n-sync.mjs",
-    "layout-check": "node scripts/layout-check/run.mjs"
+    "layout-check": "node scripts/layout-check/run.mjs",
+    "e2e": "node e2e/run.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.4",

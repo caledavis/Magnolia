@@ -1,5 +1,5 @@
 # Builds and tests Magnolia on macOS, Windows and Linux for every push and
-# pull request. Each platform compiles its own native code (WebKit / WebView2
+# pull request, and runs its end-to-end tests in the app on each. Each platform compiles its own native code (WebKit / WebView2
 # / WebKitGTK printing), so this is the check that all three still build.
 # It doesn't produce installers — releases are cut as in RELEASING.md.
 
@@ -32,7 +32,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev libayatana-appindicator3-dev patchelf libxml2-utils
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev libayatana-appindicator3-dev patchelf libxml2-utils xvfb
 
       - uses: actions/setup-node@v7
         with:
@@ -56,3 +56,12 @@ jobs:
 
       - name: Build the app
         run: npx tauri build --no-bundle
+
+      # The app itself, driven as a user drives it (e2e/README.md), in a
+      # development build (automation is compiled out of release builds).
+      # Linux has no screen here, so it gets a virtual one.
+      - name: End-to-end tests
+        shell: bash
+        run: |
+          cargo build -p magnolia
+          ${{ runner.os == 'Linux' && 'xvfb-run -a' || '' }} node e2e/run.mjs
