@@ -19,7 +19,7 @@
  *    is NOT renamed (that would remount the tool component and race
  *    with the IPC roundtrip that populates project.savedAnalyses).
  */
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { useAnalysisTabsStore, type ToolKind } from '../../stores/analysis-tabs-store'
 import { useDocumentStore } from '../../stores/document-store'
 import { useProjectStore } from '../../stores/project-store'
@@ -44,7 +44,12 @@ interface Props {
   tabId: string
 }
 
-export function InlineAnalysisTab({ tabId }: Props) {
+/** Memoised: the Document Viewer keeps every open tool tab mounted (hidden
+ *  when not shown) and re-renders them all as the user moves between
+ *  documents. A tab follows its own data and settings (the stores it
+ *  reads), so its parent re-rendering is no reason to re-render its tool,
+ *  which on a large project meant recounting every hidden tab per click. */
+export const InlineAnalysisTab = memo(function InlineAnalysisTab({ tabId }: Props) {
   const instance = useAnalysisTabsStore((s) => s.instances[tabId])
   const savedAnalyses = useProjectStore((s) => s.savedAnalyses)
 
@@ -161,7 +166,7 @@ export function InlineAnalysisTab({ tabId }: Props) {
       <MemoFab kind={fabKind} targetGuid={fabTargetGuid} />
     </div>
   )
-}
+})
 
 function resolveSavedConfig(
   instance: { savedAnalysisGuid?: string; config?: any },
