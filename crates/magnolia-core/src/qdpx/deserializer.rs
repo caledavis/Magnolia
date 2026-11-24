@@ -244,6 +244,15 @@ fn parse_audio_source(n: Node) -> Value {
     let mut o = base_source(n, Some("audio"), "path");
     audit_fields(&mut o, n);
     o.insert("selections".into(), json!([]));
+    // Coded stretches of the recording: an <AudioSelection> has the same
+    // begin / end (ms) as a <VideoSelection>, and the reader turns both into
+    // time-range selections.
+    let raw: Vec<Value> = children(n, "AudioSelection")
+        .map(parse_video_selection)
+        .collect();
+    if !raw.is_empty() {
+        o.insert("_rawVideoSelections".into(), raw.into());
+    }
     if let Some(t) = parse_transcript(n) {
         o.insert("_refiTranscript".into(), t);
     }
@@ -541,6 +550,8 @@ pub fn deserialize_project(xml: &str) -> Result<Value, String> {
                 attr(n, "name").unwrap_or_else(|| "Memo".into()).into(),
             );
             set_opt(&mut o, "plainTextPath", attr(n, "plainTextPath"));
+            // A note's text may also be inline (the schema allows either).
+            set_opt(&mut o, "plainTextContent", child_text(n, "PlainTextContent"));
             set_opt(&mut o, "creationDateTime", attr(n, "creationDateTime"));
             set_opt(&mut o, "modifiedDateTime", attr(n, "modifiedDateTime"));
             Value::Object(o)

@@ -681,8 +681,11 @@ fn restore_side_tables(
             if free_text.contains(guid) {
                 continue;
             }
+            // Its text file, or else the text held inline in the note.
             let content = internal_name(get_str(n, "plainTextPath"))
                 .and_then(|m| zip.read_text(&in_sources(m)))
+                .filter(|t| !t.is_empty())
+                .or_else(|| get_str(n, "plainTextContent").map(str::to_string))
                 .unwrap_or_default();
             let created = get_nonempty(n, "creationDateTime")
                 .or_else(|| get_nonempty(n, "modifiedDateTime"))
