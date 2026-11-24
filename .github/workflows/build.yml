@@ -51,8 +51,10 @@ jobs:
           npm run lint
           npx vitest run
 
-      - name: Rust tests (core and app)
-        run: cargo test --workspace
+      - name: Rust lint and tests (core and app)
+        run: |
+          cargo clippy --workspace --all-targets -- -D warnings
+          cargo test --workspace
 
       - name: Build the app
         run: npx tauri build --no-bundle

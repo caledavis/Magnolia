@@ -231,6 +231,10 @@ fn text_layer(doc: &PagedDocument, world: &DocWorld, leaves: &[Range<usize>]) ->
 /// Each text run on a page with where its text starts in the markup.
 /// A run's text is rebuilt from its glyph clusters, and a cluster already
 /// taken is skipped: when a cluster's marks come from another font than
+/// A cluster of glyphs: its range in the text, and where it starts in
+/// the markup (offset, and the span it's in) when known.
+type Cluster = (Range<usize>, Option<(usize, Span)>);
+
 /// its letter, Typst splits it into two runs that both carry its text.
 fn collect_runs(
     frame: &Frame,
@@ -247,7 +251,7 @@ fn collect_runs(
             }
             FrameItem::Text(text) if !text.text.is_empty() => {
                 // Clusters (text ranges) with their markup positions.
-                let mut clusters: Vec<(Range<usize>, Option<(usize, Span)>)> = Vec::new();
+                let mut clusters: Vec<Cluster> = Vec::new();
                 for g in &text.glyphs {
                     let key = world.range(g.span.0).map(|r| (r.start + usize::from(g.span.1), g.span.0));
                     match clusters.iter_mut().find(|(r, _)| *r == g.range()) {
@@ -983,23 +987,19 @@ fn css_color(v: &str) -> Option<String> {
 fn css_length(v: &str) -> Option<String> {
     let v = v.trim().to_ascii_lowercase();
     let num = |s: &str| s.trim().parse::<f64>().ok().filter(|n| n.is_finite());
-    if let Some(n) = v.strip_suffix("pt").and_then(num) {
-        Some(format!("{n:.2}pt"))
-    } else if let Some(n) = v.strip_suffix("px").and_then(num) {
-        Some(format!("{:.2}pt", n * 0.75))
-    } else if let Some(n) = v.strip_suffix("em").and_then(num) {
-        Some(format!("{n:.3}em"))
-    } else if let Some(n) = v.strip_suffix('%').and_then(num) {
-        Some(format!("{:.3}em", n / 100.0))
-    } else if let Some(n) = v.strip_suffix("in").and_then(num) {
-        Some(format!("{n:.3}in"))
-    } else if let Some(n) = v.strip_suffix("cm").and_then(num) {
-        Some(format!("{n:.3}cm"))
-    } else if let Some(n) = v.strip_suffix("mm").and_then(num) {
-        Some(format!("{n:.2}mm"))
-    } else {
-        None
-    }
+    // CSS unit, what it's multiplied by, the Typst unit, and its decimals.
+    const UNITS: [(&str, f64, &str, usize); 7] = [
+        ("pt", 1.0, "pt", 2),
+        ("px", 0.75, "pt", 2),
+        ("em", 1.0, "em", 3),
+        ("%", 0.01, "em", 3),
+        ("in", 1.0, "in", 3),
+        ("cm", 1.0, "cm", 3),
+        ("mm", 1.0, "mm", 2),
+    ];
+    UNITS.iter().find_map(|&(css, scale, typst, decimals)| {
+        v.strip_suffix(css).and_then(num).map(|n| format!("{:.*}{typst}", decimals, n * scale))
+    })
 }
 
 #[cfg(test)]
@@ -1057,5 +1057,31 @@ mod tests {
         let pdf = html_to_pdf("<p>مرحبا بالعالم</p>").unwrap();
         assert!(pdf.starts_with(b"%PDF"));
         assert!(pdf.windows(TEXT_LAYER_NAME.len()).any(|w| w == TEXT_LAYER_NAME.as_bytes()));
+    }
+}
+
+#[cfg(test)]
+mod css_length_tests {
+    use super::css_length;
+
+    #[test]
+    fn converts_css_lengths_to_typst() {
+        let cases = [
+            ("12pt", Some("12.00pt")),
+            ("16px", Some("12.00pt")),
+            ("1.5em", Some("1.500em")),
+            ("150%", Some("1.500em")),
+            ("1in", Some("1.000in")),
+            ("2.54cm", Some("2.540cm")),
+            ("10mm", Some("10.00mm")),
+            (" 3 PT ", Some("3.00pt")),
+            ("-2pt", Some("-2.00pt")),
+            ("12", None),
+            ("abc", None),
+            ("infpx", None),
+        ];
+        for (input, want) in cases {
+            assert_eq!(css_length(input).as_deref(), want, "{input}");
+        }
     }
 }
