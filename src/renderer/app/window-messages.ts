@@ -4,7 +4,7 @@
  * stores), and what it keeps them up to date with.
  */
 import { useEffect, type MutableRefObject } from 'react'
-import type { SurveyData, SurveyFormatData, QueryResultsInitData, AnalysisToolType, Query, SurveyCellScopeArgs } from '../models/types'
+import type { SurveyData, SurveyFormatData, QueryResultsInitData, AnalysisToolType, Query } from '../models/types'
 import { useProjectStore } from '../stores/project-store'
 import { usePreferencesStore } from '../stores/preferences-store'
 import { codeColourPresetsFor } from '../utils/code-colours'
@@ -19,7 +19,7 @@ import { generateGuid } from '../utils/guid'
 import { useTranslation } from 'react-i18next'
 import { memosWindowData, sendCodebookData, checkoutLockedByNow, deleteMemoEverywhere, openMemoEditor } from './other-windows'
 import { describeQuery, applySurveyScopeToFilter, withinQueries } from './query-description'
-import { wordCondition, sentenceCondition, type WordQueryCodes } from '../components/Analysis/word-counts'
+import { wordCondition, sentenceCondition } from '../components/Analysis/word-counts'
 import { useSurveyViewStore } from '../stores/survey-view-store'
 import { showMemoLocation } from '../utils/show-memo'
 
@@ -27,7 +27,7 @@ import { showMemoLocation } from '../utils/show-memo'
 export function useLogbookMessages(): void {
   // Listen for logbook updates from the logbook window
   useEffect(() => {
-    const unsub = window.api.onLogbookUpdate((action, ...args) => {
+    const unsub = window.api.onLogbookUpdate(({ action, args }) => {
       const ls = useLogbookStore.getState()
       switch (action) {
         case 'add-entry': {
@@ -60,7 +60,7 @@ export function useCodebookMessages(): void {
   // its right-click menu mirror the Codes pane's; each that changes the
   // codes sends the Codebook its codes again so it shows the change.
   useEffect(() => {
-    const unsub = window.api.onCodebookUpdate((action, ...args) => {
+    const unsub = window.api.onCodebookUpdate(({ action, args }) => {
       const cs = useCodeStore.getState()
       const lockedMutation = ['rename-code', 'recolor-code', 'add-child-code', 'move-code-to-top', 'delete-code'].includes(action)
       if (lockedMutation && checkoutLockedByNow()) {
@@ -70,7 +70,7 @@ export function useCodebookMessages(): void {
       switch (action) {
         case 'rename-code': {
           const [guid, name] = args
-          if (typeof name === 'string' && name.trim()) cs.renameCode(guid, name.trim())
+          if (name.trim()) cs.renameCode(guid, name.trim())
           sendCodebookData()
           break
         }
@@ -139,7 +139,7 @@ export function useCodebookMessages(): void {
 export function useMemoWindowMessages(saveProjectRef: MutableRefObject<() => unknown>): void {
   // Listen for memo updates from the memo edit window
   useEffect(() => {
-    const unsub = window.api.onMemoUpdate((memo: any) => {
+    const unsub = window.api.onMemoUpdate((memo) => {
       const store = useMemoStore.getState()
       let payload: { guid: string; title: string; content: string }
       if (memo._isNew) {
@@ -189,8 +189,8 @@ export function useMemoWindowMessages(saveProjectRef: MutableRefObject<() => unk
   // The Memos window's actions. Edits are refused with the checkout
   // prompt while someone else has the project, as in the Saved Memos pane.
   useEffect(() => {
-    const unsub = window.api.onMemosWindowAction((action, ...args) => {
-      const memo = (guid: unknown) => useMemoStore.getState().findMemo(String(guid))
+    const unsub = window.api.onMemosWindowAction(({ action, args }) => {
+      const memo = (guid: string) => useMemoStore.getState().findMemo(guid)
       if (action === 'show') {
         const m = memo(args[0])
         if (m) showMemoLocation(m)
@@ -206,7 +206,7 @@ export function useMemoWindowMessages(saveProjectRef: MutableRefObject<() => unk
       } else if (action === 'new') {
         openMemoEditor({ guid: generateGuid(), type: 'project', title: '', content: '', createdDateTime: new Date().toISOString() }, true)
       } else if (action === 'delete') {
-        for (const guid of (args[0] as string[]) ?? []) deleteMemoEverywhere(guid)
+        for (const guid of args[0]) deleteMemoEverywhere(guid)
         setTimeout(() => { saveProjectRef.current() }, 0)
       }
     })
@@ -340,7 +340,7 @@ export function useQueryResultsWindowMessages({ openQueryBuilder, setPoppedOut, 
 
   // Handle actions from popped-out query results window
   useEffect(() => {
-    const unsub = window.api.onQueryResultsAction((action, payload) => {
+    const unsub = window.api.onQueryResultsAction(({ action, payload }) => {
       switch (action) {
         case 'edit-query': {
           const qs = useQueryStore.getState()
@@ -443,16 +443,16 @@ export function useAnalysisMessages(
 ): void {
   // Listen for analysis actions (save, run-query)
   useEffect(() => {
-    const unsub = window.api.onAnalysisAction((action, ...args) => {
+    const unsub = window.api.onAnalysisAction(({ action, args }) => {
       if (action === 'save-analysis') {
-        const [analysis] = args as [{ guid: string; toolType: string; name: string; config: any }]
+        const [analysis] = args
         const ps = useProjectStore.getState()
         const existing = ps.savedAnalyses ?? []
         const idx = existing.findIndex((a) => a.guid === analysis.guid)
         const now = new Date().toISOString()
         const entry = {
           guid: analysis.guid,
-          toolType: analysis.toolType as any,
+          toolType: analysis.toolType,
           name: analysis.name,
           config: analysis.config,
           createdDateTime: idx >= 0 ? existing[idx].createdDateTime : now,
@@ -468,7 +468,7 @@ export function useAnalysisMessages(
       } else if (action === 'run-cooccurrence-query') {
         // Build an overlap query for two codes, including document filter
         // and any survey-cell (question) scope the tool was narrowed to.
-        const [codeGuidA, codeGuidB, filteredGuids, scope] = args as [string, string, string[] | undefined, SurveyCellScopeArgs | undefined]
+        const [codeGuidA, codeGuidB, filteredGuids, scope] = args
         const baseFilter: Query['documentFilter'] = filteredGuids && filteredGuids.length > 0 ? { sourceGuids: filteredGuids } : {}
         const query: Query = {
           documentFilter: applySurveyScopeToFilter(baseFilter, scope),
@@ -481,7 +481,7 @@ export function useAnalysisMessages(
         useQueryStore.getState().setComplexQuery(query)
       } else if (action === 'run-code-in-doc-query') {
         // Build a query for a code in specific documents
-        const [codeGuid, sourceGuids, filteredGuids, scope] = args as [string, string[], string[] | undefined, SurveyCellScopeArgs | undefined]
+        const [codeGuid, sourceGuids, filteredGuids, scope] = args
         const docGuids = filteredGuids && filteredGuids.length > 0 ? sourceGuids.filter((g) => filteredGuids.includes(g)) : sourceGuids
         const query: Query = {
           documentFilter: applySurveyScopeToFilter({ sourceGuids: docGuids }, scope),
@@ -490,7 +490,7 @@ export function useAnalysisMessages(
         useQueryStore.getState().setComplexQuery(query)
       } else if (action === 'run-codes-in-doc-query') {
         // Build an OR query for multiple codes in specific documents (for totals)
-        const [codeGuids, sourceGuids, scope] = args as [string[], string[], SurveyCellScopeArgs | undefined]
+        const [codeGuids, sourceGuids, scope] = args
         const codeCondition = codeGuids.length === 1
           ? { type: 'code' as const, codeGuid: codeGuids[0] }
           : { type: 'or' as const, conditions: codeGuids.map((g) => ({ type: 'code' as const, codeGuid: g })) }
@@ -502,11 +502,11 @@ export function useAnalysisMessages(
       } else if (action === 'open-framework-matrix') {
         // Codes in Documents → "Open as Framework Matrix": a fresh,
         // unsaved matrix seeded with the grid's codes and documents.
-        const [config] = args as [any]
+        const [config] = args
         openAnalysis('framework-matrix', config)
       } else if (action === 'run-code-in-tag-query') {
         // Build a query for a code filtered by tag (include or exclude)
-        const [codeGuid, tagGuid, excludeTagGuids, scope] = args as [string, string | null, string[] | undefined, SurveyCellScopeArgs | undefined]
+        const [codeGuid, tagGuid, excludeTagGuids, scope] = args
         const filter: Query['documentFilter'] = {}
         if (tagGuid) {
           filter.tagGuids = [tagGuid]
@@ -521,7 +521,7 @@ export function useAnalysisMessages(
         useQueryStore.getState().setComplexQuery(query)
       } else if (action === 'run-query-in-docs') {
         // Run a saved query scoped to specific documents
-        const [query, sourceGuids, scope] = args as [Query, string[], SurveyCellScopeArgs | undefined]
+        const [query, sourceGuids, scope] = args
         const scopedQuery: Query = {
           documentFilter: applySurveyScopeToFilter({ sourceGuids }, scope),
           codeCondition: query.codeCondition
@@ -531,7 +531,7 @@ export function useAnalysisMessages(
         // Build a text search query for a word in specific documents,
         // limited to coded passages, or to saved queries' results, when
         // the tool counted those.
-        const [word, filteredGuids, scope, codes, queryGuids] = args as [string, string[] | undefined, SurveyCellScopeArgs | undefined, WordQueryCodes | undefined, string[] | undefined]
+        const [word, filteredGuids, scope, codes, queryGuids] = args
         const query: Query = {
           documentFilter: applySurveyScopeToFilter(filteredGuids && filteredGuids.length > 0 ? { sourceGuids: filteredGuids } : {}, scope),
           codeCondition: wordCondition(word, codes),
@@ -540,7 +540,7 @@ export function useAnalysisMessages(
         useQueryStore.getState().setComplexQuery(query)
       } else if (action === 'run-sentence-query') {
         // The sentences containing both words (Word Combinations' associations).
-        const [word1, word2, filteredGuids, scope, codes, queryGuids] = args as [string, string, string[] | undefined, SurveyCellScopeArgs | undefined, WordQueryCodes | undefined, string[] | undefined]
+        const [word1, word2, filteredGuids, scope, codes, queryGuids] = args
         const query: Query = {
           documentFilter: applySurveyScopeToFilter(filteredGuids && filteredGuids.length > 0 ? { sourceGuids: filteredGuids } : {}, scope),
           codeCondition: sentenceCondition(word1, word2, codes),
@@ -548,20 +548,20 @@ export function useAnalysisMessages(
         }
         useQueryStore.getState().setComplexQuery(query)
       } else if (action === 'open-document') {
-        const [sourceGuid] = args as [string]
+        const [sourceGuid] = args
         useDocumentStore.getState().viewDocument(sourceGuid)
       } else if (action === 'view-document-at') {
-        const [sourceGuid, startCp, endCp] = args as [string, number, number]
+        const [sourceGuid, startCp, endCp] = args
         useDocumentStore.getState().viewDocumentAt(sourceGuid, startCp, endCp)
       } else if (action === 'run-code-query') {
-        const [codeGuid] = args as [string]
+        const [codeGuid] = args
         const query: Query = {
           documentFilter: {},
           codeCondition: { type: 'code', codeGuid }
         }
         useQueryStore.getState().setComplexQuery(query)
       } else if (action === 'open-memo') {
-        const [memoGuid] = args as [string]
+        const [memoGuid] = args
         const memo = useMemoStore.getState().findMemo(memoGuid)
         if (memo) {
           window.api.openMemoEditWindow({
@@ -570,16 +570,16 @@ export function useAnalysisMessages(
           })
         }
       } else if (action === 'run-saved-query') {
-        const [queryGuid] = args as [string]
+        const [queryGuid] = args
         useQueryStore.getState().runSavedQuery(queryGuid)
       } else if (action === 'select-tag-documents') {
-        const [tagGuid] = args as [string]
+        const [tagGuid] = args
         const tag = useTagStore.getState().tags.find((t) => t.guid === tagGuid)
         if (tag) {
           useDocumentStore.getState().selectDocuments(new Set(tag.memberSourceGuids))
         }
       } else if (action === 'select-tag-category-documents') {
-        const [categoryGuid] = args as [string]
+        const [categoryGuid] = args
         const tgStore = useTagStore.getState()
         const categoryTags = tgStore.tags.filter((t) => t.categoryGuid === categoryGuid)
         const allGuids = new Set<string>()
@@ -588,7 +588,7 @@ export function useAnalysisMessages(
         }
         useDocumentStore.getState().selectDocuments(allGuids)
       } else if (action === 'select-folder-documents') {
-        const [folderGuid] = args as [string]
+        const [folderGuid] = args
         const ds = useDocumentStore.getState()
         // Recursively walk sub-folders so descendant docs are included,
         // matching how Group-by-folder resolves a folder's source set.
@@ -610,7 +610,7 @@ export function useAnalysisMessages(
         }
         ds.selectDocuments(docs)
       } else if (action === 'open-saved-analysis') {
-        const [toolType, savedConfig] = args as [string, any]
+        const [toolType, savedConfig] = args
         // Callers from other analysis windows only know the guid/name — look
         // up the full saved config from the project store.
         let finalConfig = savedConfig
@@ -619,7 +619,7 @@ export function useAnalysisMessages(
           const sa = (ps.savedAnalyses ?? []).find((a) => a.guid === savedConfig.guid)
           if (sa) finalConfig = { ...sa.config, guid: sa.guid, name: sa.name }
         }
-        openSavedAnalysis(toolType as any, finalConfig)
+        openSavedAnalysis(toolType, finalConfig)
       }
     })
     return unsub

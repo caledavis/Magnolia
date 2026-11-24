@@ -420,7 +420,7 @@ export function RelationshipMap({ data, savedConfig }: Props) {
       createdDateTime: now,
       analysisGuid
     }
-    window.api.sendMemoUpdate({ ...memo, _isNew: true } as any)
+    window.api.sendMemoUpdate({ ...memo, _isNew: true })
     return { guid, payload: memo }
   }, [analysisGuid])
 

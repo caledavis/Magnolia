@@ -1,5 +1,17 @@
 import type { DConn, DNode } from '../utils/document-graph'
 import type { Preferences } from '../stores/preferences-store'
+import type { IntercoderWindowData } from '../components/Analysis/intercoder/IntercoderResults'
+import type {
+  AnalysisMessages,
+  ArgsMessage,
+  CodebookMessages,
+  IntercoderResultsMessages,
+  LogbookMessages,
+  MemosWindowMessages,
+  MemoUpdate,
+  PayloadMessage,
+  QueryResultsMessages
+} from './window-messages'
 /** Magnolia-specific document folder. The REFI-QDA standard has no
  *  folder concept — these are persisted in a `magnolia-folders.json`
  *  side table inside the .qdpx alongside the per-doc folder mapping. */
@@ -10,6 +22,16 @@ export interface DocumentFolder {
   /** 'notebook' marks a folder that holds notes (and only notes).
    *  Absent for an ordinary folder. */
   kind?: 'notebook'
+}
+
+/** A project as opened from its file: with its documents' text, where
+ *  it was opened from, who has it checked out, and any media files it
+ *  refers to that couldn't be found. */
+export interface OpenedProject extends Project {
+  sourceContents: Record<string, string>
+  filePath: string
+  checkoutInfo: CheckoutMarker | null
+  missingBinaries?: MissingBinary[]
 }
 
 export interface Project {
@@ -562,13 +584,13 @@ export interface MagnoliaAPI {
   getFileSize: (filePath: string) => Promise<number | null>
   readPdfFile: (filePath: string) => Promise<Uint8Array>
   onProjectLoadProgress: (callback: (p: { stage: string; current: number; total: number }) => void) => () => void
-  openProject: () => Promise<Project & { sourceContents: Record<string, string>; missingBinaries?: MissingBinary[]; checkoutInfo?: CheckoutMarker | null } | null>
+  openProject: () => Promise<OpenedProject | null>
   pickProjectFile: () => Promise<string | null>
   /** Of the given files, those that no longer exist. */
   missingFiles: (paths: string[]) => Promise<string[]>
   /** Pick several .qdpx files at once (Inter-coder Agreement). */
   pickProjectFiles: () => Promise<string[]>
-  openProjectPath: (filePath: string) => Promise<Project & { sourceContents: Record<string, string>; missingBinaries?: MissingBinary[]; checkoutInfo?: CheckoutMarker | null } | null>
+  openProjectPath: (filePath: string) => Promise<OpenedProject | null>
   readCheckoutMarker: (filePath: string) => Promise<CheckoutMarker | null>
   /** Atomic check-and-set: rejects (`ok: false`, `marker` = the current
    *  holder) if someone else already holds the lock, unless `steal` is
@@ -702,8 +724,8 @@ export interface MagnoliaAPI {
   openCodebookWindow: (data: CodebookInitData) => void
   getCodebookData: () => Promise<CodebookInitData>
   onCodebookData: (callback: (data: CodebookInitData) => void) => () => void
-  sendCodebookUpdate: (action: string, ...args: any[]) => void
-  onCodebookUpdate: (callback: (action: string, ...args: any[]) => void) => () => void
+  sendCodebookUpdate: <A extends keyof CodebookMessages>(action: A, ...args: CodebookMessages[A]) => void
+  onCodebookUpdate: (callback: (message: ArgsMessage<CodebookMessages>) => void) => () => void
   // Welcome window
   sendWelcomeAction: (action: string) => void
   getRecentProjects: () => Promise<{ name: string; path: string }[]>
@@ -720,16 +742,16 @@ export interface MagnoliaAPI {
   openMemoEditWindow: (data: MemoEditInitData) => void
   getMemoEditData: () => Promise<MemoEditInitData>
   onMemoEditData: (callback: (data: MemoEditInitData) => void) => () => void
-  sendMemoUpdate: (memo: Memo) => void
-  onMemoUpdate: (callback: (memo: Memo) => void) => () => void
+  sendMemoUpdate: (memo: MemoUpdate) => void
+  onMemoUpdate: (callback: (memo: MemoUpdate) => void) => () => void
   sendMemoDelete: (guid: string) => void
   onMemoDelete: (callback: (guid: string) => void) => () => void
   // Logbook window
   openLogbookWindow: (data: LogbookInitData) => void
   getLogbookData: () => Promise<LogbookInitData>
   onLogbookData: (callback: (data: LogbookInitData) => void) => () => void
-  sendLogbookUpdate: (action: string, ...args: any[]) => void
-  onLogbookUpdate: (callback: (action: string, ...args: any[]) => void) => () => void
+  sendLogbookUpdate: <A extends keyof LogbookMessages>(action: A, ...args: LogbookMessages[A]) => void
+  onLogbookUpdate: (callback: (message: ArgsMessage<LogbookMessages>) => void) => () => void
   // Memos window
   openMemosWindow: (data: MemosWindowData) => void
   /** Refreshes the Memos window if it is open. */
@@ -738,15 +760,15 @@ export interface MagnoliaAPI {
   onMemosWindowData: (callback: (data: MemosWindowData) => void) => () => void
   /** 'edit' (guid), 'show' (guid), 'new' or 'delete' (guids): the main
    *  window acts on them, prompting first while the project is checked out. */
-  sendMemosWindowAction: (action: MemosWindowAction, ...args: any[]) => void
-  onMemosWindowAction: (callback: (action: MemosWindowAction, ...args: any[]) => void) => () => void
+  sendMemosWindowAction: <A extends keyof MemosWindowMessages>(action: A, ...args: MemosWindowMessages[A]) => void
+  onMemosWindowAction: (callback: (message: ArgsMessage<MemosWindowMessages>) => void) => () => void
   /** Brings the main project window to the front. */
   focusMainWindow: () => void
   // Analysis actions — round-trip through main so inline analysis
   // tools can hand work back to the main App (save-analysis,
   // run-query, open-memo, etc.).
-  sendAnalysisAction: (action: string, ...args: any[]) => void
-  onAnalysisAction: (callback: (action: string, ...args: any[]) => void) => () => void
+  sendAnalysisAction: <A extends keyof AnalysisMessages>(action: A, ...args: AnalysisMessages[A]) => void
+  onAnalysisAction: (callback: (message: ArgsMessage<AnalysisMessages>) => void) => () => void
   exportCsv: (content: string, defaultName: string) => Promise<string | null>
   exportSvg: (content: string, defaultName: string) => Promise<string | null>
   focusWindow: () => void
@@ -770,15 +792,14 @@ export interface MagnoliaAPI {
   onUpdateStatus: (callback: (status: UpdateStatus) => void) => () => void
   getUpdateBadge: () => Promise<UpdateBadgeState>
   onUpdateBadge: (callback: (state: UpdateBadgeState) => void) => () => void
-  // Inter-coder Agreement results window (pop-out). The data is the
-  // window's IntercoderResultsData (see IntercoderResults.tsx).
-  openIntercoderResultsWindow: (data: unknown) => void
-  updateIntercoderResultsWindow: (data: unknown) => void
+  // Inter-coder Agreement results window (pop-out).
+  openIntercoderResultsWindow: (data: IntercoderWindowData) => void
+  updateIntercoderResultsWindow: (data: IntercoderWindowData) => void
   closeIntercoderResultsWindow: () => void
-  getIntercoderResultsData: () => Promise<unknown>
-  onIntercoderResultsData: (callback: (data: unknown) => void) => () => void
-  sendIntercoderResultsAction: (action: string, payload?: unknown) => void
-  onIntercoderResultsAction: (callback: (action: string, payload?: unknown) => void) => () => void
+  getIntercoderResultsData: () => Promise<IntercoderWindowData | null>
+  onIntercoderResultsData: (callback: (data: IntercoderWindowData) => void) => () => void
+  sendIntercoderResultsAction: <A extends keyof IntercoderResultsMessages>(action: A, ...args: IntercoderResultsMessages[A]) => void
+  onIntercoderResultsAction: (callback: (message: PayloadMessage<IntercoderResultsMessages>) => void) => () => void
   onIntercoderResultsClosed: (callback: () => void) => () => void
   // Query results window (pop-out)
   openQueryResultsWindow: (data: QueryResultsInitData) => void
@@ -787,8 +808,8 @@ export interface MagnoliaAPI {
   updateQueryResultsWindow: (data: QueryResultsInitData) => void
   getQueryResultsData: () => Promise<QueryResultsInitData>
   onQueryResultsData: (callback: (data: QueryResultsInitData) => void) => () => void
-  sendQueryResultsAction: (action: string, payload?: any) => void
-  onQueryResultsAction: (callback: (action: string, payload?: any) => void) => () => void
+  sendQueryResultsAction: <A extends keyof QueryResultsMessages>(action: A, ...args: QueryResultsMessages[A]) => void
+  onQueryResultsAction: (callback: (message: PayloadMessage<QueryResultsMessages>) => void) => () => void
   jumpToQueryResult: (target: {
     sourceGuid: string
     startPosition: number
@@ -933,7 +954,7 @@ export interface MemoEditInitData {
   isNew?: boolean
 }
 
-export type MemosWindowAction = 'edit' | 'show' | 'new' | 'delete'
+export type MemosWindowAction = keyof MemosWindowMessages
 
 export interface MemosWindowData {
   memos: Memo[]
@@ -1065,7 +1086,7 @@ export interface AnalysisInitData {
   /** Memos (for relationship map sidebar) */
   memos?: { guid: string; title: string; type: string; content?: string; sourceGuid?: string; sourceGuids?: string[] }[]
   /** Saved analyses (for relationship map sidebar) */
-  savedAnalyses?: { guid: string; name: string; toolType: string }[]
+  savedAnalyses?: { guid: string; name: string; toolType: AnalysisToolType }[]
   /** Quotes (for relationship map sidebar) */
   quotes?: { guid: string; text: string; sourceName: string; sourceGuid: string; startPosition: number; endPosition: number; pdfRegion?: PdfRegionSelection }[]
   /** PDF file paths by sourceGuid — needed for rendering region thumbnails

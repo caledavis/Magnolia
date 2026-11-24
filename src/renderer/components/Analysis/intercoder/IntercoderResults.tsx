@@ -87,6 +87,10 @@ export interface IntercoderResultsData {
   drillData: DrillData | null
 }
 
+/** What the popped-out results window is sent: the results, and the
+ *  window's title and theme. */
+export type IntercoderWindowData = IntercoderResultsData & { title: string; theme: string }
+
 interface Props extends IntercoderResultsData {
   /** The scrolling area the results are in. */
   scroller: HTMLElement | null

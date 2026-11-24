@@ -53,7 +53,7 @@ export function MemoEditWindow() {
       modifiedDateTime: new Date().toISOString()
     }
     // Send with isNew flag so the main window knows whether to create or update
-    window.api.sendMemoUpdate({ ...updated, _isNew: isNew } as any)
+    window.api.sendMemoUpdate({ ...updated, _isNew: isNew })
     setMemo(updated)
     setIsNew(false) // After first save, subsequent saves are updates
     setDirty(false)

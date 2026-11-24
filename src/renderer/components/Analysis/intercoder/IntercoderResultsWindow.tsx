@@ -9,23 +9,22 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon, faDownLeftAndUpRightToCenter } from '../../Icon'
-import { IntercoderResults, type IntercoderResultsData } from './IntercoderResults'
+import { IntercoderResults, type IntercoderWindowData } from './IntercoderResults'
+import type { IntercoderResultsMessages } from '../../../models/window-messages'
 
-type WindowData = IntercoderResultsData & { title: string; theme: string }
-
-const send = (action: string, payload?: unknown) => window.api.sendIntercoderResultsAction(action, payload)
+const send = <A extends keyof IntercoderResultsMessages>(action: A, ...args: IntercoderResultsMessages[A]) =>
+  window.api.sendIntercoderResultsAction(action, ...args)
 
 export function IntercoderResultsWindow() {
   const { t } = useTranslation()
-  const [data, setData] = useState<WindowData | null>(null)
+  const [data, setData] = useState<IntercoderWindowData | null>(null)
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    const apply = (d: unknown) => {
+    const apply = (d: IntercoderWindowData | null) => {
       if (!d) return
-      const wd = d as WindowData
-      setData(wd)
-      if (wd.theme) document.documentElement.setAttribute('data-theme', wd.theme)
+      setData(d)
+      if (d.theme) document.documentElement.setAttribute('data-theme', d.theme)
     }
     void window.api.getIntercoderResultsData().then(apply)
     return window.api.onIntercoderResultsData(apply)

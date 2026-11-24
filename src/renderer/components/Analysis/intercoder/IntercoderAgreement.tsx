@@ -464,12 +464,12 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
   }, [poppedOut, windowData])
   useEffect(() => {
     if (!poppedOut) return
-    const stopActions = window.api.onIntercoderResultsAction((action, payload) => {
-      if (action === 'view') setView(payload as ResultsView)
-      else if (action === 'measure') setMeasure(payload as Measure)
-      else if (action === 'threshold') setThreshold(payload as number)
-      else if (action === 'toggle-expanded') toggleExpanded(payload as string)
-      else if (action === 'drill') setDrill(payload as Drill | null)
+    const stopActions = window.api.onIntercoderResultsAction(({ action, payload }) => {
+      if (action === 'view') setView(payload)
+      else if (action === 'measure') setMeasure(payload)
+      else if (action === 'threshold') setThreshold(payload)
+      else if (action === 'toggle-expanded') toggleExpanded(payload)
+      else if (action === 'drill') setDrill(payload)
     })
     // Closed (or popped back in) from the window itself.
     const stopClosed = window.api.onIntercoderResultsClosed(() => setPoppedOut(false))

@@ -11,6 +11,7 @@ import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { useTranslation } from 'react-i18next'
 import { t, formatDateTime, formatNumber } from '../../i18n'
 import { flattenCodes } from '../../utils/code-tree'
+import type { CodeMenuAction } from '../../models/window-messages'
 
 /** A row of the code list, drawn exactly like a row of the Codes pane
  *  (CodeTreeItem in CodeBrowser.tsx): chevron slot, colour pip, name,
@@ -517,9 +518,9 @@ export function CodebookWindow() {
 
       {contextMenu && (() => {
         const guid = contextMenu.guid
-        const send = (action: string, ...args: unknown[]) => {
+        const send = (action: CodeMenuAction) => {
           setContextMenu(null)
-          window.api.sendCodebookUpdate(action, guid, ...args)
+          window.api.sendCodebookUpdate(action, guid)
         }
         return (
           <>

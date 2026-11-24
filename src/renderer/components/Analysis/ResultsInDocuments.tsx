@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
-import type { AnalysisInitData, Query, QueryResult, SurveyEntityRef, SurveyCellScopeArgs } from '../../models/types'
+import type { AnalysisInitData, Query, QueryResult, SurveyEntityRef, SurveyCellScopeArgs, CodeCondition } from '../../models/types'
 import { Icon, faFileSearchCorner, faXmark } from '../Icon'
 import { runQueryLive } from '../../stores/query-store'
 import { truncate, toCsv, pctOfTotal, csvPctOfTotal, binarizeGrid, resultsInColumn, resultRowTotal } from './analysis-helpers'
@@ -339,23 +339,23 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     if (colTotals[colIdx] === 0) return
     const col = columns[colIdx]
     // Run all queries scoped to this column's documents, combined as OR
-    const allQueries = queryGuids.map((g) => queryMap.get(g)?.query).filter(Boolean) as any[]
+    const allQueries = queryGuids.map((g) => queryMap.get(g)?.query).filter((q): q is Query => !!q)
     if (allQueries.length === 1) {
       window.api.sendAnalysisAction('run-query-in-docs', allQueries[0], col.sourceGuids, surveyScope(col))
     } else if (allQueries.length > 1) {
       // Combine code conditions with OR
-      const combined = { type: 'or', conditions: allQueries.map((q: any) => q.codeCondition) }
+      const combined: CodeCondition = { type: 'or', conditions: allQueries.map((q) => q.codeCondition) }
       window.api.sendAnalysisAction('run-query-in-docs', { documentFilter: {}, codeCondition: combined }, col.sourceGuids, surveyScope(col))
     }
   }, [colTotals, columns, queryGuids, queryMap, surveyScope])
 
   const handleGrandTotalClick = useCallback(() => {
     if (grandTotal === 0) return
-    const allQueries = queryGuids.map((g) => queryMap.get(g)?.query).filter(Boolean) as any[]
+    const allQueries = queryGuids.map((g) => queryMap.get(g)?.query).filter((q): q is Query => !!q)
     if (allQueries.length === 1) {
       window.api.sendAnalysisAction('run-query-in-docs', allQueries[0], resultSourceGuids, surveyScope())
     } else if (allQueries.length > 1) {
-      const combined = { type: 'or', conditions: allQueries.map((q: any) => q.codeCondition) }
+      const combined: CodeCondition = { type: 'or', conditions: allQueries.map((q) => q.codeCondition) }
       window.api.sendAnalysisAction('run-query-in-docs', { documentFilter: {}, codeCondition: combined }, resultSourceGuids, surveyScope())
     }
   }, [grandTotal, queryGuids, queryMap, resultSourceGuids, surveyScope])

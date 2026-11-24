@@ -655,8 +655,8 @@ function App() {
   // is never blocked, but this dialog is the first chance to Take Over,
   // Work on a Copy, or just continue read-only — mutating controls stay
   // gated (see useCheckoutLockedBy) until one of those is resolved.
-  const applyCheckoutInfo = useCallback((data: any) => {
-    const marker: CheckoutMarker | null = data?.checkoutInfo ?? null
+  const applyCheckoutInfo = useCallback((data: { checkoutInfo: CheckoutMarker | null }) => {
+    const marker = data.checkoutInfo
     useProjectStore.getState().setCheckoutMarker(marker)
     const myName = usePreferencesStore.getState().userName.trim()
     if (marker && marker.userName !== myName) setCheckoutConflict(marker)
@@ -705,12 +705,12 @@ function App() {
               creationDateTime: project.creationDateTime,
               modifyingUserGUID: project.modifyingUserGUID,
               modifiedDateTime: project.modifiedDateTime,
-              filePath: (data as any).filePath,
+              filePath: data.filePath,
               savedAnalyses: project.savedAnalyses
             })
         },
         { label: t('app.step.documents'), run: () => documentStore.setSources(project.sources, sourceContents) },
-        { label: t('app.step.folders'), run: () => documentStore.setFolders((project as any).folders ?? [], (project as any).sourceFolder ?? {}) },
+        { label: t('app.step.folders'), run: () => documentStore.setFolders(project.folders ?? [], project.sourceFolder ?? {}) },
         { label: t('app.step.codes'), run: () => codeStore.setCodes(project.codes) },
         {
           label: t('app.step.tags'),
@@ -734,7 +734,7 @@ function App() {
         { label: t('app.step.quotes'), run: () => useQuoteStore.getState().setQuotes(project.quotes ?? []) },
         // Tabs runs LAST so it can validate ids against every store
         // populated above (sources, savedAnalyses, etc.).
-        { label: t('app.step.tabs'), run: () => restoreTabState((project as any).tabState) }
+        { label: t('app.step.tabs'), run: () => restoreTabState(project.tabState) }
       ]
       for (let i = 0; i < steps.length; i++) {
         setLoadProgress({ stage: t('app.populating', { what: steps[i].label }), current: i + 1, total: steps.length })
@@ -751,10 +751,10 @@ function App() {
       // edits after this re-dirty it normally.
       useProjectStore.getState().markClean()
       noteStateMatchesFile()
-      setMissingBinaries((data as any).missingBinaries ?? [])
+      setMissingBinaries(data.missingBinaries ?? [])
       applyCheckoutInfo(data)
-      if ((data as any).filePath) {
-        window.api.trackRecentProject(project.name, (data as any).filePath)
+      if (data.filePath) {
+        window.api.trackRecentProject(project.name, data.filePath)
       }
     } finally {
       setLoadProgress(null)
@@ -1694,12 +1694,12 @@ function App() {
                 creationDateTime: project.creationDateTime,
                 modifyingUserGUID: project.modifyingUserGUID,
                 modifiedDateTime: project.modifiedDateTime,
-                filePath: (data as any).filePath,
+                filePath: data.filePath,
                 savedAnalyses: project.savedAnalyses
               })
           },
           { label: t('app.step.documents'), run: () => useDocumentStore.getState().setSources(project.sources, sourceContents) },
-          { label: t('app.step.folders'), run: () => useDocumentStore.getState().setFolders((project as any).folders ?? [], (project as any).sourceFolder ?? {}) },
+          { label: t('app.step.folders'), run: () => useDocumentStore.getState().setFolders(project.folders ?? [], project.sourceFolder ?? {}) },
           { label: t('app.step.codes'), run: () => useCodeStore.getState().setCodes(project.codes) },
           {
             label: t('app.step.tags'),
@@ -1719,7 +1719,7 @@ function App() {
           { label: t('app.step.logbook'), run: () => useLogbookStore.getState().setEntries(project.logbookEntries ?? []) },
           { label: t('app.step.memos'), run: () => useMemoStore.getState().setMemos(project.memos ?? []) },
           { label: t('app.step.quotes'), run: () => useQuoteStore.getState().setQuotes(project.quotes ?? []) },
-          { label: t('app.step.tabs'), run: () => restoreTabState((project as any).tabState) }
+          { label: t('app.step.tabs'), run: () => restoreTabState(project.tabState) }
         ]
         for (let i = 0; i < steps.length; i++) {
           setLoadProgress({ stage: t('app.populating', { what: steps[i].label }), current: i + 1, total: steps.length })
@@ -1732,7 +1732,7 @@ function App() {
         // matching note in the file-picker open path above.
         useProjectStore.getState().markClean()
         noteStateMatchesFile()
-        setMissingBinaries((data as any).missingBinaries ?? [])
+        setMissingBinaries(data.missingBinaries ?? [])
         applyCheckoutInfo(data)
         window.api.trackRecentProject(project.name, filePath)
       } catch (err) {

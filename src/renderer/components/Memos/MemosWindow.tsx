@@ -19,7 +19,8 @@ import { useState, useCallback, useEffect, useMemo } from 'react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { Icon, faChevronDown, faChevronRight, faPlus, faMagnifyingGlass, faXmark } from '../Icon'
 import { Markdown } from '../Markdown'
-import type { Memo, MemosWindowData, MemosWindowAction } from '../../models/types'
+import type { Memo, MemosWindowData } from '../../models/types'
+import type { MemosWindowMessages } from '../../models/window-messages'
 import { groupMemos, memoMatches, type MemoPlace } from '../../utils/memo-places'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
@@ -119,7 +120,7 @@ export function MemosWindow() {
     return window.api.onMemosWindowData((d) => { if (d) apply(d) })
   }, [apply])
 
-  const send = useCallback((action: MemosWindowAction, ...args: unknown[]) => {
+  const send = useCallback(<A extends keyof MemosWindowMessages>(action: A, ...args: MemosWindowMessages[A]) => {
     window.api.sendMemosWindowAction(action, ...args)
     // Show goes to the main window, and while the project is checked out
     // the prompt to take over appears there.

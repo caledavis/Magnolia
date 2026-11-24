@@ -14,7 +14,7 @@ import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { emit, emitTo } from '@tauri-apps/api/event'
 import { getCurrentWebview } from '@tauri-apps/api/webview'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
-import type { ByteSource, ImportedFile, ImportItem, ImportState, MagnoliaAPI, MemosWindowAction, Project, Query, QueryGraphLayout, TextSource } from '../models/types'
+import type { ByteSource, ImportedFile, ImportItem, ImportState, MagnoliaAPI, Project, Query, QueryGraphLayout, TextSource } from '../models/types'
 import { base64ToBytes, extractPdfText } from './pdf-text'
 import { t } from '../i18n'
 import { withDocumentLanguage } from '../utils/document-language'
@@ -66,12 +66,6 @@ function onQueued<T>(event: string, callback: (payload: T) => void): () => void 
 // ── PDF text ──────────────────────────────────────────────────────────
 
 type ProgressCallback = (p: { stage: string; current: number; total: number }) => void
-
-/** Messages between windows, as they travel: an action and its arguments,
- *  or an action and one payload. (What each action carries is up to the
- *  windows that send and receive it.) */
-type ActionMessage = { action: string; args: unknown[] }
-type PayloadMessage = { action: string; payload?: unknown }
 
 /** A project as the backend reads it, before its PDFs' text is filled in:
  *  sources the backend couldn't read text from are flagged. */
@@ -449,7 +443,7 @@ const api: MagnoliaAPI = {
   getCodebookData: () => invoke('get_window_data'),
   onCodebookData: (callback) => on('codebook-init-data', callback),
   sendCodebookUpdate: (action, ...args) => toMain('codebook-update', { action, args }),
-  onCodebookUpdate: (callback) => on<ActionMessage>('codebook-update', (p) => callback(p.action, ...p.args)),
+  onCodebookUpdate: (callback) => on('codebook-update', callback),
 
   // Welcome window
   sendWelcomeAction: (action) => void invoke('welcome_action', { action }),
@@ -477,7 +471,7 @@ const api: MagnoliaAPI = {
   getLogbookData: () => invoke('get_window_data'),
   onLogbookData: (callback) => on('logbook-init-data', callback),
   sendLogbookUpdate: (action, ...args) => toMain('logbook-update', { action, args }),
-  onLogbookUpdate: (callback) => on<ActionMessage>('logbook-update', (p) => callback(p.action, ...p.args)),
+  onLogbookUpdate: (callback) => on('logbook-update', callback),
 
   // Memos window (every memo in the project)
   openMemosWindow: (data) => void invoke('open_child_window', { kind: 'memos', data }),
@@ -486,11 +480,11 @@ const api: MagnoliaAPI = {
   onMemosWindowData: (callback) => on('memos-init-data', callback),
   sendMemosWindowAction: (action, ...args) => toMain('memos-window-action', { action, args }),
   focusMainWindow: () => void invoke('focus_main_window'),
-  onMemosWindowAction: (callback) => on<ActionMessage & { action: MemosWindowAction }>('memos-window-action', (p) => callback(p.action, ...p.args)),
+  onMemosWindowAction: (callback) => on('memos-window-action', callback),
 
   // Analysis actions (main → main)
   sendAnalysisAction: (action, ...args) => toMain('analysis-action', { action, args }),
-  onAnalysisAction: (callback) => on<ActionMessage>('analysis-action', (p) => callback(p.action, ...p.args)),
+  onAnalysisAction: (callback) => on('analysis-action', callback),
 
   exportCsv: (content, defaultName) => invoke('export_csv', { content, defaultName }),
   exportSvg: (content, defaultName) => invoke('export_svg', { content, defaultName }),
@@ -532,8 +526,8 @@ const api: MagnoliaAPI = {
   closeIntercoderResultsWindow: () => void invoke('close_child_window', { kind: 'intercoder-results' }),
   getIntercoderResultsData: () => invoke('get_window_data'),
   onIntercoderResultsData: (callback) => on('intercoder-results-init-data', callback),
-  sendIntercoderResultsAction: (action, payload) => toMain('intercoder-results-action', { action, payload }),
-  onIntercoderResultsAction: (callback) => on<PayloadMessage>('intercoder-results-action', (p) => callback(p.action, p.payload)),
+  sendIntercoderResultsAction: (action, ...args) => toMain('intercoder-results-action', { action, payload: args[0] }),
+  onIntercoderResultsAction: (callback) => on('intercoder-results-action', callback),
   onIntercoderResultsClosed: (callback) => on('intercoder-results-window-closed', () => callback()),
 
   // Query results window (pop-out)
@@ -542,8 +536,8 @@ const api: MagnoliaAPI = {
   updateQueryResultsWindow: (data) => void invoke('update_query_results_window', { data }),
   getQueryResultsData: () => invoke('get_window_data'),
   onQueryResultsData: (callback) => on('query-results-init-data', callback),
-  sendQueryResultsAction: (action, payload) => toMain('query-results-action', { action, payload }),
-  onQueryResultsAction: (callback) => on<PayloadMessage>('query-results-action', (p) => callback(p.action, p.payload)),
+  sendQueryResultsAction: (action, ...args) => toMain('query-results-action', { action, payload: args[0] }),
+  onQueryResultsAction: (callback) => on('query-results-action', callback),
   jumpToQueryResult: (target) => {
     toMain('query-results-jump', target)
     void invoke('focus_main_window')
