@@ -1,7 +1,6 @@
 //! WebKitGTK printing to a PDF file (print-to-file backend).
 
 use super::PdfOptions;
-use gtk::prelude::*;
 use std::path::Path;
 use std::sync::mpsc;
 use std::time::Duration;
