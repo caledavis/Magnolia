@@ -342,6 +342,8 @@ fn cases_without_documents_are_still_a_surveys_respondents() {
 
 #[test]
 fn what_cant_be_kept_is_counted_and_magnolias_own_save_reports_nothing() {
+    // (The document's description and its whole-document coding are kept:
+    // see the tests below.)
     let xml = project_xml(
         r#"<Sources>
   <TextSource guid="40000000-0000-0000-0000-000000000001" name="Interview A.txt" plainTextPath="internal://40000000-0000-0000-0000-000000000001.txt">
@@ -369,9 +371,71 @@ fn what_cant_be_kept_is_counted_and_magnolias_own_save_reports_nothing() {
     let (first, again, _) = read_and_resave(&xml, &TWO_TEXTS);
     // The memos on the document and on the passage are kept attached; the
     // one on the coding isn't; the blank description doesn't count.
-    assert_eq!(
-        first["notKept"],
-        serde_json::json!({ "descriptions": 1, "documentCodings": 1, "links": 1, "memoAttachments": 1, "setMemos": 1 })
-    );
+    assert_eq!(first["notKept"], serde_json::json!({ "links": 1, "memoAttachments": 1, "setMemos": 1 }));
     assert!(again.get("notKept").is_none(), "{:?}", again["notKept"]);
+}
+
+fn png(w: u32, h: u32) -> Vec<u8> {
+    let mut out = std::io::Cursor::new(Vec::new());
+    image::RgbImage::new(w, h).write_to(&mut out, image::ImageFormat::Png).unwrap();
+    out.into_inner()
+}
+
+#[test]
+fn whole_document_codings_cover_the_whole_document() {
+    let xml = project_xml(
+        r#"<Sources>
+  <TextSource guid="40000000-0000-0000-0000-000000000001" name="Interview A.txt" plainTextPath="internal://40000000-0000-0000-0000-000000000001.txt">
+    <Coding guid="60000000-0000-0000-0000-000000000002" creatingUser="10000000-0000-0000-0000-000000000001"><CodeRef targetGUID="20000000-0000-0000-0000-000000000001"/></Coding>
+  </TextSource>
+  <PictureSource guid="40000000-0000-0000-0000-000000000006" name="photo.png" path="internal://40000000-0000-0000-0000-000000000006.png">
+    <Coding guid="60000000-0000-0000-0000-000000000003"><CodeRef targetGUID="20000000-0000-0000-0000-000000000001"/></Coding>
+  </PictureSource>
+</Sources>"#,
+    );
+    let photo = png(64, 48);
+    let (first, again, saved) = read_and_resave(&xml, &[TWO_TEXTS[0], ("sources/40000000-0000-0000-0000-000000000006.png", &photo)]);
+    validate(&saved).unwrap();
+    assert!(first.get("notKept").is_none(), "{:?}", first["notKept"]);
+    for project in [&first, &again] {
+        let text = &source(project, "Interview A.txt")["selections"][0];
+        assert_eq!((text["startPosition"].as_u64(), text["endPosition"].as_u64()), (Some(0), Some(16)), "{text}");
+        assert_eq!(text["codings"][0]["guid"], "60000000-0000-0000-0000-000000000002");
+        let picture = &source(project, "photo.png")["selections"][0];
+        assert_eq!(picture["pdfRegion"], serde_json::json!({ "page": 1, "x": 0, "y": 0, "width": 64, "height": 48 }));
+        assert_eq!(picture["codings"][0]["codeGuid"], "20000000-0000-0000-0000-000000000001");
+    }
+}
+
+#[test]
+fn memos_on_areas_stay_attached_and_descriptions_become_memos() {
+    let xml = project_xml(
+        r#"<Sources>
+  <TextSource guid="40000000-0000-0000-0000-000000000001" name="Interview A.txt" plainTextPath="internal://40000000-0000-0000-0000-000000000001.txt">
+    <Description>We have James under the Blob.</Description>
+  </TextSource>
+  <PictureSource guid="40000000-0000-0000-0000-000000000006" name="photo.png" path="internal://40000000-0000-0000-0000-000000000006.png">
+    <PictureSelection guid="50000000-0000-0000-0000-000000000009" firstX="5" firstY="6" secondX="25" secondY="36">
+      <Coding guid="60000000-0000-0000-0000-000000000009"><CodeRef targetGUID="20000000-0000-0000-0000-000000000001"/></Coding>
+      <NoteRef targetGUID="a0000000-0000-0000-0000-000000000009"/>
+    </PictureSelection>
+  </PictureSource>
+</Sources>
+<Notes><Note guid="a0000000-0000-0000-0000-000000000009" name="On the face"><PlainTextContent>Smiling.</PlainTextContent></Note></Notes>"#,
+    );
+    let photo = png(64, 48);
+    let (first, again, _) = read_and_resave(&xml, &[TWO_TEXTS[0], ("sources/40000000-0000-0000-0000-000000000006.png", &photo)]);
+    assert!(first.get("notKept").is_none(), "{:?}", first["notKept"]);
+    for project in [&first, &again] {
+        let memos = project["memos"].as_array().unwrap();
+        let on_face = memos.iter().find(|m| m["title"] == "On the face").unwrap();
+        assert_eq!(on_face["type"], "content");
+        assert_eq!(on_face["sourceGuid"], source(project, "photo.png")["guid"]);
+        assert_eq!(on_face["pdfRegion"], serde_json::json!({ "page": 1, "x": 5, "y": 6, "width": 20, "height": 30 }));
+        let described = memos.iter().find(|m| m["title"] == "Description of Interview A.txt").unwrap();
+        assert_eq!(described["type"], "document");
+        assert_eq!(described["content"], "We have James under the Blob.");
+        assert_eq!(described["sourceGuids"][0], source(project, "Interview A.txt")["guid"]);
+        assert_eq!(memos.len(), 2, "{memos:?}");
+    }
 }

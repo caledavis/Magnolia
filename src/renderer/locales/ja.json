@@ -194,7 +194,8 @@
         "diskFull": "ディスクの空き領域が足りません。空き領域を増やしてからもう一度お試しください。",
         "notFound": "プロジェクトのフォルダが見つかりません。移動または名前の変更が行われたか、接続されていないディスク上にある可能性があります。"
       },
-      "caseCategory": "ケース"
+      "caseCategory": "ケース",
+      "documentDescription": "{{name}} の説明"
     }
   },
   "tools": {
@@ -1930,5 +1931,19 @@
     "title": "読み取り専用で開きました",
     "text": "このプロジェクトは新しいバージョンの Magnolia（{{savedBy}}）で保存されています。ここで閲覧はできますが、新しいバージョンが追加した内容が失われないよう、変更は保存されません。作業するには Magnolia をアップデートしてください。",
     "cantSave": "このプロジェクトは新しいバージョンの Magnolia（{{savedBy}}）で保存されているため、このバージョンではプロジェクトもそのコピーも保存できません。作業するには Magnolia をアップデートしてください。"
+  },
+  "notKept": {
+    "title": "このプロジェクトの一部は Magnolia に保持できません",
+    "intro": "別のプログラムで作成されており、Magnolia に置き場所のないものが含まれています：",
+    "documentCodings_other": "トランスクリプトのない録音全体へのコーディング：{{count}}",
+    "memoCodings_other": "メモ内のコーディング：{{count}}",
+    "memoAttachments_other": "コード、コーディング、リンク、録音の区間に付けられたメモ（メモは残りますが、付け先は外れます）：{{count}}",
+    "descriptions_other": "トランスクリプト、メモ、変数の説明：{{count}}",
+    "attachedTexts_other": "画像や PDF の領域に付けられたテキスト：{{count}}",
+    "links_other": "項目間のリンク：{{count}}",
+    "caseLinks_other": "ケースからコードや箇所へのリンク：{{count}}",
+    "setMemos_other": "セット内のメモ：{{count}}",
+    "extraTranscripts_other": "録音の追加トランスクリプト（最初のものだけが残ります）：{{count}}",
+    "advice": "ファイルはまだ何も変わっていませんが、Magnolia がこのファイルに上書き保存すると、これらは失われます。元のファイルをそのまま残すには、いまプロジェクトを新しいファイルとして保存してください。"
   }
 }

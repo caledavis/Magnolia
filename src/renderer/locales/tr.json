@@ -197,7 +197,8 @@
         "diskFull": "Diskte yeterli boş alan yok. Biraz yer açın ve yeniden deneyin.",
         "notFound": "Projenin klasörü bulunamıyor. Taşınmış ya da yeniden adlandırılmış veya bağlı olmayan bir diskte olabilir."
       },
-      "caseCategory": "Vaka"
+      "caseCategory": "Vaka",
+      "documentDescription": "{{name}} açıklaması"
     }
   },
   "tools": {
@@ -2006,5 +2007,28 @@
     "title": "Salt okunur açıldı",
     "text": "Bu proje Magnolia’nın daha yeni bir sürümüyle kaydedildi ({{savedBy}}). Burada inceleyebilirsiniz, ancak yeni sürümün eklediği hiçbir şey kaybolmasın diye değişiklikler kaydedilmeyecek. Proje üzerinde çalışmak için Magnolia’yı güncelleyin.",
     "cantSave": "Bu proje Magnolia’nın daha yeni bir sürümüyle kaydedildi ({{savedBy}}), bu yüzden bu sürüm ne projeyi ne de kopyasını kaydedebilir. Proje üzerinde çalışmak için Magnolia’yı güncelleyin."
+  },
+  "notKept": {
+    "title": "Bu projenin bir kısmı Magnolia’da tutulamıyor",
+    "intro": "Başka bir programda hazırlanmış ve Magnolia’nın yer veremeyeceği öğeler içeriyor:",
+    "documentCodings_one": "Dökümü olmayan kayıtların tamamına yapılan kodlamalar: {{count}}",
+    "documentCodings_other": "Dökümü olmayan kayıtların tamamına yapılan kodlamalar: {{count}}",
+    "memoCodings_one": "Notlardaki kodlamalar: {{count}}",
+    "memoCodings_other": "Notlardaki kodlamalar: {{count}}",
+    "memoAttachments_one": "Bir koda, kodlamaya, bağlantıya veya kaydın bir bölümüne bağlı notlar (not tutulur, ama bağsız): {{count}}",
+    "memoAttachments_other": "Bir koda, kodlamaya, bağlantıya veya kaydın bir bölümüne bağlı notlar (not tutulur, ama bağsız): {{count}}",
+    "descriptions_one": "Dökümlerin, notların veya değişkenlerin açıklamaları: {{count}}",
+    "descriptions_other": "Dökümlerin, notların veya değişkenlerin açıklamaları: {{count}}",
+    "attachedTexts_one": "Resimlere veya PDF alanlarına bağlı metinler: {{count}}",
+    "attachedTexts_other": "Resimlere veya PDF alanlarına bağlı metinler: {{count}}",
+    "links_one": "Öğeler arası bağlantılar: {{count}}",
+    "links_other": "Öğeler arası bağlantılar: {{count}}",
+    "caseLinks_one": "Vakalardan kodlara veya pasajlara bağlantılar: {{count}}",
+    "caseLinks_other": "Vakalardan kodlara veya pasajlara bağlantılar: {{count}}",
+    "setMemos_one": "Kümelerdeki notlar: {{count}}",
+    "setMemos_other": "Kümelerdeki notlar: {{count}}",
+    "extraTranscripts_one": "Kayıtların ek dökümleri (yalnızca ilki tutulur): {{count}}",
+    "extraTranscripts_other": "Kayıtların ek dökümleri (yalnızca ilki tutulur): {{count}}",
+    "advice": "Dosyada henüz hiçbir şey değişmedi, ancak Magnolia projeyi dosyanın üzerine kaydettiğinde bunlar dosyadan kaybolacak. Orijinali olduğu gibi tutmak için projeyi şimdi yeni bir dosya olarak kaydedin."
   }
 }

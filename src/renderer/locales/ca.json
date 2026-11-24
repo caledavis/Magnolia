@@ -200,7 +200,8 @@
         "diskFull": "No hi ha prou espai lliure al disc. Allibereu espai i torneu-ho a provar.",
         "notFound": "No es troba la carpeta del projecte. Potser s’ha mogut o se n’ha canviat el nom, o és en un disc que no està connectat."
       },
-      "caseCategory": "Cas"
+      "caseCategory": "Cas",
+      "documentDescription": "Descripció de {{name}}"
     }
   },
   "tools": {
@@ -2082,5 +2083,37 @@
     "title": "Obert només de lectura",
     "text": "Aquest projecte s’ha desat amb una versió més recent del Magnolia ({{savedBy}}). Podeu consultar-lo aquí, però els canvis no es desaran, perquè no es perdi res del que hi ha afegit la versió més recent. Actualitzeu el Magnolia per treballar-hi.",
     "cantSave": "Aquest projecte s’ha desat amb una versió més recent del Magnolia ({{savedBy}}), de manera que aquesta versió no el pot desar ni desar-ne una còpia. Actualitzeu el Magnolia per treballar-hi."
+  },
+  "notKept": {
+    "title": "Part d’aquest projecte no es pot conservar al Magnolia",
+    "intro": "Es va crear amb un altre programa i conté coses que el Magnolia no pot desar:",
+    "documentCodings_many": "Codificacions d’enregistraments sencers sense transcripció: {{count}}",
+    "documentCodings_one": "Codificacions d’enregistraments sencers sense transcripció: {{count}}",
+    "documentCodings_other": "Codificacions d’enregistraments sencers sense transcripció: {{count}}",
+    "memoCodings_many": "Codificacions en memoràndums: {{count}}",
+    "memoCodings_one": "Codificacions en memoràndums: {{count}}",
+    "memoCodings_other": "Codificacions en memoràndums: {{count}}",
+    "memoAttachments_many": "Memoràndums vinculats a un codi, una codificació, un enllaç o un tram d’enregistrament (el memoràndum es conserva, però solt): {{count}}",
+    "memoAttachments_one": "Memoràndums vinculats a un codi, una codificació, un enllaç o un tram d’enregistrament (el memoràndum es conserva, però solt): {{count}}",
+    "memoAttachments_other": "Memoràndums vinculats a un codi, una codificació, un enllaç o un tram d’enregistrament (el memoràndum es conserva, però solt): {{count}}",
+    "descriptions_many": "Descripcions de transcripcions, memoràndums o variables: {{count}}",
+    "descriptions_one": "Descripcions de transcripcions, memoràndums o variables: {{count}}",
+    "descriptions_other": "Descripcions de transcripcions, memoràndums o variables: {{count}}",
+    "attachedTexts_many": "Textos vinculats a imatges o a àrees de PDF: {{count}}",
+    "attachedTexts_one": "Textos vinculats a imatges o a àrees de PDF: {{count}}",
+    "attachedTexts_other": "Textos vinculats a imatges o a àrees de PDF: {{count}}",
+    "links_many": "Enllaços entre elements: {{count}}",
+    "links_one": "Enllaços entre elements: {{count}}",
+    "links_other": "Enllaços entre elements: {{count}}",
+    "caseLinks_many": "Enllaços de casos a codis o passatges: {{count}}",
+    "caseLinks_one": "Enllaços de casos a codis o passatges: {{count}}",
+    "caseLinks_other": "Enllaços de casos a codis o passatges: {{count}}",
+    "setMemos_many": "Memoràndums en conjunts: {{count}}",
+    "setMemos_one": "Memoràndums en conjunts: {{count}}",
+    "setMemos_other": "Memoràndums en conjunts: {{count}}",
+    "extraTranscripts_many": "Transcripcions addicionals d’enregistraments (només es conserva la primera): {{count}}",
+    "extraTranscripts_one": "Transcripcions addicionals d’enregistraments (només es conserva la primera): {{count}}",
+    "extraTranscripts_other": "Transcripcions addicionals d’enregistraments (només es conserva la primera): {{count}}",
+    "advice": "Encara no ha canviat res al fitxer, però quan el Magnolia hi desi el projecte a sobre, això es perdrà. Per conservar l’original tal com és, deseu ara el projecte com un fitxer nou."
   }
 }

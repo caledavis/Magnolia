@@ -197,7 +197,8 @@
         "diskFull": "There isn’t enough free space on the disk. Free up some space and try again.",
         "notFound": "The project’s folder can’t be found. It may have been moved or renamed, or be on a disk that isn’t connected."
       },
-      "caseCategory": "Case"
+      "caseCategory": "Case",
+      "documentDescription": "Description of {{name}}"
     }
   },
   "tools": {
@@ -2010,14 +2011,14 @@
   "notKept": {
     "title": "Some of this project can’t be kept in Magnolia",
     "intro": "It was made in another program, and holds things Magnolia has no place for:",
-    "documentCodings_one": "{{count}} coding of a whole document",
-    "documentCodings_other": "{{count}} codings of whole documents",
+    "documentCodings_one": "{{count}} coding of a whole recording that has no transcript",
+    "documentCodings_other": "{{count}} codings of whole recordings that have no transcript",
     "memoCodings_one": "{{count}} coding in a memo",
     "memoCodings_other": "{{count}} codings in memos",
-    "memoAttachments_one": "{{count}} memo attached to a code, a coding, an area or a stretch of a recording (the memo is kept, but not attached)",
-    "memoAttachments_other": "{{count}} memos attached to codes, codings, areas or stretches of recordings (the memos are kept, but not attached)",
-    "descriptions_one": "{{count}} description of a document, transcript, memo or variable",
-    "descriptions_other": "{{count}} descriptions of documents, transcripts, memos or variables",
+    "memoAttachments_one": "{{count}} memo attached to a code, a coding, a link or a stretch of a recording (the memo is kept, but not attached)",
+    "memoAttachments_other": "{{count}} memos attached to codes, codings, links or stretches of recordings (the memos are kept, but not attached)",
+    "descriptions_one": "{{count}} description of a transcript, memo or variable",
+    "descriptions_other": "{{count}} descriptions of transcripts, memos or variables",
     "attachedTexts_one": "{{count}} text attached to a picture or an area of a PDF",
     "attachedTexts_other": "{{count}} texts attached to pictures or areas of PDFs",
     "links_one": "{{count}} link between two items",

@@ -71,6 +71,9 @@ type ProgressCallback = (p: { stage: string; current: number; total: number }) =
  *  sources the backend couldn't read text from are flagged. */
 type LoadedProject = Project & { sourceContents: Record<string, string> }
 type PendingPdfText = { _pendingPdfText?: boolean }
+/** A whole-document coding's passage on a PDF whose text isn't read yet
+ *  (magnolia-core reader.rs place_document_codings). */
+type WholeDocument = TextSource['selections'][number] & { _wholeDocument?: boolean }
 
 /** A file as the backend reads it for import: a PDF's text is still to be
  *  read here (from formatting.pdfBase64) when it's flagged. */
@@ -101,6 +104,14 @@ async function completeProjectPdfText<T extends LoadedProject | null>(
         const { text, pageOffsets } = await extractPdfText(bytes)
         data.sourceContents[source.guid] = text
         if (!fd.pdfPageOffsets?.length) source.formatData = { ...fd, pdfPageOffsets: pageOffsets }
+        // A coding of the whole PDF (from another program) covers all of
+        // its text, now that there is some.
+        source.selections = source.selections.map((sel) => {
+          if (!(sel as WholeDocument)._wholeDocument) return sel
+          const { _wholeDocument: _flag, ...rest } = sel as WholeDocument
+          void _flag
+          return { ...rest, startPosition: 0, endPosition: Array.from(text).length }
+        })
       }
     } catch (err) {
       // Still viewable; just no searchable text.

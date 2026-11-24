@@ -197,7 +197,8 @@
         "diskFull": "Det er ikke nok ledig plass på disken. Frigjør litt plass og prøv igjen.",
         "notFound": "Finner ikke mappen til prosjektet. Den kan være flyttet eller har fått nytt navn, eller ligge på en disk som ikke er koblet til."
       },
-      "caseCategory": "Case"
+      "caseCategory": "Case",
+      "documentDescription": "Beskrivelse av {{name}}"
     }
   },
   "tools": {
@@ -2006,5 +2007,28 @@
     "title": "Åpnet skrivebeskyttet",
     "text": "Dette prosjektet ble lagret med en nyere versjon av Magnolia ({{savedBy}}). Du kan se gjennom det her, men endringer blir ikke lagret, slik at ingenting av det den nyere versjonen har lagt til, går tapt. Oppdater Magnolia for å arbeide med det.",
     "cantSave": "Dette prosjektet ble lagret med en nyere versjon av Magnolia ({{savedBy}}), så denne versjonen kan verken lagre det eller lagre en kopi av det. Oppdater Magnolia for å arbeide med det."
+  },
+  "notKept": {
+    "title": "Noe av dette prosjektet kan ikke beholdes i Magnolia",
+    "intro": "Det er laget i et annet program og inneholder ting Magnolia ikke har plass til:",
+    "documentCodings_one": "Kodinger av hele opptak uten transkripsjon: {{count}}",
+    "documentCodings_other": "Kodinger av hele opptak uten transkripsjon: {{count}}",
+    "memoCodings_one": "Kodinger i notater: {{count}}",
+    "memoCodings_other": "Kodinger i notater: {{count}}",
+    "memoAttachments_one": "Notater knyttet til en kode, en koding, en lenke eller et stykke av et opptak (notatet beholdes, men løst): {{count}}",
+    "memoAttachments_other": "Notater knyttet til en kode, en koding, en lenke eller et stykke av et opptak (notatet beholdes, men løst): {{count}}",
+    "descriptions_one": "Beskrivelser av transkripsjoner, notater eller variabler: {{count}}",
+    "descriptions_other": "Beskrivelser av transkripsjoner, notater eller variabler: {{count}}",
+    "attachedTexts_one": "Tekster knyttet til bilder eller områder i PDF-er: {{count}}",
+    "attachedTexts_other": "Tekster knyttet til bilder eller områder i PDF-er: {{count}}",
+    "links_one": "Lenker mellom elementer: {{count}}",
+    "links_other": "Lenker mellom elementer: {{count}}",
+    "caseLinks_one": "Lenker fra caser til koder eller passasjer: {{count}}",
+    "caseLinks_other": "Lenker fra caser til koder eller passasjer: {{count}}",
+    "setMemos_one": "Notater i sett: {{count}}",
+    "setMemos_other": "Notater i sett: {{count}}",
+    "extraTranscripts_one": "Ekstra transkripsjoner av opptak (bare den første beholdes): {{count}}",
+    "extraTranscripts_other": "Ekstra transkripsjoner av opptak (bare den første beholdes): {{count}}",
+    "advice": "Ingenting er endret i filen ennå, men når Magnolia lagrer prosjektet over den, forsvinner disse fra den. Lagre prosjektet som en ny fil nå for å beholde originalen som den er."
   }
 }

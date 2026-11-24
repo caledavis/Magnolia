@@ -197,7 +197,8 @@
         "diskFull": "Levyllä ei ole tarpeeksi vapaata tilaa. Vapauta tilaa ja yritä uudelleen.",
         "notFound": "Projektin kansiota ei löydy. Se on ehkä siirretty tai nimetty uudelleen, tai se on levyllä, joka ei ole liitettynä."
       },
-      "caseCategory": "Tapaus"
+      "caseCategory": "Tapaus",
+      "documentDescription": "Kuvaus: {{name}}"
     }
   },
   "tools": {
@@ -2006,5 +2007,28 @@
     "title": "Avattu vain luku -tilassa",
     "text": "Tämä projekti on tallennettu Magnolian uudemmalla versiolla ({{savedBy}}). Voit tarkastella sitä täällä, mutta muutoksia ei tallenneta, jotta mitään uudemman version lisäämää ei menetetä. Päivitä Magnolia, jotta voit työskennellä projektin parissa.",
     "cantSave": "Tämä projekti on tallennettu Magnolian uudemmalla versiolla ({{savedBy}}), joten tämä versio ei voi tallentaa sitä eikä sen kopiota. Päivitä Magnolia, jotta voit työskennellä projektin parissa."
+  },
+  "notKept": {
+    "title": "Osaa tästä projektista ei voi säilyttää Magnoliassa",
+    "intro": "Se on tehty toisella ohjelmalla, ja siinä on asioita, joille Magnoliassa ei ole paikkaa:",
+    "documentCodings_one": "Kokonaisten tallenteiden koodaukset ilman litterointia: {{count}}",
+    "documentCodings_other": "Kokonaisten tallenteiden koodaukset ilman litterointia: {{count}}",
+    "memoCodings_one": "Koodaukset muistioissa: {{count}}",
+    "memoCodings_other": "Koodaukset muistioissa: {{count}}",
+    "memoAttachments_one": "Koodiin, koodaukseen, linkkiin tai tallenteen jaksoon liitetyt muistiot (muistio säilyy, mutta irrallisena): {{count}}",
+    "memoAttachments_other": "Koodiin, koodaukseen, linkkiin tai tallenteen jaksoon liitetyt muistiot (muistio säilyy, mutta irrallisena): {{count}}",
+    "descriptions_one": "Litterointien, muistioiden tai muuttujien kuvaukset: {{count}}",
+    "descriptions_other": "Litterointien, muistioiden tai muuttujien kuvaukset: {{count}}",
+    "attachedTexts_one": "Kuviin tai PDF-alueisiin liitetyt tekstit: {{count}}",
+    "attachedTexts_other": "Kuviin tai PDF-alueisiin liitetyt tekstit: {{count}}",
+    "links_one": "Linkit kohteiden välillä: {{count}}",
+    "links_other": "Linkit kohteiden välillä: {{count}}",
+    "caseLinks_one": "Linkit tapauksista koodeihin tai kohtiin: {{count}}",
+    "caseLinks_other": "Linkit tapauksista koodeihin tai kohtiin: {{count}}",
+    "setMemos_one": "Muistiot joukoissa: {{count}}",
+    "setMemos_other": "Muistiot joukoissa: {{count}}",
+    "extraTranscripts_one": "Tallenteiden lisälitteroinnit (vain ensimmäinen säilyy): {{count}}",
+    "extraTranscripts_other": "Tallenteiden lisälitteroinnit (vain ensimmäinen säilyy): {{count}}",
+    "advice": "Tiedostoon ei ole vielä muutettu mitään, mutta kun Magnolia tallentaa projektin sen päälle, nämä katoavat siitä. Jos haluat säilyttää alkuperäisen sellaisenaan, tallenna projekti nyt uudeksi tiedostoksi."
   }
 }

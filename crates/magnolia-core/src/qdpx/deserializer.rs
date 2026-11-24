@@ -106,6 +106,14 @@ fn base_source(n: Node, source_type: Option<&str>, path_attr: &str) -> Obj {
         o.insert("sourceType".into(), t.into());
     }
     set_opt(&mut o, "plainTextPath", attr(n, path_attr));
+    // Its description, which the reader makes a memo on it.
+    set_opt(&mut o, "_description", child_text(n, "Description").filter(|d| !d.trim().is_empty()));
+    // Codings of the whole document, which the reader puts on a passage
+    // (or area) covering all of it.
+    let whole: Vec<Value> = children(n, "Coding").map(parse_coding).collect();
+    if !whole.is_empty() {
+        o.insert("_documentCodings".into(), whole.into());
+    }
     // A document's own variable values (as MAXQDA writes its document
     // variables); the reader turns them into tags.
     let values: Vec<Value> = children(n, "VariableValue").map(parse_variable_value).collect();
@@ -278,6 +286,24 @@ fn parse_pdf_source(n: Node) -> Value {
     let repr = child(n, "Representation");
     if let Some(p) = repr.and_then(|r| attr(r, "plainTextPath")) {
         o.insert("_representationPlainTextPath".into(), p.into());
+    }
+    // The text representation's description and whole-document codings
+    // are the PDF's.
+    if let Some(r) = repr {
+        if let Some(d) = child_text(r, "Description").filter(|d| !d.trim().is_empty()) {
+            let both = match o.get("_description").and_then(Value::as_str) {
+                Some(first) if first.trim() != d.trim() => format!("{first}\n\n{d}"),
+                Some(first) => first.to_string(),
+                None => d,
+            };
+            o.insert("_description".into(), both.into());
+        }
+        let whole: Vec<Value> = children(r, "Coding").map(parse_coding).collect();
+        if !whole.is_empty() {
+            let mut all = o.get("_documentCodings").and_then(Value::as_array).cloned().unwrap_or_default();
+            all.extend(whole);
+            o.insert("_documentCodings".into(), all.into());
+        }
     }
     let raw: Vec<Value> = children(n, "PDFSelection")
         .map(|s| rect_selection(s, true))
@@ -456,6 +482,24 @@ fn scan_note_refs(src: Node, anchors: &mut Map<String, Value>) {
     for repr in children(src, "Representation") {
         scan(repr);
     }
+    // On an area of a PDF or picture, or a passage of a transcript: the
+    // reader attaches it once that area or passage is in place.
+    let mut on_selection = |sel: Node| {
+        for nr in children(sel, "NoteRef") {
+            anchors.insert(
+                guid_attr(nr, "targetGUID"),
+                json!({ "sourceGuid": source_guid, "selectionGuid": guid_attr(sel, "guid") }),
+            );
+        }
+    };
+    for sel in children(src, "PDFSelection").chain(children(src, "PictureSelection")) {
+        on_selection(sel);
+    }
+    for t in children(src, "Transcript") {
+        for sel in children(t, "TranscriptSelection") {
+            on_selection(sel);
+        }
+    }
 }
 
 const SOURCES: [&str; 5] = ["TextSource", "PDFSource", "PictureSource", "AudioSource", "VideoSource"];
@@ -479,9 +523,13 @@ pub fn not_kept(proj: Node) -> Map<String, Value> {
         let kind = match n.tag_name().name() {
             // Links between items, except those a map's arrows stand for.
             "Link" if !attr(n, "guid").is_some_and(|g| edge_links.contains(&normalize_guid(Some(&g)))) => Some("links"),
-            // A coding of a whole document (not of a passage in it).
-            "Coding" if SOURCES.contains(&parent(n).as_str()) || ["Representation", "TextDescription"].contains(&parent(n).as_str()) => {
-                if within(n, "Note") { Some("memoCodings") } else { Some("documentCodings") }
+            // A coding of a whole recording with no transcript to put it on
+            // (a whole document's is kept as a passage covering all of it).
+            "Coding"
+                if ["AudioSource", "VideoSource"].contains(&parent(n).as_str())
+                    && n.parent_element().is_some_and(|m| child(m, "Transcript").is_none()) =>
+            {
+                Some("documentCodings")
             }
             // Codings inside memos.
             "Coding" if within(n, "Note") => Some("memoCodings"),
@@ -497,11 +545,14 @@ pub fn not_kept(proj: Node) -> Map<String, Value> {
                 Some("attachedTexts")
             }
             // A memo attached where Magnolia can't attach one: to a code, a
-            // coding, a link, a memo, an area or a stretch of a recording.
-            // (On a document, or on a passage of its text, it is kept.)
+            // coding, a link, a memo or a stretch of a recording. (On a
+            // document, a passage of its text or transcript, or an area of a
+            // PDF or picture, it is kept.)
             "NoteRef" => {
                 let p = parent(n);
-                let on_document = SOURCES.contains(&p.as_str());
+                let on_document = SOURCES.contains(&p.as_str())
+                    || (["PDFSelection", "PictureSelection", "TranscriptSelection"].contains(&p.as_str())
+                        && !within(n, "Note"));
                 let on_passage = p == "PlainTextSelection"
                     && n.parent_element().and_then(|s| s.parent_element()).is_some_and(|d| {
                         let t = name(d);
@@ -510,13 +561,15 @@ pub fn not_kept(proj: Node) -> Map<String, Value> {
                 let on_project = p == "Project";
                 (!on_document && !on_passage && !on_project && !within(n, "Note")).then_some("memoAttachments")
             }
-            // Descriptions of documents, transcripts, memos and variables
-            // (Magnolia's own survey variables excepted).
+            // Descriptions of transcripts, memos and variables (Magnolia's
+            // own survey variables excepted); a document's becomes a memo.
             "Description" if n.text().is_some_and(|t| !t.trim().is_empty()) => {
                 let p = parent(n);
                 let in_attached_text = p == "Representation" && n.parent_element().and_then(|r| r.parent_element()).is_some_and(|x| name(x) == "PDFSelection");
                 let own_variable = p == "Variable" && n.text().is_some_and(|t| t.trim_start().starts_with("magnolia:v1:"));
-                ((SOURCES.contains(&p.as_str()) || ["Transcript", "Note", "Representation"].contains(&p.as_str()) || p == "Variable")
+                let of_document = SOURCES.contains(&p.as_str())
+                    || (p == "Representation" && n.parent_element().and_then(|r| r.parent_element()).is_some_and(|x| name(x) == "PDFSource"));
+                (!of_document && (["Transcript", "Note", "Representation"].contains(&p.as_str()) || p == "Variable")
                     && !own_variable
                     && !in_attached_text)
                     .then_some("descriptions")

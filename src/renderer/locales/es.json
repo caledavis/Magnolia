@@ -200,7 +200,8 @@
         "diskFull": "No hay suficiente espacio libre en el disco. Libera espacio e inténtalo de nuevo.",
         "notFound": "No se encuentra la carpeta del proyecto. Puede que se haya movido o cambiado de nombre, o que esté en un disco que no está conectado."
       },
-      "caseCategory": "Caso"
+      "caseCategory": "Caso",
+      "documentDescription": "Descripción de {{name}}"
     }
   },
   "tools": {
@@ -2082,5 +2083,37 @@
     "title": "Abierto en modo de solo lectura",
     "text": "Este proyecto se guardó con una versión más reciente de Magnolia ({{savedBy}}). Puedes consultarlo aquí, pero los cambios no se guardarán, para que no se pierda nada de lo que añadió la versión más reciente. Actualiza Magnolia para trabajar en él.",
     "cantSave": "Este proyecto se guardó con una versión más reciente de Magnolia ({{savedBy}}), así que esta versión no puede guardarlo ni guardar una copia. Actualiza Magnolia para trabajar en él."
+  },
+  "notKept": {
+    "title": "Parte de este proyecto no se puede conservar en Magnolia",
+    "intro": "Se creó en otro programa y contiene cosas que Magnolia no puede guardar:",
+    "documentCodings_many": "Codificaciones de grabaciones completas sin transcripción: {{count}}",
+    "documentCodings_one": "Codificaciones de grabaciones completas sin transcripción: {{count}}",
+    "documentCodings_other": "Codificaciones de grabaciones completas sin transcripción: {{count}}",
+    "memoCodings_many": "Codificaciones en memos: {{count}}",
+    "memoCodings_one": "Codificaciones en memos: {{count}}",
+    "memoCodings_other": "Codificaciones en memos: {{count}}",
+    "memoAttachments_many": "Memos adjuntos a un código, una codificación, un vínculo o un tramo de una grabación (el memo se conserva, pero suelto): {{count}}",
+    "memoAttachments_one": "Memos adjuntos a un código, una codificación, un vínculo o un tramo de una grabación (el memo se conserva, pero suelto): {{count}}",
+    "memoAttachments_other": "Memos adjuntos a un código, una codificación, un vínculo o un tramo de una grabación (el memo se conserva, pero suelto): {{count}}",
+    "descriptions_many": "Descripciones de transcripciones, memos o variables: {{count}}",
+    "descriptions_one": "Descripciones de transcripciones, memos o variables: {{count}}",
+    "descriptions_other": "Descripciones de transcripciones, memos o variables: {{count}}",
+    "attachedTexts_many": "Textos adjuntos a imágenes o a áreas de PDF: {{count}}",
+    "attachedTexts_one": "Textos adjuntos a imágenes o a áreas de PDF: {{count}}",
+    "attachedTexts_other": "Textos adjuntos a imágenes o a áreas de PDF: {{count}}",
+    "links_many": "Vínculos entre elementos: {{count}}",
+    "links_one": "Vínculos entre elementos: {{count}}",
+    "links_other": "Vínculos entre elementos: {{count}}",
+    "caseLinks_many": "Vínculos de casos a códigos o pasajes: {{count}}",
+    "caseLinks_one": "Vínculos de casos a códigos o pasajes: {{count}}",
+    "caseLinks_other": "Vínculos de casos a códigos o pasajes: {{count}}",
+    "setMemos_many": "Memos en conjuntos: {{count}}",
+    "setMemos_one": "Memos en conjuntos: {{count}}",
+    "setMemos_other": "Memos en conjuntos: {{count}}",
+    "extraTranscripts_many": "Transcripciones adicionales de grabaciones (solo se conserva la primera): {{count}}",
+    "extraTranscripts_one": "Transcripciones adicionales de grabaciones (solo se conserva la primera): {{count}}",
+    "extraTranscripts_other": "Transcripciones adicionales de grabaciones (solo se conserva la primera): {{count}}",
+    "advice": "Aún no ha cambiado nada en el archivo, pero cuando Magnolia guarde el proyecto sobre él, esto desaparecerá. Para conservar el original tal como está, guarda ahora el proyecto como un archivo nuevo."
   }
 }

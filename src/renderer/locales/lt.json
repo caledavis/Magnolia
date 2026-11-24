@@ -203,7 +203,8 @@
         "diskFull": "Diske nepakanka laisvos vietos. Atlaisvinkite vietos ir bandykite dar kartą.",
         "notFound": "Nepavyksta rasti projekto aplanko. Galbūt jis perkeltas ar pervadintas arba yra neprijungtame diske."
       },
-      "caseCategory": "Atvejis"
+      "caseCategory": "Atvejis",
+      "documentDescription": "Aprašas: {{name}}"
     }
   },
   "tools": {
@@ -2158,5 +2159,46 @@
     "title": "Atidaryta tik skaitymui",
     "text": "Šis projektas įrašytas naujesne Magnolia versija ({{savedBy}}). Čia galite jį peržiūrėti, bet pakeitimai nebus įrašyti, kad nedingtų niekas, ką pridėjo naujesnė versija. Atnaujinkite Magnolia, kad galėtumėte su juo dirbti.",
     "cantSave": "Šis projektas įrašytas naujesne Magnolia versija ({{savedBy}}), todėl ši versija negali įrašyti nei jo, nei jo kopijos. Atnaujinkite Magnolia, kad galėtumėte su juo dirbti."
+  },
+  "notKept": {
+    "title": "Dalies šio projekto Magnolia negali išsaugoti",
+    "intro": "Jis sukurtas kita programa ir turi dalykų, kuriems Magnolia neturi vietos:",
+    "documentCodings_few": "Visų įrašų be transkripcijos kodavimai: {{count}}",
+    "documentCodings_many": "Visų įrašų be transkripcijos kodavimai: {{count}}",
+    "documentCodings_one": "Visų įrašų be transkripcijos kodavimai: {{count}}",
+    "documentCodings_other": "Visų įrašų be transkripcijos kodavimai: {{count}}",
+    "memoCodings_few": "Kodavimai pastabose: {{count}}",
+    "memoCodings_many": "Kodavimai pastabose: {{count}}",
+    "memoCodings_one": "Kodavimai pastabose: {{count}}",
+    "memoCodings_other": "Kodavimai pastabose: {{count}}",
+    "memoAttachments_few": "Pastabos, susietos su kodu, kodavimu, nuoroda ar įrašo atkarpa (pastaba išliks, bet nesusieta): {{count}}",
+    "memoAttachments_many": "Pastabos, susietos su kodu, kodavimu, nuoroda ar įrašo atkarpa (pastaba išliks, bet nesusieta): {{count}}",
+    "memoAttachments_one": "Pastabos, susietos su kodu, kodavimu, nuoroda ar įrašo atkarpa (pastaba išliks, bet nesusieta): {{count}}",
+    "memoAttachments_other": "Pastabos, susietos su kodu, kodavimu, nuoroda ar įrašo atkarpa (pastaba išliks, bet nesusieta): {{count}}",
+    "descriptions_few": "Transkripcijų, pastabų ar kintamųjų aprašai: {{count}}",
+    "descriptions_many": "Transkripcijų, pastabų ar kintamųjų aprašai: {{count}}",
+    "descriptions_one": "Transkripcijų, pastabų ar kintamųjų aprašai: {{count}}",
+    "descriptions_other": "Transkripcijų, pastabų ar kintamųjų aprašai: {{count}}",
+    "attachedTexts_few": "Tekstai, susieti su paveikslėliais ar PDF sritimis: {{count}}",
+    "attachedTexts_many": "Tekstai, susieti su paveikslėliais ar PDF sritimis: {{count}}",
+    "attachedTexts_one": "Tekstai, susieti su paveikslėliais ar PDF sritimis: {{count}}",
+    "attachedTexts_other": "Tekstai, susieti su paveikslėliais ar PDF sritimis: {{count}}",
+    "links_few": "Nuorodos tarp elementų: {{count}}",
+    "links_many": "Nuorodos tarp elementų: {{count}}",
+    "links_one": "Nuorodos tarp elementų: {{count}}",
+    "links_other": "Nuorodos tarp elementų: {{count}}",
+    "caseLinks_few": "Nuorodos iš atvejų į kodus ar ištraukas: {{count}}",
+    "caseLinks_many": "Nuorodos iš atvejų į kodus ar ištraukas: {{count}}",
+    "caseLinks_one": "Nuorodos iš atvejų į kodus ar ištraukas: {{count}}",
+    "caseLinks_other": "Nuorodos iš atvejų į kodus ar ištraukas: {{count}}",
+    "setMemos_few": "Pastabos rinkiniuose: {{count}}",
+    "setMemos_many": "Pastabos rinkiniuose: {{count}}",
+    "setMemos_one": "Pastabos rinkiniuose: {{count}}",
+    "setMemos_other": "Pastabos rinkiniuose: {{count}}",
+    "extraTranscripts_few": "Papildomos įrašų transkripcijos (išlieka tik pirmoji): {{count}}",
+    "extraTranscripts_many": "Papildomos įrašų transkripcijos (išlieka tik pirmoji): {{count}}",
+    "extraTranscripts_one": "Papildomos įrašų transkripcijos (išlieka tik pirmoji): {{count}}",
+    "extraTranscripts_other": "Papildomos įrašų transkripcijos (išlieka tik pirmoji): {{count}}",
+    "advice": "Faile dar niekas nepasikeitė, bet kai Magnolia įrašys projektą ant jo, šių dalykų jame nebeliks. Jei norite išsaugoti originalą tokį, koks yra, dabar įrašykite projektą kaip naują failą."
   }
 }

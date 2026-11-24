@@ -200,7 +200,8 @@
         "diskFull": "Não há espaço livre suficiente no disco. Liberte algum espaço e tente novamente.",
         "notFound": "Não é possível encontrar a pasta do projeto. Pode ter sido movida ou mudado de nome, ou estar num disco que não está ligado."
       },
-      "caseCategory": "Caso"
+      "caseCategory": "Caso",
+      "documentDescription": "Descrição de {{name}}"
     }
   },
   "tools": {
@@ -2082,5 +2083,37 @@
     "title": "Aberto só para leitura",
     "text": "Este projeto foi guardado por uma versão mais recente do Magnolia ({{savedBy}}). Pode consultá-lo aqui, mas as alterações não serão guardadas, para que nada do que a versão mais recente acrescentou se perca. Atualize o Magnolia para trabalhar nele.",
     "cantSave": "Este projeto foi guardado por uma versão mais recente do Magnolia ({{savedBy}}), pelo que esta versão não o pode guardar nem guardar uma cópia dele. Atualize o Magnolia para trabalhar nele."
+  },
+  "notKept": {
+    "title": "Parte deste projeto não pode ser mantida no Magnolia",
+    "intro": "Foi criado noutro programa e contém coisas que o Magnolia não consegue guardar:",
+    "documentCodings_many": "Codificações de gravações inteiras sem transcrição: {{count}}",
+    "documentCodings_one": "Codificações de gravações inteiras sem transcrição: {{count}}",
+    "documentCodings_other": "Codificações de gravações inteiras sem transcrição: {{count}}",
+    "memoCodings_many": "Codificações em memorandos: {{count}}",
+    "memoCodings_one": "Codificações em memorandos: {{count}}",
+    "memoCodings_other": "Codificações em memorandos: {{count}}",
+    "memoAttachments_many": "Memorandos ligados a um código, uma codificação, uma ligação ou um excerto de gravação (o memorando mantém-se, mas solto): {{count}}",
+    "memoAttachments_one": "Memorandos ligados a um código, uma codificação, uma ligação ou um excerto de gravação (o memorando mantém-se, mas solto): {{count}}",
+    "memoAttachments_other": "Memorandos ligados a um código, uma codificação, uma ligação ou um excerto de gravação (o memorando mantém-se, mas solto): {{count}}",
+    "descriptions_many": "Descrições de transcrições, memorandos ou variáveis: {{count}}",
+    "descriptions_one": "Descrições de transcrições, memorandos ou variáveis: {{count}}",
+    "descriptions_other": "Descrições de transcrições, memorandos ou variáveis: {{count}}",
+    "attachedTexts_many": "Textos ligados a imagens ou a áreas de PDF: {{count}}",
+    "attachedTexts_one": "Textos ligados a imagens ou a áreas de PDF: {{count}}",
+    "attachedTexts_other": "Textos ligados a imagens ou a áreas de PDF: {{count}}",
+    "links_many": "Ligações entre itens: {{count}}",
+    "links_one": "Ligações entre itens: {{count}}",
+    "links_other": "Ligações entre itens: {{count}}",
+    "caseLinks_many": "Ligações de casos a códigos ou excertos: {{count}}",
+    "caseLinks_one": "Ligações de casos a códigos ou excertos: {{count}}",
+    "caseLinks_other": "Ligações de casos a códigos ou excertos: {{count}}",
+    "setMemos_many": "Memorandos em conjuntos: {{count}}",
+    "setMemos_one": "Memorandos em conjuntos: {{count}}",
+    "setMemos_other": "Memorandos em conjuntos: {{count}}",
+    "extraTranscripts_many": "Transcrições extra de gravações (só a primeira se mantém): {{count}}",
+    "extraTranscripts_one": "Transcrições extra de gravações (só a primeira se mantém): {{count}}",
+    "extraTranscripts_other": "Transcrições extra de gravações (só a primeira se mantém): {{count}}",
+    "advice": "Ainda nada mudou no ficheiro, mas quando o Magnolia guardar o projeto por cima dele, isto perde-se. Para manter o original como está, guarde agora o projeto como um ficheiro novo."
   }
 }

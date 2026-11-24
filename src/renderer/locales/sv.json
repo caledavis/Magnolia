@@ -197,7 +197,8 @@
         "diskFull": "Det finns inte tillräckligt med ledigt utrymme på disken. Frigör utrymme och försök igen.",
         "notFound": "Projektets mapp hittas inte. Den kan ha flyttats eller bytt namn, eller ligga på en disk som inte är ansluten."
       },
-      "caseCategory": "Fall"
+      "caseCategory": "Fall",
+      "documentDescription": "Beskrivning av {{name}}"
     }
   },
   "tools": {
@@ -2006,5 +2007,28 @@
     "title": "Öppnat skrivskyddat",
     "text": "Det här projektet sparades med en nyare version av Magnolia ({{savedBy}}). Du kan titta igenom det här, men ändringar sparas inte, så att inget av det som den nyare versionen har lagt till går förlorat. Uppdatera Magnolia för att arbeta med det.",
     "cantSave": "Det här projektet sparades med en nyare version av Magnolia ({{savedBy}}), så den här versionen kan varken spara det eller spara en kopia av det. Uppdatera Magnolia för att arbeta med det."
+  },
+  "notKept": {
+    "title": "En del av projektet kan inte behållas i Magnolia",
+    "intro": "Det skapades i ett annat program och innehåller saker som Magnolia inte har plats för:",
+    "documentCodings_one": "Kodningar av hela inspelningar utan transkription: {{count}}",
+    "documentCodings_other": "Kodningar av hela inspelningar utan transkription: {{count}}",
+    "memoCodings_one": "Kodningar i memon: {{count}}",
+    "memoCodings_other": "Kodningar i memon: {{count}}",
+    "memoAttachments_one": "Memon kopplade till en kod, en kodning, en länk eller en del av en inspelning (memot behålls, men fristående): {{count}}",
+    "memoAttachments_other": "Memon kopplade till en kod, en kodning, en länk eller en del av en inspelning (memot behålls, men fristående): {{count}}",
+    "descriptions_one": "Beskrivningar av transkriptioner, memon eller variabler: {{count}}",
+    "descriptions_other": "Beskrivningar av transkriptioner, memon eller variabler: {{count}}",
+    "attachedTexts_one": "Texter kopplade till bilder eller områden i PDF:er: {{count}}",
+    "attachedTexts_other": "Texter kopplade till bilder eller områden i PDF:er: {{count}}",
+    "links_one": "Länkar mellan objekt: {{count}}",
+    "links_other": "Länkar mellan objekt: {{count}}",
+    "caseLinks_one": "Länkar från fall till koder eller passager: {{count}}",
+    "caseLinks_other": "Länkar från fall till koder eller passager: {{count}}",
+    "setMemos_one": "Memon i mängder: {{count}}",
+    "setMemos_other": "Memon i mängder: {{count}}",
+    "extraTranscripts_one": "Extra transkriptioner av inspelningar (bara den första behålls): {{count}}",
+    "extraTranscripts_other": "Extra transkriptioner av inspelningar (bara den första behålls): {{count}}",
+    "advice": "Inget har ändrats i filen än, men när Magnolia sparar projektet över den försvinner dessa ur den. Spara projektet som en ny fil nu om du vill behålla originalet som det är."
   }
 }

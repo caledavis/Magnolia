@@ -418,6 +418,9 @@ pub fn read_qdpx(path: &Path, progress: Option<Progress>) -> Result<Value, Strin
         );
     }
     variables_as_tags(&mut project, &sources, &refi_variables, &case_tags, &document_values);
+    place_document_codings(&mut sources, &source_contents, &mut zip, &sources_dir, &binary_ref_by_guid);
+    attach_memos_to_selections(&mut project, &sources);
+    describe_documents_in_memos(&mut project, &mut sources);
 
     // ── Missing binaries ──
     let missing: Vec<Value> = sources
@@ -721,7 +724,11 @@ fn restore_side_tables(
             }
             if let Some(a) = anchors.get(guid) {
                 let sg = a.get("sourceGuid").cloned().unwrap_or(Value::Null);
-                if a.get("startPosition").is_some() {
+                if let Some(sel) = a.get("selectionGuid") {
+                    // On an area or a transcript passage: attached once the
+                    // sources are complete (attach_memos_to_selections).
+                    m.insert("_onSelection".into(), sel.clone());
+                } else if a.get("startPosition").is_some() {
                     m.insert("type".into(), "content".into());
                     m.insert("sourceGuid".into(), sg);
                     m.insert("startPosition".into(), a["startPosition"].clone());
@@ -1174,6 +1181,138 @@ fn apply_source_meta(
     } else {
         source["formatData"] = fd.clone();
     }
+}
+
+/// Codings of a whole document (a `<Coding>` on the source itself) on a
+/// passage covering all of it: all of a text's or a transcript's text, or
+/// all of a picture. A PDF's passage is flagged `_wholeDocument` and given
+/// its length once its text is read (in the renderer, with pdf.js). A
+/// recording with no transcript has nowhere to put one (the open notice
+/// counts those).
+fn place_document_codings(
+    sources: &mut [Value],
+    contents: &Map<String, Value>,
+    zip: &mut Archive,
+    sources_dir: &str,
+    binary_ref_by_guid: &HashMap<String, String>,
+) {
+    for source in sources.iter_mut() {
+        let Some(Value::Array(codings)) = take(source, "_documentCodings") else {
+            continue;
+        };
+        if codings.is_empty() {
+            continue;
+        }
+        let guid = get_str(source, "guid").unwrap_or("").to_string();
+        let text = contents.get(&guid).and_then(Value::as_str).unwrap_or("");
+        let mut sel = Obj::new();
+        sel.insert("guid".into(), new_guid().into());
+        sel.insert("startPosition".into(), 0.into());
+        match get_str(source, "sourceType").unwrap_or("text") {
+            "image" => {
+                let size = binary_ref_by_guid
+                    .get(&guid)
+                    .and_then(|name| zip.read(&format!("{sources_dir}/{name}")))
+                    .and_then(|bytes| {
+                        image::ImageReader::new(std::io::Cursor::new(bytes))
+                            .with_guessed_format()
+                            .ok()?
+                            .into_dimensions()
+                            .ok()
+                    });
+                let Some((w, h)) = size else {
+                    continue;
+                };
+                sel.insert("endPosition".into(), 0.into());
+                sel.insert("pdfRegion".into(), json!({ "page": 1, "x": 0, "y": 0, "width": w, "height": h }));
+            }
+            "pdf" => {
+                sel.insert("endPosition".into(), crate::util::cp_len(text).into());
+                sel.insert("_wholeDocument".into(), true.into());
+            }
+            "audio" | "video" if text.trim().is_empty() => continue,
+            kind => {
+                let end = crate::util::cp_len(text);
+                sel.insert("endPosition".into(), end.into());
+                // A video's codings show on its timeline too.
+                if kind == "video"
+                    && let Some(tr) = derive_line_time_range(
+                        text,
+                        0.0,
+                        end as f64,
+                        source.get("formatData").and_then(|f| f.get("lineTimes")),
+                    )
+                {
+                    sel.insert("timeRange".into(), tr);
+                }
+            }
+        }
+        sel.insert("codings".into(), codings.into());
+        let mut sels = get_arr(source, "selections").to_vec();
+        sels.push(Value::Object(sel));
+        source["selections"] = sels.into();
+    }
+}
+
+/// Memos another program attached to an area of a PDF or picture, or to a
+/// passage of a transcript, attached to what that became: the area, or the
+/// passage of text. One whose selection didn't survive stays a project memo.
+fn attach_memos_to_selections(project: &mut Value, sources: &[Value]) {
+    let Some(memos) = project.get_mut("memos").and_then(Value::as_array_mut) else {
+        return;
+    };
+    for memo in memos.iter_mut() {
+        let Some(Value::String(target)) = take(memo, "_onSelection") else {
+            continue;
+        };
+        let found = sources.iter().find_map(|s| {
+            get_arr(s, "selections")
+                .iter()
+                .find(|sel| get_str(sel, "guid").is_some_and(|g| g.eq_ignore_ascii_case(&target)))
+                .map(|sel| (s, sel))
+        });
+        let Some((source, sel)) = found else {
+            continue;
+        };
+        let (start, end) = (get_f64(sel, "startPosition").unwrap_or(0.0), get_f64(sel, "endPosition").unwrap_or(0.0));
+        let region = sel.get("pdfRegion").filter(|r| truthy(r));
+        if region.is_none() && end <= start {
+            continue;
+        }
+        memo["type"] = "content".into();
+        memo["sourceGuid"] = source.get("guid").cloned().unwrap_or(Value::Null);
+        memo["startPosition"] = sel.get("startPosition").cloned().unwrap_or(0.into());
+        memo["endPosition"] = sel.get("endPosition").cloned().unwrap_or(0.into());
+        if let Some(r) = region {
+            memo["pdfRegion"] = r.clone();
+        }
+    }
+}
+
+/// A document's description (from another program) as a memo on it.
+fn describe_documents_in_memos(project: &mut Value, sources: &mut [Value]) {
+    let mut added = Vec::new();
+    for source in sources.iter_mut() {
+        let Some(Value::String(text)) = take(source, "_description") else {
+            continue;
+        };
+        let guid = get_str(source, "guid").unwrap_or("").to_string();
+        let name = get_str(source, "name").unwrap_or("").to_string();
+        added.push(json!({
+            "guid": new_guid(),
+            "type": "document",
+            "title": crate::message::tr("documentDescription", "Description of {{name}}", &[("name", &name)]),
+            "content": text,
+            "createdDateTime": source.get("creationDateTime").cloned().unwrap_or("".into()),
+            "sourceGuids": [guid],
+        }));
+    }
+    if added.is_empty() {
+        return;
+    }
+    let mut memos = get_arr(project, "memos").to_vec();
+    memos.extend(added);
+    project["memos"] = memos.into();
 }
 
 /// Which Cases describe documents, and which are a survey's respondents.

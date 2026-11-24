@@ -197,7 +197,8 @@
         "diskFull": "Er is niet genoeg vrije ruimte op de schijf. Maak ruimte vrij en probeer het opnieuw.",
         "notFound": "De map van het project is niet te vinden. Misschien is die verplaatst of hernoemd, of staat die op een schijf die niet is aangesloten."
       },
-      "caseCategory": "Casus"
+      "caseCategory": "Casus",
+      "documentDescription": "Beschrijving van {{name}}"
     }
   },
   "tools": {
@@ -2006,5 +2007,28 @@
     "title": "Alleen-lezen geopend",
     "text": "Dit project is bewaard met een nieuwere versie van Magnolia ({{savedBy}}). Je kunt het hier bekijken, maar wijzigingen worden niet bewaard, zodat niets verloren gaat van wat de nieuwere versie heeft toegevoegd. Werk Magnolia bij om aan het project te werken.",
     "cantSave": "Dit project is bewaard met een nieuwere versie van Magnolia ({{savedBy}}), dus deze versie kan het niet bewaren, en ook geen kopie ervan. Werk Magnolia bij om aan het project te werken."
+  },
+  "notKept": {
+    "title": "Een deel van dit project kan Magnolia niet bewaren",
+    "intro": "Het is gemaakt in een ander programma en bevat dingen waar Magnolia geen plek voor heeft:",
+    "documentCodings_one": "Coderingen van hele opnames zonder transcript: {{count}}",
+    "documentCodings_other": "Coderingen van hele opnames zonder transcript: {{count}}",
+    "memoCodings_one": "Coderingen in memo’s: {{count}}",
+    "memoCodings_other": "Coderingen in memo’s: {{count}}",
+    "memoAttachments_one": "Memo’s bij een code, een codering, een koppeling of een stuk van een opname (de memo blijft, maar los): {{count}}",
+    "memoAttachments_other": "Memo’s bij een code, een codering, een koppeling of een stuk van een opname (de memo blijft, maar los): {{count}}",
+    "descriptions_one": "Beschrijvingen van transcripten, memo’s of variabelen: {{count}}",
+    "descriptions_other": "Beschrijvingen van transcripten, memo’s of variabelen: {{count}}",
+    "attachedTexts_one": "Teksten bij afbeeldingen of gebieden in pdf’s: {{count}}",
+    "attachedTexts_other": "Teksten bij afbeeldingen of gebieden in pdf’s: {{count}}",
+    "links_one": "Koppelingen tussen onderdelen: {{count}}",
+    "links_other": "Koppelingen tussen onderdelen: {{count}}",
+    "caseLinks_one": "Koppelingen van cases naar codes of passages: {{count}}",
+    "caseLinks_other": "Koppelingen van cases naar codes of passages: {{count}}",
+    "setMemos_one": "Memo’s in sets: {{count}}",
+    "setMemos_other": "Memo’s in sets: {{count}}",
+    "extraTranscripts_one": "Extra transcripten van opnames (alleen het eerste blijft): {{count}}",
+    "extraTranscripts_other": "Extra transcripten van opnames (alleen het eerste blijft): {{count}}",
+    "advice": "Er is nog niets aan het bestand veranderd, maar zodra Magnolia het project eroverheen bewaart, zijn deze weg. Wil je het origineel houden zoals het is, bewaar het project dan nu als nieuw bestand."
   }
 }

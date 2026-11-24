@@ -197,7 +197,8 @@
         "diskFull": "Auf dem Datenträger ist nicht genug Platz frei. Schaffen Sie etwas Platz und versuchen Sie es erneut.",
         "notFound": "Der Ordner des Projekts wurde nicht gefunden. Er wurde vielleicht verschoben oder umbenannt oder liegt auf einem Datenträger, der nicht angeschlossen ist."
       },
-      "caseCategory": "Fall"
+      "caseCategory": "Fall",
+      "documentDescription": "Beschreibung von {{name}}"
     }
   },
   "tools": {
@@ -2006,5 +2007,28 @@
     "title": "Schreibgeschützt geöffnet",
     "text": "Dieses Projekt wurde mit einer neueren Version von Magnolia gespeichert ({{savedBy}}). Sie können es hier ansehen, aber Änderungen werden nicht gespeichert, damit nichts verloren geht, was die neuere Version hinzugefügt hat. Aktualisieren Sie Magnolia, um an dem Projekt zu arbeiten.",
     "cantSave": "Dieses Projekt wurde mit einer neueren Version von Magnolia gespeichert ({{savedBy}}). Diese Version kann daher weder das Projekt noch eine Kopie davon speichern. Aktualisieren Sie Magnolia, um an dem Projekt zu arbeiten."
+  },
+  "notKept": {
+    "title": "Ein Teil dieses Projekts kann in Magnolia nicht erhalten bleiben",
+    "intro": "Es wurde in einem anderen Programm erstellt und enthält Dinge, für die Magnolia keinen Platz hat:",
+    "documentCodings_one": "Codierungen ganzer Aufnahmen ohne Transkript: {{count}}",
+    "documentCodings_other": "Codierungen ganzer Aufnahmen ohne Transkript: {{count}}",
+    "memoCodings_one": "Codierungen in Memos: {{count}}",
+    "memoCodings_other": "Codierungen in Memos: {{count}}",
+    "memoAttachments_one": "Memos an einem Code, einer Codierung, einer Verknüpfung oder einem Abschnitt einer Aufnahme (das Memo bleibt, aber ungebunden): {{count}}",
+    "memoAttachments_other": "Memos an einem Code, einer Codierung, einer Verknüpfung oder einem Abschnitt einer Aufnahme (das Memo bleibt, aber ungebunden): {{count}}",
+    "descriptions_one": "Beschreibungen von Transkripten, Memos oder Variablen: {{count}}",
+    "descriptions_other": "Beschreibungen von Transkripten, Memos oder Variablen: {{count}}",
+    "attachedTexts_one": "Texte zu Bildern oder Bereichen in PDFs: {{count}}",
+    "attachedTexts_other": "Texte zu Bildern oder Bereichen in PDFs: {{count}}",
+    "links_one": "Verknüpfungen zwischen Elementen: {{count}}",
+    "links_other": "Verknüpfungen zwischen Elementen: {{count}}",
+    "caseLinks_one": "Verknüpfungen von Fällen zu Codes oder Passagen: {{count}}",
+    "caseLinks_other": "Verknüpfungen von Fällen zu Codes oder Passagen: {{count}}",
+    "setMemos_one": "Memos in Sets: {{count}}",
+    "setMemos_other": "Memos in Sets: {{count}}",
+    "extraTranscripts_one": "Weitere Transkripte von Aufnahmen (nur das erste bleibt): {{count}}",
+    "extraTranscripts_other": "Weitere Transkripte von Aufnahmen (nur das erste bleibt): {{count}}",
+    "advice": "In der Datei hat sich noch nichts geändert, aber sobald Magnolia das Projekt darüber speichert, fehlen sie darin. Um das Original unverändert zu behalten, speichern Sie das Projekt jetzt als neue Datei."
   }
 }

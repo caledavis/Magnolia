@@ -203,7 +203,8 @@
         "diskFull": "Na disku není dost volného místa. Uvolněte trochu místa a zkuste to znovu.",
         "notFound": "Složku projektu nelze najít. Možná byla přesunuta nebo přejmenována, nebo je na disku, který není připojený."
       },
-      "caseCategory": "Případ"
+      "caseCategory": "Případ",
+      "documentDescription": "Popis: {{name}}"
     }
   },
   "tools": {
@@ -2158,5 +2159,46 @@
     "title": "Otevřeno jen pro čtení",
     "text": "Tento projekt byl uložen novější verzí aplikace Magnolia ({{savedBy}}). Můžete si ho zde prohlížet, ale změny se neuloží, aby se neztratilo nic z toho, co novější verze přidala. Chcete-li na projektu pracovat, aktualizujte aplikaci Magnolia.",
     "cantSave": "Tento projekt byl uložen novější verzí aplikace Magnolia ({{savedBy}}), takže ho tato verze nemůže uložit ani uložit jeho kopii. Chcete-li na projektu pracovat, aktualizujte aplikaci Magnolia."
+  },
+  "notKept": {
+    "title": "Část tohoto projektu nelze v aplikaci Magnolia zachovat",
+    "intro": "Projekt vznikl v jiném programu a obsahuje věci, pro které Magnolia nemá místo:",
+    "documentCodings_few": "Kódování celých nahrávek bez přepisu: {{count}}",
+    "documentCodings_many": "Kódování celých nahrávek bez přepisu: {{count}}",
+    "documentCodings_one": "Kódování celých nahrávek bez přepisu: {{count}}",
+    "documentCodings_other": "Kódování celých nahrávek bez přepisu: {{count}}",
+    "memoCodings_few": "Kódování v poznámkách: {{count}}",
+    "memoCodings_many": "Kódování v poznámkách: {{count}}",
+    "memoCodings_one": "Kódování v poznámkách: {{count}}",
+    "memoCodings_other": "Kódování v poznámkách: {{count}}",
+    "memoAttachments_few": "Poznámky připojené ke kódu, kódování, odkazu nebo úseku nahrávky (poznámka zůstane, ale nepřipojená): {{count}}",
+    "memoAttachments_many": "Poznámky připojené ke kódu, kódování, odkazu nebo úseku nahrávky (poznámka zůstane, ale nepřipojená): {{count}}",
+    "memoAttachments_one": "Poznámky připojené ke kódu, kódování, odkazu nebo úseku nahrávky (poznámka zůstane, ale nepřipojená): {{count}}",
+    "memoAttachments_other": "Poznámky připojené ke kódu, kódování, odkazu nebo úseku nahrávky (poznámka zůstane, ale nepřipojená): {{count}}",
+    "descriptions_few": "Popisy přepisů, poznámek nebo proměnných: {{count}}",
+    "descriptions_many": "Popisy přepisů, poznámek nebo proměnných: {{count}}",
+    "descriptions_one": "Popisy přepisů, poznámek nebo proměnných: {{count}}",
+    "descriptions_other": "Popisy přepisů, poznámek nebo proměnných: {{count}}",
+    "attachedTexts_few": "Texty připojené k obrázkům nebo oblastem PDF: {{count}}",
+    "attachedTexts_many": "Texty připojené k obrázkům nebo oblastem PDF: {{count}}",
+    "attachedTexts_one": "Texty připojené k obrázkům nebo oblastem PDF: {{count}}",
+    "attachedTexts_other": "Texty připojené k obrázkům nebo oblastem PDF: {{count}}",
+    "links_few": "Odkazy mezi položkami: {{count}}",
+    "links_many": "Odkazy mezi položkami: {{count}}",
+    "links_one": "Odkazy mezi položkami: {{count}}",
+    "links_other": "Odkazy mezi položkami: {{count}}",
+    "caseLinks_few": "Odkazy z případů na kódy nebo pasáže: {{count}}",
+    "caseLinks_many": "Odkazy z případů na kódy nebo pasáže: {{count}}",
+    "caseLinks_one": "Odkazy z případů na kódy nebo pasáže: {{count}}",
+    "caseLinks_other": "Odkazy z případů na kódy nebo pasáže: {{count}}",
+    "setMemos_few": "Poznámky v sadách: {{count}}",
+    "setMemos_many": "Poznámky v sadách: {{count}}",
+    "setMemos_one": "Poznámky v sadách: {{count}}",
+    "setMemos_other": "Poznámky v sadách: {{count}}",
+    "extraTranscripts_few": "Další přepisy nahrávek (zůstane jen první): {{count}}",
+    "extraTranscripts_many": "Další přepisy nahrávek (zůstane jen první): {{count}}",
+    "extraTranscripts_one": "Další přepisy nahrávek (zůstane jen první): {{count}}",
+    "extraTranscripts_other": "Další přepisy nahrávek (zůstane jen první): {{count}}",
+    "advice": "V souboru se zatím nic nezměnilo, ale jakmile do něj Magnolia projekt uloží, tyto věci z něj zmizí. Chcete-li zachovat původní soubor beze změny, uložte projekt nyní jako nový soubor."
   }
 }

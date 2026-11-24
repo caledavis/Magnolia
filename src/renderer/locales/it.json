@@ -200,7 +200,8 @@
         "diskFull": "Non c’è abbastanza spazio libero sul disco. Libera un po’ di spazio e riprova.",
         "notFound": "Impossibile trovare la cartella del progetto. Potrebbe essere stata spostata o rinominata, oppure trovarsi su un disco non collegato."
       },
-      "caseCategory": "Caso"
+      "caseCategory": "Caso",
+      "documentDescription": "Descrizione di {{name}}"
     }
   },
   "tools": {
@@ -2082,5 +2083,37 @@
     "title": "Aperto in sola lettura",
     "text": "Questo progetto è stato salvato da una versione più recente di Magnolia ({{savedBy}}). Puoi consultarlo qui, ma le modifiche non verranno salvate, così non si perde nulla di ciò che la versione più recente ha aggiunto. Aggiorna Magnolia per lavorarci.",
     "cantSave": "Questo progetto è stato salvato da una versione più recente di Magnolia ({{savedBy}}), quindi questa versione non può salvarlo né salvarne una copia. Aggiorna Magnolia per lavorarci."
+  },
+  "notKept": {
+    "title": "Parte di questo progetto non può essere conservata in Magnolia",
+    "intro": "È stato creato in un altro programma e contiene elementi che Magnolia non può tenere:",
+    "documentCodings_many": "Codifiche di registrazioni intere senza trascrizione: {{count}}",
+    "documentCodings_one": "Codifiche di registrazioni intere senza trascrizione: {{count}}",
+    "documentCodings_other": "Codifiche di registrazioni intere senza trascrizione: {{count}}",
+    "memoCodings_many": "Codifiche nei memo: {{count}}",
+    "memoCodings_one": "Codifiche nei memo: {{count}}",
+    "memoCodings_other": "Codifiche nei memo: {{count}}",
+    "memoAttachments_many": "Memo collegati a un codice, una codifica, un collegamento o un tratto di registrazione (il memo resta, ma scollegato): {{count}}",
+    "memoAttachments_one": "Memo collegati a un codice, una codifica, un collegamento o un tratto di registrazione (il memo resta, ma scollegato): {{count}}",
+    "memoAttachments_other": "Memo collegati a un codice, una codifica, un collegamento o un tratto di registrazione (il memo resta, ma scollegato): {{count}}",
+    "descriptions_many": "Descrizioni di trascrizioni, memo o variabili: {{count}}",
+    "descriptions_one": "Descrizioni di trascrizioni, memo o variabili: {{count}}",
+    "descriptions_other": "Descrizioni di trascrizioni, memo o variabili: {{count}}",
+    "attachedTexts_many": "Testi collegati a immagini o ad aree di PDF: {{count}}",
+    "attachedTexts_one": "Testi collegati a immagini o ad aree di PDF: {{count}}",
+    "attachedTexts_other": "Testi collegati a immagini o ad aree di PDF: {{count}}",
+    "links_many": "Collegamenti tra elementi: {{count}}",
+    "links_one": "Collegamenti tra elementi: {{count}}",
+    "links_other": "Collegamenti tra elementi: {{count}}",
+    "caseLinks_many": "Collegamenti da casi a codici o passaggi: {{count}}",
+    "caseLinks_one": "Collegamenti da casi a codici o passaggi: {{count}}",
+    "caseLinks_other": "Collegamenti da casi a codici o passaggi: {{count}}",
+    "setMemos_many": "Memo in insiemi: {{count}}",
+    "setMemos_one": "Memo in insiemi: {{count}}",
+    "setMemos_other": "Memo in insiemi: {{count}}",
+    "extraTranscripts_many": "Trascrizioni aggiuntive di registrazioni (resta solo la prima): {{count}}",
+    "extraTranscripts_one": "Trascrizioni aggiuntive di registrazioni (resta solo la prima): {{count}}",
+    "extraTranscripts_other": "Trascrizioni aggiuntive di registrazioni (resta solo la prima): {{count}}",
+    "advice": "Nel file non è ancora cambiato nulla, ma quando Magnolia salverà il progetto sopra di esso, questi elementi andranno persi. Per conservare l’originale così com’è, salva ora il progetto come nuovo file."
   }
 }

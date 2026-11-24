@@ -200,7 +200,8 @@
         "diskFull": "Il n’y a pas assez d’espace libre sur le disque. Libérez de l’espace et réessayez.",
         "notFound": "Le dossier du projet est introuvable. Il a peut-être été déplacé ou renommé, ou se trouve sur un disque qui n’est pas connecté."
       },
-      "caseCategory": "Cas"
+      "caseCategory": "Cas",
+      "documentDescription": "Description de {{name}}"
     }
   },
   "tools": {
@@ -2082,5 +2083,37 @@
     "title": "Ouvert en lecture seule",
     "text": "Ce projet a été enregistré par une version plus récente de Magnolia ({{savedBy}}). Vous pouvez le consulter ici, mais vos modifications ne seront pas enregistrées, afin que rien de ce que la version plus récente a ajouté ne soit perdu. Mettez Magnolia à jour pour travailler sur ce projet.",
     "cantSave": "Ce projet a été enregistré par une version plus récente de Magnolia ({{savedBy}}) : cette version ne peut donc ni l’enregistrer ni en enregistrer une copie. Mettez Magnolia à jour pour travailler sur ce projet."
+  },
+  "notKept": {
+    "title": "Une partie de ce projet ne peut pas être conservée dans Magnolia",
+    "intro": "Il a été créé dans un autre logiciel et contient des éléments que Magnolia ne peut pas garder :",
+    "documentCodings_many": "Codages d’enregistrements entiers sans transcription : {{count}}",
+    "documentCodings_one": "Codages d’enregistrements entiers sans transcription : {{count}}",
+    "documentCodings_other": "Codages d’enregistrements entiers sans transcription : {{count}}",
+    "memoCodings_many": "Codages dans des mémos : {{count}}",
+    "memoCodings_one": "Codages dans des mémos : {{count}}",
+    "memoCodings_other": "Codages dans des mémos : {{count}}",
+    "memoAttachments_many": "Mémos rattachés à un code, un codage, un lien ou un passage d’enregistrement (le mémo est gardé, mais détaché) : {{count}}",
+    "memoAttachments_one": "Mémos rattachés à un code, un codage, un lien ou un passage d’enregistrement (le mémo est gardé, mais détaché) : {{count}}",
+    "memoAttachments_other": "Mémos rattachés à un code, un codage, un lien ou un passage d’enregistrement (le mémo est gardé, mais détaché) : {{count}}",
+    "descriptions_many": "Descriptions de transcriptions, de mémos ou de variables : {{count}}",
+    "descriptions_one": "Descriptions de transcriptions, de mémos ou de variables : {{count}}",
+    "descriptions_other": "Descriptions de transcriptions, de mémos ou de variables : {{count}}",
+    "attachedTexts_many": "Textes rattachés à des images ou à des zones de PDF : {{count}}",
+    "attachedTexts_one": "Textes rattachés à des images ou à des zones de PDF : {{count}}",
+    "attachedTexts_other": "Textes rattachés à des images ou à des zones de PDF : {{count}}",
+    "links_many": "Liens entre éléments : {{count}}",
+    "links_one": "Liens entre éléments : {{count}}",
+    "links_other": "Liens entre éléments : {{count}}",
+    "caseLinks_many": "Liens de cas vers des codes ou des passages : {{count}}",
+    "caseLinks_one": "Liens de cas vers des codes ou des passages : {{count}}",
+    "caseLinks_other": "Liens de cas vers des codes ou des passages : {{count}}",
+    "setMemos_many": "Mémos dans des ensembles : {{count}}",
+    "setMemos_one": "Mémos dans des ensembles : {{count}}",
+    "setMemos_other": "Mémos dans des ensembles : {{count}}",
+    "extraTranscripts_many": "Transcriptions supplémentaires d’enregistrements (seule la première est gardée) : {{count}}",
+    "extraTranscripts_one": "Transcriptions supplémentaires d’enregistrements (seule la première est gardée) : {{count}}",
+    "extraTranscripts_other": "Transcriptions supplémentaires d’enregistrements (seule la première est gardée) : {{count}}",
+    "advice": "Rien n’a encore changé dans le fichier, mais dès que Magnolia enregistrera le projet par-dessus, ces éléments en disparaîtront. Pour garder l’original tel quel, enregistrez maintenant le projet dans un nouveau fichier."
   }
 }
