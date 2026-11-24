@@ -461,13 +461,15 @@ export function useAnalysisMessages(
           ps.setSavedAnalyses([...existing, entry])
         }
       } else if (action === 'run-cooccurrence-query') {
-        // Where two codes overlap, in the tool's documents and filter.
-        const [codeGuidA, codeGuidB, filteredGuids, scope] = args
-        runCellQuery({
+        // Where codes overlap, in the tool's documents and filter: each
+        // row code with each (other) column code.
+        const [rowCodeGuids, colCodeGuids, filteredGuids, scope] = args
+        const overlaps: CodeCondition[] = rowCodeGuids.flatMap((a) => colCodeGuids.filter((b) => b !== a).map((b): CodeCondition => ({
           type: 'overlap',
-          condition1: { type: 'code', codeGuid: codeGuidA },
-          condition2: { type: 'code', codeGuid: codeGuidB }
-        }, filteredGuids, scope)
+          condition1: { type: 'code', codeGuid: a },
+          condition2: { type: 'code', codeGuid: b }
+        })))
+        if (overlaps.length > 0) runCellQuery(overlaps.length === 1 ? overlaps[0] : { type: 'or', conditions: overlaps }, filteredGuids, scope)
       } else if (action === 'run-code-in-doc-query') {
         // A code in some documents (a column's, within the tool's).
         const [codeGuid, sourceGuids, filteredGuids, scope] = args

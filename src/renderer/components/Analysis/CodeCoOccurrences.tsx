@@ -193,24 +193,24 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
     if (rowCodeGuids[rowIdx] === colCodeGuids[colIdx]) return
     const val = matrix[rowIdx][colIdx]
     if (val === 0) return
-    window.api.sendAnalysisAction('run-cooccurrence-query', rowCodeGuids[rowIdx], colCodeGuids[colIdx], filteredSourceGuids, surveyScope())
+    window.api.sendAnalysisAction('run-cooccurrence-query', [rowCodeGuids[rowIdx]], [colCodeGuids[colIdx]], filteredSourceGuids, surveyScope())
   }, [matrix, rowCodeGuids, colCodeGuids, filteredSourceGuids, surveyScope])
 
   const handleRowTotalClick = useCallback((rowIdx: number) => {
     if (rowTotals[rowIdx] === 0) return
-    // Show all occurrences of this row's code across filtered docs
-    window.api.sendAnalysisAction('run-code-in-doc-query', rowCodeGuids[rowIdx], filteredSourceGuids, filteredSourceGuids, surveyScope())
-  }, [rowTotals, rowCodeGuids, filteredSourceGuids, surveyScope])
+    // Where this row's code overlaps any of the columns' codes: what the
+    // total adds up.
+    window.api.sendAnalysisAction('run-cooccurrence-query', [rowCodeGuids[rowIdx]], colCodeGuids, filteredSourceGuids, surveyScope())
+  }, [rowTotals, rowCodeGuids, colCodeGuids, filteredSourceGuids, surveyScope])
 
   const handleColTotalClick = useCallback((colIdx: number) => {
     if (colTotals[colIdx] === 0) return
-    window.api.sendAnalysisAction('run-code-in-doc-query', colCodeGuids[colIdx], filteredSourceGuids, filteredSourceGuids, surveyScope())
-  }, [colTotals, colCodeGuids, filteredSourceGuids, surveyScope])
+    window.api.sendAnalysisAction('run-cooccurrence-query', rowCodeGuids, [colCodeGuids[colIdx]], filteredSourceGuids, surveyScope())
+  }, [colTotals, rowCodeGuids, colCodeGuids, filteredSourceGuids, surveyScope])
 
   const handleGrandTotalClick = useCallback(() => {
     if (grandTotal === 0) return
-    const allGuids = Array.from(new Set([...rowCodeGuids, ...colCodeGuids]))
-    window.api.sendAnalysisAction('run-codes-in-doc-query', allGuids, filteredSourceGuids, surveyScope())
+    window.api.sendAnalysisAction('run-cooccurrence-query', rowCodeGuids, colCodeGuids, filteredSourceGuids, surveyScope())
   }, [grandTotal, rowCodeGuids, colCodeGuids, filteredSourceGuids, surveyScope])
 
   // Sankey view: row codes on the left, column codes on the right; a

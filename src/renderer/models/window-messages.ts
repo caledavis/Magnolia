@@ -73,7 +73,9 @@ export interface MemosWindowMessages {
  *  clicked column (see CellScope). */
 export interface AnalysisMessages {
   'save-analysis': [analysis: Pick<SavedAnalysis, 'guid' | 'toolType' | 'name' | 'config'>]
-  'run-cooccurrence-query': [codeGuidA: string, codeGuidB: string, filteredGuids?: string[], scope?: CellScope]
+  /** Where any row code overlaps any column code (a different one): one
+   *  of each for a cell, a row's or column's codes for a total. */
+  'run-cooccurrence-query': [rowCodeGuids: string[], colCodeGuids: string[], filteredGuids?: string[], scope?: CellScope]
   'run-code-in-doc-query': [codeGuid: string, sourceGuids: string[], filteredGuids?: string[], scope?: CellScope]
   'run-codes-in-doc-query': [codeGuids: string[], sourceGuids: string[], scope?: CellScope]
   /** Codes in Documents → "Open as Framework Matrix". */
