@@ -94,15 +94,18 @@ async function spec(t) {
   t.check('Query Results: the pane can pop out', !!popOut)
   if (popOut) {
     t.press(popOut)
-    await t.sleep(1500)
-    const before = sent.length
+    // Popped out once the window has been sent the current results.
+    await t.until(() => sent.length > 0, 10000)
     const wellbeing = codes.getState().flatCodes().find((c) => c.name === 'Wellbeing')
     api.sendAnalysisAction('run-code-query', wellbeing.guid)
     await settled()
-    await t.sleep(800)
+    const update = await t.until(() => {
+      const last = sent[sent.length - 1]
+      return last?.currentQuery?.codeCondition?.codeGuid === wellbeing.guid && !last.isLoading && last.results.length === queries.getState().results.length ? last : null
+    }, 10000)
     const last = sent[sent.length - 1]
-    t.check('Query Results: the popped-out window gets the new results',
-      sent.length > before && last?.currentQuery?.codeCondition?.codeGuid === wellbeing.guid && last.results.length === queries.getState().results.length)
+    t.check('Query Results: the popped-out window gets the new results', !!update,
+      `${sent.length} updates sent; last: ${last ? `${last.currentQuery?.codeCondition?.codeGuid === wellbeing.guid ? 'new query' : 'old query'}, ${last.results.length} results, loading ${last.isLoading}` : 'none'}; pane: ${queries.getState().results.length} results`)
     api.closeQueryResultsWindow?.()
   }
   api.updateQueryResultsWindow = realUpdate
