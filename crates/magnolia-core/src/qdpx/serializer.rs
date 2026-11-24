@@ -44,27 +44,12 @@ pub fn codes_xml(codes: &[Value]) -> Vec<El> {
 }
 
 fn serialize_coding(c: &Value) -> El {
-    El::new("Coding")
-        .attr("guid", get_str(c, "guid").unwrap_or(""))
-        .attr_maybe("creatingUser", c.get("creatingUser"))
-        .attr_maybe("creationDateTime", c.get("creationDateTime"))
-        .child(El::new("CodeRef").attr("targetGUID", get_str(c, "codeGuid").unwrap_or("")))
-}
-
-trait AttrMaybe {
-    fn attr_maybe(self, key: &str, v: Option<&Value>) -> Self;
-}
-
-impl AttrMaybe for El {
-    /// fast-xml-parser dropped `undefined` attributes but stringified any
-    /// other value; mirror that for attributes the TS set unconditionally.
-    fn attr_maybe(self, key: &str, v: Option<&Value>) -> Self {
-        match v {
-            None => self,
-            Some(Value::Null) => self.attr(key, "null"),
-            Some(v) => self.attr(key, js_to_string(v)),
-        }
-    }
+    let mut el = El::new("Coding").attr("guid", get_str(c, "guid").unwrap_or(""));
+    // Both are optional; an empty one isn't a valid GUID or date (a file
+    // from another tool may have codings without them), so it's left out.
+    el.set_opt("creatingUser", get_nonempty(c, "creatingUser"));
+    el.set_opt("creationDateTime", get_nonempty(c, "creationDateTime"));
+    el.child(El::new("CodeRef").attr("targetGUID", get_str(c, "codeGuid").unwrap_or("")))
 }
 
 fn audit(el: &mut El, v: &Value) {
