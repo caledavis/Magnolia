@@ -89,11 +89,22 @@ fn base_builder<'a>(
     page: &str,
 ) -> WebviewWindowBuilder<'a, tauri::Wry, AppHandle> {
     let handle = app.clone();
-    WebviewWindowBuilder::new(app, label, app_url(page))
+    let automated = crate::automation::active();
+    let b = WebviewWindowBuilder::new(app, label, app_url(page))
         // Keep HTML5 drag-and-drop (codes, documents, OS file drops) in the
         // page; the native handler would swallow it.
         .disable_drag_drop_handler()
         .visible(false)
+        // An automated run's windows don't take the focus.
+        .focused(!automated);
+    // ...and keep running at full speed behind the user's windows, where
+    // the page would otherwise be throttled, stalling the run.
+    let b = if automated {
+        b.background_throttling(tauri::utils::config::BackgroundThrottlingPolicy::Disabled)
+    } else {
+        b
+    };
+    b
         .on_page_load(|w, p| {
             if matches!(p.event(), tauri::webview::PageLoadEvent::Finished) {
                 let _ = w.show();

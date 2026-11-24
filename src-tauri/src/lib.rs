@@ -193,6 +193,13 @@ pub fn run() {
             automation::automation_grant,
         ])
         .setup(|app| {
+            // An automated run works alongside whatever the user is doing:
+            // on macOS it's an accessory app, so its windows don't make it
+            // the active app or take the focus.
+            #[cfg(target_os = "macos")]
+            if automation::active() {
+                app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            }
             storage::init(app.handle());
             i18n::init_from_preferences(&storage::load_preferences());
             i18n::install_core_translator();
