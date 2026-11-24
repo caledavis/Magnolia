@@ -83,6 +83,7 @@ fn finish_selection(mut o: Obj, raw: &Value) -> Value {
         "creationDateTime",
         "modifyingUser",
         "modifiedDateTime",
+        "description",
     ] {
         if let Some(v) = raw.get(k) {
             o.insert(k.into(), v.clone());
@@ -227,6 +228,10 @@ pub fn read_qdpx(path: &Path, progress: Option<Progress>) -> Result<Value, Strin
         )
     })?;
     let mut project = deserialize_project(&xml)?;
+    // Saved by a newer Magnolia: shown, but not saved over (see format.rs).
+    if let Some(newer) = super::format::newer_format_in(&mut zip) {
+        project["newerFormat"] = json!({ "savedBy": newer.saved_by });
+    }
     let in_sources = |name: &str| format!("{sources_dir}/{name}");
 
     // Capture per-source references before the loop below clears paths.
@@ -392,15 +397,27 @@ pub fn read_qdpx(path: &Path, progress: Option<Progress>) -> Result<Value, Strin
     let refi_cases = take(&mut project, "_refiCases")
         .and_then(|v| v.as_array().cloned())
         .unwrap_or_default();
-    if !refi_cases.is_empty() {
+    // A document's own variable values, taken off before anything else.
+    let document_values: Vec<(String, Vec<Value>)> = sources
+        .iter_mut()
+        .filter_map(|s| {
+            let values = take(s, "_refiVariableValues")?.as_array()?.clone();
+            Some((get_str(s, "guid").unwrap_or("").to_string(), values))
+        })
+        .collect();
+    // Cases describing documents (as NVivo writes its cases) become tags on
+    // those documents; the rest are a survey's respondents.
+    let (case_tags, survey_cases) = split_cases(&refi_variables, &refi_cases, &sources);
+    if !survey_cases.is_empty() {
         reconcile_survey(
             &mut project,
             &mut sources,
             &mut source_contents,
             &refi_variables,
-            &refi_cases,
+            &survey_cases,
         );
     }
+    variables_as_tags(&mut project, &sources, &refi_variables, &case_tags, &document_values);
 
     // ── Missing binaries ──
     let missing: Vec<Value> = sources
@@ -1156,6 +1173,190 @@ fn apply_source_meta(
         }
     } else {
         source["formatData"] = fd.clone();
+    }
+}
+
+/// Which Cases describe documents, and which are a survey's respondents.
+/// Magnolia writes each survey respondent as a Case: its values are of
+/// Magnolia's survey variables (marked in their descriptions), and its one
+/// document holds the respondent's answers under `[[MQ:…]]` headings.
+/// Another program's case that refers to documents describes them, and
+/// becomes tags on them; one that refers to none stays a respondent, as
+/// before (its values would have nowhere else to go).
+fn split_cases(variables: &[Value], cases: &[Value], sources: &[Value]) -> (Vec<Value>, Vec<Value>) {
+    let magnolia_variables: HashSet<&str> = variables
+        .iter()
+        .filter(|v| get_str(v, "description").is_some_and(|d| d.starts_with("magnolia:v1:")))
+        .filter_map(|v| get_str(v, "guid"))
+        .collect();
+    let mut answer_documents: HashSet<&str> = HashSet::new();
+    let mut documents: HashSet<&str> = HashSet::new();
+    for s in sources {
+        let Some(guid) = get_str(s, "guid") else {
+            continue;
+        };
+        documents.insert(guid);
+        if get_str(s, "plainTextContent").is_some_and(|t| t.split('\n').any(|l| l.starts_with("[[MQ:"))) {
+            answer_documents.insert(guid);
+        }
+    }
+    let (mut tags, mut respondents) = (Vec::new(), Vec::new());
+    for c in cases {
+        let refs: Vec<&str> = get_arr(c, "sourceRefGuids").iter().filter_map(Value::as_str).collect();
+        let magnolia = get_arr(c, "values")
+            .iter()
+            .any(|v| get_str(v, "variableGuid").is_some_and(|g| magnolia_variables.contains(g)))
+            || refs.iter().any(|g| answer_documents.contains(g));
+        if !magnolia && refs.iter().any(|g| documents.contains(g)) {
+            tags.push(c.clone());
+        } else {
+            respondents.push(c.clone());
+        }
+    }
+    (tags, respondents)
+}
+
+/// Cases and document variables as tags. A case becomes a tag in the
+/// category "Case" on the documents it refers to; each of its variable
+/// values becomes a tag in a category named after the variable, on the same
+/// documents. A document's own variable values become tags on it the same
+/// way. Categories and tags already in the project (by name, and by value)
+/// are used rather than made again.
+fn variables_as_tags(
+    project: &mut Value,
+    sources: &[Value],
+    variables: &[Value],
+    cases: &[Value],
+    document_values: &[(String, Vec<Value>)],
+) {
+    if cases.is_empty() && document_values.is_empty() {
+        return;
+    }
+    let documents: HashSet<String> = sources
+        .iter()
+        .filter_map(|s| get_str(s, "guid").map(str::to_string))
+        .collect();
+    let mut tags = TagBuilder {
+        categories: get_arr(project, "tagCategories").to_vec(),
+        sets: get_arr(project, "sets").to_vec(),
+    };
+    // Made only for a file that has such cases.
+    let case_category = (!cases.is_empty()).then(|| tags.category(&crate::message::tr("caseCategory", "Case", &[]), "text"));
+    // Each variable's category, made in the order the file declares them.
+    let used: HashSet<&str> = cases
+        .iter()
+        .flat_map(|c| get_arr(c, "values"))
+        .chain(document_values.iter().flat_map(|(_, v)| v))
+        .filter_map(|v| get_str(v, "variableGuid"))
+        .collect();
+    let mut category_of: HashMap<String, (String, String)> = HashMap::new();
+    for v in variables {
+        let Some(guid) = get_str(v, "guid").filter(|g| used.contains(g)) else {
+            continue;
+        };
+        let Some(name) = get_nonempty(v, "name").map(str::trim).filter(|n| !n.is_empty()) else {
+            continue;
+        };
+        let kind = match get_str(v, "typeOfVariable") {
+            Some("Integer" | "Float") => "numeric",
+            Some("Date") => "date",
+            _ => "text",
+        };
+        category_of.insert(guid.to_string(), tags.category(name, kind));
+    }
+    let tag_values = |tags: &mut TagBuilder, values: &[Value], members: &[String]| {
+        for v in values {
+            let Some((category, name)) = get_str(v, "variableGuid").and_then(|g| category_of.get(g)) else {
+                continue;
+            };
+            let value = super::survey_refi::value_to_string(v);
+            let value = value.trim();
+            if value.is_empty() {
+                continue;
+            }
+            let tag = tags.tag(category, name, value, None);
+            tags.add_members(tag, members);
+        }
+    };
+    for (n, c) in cases.iter().enumerate() {
+        let members: Vec<String> = get_arr(c, "sourceRefGuids")
+            .iter()
+            .filter_map(Value::as_str)
+            .filter(|g| documents.contains(*g))
+            .map(str::to_string)
+            .collect();
+        let name = get_nonempty(c, "name")
+            .map(str::trim)
+            .filter(|n| !n.is_empty())
+            .map(str::to_string)
+            .unwrap_or_else(|| format!("{}", n + 1));
+        if let Some((category, category_name)) = &case_category {
+            let tag = tags.tag(category, category_name, &name, get_nonempty(c, "description"));
+            tags.add_members(tag, &members);
+        }
+        tag_values(&mut tags, get_arr(c, "values"), &members);
+    }
+    for (doc, values) in document_values {
+        if documents.contains(doc) {
+            tag_values(&mut tags, values, std::slice::from_ref(doc));
+        }
+    }
+    project["tagCategories"] = tags.categories.into();
+    project["sets"] = tags.sets.into();
+}
+
+struct TagBuilder {
+    categories: Vec<Value>,
+    sets: Vec<Value>,
+}
+
+impl TagBuilder {
+    /// The category named `name` (ignoring case and surrounding spaces),
+    /// made with `kind` if there's none: (guid, name).
+    fn category(&mut self, name: &str, kind: &str) -> (String, String) {
+        let same = |c: &&Value| get_str(c, "name").is_some_and(|n| n.trim().to_lowercase() == name.trim().to_lowercase());
+        if let Some(c) = self.categories.iter().find(same) {
+            return (get_str(c, "guid").unwrap_or("").to_string(), get_str(c, "name").unwrap_or("").to_string());
+        }
+        let guid = new_guid();
+        self.categories.push(json!({ "guid": guid, "name": name, "type": kind }));
+        (guid, name.to_string())
+    }
+
+    /// The category's tag for `value`, made if there's none: its index.
+    fn tag(&mut self, category: &str, category_name: &str, value: &str, description: Option<&str>) -> usize {
+        if let Some(i) = self.sets.iter().position(|s| {
+            get_str(s, "categoryGuid") == Some(category)
+                && get_str(s, "value").or_else(|| get_str(s, "name")) == Some(value)
+        }) {
+            return i;
+        }
+        let mut set = json!({
+            "guid": new_guid(),
+            "name": format!("{category_name}:{value}"),
+            "categoryGuid": category,
+            "value": value,
+            "memberSourceGuids": [],
+            "memberCodeGuids": [],
+        });
+        if let Some(d) = description {
+            set["description"] = d.into();
+        }
+        self.sets.push(set);
+        self.sets.len() - 1
+    }
+
+    fn add_members(&mut self, tag: usize, documents: &[String]) {
+        let set = &mut self.sets[tag];
+        if !set.get("memberSourceGuids").is_some_and(Value::is_array) {
+            set["memberSourceGuids"] = json!([]);
+        }
+        let members = set["memberSourceGuids"].as_array_mut().unwrap();
+        for d in documents {
+            if !members.iter().any(|m| m.as_str() == Some(d)) {
+                members.push(d.as_str().into());
+            }
+        }
     }
 }
 

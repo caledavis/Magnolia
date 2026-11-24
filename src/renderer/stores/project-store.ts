@@ -37,6 +37,13 @@ interface ProjectState {
    *  tracks who actually holds the lock right now; this is just "should
    *  the dialog be showing." */
   checkoutConflictMarker: CheckoutMarker | null
+  /** Who saved the open project ("Magnolia 3.0.0") when that was a newer
+   *  Magnolia, in a format this one may not fully understand: it's open
+   *  read-only (see NewerFormatBanner). Null for every other project. */
+  newerFormat: string | null
+  /** Whether NewerFormatBanner is showing: from opening, and again at each
+   *  refused edit. */
+  newerFormatNotice: boolean
 
   createNewProject: () => void
   loadProject: (data: {
@@ -67,6 +74,9 @@ interface ProjectState {
    *  caller read it, but the implicit form always reflects this instant). */
   promptCheckoutConflict: (marker?: CheckoutMarker | null) => void
   dismissCheckoutConflict: () => void
+  /** Set when a project opens: who saved it, if a newer Magnolia did. */
+  setNewerFormat: (savedBy: string | null) => void
+  dismissNewerFormatNotice: () => void
 }
 
 const defaultUserGuid = generateGuid()
@@ -90,6 +100,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   savedAnalyses: [],
   checkoutMarker: null,
   checkoutConflictMarker: null,
+  newerFormat: null,
+  newerFormatNotice: false,
 
   createNewProject: () => {
     const userGuid = generateGuid()
@@ -106,7 +118,9 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       isDirty: false,
       savedAnalyses: [],
       checkoutMarker: null,
-      checkoutConflictMarker: null
+      checkoutConflictMarker: null,
+      newerFormat: null,
+      newerFormatNotice: false
     })
   },
 
@@ -122,7 +136,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       modifiedDateTime: data.modifiedDateTime,
       filePath: data.filePath ?? null,
       isDirty: false,
-      savedAnalyses: data.savedAnalyses ?? []
+      savedAnalyses: data.savedAnalyses ?? [],
+      // An opened project's is set once it's loaded (setNewerFormat).
+      newerFormat: null,
+      newerFormatNotice: false
     }),
 
   setFilePath: (path) =>
@@ -158,6 +175,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   // hazard — the outer updater's stale returned snapshot would win the
   // Object.assign merge and silently clobber the inner call's update.
   markDirty: () => {
+    // Read-only (saved by a newer Magnolia): the edit stays unsaved, and
+    // the banner says why again.
+    if (get().newerFormat) {
+      set({ newerFormatNotice: true })
+      return
+    }
     const marker = get().checkoutMarker
     if (marker) {
       const myName = usePreferencesStore.getState().userName.trim()
@@ -178,7 +201,9 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       const target = marker !== undefined ? marker : state.checkoutMarker
       return target ? { checkoutConflictMarker: target } : state
     }),
-  dismissCheckoutConflict: () => set({ checkoutConflictMarker: null })
+  dismissCheckoutConflict: () => set({ checkoutConflictMarker: null }),
+  setNewerFormat: (savedBy) => set({ newerFormat: savedBy, newerFormatNotice: !!savedBy }),
+  dismissNewerFormatNotice: () => set({ newerFormatNotice: false })
 }))
 
 makeHmrSafe('projectStore', useProjectStore)

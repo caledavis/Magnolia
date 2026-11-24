@@ -191,14 +191,16 @@
         "noText_other": "No se sobreescriu «{{file}}»: el projecte té {{count}} documents, però no se n’ha carregat el text de cap. Normalment vol dir que el projecte no s’ha obert del tot, i desar ara n’esborraria el text. Torneu a obrir el projecte i, si el problema continua, restaureu-lo d’una còpia de seguretat.",
         "missingFiles_one": "No es desa «{{file}}»: no s’ha trobat el contingut de {{count}} document importat ({{names}}). No era a la memòria, a la memòria cau temporal ni al fitxer del projecte existent, de manera que desar ara el desaria buit. Torneu a importar el document i torneu-ho a provar.",
         "missingFiles_many": "No es desa «{{file}}»: no s’ha trobat el contingut de {{count}} documents importats ({{names}}). No eren a la memòria, a la memòria cau temporal ni al fitxer del projecte existent, de manera que desar ara els desaria buits. Torneu a importar els documents i torneu-ho a provar.",
-        "missingFiles_other": "No es desa «{{file}}»: no s’ha trobat el contingut de {{count}} documents importats ({{names}}). No eren a la memòria, a la memòria cau temporal ni al fitxer del projecte existent, de manera que desar ara els desaria buits. Torneu a importar els documents i torneu-ho a provar."
+        "missingFiles_other": "No es desa «{{file}}»: no s’ha trobat el contingut de {{count}} documents importats ({{names}}). No eren a la memòria, a la memòria cau temporal ni al fitxer del projecte existent, de manera que desar ara els desaria buits. Torneu a importar els documents i torneu-ho a provar.",
+        "newerFormat": "«{{file}}» s’ha desat amb una versió més recent del Magnolia ({{savedBy}}). Aquesta versió el pot mostrar però no desar, perquè no es perdi res del que hi ha afegit la versió més recent. Actualitzeu el Magnolia per treballar en aquest projecte."
       },
       "typesetFailed": "El Magnolia no ha pogut compondre aquest document en pàgines. Proveu de tornar-lo a desar amb el programa d’on prové, o de desar-lo com a PDF i importar-lo.",
       "save": {
         "noPermission": "Magnolia no té permís per modificar el fitxer del projecte ni la carpeta on és. Comproveu que la carpeta no estigui bloquejada ni sigui de només lectura, o deseu-ne una còpia en un altre lloc.",
         "diskFull": "No hi ha prou espai lliure al disc. Allibereu espai i torneu-ho a provar.",
         "notFound": "No es troba la carpeta del projecte. Potser s’ha mogut o se n’ha canviat el nom, o és en un disc que no està connectat."
-      }
+      },
+      "caseCategory": "Cas"
     }
   },
   "tools": {
@@ -2075,5 +2077,10 @@
     "singleProject": "només en un projecte",
     "computed": "Calculat",
     "reportEmpty": "Deseu l’anàlisi amb resultats per mostrar-la aquí."
+  },
+  "newerFormat": {
+    "title": "Obert només de lectura",
+    "text": "Aquest projecte s’ha desat amb una versió més recent del Magnolia ({{savedBy}}). Podeu consultar-lo aquí, però els canvis no es desaran, perquè no es perdi res del que hi ha afegit la versió més recent. Actualitzeu el Magnolia per treballar-hi.",
+    "cantSave": "Aquest projecte s’ha desat amb una versió més recent del Magnolia ({{savedBy}}), de manera que aquesta versió no el pot desar ni desar-ne una còpia. Actualitzeu el Magnolia per treballar-hi."
   }
 }

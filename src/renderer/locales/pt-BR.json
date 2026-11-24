@@ -191,14 +191,16 @@
         "noText_other": "O Magnolia não vai substituir “{{file}}”: o projeto tem {{count}} documentos, mas o texto de nenhum deles está carregado. Isso geralmente significa que o projeto não abriu por completo, e salvar agora apagaria o texto dos documentos. Abra o projeto de novo e, se o problema continuar, restaure-o de um backup.",
         "missingFiles_one": "O Magnolia não vai salvar “{{file}}”: o conteúdo de {{count}} documento importado não foi encontrado ({{names}}). Ele não estava na memória, no cache temporário nem no arquivo do projeto, então salvar agora o deixaria vazio. Importe o documento de novo e tente outra vez.",
         "missingFiles_many": "O Magnolia não vai salvar “{{file}}”: o conteúdo de {{count}} documentos importados não foi encontrado ({{names}}). Eles não estavam na memória, no cache temporário nem no arquivo do projeto, então salvar agora os deixaria vazios. Importe os documentos de novo e tente outra vez.",
-        "missingFiles_other": "O Magnolia não vai salvar “{{file}}”: o conteúdo de {{count}} documentos importados não foi encontrado ({{names}}). Eles não estavam na memória, no cache temporário nem no arquivo do projeto, então salvar agora os deixaria vazios. Importe os documentos de novo e tente outra vez."
+        "missingFiles_other": "O Magnolia não vai salvar “{{file}}”: o conteúdo de {{count}} documentos importados não foi encontrado ({{names}}). Eles não estavam na memória, no cache temporário nem no arquivo do projeto, então salvar agora os deixaria vazios. Importe os documentos de novo e tente outra vez.",
+        "newerFormat": "“{{file}}” foi salvo por uma versão mais recente do Magnolia ({{savedBy}}). Esta versão pode mostrá-lo, mas não salvá-lo, para que nada do que a versão mais recente acrescentou se perca. Atualize o Magnolia para trabalhar neste projeto."
       },
       "typesetFailed": "O Magnolia não conseguiu diagramar este documento em páginas. Tente salvá-lo novamente no programa de origem, ou salvá-lo como PDF e importar esse arquivo.",
       "save": {
         "noPermission": "O Magnolia não tem permissão para alterar o arquivo do projeto nem a pasta em que ele está. Verifique se a pasta não está bloqueada ou somente leitura, ou salve uma cópia em outro lugar.",
         "diskFull": "Não há espaço livre suficiente no disco. Libere espaço e tente novamente.",
         "notFound": "A pasta do projeto não foi encontrada. Ela pode ter sido movida ou renomeada, ou estar em um disco que não está conectado."
-      }
+      },
+      "caseCategory": "Caso"
     }
   },
   "tools": {
@@ -2075,5 +2077,10 @@
     "singleProject": "em um só projeto",
     "computed": "Calculado",
     "reportEmpty": "Salve a análise com resultados para mostrá-la aqui."
+  },
+  "newerFormat": {
+    "title": "Aberto somente para leitura",
+    "text": "Este projeto foi salvo por uma versão mais recente do Magnolia ({{savedBy}}). Você pode consultá-lo aqui, mas as alterações não serão salvas, para que nada do que a versão mais recente acrescentou se perca. Atualize o Magnolia para trabalhar nele.",
+    "cantSave": "Este projeto foi salvo por uma versão mais recente do Magnolia ({{savedBy}}), então esta versão não pode salvá-lo nem salvar uma cópia dele. Atualize o Magnolia para trabalhar nele."
   }
 }

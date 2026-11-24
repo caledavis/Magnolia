@@ -5,6 +5,7 @@ pub mod archive_write;
 pub mod checkout;
 pub mod codebook;
 pub mod deserializer;
+pub mod format;
 pub mod graph_refi;
 pub mod reader;
 pub mod serializer;

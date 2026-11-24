@@ -106,6 +106,12 @@ fn base_source(n: Node, source_type: Option<&str>, path_attr: &str) -> Obj {
         o.insert("sourceType".into(), t.into());
     }
     set_opt(&mut o, "plainTextPath", attr(n, path_attr));
+    // A document's own variable values (as MAXQDA writes its document
+    // variables); the reader turns them into tags.
+    let values: Vec<Value> = children(n, "VariableValue").map(parse_variable_value).collect();
+    if !values.is_empty() {
+        o.insert("_refiVariableValues".into(), values.into());
+    }
     o
 }
 
@@ -137,6 +143,7 @@ fn rect_selection(n: Node, with_page: bool) -> Value {
         o.insert(k.into(), float_attr(n, k));
     }
     audit_fields(&mut o, n);
+    set_opt(&mut o, "description", child_text(n, "Description"));
     o.insert("codings".into(), codings(n));
     Value::Object(o)
 }
@@ -166,6 +173,7 @@ fn parse_video_selection(n: Node) -> Value {
     o.insert("begin".into(), ms("begin"));
     o.insert("end".into(), ms("end"));
     audit_fields(&mut o, n);
+    set_opt(&mut o, "description", child_text(n, "Description"));
     o.insert("codings".into(), codings(n));
     Value::Object(o)
 }
@@ -210,6 +218,7 @@ fn parse_transcript(n: Node) -> Option<Value> {
                 Some(guid_attr(ts, "creatingUser")).filter(|s| !s.is_empty()),
             );
             set_opt(&mut o, "creationDateTime", attr(ts, "creationDateTime"));
+            set_opt(&mut o, "description", child_text(ts, "Description"));
             o.insert("codings".into(), codings(ts));
             Value::Object(o)
         })
@@ -339,6 +348,7 @@ fn parse_case(n: Node) -> Value {
     json!({
         "guid": guid_attr(n, "guid"),
         "name": attr(n, "name").unwrap_or_default(),
+        "description": child_text(n, "Description"),
         "sourceRefGuids": children(n, "SourceRef").map(|r| guid_attr(r, "targetGUID")).collect::<Vec<_>>(),
         "values": children(n, "VariableValue").map(parse_variable_value).collect::<Vec<_>>(),
     })

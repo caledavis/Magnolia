@@ -13,13 +13,15 @@
 // compiled out of release builds. The runner starts the Vite dev server the
 // build loads its pages from, unless one is already serving on port 5173.
 // A spec `foo.js` may have a `foo.after.js`, run next on the same project
-// (to check what `foo` saved, after reopening it).
+// (to check what `foo` saved, after reopening it), and a `foo.prepare.mjs`,
+// whose default export is given the project's path (and `qdpxTool`, which
+// runs the qdpx_tool example) to change the file before the app opens it.
 
 import { spawn, spawnSync } from 'node:child_process'
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, readdirSync, existsSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -98,6 +100,12 @@ function workspace(from, fileName = 'Project.qdpx') {
   return { dir, project, data }
 }
 
+/** Run the qdpx_tool example (crates/magnolia-core/examples) with `args`. */
+function qdpxTool(...args) {
+  const r = spawnSync('cargo', ['run', '-q', '-p', 'magnolia-core', '--example', 'qdpx_tool', '--', ...args], { cwd: ROOT, stdio: 'inherit' })
+  if (r.status !== 0) throw new Error(`qdpx_tool ${args[0]} failed`)
+}
+
 const harness = readFileSync(join(HERE, 'harness.js'), 'utf8')
 const withHarness = (spec) => `${spec}\n${harness}`
 
@@ -126,8 +134,7 @@ async function main() {
       const ws = workspace(null, 'Sample.qdpx')
       const seed = join(ws.dir, 'seed.json')
       writeFileSync(seed, JSON.stringify({ project: { name: 'Sample', origin: 'Magnolia e2e', sources: [], codes: [], sets: [] }, sourceContents: {} }))
-      const w = spawnSync('cargo', ['run', '-q', '-p', 'magnolia-core', '--example', 'qdpx_tool', '--', 'write', seed, ws.project], { cwd: ROOT, stdio: 'inherit' })
-      if (w.status !== 0) throw new Error('could not write the seed project')
+      qdpxTool('write', seed, ws.project)
       const maker = makeLarge ? join(HERE, 'perf', 'make-large.js') : join(HERE, 'fixture', 'make-sample.js')
       const out = makeLarge ? LARGE : FIXTURE
       const lines = await runInApp('make', withHarness(readFileSync(maker, 'utf8')), ws.project, ws.data)
@@ -149,6 +156,8 @@ async function main() {
     if (specs.length === 0) throw new Error('no specs to run')
     for (const name of specs) {
       const ws = workspace(FIXTURE)
+      const prepare = join(specDir, `${name}.prepare.mjs`)
+      if (existsSync(prepare)) await (await import(pathToFileURL(prepare).href)).default(ws.project, { qdpxTool })
       const ok = report(name, await runInApp(name, withHarness(readFileSync(join(specDir, `${name}.js`), 'utf8')), ws.project, ws.data))
       allOk = allOk && ok
       const after = join(specDir, `${name}.after.js`)

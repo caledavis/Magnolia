@@ -188,14 +188,16 @@
         "noText_one": "“{{file}}” üzerine yazılmadı: projede {{count}} belge var, ancak metni yüklenmemiş. Bu genellikle projenin tam açılmadığı anlamına gelir; şimdi kaydetmek belgenin metnini siler. Projeyi yeniden açın; sorun sürerse bir yedekten geri yükleyin.",
         "noText_other": "“{{file}}” üzerine yazılmadı: projede {{count}} belge var, ancak hiçbirinin metni yüklenmemiş. Bu genellikle projenin tam açılmadığı anlamına gelir; şimdi kaydetmek belgelerin metnini siler. Projeyi yeniden açın; sorun sürerse bir yedekten geri yükleyin.",
         "missingFiles_one": "“{{file}}” kaydedilmedi: içe aktarılan {{count}} belgenin içeriği bulunamadı ({{names}}). İçerik bellekte, geçici önbellekte ya da mevcut proje dosyasında değildi; şimdi kaydetmek belgeyi boş kaydeder. Belgeyi yeniden içe aktarıp tekrar deneyin.",
-        "missingFiles_other": "“{{file}}” kaydedilmedi: içe aktarılan {{count}} belgenin içeriği bulunamadı ({{names}}). İçerikler bellekte, geçici önbellekte ya da mevcut proje dosyasında değildi; şimdi kaydetmek belgeleri boş kaydeder. Belgeleri yeniden içe aktarıp tekrar deneyin."
+        "missingFiles_other": "“{{file}}” kaydedilmedi: içe aktarılan {{count}} belgenin içeriği bulunamadı ({{names}}). İçerikler bellekte, geçici önbellekte ya da mevcut proje dosyasında değildi; şimdi kaydetmek belgeleri boş kaydeder. Belgeleri yeniden içe aktarıp tekrar deneyin.",
+        "newerFormat": "“{{file}}” Magnolia’nın daha yeni bir sürümüyle kaydedildi ({{savedBy}}). Bu sürüm onu gösterebilir ama kaydedemez; böylece yeni sürümün eklediği hiçbir şey kaybolmaz. Bu proje üzerinde çalışmak için Magnolia’yı güncelleyin."
       },
       "typesetFailed": "Magnolia bu belgeyi sayfalara dizemedi. Belgeyi geldiği programda yeniden kaydetmeyi ya da PDF olarak kaydedip onu içe aktarmayı deneyin.",
       "save": {
         "noPermission": "Magnolia’nın proje dosyasını veya bulunduğu klasörü değiştirme izni yok. Klasörün kilitli ya da salt okunur olmadığını denetleyin veya bir kopyasını başka bir yere kaydedin.",
         "diskFull": "Diskte yeterli boş alan yok. Biraz yer açın ve yeniden deneyin.",
         "notFound": "Projenin klasörü bulunamıyor. Taşınmış ya da yeniden adlandırılmış veya bağlı olmayan bir diskte olabilir."
-      }
+      },
+      "caseCategory": "Vaka"
     }
   },
   "tools": {
@@ -1999,5 +2001,10 @@
     "singleProject": "yalnızca bir projede",
     "computed": "Hesaplandı",
     "reportEmpty": "Burada göstermek için analizi sonuçlarıyla birlikte kaydedin."
+  },
+  "newerFormat": {
+    "title": "Salt okunur açıldı",
+    "text": "Bu proje Magnolia’nın daha yeni bir sürümüyle kaydedildi ({{savedBy}}). Burada inceleyebilirsiniz, ancak yeni sürümün eklediği hiçbir şey kaybolmasın diye değişiklikler kaydedilmeyecek. Proje üzerinde çalışmak için Magnolia’yı güncelleyin.",
+    "cantSave": "Bu proje Magnolia’nın daha yeni bir sürümüyle kaydedildi ({{savedBy}}), bu yüzden bu sürüm ne projeyi ne de kopyasını kaydedebilir. Proje üzerinde çalışmak için Magnolia’yı güncelleyin."
   }
 }

@@ -58,6 +58,7 @@ import { requestPreferencesCategory } from './components/Preferences/Preferences
 import type { PersistedTabState, MissingBinary, CheckoutMarker, ImportState, SaveOutcome } from './models/types'
 import { MissingBinariesBanner } from './components/MissingBinariesBanner'
 import { SaveFailedBanner } from './components/SaveFailedBanner'
+import { NewerFormatBanner } from './components/NewerFormatBanner'
 import { CheckoutConflictDialog } from './components/CheckoutConflictDialog'
 import { StealBackDialog } from './components/StealBackDialog'
 import { NameGateOverlay } from './components/NameGateOverlay'
@@ -757,6 +758,7 @@ function App() {
       useProjectStore.getState().markClean()
       noteStateMatchesFile()
       setMissingBinaries(data.missingBinaries ?? [])
+      useProjectStore.getState().setNewerFormat(data.newerFormat?.savedBy ?? null)
       applyCheckoutInfo(data)
       if (data.filePath) {
         window.api.trackRecentProject(project.name, data.filePath)
@@ -801,6 +803,12 @@ function App() {
     if (loadInProgressRef.current) {
       console.warn('[save-project guard] skipping save during project load')
       return { ok: true }
+    }
+    // Saved by a newer Magnolia: read-only (NewerFormatBanner says why).
+    const newerFormat = useProjectStore.getState().newerFormat
+    if (newerFormat) {
+      useProjectStore.setState({ newerFormatNotice: true })
+      return { ok: false, error: t('newerFormat.cantSave', { savedBy: newerFormat }) }
     }
     // Captured before the save, not read again after: a brand-new
     // project has no filePath yet, so auto-checkout's clean→dirty trigger
@@ -880,7 +888,7 @@ function App() {
       }
     }
     return { ok: true }
-  }, [documentStore, projectStore])
+  }, [documentStore, projectStore, t])
 
   // Before another project replaces this one: save it, rather than drop
   // whatever the autosave hadn't written yet (an import, a code just
@@ -916,6 +924,11 @@ function App() {
   useEffect(() => { setSaveFailure(null) }, [projectStore.filePath])
 
   const handleSaveProjectAs = useCallback(async () => {
+    const newerFormat = useProjectStore.getState().newerFormat
+    if (newerFormat) {
+      await window.api.showMessage(t('newerFormat.cantSave', { savedBy: newerFormat }), 'info')
+      return
+    }
     const project = collectProject()
     const result = await window.api.saveProjectAs({
       project,
@@ -955,7 +968,7 @@ function App() {
         }
       }
     }
-  }, [documentStore, projectStore])
+  }, [documentStore, projectStore, t])
 
   // "Check Out Anyway" from the checkout-conflict dialog shown right after
   // opening a project someone else already holds (see applyCheckoutInfo).
@@ -1152,6 +1165,8 @@ function App() {
       return
     }
     if (autoCheckOutAttempted.current) return
+    // Nothing of a read-only project is saved, so it isn't claimed either.
+    if (projectStore.newerFormat) return
     const filePath = projectStore.filePath
     const myName = usePreferencesStore.getState().userName.trim()
     if (!filePath || !myName) return
@@ -1173,7 +1188,7 @@ function App() {
         if (pendingAutoCheckOutRef.current === claim) pendingAutoCheckOutRef.current = null
       })
     pendingAutoCheckOutRef.current = claim
-  }, [projectStore.isDirty, projectStore.filePath, projectStore.checkoutMarker, setCheckoutConflict])
+  }, [projectStore.isDirty, projectStore.filePath, projectStore.checkoutMarker, projectStore.newerFormat, setCheckoutConflict])
 
   // Keep the main process told which .qdpx is open, so it can regenerate
   // any media temp file the OS reaps mid-session straight from the archive
@@ -1729,6 +1744,7 @@ function App() {
         useProjectStore.getState().markClean()
         noteStateMatchesFile()
         setMissingBinaries(data.missingBinaries ?? [])
+        useProjectStore.getState().setNewerFormat(data.newerFormat?.savedBy ?? null)
         applyCheckoutInfo(data)
         window.api.trackRecentProject(project.name, filePath)
       } catch (err) {
@@ -2754,6 +2770,8 @@ function App() {
           />
         )
       })()}
+
+      <NewerFormatBanner />
 
       <SaveFailedBanner
         error={saveFailure}

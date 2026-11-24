@@ -188,14 +188,16 @@
         "noText_one": "Tiedostoa ”{{file}}” ei korvata: projektissa on {{count}} dokumentti, mutta sen tekstiä ei ole ladattu. Yleensä tämä tarkoittaa, ettei projekti avautunut kokonaan, ja tallentaminen nyt pyyhkisi dokumentin tekstin. Avaa projekti uudelleen, ja jos ongelma jatkuu, palauta se varmuuskopiosta.",
         "noText_other": "Tiedostoa ”{{file}}” ei korvata: projektissa on {{count}} dokumenttia, mutta niiden tekstiä ei ole ladattu. Yleensä tämä tarkoittaa, ettei projekti avautunut kokonaan, ja tallentaminen nyt pyyhkisi dokumenttien tekstin. Avaa projekti uudelleen, ja jos ongelma jatkuu, palauta se varmuuskopiosta.",
         "missingFiles_one": "Tiedostoa ”{{file}}” ei tallenneta: {{count}} tuodun dokumentin sisältöä ei löytynyt ({{names}}). Se ei ollut muistissa, väliaikaisessa välimuistissa eikä nykyisessä projektitiedostossa, joten tallentaminen nyt tallentaisi sen tyhjänä. Tuo dokumentti uudelleen ja yritä uudelleen.",
-        "missingFiles_other": "Tiedostoa ”{{file}}” ei tallenneta: {{count}} tuodun dokumentin sisältöä ei löytynyt ({{names}}). Ne eivät olleet muistissa, väliaikaisessa välimuistissa eivätkä nykyisessä projektitiedostossa, joten tallentaminen nyt tallentaisi ne tyhjinä. Tuo dokumentit uudelleen ja yritä uudelleen."
+        "missingFiles_other": "Tiedostoa ”{{file}}” ei tallenneta: {{count}} tuodun dokumentin sisältöä ei löytynyt ({{names}}). Ne eivät olleet muistissa, väliaikaisessa välimuistissa eivätkä nykyisessä projektitiedostossa, joten tallentaminen nyt tallentaisi ne tyhjinä. Tuo dokumentit uudelleen ja yritä uudelleen.",
+        "newerFormat": "”{{file}}” on tallennettu Magnolian uudemmalla versiolla ({{savedBy}}). Tämä versio voi näyttää sen mutta ei tallentaa sitä, jotta mitään uudemman version lisäämää ei menetetä. Päivitä Magnolia, jotta voit työskennellä tämän projektin parissa."
       },
       "typesetFailed": "Magnolia ei voinut taittaa tätä dokumenttia sivuiksi. Kokeile tallentaa se uudelleen ohjelmassa, josta se on peräisin, tai tallenna se PDF:ksi ja tuo se.",
       "save": {
         "noPermission": "Magnolialla ei ole lupaa muuttaa projektitiedostoa tai kansiota, jossa se on. Tarkista, ettei kansio ole lukittu tai vain luku -tilassa, tai tallenna kopio muualle.",
         "diskFull": "Levyllä ei ole tarpeeksi vapaata tilaa. Vapauta tilaa ja yritä uudelleen.",
         "notFound": "Projektin kansiota ei löydy. Se on ehkä siirretty tai nimetty uudelleen, tai se on levyllä, joka ei ole liitettynä."
-      }
+      },
+      "caseCategory": "Tapaus"
     }
   },
   "tools": {
@@ -1999,5 +2001,10 @@
     "singleProject": "vain yhdessä projektissa",
     "computed": "Laskettu",
     "reportEmpty": "Tallenna analyysi tuloksineen, niin se näkyy tässä."
+  },
+  "newerFormat": {
+    "title": "Avattu vain luku -tilassa",
+    "text": "Tämä projekti on tallennettu Magnolian uudemmalla versiolla ({{savedBy}}). Voit tarkastella sitä täällä, mutta muutoksia ei tallenneta, jotta mitään uudemman version lisäämää ei menetetä. Päivitä Magnolia, jotta voit työskennellä projektin parissa.",
+    "cantSave": "Tämä projekti on tallennettu Magnolian uudemmalla versiolla ({{savedBy}}), joten tämä versio ei voi tallentaa sitä eikä sen kopiota. Päivitä Magnolia, jotta voit työskennellä projektin parissa."
   }
 }

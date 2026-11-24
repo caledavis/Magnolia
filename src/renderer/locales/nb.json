@@ -188,14 +188,16 @@
         "noText_one": "Nekter å overskrive «{{file}}»: prosjektet har {{count}} dokument, men teksten er ikke lastet inn. Det betyr vanligvis at prosjektet ikke ble helt åpnet, og å lagre nå ville slette teksten i dokumentet. Åpne prosjektet på nytt, og gjenopprett det fra en sikkerhetskopi hvis problemet vedvarer.",
         "noText_other": "Nekter å overskrive «{{file}}»: prosjektet har {{count}} dokumenter, men ingen av tekstene er lastet inn. Det betyr vanligvis at prosjektet ikke ble helt åpnet, og å lagre nå ville slette teksten i dokumentene. Åpne prosjektet på nytt, og gjenopprett det fra en sikkerhetskopi hvis problemet vedvarer.",
         "missingFiles_one": "Nekter å lagre «{{file}}»: innholdet i {{count}} importert dokument ble ikke funnet ({{names}}). Det var ikke i minnet, i den midlertidige hurtigbufferen eller i den eksisterende prosjektfilen, så å lagre nå ville lagre det tomt. Importer dokumentet på nytt og prøv igjen.",
-        "missingFiles_other": "Nekter å lagre «{{file}}»: innholdet i {{count}} importerte dokumenter ble ikke funnet ({{names}}). De var ikke i minnet, i den midlertidige hurtigbufferen eller i den eksisterende prosjektfilen, så å lagre nå ville lagre dem tomme. Importer dokumentene på nytt og prøv igjen."
+        "missingFiles_other": "Nekter å lagre «{{file}}»: innholdet i {{count}} importerte dokumenter ble ikke funnet ({{names}}). De var ikke i minnet, i den midlertidige hurtigbufferen eller i den eksisterende prosjektfilen, så å lagre nå ville lagre dem tomme. Importer dokumentene på nytt og prøv igjen.",
+        "newerFormat": "«{{file}}» ble lagret med en nyere versjon av Magnolia ({{savedBy}}). Denne versjonen kan vise det, men ikke lagre det, slik at ingenting av det den nyere versjonen har lagt til, går tapt. Oppdater Magnolia for å arbeide med dette prosjektet."
       },
       "typesetFailed": "Magnolia kunne ikke sette opp dette dokumentet som sider. Prøv å lagre det på nytt i programmet det kom fra, eller lagre det som PDF og importer den.",
       "save": {
         "noPermission": "Magnolia har ikke lov til å endre prosjektfilen eller mappen den ligger i. Sjekk at mappen ikke er låst eller skrivebeskyttet, eller lagre en kopi et annet sted.",
         "diskFull": "Det er ikke nok ledig plass på disken. Frigjør litt plass og prøv igjen.",
         "notFound": "Finner ikke mappen til prosjektet. Den kan være flyttet eller har fått nytt navn, eller ligge på en disk som ikke er koblet til."
-      }
+      },
+      "caseCategory": "Case"
     }
   },
   "tools": {
@@ -1999,5 +2001,10 @@
     "singleProject": "bare i ett prosjekt",
     "computed": "Beregnet",
     "reportEmpty": "Lagre analysen med resultater for å vise den her."
+  },
+  "newerFormat": {
+    "title": "Åpnet skrivebeskyttet",
+    "text": "Dette prosjektet ble lagret med en nyere versjon av Magnolia ({{savedBy}}). Du kan se gjennom det her, men endringer blir ikke lagret, slik at ingenting av det den nyere versjonen har lagt til, går tapt. Oppdater Magnolia for å arbeide med det.",
+    "cantSave": "Dette prosjektet ble lagret med en nyere versjon av Magnolia ({{savedBy}}), så denne versjonen kan verken lagre det eller lagre en kopi av det. Oppdater Magnolia for å arbeide med det."
   }
 }

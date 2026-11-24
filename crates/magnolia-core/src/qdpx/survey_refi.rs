@@ -307,7 +307,7 @@ fn infer_type(v: &Value) -> &'static str {
     }
 }
 
-fn value_to_string(val: &Value) -> String {
+pub(crate) fn value_to_string(val: &Value) -> String {
     if let Some(t) = val.get("textValue").filter(|v| !v.is_null()) {
         return crate::util::js_to_string(t);
     }

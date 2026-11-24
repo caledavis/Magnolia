@@ -194,14 +194,16 @@
         "missingFiles_one": "Atsisakyta įrašyti „{{file}}“: nepavyko rasti {{count}} importuoto dokumento turinio ({{names}}). Jo nebuvo nei atmintyje, nei laikinojoje talpykloje, nei esamame projekto faile, todėl įrašius dabar jis būtų tuščias. Importuokite dokumentą dar kartą ir bandykite vėl.",
         "missingFiles_few": "Atsisakyta įrašyti „{{file}}“: nepavyko rasti {{count}} importuotų dokumentų turinio ({{names}}). Jo nebuvo nei atmintyje, nei laikinojoje talpykloje, nei esamame projekto faile, todėl įrašius dabar jie būtų tušti. Importuokite dokumentus dar kartą ir bandykite vėl.",
         "missingFiles_many": "Atsisakyta įrašyti „{{file}}“: nepavyko rasti {{count}} importuoto dokumento turinio ({{names}}). Jo nebuvo nei atmintyje, nei laikinojoje talpykloje, nei esamame projekto faile, todėl įrašius dabar jie būtų tušti. Importuokite dokumentus dar kartą ir bandykite vėl.",
-        "missingFiles_other": "Atsisakyta įrašyti „{{file}}“: nepavyko rasti {{count}} importuotų dokumentų turinio ({{names}}). Jo nebuvo nei atmintyje, nei laikinojoje talpykloje, nei esamame projekto faile, todėl įrašius dabar jie būtų tušti. Importuokite dokumentus dar kartą ir bandykite vėl."
+        "missingFiles_other": "Atsisakyta įrašyti „{{file}}“: nepavyko rasti {{count}} importuotų dokumentų turinio ({{names}}). Jo nebuvo nei atmintyje, nei laikinojoje talpykloje, nei esamame projekto faile, todėl įrašius dabar jie būtų tušti. Importuokite dokumentus dar kartą ir bandykite vėl.",
+        "newerFormat": "„{{file}}“ įrašytas naujesne Magnolia versija ({{savedBy}}). Ši versija gali jį parodyti, bet ne įrašyti, kad nedingtų niekas, ką pridėjo naujesnė versija. Atnaujinkite Magnolia, kad galėtumėte dirbti su šiuo projektu."
       },
       "typesetFailed": "Magnolia nepavyko išdėstyti šio dokumento puslapiais. Pabandykite vėl jį įrašyti programoje, iš kurios jis atkeliavo, arba įrašykite jį kaip PDF ir importuokite tą failą.",
       "save": {
         "noPermission": "Magnolia neturi leidimo keisti projekto failo ar aplanko, kuriame jis yra. Patikrinkite, ar aplankas neužrakintas ir nėra skirtas tik skaityti, arba įrašykite kopiją kitur.",
         "diskFull": "Diske nepakanka laisvos vietos. Atlaisvinkite vietos ir bandykite dar kartą.",
         "notFound": "Nepavyksta rasti projekto aplanko. Galbūt jis perkeltas ar pervadintas arba yra neprijungtame diske."
-      }
+      },
+      "caseCategory": "Atvejis"
     }
   },
   "tools": {
@@ -2151,5 +2153,10 @@
     "singleProject": "tik viename projekte",
     "computed": "Apskaičiuota",
     "reportEmpty": "Įrašykite analizę su rezultatais, kad ji būtų rodoma čia."
+  },
+  "newerFormat": {
+    "title": "Atidaryta tik skaitymui",
+    "text": "Šis projektas įrašytas naujesne Magnolia versija ({{savedBy}}). Čia galite jį peržiūrėti, bet pakeitimai nebus įrašyti, kad nedingtų niekas, ką pridėjo naujesnė versija. Atnaujinkite Magnolia, kad galėtumėte su juo dirbti.",
+    "cantSave": "Šis projektas įrašytas naujesne Magnolia versija ({{savedBy}}), todėl ši versija negali įrašyti nei jo, nei jo kopijos. Atnaujinkite Magnolia, kad galėtumėte su juo dirbti."
   }
 }

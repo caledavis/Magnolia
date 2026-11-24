@@ -9,6 +9,7 @@ use super::archive_write::AtomicZip;
 use super::checkout::{
     EDITOR_ENTRY, LOCK_ENTRY, PROJECT_ID_ENTRY, lock_entry_bytes, parse_lock_entry, parse_project_id,
 };
+use super::format::{FORMAT_ENTRY, format_entry, newer_format_at};
 use super::serializer::{audio_extension_for, representation_guid_for, serialize_project};
 use super::transcript_refi::build_transcript;
 use crate::binary_store::{BinaryStore, MediaSource};
@@ -144,6 +145,18 @@ pub fn write_qdpx(
     opts: &WriteOptions,
 ) -> Result<(), WriteError> {
     let sources = get_arr(project, "sources").to_vec();
+
+    // Format guard: a project a newer Magnolia saved may hold what this one
+    // doesn't understand, which saving over it — or copying it — would lose.
+    for from in [Some(path), opts.carry_forward_from].into_iter().flatten() {
+        if let Some(newer) = newer_format_at(from) {
+            return Err(WriteError::Guard(tr(
+                "guard.newerFormat",
+                "“{{file}}” was saved by a newer version of Magnolia ({{savedBy}}). This version can show it but not save it, so that nothing the newer version added is lost. Update Magnolia to work on this project.",
+                &[("file", &from.display().to_string()), ("savedBy", &newer.saved_by)],
+            )));
+        }
+    }
 
     // Document-loss guard: never overwrite on-disk sources with zero sources
     // — unless the user deleted them.
@@ -540,6 +553,12 @@ pub fn write_qdpx(
         json!({ "projectId": project_id }).to_string().as_bytes(),
     )?;
     zip.add_stored(LOCK_ENTRY, &lock_entry_bytes(marker.as_ref()))?;
+
+    // The format this save is in (see format.rs).
+    zip.add(
+        FORMAT_ENTRY,
+        format_entry(opts.app_version).to_string().as_bytes(),
+    )?;
 
     // Who last saved this project, written fresh on every save.
     zip.add(

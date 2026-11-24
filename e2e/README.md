@@ -22,7 +22,9 @@ check; `E2E_TIMEOUT` sets a spec's time limit in seconds (600).
   `t.module`, `t.press`, `t.until`, …) and the reporting. Any console error,
   React warning or uncaught error fails the spec.
 - `specs/*.js` — one `async function spec(t)` each. A spec `foo.js` may have a
-  `foo.after.js`, run next on the same project after it's reopened.
+  `foo.after.js`, run next on the same project after it's reopened, and a
+  `foo.prepare.mjs`, which changes the project file before the app opens it
+  (for a file Magnolia wouldn't write itself; see `newer-format.prepare.mjs`).
 - `fixture/sample.qdpx` — the sample project: four interviews, a survey with
   closed and open-ended questions, codes, tags on documents, respondents and a
   question, a folder, saved queries, a memo. All made up. Rebuild it with

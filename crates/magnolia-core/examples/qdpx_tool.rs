@@ -1,6 +1,8 @@
 //! Developer tool for comparing the Rust QDPX implementation against
 //! fixtures: `read <in.qdpx>` prints the loaded project JSON;
-//! `write <in.json> <out.qdpx> [carry.qdpx]` writes `{project, sourceContents}`.
+//! `write <in.json> <out.qdpx> [carry.qdpx]` writes `{project, sourceContents}`;
+//! `put <archive.qdpx> <entry> <text>` adds or replaces one entry (for tests
+//! that need a file Magnolia wouldn't write itself).
 
 use magnolia_core::qdpx::{reader, writer};
 use std::path::Path;
@@ -29,6 +31,33 @@ fn main() {
             };
             writer::write_qdpx(Path::new(&args[3]), &mut project, &contents, &opts).unwrap();
         }
-        _ => eprintln!("usage: qdpx_tool read <in.qdpx> | write <in.json> <out.qdpx>"),
+        Some("put") => put(Path::new(&args[2]), &args[3], args[4].as_bytes()),
+        _ => eprintln!(
+            "usage: qdpx_tool read <in.qdpx> | write <in.json> <out.qdpx> | put <archive.qdpx> <entry> <text>"
+        ),
     }
+}
+
+/// Rewrite `archive` with `entry` holding `bytes` (added, or replacing it).
+fn put(archive: &Path, entry: &str, bytes: &[u8]) {
+    use std::io::{Read, Write};
+    let mut zip = zip::ZipArchive::new(std::fs::File::open(archive).unwrap()).unwrap();
+    let tmp = archive.with_extension("put-tmp");
+    let mut out = zip::ZipWriter::new(std::fs::File::create(&tmp).unwrap());
+    let options = zip::write::SimpleFileOptions::default();
+    for i in 0..zip.len() {
+        let mut f = zip.by_index(i).unwrap();
+        let name = f.name().unwrap().to_string();
+        if name == entry {
+            continue;
+        }
+        let mut data = Vec::new();
+        f.read_to_end(&mut data).unwrap();
+        out.start_file(name, options).unwrap();
+        out.write_all(&data).unwrap();
+    }
+    out.start_file(entry, options).unwrap();
+    out.write_all(bytes).unwrap();
+    out.finish().unwrap();
+    std::fs::rename(&tmp, archive).unwrap();
 }

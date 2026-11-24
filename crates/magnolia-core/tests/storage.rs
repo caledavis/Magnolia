@@ -945,3 +945,52 @@ fn saving_into_a_read_only_folder_says_so_plainly() {
         other => panic!("expected an I/O error, got {other:?}"),
     }
 }
+
+// ── Format ──
+
+#[test]
+fn every_save_records_its_format() {
+    let d = temp();
+    let path = p(&d, "fmt.qdpx");
+    make_zip(&path, &[("project.qde", QDE)]);
+    write_qdpx(&path, &mut empty_project(), &Map::new(), &opts(None, "")).unwrap();
+    let entry = json_entry(&path, "magnolia-format.json").unwrap();
+    assert_eq!(entry["format"], magnolia_core::qdpx::format::FORMAT);
+    assert_eq!(entry["savedBy"], format!("Magnolia {APP_VERSION}"));
+    assert!(read_qdpx(&path, None).unwrap().get("newerFormat").is_none());
+}
+
+#[test]
+fn a_project_from_a_newer_format_opens_but_isnt_saved_over_or_copied() {
+    let d = temp();
+    let path = p(&d, "newer.qdpx");
+    let newer = json!({ "format": magnolia_core::qdpx::format::FORMAT + 1, "savedBy": "Magnolia 9.0.0" }).to_string();
+    let qde = br#"<Project xmlns="urn:QDA-XML:project:1.0" name="Newer"><Sources><TextSource guid="40000000-0000-0000-0000-000000000001" name="A.txt" plainTextPath="internal://40000000-0000-0000-0000-000000000001.txt"/></Sources></Project>"#;
+    make_zip(
+        &path,
+        &[
+            ("project.qde", &qde[..]),
+            ("sources/40000000-0000-0000-0000-000000000001.txt", b"Text."),
+            ("magnolia-format.json", newer.as_bytes()),
+        ],
+    );
+    let before = std::fs::read(&path).unwrap();
+    let mut project = read_qdpx(&path, None).unwrap();
+    assert_eq!(project["newerFormat"]["savedBy"], "Magnolia 9.0.0");
+    let contents = match project.as_object_mut().unwrap().remove("sourceContents") {
+        Some(Value::Object(m)) => m,
+        _ => Map::new(),
+    };
+    // Saving over it is refused, and the file is untouched.
+    match write_qdpx(&path, &mut project.clone(), &contents, &opts(None, "")) {
+        Err(WriteError::Guard(m)) => assert!(m.contains("Magnolia 9.0.0"), "{m}"),
+        other => panic!("saved over a newer project: {:?}", other.err().map(|e| e.to_string())),
+    }
+    assert_eq!(std::fs::read(&path).unwrap(), before);
+    // So is copying it elsewhere (Save As, Create a Copy).
+    let copy = p(&d, "copy.qdpx");
+    let mut o = opts(None, "");
+    o.carry_forward_from = Some(&path);
+    assert!(matches!(write_qdpx(&copy, &mut project, &contents, &o), Err(WriteError::Guard(_))));
+    assert!(!copy.exists());
+}

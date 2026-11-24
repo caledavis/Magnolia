@@ -194,6 +194,7 @@ pub fn build_transcript(
             o.insert("toSyncPoint".into(), to.into());
             copy_opt(&mut o, sel, "creatingUser");
             copy_opt(&mut o, sel, "creationDateTime");
+            copy_opt(&mut o, sel, "description");
             o.insert(
                 "codings".into(),
                 sel.get("codings").cloned().unwrap_or(json!([])),
@@ -275,6 +276,7 @@ pub fn reconstruct_transcript_selections(transcript: &Value) -> Vec<Value> {
         o.insert("endPosition".into(), num(a.max(b)));
         copy_opt(&mut o, ts, "creatingUser");
         copy_opt(&mut o, ts, "creationDateTime");
+        copy_opt(&mut o, ts, "description");
         o.insert(
             "codings".into(),
             ts.get("codings").cloned().unwrap_or(json!([])),

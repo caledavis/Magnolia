@@ -191,14 +191,16 @@
         "noText_other": "Sovrascrittura di «{{file}}» rifiutata: il progetto ha {{count}} documenti, ma nessuno dei loro testi è caricato. Di solito significa che il progetto non si è aperto del tutto, e salvare ora cancellerebbe il testo dei documenti. Riapri il progetto e, se il problema persiste, ripristinalo da un backup.",
         "missingFiles_one": "Salvataggio di «{{file}}» rifiutato: impossibile trovare il contenuto di {{count}} documento importato ({{names}}). Non era in memoria, nella cache temporanea né nel file del progetto esistente, quindi salvare ora lo salverebbe vuoto. Importa di nuovo il documento e riprova.",
         "missingFiles_many": "Salvataggio di «{{file}}» rifiutato: impossibile trovare il contenuto di {{count}} documenti importati ({{names}}). Non erano in memoria, nella cache temporanea né nel file del progetto esistente, quindi salvare ora li salverebbe vuoti. Importa di nuovo i documenti e riprova.",
-        "missingFiles_other": "Salvataggio di «{{file}}» rifiutato: impossibile trovare il contenuto di {{count}} documenti importati ({{names}}). Non erano in memoria, nella cache temporanea né nel file del progetto esistente, quindi salvare ora li salverebbe vuoti. Importa di nuovo i documenti e riprova."
+        "missingFiles_other": "Salvataggio di «{{file}}» rifiutato: impossibile trovare il contenuto di {{count}} documenti importati ({{names}}). Non erano in memoria, nella cache temporanea né nel file del progetto esistente, quindi salvare ora li salverebbe vuoti. Importa di nuovo i documenti e riprova.",
+        "newerFormat": "«{{file}}» è stato salvato da una versione più recente di Magnolia ({{savedBy}}). Questa versione può mostrarlo ma non salvarlo, così non si perde nulla di ciò che la versione più recente ha aggiunto. Aggiorna Magnolia per lavorare a questo progetto."
       },
       "typesetFailed": "Magnolia non è riuscito a impaginare questo documento. Prova a salvarlo di nuovo nel programma da cui proviene, oppure a salvarlo come PDF e a importare quello.",
       "save": {
         "noPermission": "Magnolia non ha il permesso di modificare il file del progetto o la cartella in cui si trova. Controlla che la cartella non sia bloccata o di sola lettura, oppure salva una copia altrove.",
         "diskFull": "Non c’è abbastanza spazio libero sul disco. Libera un po’ di spazio e riprova.",
         "notFound": "Impossibile trovare la cartella del progetto. Potrebbe essere stata spostata o rinominata, oppure trovarsi su un disco non collegato."
-      }
+      },
+      "caseCategory": "Caso"
     }
   },
   "tools": {
@@ -2075,5 +2077,10 @@
     "singleProject": "in un solo progetto",
     "computed": "Calcolato",
     "reportEmpty": "Salva l’analisi con i risultati per mostrarla qui."
+  },
+  "newerFormat": {
+    "title": "Aperto in sola lettura",
+    "text": "Questo progetto è stato salvato da una versione più recente di Magnolia ({{savedBy}}). Puoi consultarlo qui, ma le modifiche non verranno salvate, così non si perde nulla di ciò che la versione più recente ha aggiunto. Aggiorna Magnolia per lavorarci.",
+    "cantSave": "Questo progetto è stato salvato da una versione più recente di Magnolia ({{savedBy}}), quindi questa versione non può salvarlo né salvarne una copia. Aggiorna Magnolia per lavorarci."
   }
 }

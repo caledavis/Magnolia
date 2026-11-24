@@ -160,16 +160,17 @@ fn serialize_picture_selection(sel: &Value) -> Option<El> {
     Some(el)
 }
 
-/// Only a pure timeline coding becomes a `<VideoSelection>`; transcript-text
-/// codings ride solely in their `<TranscriptSelection>` (emitting both makes
-/// Atlas drop the code from the transcript text on round-trip).
-fn serialize_video_selection(sel: &Value) -> Option<El> {
+/// Only a pure timeline coding becomes a `<VideoSelection>` /
+/// `<AudioSelection>` (`tag`); transcript-text codings ride solely in their
+/// `<TranscriptSelection>` (emitting both makes Atlas drop the code from the
+/// transcript text on round-trip).
+fn serialize_time_selection(tag: &str, sel: &Value) -> Option<El> {
     let tr = sel.get("timeRange").filter(|t| truthy(t))?;
     if is_transcript_coding(sel) {
         return None;
     }
     let ms = |k: &str| round_str(get_f64(tr, k).unwrap_or(f64::NAN) * 1000.0);
-    let mut el = El::new("VideoSelection")
+    let mut el = El::new(tag)
         .attr("guid", get_str(sel, "guid").unwrap_or(""))
         .attr("begin", ms("startTime"))
         .attr("end", ms("endTime"));
@@ -189,6 +190,9 @@ fn serialize_transcript_selection(ts: &Value) -> El {
     el.set_opt("toSyncPoint", get_nonempty(ts, "toSyncPoint"));
     el.set_opt("creatingUser", get_nonempty(ts, "creatingUser"));
     el.set_opt("creationDateTime", get_nonempty(ts, "creationDateTime"));
+    if let Some(d) = get_nonempty(ts, "description") {
+        el.push(El::text("Description", d));
+    }
     push_codings(&mut el, ts);
     el
 }
@@ -239,13 +243,16 @@ fn serialize_video_source(s: &Value) -> El {
     }
     for v in get_arr(s, "selections")
         .iter()
-        .filter_map(serialize_video_selection)
+        .filter_map(|sel| serialize_time_selection("VideoSelection", sel))
     {
         el.push(v);
     }
     el
 }
 
+/// `<AudioSource>`: Transcript MUST precede AudioSelection. Audio is coded
+/// on its transcript in Magnolia; an `<AudioSelection>` is a coded stretch of
+/// the recording itself, as other programs code it.
 fn serialize_audio_source(s: &Value) -> El {
     let guid = get_str(s, "guid").unwrap_or("");
     let mut el = media_base(
@@ -255,6 +262,12 @@ fn serialize_audio_source(s: &Value) -> El {
     );
     if let Some(t) = s.get("_refiTranscript").filter(|t| truthy(t)) {
         el.push(serialize_transcript(t));
+    }
+    for a in get_arr(s, "selections")
+        .iter()
+        .filter_map(|sel| serialize_time_selection("AudioSelection", sel))
+    {
+        el.push(a);
     }
     el
 }
@@ -366,6 +379,9 @@ fn serialize_pdf_selection(sel: &Value, page_sizes: Option<&Vec<Value>>) -> Opti
         .attr("secondY", js_num_to_string(second_y));
     el.set_opt("name", get_nonempty(sel, "name"));
     audit(&mut el, sel);
+    if let Some(d) = get_nonempty(sel, "description") {
+        el.push(El::text("Description", d));
+    }
     push_codings(&mut el, sel);
     Some(el)
 }

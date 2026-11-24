@@ -32,6 +32,9 @@ export interface OpenedProject extends Project {
   filePath: string
   checkoutInfo: CheckoutMarker | null
   missingBinaries?: MissingBinary[]
+  /** Saved by a newer Magnolia, in a format this one may not fully
+   *  understand: opened read-only. */
+  newerFormat?: { savedBy: string }
 }
 
 export interface Project {
