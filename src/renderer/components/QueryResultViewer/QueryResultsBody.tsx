@@ -43,6 +43,12 @@ import { useDocumentStore } from '../../stores/document-store'
 import { useTranslation } from 'react-i18next'
 
 /** Group results by sourceGuid, preserving order of first appearance. */
+/** Where a result is: its passage, and its range (or time) in it. */
+function resultKey(r: QueryResult): string {
+  const time = r.timeRange ? `@${r.timeRange.startTime}-${r.timeRange.endTime}` : ''
+  return `${r.sourceGuid}:${r.selectionGuid}:${r.startPosition}-${r.endPosition}${time}`
+}
+
 export function groupByDocument(
   results: QueryResult[]
 ): { sourceGuid: string; sourceName: string; results: QueryResult[] }[] {
@@ -573,8 +579,16 @@ export function QueryResultsBody({
               </span>
             </div>
 
-            {!isCollapsed && group.results.map((result) => {
-              const key = `${result.sourceGuid}:${result.selectionGuid}`
+            {!isCollapsed && (() => {
+              // A result's key: one passage can give several results (an
+              // overlap query gives each place it overlaps), so the key has
+              // where in the passage, and a count for any still alike.
+              const seen = new Map<string, number>()
+              return group.results.map((result) => {
+              const base = resultKey(result)
+              const n = seen.get(base) ?? 0
+              seen.set(base, n + 1)
+              const key = n === 0 ? base : `${base}#${n}`
               return (
                 <ResultItem
                   key={key}
@@ -591,7 +605,8 @@ export function QueryResultsBody({
                   onContextMenu={(e, copy) => setContextMenu({ x: e.clientX, y: e.clientY, copy })}
                 />
               )
-            })}
+              })
+            })()}
           </div>
         )
       })}
