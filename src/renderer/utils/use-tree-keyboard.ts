@@ -2,7 +2,8 @@
  * Keyboard access to a list or tree of rows (documents, codes, memos…),
  * as the WAI-ARIA tree pattern has it.
  *
- * The container takes the props this returns (role="tree" and the keys);
+ * The container takes the props this returns (the keys), and is a tree
+ * (role="tree", named `label`) while it has rows: an empty one isn't;
  * each row is a `role="treeitem"` with `aria-level` (1 for the top), and
  * `aria-expanded` if it has children, whose fold/unfold control is marked
  * `data-tree-toggle`. Rows keep their own mouse handlers: the keys act
@@ -29,8 +30,6 @@ function rowsOf(tree: HTMLElement): HTMLElement[] {
 
 export function useTreeKeyboard(label: string): {
   ref: RefObject<HTMLDivElement>
-  role: 'tree'
-  'aria-label': string
   onKeyDown: (e: KeyboardEvent<HTMLElement>) => void
 } {
   const ref = useRef<HTMLDivElement>(null)
@@ -40,7 +39,13 @@ export function useTreeKeyboard(label: string): {
     const tree = ref.current
     if (!tree) return
     const rows = rowsOf(tree)
-    if (rows.length === 0) return
+    if (rows.length === 0) {
+      tree.removeAttribute('role')
+      tree.removeAttribute('aria-label')
+      return
+    }
+    tree.setAttribute('role', 'tree')
+    tree.setAttribute('aria-label', label)
     const focused = rows.find((r) => r === document.activeElement)
     const current = focused ?? rows.find((r) => r.tabIndex === 0) ?? rows.find((r) => r.getAttribute('aria-selected') === 'true') ?? rows[0]
     for (const r of tree.querySelectorAll<HTMLElement>(ROW)) r.tabIndex = r === current ? 0 : -1
@@ -94,5 +99,5 @@ export function useTreeKeyboard(label: string): {
     }
   }, [])
 
-  return { ref, role: 'tree', 'aria-label': label, onKeyDown }
+  return { ref, onKeyDown }
 }
