@@ -19,7 +19,7 @@
  * `groupByDocument` and `buildHighlightedSpans` are exported here too so
  * both viewers consume them from the same module.
  */
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Icon,
   faChevronDown,
@@ -284,8 +284,13 @@ export function ResultItem({
         padding: '6px 10px 6px 18px',
         cursor: 'pointer',
         fontSize: 'var(--font-size-sm)',
-        borderBottom: '1px solid var(--border-color)'
-      }}
+        borderBottom: '1px solid var(--border-color)',
+        // A long list's cards out of view aren't laid out or painted until
+        // they scroll near (thousands of results otherwise freeze the
+        // window); 90 px is a typical card's height, kept for its place.
+        contentVisibility: 'auto',
+        containIntrinsicSize: 'auto 90px'
+      } as React.CSSProperties}
     >
       {/* Code badges + position */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 3 }}>
@@ -437,6 +442,18 @@ export function ResultItem({
   )
 }
 
+/** A result in the list, redrawn only when what it shows changes (so a
+ *  batch of new results doesn't redraw the thousands before it). */
+const ListedResult = memo(function ListedResult({ itemKey, toggle, ...rest }: Omit<ResultItemProps, 'onToggleExpand'> & { itemKey: string; toggle: (key: string) => void }) {
+  const onToggleExpand = useCallback(() => toggle(itemKey), [toggle, itemKey])
+  return <ResultItem {...rest} onToggleExpand={onToggleExpand} />
+})
+const NO_SELECTIONS: PlainTextSelection[] = []
+
+/** Results drawn at once, and per batch after that (see QueryResultsBody). */
+const FIRST_RESULTS = 150
+const MORE_RESULTS = 300
+
 interface QueryResultsBodyProps {
   results: QueryResult[]
   isActive: boolean
@@ -490,6 +507,24 @@ export function QueryResultsBody({
 }: QueryResultsBodyProps) {
   const { t } = useTranslation()
   const groups = useMemo(() => groupByDocument(results), [results])
+
+  // Thousands of results are drawn a batch at a time: the first at once,
+  // then more after each frame until all are there, so the window never
+  // stops for long (7,000 results at once froze it for over a second).
+  const [growth, setGrowth] = useState<{ results: QueryResult[]; count: number }>({ results, count: FIRST_RESULTS })
+  const shownCount = growth.results === results ? growth.count : FIRST_RESULTS
+  useEffect(() => {
+    if (shownCount >= results.length) return
+    const timer = setTimeout(() => setGrowth({ results, count: shownCount + MORE_RESULTS }), 0)
+    return () => clearTimeout(timer)
+  }, [results, shownCount])
+  let budget = shownCount
+  // What each listed result is given stays the same from batch to batch.
+  const latest = useRef({ toggleExpand, onOpenResult })
+  latest.current = { toggleExpand, onOpenResult }
+  const toggleOne = useCallback((key: string) => latest.current.toggleExpand(key), [])
+  const openOne = useCallback((result: QueryResult, selection?: PlainTextSelection) => latest.current.onOpenResult(result, selection), [])
+  const menuOn = useCallback((e: React.MouseEvent, copy: () => void) => setContextMenu({ x: e.clientX, y: e.clientY, copy }), [])
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; copy: () => void } | null>(null)
   const menuPos = useClampedMenuPosition(contextMenu)
 
@@ -533,7 +568,10 @@ export function QueryResultsBody({
         </div>
       )}
       {groups.map((group) => {
+        if (budget <= 0) return null
         const isCollapsed = collapsedGroups.has(group.sourceGuid)
+        const drawn = isCollapsed ? group.results : group.results.slice(0, budget)
+        if (!isCollapsed) budget -= drawn.length
         return (
           <div key={group.sourceGuid}>
             <div
@@ -587,25 +625,26 @@ export function QueryResultsBody({
               // overlap query gives each place it overlaps), so the key has
               // where in the passage, and a count for any still alike.
               const seen = new Map<string, number>()
-              return group.results.map((result) => {
+              return drawn.map((result) => {
               const base = resultKey(result)
               const n = seen.get(base) ?? 0
               seen.set(base, n + 1)
               const key = n === 0 ? base : `${base}#${n}`
               return (
-                <ResultItem
+                <ListedResult
                   key={key}
+                  itemKey={key}
                   result={result}
                   isExpanded={expandedKeys.has(key)}
-                  onToggleExpand={() => toggleExpand(key)}
-                  onOpenResult={onOpenResult}
-                  selections={sourceSelectionsByGuid.get(result.sourceGuid) || []}
+                  toggle={toggleOne}
+                  onOpenResult={openOne}
+                  selections={sourceSelectionsByGuid.get(result.sourceGuid) || NO_SELECTIONS}
                   findCode={findCode}
                   sourceType={sourceTypeForGuid?.(result.sourceGuid)}
                   pdfFilePath={pdfFilePathForGuid?.(result.sourceGuid)}
                   pdfPageOffsets={pdfPageOffsetsForGuid?.(result.sourceGuid)}
                   survey={surveyForGuid?.(result.sourceGuid)}
-                  onContextMenu={(e, copy) => setContextMenu({ x: e.clientX, y: e.clientY, copy })}
+                  onContextMenu={menuOn}
                 />
               )
               })
