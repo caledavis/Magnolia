@@ -13,6 +13,7 @@ import { makeMapTabId } from '../../utils/tab-ids'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { useTranslation } from 'react-i18next'
 import { compareText, formatNumber } from '../../i18n'
+import { useTreeKeyboard } from '../../utils/use-tree-keyboard'
 
 interface Props {
   onOpen: (toolType: AnalysisToolType, savedConfig: any) => void
@@ -49,6 +50,7 @@ const NO_ANALYSES: SavedAnalysis[] = []
 
 export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemoGuidForAnalysis, onOpenAnalysisMemo }: Props) {
   const { t } = useTranslation()
+  const analysisTree = useTreeKeyboard(t('panes.analyses'))
   // Enforced checkout lock: opening/browsing saved analyses stays live;
   // rename/delete/memo controls stay clickable but intercept and prompt
   // (Take Over / Create a Copy / Cancel) while someone else holds the
@@ -307,7 +309,7 @@ export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemo
         {onPopOut && <button className="panel-header-popout" onClick={onPopOut} title={isPoppedOut ? t('panel.popIn') : t('panel.popOut')} aria-label={isPoppedOut ? t('panel.popInLabel') : t('panel.popOutLabel')}><Icon icon={isPoppedOut ? faDownLeftAndUpRightToCenter : faUpRightFromSquare} /></button>}
         {onClose && <button className="panel-header-close" onClick={onClose} title={t('panel.close')} aria-label={t('panel.close')}><Icon icon={faXmark} /></button>}
       </div>
-      <div className="panel-content">
+      <div className="panel-content" {...analysisTree}>
         {savedAnalyses.length === 0 && (
           <div className="empty-state" style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
             {t('analyses.empty')}
@@ -331,6 +333,10 @@ export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemo
                   between sections. */}
               <div
                 onClick={() => toggleCollapsed(group.toolType)}
+                role="treeitem"
+                aria-level={1}
+                aria-expanded={!isCollapsed}
+                data-tree-enter="click"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -356,6 +362,9 @@ export function SavedAnalyses({ onOpen, onClose, onPopOut, isPoppedOut, findMemo
                 return (
                   <div
                     key={sa.guid}
+                    role="treeitem"
+                    aria-level={2}
+                    aria-selected={isSelected}
                     draggable
                     onDragStart={(e) => {
                       // Relationship-map JSON payload so the user can drag a saved

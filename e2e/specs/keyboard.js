@@ -59,4 +59,12 @@ async function spec(t) {
     t.check('Escape closes it', !!(await t.until(() => !document.querySelector('.context-menu'), 3000)))
     t.check('and focus is back on the code', !!(await t.until(() => focused() === first, 3000)))
   }
+
+  // ── The other panes ──
+  for (const label of ['Tags', 'Saved Memos', 'Saved Quotes', 'Queries', 'Saved Analyses']) {
+    const pane = tree(label)
+    if (!pane) { t.check(`the ${label} pane is a tree`, false, 'not found'); continue }
+    const rows = [...pane.querySelectorAll('[role="treeitem"]')].filter((r) => r.offsetParent !== null)
+    t.check(`the ${label} pane is a tree, one row in the Tab order`, rows.length === 0 || rows.filter((r) => r.tabIndex === 0).length === 1, `${rows.length} rows`)
+  }
 }

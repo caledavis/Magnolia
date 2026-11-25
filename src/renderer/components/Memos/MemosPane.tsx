@@ -11,6 +11,7 @@ import type { Memo, MemoType, MemoEditInitData, SavedAnalysis } from '../../mode
 import { showMemoLocation } from '../../utils/show-memo'
 import { useTranslation } from 'react-i18next'
 import { compareText, formatDate, formatNumber } from '../../i18n'
+import { useTreeKeyboard } from '../../utils/use-tree-keyboard'
 
 /** How memo times are shown here: day and time, no year. */
 const MEMO_TIME: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
@@ -23,8 +24,11 @@ function MemoItem({
   onRightClick,
   draggable,
   onDragStart,
-  indent
+  indent,
+  level = 2
 }: {
+  /** Its level in the pane's tree (use-tree-keyboard). */
+  level?: number
   memo: Memo
   selected: boolean
   /** Fires on any left-click: handles plain/shift/ctrl/cmd selection
@@ -51,6 +55,9 @@ function MemoItem({
         background: selected ? 'var(--selection-bg)' : undefined
       }}
       className="codebook-entry"
+      role="treeitem"
+      aria-level={level}
+      aria-selected={selected}
       onClick={(e) => onItemClick(e, memo)}
       onDoubleClick={onDoubleClick}
       draggable={draggable !== false}
@@ -144,6 +151,10 @@ function MemoSection({
           background: isDragOver ? 'var(--selection-bg)' : undefined
         }}
         onClick={() => setExpanded((v) => !v)}
+        role="treeitem"
+        aria-level={1}
+        aria-expanded={effectiveExpanded}
+        data-tree-enter="click"
         onDragOver={droppable ? (e) => { e.preventDefault(); setIsDragOver(true) } : undefined}
         onDragLeave={droppable ? () => setIsDragOver(false) : undefined}
         onDrop={droppable ? (e) => { setIsDragOver(false); onDrop?.(e) } : undefined}
@@ -198,6 +209,10 @@ function AnalysisMemoGroups({
     <div>
       <div
         onClick={() => setSectionExpanded((v) => !v)}
+        role="treeitem"
+        aria-level={1}
+        aria-expanded={sectionExpanded}
+        data-tree-enter="click"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -266,6 +281,10 @@ function AnalysisMemoMapGroup({
     <div>
       <div
         onClick={() => setExpanded((v) => !v)}
+        role="treeitem"
+        aria-level={2}
+        aria-expanded={expanded}
+        data-tree-enter="click"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -298,6 +317,7 @@ function AnalysisMemoMapGroup({
           // map header has 22 px left padding + 12 px chevron + 6 px
           // gap = 40 px to where the map name begins.
           indent={40}
+          level={3}
         />
       ))}
     </div>
@@ -315,6 +335,7 @@ const NO_ANALYSES: SavedAnalysis[] = []
 
 export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
   const { t } = useTranslation()
+  const memoTree = useTreeKeyboard(t('panes.memos'))
   // Enforced checkout lock: reading existing memos stays live; the
   // controls for creating, editing, and deleting stay clickable but
   // intercept and prompt (Take Over / Create a Copy / Cancel) while
@@ -640,7 +661,7 @@ export function MemosPane({ onClose, onPopOut, isPoppedOut }: Props) {
         {onClose && <button className="panel-header-close" onClick={onClose} title={t('panel.close')} aria-label={t('panel.close')}><Icon icon={faXmark} /></button>}
       </div>
 
-      <div className="panel-content">
+      <div className="panel-content" {...memoTree}>
         {(() => {
           const visibleProject = filterByTitle(projectMemos)
           const visibleDocument = filterByTitle(documentMemos)

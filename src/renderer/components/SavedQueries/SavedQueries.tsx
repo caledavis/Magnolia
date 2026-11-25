@@ -3,6 +3,7 @@ import type { SavedQuery, Query } from '../../models/types'
 import { Icon, faMagnifyingGlass, faXmark, MEMO_ICON } from '../Icon'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { useTranslation } from 'react-i18next'
+import { useTreeKeyboard } from '../../utils/use-tree-keyboard'
 
 interface Props {
   /** The list to render. Caller is responsible for sourcing this from
@@ -51,6 +52,7 @@ export function SavedQueries({
   pulsedQueryGuid
 }: Props) {
   const { t } = useTranslation()
+  const queryTree = useTreeKeyboard(t('panes.queries'))
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; guid: string } | null>(null)
   const menuPos = useClampedMenuPosition(contextMenu)
   const [editing, setEditing] = useState<string | null>(null)
@@ -181,7 +183,7 @@ export function SavedQueries({
           </button>
         )}
       </div>
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: 4 }}>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: 4 }} {...queryTree}>
       {savedQueries.length === 0 && (
         <div
           className="empty-state"
@@ -217,6 +219,10 @@ export function SavedQueries({
           <div
             key={sq.guid}
             ref={(el) => { if (el) rowRefs.current.set(sq.guid, el); else rowRefs.current.delete(sq.guid) }}
+            role="treeitem"
+            aria-level={1}
+            aria-selected={isSelected}
+            aria-current={isActiveQuery ? 'true' : undefined}
             draggable
             onDragStart={(e) => {
               if (isSelected && selectedGuids.size > 1) {

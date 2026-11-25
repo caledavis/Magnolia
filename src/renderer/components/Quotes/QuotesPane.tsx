@@ -11,6 +11,7 @@ import { renderImageRegionThumbnail } from '../../utils/image-thumbnail'
 import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../../stores/project-store'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
+import { useTreeKeyboard } from '../../utils/use-tree-keyboard'
 
 interface Props {
   onClose?: () => void
@@ -20,6 +21,7 @@ interface Props {
 
 export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
   const { t } = useTranslation()
+  const quoteTree = useTreeKeyboard(t('panes.quotes'))
   // Enforced checkout lock: browsing/opening quotes stays live; removing
   // one is disabled while someone else holds the lock.
   const lockedBy = useCheckoutLockedBy()
@@ -192,7 +194,7 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
         {onPopOut && <button className="panel-header-popout" onClick={onPopOut} title={isPoppedOut ? t('panel.popIn') : t('panel.popOut')} aria-label={isPoppedOut ? t('panel.popInLabel') : t('panel.popOutLabel')}><Icon icon={isPoppedOut ? faDownLeftAndUpRightToCenter : faUpRightFromSquare} /></button>}
         {onClose && <button className="panel-header-close" onClick={onClose} title={t('panel.close')} aria-label={t('panel.close')}><Icon icon={faXmark} /></button>}
       </div>
-      <div className="panel-content">
+      <div className="panel-content" {...quoteTree}>
         {quotes.length === 0 && (
           <div className="empty-state" style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
             {t('quotes.empty')}
@@ -215,6 +217,10 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
                   (small-secondary, no uppercase, count on the right). */}
               <div
                 onClick={() => toggleGroup(group.sourceGuid)}
+                role="treeitem"
+                aria-level={1}
+                aria-expanded={!isCollapsed}
+                data-tree-enter="click"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -240,6 +246,9 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
               {!isCollapsed && group.quotes.map((q) => (
                 <div
                   key={q.guid}
+                  role="treeitem"
+                  aria-level={2}
+                  data-tree-enter="click"
                   draggable
                   onDragStart={(e) => {
                     e.dataTransfer.setData('application/json', JSON.stringify({
