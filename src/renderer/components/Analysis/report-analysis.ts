@@ -63,6 +63,7 @@ export const REPORT_TABLE_CSS = `
   table.report-table th.rowhead, table.report-table td.rowhead { text-align: start; font-weight: 600; }
   table.report-table th { background: #f3f4f6; color: #555; font-size: 9px; font-weight: 600; }
   table.report-table td.zero { color: #bbb; }
+  table.report-table tr.total td { border-top: 2px solid #aab4c0; font-weight: 700; background: #eef1f5; }
   .report-note { font-size: 10px; color: #555; margin: 2px 0 4px 0; }
   table.report-co td.co-seq { text-align: start; white-space: normal; line-height: 1.8; }
   .co-chip { display: inline-block; white-space: nowrap; }
@@ -777,7 +778,8 @@ function intercoderHtml(config: any): string {
   const head1 = `<tr><th class="rowhead" rowspan="2">${escHtml(t('intercoder.code'))}</th>${headerGroups(snap, cols).map((g) => `<th${g.span > 1 ? ` colspan="${g.span}"` : ''}>${escHtml(g.label)}</th>`).join('')}</tr>`
   const head2 = `<tr>${cols.map((c) => `<th>${escHtml(metricLabel(c.metric))}</th>`).join('')}</tr>`
   const body = tableRows(snap, new Set())
-    .map((r) => `<tr><td class="rowhead">${escHtml(r.label)}</td>${cols.map((c) => {
+    // The overall row is the table's total, styled as the other tools' Total rows.
+    .map((r) => `<tr${r.kind === 'overall' ? ' class="total"' : ''}><td class="rowhead">${escHtml(r.label)}</td>${cols.map((c) => {
       const v = metricValue(r.cell, c, snap.measure)
       const d = alphaChange(r.cell, c, snap.measure)
       return `<td${v === null ? ' class="zero"' : ''}>${escHtml(formatMetric(v, c.metric))}${d === null ? '' : ` (${escHtml(formatChange(d))})`}</td>`

@@ -290,7 +290,7 @@ export function IntercoderResults(p: Props) {
       // to the box's top and the code column to its side. The tool
       // itself only ever scrolls up and down.
       <div ref={tableBoxRef} style={{ overflow: 'auto', maxHeight: drill && !showingSaved ? drillTableHeight(scrollerHeight) : 'max(240px, calc(100vh - 200px))', background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
-        <table {...tableKeys} style={{ borderCollapse: 'separate', borderSpacing: 0, fontSize: 12, minWidth: '100%' }}>
+        <table {...tableKeys} style={{ borderCollapse: 'separate', borderSpacing: 0, fontSize: 11, minWidth: '100%' }}>
           <thead>
             <tr ref={headRowRef}>
               <th ref={codeHeadRef} data-pinned="" rowSpan={2} style={{ ...headStyle, ...stickyHead(0), insetInlineStart: 0, zIndex: 3, borderInlineEnd: '1px solid var(--border-color)', textAlign: 'start', minWidth: 220, cursor: 'help' }} title={t('intercoder.codeTitle')}>{t('intercoder.code')}</th>
@@ -311,7 +311,9 @@ export function IntercoderResults(p: Props) {
               return (
                 <tr key={`${r.kind}|${r.codeKey ?? ''}|${r.docKey ?? ''}`} style={{ background: r.kind === 'overall' ? 'var(--bg-secondary)' : undefined }}>
                   <td style={{
-                    ...cellStyle, textAlign: 'start', paddingInlineStart: r.kind === 'doc' ? 34 : 8, fontWeight: r.kind === 'overall' ? 600 : undefined,
+                    ...cellStyle, textAlign: 'start', paddingInlineStart: r.kind === 'doc' ? 34 : 8,
+                    // As in the other tools: a code's name semi-bold, the overall row (their Total) bold.
+                    fontWeight: r.kind === 'overall' ? 700 : isCode ? 600 : undefined,
                     // The code names stay in view when the table scrolls sideways.
                     position: 'sticky', insetInlineStart: 0, zIndex: 1, borderInlineEnd: '1px solid var(--border-color)',
                     background: r.kind === 'overall' ? 'var(--bg-secondary)' : 'var(--bg-panel)'
@@ -345,7 +347,8 @@ export function IntercoderResults(p: Props) {
                           textAlign: 'center',
                           cursor: clickable ? 'pointer' : undefined,
                           color: v === null ? 'var(--text-muted)' : undefined,
-                          fontWeight: isCode || r.kind === 'overall' ? 600 : undefined,
+                          // Numbers regular, the overall row's bold (as other tools' totals).
+                          fontWeight: r.kind === 'overall' ? 700 : undefined,
                           // A line before each group's columns (all coders, a pair, a coder).
                           // (The first column's line is the code column's own edge.)
                           // (Not after the pinned column, which has its own.)
