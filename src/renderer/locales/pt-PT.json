@@ -729,7 +729,12 @@
     "exportPdfWithCodes": "Exportar como PDF com códigos",
     "exportPdfPlain": "Exportar como PDF",
     "keyboardHint": "As setas percorrem o texto e, com Shift, selecionam. Depois, o atalho de um código, ou Shift+F10 para o menu, codifica a seleção.",
-    "selectedText": "Selecionado: {{text}}"
+    "selectedText": "Selecionado: {{text}}",
+    "videoKeysHint": "Espaço reproduz e pausa. I marca o início de um excerto a codificar e O o fim; depois, o atalho de um código, um código novo ou colar um código codifica-o. Escape apaga as marcas.",
+    "markedStart": "Início marcado em {{time}}.",
+    "markedStretch": "Marcado de {{start}} a {{end}}.",
+    "markEndBeforeStart": "O fim tem de vir depois do início.",
+    "marksCleared": "Marcas apagadas."
   },
   "tabs": {
     "untitledMap": "Mapa sem título",

@@ -1484,6 +1484,19 @@ function App() {
           const selGuid = ds.addSelection(ps.sourceGuid, ps.startCp, ps.endCp, truncatedName)
           ds.addCodingToSelection(ps.sourceGuid, selGuid, guid)
         }
+      } else if (ps?.kind === 'time') {
+        // A stretch of a video marked with the keyboard (I and O).
+        const ds = useDocumentStore.getState()
+        const src = ds.sources.find((s) => s.guid === ps.sourceGuid)
+        const existingSel = src?.selections.find(
+          (s) => s.timeRange && s.timeRange.startTime === ps.startTime && s.timeRange.endTime === ps.endTime
+        )
+        if (existingSel) {
+          if (!existingSel.codings.some((c) => c.codeGuid === guid)) ds.addCodingToSelection(ps.sourceGuid, existingSel.guid, guid)
+        } else {
+          const selGuid = ds.addTimeRangeSelection(ps.sourceGuid, ps.startTime, ps.endTime)
+          ds.addCodingToSelection(ps.sourceGuid, selGuid, guid)
+        }
       } else if (ps?.kind === 'survey-cell') {
         // Survey-cell pending: apply the freshly-created code to
         // every cell in the (possibly multi-cell) pending selection.

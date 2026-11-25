@@ -729,7 +729,12 @@
     "exportPdfWithCodes": "Esporta come PDF con codici",
     "exportPdfPlain": "Esporta come PDF",
     "keyboardHint": "Le frecce si muovono nel testo e, con Maiusc, lo selezionano. La scorciatoia di un codice, o Maiusc+F10 per il menu, codifica poi la selezione.",
-    "selectedText": "Selezionato: {{text}}"
+    "selectedText": "Selezionato: {{text}}",
+    "videoKeysHint": "Spazio avvia e mette in pausa. I segna l’inizio di un tratto da codificare e O la fine; poi la scorciatoia di un codice, un nuovo codice o incollare un codice lo codifica. Esc cancella i segni.",
+    "markedStart": "Inizio segnato a {{time}}.",
+    "markedStretch": "Segnato da {{start}} a {{end}}.",
+    "markEndBeforeStart": "La fine deve venire dopo l’inizio.",
+    "marksCleared": "Segni cancellati."
   },
   "tabs": {
     "untitledMap": "Mappa senza titolo",

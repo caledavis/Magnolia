@@ -707,7 +707,12 @@
     "exportPdfWithCodes": "Vie PDF-muodossa koodien kanssa",
     "exportPdfPlain": "Vie PDF-muodossa",
     "keyboardHint": "Nuolinäppäimet liikkuvat tekstissä, ja vaihtonäppäimen kanssa ne valitsevat sitä. Koodin pikanäppäin tai Vaihto+F10 valikkoa varten koodaa sitten valinnan.",
-    "selectedText": "Valittu: {{text}}"
+    "selectedText": "Valittu: {{text}}",
+    "videoKeysHint": "Välilyönti toistaa ja keskeyttää. I merkitsee koodattavan jakson alun ja O sen lopun; sitten koodin pikanäppäin, uusi koodi tai koodin liittäminen koodaa sen. Esc poistaa merkinnät.",
+    "markedStart": "Alku merkitty kohtaan {{time}}.",
+    "markedStretch": "Merkitty {{start}}–{{end}}.",
+    "markEndBeforeStart": "Lopun on oltava alun jälkeen.",
+    "marksCleared": "Merkinnät poistettu."
   },
   "tabs": {
     "untitledMap": "Nimetön kartta",

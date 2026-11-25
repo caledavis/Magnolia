@@ -65,6 +65,8 @@ interface Props {
   pxPerSecond: number
   onSeek: (seconds: number) => void
   onZoomChange: (pxPerSec: number) => void
+  /** A stretch marked with the keyboard (I and O), drawn as a band. */
+  markedRange?: { start: number; end?: number } | null
 }
 
 interface Lane {
@@ -124,7 +126,8 @@ export function CodeTrack({
   getCurrentTime,
   pxPerSecond,
   onSeek,
-  onZoomChange
+  onZoomChange,
+  markedRange
 }: Props) {
   const { t } = useTranslation()
   const viewportRef = useRef<HTMLDivElement>(null)
@@ -398,6 +401,20 @@ export function CodeTrack({
           </div>
         ))}
 
+        {/* The stretch marked with I and O: a band, or a line at its start. */}
+        {markedRange && (
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute', top: 0, bottom: 0, pointerEvents: 'none',
+              left: markedRange.start * pxPerSecond,
+              width: markedRange.end !== undefined ? Math.max(2, (markedRange.end - markedRange.start) * pxPerSecond) : 2,
+              background: markedRange.end !== undefined ? 'color-mix(in srgb, var(--accent) 22%, transparent)' : 'var(--accent)',
+              borderInline: '1px solid var(--accent)'
+            }}
+          />
+        )}
+
         {/* Code brackets */}
         {timeRangeSelections.map((sel) => {
           const lane = laneByGuid.get(sel.guid) ?? 0
@@ -413,6 +430,29 @@ export function CodeTrack({
             <div
               key={sel.guid}
               data-bracket="1"
+              // From the keyboard: ← → move it, with Shift they change its
+              // length; a second at a time, a tenth with Alt. Shift+F10 is
+              // its menu (keyboard-access.ts).
+              tabIndex={0}
+              role="button"
+              aria-label={t('viewer.codeTimeRange', { code: code?.name ?? t('viewer.code'), start: formatTimeDecimal(sel.timeRange!.startTime), end: formatTimeDecimal(sel.timeRange!.endTime) })}
+              onKeyDown={(e) => {
+                if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+                e.preventDefault()
+                e.stopPropagation()
+                const step = (e.altKey ? 0.1 : 1) * (e.key === 'ArrowRight' ? 1 : -1)
+                const { startTime, endTime } = sel.timeRange!
+                const round = (v: number) => Math.round(v * 10) / 10
+                let next = e.shiftKey
+                  ? { startTime, endTime: round(Math.max(startTime + 0.1, Math.min(duration || Infinity, endTime + step))) }
+                  : { startTime: round(startTime + step), endTime: round(endTime + step) }
+                if (!e.shiftKey) {
+                  const len = endTime - startTime
+                  if (next.startTime < 0) next = { startTime: 0, endTime: round(len) }
+                  if (duration && next.endTime > duration) next = { startTime: round(duration - len), endTime: round(duration) }
+                }
+                updateSelectionTimeRange(sourceGuid, sel.guid, next)
+              }}
               style={{
                 position: 'absolute',
                 left,

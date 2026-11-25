@@ -729,7 +729,12 @@
     "exportPdfWithCodes": "Exporta com a PDF amb codis",
     "exportPdfPlain": "Exporta com a PDF",
     "keyboardHint": "Les fletxes es mouen pel text i, amb Majúscules, el seleccionen. Després, la drecera d’un codi, o Majúscules+F10 per al menú, codifica la selecció.",
-    "selectedText": "Seleccionat: {{text}}"
+    "selectedText": "Seleccionat: {{text}}",
+    "videoKeysHint": "Espai reprodueix i atura. I marca l’inici d’un tram per codificar i O el final; després, la drecera d’un codi, un codi nou o enganxar un codi el codifica. Escapada esborra les marques.",
+    "markedStart": "Inici marcat a {{time}}.",
+    "markedStretch": "Marcat de {{start}} a {{end}}.",
+    "markEndBeforeStart": "El final ha d’anar després de l’inici.",
+    "marksCleared": "Marques esborrades."
   },
   "tabs": {
     "untitledMap": "Mapa sense títol",

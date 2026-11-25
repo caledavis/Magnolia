@@ -707,7 +707,12 @@
     "exportPdfWithCodes": "Kodlarla PDF olarak dışa aktar",
     "exportPdfPlain": "PDF olarak dışa aktar",
     "keyboardHint": "Ok tuşları metinde ilerler, Shift ile birlikte metni seçer. Ardından bir kodun kısayolu ya da menü için Shift+F10 seçimi kodlar.",
-    "selectedText": "Seçildi: {{text}}"
+    "selectedText": "Seçildi: {{text}}",
+    "videoKeysHint": "Boşluk oynatır ve duraklatır. I kodlanacak bir bölümün başını, O sonunu işaretler; ardından bir kodun kısayolu, yeni bir kod ya da bir kodu yapıştırmak onu kodlar. Escape işaretleri temizler.",
+    "markedStart": "Başlangıç {{time}} olarak işaretlendi.",
+    "markedStretch": "{{start}} – {{end}} işaretlendi.",
+    "markEndBeforeStart": "Bitiş başlangıçtan sonra olmalı.",
+    "marksCleared": "İşaretler temizlendi."
   },
   "tabs": {
     "untitledMap": "Adsız harita",

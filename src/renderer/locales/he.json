@@ -729,7 +729,12 @@
     "exportPdfWithCodes": "ייצוא כ-PDF עם קודים",
     "exportPdfPlain": "ייצוא כ-PDF",
     "keyboardHint": "מקשי החיצים נעים בטקסט, ועם Shift הם בוחרים בו. קיצור הדרך של קוד, או Shift+F10 לתפריט, מקודד אז את הבחירה.",
-    "selectedText": "נבחר: {{text}}"
+    "selectedText": "נבחר: {{text}}",
+    "videoKeysHint": "רווח מפעיל ומשהה. I מסמן את תחילת הקטע לקידוד ו-O את סופו; לאחר מכן קיצור הדרך של קוד, קוד חדש או הדבקת קוד מקודדים אותו. Escape מנקה את הסימונים.",
+    "markedStart": "ההתחלה סומנה ב-{{time}}.",
+    "markedStretch": "סומן מ-{{start}} עד {{end}}.",
+    "markEndBeforeStart": "הסוף צריך לבוא אחרי ההתחלה.",
+    "marksCleared": "הסימונים נוקו."
   },
   "tabs": {
     "untitledMap": "מפה ללא שם",

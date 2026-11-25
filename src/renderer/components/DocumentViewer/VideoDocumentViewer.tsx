@@ -24,7 +24,10 @@ import { decodePeaks } from '../../utils/waveform-peaks'
 import { useRememberedPlayhead } from '../../utils/use-remembered-playhead'
 import type { TextSource, VideoFormatData } from '../../models/types'
 import { useTranslation } from 'react-i18next'
-import { keyCombo } from '../../utils/keys'
+import { keyCombo, digitKey } from '../../utils/keys'
+import { useCodeStore } from '../../stores/code-store'
+import { usePendingSelectionStore } from '../../stores/pending-selection-store'
+import type { Code } from '../../models/types'
 import { draggedCodeGuids } from '../../utils/code-drag'
 
 interface Props {
@@ -37,6 +40,31 @@ const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2]
  *  reasonable default that works well for most video. */
 const FRAME_STEP_SECONDS = 1 / 30
 
+/** Read by screen readers, not shown. */
+const VISUALLY_HIDDEN: React.CSSProperties = {
+  position: 'absolute', width: 1, height: 1, margin: -1, padding: 0, overflow: 'hidden',
+  clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0
+}
+
+/** Keys this viewer handles act only where they mean the video: on the
+ *  page itself or in the viewer, not in a list, a menu, a field, or the
+ *  transcript (whose own caret uses the arrows). */
+function keysForVideo(root: HTMLElement | null): boolean {
+  const el = document.activeElement as HTMLElement | null
+  if (!el || el === document.body) return true
+  if (!root?.contains(el)) return false
+  return !el.closest('input, textarea, select, [contenteditable="true"], .text-document, [role="menu"], [role="tree"], [role="grid"], [data-bracket]')
+}
+
+function hotkeyCode(codes: Code[], digit: number): Code | undefined {
+  for (const c of codes) {
+    if (c.hotkey === digit) return c
+    const inner = hotkeyCode(c.children, digit)
+    if (inner) return inner
+  }
+  return undefined
+}
+
 export function VideoDocumentViewer({ source, content }: Props) {
   const { t } = useTranslation()
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -47,6 +75,11 @@ export function VideoDocumentViewer({ source, content }: Props) {
   const [volume, setVolume] = useState(1)
   const [muted, setMuted] = useState(false)
   const [pxPerSecond, setPxPerSecond] = useState(DEFAULT_PX_PER_SECOND)
+  // A stretch marked with the keyboard: I at its start, O at its end.
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [marks, setMarks] = useState<{ start: number; end?: number } | null>(null)
+  const [announcement, setAnnouncement] = useState('')
+  const codes = useCodeStore((s) => s.codes)
   const updateSourceFormatData = useDocumentStore((s) => s.updateSourceFormatData)
 
   // scrollTarget driven by a saved-pane click or query-result double-
@@ -199,8 +232,7 @@ export function VideoDocumentViewer({ source, content }: Props) {
   // Frame-step via ← → while paused.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement).tagName
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement).contentEditable === 'true') return
+      if (e.defaultPrevented || !keysForVideo(rootRef.current)) return
       if (e.metaKey || e.ctrlKey || e.altKey) return
       const v = getVideo(); if (!v) return
       if (!v.paused) return
@@ -216,6 +248,58 @@ export function VideoDocumentViewer({ source, content }: Props) {
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [])
+
+  // Marking a stretch to code, and coding it, with the keyboard.
+  const applyToMarks = useCallback((codeGuids: string[]) => {
+    if (!marks || marks.end === undefined) return false
+    const ds = useDocumentStore.getState()
+    const src = ds.sources.find((s) => s.guid === source.guid)
+    const existing = src?.selections.find((s) => s.timeRange && s.timeRange.startTime === marks.start && s.timeRange.endTime === marks.end)
+    const selGuid = existing?.guid ?? ds.addTimeRangeSelection(source.guid, marks.start, marks.end)
+    for (const g of codeGuids) {
+      const sel = ds.sources.find((s) => s.guid === source.guid)?.selections.find((s) => s.guid === selGuid)
+      if (!sel?.codings.some((c) => c.codeGuid === g)) ds.addCodingToSelection(source.guid, selGuid, g)
+    }
+    return true
+  }, [marks, source.guid])
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || !keysForVideo(rootRef.current)) return
+      const v = getVideo(); if (!v) return
+      const now = Math.round(v.currentTime * 10) / 10
+      if (!e.metaKey && !e.ctrlKey && !e.altKey && (e.key === 'i' || e.key === 'I')) {
+        e.preventDefault()
+        setMarks({ start: now })
+        setAnnouncement(t('viewer.markedStart', { time: formatTime(now) }))
+      } else if (!e.metaKey && !e.ctrlKey && !e.altKey && (e.key === 'o' || e.key === 'O')) {
+        e.preventDefault()
+        const start = marks?.start ?? 0
+        if (now <= start) {
+          setAnnouncement(t('viewer.markEndBeforeStart'))
+          return
+        }
+        setMarks({ start, end: now })
+        setAnnouncement(t('viewer.markedStretch', { start: formatTime(start), end: formatTime(now) }))
+      } else if (e.key === 'Escape' && marks) {
+        setMarks(null)
+        setAnnouncement(t('viewer.marksCleared'))
+      } else if ((e.metaKey || e.ctrlKey) && marks?.end !== undefined) {
+        const digit = digitKey(e)
+        const code = digit === null ? undefined : hotkeyCode(codes, digit)
+        if (code && applyToMarks([code.guid])) e.preventDefault()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [marks, codes, applyToMarks, t])
+  // A marked stretch is the pending selection (for the New Code dialog).
+  const setGlobalPending = usePendingSelectionStore((s) => s.setSelection)
+  useEffect(() => {
+    if (marks?.end !== undefined) {
+      setGlobalPending({ kind: 'time', sourceGuid: source.guid, startTime: marks.start, endTime: marks.end })
+      return () => setGlobalPending(null)
+    }
+  }, [marks, source.guid, setGlobalPending])
 
   // Preferences / foot pedal bindings (reused from audio viewer).
   const footPedalMappings = usePreferencesStore((s) => s.footPedalMappings)
@@ -264,8 +348,10 @@ export function VideoDocumentViewer({ source, content }: Props) {
 
   return (
     <div
-      style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--bg-panel)' }}
+      ref={rootRef}
+      style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--bg-panel)', position: 'relative' }}
     >
+      <span aria-live="polite" style={VISUALLY_HIDDEN}>{announcement}</span>
       {/* Video element — centred inside a flex-container slot. Height is
           capped at ~45% of the viewer so the transcript has room. */}
       <div
@@ -288,12 +374,25 @@ export function VideoDocumentViewer({ source, content }: Props) {
             e.dataTransfer.dropEffect = 'copy'
           }
         }}
+        // The video takes the focus: Space plays, I and O mark a stretch.
+        tabIndex={0}
+        role="group"
+        aria-label={source.name}
+        aria-description={t('viewer.videoKeysHint')}
+        className="video-frame"
+        onKeyDown={(e) => {
+          if (e.target !== e.currentTarget || e.key !== ' ') return
+          e.preventDefault()
+          togglePlayPause()
+        }}
         onDrop={(e) => {
           // Forward a drop on the video frame to the CodeTrack's create-
           // at-playhead logic — same behaviour as dropping on the track.
           const codeGuids = draggedCodeGuids(e)
           if (codeGuids.length === 0) return
           e.preventDefault()
+          // A stretch marked with I and O takes it.
+          if (applyToMarks(codeGuids)) return
           // Snap to whole seconds — see CodeTrack's drop handler for the
           // rationale (transcript gutter uses HH:MM:SS precision).
           const defaultLen = 4
@@ -454,6 +553,7 @@ export function VideoDocumentViewer({ source, content }: Props) {
         pxPerSecond={pxPerSecond}
         onSeek={seekTo}
         onZoomChange={setPxPerSecond}
+        markedRange={marks}
       />
 
       {/* Transcript */}

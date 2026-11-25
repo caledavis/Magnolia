@@ -729,7 +729,12 @@
     "exportPdfWithCodes": "Exportar como PDF con códigos",
     "exportPdfPlain": "Exportar como PDF",
     "keyboardHint": "Las teclas de flecha recorren el texto y, con Mayúsculas, lo seleccionan. Después, el atajo de un código, o Mayúsculas+F10 para el menú, codifica la selección.",
-    "selectedText": "Seleccionado: {{text}}"
+    "selectedText": "Seleccionado: {{text}}",
+    "videoKeysHint": "Espacio reproduce y pausa. I marca el inicio de un tramo para codificar y O su final; después, el atajo de un código, un código nuevo o pegar un código lo codifica. Escape borra las marcas.",
+    "markedStart": "Inicio marcado en {{time}}.",
+    "markedStretch": "Marcado de {{start}} a {{end}}.",
+    "markEndBeforeStart": "El final tiene que ir después del inicio.",
+    "marksCleared": "Marcas borradas."
   },
   "tabs": {
     "untitledMap": "Mapa sin título",

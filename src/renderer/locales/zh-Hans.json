@@ -685,7 +685,12 @@
     "exportPdfWithCodes": "导出为带代码的 PDF",
     "exportPdfPlain": "导出为 PDF",
     "keyboardHint": "用方向键在文本中移动，配合 Shift 键选择文本。然后用代码的快捷键，或按 Shift+F10 打开菜单，为所选内容编码。",
-    "selectedText": "已选择：{{text}}"
+    "selectedText": "已选择：{{text}}",
+    "videoKeysHint": "空格键播放和暂停。I 标记要编码片段的开始，O 标记结束；然后用代码的快捷键、新代码或粘贴代码为其编码。Escape 清除标记。",
+    "markedStart": "已在 {{time}} 标记开始。",
+    "markedStretch": "已标记 {{start}} 至 {{end}}。",
+    "markEndBeforeStart": "结束必须在开始之后。",
+    "marksCleared": "已清除标记。"
   },
   "tabs": {
     "untitledMap": "未命名地图",

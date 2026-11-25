@@ -707,7 +707,12 @@
     "exportPdfWithCodes": "Eksporter som PDF med koder",
     "exportPdfPlain": "Eksporter som PDF",
     "keyboardHint": "Piltastene beveger seg gjennom teksten, og med Skift merker de den. En kodes snarvei, eller Skift+F10 for menyen, koder så det merkede.",
-    "selectedText": "Merket: {{text}}"
+    "selectedText": "Merket: {{text}}",
+    "videoKeysHint": "Mellomrom spiller av og setter på pause. I markerer starten på et stykke som skal kodes, og O slutten; deretter koder en kodes snarvei, en ny kode eller innliming av en kode det. Escape fjerner markeringene.",
+    "markedStart": "Start markert ved {{time}}.",
+    "markedStretch": "Markert fra {{start}} til {{end}}.",
+    "markEndBeforeStart": "Slutten må komme etter starten.",
+    "marksCleared": "Markeringer fjernet."
   },
   "tabs": {
     "untitledMap": "Kart uten navn",

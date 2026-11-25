@@ -795,7 +795,12 @@
     "exportPdfWithCodes": "تصدير بتنسيق PDF مع الرموز",
     "exportPdfPlain": "تصدير بتنسيق PDF",
     "keyboardHint": "تتنقّل مفاتيح الأسهم في النص، ومع Shift تحدّده. ثم يرمّز اختصار رمزٍ ما، أو Shift+F10 للقائمة، النصَّ المحدَّد.",
-    "selectedText": "المحدَّد: {{text}}"
+    "selectedText": "المحدَّد: {{text}}",
+    "videoKeysHint": "مفتاح المسافة يشغّل ويوقف. يحدّد I بداية مقطع لترميزه وO نهايته؛ ثم يرمّزه اختصار رمز أو رمز جديد أو لصق رمز. يمسح Escape العلامات.",
+    "markedStart": "حُدّدت البداية عند {{time}}.",
+    "markedStretch": "حُدّد من {{start}} إلى {{end}}.",
+    "markEndBeforeStart": "يجب أن تأتي النهاية بعد البداية.",
+    "marksCleared": "مُسحت العلامات."
   },
   "tabs": {
     "untitledMap": "خريطة بلا عنوان",

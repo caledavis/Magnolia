@@ -751,7 +751,12 @@
     "exportPdfWithCodes": "Eksportuoti kaip PDF su kodais",
     "exportPdfPlain": "Eksportuoti kaip PDF",
     "keyboardHint": "Rodyklių klavišai juda tekstu, o su Shift jį pažymi. Tada kodo spartusis klavišas arba Shift+F10 meniu užkoduoja pažymėtą tekstą.",
-    "selectedText": "Pažymėta: {{text}}"
+    "selectedText": "Pažymėta: {{text}}",
+    "videoKeysHint": "Tarpo klavišas paleidžia ir pristabdo. I pažymi koduojamos atkarpos pradžią, O – pabaigą; tada kodo spartusis klavišas, naujas kodas ar kodo įklijavimas ją užkoduoja. Escape panaikina žymes.",
+    "markedStart": "Pradžia pažymėta ties {{time}}.",
+    "markedStretch": "Pažymėta nuo {{start}} iki {{end}}.",
+    "markEndBeforeStart": "Pabaiga turi būti po pradžios.",
+    "marksCleared": "Žymės panaikintos."
   },
   "tabs": {
     "untitledMap": "Žemėlapis be pavadinimo",

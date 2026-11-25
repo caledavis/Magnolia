@@ -707,7 +707,12 @@
     "exportPdfWithCodes": "Export as PDF with Codes",
     "exportPdfPlain": "Export as PDF",
     "keyboardHint": "The arrow keys move through the text, and with Shift they select it. A code’s shortcut, or Shift+F10 for the menu, then codes the selection.",
-    "selectedText": "Selected: {{text}}"
+    "selectedText": "Selected: {{text}}",
+    "videoKeysHint": "Space plays and pauses. I marks the start of a stretch to code and O its end; then a code’s shortcut, a new code or pasting a code codes it. Escape clears the marks.",
+    "markedStart": "Start marked at {{time}}.",
+    "markedStretch": "Marked {{start}} to {{end}}.",
+    "markEndBeforeStart": "The end has to come after the start.",
+    "marksCleared": "Marks cleared."
   },
   "tabs": {
     "untitledMap": "Untitled map",

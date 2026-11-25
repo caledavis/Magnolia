@@ -685,7 +685,12 @@
     "exportPdfWithCodes": "コード付きで PDF として書き出す",
     "exportPdfPlain": "PDF として書き出す",
     "keyboardHint": "矢印キーでテキスト内を移動し、Shift と一緒に押すと選択します。そのあと、コードのショートカット、またはメニューを開く Shift+F10 で選択範囲をコーディングします。",
-    "selectedText": "選択: {{text}}"
+    "selectedText": "選択: {{text}}",
+    "videoKeysHint": "スペースで再生・一時停止します。I でコーディングする区間の始まりを、O で終わりをマークし、コードのショートカット、新しいコード、またはコードの貼り付けでコーディングします。Escape でマークを消します。",
+    "markedStart": "{{time}} に開始をマークしました。",
+    "markedStretch": "{{start}} から {{end}} までをマークしました。",
+    "markEndBeforeStart": "終わりは始まりより後にしてください。",
+    "marksCleared": "マークを消しました。"
   },
   "tabs": {
     "untitledMap": "名称未設定のマップ",

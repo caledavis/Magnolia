@@ -2738,3 +2738,9 @@ textarea {
 [data-drop-zone]:focus-visible { outline: 2px dashed var(--accent); outline-offset: -2px; }
 .pdf-scroll-area:focus { outline: none; }
 .pdf-scroll-area:focus-visible { box-shadow: inset 2px 0 0 var(--accent); }
+
+/* The video, or a coded stretch on its track, the keyboard is on. */
+.video-frame:focus { outline: none; }
+.video-frame:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+[data-bracket][role="button"]:focus { outline: none; }
+[data-bracket][role="button"]:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 1px; }

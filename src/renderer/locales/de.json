@@ -707,7 +707,12 @@
     "exportPdfWithCodes": "Als PDF mit Codes exportieren",
     "exportPdfPlain": "Als PDF exportieren",
     "keyboardHint": "Die Pfeiltasten bewegen sich durch den Text, mit Umschalt markieren sie ihn. Das Tastenkürzel eines Codes oder Umschalt+F10 für das Menü codiert dann die Auswahl.",
-    "selectedText": "Ausgewählt: {{text}}"
+    "selectedText": "Ausgewählt: {{text}}",
+    "videoKeysHint": "Leertaste spielt ab und hält an. I markiert den Anfang eines Abschnitts zum Codieren, O sein Ende; dann codiert ihn das Tastenkürzel eines Codes, ein neuer Code oder das Einfügen eines Codes. Escape löscht die Markierungen.",
+    "markedStart": "Anfang markiert bei {{time}}.",
+    "markedStretch": "Markiert von {{start}} bis {{end}}.",
+    "markEndBeforeStart": "Das Ende muss nach dem Anfang liegen.",
+    "marksCleared": "Markierungen gelöscht."
   },
   "tabs": {
     "untitledMap": "Karte ohne Titel",

@@ -729,7 +729,12 @@
     "exportPdfWithCodes": "Exporter en PDF avec les codes",
     "exportPdfPlain": "Exporter en PDF",
     "keyboardHint": "Les flèches parcourent le texte et, avec Maj, le sélectionnent. Le raccourci d’un code, ou Maj+F10 pour le menu, code ensuite la sélection.",
-    "selectedText": "Sélection : {{text}}"
+    "selectedText": "Sélection : {{text}}",
+    "videoKeysHint": "Espace lit et met en pause. I marque le début d’un passage à coder et O sa fin ; le raccourci d’un code, un nouveau code ou coller un code le code ensuite. Échap efface les marques.",
+    "markedStart": "Début marqué à {{time}}.",
+    "markedStretch": "Marqué de {{start}} à {{end}}.",
+    "markEndBeforeStart": "La fin doit venir après le début.",
+    "marksCleared": "Marques effacées."
   },
   "tabs": {
     "untitledMap": "Carte sans titre",

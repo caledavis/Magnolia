@@ -751,7 +751,12 @@
     "exportPdfWithCodes": "Exportovat jako PDF s kódy",
     "exportPdfPlain": "Exportovat jako PDF",
     "keyboardHint": "Šipky se pohybují textem, se Shiftem ho vybírají. Klávesová zkratka kódu nebo Shift+F10 pro nabídku pak výběr okóduje.",
-    "selectedText": "Vybráno: {{text}}"
+    "selectedText": "Vybráno: {{text}}",
+    "videoKeysHint": "Mezerník spouští a pozastavuje přehrávání. I označí začátek úseku ke kódování a O jeho konec; pak ho okóduje klávesová zkratka kódu, nový kód nebo vložení kódu. Escape značky zruší.",
+    "markedStart": "Začátek označen v {{time}}.",
+    "markedStretch": "Označeno od {{start}} do {{end}}.",
+    "markEndBeforeStart": "Konec musí být po začátku.",
+    "marksCleared": "Značky zrušeny."
   },
   "tabs": {
     "untitledMap": "Mapa bez názvu",

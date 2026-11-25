@@ -707,7 +707,12 @@
     "exportPdfWithCodes": "Exporteren als pdf met codes",
     "exportPdfPlain": "Exporteren als pdf",
     "keyboardHint": "Met de pijltjestoetsen ga je door de tekst, met Shift erbij selecteer je. De sneltoets van een code, of Shift+F10 voor het menu, codeert dan de selectie.",
-    "selectedText": "Geselecteerd: {{text}}"
+    "selectedText": "Geselecteerd: {{text}}",
+    "videoKeysHint": "Spatie speelt af en pauzeert. I markeert het begin van een stuk om te coderen en O het einde; de sneltoets van een code, een nieuwe code of het plakken van een code codeert het dan. Escape wist de markeringen.",
+    "markedStart": "Begin gemarkeerd op {{time}}.",
+    "markedStretch": "Gemarkeerd van {{start}} tot {{end}}.",
+    "markEndBeforeStart": "Het einde moet na het begin komen.",
+    "marksCleared": "Markeringen gewist."
   },
   "tabs": {
     "untitledMap": "Naamloze kaart",

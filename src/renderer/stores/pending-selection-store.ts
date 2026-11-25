@@ -26,6 +26,15 @@ export interface PendingTextSelection {
   selectedText: string
 }
 
+/** A stretch of a recording marked with the keyboard (I and O in the video
+ *  viewer), in seconds. */
+export interface PendingTimeSelection {
+  kind: 'time'
+  sourceGuid: string
+  startTime: number
+  endTime: number
+}
+
 export interface PendingRegionSelection {
   kind: 'region'
   /** The source document guid this selection belongs to. */
@@ -61,6 +70,7 @@ export type PendingSelection =
   | PendingTextSelection
   | PendingRegionSelection
   | PendingSurveyCellSelection
+  | PendingTimeSelection
 
 interface PendingSelectionState {
   selection: PendingSelection | null
