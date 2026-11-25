@@ -1,10 +1,12 @@
 import { useState, useMemo, useCallback, useRef } from 'react'
+import { flushSync } from 'react-dom'
+import { useVerticalView } from '../../utils/use-column-window'
 import type { AnalysisInitData, SurveyEntityRef } from '../../models/types'
 import { Icon, faBarsStaggered } from '../Icon'
 import { type DocumentFilterState } from '../DocumentSelector/DocumentSelector'
 import { DocumentsSection } from './DocumentsSection'
 import { documentFilterFromConfig } from './documents-filter'
-import { truncate, filteredSourcesOf, applySurveyCellScope, cellScopeOf } from './analysis-helpers'
+import { truncate, filteredSourcesOf, applySurveyCellScope, cellScopeOf, contentLength } from './analysis-helpers'
 import { generateGuid } from '../../utils/guid'
 import {
   type GroupByEntry,
@@ -136,9 +138,7 @@ function buildSegments(
     return segments
   }
 
-  const content = data.sourceContents[sourceGuid]
-  if (!content) return []
-  const totalCp = Array.from(content).length
+  const totalCp = contentLength(data, sourceGuid)
   if (totalCp === 0) return []
 
   for (const sel of sels) {
@@ -282,8 +282,7 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
           sourceLengths.push(layout.total)
           totalCp += layout.total
         } else {
-          const content = data.sourceContents[sg]
-          const len = content ? Array.from(content).length : 0
+          const len = contentLength(data, sg)
           layouts.push(null)
           sourceLengths.push(len)
           totalCp += len
@@ -396,6 +395,21 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
   const svgW = groupLabelW + labelW + stripeW + 20
   const svgH = rows.length > 0 ? 10 + rows.length * (stripeH + rowGap) + 6 : 60
 
+  // Only the rows in view are drawn (a survey's respondents can be a
+  // thousand rows), except while the chart is exported.
+  const [drawAllRows, setDrawAllRows] = useState(false)
+  const windowed = rows.length > 100 && !drawAllRows
+  const vview = useVerticalView(svgRef, rows.length > 100)
+  const pitch = stripeH + rowGap
+  const firstRow = windowed ? Math.max(0, Math.floor((vview.view.top - vview.margin - 10) / pitch)) : 0
+  const lastRow = windowed ? Math.min(rows.length, Math.ceil((vview.view.bottom + vview.margin - 10) / pitch)) : rows.length
+  // Each category/folder band's label, drawn while any of the band shows.
+  const bands = useMemo(() => {
+    const out: { ri: number; span: number; label: string }[] = []
+    rowLayout.forEach((l, ri) => { if (l.isGroupStart && l.groupLabel !== null) out.push({ ri, span: l.groupSpan, label: l.groupLabel }) })
+    return out
+  }, [rowLayout])
+
   const handleExportSvg = useCallback(() => {
     if (!svgRef.current) return
 
@@ -459,7 +473,10 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
     }
 
     const totalH = legendH + svgH
+    // Every row, not just those in view.
+    flushSync(() => setDrawAllRows(true))
     const chartHtml = svgRef.current.outerHTML
+    setDrawAllRows(false)
     const combined = `<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${totalH}" viewBox="0 0 ${svgW} ${totalH}"><rect width="${svgW}" height="${totalH}" fill="#ffffff"/>${legendParts.join('')}<g transform="translate(0, ${legendH})">${chartHtml}</g></svg>`
 
     window.api.exportSvg(combined, 'code-orders.svg')
@@ -614,43 +631,39 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <svg ref={svgRef} width={svgW} height={svgH} style={{ background: 'var(--bg-primary)', borderRadius: 'var(--radius-sm)', display: 'block' }}>
-                {rows.map((row, ri) => {
+                {hasGroupedHeader && bands.filter((b) => b.ri < lastRow && b.ri + b.span > firstRow).map((b) => {
+                  const y = 10 + b.ri * pitch
+                  const bandTotalH = b.span * stripeH + (b.span - 1) * rowGap
+                  return (
+                    <g key={'band-' + b.ri}>
+                      <text
+                        x={4}
+                        y={y + bandTotalH / 2 + 3}
+                        fontSize={10}
+                        fontWeight={700}
+                        fontFamily={SVG_FONT_FAMILY}
+                        fill={themeColors.textSecondary}
+                        style={{ dominantBaseline: 'middle' } as any}
+                      >
+                        {truncate(b.label, 12)}
+                      </text>
+                      <line
+                        x1={groupLabelW - 4}
+                        y1={y - 2}
+                        x2={groupLabelW - 4}
+                        y2={y + bandTotalH + 2}
+                        stroke={themeColors.borderColor}
+                        strokeWidth={1}
+                      />
+                    </g>
+                  )
+                })}
+                {rows.slice(firstRow, lastRow).map((row, k) => {
+                  const ri = firstRow + k
                   const segments = rowSegments[ri]
                   const y = 10 + ri * (stripeH + rowGap)
-                  const layout = rowLayout[ri]
-                  // Show the category/folder name once per band, on the
-                  // first row of the band, vertically centred across all
-                  // its rows. A faint vertical rule on the right edge
-                  // visually ties the band's rows together.
-                  const showGroupLabel = hasGroupedHeader && layout?.isGroupStart && layout.groupLabel !== null
-                  const bandTotalH = layout ? layout.groupSpan * stripeH + (layout.groupSpan - 1) * rowGap : stripeH
-
                   return (
                     <g key={row.id}>
-                      {showGroupLabel && (
-                        <>
-                          <text
-                            x={4}
-                            y={y + bandTotalH / 2 + 3}
-                            fontSize={10}
-                            fontWeight={700}
-                            fontFamily={SVG_FONT_FAMILY}
-                            fill={themeColors.textSecondary}
-                            style={{ dominantBaseline: 'middle' } as any}
-                          >
-                            {truncate(layout!.groupLabel!, 12)}
-                          </text>
-                          <line
-                            x1={groupLabelW - 4}
-                            y1={y - 2}
-                            x2={groupLabelW - 4}
-                            y2={y + bandTotalH + 2}
-                            stroke={themeColors.borderColor}
-                            strokeWidth={1}
-                          />
-                        </>
-                      )}
-
                       {/* Document label */}
                       <text
                         x={groupLabelW + 4}

@@ -161,8 +161,8 @@ function sourceOf(data: AnalysisInitData, guid: string): AnalysisInitData['sourc
   return index.get(guid)
 }
 const lengthCaches = new WeakMap<object, Map<string, number>>()
-/** The length of `data.sourceContents[guid]` in codepoints. */
-function contentLength(data: AnalysisInitData, guid: string): number {
+/** The length of `data.sourceContents[guid]` in codepoints (cached). */
+export function contentLength(data: AnalysisInitData, guid: string): number {
   let cache = lengthCaches.get(data.sourceContents)
   if (!cache) { cache = new Map(); lengthCaches.set(data.sourceContents, cache) }
   let len = cache.get(guid)
