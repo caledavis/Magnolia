@@ -2736,3 +2736,5 @@ textarea {
 /* An area that takes drops, the keyboard on it (utils/key-activate.ts). */
 [data-drop-zone]:focus { outline: none; }
 [data-drop-zone]:focus-visible { outline: 2px dashed var(--accent); outline-offset: -2px; }
+.pdf-scroll-area:focus { outline: none; }
+.pdf-scroll-area:focus-visible { box-shadow: inset 2px 0 0 var(--accent); }

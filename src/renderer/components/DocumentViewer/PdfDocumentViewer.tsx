@@ -3,7 +3,7 @@
  * Renders PDF pages via pdfjs-dist with text selection, coding highlights,
  * context menu, drag-drop, and hotkey coding.
  */
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect, useLayoutEffect, useId } from 'react'
 import { useDocumentStore } from '../../stores/document-store'
 import { useCodeStore } from '../../stores/code-store'
 import { useMemoStore } from '../../stores/memo-store'
@@ -28,12 +28,33 @@ import { loadPdfjs, pdfParams } from '../../utils/pdfjs'
 import { flattenCodesWithDepth } from '../../utils/code-tree'
 import { draggedCodeGuids } from '../../utils/code-drag'
 import { drawnText } from '../../utils/pdf-text-map'
+import { moveCaret, type Caret } from '../../utils/text-caret'
 
 function buildCodeMap(codes: Code[]): Map<string, Code> {
   const m = new Map<string, Code>()
   const walk = (list: Code[]) => { for (const c of list) { m.set(c.guid, c); walk(c.children) } }
   walk(codes)
   return m
+}
+
+/** The DOM point of drawn position `cp` in the pages' text layers (none
+ *  if no page holds it). The reverse of resolveCp. */
+function drawnPoint(container: HTMLElement, cp: number): { node: Node; offset: number } | null {
+  for (const span of container.querySelectorAll<HTMLElement>('[data-cpoffset]')) {
+    const start = parseInt(span.dataset.cpoffset!, 10)
+    const chars = [...(span.textContent || '')]
+    if (cp >= start && cp <= start + chars.length) {
+      const node = span.firstChild ?? span
+      return { node, offset: chars.slice(0, cp - start).join('').length }
+    }
+  }
+  return null
+}
+
+/** Read by screen readers, not shown. */
+const VISUALLY_HIDDEN: React.CSSProperties = {
+  position: 'absolute', width: 1, height: 1, margin: -1, padding: 0, overflow: 'hidden',
+  clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0
 }
 
 /** Resolve a DOM position to a codepoint via data-cpoffset */
@@ -146,6 +167,10 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
 
   const [pdfDocument, setPdfDocument] = useState<any>(null)
   const [pendingSelection, setPendingSelection] = useState<{ startCp: number; endCp: number; selectedText: string } | null>(null)
+  // The keyboard's caret, in the PDF's text (see handleCaretKey below).
+  const [pdfCaret, setPdfCaretState] = useState<Caret | null>(null)
+  const pdfCaretRef = useRef<Caret | null>(null)
+  const setPdfCaret = useCallback((c: Caret | null) => { pdfCaretRef.current = c; setPdfCaretState(c) }, [])
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; context: CodingRightClickContext } | null>(null)
   const [menuHighlight, setMenuHighlight] = useState<{ startCp: number; endCp: number } | null>(null)
   const [hoveredRange, setHoveredRange] = useState<{ startCp: number; endCp: number } | null>(null)
@@ -417,7 +442,92 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
     const lo = Math.min(startCp, endCp)
     const hi = Math.max(startCp, endCp)
     setPendingSelection({ startCp: lo, endCp: hi, selectedText: textOf(lo, hi) })
-  }, [textOf])
+    // The keyboard carries on from a mouse selection.
+    const { start, end } = toText(lo, hi)
+    setPdfCaret({ anchor: start, focus: end })
+  }, [textOf, toText, setPdfCaret])
+
+  // ── The keyboard's caret (as in a text document: utils/text-caret.ts) ──
+  // It moves through the PDF's text; its selection is drawn on the page
+  // (through textMap) as a real selection, which codes, menus and paste
+  // act on as they do on a mouse selection.
+  const docCps = useMemo(() => [...content], [content])
+  const docLineStarts = useMemo(() => {
+    const starts = [0]
+    docCps.forEach((c, i) => { if (c === '\n') starts.push(i + 1) })
+    return starts
+  }, [docCps])
+  const [caretBox, setCaretBox] = useState<{ left: number; top: number; height: number } | null>(null)
+  const [caretFocused, setCaretFocused] = useState(false)
+  const [announcement, setAnnouncement] = useState('')
+  const hintId = useId()
+  const handleCaretKey = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget || selectionMode !== 'text') return
+    const current = pdfCaretRef.current ?? { anchor: 0, focus: 0 }
+    const wasSelection = current.anchor !== current.focus
+    let next: Caret
+    let said = ''
+    if (e.key === 'Escape' && wasSelection) {
+      next = { anchor: current.focus, focus: current.focus }
+    } else if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'a') {
+      next = { anchor: 0, focus: docCps.length }
+    } else {
+      const moved = moveCaret(current, e, docCps, docLineStarts, getComputedStyle(e.currentTarget).direction === 'rtl')
+      if (!moved) return
+      next = moved.caret
+      said = moved.passed
+    }
+    e.preventDefault()
+    setPdfCaret(next)
+    const start = Math.min(next.anchor, next.focus)
+    const end = Math.max(next.anchor, next.focus)
+    if (start !== end) {
+      const vs = textMap.toView(start, 'start')
+      const ve = textMap.toView(end, 'end')
+      setPendingSelection({ startCp: vs, endCp: ve, selectedText: docCps.slice(start, end).join('') })
+      if (e.shiftKey || e.key.toLowerCase() === 'a') {
+        const chosen = docCps.slice(start, end).join('')
+        said = t('viewer.selectedText', { text: chosen.length > 300 ? chosen.slice(0, 300) + '…' : chosen })
+      }
+    } else if (wasSelection) {
+      setPendingSelection(null)
+    }
+    setAnnouncement(said)
+  }, [selectionMode, docCps, docLineStarts, textMap, t, setPdfCaret])
+
+  // Draw the caret's selection on the page, or the caret itself.
+  useLayoutEffect(() => {
+    const sc = scrollContainerRef.current
+    if (!sc || !pdfCaret || !caretFocused) { setCaretBox(null); return }
+    const start = Math.min(pdfCaret.anchor, pdfCaret.focus)
+    const end = Math.max(pdfCaret.anchor, pdfCaret.focus)
+    const a = drawnPoint(sc, textMap.toView(start, 'start'))
+    const b = start === end ? a : drawnPoint(sc, textMap.toView(end, 'end'))
+    if (!a || !b) { setCaretBox(null); return }
+    const focusPoint = pdfCaret.focus === start ? a : b
+    const holder = focusPoint.node.nodeType === Node.TEXT_NODE ? focusPoint.node.parentElement : (focusPoint.node as HTMLElement)
+    holder?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+    const sel = window.getSelection()
+    if (start === end) {
+      sel?.removeAllRanges()
+      const r = document.createRange()
+      r.setStart(a.node, Math.min(a.offset, (a.node.textContent || '').length))
+      r.collapse(true)
+      const rect = r.getClientRects()[0] ?? holder?.getBoundingClientRect()
+      if (!rect) { setCaretBox(null); return }
+      const box = sc.getBoundingClientRect()
+      setCaretBox({ left: rect.left - box.left + sc.scrollLeft, top: rect.top - box.top + sc.scrollTop, height: rect.height || 14 })
+      return
+    }
+    setCaretBox(null)
+    try {
+      const r = document.createRange()
+      r.setStart(a.node, a.offset)
+      r.setEnd(b.node, b.offset)
+      sel?.removeAllRanges()
+      sel?.addRange(r)
+    } catch { /* a point no page holds yet */ }
+  }, [pdfCaret, caretFocused, textMap, allPagesRendered])
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     const sel = window.getSelection()
@@ -756,6 +866,12 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
         ref={scrollContainerRef}
         className="pdf-scroll-area"
         onScroll={rememberScroll}
+        // The PDF's text takes the focus, for its keyboard caret.
+        tabIndex={0}
+        aria-describedby={hintId}
+        onKeyDown={handleCaretKey}
+        onFocus={(e) => { if (e.target === e.currentTarget) setCaretFocused(true) }}
+        onBlur={(e) => { if (e.target === e.currentTarget) setCaretFocused(false) }}
         style={{
           flex: 1, overflowY: 'auto', overflowX: 'auto',
           background: 'var(--bg-panel)', padding: '16px', position: 'relative',
@@ -826,6 +942,17 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
           if (guids.length > 0) handleDrop(guids, e.clientX, e.clientY)
         }}
       >
+        {/* What the keyboard does here, what it just did, and where its
+            caret is (not part of the text). */}
+        <span id={hintId} style={VISUALLY_HIDDEN}>{t('viewer.keyboardHint')}</span>
+        <span aria-live="polite" style={VISUALLY_HIDDEN}>{announcement}</span>
+        {caretBox && (
+          <div
+            aria-hidden="true"
+            className="text-caret"
+            style={{ position: 'absolute', left: caretBox.left, top: caretBox.top, height: caretBox.height, width: 2, background: 'var(--text-primary)', pointerEvents: 'none', zIndex: 5 }}
+          />
+        )}
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           {/* PDF pages — takes available space */}
           <div ref={pagesContentRef} style={{ flexShrink: 0 }}>
