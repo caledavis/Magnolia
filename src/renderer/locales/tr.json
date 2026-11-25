@@ -712,7 +712,9 @@
     "markedStart": "Başlangıç {{time}} olarak işaretlendi.",
     "markedStretch": "{{start}} – {{end}} işaretlendi.",
     "markEndBeforeStart": "Bitiş başlangıçtan sonra olmalı.",
-    "marksCleared": "İşaretler temizlendi."
+    "marksCleared": "İşaretler temizlendi.",
+    "areaKeysHint": "Enter sayfanın ortasına bir alan çizer. Oklar onu taşır; Shift ile boyutunu, Alt ile daha küçük adımlarla değiştirir. Ardından bir kodun kısayolu, Shift+F10, yeni bir kod ya da bir kodu yapıştırmak onu kodlar. Escape onu temizler.",
+    "areaAt": "{{page}}. sayfada alan: soldan %{{left}}, üstten %{{top}}, %{{width}} genişlik, %{{height}} yükseklik."
   },
   "tabs": {
     "untitledMap": "Adsız harita",

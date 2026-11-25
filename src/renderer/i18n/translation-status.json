@@ -617,6 +617,8 @@
     "viewer.markedStretch": "Marked {{start}} to {{end}}.",
     "viewer.markEndBeforeStart": "The end has to come after the start.",
     "viewer.marksCleared": "Marks cleared.",
+    "viewer.areaKeysHint": "Enter draws an area in the middle of the page. The arrows move it; with Shift they change its size, with Alt by smaller steps. Then a code’s shortcut, Shift+F10, a new code or pasting a code codes it. Escape clears it.",
+    "viewer.areaAt": "Area on page {{page}}: {{left}}% from the left, {{top}}% from the top, {{width}}% wide, {{height}}% high.",
     "tabs.untitledMap": "Untitled map",
     "tabs.queryBuilder": "Query Builder",
     "tabs.analysis": "Analysis",

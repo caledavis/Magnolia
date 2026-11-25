@@ -11,7 +11,7 @@
  *
  * Coordinates throughout are image pixels with a top-left origin.
  */
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect, useId } from 'react'
 import { useDocumentStore } from '../../stores/document-store'
 import { useCodeStore } from '../../stores/code-store'
 import { useMemoStore } from '../../stores/memo-store'
@@ -31,6 +31,7 @@ import { SelectionMenuButton, boxSelectionAnchor } from './SelectionMenuButton'
 import { ApplyCodeMenuList } from './ApplyCodeMenuList'
 import { useTranslation } from 'react-i18next'
 import { digitKey } from '../../utils/keys'
+import { areaKey, describeArea, revealArea } from '../../utils/area-keys'
 import { flattenCodesWithDepth } from '../../utils/code-tree'
 import { draggedCodeGuids } from '../../utils/code-drag'
 
@@ -97,6 +98,9 @@ export function ImageDocumentViewer({ source }: Props) {
   // Box-mode state — same shape as PdfDocumentViewer but without per-page tracking.
   const [boxDrag, setBoxDrag] = useState<{ startX: number; startY: number; currentX: number; currentY: number } | null>(null)
   const [pendingBoxSelection, setPendingBoxSelection] = useState<{ pdfRegion: PdfRegionSelection } | null>(null)
+  // Drawing an area from the keyboard (utils/area-keys.ts).
+  const [announcement, setAnnouncement] = useState('')
+  const hintId = useId()
 
   // Mirror the box-region selection into the global pending-selection-
   // store so the New Code dialog can apply a freshly-created code to
@@ -484,6 +488,20 @@ export function ImageDocumentViewer({ source }: Props) {
         ref={scrollContainerRef}
         className="image-scroll-area"
         onScroll={rememberScroll}
+        tabIndex={0}
+        role="group"
+        aria-label={source.name}
+        aria-describedby={hintId}
+        onKeyDown={(e) => {
+          if (e.target !== e.currentTarget) return
+          const next = areaKey(e, e.currentTarget, pendingBoxSelection?.pdfRegion ?? null)
+          if (!next) return
+          e.preventDefault()
+          setPendingBoxSelection({ pdfRegion: next })
+          const container = e.currentTarget
+          requestAnimationFrame(() => revealArea(next, container))
+          setAnnouncement(describeArea(next, container, t))
+        }}
         style={{
           flex: 1, overflowY: 'auto', overflowX: 'auto',
           background: 'var(--bg-panel)', padding: '16px', position: 'relative',
@@ -545,6 +563,8 @@ export function ImageDocumentViewer({ source }: Props) {
           if (guids.length > 0) handleDrop(guids, e.clientX, e.clientY)
         }}
       >
+        <span id={hintId} style={{ position: 'absolute', width: 1, height: 1, margin: -1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' }}>{t('viewer.areaKeysHint')}</span>
+        <span aria-live="polite" style={{ position: 'absolute', width: 1, height: 1, margin: -1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' }}>{announcement}</span>
         {/* Outer flex row fills the scroll container's inner area. A
             flex:1 image-area (left) and a fixed-width margin column (right)
             sit side by side. The image-area centres the image on both

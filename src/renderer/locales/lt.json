@@ -756,7 +756,9 @@
     "markedStart": "Pradžia pažymėta ties {{time}}.",
     "markedStretch": "Pažymėta nuo {{start}} iki {{end}}.",
     "markEndBeforeStart": "Pabaiga turi būti po pradžios.",
-    "marksCleared": "Žymės panaikintos."
+    "marksCleared": "Žymės panaikintos.",
+    "areaKeysHint": "Enter nubrėžia sritį puslapio viduryje. Rodyklės ją perkelia; su Shift keičia jos dydį, su Alt – mažesniais žingsniais. Tada kodo spartusis klavišas, Shift+F10, naujas kodas ar kodo įklijavimas ją užkoduoja. Escape ją panaikina.",
+    "areaAt": "Sritis {{page}} puslapyje: {{left}} % nuo kairės, {{top}} % nuo viršaus, {{width}} % pločio, {{height}} % aukščio."
   },
   "tabs": {
     "untitledMap": "Žemėlapis be pavadinimo",

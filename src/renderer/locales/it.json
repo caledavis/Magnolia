@@ -734,7 +734,9 @@
     "markedStart": "Inizio segnato a {{time}}.",
     "markedStretch": "Segnato da {{start}} a {{end}}.",
     "markEndBeforeStart": "La fine deve venire dopo l’inizio.",
-    "marksCleared": "Segni cancellati."
+    "marksCleared": "Segni cancellati.",
+    "areaKeysHint": "Invio disegna un’area al centro della pagina. Le frecce la spostano; con Maiusc ne cambiano la dimensione, con Alt a passi più piccoli. Poi la scorciatoia di un codice, Maiusc+F10, un nuovo codice o incollare un codice la codifica. Esc la cancella.",
+    "areaAt": "Area a pagina {{page}}: {{left}}% da sinistra, {{top}}% dall’alto, larga {{width}}%, alta {{height}}%."
   },
   "tabs": {
     "untitledMap": "Mappa senza titolo",

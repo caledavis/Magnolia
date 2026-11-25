@@ -712,7 +712,9 @@
     "markedStart": "Början markerad vid {{time}}.",
     "markedStretch": "Markerat från {{start}} till {{end}}.",
     "markEndBeforeStart": "Slutet måste komma efter början.",
-    "marksCleared": "Markeringarna borttagna."
+    "marksCleared": "Markeringarna borttagna.",
+    "areaKeysHint": "Retur ritar ett område mitt på sidan. Piltangenterna flyttar det; med Skift ändrar de storleken, med Alt i mindre steg. Sedan kodar en kods kortkommando, Skift+F10, en ny kod eller att klistra in en kod det. Escape tar bort det.",
+    "areaAt": "Område på sidan {{page}}: {{left}} % från vänster, {{top}} % från toppen, {{width}} % brett, {{height}} % högt."
   },
   "tabs": {
     "untitledMap": "Namnlös karta",

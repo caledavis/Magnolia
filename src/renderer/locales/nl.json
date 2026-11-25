@@ -712,7 +712,9 @@
     "markedStart": "Begin gemarkeerd op {{time}}.",
     "markedStretch": "Gemarkeerd van {{start}} tot {{end}}.",
     "markEndBeforeStart": "Het einde moet na het begin komen.",
-    "marksCleared": "Markeringen gewist."
+    "marksCleared": "Markeringen gewist.",
+    "areaKeysHint": "Enter tekent een gebied midden op de pagina. De pijltjestoetsen verplaatsen het; met Shift veranderen ze de grootte, met Alt in kleinere stappen. Daarna codeert de sneltoets van een code, Shift+F10, een nieuwe code of het plakken van een code het. Escape wist het.",
+    "areaAt": "Gebied op pagina {{page}}: {{left}}% van links, {{top}}% van boven, {{width}}% breed, {{height}}% hoog."
   },
   "tabs": {
     "untitledMap": "Naamloze kaart",

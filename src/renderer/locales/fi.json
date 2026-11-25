@@ -712,7 +712,9 @@
     "markedStart": "Alku merkitty kohtaan {{time}}.",
     "markedStretch": "Merkitty {{start}}–{{end}}.",
     "markEndBeforeStart": "Lopun on oltava alun jälkeen.",
-    "marksCleared": "Merkinnät poistettu."
+    "marksCleared": "Merkinnät poistettu.",
+    "areaKeysHint": "Enter piirtää alueen sivun keskelle. Nuolinäppäimet siirtävät sitä; Vaihton kanssa ne muuttavat sen kokoa, Altin kanssa pienemmin askelin. Sitten koodin pikanäppäin, Vaihto+F10, uusi koodi tai koodin liittäminen koodaa sen. Esc poistaa sen.",
+    "areaAt": "Alue sivulla {{page}}: {{left}} % vasemmalta, {{top}} % ylhäältä, {{width}} % leveä, {{height}} % korkea."
   },
   "tabs": {
     "untitledMap": "Nimetön kartta",

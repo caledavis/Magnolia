@@ -712,7 +712,9 @@
     "markedStart": "Anfang markiert bei {{time}}.",
     "markedStretch": "Markiert von {{start}} bis {{end}}.",
     "markEndBeforeStart": "Das Ende muss nach dem Anfang liegen.",
-    "marksCleared": "Markierungen gelöscht."
+    "marksCleared": "Markierungen gelöscht.",
+    "areaKeysHint": "Eingabe zeichnet einen Bereich in die Seitenmitte. Die Pfeiltasten verschieben ihn; mit Umschalt ändern sie seine Größe, mit Alt in kleineren Schritten. Dann codiert ihn das Tastenkürzel eines Codes, Umschalt+F10, ein neuer Code oder das Einfügen eines Codes. Escape löscht ihn.",
+    "areaAt": "Bereich auf Seite {{page}}: {{left}} % von links, {{top}} % von oben, {{width}} % breit, {{height}} % hoch."
   },
   "tabs": {
     "untitledMap": "Karte ohne Titel",

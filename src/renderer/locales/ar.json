@@ -800,7 +800,9 @@
     "markedStart": "حُدّدت البداية عند {{time}}.",
     "markedStretch": "حُدّد من {{start}} إلى {{end}}.",
     "markEndBeforeStart": "يجب أن تأتي النهاية بعد البداية.",
-    "marksCleared": "مُسحت العلامات."
+    "marksCleared": "مُسحت العلامات.",
+    "areaKeysHint": "يرسم Enter منطقة في وسط الصفحة. تحرّكها الأسهم؛ ومع Shift تغيّر حجمها، ومع Alt بخطوات أصغر. ثم يرمّزها اختصار رمز أو Shift+F10 أو رمز جديد أو لصق رمز. يمسحها Escape.",
+    "areaAt": "منطقة في الصفحة {{page}}: ‎{{left}}٪ من اليسار، ‎{{top}}٪ من الأعلى، عرضها {{width}}٪، وارتفاعها {{height}}٪."
   },
   "tabs": {
     "untitledMap": "خريطة بلا عنوان",

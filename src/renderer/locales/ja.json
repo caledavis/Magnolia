@@ -690,7 +690,9 @@
     "markedStart": "{{time}} に開始をマークしました。",
     "markedStretch": "{{start}} から {{end}} までをマークしました。",
     "markEndBeforeStart": "終わりは始まりより後にしてください。",
-    "marksCleared": "マークを消しました。"
+    "marksCleared": "マークを消しました。",
+    "areaKeysHint": "Enter でページ中央に領域を描きます。矢印キーで移動し、Shift と一緒に押すと大きさを変え、Alt と一緒に押すと細かく動かします。その後、コードのショートカット、Shift+F10、新しいコード、またはコードの貼り付けでコーディングします。Escape で消します。",
+    "areaAt": "{{page}} ページの領域：左から {{left}}%、上から {{top}}%、幅 {{width}}%、高さ {{height}}%。"
   },
   "tabs": {
     "untitledMap": "名称未設定のマップ",

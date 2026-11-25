@@ -734,7 +734,9 @@
     "markedStart": "Início marcado em {{time}}.",
     "markedStretch": "Marcado de {{start}} a {{end}}.",
     "markEndBeforeStart": "O fim tem de vir depois do início.",
-    "marksCleared": "Marcas apagadas."
+    "marksCleared": "Marcas apagadas.",
+    "areaKeysHint": "Enter desenha uma área no meio da página. As setas movem-na; com Shift mudam o tamanho, com Alt em passos mais pequenos. Depois, o atalho de um código, Shift+F10, um código novo ou colar um código codifica-a. Escape apaga-a.",
+    "areaAt": "Área na página {{page}}: {{left}}% da esquerda, {{top}}% do topo, {{width}}% de largura, {{height}}% de altura."
   },
   "tabs": {
     "untitledMap": "Mapa sem título",

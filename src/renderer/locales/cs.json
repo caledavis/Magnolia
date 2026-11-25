@@ -756,7 +756,9 @@
     "markedStart": "Začátek označen v {{time}}.",
     "markedStretch": "Označeno od {{start}} do {{end}}.",
     "markEndBeforeStart": "Konec musí být po začátku.",
-    "marksCleared": "Značky zrušeny."
+    "marksCleared": "Značky zrušeny.",
+    "areaKeysHint": "Enter nakreslí oblast doprostřed stránky. Šipky ji posouvají; se Shiftem mění její velikost, s Altem po menších krocích. Pak ji okóduje klávesová zkratka kódu, Shift+F10, nový kód nebo vložení kódu. Escape ji zruší.",
+    "areaAt": "Oblast na stránce {{page}}: {{left}} % zleva, {{top}} % shora, {{width}} % široká, {{height}} % vysoká."
   },
   "tabs": {
     "untitledMap": "Mapa bez názvu",

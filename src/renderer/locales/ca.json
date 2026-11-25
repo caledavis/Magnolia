@@ -734,7 +734,9 @@
     "markedStart": "Inici marcat a {{time}}.",
     "markedStretch": "Marcat de {{start}} a {{end}}.",
     "markEndBeforeStart": "El final ha d’anar després de l’inici.",
-    "marksCleared": "Marques esborrades."
+    "marksCleared": "Marques esborrades.",
+    "areaKeysHint": "Retorn dibuixa una àrea al mig de la pàgina. Les fletxes la mouen; amb Maj en canvien la mida, amb Alt en passos més petits. Després, la drecera d’un codi, Maj+F10, un codi nou o enganxar un codi la codifica. Escapada l’esborra.",
+    "areaAt": "Àrea a la pàgina {{page}}: a un {{left}} % de l’esquerra, a un {{top}} % de dalt, {{width}} % d’ample, {{height}} % d’alt."
   },
   "tabs": {
     "untitledMap": "Mapa sense títol",

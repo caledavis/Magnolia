@@ -712,7 +712,9 @@
     "markedStart": "Start marked at {{time}}.",
     "markedStretch": "Marked {{start}} to {{end}}.",
     "markEndBeforeStart": "The end has to come after the start.",
-    "marksCleared": "Marks cleared."
+    "marksCleared": "Marks cleared.",
+    "areaKeysHint": "Enter draws an area in the middle of the page. The arrows move it; with Shift they change its size, with Alt by smaller steps. Then a code’s shortcut, Shift+F10, a new code or pasting a code codes it. Escape clears it.",
+    "areaAt": "Area on page {{page}}: {{left}}% from the left, {{top}}% from the top, {{width}}% wide, {{height}}% high."
   },
   "tabs": {
     "untitledMap": "Untitled map",

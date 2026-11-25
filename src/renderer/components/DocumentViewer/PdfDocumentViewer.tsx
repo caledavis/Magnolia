@@ -29,6 +29,7 @@ import { flattenCodesWithDepth } from '../../utils/code-tree'
 import { draggedCodeGuids } from '../../utils/code-drag'
 import { drawnText } from '../../utils/pdf-text-map'
 import { moveCaret, type Caret } from '../../utils/text-caret'
+import { areaKey, describeArea, revealArea } from '../../utils/area-keys'
 
 function buildCodeMap(codes: Code[]): Map<string, Code> {
   const m = new Map<string, Code>()
@@ -462,7 +463,18 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
   const [announcement, setAnnouncement] = useState('')
   const hintId = useId()
   const handleCaretKey = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.target !== e.currentTarget || selectionMode !== 'text') return
+    if (e.target !== e.currentTarget) return
+    if (selectionMode === 'box') {
+      // Drawing an area (utils/area-keys.ts).
+      const next = areaKey(e, e.currentTarget, pendingBoxSelection?.pdfRegion ?? null)
+      if (!next) return
+      e.preventDefault()
+      setPendingBoxSelection({ pdfRegion: next })
+      const container = e.currentTarget
+      requestAnimationFrame(() => revealArea(next, container))
+      setAnnouncement(describeArea(next, container, t))
+      return
+    }
     const current = pdfCaretRef.current ?? { anchor: 0, focus: 0 }
     const wasSelection = current.anchor !== current.focus
     let next: Caret
@@ -493,7 +505,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
       setPendingSelection(null)
     }
     setAnnouncement(said)
-  }, [selectionMode, docCps, docLineStarts, textMap, t, setPdfCaret])
+  }, [selectionMode, pendingBoxSelection, docCps, docLineStarts, textMap, t, setPdfCaret])
 
   // Draw the caret's selection on the page, or the caret itself.
   useLayoutEffect(() => {
@@ -849,6 +861,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
               onClick={() => { setSelectionMode('text'); setPendingBoxSelection(null); setBoxDrag(null) }}
               title={t('viewer.textSelection')}
               className={selectionMode === 'text' ? 'active' : ''}
+              aria-pressed={selectionMode === 'text'}
             >
               <Icon icon={faICursor} />
             </button>
@@ -856,6 +869,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
               onClick={() => { setSelectionMode('box'); setPendingSelection(null) }}
               title={t('viewer.boxSelection')}
               className={selectionMode === 'box' ? 'active' : ''}
+              aria-pressed={selectionMode === 'box'}
             >
               <Icon icon={faCrosshairs} />
             </button>
@@ -944,7 +958,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
       >
         {/* What the keyboard does here, what it just did, and where its
             caret is (not part of the text). */}
-        <span id={hintId} style={VISUALLY_HIDDEN}>{t('viewer.keyboardHint')}</span>
+        <span id={hintId} style={VISUALLY_HIDDEN}>{t(selectionMode === 'box' ? 'viewer.areaKeysHint' : 'viewer.keyboardHint')}</span>
         <span aria-live="polite" style={VISUALLY_HIDDEN}>{announcement}</span>
         {caretBox && (
           <div

@@ -712,7 +712,9 @@
     "markedStart": "Start markeret ved {{time}}.",
     "markedStretch": "Markeret fra {{start}} til {{end}}.",
     "markEndBeforeStart": "Slutningen skal komme efter starten.",
-    "marksCleared": "Markeringer ryddet."
+    "marksCleared": "Markeringer ryddet.",
+    "areaKeysHint": "Enter tegner et område midt på siden. Piletasterne flytter det; med Skift ændrer de størrelsen, med Alt i mindre trin. Derefter koder en kodes genvej, Skift+F10, en ny kode eller indsættelse af en kode det. Escape rydder det.",
+    "areaAt": "Område på side {{page}}: {{left}} % fra venstre, {{top}} % fra toppen, {{width}} % bredt, {{height}} % højt."
   },
   "tabs": {
     "untitledMap": "Kort uden navn",

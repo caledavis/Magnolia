@@ -690,7 +690,9 @@
     "markedStart": "已在 {{time}} 标记开始。",
     "markedStretch": "已标记 {{start}} 至 {{end}}。",
     "markEndBeforeStart": "结束必须在开始之后。",
-    "marksCleared": "已清除标记。"
+    "marksCleared": "已清除标记。",
+    "areaKeysHint": "Enter 在页面中央绘制一个区域。方向键移动它；配合 Shift 改变大小，配合 Alt 以更小的步幅调整。然后用代码的快捷键、Shift+F10、新代码或粘贴代码为其编码。Escape 清除它。",
+    "areaAt": "第 {{page}} 页上的区域：距左侧 {{left}}%，距顶部 {{top}}%，宽 {{width}}%，高 {{height}}%。"
   },
   "tabs": {
     "untitledMap": "未命名地图",

@@ -734,7 +734,9 @@
     "markedStart": "Inicio marcado en {{time}}.",
     "markedStretch": "Marcado de {{start}} a {{end}}.",
     "markEndBeforeStart": "El final tiene que ir después del inicio.",
-    "marksCleared": "Marcas borradas."
+    "marksCleared": "Marcas borradas.",
+    "areaKeysHint": "Intro dibuja un área en el centro de la página. Las flechas la mueven; con Mayús cambian su tamaño y con Alt, en pasos más pequeños. Después, el atajo de un código, Mayús+F10, un código nuevo o pegar un código la codifica. Escape la borra.",
+    "areaAt": "Área en la página {{page}}: a {{left}} % de la izquierda, a {{top}} % de arriba, {{width}} % de ancho, {{height}} % de alto."
   },
   "tabs": {
     "untitledMap": "Mapa sin título",

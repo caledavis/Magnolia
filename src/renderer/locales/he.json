@@ -734,7 +734,9 @@
     "markedStart": "ההתחלה סומנה ב-{{time}}.",
     "markedStretch": "סומן מ-{{start}} עד {{end}}.",
     "markEndBeforeStart": "הסוף צריך לבוא אחרי ההתחלה.",
-    "marksCleared": "הסימונים נוקו."
+    "marksCleared": "הסימונים נוקו.",
+    "areaKeysHint": "Enter משרטט אזור באמצע העמוד. החצים מזיזים אותו; עם Shift הם משנים את גודלו, עם Alt בצעדים קטנים יותר. לאחר מכן קיצור הדרך של קוד, Shift+F10, קוד חדש או הדבקת קוד מקודדים אותו. Escape מנקה אותו.",
+    "areaAt": "אזור בעמוד {{page}}: {{left}}% משמאל, {{top}}% מלמעלה, רוחב {{width}}%, גובה {{height}}%."
   },
   "tabs": {
     "untitledMap": "מפה ללא שם",

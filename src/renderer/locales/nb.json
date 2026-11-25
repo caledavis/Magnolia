@@ -712,7 +712,9 @@
     "markedStart": "Start markert ved {{time}}.",
     "markedStretch": "Markert fra {{start}} til {{end}}.",
     "markEndBeforeStart": "Slutten må komme etter starten.",
-    "marksCleared": "Markeringer fjernet."
+    "marksCleared": "Markeringer fjernet.",
+    "areaKeysHint": "Enter tegner et område midt på siden. Piltastene flytter det; med Shift endrer de størrelsen, med Alt i mindre steg. Deretter koder en kodes snarvei, Shift+F10, en ny kode eller innliming av en kode det. Escape fjerner det.",
+    "areaAt": "Område på side {{page}}: {{left}} % fra venstre, {{top}} % fra toppen, {{width}} % bredt, {{height}} % høyt."
   },
   "tabs": {
     "untitledMap": "Kart uten navn",

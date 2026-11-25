@@ -734,7 +734,9 @@
     "markedStart": "Début marqué à {{time}}.",
     "markedStretch": "Marqué de {{start}} à {{end}}.",
     "markEndBeforeStart": "La fin doit venir après le début.",
-    "marksCleared": "Marques effacées."
+    "marksCleared": "Marques effacées.",
+    "areaKeysHint": "Entrée dessine une zone au milieu de la page. Les flèches la déplacent ; avec Maj elles changent sa taille, avec Alt par petits pas. Le raccourci d’un code, Maj+F10, un nouveau code ou coller un code la code ensuite. Échap l’efface.",
+    "areaAt": "Zone à la page {{page}} : à {{left}} % de la gauche, à {{top}} % du haut, {{width}} % de large, {{height}} % de haut."
   },
   "tabs": {
     "untitledMap": "Carte sans titre",
