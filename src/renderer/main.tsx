@@ -7,9 +7,12 @@ import App from './App'
 import './styles/global.css'
 // Keyboard and screen-reader access to the right-click menus.
 import './utils/keyboard-access'
+import { installErrorLog } from './utils/diagnostics'
 import { applyStoredAppearance, installAppearanceListeners } from './utils/apply-theme'
 // Initialize undo system (subscriptions activate on import)
 import './stores/undo-store'
+
+installErrorLog()
 
 // Prevent the webview from opening dropped files in the window.
 // Individual components (e.g. DocumentBrowser) selectively handle drops.

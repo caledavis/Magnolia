@@ -80,6 +80,7 @@
     "native.menu.sponsor": "Sponsor Magnolia…",
     "native.menu.aboutCredits": "Free and open-source qualitative data analysis.",
     "native.menu.aboutBuiltWith": "Built with Tauri, Rust, React, TipTap and PDF.js. Icons by Lucide.",
+    "native.menu.diagnostics": "Diagnostic Information…",
     "native.dialog.openProject": "Open QDPX Project",
     "native.dialog.qdpxProjects": "QDPX Projects",
     "native.dialog.saveProject": "Save QDPX Project",
@@ -1800,6 +1801,14 @@
     "keys.pickedUp": "Picked up {{name}}. Go to where it belongs and press {{paste}} to put it there, or Escape to cancel.",
     "keys.put": "Put {{name}} there.",
     "keys.cantPut": "{{name}} can’t go there.",
-    "keys.cancelled": "Put down."
+    "keys.cancelled": "Put down.",
+    "diagnostics.title": "Diagnostic Information",
+    "diagnostics.short": "Diagnostics",
+    "diagnostics.description": "Versions, settings and recent errors, to include when reporting a problem",
+    "diagnostics.explain": "When you report a problem, include this. It holds Magnolia's and your system's versions, a few settings, how large the project is, and the last errors Magnolia met, but nothing from the project itself (error messages can name a document).",
+    "diagnostics.gathering": "Gathering…",
+    "diagnostics.copy": "Copy",
+    "diagnostics.copied": "Copied. Paste it into your report.",
+    "diagnostics.copyFailed": "Couldn't copy: select the text and copy it instead."
   }
 }

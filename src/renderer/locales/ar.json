@@ -88,7 +88,8 @@
       "github": "Magnolia على GitHub",
       "sponsor": "دعم Magnolia…",
       "aboutCredits": "تحليل مجاني ومفتوح المصدر للبيانات النوعية.",
-      "aboutBuiltWith": "مبني باستخدام Tauri وRust وReact وTipTap وPDF.js. الأيقونات من Lucide."
+      "aboutBuiltWith": "مبني باستخدام Tauri وRust وReact وTipTap وPDF.js. الأيقونات من Lucide.",
+      "diagnostics": "معلومات التشخيص…"
     },
     "dialog": {
       "openProject": "فتح مشروع QDPX",
@@ -2409,5 +2410,15 @@
     "put": "وُضع {{name}} هناك.",
     "cantPut": "لا يمكن وضع {{name}} هناك.",
     "cancelled": "أُعيد."
+  },
+  "diagnostics": {
+    "title": "معلومات التشخيص",
+    "short": "التشخيص",
+    "description": "الإصدارات والإعدادات والأخطاء الأخيرة، لإرفاقها عند الإبلاغ عن مشكلة",
+    "explain": "أرفق هذا عند الإبلاغ عن مشكلة. يتضمن إصدارات Magnolia ونظامك، وبعض الإعدادات، وحجم المشروع، وآخر الأخطاء التي واجهها Magnolia، ولا شيء من المشروع نفسه (قد تذكر رسائل الخطأ اسم مستند).",
+    "gathering": "جارٍ الجمع…",
+    "copy": "نسخ",
+    "copied": "نُسخ. الصقه في بلاغك.",
+    "copyFailed": "تعذّر النسخ: حدّد النص وانسخه بنفسك."
   }
 }

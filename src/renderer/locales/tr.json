@@ -88,7 +88,8 @@
       "github": "GitHub’da Magnolia",
       "sponsor": "Magnolia’ya sponsor ol…",
       "aboutCredits": "Özgür ve açık kaynaklı nitel veri analizi.",
-      "aboutBuiltWith": "Tauri, Rust, React, TipTap ve PDF.js ile geliştirildi. Simgeler Lucide’dan."
+      "aboutBuiltWith": "Tauri, Rust, React, TipTap ve PDF.js ile geliştirildi. Simgeler Lucide’dan.",
+      "diagnostics": "Tanılama bilgileri…"
     },
     "dialog": {
       "openProject": "QDPX projesi aç",
@@ -2069,5 +2070,15 @@
     "put": "{{name}} oraya kondu.",
     "cantPut": "{{name}} oraya konamaz.",
     "cancelled": "Bırakıldı."
+  },
+  "diagnostics": {
+    "title": "Tanılama bilgileri",
+    "short": "Tanılama",
+    "description": "Bir sorunu bildirirken eklenecek sürümler, ayarlar ve son hatalar",
+    "explain": "Bir sorun bildirirken bunu ekleyin. Magnolia'nın ve sisteminizin sürümlerini, birkaç ayarı, projenin boyutunu ve Magnolia'nın karşılaştığı son hataları içerir; projenin kendisinden hiçbir şey içermez (hata iletileri bir belgenin adını içerebilir).",
+    "gathering": "Toplanıyor…",
+    "copy": "Kopyala",
+    "copied": "Kopyalandı. Bildiriminize yapıştırın.",
+    "copyFailed": "Kopyalanamadı: metni seçip kendiniz kopyalayın."
   }
 }

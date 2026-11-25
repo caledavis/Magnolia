@@ -88,7 +88,8 @@
       "github": "El Magnolia a GitHub",
       "sponsor": "Patrocina el Magnolia…",
       "aboutCredits": "Anàlisi qualitativa de dades lliure i de codi obert.",
-      "aboutBuiltWith": "Fet amb Tauri, Rust, React, TipTap i PDF.js. Icones de Lucide."
+      "aboutBuiltWith": "Fet amb Tauri, Rust, React, TipTap i PDF.js. Icones de Lucide.",
+      "diagnostics": "Informació de diagnòstic…"
     },
     "dialog": {
       "openProject": "Obre un projecte QDPX",
@@ -2154,5 +2155,15 @@
     "put": "{{name}} posat allà.",
     "cantPut": "{{name}} no pot anar allà.",
     "cancelled": "Deixat."
+  },
+  "diagnostics": {
+    "title": "Informació de diagnòstic",
+    "short": "Diagnòstic",
+    "description": "Versions, configuració i errors recents, per incloure quan informeu d’un problema",
+    "explain": "Incloeu això quan informeu d’un problema. Conté les versions del Magnolia i del vostre sistema, alguns paràmetres, la mida del projecte i els darrers errors que ha trobat el Magnolia, però res del projecte en si (els missatges d’error poden esmentar un document).",
+    "gathering": "S’està recollint…",
+    "copy": "Copia",
+    "copied": "Copiat. Enganxeu-lo a l’informe.",
+    "copyFailed": "No s’ha pogut copiar: seleccioneu el text i copieu-lo."
   }
 }

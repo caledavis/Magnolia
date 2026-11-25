@@ -15,7 +15,7 @@
  */
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { Icon, faCircleQuestion, faScale, faFileAlt, faHeart, type IconComponent } from '../Icon'
+import { Icon, faCircleQuestion, faScale, faFileAlt, faHeart, faClipboardList, type IconComponent } from '../Icon'
 import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
 import { useTranslation } from 'react-i18next'
 
@@ -26,11 +26,12 @@ export const MANUAL_URL = 'https://caledavis.github.io/Magnolia/'
 
 interface Props {
   onShowLicence: () => void
+  onShowDiagnostics: () => void
 }
 
 /** The Help items' icons, shared by this pop-up and the ribbon's Help
  *  tab so the two always match. */
-export const HELP_ICONS = { licence: faScale, manual: faFileAlt, donate: faHeart }
+export const HELP_ICONS = { licence: faScale, manual: faFileAlt, donate: faHeart, diagnostics: faClipboardList }
 
 interface HelpRow {
   icon: IconComponent
@@ -44,7 +45,7 @@ interface HelpRow {
 const POPOVER_W = 480
 const EDGE_PAD = 8
 
-export function HelpPopover({ onShowLicence }: Props) {
+export function HelpPopover({ onShowLicence, onShowDiagnostics }: Props) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -123,6 +124,12 @@ export function HelpPopover({ onShowLicence }: Props) {
       name: t('toolbar.donate'),
       description: t('toolbar.donateDescription'),
       action: () => window.open(SPONSOR_URL, '_blank')
+    },
+    {
+      icon: HELP_ICONS.diagnostics,
+      name: t('diagnostics.title'),
+      description: t('diagnostics.description'),
+      action: onShowDiagnostics
     }
   ]
 

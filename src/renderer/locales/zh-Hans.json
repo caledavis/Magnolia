@@ -88,7 +88,8 @@
       "github": "GitHub 上的 Magnolia",
       "sponsor": "赞助 Magnolia…",
       "aboutCredits": "免费开源的质性数据分析软件。",
-      "aboutBuiltWith": "使用 Tauri、Rust、React、TipTap 和 PDF.js 构建。图标来自 Lucide。"
+      "aboutBuiltWith": "使用 Tauri、Rust、React、TipTap 和 PDF.js 构建。图标来自 Lucide。",
+      "diagnostics": "诊断信息…"
     },
     "dialog": {
       "openProject": "打开 QDPX 项目",
@@ -1984,5 +1985,15 @@
     "put": "已将 {{name}} 放在那里。",
     "cantPut": "{{name}} 不能放在那里。",
     "cancelled": "已放下。"
+  },
+  "diagnostics": {
+    "title": "诊断信息",
+    "short": "诊断",
+    "description": "报告问题时附上的版本、设置和最近的错误",
+    "explain": "报告问题时请附上这些信息。其中包括 Magnolia 和系统的版本、部分设置、项目规模以及 Magnolia 最近遇到的错误，但不包含项目本身的内容（错误消息中可能出现文档名称）。",
+    "gathering": "正在收集…",
+    "copy": "复制",
+    "copied": "已复制。请粘贴到您的报告中。",
+    "copyFailed": "无法复制：请选中文本后自行复制。"
   }
 }

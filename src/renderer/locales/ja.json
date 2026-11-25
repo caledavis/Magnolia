@@ -88,7 +88,8 @@
       "github": "GitHub の Magnolia",
       "sponsor": "Magnolia を支援…",
       "aboutCredits": "無料でオープンソースの質的データ分析ソフトウェア。",
-      "aboutBuiltWith": "Tauri、Rust、React、TipTap、PDF.js で作られています。アイコンは Lucide。"
+      "aboutBuiltWith": "Tauri、Rust、React、TipTap、PDF.js で作られています。アイコンは Lucide。",
+      "diagnostics": "診断情報…"
     },
     "dialog": {
       "openProject": "QDPX プロジェクトを開く",
@@ -1984,5 +1985,15 @@
     "put": "{{name}} をそこに置きました。",
     "cantPut": "{{name}} はそこに置けません。",
     "cancelled": "置きました。"
+  },
+  "diagnostics": {
+    "title": "診断情報",
+    "short": "診断",
+    "description": "問題を報告するときに添えるバージョン、設定、最近のエラー",
+    "explain": "問題を報告するときにこれを添えてください。Magnolia とお使いのシステムのバージョン、いくつかの設定、プロジェクトの規模、Magnolia で起きた最近のエラーが含まれますが、プロジェクトの内容そのものは含まれません（エラーメッセージに文書名が出ることがあります）。",
+    "gathering": "収集しています…",
+    "copy": "コピー",
+    "copied": "コピーしました。報告に貼り付けてください。",
+    "copyFailed": "コピーできませんでした。テキストを選択してコピーしてください。"
   }
 }

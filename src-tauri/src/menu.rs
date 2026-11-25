@@ -233,7 +233,9 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
 
     let mut help = SubmenuBuilder::new(app, t("menu.help"))
         .item(&item(app, "github", &t("menu.github"), None)?)
-        .item(&item(app, "sponsor", &t("menu.sponsor"), None)?);
+        .item(&item(app, "sponsor", &t("menu.sponsor"), None)?)
+        .item(&sep()?)
+        .item(&item(app, "diagnostics", &t("menu.diagnostics"), None)?);
     if !mac {
         help = help
             .item(&sep()?)
@@ -358,6 +360,7 @@ pub fn handle_event(app: &AppHandle, id: &str) {
         "quit" => windows::quit(app),
         "check-updates" => crate::updater::check_manually(app, crate::updater::Source::Menu),
         "acknowledgements" => crate::commands::open_bundled_file(app, "THIRD-PARTY-LICENSES.txt"),
+        "diagnostics" => send_action(app, "show-diagnostics"),
         "preferences" => {
             let target = focused_label(app).unwrap_or_else(|| MAIN.to_string());
             windows::emit_to(app, &target, "menu-action", "open-preferences");

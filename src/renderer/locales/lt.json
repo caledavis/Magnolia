@@ -88,7 +88,8 @@
       "github": "Magnolia „GitHub“ svetainėje",
       "sponsor": "Remti Magnolia…",
       "aboutCredits": "Laisva atvirojo kodo kokybinių duomenų analizė.",
-      "aboutBuiltWith": "Sukurta naudojant Tauri, Rust, React, TipTap ir PDF.js. Piktogramos – Lucide."
+      "aboutBuiltWith": "Sukurta naudojant Tauri, Rust, React, TipTap ir PDF.js. Piktogramos – Lucide.",
+      "diagnostics": "Diagnostinė informacija…"
     },
     "dialog": {
       "openProject": "Atverti QDPX projektą",
@@ -2239,5 +2240,15 @@
     "put": "{{name}} padėta ten.",
     "cantPut": "{{name}} negali būti ten.",
     "cancelled": "Padėta atgal."
+  },
+  "diagnostics": {
+    "title": "Diagnostinė informacija",
+    "short": "Diagnostika",
+    "description": "Versijos, nuostatos ir paskutinės klaidos, pridedamos pranešant apie problemą",
+    "explain": "Pridėkite tai pranešdami apie problemą. Čia yra Magnolia ir jūsų sistemos versijos, kelios nuostatos, projekto dydis ir paskutinės Magnolia patirtos klaidos, bet nieko iš paties projekto (klaidų pranešimuose gali būti minimas dokumentas).",
+    "gathering": "Renkama…",
+    "copy": "Kopijuoti",
+    "copied": "Nukopijuota. Įklijuokite į savo pranešimą.",
+    "copyFailed": "Nepavyko nukopijuoti: pažymėkite tekstą ir nukopijuokite jį."
   }
 }

@@ -877,6 +877,11 @@ export interface MagnoliaAPI {
    *  window.alert, which shows nothing here. A blank line separates the
    *  dialog's bold title from the rest. */
   showMessage: (message: string, kind?: 'info' | 'warning' | 'error') => Promise<void>
+  /** Versions and the project file's size, for Help → Copy Diagnostic
+   *  Information (utils/diagnostics.ts). */
+  diagnosticsInfo: (filePath: string | null) => Promise<{
+    appVersion: string; os: string; arch: string; osVersion: string | null; webview: string | null; projectFileBytes: number | null
+  }>
   /** Ask a yes-or-no question in a native dialog; true for `okLabel`
    *  (default OK). Use this, not window.confirm, whose answer here is a
    *  Promise — which reads as yes. */

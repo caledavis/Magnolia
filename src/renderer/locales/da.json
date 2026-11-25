@@ -88,7 +88,8 @@
       "github": "Magnolia på GitHub",
       "sponsor": "Sponsorér Magnolia…",
       "aboutCredits": "Fri og open source-software til kvalitativ dataanalyse.",
-      "aboutBuiltWith": "Bygget med Tauri, Rust, React, TipTap og PDF.js. Ikoner fra Lucide."
+      "aboutBuiltWith": "Bygget med Tauri, Rust, React, TipTap og PDF.js. Ikoner fra Lucide.",
+      "diagnostics": "Diagnostiske oplysninger…"
     },
     "dialog": {
       "openProject": "Åbn QDPX-projekt",
@@ -2069,5 +2070,15 @@
     "put": "{{name}} lagt der.",
     "cantPut": "{{name}} kan ikke være der.",
     "cancelled": "Lagt fra dig."
+  },
+  "diagnostics": {
+    "title": "Diagnostiske oplysninger",
+    "short": "Diagnostik",
+    "description": "Versioner, indstillinger og seneste fejl, til at vedlægge, når du rapporterer et problem",
+    "explain": "Vedlæg dette, når du rapporterer et problem. Det indeholder Magnolias og dit systems versioner, nogle indstillinger, projektets størrelse og de seneste fejl, Magnolia er stødt på, men intet fra selve projektet (fejlmeddelelser kan nævne et dokument).",
+    "gathering": "Indsamler…",
+    "copy": "Kopiér",
+    "copied": "Kopieret. Indsæt det i din rapport.",
+    "copyFailed": "Kunne ikke kopiere: markér teksten, og kopiér den."
   }
 }

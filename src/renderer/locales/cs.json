@@ -88,7 +88,8 @@
       "github": "Magnolia na GitHubu",
       "sponsor": "Podpořit Magnolii…",
       "aboutCredits": "Svobodná a otevřená kvalitativní analýza dat.",
-      "aboutBuiltWith": "Vytvořeno pomocí Tauri, Rust, React, TipTap a PDF.js. Ikony od Lucide."
+      "aboutBuiltWith": "Vytvořeno pomocí Tauri, Rust, React, TipTap a PDF.js. Ikony od Lucide.",
+      "diagnostics": "Diagnostické informace…"
     },
     "dialog": {
       "openProject": "Otevřít projekt QDPX",
@@ -2239,5 +2240,15 @@
     "put": "{{name}} vloženo sem.",
     "cantPut": "{{name}} sem nepatří.",
     "cancelled": "Položeno zpět."
+  },
+  "diagnostics": {
+    "title": "Diagnostické informace",
+    "short": "Diagnostika",
+    "description": "Verze, nastavení a nedávné chyby, k přiložení při hlášení problému",
+    "explain": "Při hlášení problému přiložte toto. Obsahuje verze Magnolie a vašeho systému, několik nastavení, velikost projektu a poslední chyby, na které Magnolia narazila, ale nic ze samotného projektu (chybové zprávy mohou uvádět název dokumentu).",
+    "gathering": "Shromažďování…",
+    "copy": "Kopírovat",
+    "copied": "Zkopírováno. Vložte to do hlášení.",
+    "copyFailed": "Kopírování se nezdařilo: označte text a zkopírujte ho."
   }
 }

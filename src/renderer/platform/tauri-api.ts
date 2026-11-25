@@ -387,6 +387,7 @@ const api: MagnoliaAPI = {
   saveProject: (data) => invoke('save_project', { data }),
   saveProjectAs: (data) => invoke('save_project_as', { data }),
   showMessage: (message, kind) => invoke('show_message', { message, kind: kind ?? null }),
+  diagnosticsInfo: (filePath) => invoke('diagnostics_info', { filePath }),
   askConfirm: (message, okLabel) =>
     invoke<boolean>('ask_confirm', { message, okLabel: okLabel ?? t('common.ok'), cancelLabel: t('common.cancel') }),
   confirmLosingChanges: (name, why) =>

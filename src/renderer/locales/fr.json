@@ -88,7 +88,8 @@
       "github": "Magnolia sur GitHub",
       "sponsor": "Soutenir Magnolia…",
       "aboutCredits": "Analyse de données qualitatives gratuite et open source.",
-      "aboutBuiltWith": "Conçu avec Tauri, Rust, React, TipTap et PDF.js. Icônes par Lucide."
+      "aboutBuiltWith": "Conçu avec Tauri, Rust, React, TipTap et PDF.js. Icônes par Lucide.",
+      "diagnostics": "Informations de diagnostic…"
     },
     "dialog": {
       "openProject": "Ouvrir un projet QDPX",
@@ -2154,5 +2155,15 @@
     "put": "{{name}} mis là.",
     "cantPut": "{{name}} ne peut pas aller là.",
     "cancelled": "Reposé."
+  },
+  "diagnostics": {
+    "title": "Informations de diagnostic",
+    "short": "Diagnostic",
+    "description": "Versions, réglages et erreurs récentes, à joindre quand vous signalez un problème",
+    "explain": "Joignez ceci quand vous signalez un problème. On y trouve les versions de Magnolia et de votre système, quelques réglages, la taille du projet et les dernières erreurs rencontrées par Magnolia, mais rien du projet lui-même (un message d’erreur peut nommer un document).",
+    "gathering": "Collecte…",
+    "copy": "Copier",
+    "copied": "Copié. Collez-le dans votre signalement.",
+    "copyFailed": "Copie impossible : sélectionnez le texte et copiez-le."
   }
 }

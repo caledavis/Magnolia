@@ -1361,3 +1361,50 @@ mod csv_tests {
         assert_eq!(super::with_bom("\u{FEFF}a,b"), "\u{FEFF}a,b");
     }
 }
+
+/// What a bug report needs to know about where Magnolia runs (Help → Copy
+/// Diagnostic Information): its version, the system's, the web view's, and
+/// the open project file's size. Nothing from the project itself.
+#[tauri::command]
+pub fn diagnostics_info(app: AppHandle, file_path: Option<String>) -> Value {
+    let project_bytes = file_path
+        .as_deref()
+        .and_then(|p| std::fs::metadata(p).ok())
+        .map(|m| m.len());
+    serde_json::json!({
+        "appVersion": app.package_info().version.to_string(),
+        "os": std::env::consts::OS,
+        "arch": std::env::consts::ARCH,
+        "osVersion": os_version(),
+        "webview": tauri::webview_version().ok(),
+        "projectFileBytes": project_bytes,
+    })
+}
+
+/// The system's own name for its version ("15.2", "Windows 11 …",
+/// "Ubuntu 22.04.4 LTS"), if it can be read.
+fn os_version() -> Option<String> {
+    #[cfg(target_os = "macos")]
+    {
+        let out = std::process::Command::new("sw_vers").arg("-productVersion").output().ok()?;
+        Some(String::from_utf8_lossy(&out.stdout).trim().to_string()).filter(|s| !s.is_empty())
+    }
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        let out = std::process::Command::new("cmd").args(["/c", "ver"]).creation_flags(CREATE_NO_WINDOW).output().ok()?;
+        Some(String::from_utf8_lossy(&out.stdout).trim().to_string()).filter(|s| !s.is_empty())
+    }
+    #[cfg(target_os = "linux")]
+    {
+        let text = std::fs::read_to_string("/etc/os-release").ok()?;
+        text.lines()
+            .find_map(|l| l.strip_prefix("PRETTY_NAME="))
+            .map(|v| v.trim_matches('"').to_string())
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+    {
+        None
+    }
+}

@@ -88,7 +88,8 @@
       "github": "Magnolia GitHubissa",
       "sponsor": "Tue Magnoliaa…",
       "aboutCredits": "Ilmainen avoimen lähdekoodin laadullisen aineiston analyysiohjelma.",
-      "aboutBuiltWith": "Tehty Taurilla, Rustilla, Reactilla, TipTapilla ja PDF.js:llä. Kuvakkeet: Lucide."
+      "aboutBuiltWith": "Tehty Taurilla, Rustilla, Reactilla, TipTapilla ja PDF.js:llä. Kuvakkeet: Lucide.",
+      "diagnostics": "Diagnostiikkatiedot…"
     },
     "dialog": {
       "openProject": "Avaa QDPX-projekti",
@@ -2069,5 +2070,15 @@
     "put": "{{name}} laitettu sinne.",
     "cantPut": "{{name}} ei voi mennä sinne.",
     "cancelled": "Laskettu pois."
+  },
+  "diagnostics": {
+    "title": "Diagnostiikkatiedot",
+    "short": "Diagnostiikka",
+    "description": "Versiot, asetukset ja viimeisimmät virheet ongelmailmoitukseen liitettäviksi",
+    "explain": "Liitä tämä, kun ilmoitat ongelmasta. Se sisältää Magnolian ja järjestelmäsi versiot, muutaman asetuksen, projektin koon ja viimeisimmät Magnolian kohtaamat virheet, mutta ei mitään itse projektista (virheilmoituksissa voi mainita asiakirjan).",
+    "gathering": "Kerätään…",
+    "copy": "Kopioi",
+    "copied": "Kopioitu. Liitä se ilmoitukseesi.",
+    "copyFailed": "Kopiointi epäonnistui: valitse teksti ja kopioi se."
   }
 }

@@ -88,7 +88,8 @@
       "github": "‏Magnolia ב-GitHub",
       "sponsor": "תמיכה ב-Magnolia…",
       "aboutCredits": "ניתוח נתונים איכותני חופשי וקוד פתוח.",
-      "aboutBuiltWith": "נבנה עם Tauri,‏ Rust,‏ React,‏ TipTap ו-PDF.js. סמלים מאת Lucide."
+      "aboutBuiltWith": "נבנה עם Tauri,‏ Rust,‏ React,‏ TipTap ו-PDF.js. סמלים מאת Lucide.",
+      "diagnostics": "מידע אבחוני…"
     },
     "dialog": {
       "openProject": "פתיחת פרויקט QDPX",
@@ -2154,5 +2155,15 @@
     "put": "{{name}} הונח שם.",
     "cantPut": "אי אפשר לשים את {{name}} שם.",
     "cancelled": "הונח בחזרה."
+  },
+  "diagnostics": {
+    "title": "מידע אבחוני",
+    "short": "אבחון",
+    "description": "גרסאות, הגדרות ושגיאות אחרונות, לצירוף בעת דיווח על בעיה",
+    "explain": "צרפו את זה כשאתם מדווחים על בעיה. יש כאן את הגרסאות של Magnolia ושל המערכת שלכם, כמה הגדרות, גודל הפרויקט והשגיאות האחרונות שבהן נתקלה Magnolia, אבל שום דבר מהפרויקט עצמו (הודעות שגיאה עשויות לציין שם של מסמך).",
+    "gathering": "אוסף…",
+    "copy": "העתקה",
+    "copied": "הועתק. הדביקו אותו בדיווח.",
+    "copyFailed": "ההעתקה נכשלה: בחרו את הטקסט והעתיקו אותו."
   }
 }

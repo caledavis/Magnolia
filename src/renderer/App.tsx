@@ -20,6 +20,7 @@ import {
   faChevronsRight
 } from './components/Icon'
 import { LicenceDialog } from './components/Licence/LicenceDialog'
+import { DiagnosticsDialog } from './components/DiagnosticsDialog'
 import { ImportProgressDialog } from './components/ImportProgressDialog'
 import { ZoteroImportDialog } from './components/ZoteroImportDialog'
 import { importZoteroItems, type ZoteroImport } from './utils/zotero-import'
@@ -190,6 +191,7 @@ function App() {
   const [showProjectDetails, setShowProjectDetails] = useState(false)
   const [showZoteroImport, setShowZoteroImport] = useState(false)
   const [showLicenceDialog, setShowLicenceDialog] = useState(false)
+  const [showDiagnostics, setShowDiagnostics] = useState(false)
   const [loadProgress, setLoadProgress] = useState<{ stage: string; current: number; total: number } | null>(null)
   // Documents whose binary content is missing from the just-opened .qdpx —
   // drives the re-import banner so the user can repair the project.
@@ -1601,6 +1603,9 @@ function App() {
         case 'import-document':
           handleImportDocument()
           break
+        case 'show-diagnostics':
+          setShowDiagnostics(true)
+          break
         case 'open-preferences':
           useDocumentStore.getState().openToolTab(PREFERENCES_TAB_ID)
           break
@@ -2048,7 +2053,8 @@ function App() {
           buttons: [
             { id: 'manual', label: t('toolbar.manual'), title: t('toolbar.manualDescription'), icon: HELP_ICONS.manual, onClick: () => window.open(MANUAL_URL, '_blank') },
             { id: 'licence', label: t('toolbar.licence'), title: t('toolbar.licenceAttributions'), icon: HELP_ICONS.licence, onClick: () => setShowLicenceDialog(true) },
-            { id: 'donate', label: t('toolbar.donate'), title: t('toolbar.donateDescription'), icon: HELP_ICONS.donate, onClick: () => window.open(SPONSOR_URL, '_blank') }
+            { id: 'donate', label: t('toolbar.donate'), title: t('toolbar.donateDescription'), icon: HELP_ICONS.donate, onClick: () => window.open(SPONSOR_URL, '_blank') },
+            { id: 'diagnostics', label: t('diagnostics.short'), title: t('diagnostics.description'), icon: HELP_ICONS.diagnostics, onClick: () => setShowDiagnostics(true) }
           ]
         }
       ]
@@ -2466,7 +2472,7 @@ function App() {
           {/* Help: bundles the Licence & Attributions dialog, the online
               user manual, and a Donate link into one popover — see
               HelpPopover for the popover UI. */}
-          <HelpPopover onShowLicence={() => setShowLicenceDialog(true)} />
+          <HelpPopover onShowLicence={() => setShowLicenceDialog(true)} onShowDiagnostics={() => setShowDiagnostics(true)} />
           </div>
           </div>
           </div>
@@ -2757,6 +2763,7 @@ function App() {
         <ZoteroImportDialog onClose={() => setShowZoteroImport(false)} onImport={(job) => void handleZoteroImport(job)} />
       )}
       <LicenceDialog open={showLicenceDialog} onClose={() => setShowLicenceDialog(false)} />
+      <DiagnosticsDialog open={showDiagnostics} onClose={() => setShowDiagnostics(false)} />
       {/* !stealBackConflict guards against both rendering at once: they're
           set independently (markDirty's edit-time block calls
           promptCheckoutConflict; a save's own conflict check sets
