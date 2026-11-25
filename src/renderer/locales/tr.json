@@ -1124,7 +1124,14 @@
     "save": "Sorguyu kaydet",
     "fromDocuments": "Şu belgelerden",
     "findContent": "Şu içeriği bul",
-    "namePlaceholder": "Sorgu adı…"
+    "namePlaceholder": "Sorgu adı…",
+    "canvas": "Sorgu",
+    "connectTo": "Bağla:",
+    "replaces": "{{name}} yerine geçer",
+    "disconnectFrom": "{{name}} bağlantısını kes",
+    "takes": "{{names}} alır.",
+    "goesTo": "{{names}} öğesine gider.",
+    "boxKeysHint": "Oklar onu taşır. Shift+F10 onu başka bir kutuya bağlar, bağlantısını keser ya da siler."
   },
   "queryDesc": {
     "docs_one": "{{count}} belge",
@@ -1756,7 +1763,12 @@
       "survey-respondent": "KATILIMCI",
       "survey-question": "SORU",
       "survey-cell": "YANIT"
-    }
+    },
+    "text": "Metin",
+    "connectTo": "Bağla:",
+    "disconnectFrom": "{{name}} bağlantısını kes",
+    "linkedTo": "{{names}} ile bağlantılı.",
+    "boxKeysHint": "Oklar onu taşır, Enter açar, Delete siler. Shift+F10 onu başka bir kutuya bağlar ya da bağlantısını keser."
   },
   "memoPlace": {
     "deletedDocuments": "Silinmiş belgeler",

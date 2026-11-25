@@ -1161,7 +1161,14 @@
     "save": "Enregistrer la requête",
     "fromDocuments": "À partir de ces documents",
     "findContent": "Trouver ce contenu",
-    "namePlaceholder": "Nom de la requête…"
+    "namePlaceholder": "Nom de la requête…",
+    "canvas": "Requête",
+    "connectTo": "Relier à",
+    "replaces": "remplace {{name}}",
+    "disconnectFrom": "Délier de {{name}}",
+    "takes": "Reçoit {{names}}.",
+    "goesTo": "Va vers {{names}}.",
+    "boxKeysHint": "Les flèches le déplacent. Maj+F10 le relie à une autre boîte, le délie ou le supprime."
   },
   "queryDesc": {
     "docs_one": "{{count}} doc.",
@@ -1821,7 +1828,12 @@
       "survey-respondent": "RÉP",
       "survey-question": "QUESTION",
       "survey-cell": "RÉPONSE"
-    }
+    },
+    "text": "Texte",
+    "connectTo": "Relier à",
+    "disconnectFrom": "Délier de {{name}}",
+    "linkedTo": "Relié à {{names}}.",
+    "boxKeysHint": "Les flèches le déplacent, Entrée l’ouvre, Suppr le supprime. Maj+F10 le relie à une autre boîte ou le délie."
   },
   "memoPlace": {
     "deletedDocuments": "Documents supprimés",

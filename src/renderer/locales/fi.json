@@ -1124,7 +1124,14 @@
     "save": "Tallenna haku",
     "fromDocuments": "Näistä dokumenteista",
     "findContent": "Etsi tämä sisältö",
-    "namePlaceholder": "Haun nimi…"
+    "namePlaceholder": "Haun nimi…",
+    "canvas": "Kysely",
+    "connectTo": "Yhdistä kohteeseen",
+    "replaces": "korvaa kohteen {{name}}",
+    "disconnectFrom": "Irrota kohteesta {{name}}",
+    "takes": "Saa {{names}}.",
+    "goesTo": "Menee kohteisiin {{names}}.",
+    "boxKeysHint": "Nuolinäppäimet siirtävät sitä. Vaihto+F10 yhdistää sen toiseen ruutuun, irrottaa tai poistaa sen."
   },
   "queryDesc": {
     "docs_one": "{{count}} dok.",
@@ -1756,7 +1763,12 @@
       "survey-respondent": "VAST",
       "survey-question": "KYSYMYS",
       "survey-cell": "VASTAUS"
-    }
+    },
+    "text": "Teksti",
+    "connectTo": "Yhdistä kohteeseen",
+    "disconnectFrom": "Irrota kohteesta {{name}}",
+    "linkedTo": "Yhdistetty: {{names}}.",
+    "boxKeysHint": "Nuolinäppäimet siirtävät sitä, Enter avaa sen, Delete poistaa sen. Vaihto+F10 yhdistää sen toiseen ruutuun tai irrottaa sen."
   },
   "memoPlace": {
     "deletedDocuments": "Poistetut dokumentit",

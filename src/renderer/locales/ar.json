@@ -1272,7 +1272,14 @@
     "save": "حفظ الاستعلام",
     "fromDocuments": "من هذه المستندات",
     "findContent": "البحث عن هذا المحتوى",
-    "namePlaceholder": "اسم الاستعلام…"
+    "namePlaceholder": "اسم الاستعلام…",
+    "canvas": "استعلام",
+    "connectTo": "ربط بـ",
+    "replaces": "يحلّ محلّ {{name}}",
+    "disconnectFrom": "فصل عن {{name}}",
+    "takes": "يستقبل {{names}}.",
+    "goesTo": "يذهب إلى {{names}}.",
+    "boxKeysHint": "تحرّكه الأسهم. يربطه Shift+F10 بمربع آخر أو يفصله أو يحذفه."
   },
   "queryDesc": {
     "docs_zero": "لا توجد مستندات",
@@ -2016,7 +2023,12 @@
       "survey-respondent": "مستجيب",
       "survey-question": "سؤال",
       "survey-cell": "إجابة"
-    }
+    },
+    "text": "نص",
+    "connectTo": "ربط بـ",
+    "disconnectFrom": "فصل عن {{name}}",
+    "linkedTo": "مرتبط بـ {{names}}.",
+    "boxKeysHint": "تحرّكه الأسهم، ويفتحه Enter، ويحذفه Delete. يربطه Shift+F10 بمربع آخر أو يفصله."
   },
   "memoPlace": {
     "deletedDocuments": "المستندات المحذوفة",

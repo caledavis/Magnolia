@@ -1124,7 +1124,14 @@
     "save": "Αποθήκευση ερωτήματος",
     "fromDocuments": "Από αυτά τα έγγραφα",
     "findContent": "Εύρεση αυτού του περιεχομένου",
-    "namePlaceholder": "Όνομα ερωτήματος…"
+    "namePlaceholder": "Όνομα ερωτήματος…",
+    "canvas": "Ερώτημα",
+    "connectTo": "Σύνδεση με",
+    "replaces": "αντικαθιστά το {{name}}",
+    "disconnectFrom": "Αποσύνδεση από {{name}}",
+    "takes": "Δέχεται {{names}}.",
+    "goesTo": "Πηγαίνει σε {{names}}.",
+    "boxKeysHint": "Τα βέλη το μετακινούν. Το Shift+F10 το συνδέει με άλλο πλαίσιο, το αποσυνδέει ή το διαγράφει."
   },
   "queryDesc": {
     "docs_one": "{{count}} έγγρ.",
@@ -1756,7 +1763,12 @@
       "survey-respondent": "ΕΡΩΤΩΜ",
       "survey-question": "ΕΡΩΤΗΣΗ",
       "survey-cell": "ΑΠΑΝΤΗΣΗ"
-    }
+    },
+    "text": "Κείμενο",
+    "connectTo": "Σύνδεση με",
+    "disconnectFrom": "Αποσύνδεση από {{name}}",
+    "linkedTo": "Συνδέεται με {{names}}.",
+    "boxKeysHint": "Τα βέλη το μετακινούν, το Enter το ανοίγει, το Delete το διαγράφει. Το Shift+F10 το συνδέει με άλλο πλαίσιο ή το αποσυνδέει."
   },
   "memoPlace": {
     "deletedDocuments": "Διαγραμμένα έγγραφα",

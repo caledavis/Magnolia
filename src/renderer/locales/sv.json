@@ -1124,7 +1124,14 @@
     "save": "Spara sökfråga",
     "fromDocuments": "Från dessa dokument",
     "findContent": "Hitta detta innehåll",
-    "namePlaceholder": "Sökfrågans namn…"
+    "namePlaceholder": "Sökfrågans namn…",
+    "canvas": "Fråga",
+    "connectTo": "Koppla till",
+    "replaces": "ersätter {{name}}",
+    "disconnectFrom": "Koppla från {{name}}",
+    "takes": "Tar emot {{names}}.",
+    "goesTo": "Går till {{names}}.",
+    "boxKeysHint": "Piltangenterna flyttar den. Skift+F10 kopplar den till en annan ruta, kopplar från eller tar bort den."
   },
   "queryDesc": {
     "docs_one": "{{count}} dok.",
@@ -1756,7 +1763,12 @@
       "survey-respondent": "RESP",
       "survey-question": "FRÅGA",
       "survey-cell": "SVAR"
-    }
+    },
+    "text": "Text",
+    "connectTo": "Koppla till",
+    "disconnectFrom": "Koppla från {{name}}",
+    "linkedTo": "Kopplad till {{names}}.",
+    "boxKeysHint": "Piltangenterna flyttar den, Retur öppnar den, Delete tar bort den. Skift+F10 kopplar den till en annan ruta eller kopplar från den."
   },
   "memoPlace": {
     "deletedDocuments": "Raderade dokument",

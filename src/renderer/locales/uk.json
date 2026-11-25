@@ -1198,7 +1198,14 @@
     "save": "Зберегти запит",
     "fromDocuments": "З цих документів",
     "findContent": "Знайти цей вміст",
-    "namePlaceholder": "Назва запиту…"
+    "namePlaceholder": "Назва запиту…",
+    "canvas": "Запит",
+    "connectTo": "З’єднати з",
+    "replaces": "замінить {{name}}",
+    "disconnectFrom": "Від’єднати від {{name}}",
+    "takes": "Отримує {{names}}.",
+    "goesTo": "Передає до {{names}}.",
+    "boxKeysHint": "Стрілки переміщують його. Shift+F10 з’єднує його з іншим блоком, від’єднує або видаляє."
   },
   "queryDesc": {
     "docs_one": "{{count}} док.",
@@ -1886,7 +1893,12 @@
       "survey-respondent": "РЕСП",
       "survey-question": "ПИТАННЯ",
       "survey-cell": "ВІДПОВІДЬ"
-    }
+    },
+    "text": "Текст",
+    "connectTo": "З’єднати з",
+    "disconnectFrom": "Від’єднати від {{name}}",
+    "linkedTo": "Пов’язано з {{names}}.",
+    "boxKeysHint": "Стрілки переміщують його, Enter відкриває, Delete видаляє. Shift+F10 з’єднує його з іншим блоком або від’єднує."
   },
   "memoPlace": {
     "deletedDocuments": "Видалені документи",

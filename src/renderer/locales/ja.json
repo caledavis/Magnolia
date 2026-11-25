@@ -1087,7 +1087,14 @@
     "save": "クエリを保存",
     "fromDocuments": "対象のドキュメント",
     "findContent": "探す内容",
-    "namePlaceholder": "クエリ名…"
+    "namePlaceholder": "クエリ名…",
+    "canvas": "クエリ",
+    "connectTo": "接続先",
+    "replaces": "{{name}} を置き換えます",
+    "disconnectFrom": "{{name}} から切断",
+    "takes": "{{names}} を受け取ります。",
+    "goesTo": "{{names}} へ渡します。",
+    "boxKeysHint": "矢印キーで移動します。Shift+F10 で別のボックスに接続、切断、または削除します。"
   },
   "queryDesc": {
     "docs_other": "{{count}} 件",
@@ -1691,7 +1698,12 @@
       "survey-respondent": "回答者",
       "survey-question": "質問",
       "survey-cell": "回答"
-    }
+    },
+    "text": "テキスト",
+    "connectTo": "接続先",
+    "disconnectFrom": "{{name}} から切断",
+    "linkedTo": "{{names}} とつながっています。",
+    "boxKeysHint": "矢印キーで移動し、Enter で開き、Delete で削除します。Shift+F10 で別のボックスに接続または切断します。"
   },
   "memoPlace": {
     "deletedDocuments": "削除されたドキュメント",

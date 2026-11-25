@@ -1124,7 +1124,14 @@
     "save": "Save Query",
     "fromDocuments": "From these documents",
     "findContent": "Find this content",
-    "namePlaceholder": "Query name..."
+    "namePlaceholder": "Query name...",
+    "canvas": "Query",
+    "connectTo": "Connect to",
+    "replaces": "replaces {{name}}",
+    "disconnectFrom": "Disconnect from {{name}}",
+    "takes": "Takes {{names}}.",
+    "goesTo": "Goes to {{names}}.",
+    "boxKeysHint": "The arrows move it. Shift+F10 connects it to another box, or disconnects or deletes it."
   },
   "queryDesc": {
     "docs_one": "{{count}} doc",
@@ -1756,7 +1763,12 @@
       "survey-respondent": "RESP",
       "survey-question": "QUESTION",
       "survey-cell": "ANSWER"
-    }
+    },
+    "text": "Text",
+    "connectTo": "Connect to",
+    "disconnectFrom": "Disconnect from {{name}}",
+    "linkedTo": "Linked to {{names}}.",
+    "boxKeysHint": "The arrows move it, Enter opens it, Delete deletes it. Shift+F10 connects it to another box or disconnects it."
   },
   "memoPlace": {
     "deletedDocuments": "Deleted documents",

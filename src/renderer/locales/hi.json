@@ -1124,7 +1124,14 @@
     "save": "क्वेरी सहेजें",
     "fromDocuments": "इन दस्तावेज़ों से",
     "findContent": "यह सामग्री ढूँढें",
-    "namePlaceholder": "क्वेरी का नाम…"
+    "namePlaceholder": "क्वेरी का नाम…",
+    "canvas": "क्वेरी",
+    "connectTo": "इससे जोड़ें",
+    "replaces": "{{name}} की जगह लेगा",
+    "disconnectFrom": "{{name}} से अलग करें",
+    "takes": "{{names}} लेता है।",
+    "goesTo": "{{names}} को जाता है।",
+    "boxKeysHint": "तीर उसे खिसकाते हैं। Shift+F10 उसे दूसरे बॉक्स से जोड़ता, अलग करता या हटाता है।"
   },
   "queryDesc": {
     "docs_one": "{{count}} दस्तावेज़",
@@ -1756,7 +1763,12 @@
       "survey-respondent": "उत्तरदाता",
       "survey-question": "प्रश्न",
       "survey-cell": "उत्तर"
-    }
+    },
+    "text": "पाठ",
+    "connectTo": "इससे जोड़ें",
+    "disconnectFrom": "{{name}} से अलग करें",
+    "linkedTo": "{{names}} से जुड़ा।",
+    "boxKeysHint": "तीर उसे खिसकाते हैं, Enter उसे खोलता है, Delete उसे हटाता है। Shift+F10 उसे दूसरे बॉक्स से जोड़ता या अलग करता है।"
   },
   "memoPlace": {
     "deletedDocuments": "हटाए गए दस्तावेज़",

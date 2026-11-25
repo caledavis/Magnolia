@@ -1161,7 +1161,14 @@
     "save": "שמירת השאילתה",
     "fromDocuments": "מתוך המסמכים האלה",
     "findContent": "חיפוש התוכן הזה",
-    "namePlaceholder": "שם השאילתה…"
+    "namePlaceholder": "שם השאילתה…",
+    "canvas": "שאילתה",
+    "connectTo": "חיבור אל",
+    "replaces": "מחליף את {{name}}",
+    "disconnectFrom": "ניתוק מ-{{name}}",
+    "takes": "מקבל {{names}}.",
+    "goesTo": "הולך אל {{names}}.",
+    "boxKeysHint": "החצים מזיזים אותו. Shift+F10 מחבר אותו לתיבה אחרת, מנתק או מוחק אותו."
   },
   "queryDesc": {
     "docs_one": "מסמך אחד",
@@ -1821,7 +1828,12 @@
       "survey-respondent": "משיב",
       "survey-question": "שאלה",
       "survey-cell": "תשובה"
-    }
+    },
+    "text": "טקסט",
+    "connectTo": "חיבור אל",
+    "disconnectFrom": "ניתוק מ-{{name}}",
+    "linkedTo": "מקושר אל {{names}}.",
+    "boxKeysHint": "החצים מזיזים אותו, Enter פותח אותו, Delete מוחק אותו. Shift+F10 מחבר אותו לתיבה אחרת או מנתק אותו."
   },
   "memoPlace": {
     "deletedDocuments": "מסמכים שנמחקו",

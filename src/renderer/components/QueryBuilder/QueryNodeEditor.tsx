@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { t } from '../../i18n'
 import { isLetterKey } from '../../utils/keys'
 import { draggedCodes, isCodeDrag } from '../../utils/code-drag'
+import { dropZone } from '../../utils/key-activate'
 
 /* ═══════════════════════════════════════════════════
    Types
@@ -66,6 +67,14 @@ const LOGICAL_OP_COLOR: Record<LogicalOp, string> = {
 }
 
 const logicalOpTooltip = (op: LogicalOp): string => t(`queryBuilder.op.${op}`)
+
+/** A box's name, as it reads on the canvas (for menus and screen readers). */
+function nodeName(n: GNode): string {
+  if (n.kind === 'code') return n.codeName || t('queryBuilder.code')
+  if (n.kind === 'text') return n.searchText ? `${kindLabel('text')} "${n.searchText}"` : kindLabel('text')
+  if (n.kind === 'logical' && n.logicalOp) return `${kindLabel('logical')} ${n.logicalOp.toUpperCase()}`
+  return kindLabel(n.kind)
+}
 
 /** How many input slots each operator accepts */
 const LOGICAL_OP_SLOTS: Record<LogicalOp, { min: number; max: number }> = {
@@ -539,6 +548,9 @@ interface Props {
 export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, initialGraphLayout, codes }: Props) {
   const { t } = useTranslation()
   const canvasRef = useRef<HTMLDivElement>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
+  // A box's menu (right-click or Shift+F10): connect, disconnect, delete.
+  const [nodeMenu, setNodeMenu] = useState<{ id: string; x: number; y: number } | null>(null)
   const wireRef = useRef<SVGPathElement>(null)
 
   // Build initial graph ONCE so node IDs in conns match the node IDs in nodes
@@ -706,6 +718,10 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
       // Exclude contentEditable too (TipTap editors), else this window
       // handler steals Delete/Backspace from rich-text editing.
       if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || (e.target as HTMLElement).isContentEditable) return
+      // Only while the keyboard is in the Query Builder (not, say, in the
+      // Code Browser beside it, whose keys these are then).
+      const active = document.activeElement
+      if (active && active !== document.body && !rootRef.current?.contains(active)) return
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault()
         doDelete()
@@ -1078,8 +1094,22 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
   const condition = graphToCondition(nodes, conns, codes)
   const validationError = useMemo(() => condition ? validateCondition(condition) : null, [condition])
 
+  /* --- a box's menu --- */
+  useEffect(() => {
+    if (!nodeMenu) return
+    const close = (e: MouseEvent) => {
+      if (!(e.target as Element | null)?.closest?.('.context-menu')) setNodeMenu(null)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [nodeMenu])
+  const connect = useCallback((fromId: string, toId: string, port: number) => {
+    setConns((p) => [...p.filter((c) => !(c.to === toId && c.toPort === port)), { id: uid(), from: fromId, to: toId, toPort: port }])
+  }, [])
+  const menuNode = nodeMenu ? nodes.find((n) => n.id === nodeMenu.id) : undefined
+
   return (
-    <div>
+    <div ref={rootRef}>
       {/* ── Toolbar ── three labeled groups laid out as columns. The
           label sits above its buttons so each group reads as a unit;
           a thin divider separates them. Buttons inside a group still
@@ -1162,6 +1192,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
       {/* ── Canvas ── */}
       <div
         ref={canvasRef}
+        {...dropZone(t('queryBuilder.canvas'))}
         onClick={canvasClick}
         onMouseDown={canvasMouseDown}
         onDragOver={handleDragOver}
@@ -1293,6 +1324,37 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
             <div
               key={node.id}
               title={kindTooltip(node.kind) || undefined}
+              // From the keyboard: Tab reaches it, the arrows move it (Shift:
+              // further), Delete deletes it, Shift+F10 connects it.
+              tabIndex={0}
+              role="group"
+              data-query-node={node.id}
+              aria-label={nodeName(node)}
+              aria-description={[
+                inConns.length ? t('queryBuilder.takes', { names: inConns.map((c) => nodes.find((n) => n.id === c.from)).filter(Boolean).map((n) => nodeName(n!)).join(', ') }) : '',
+                conns.filter((c) => c.from === node.id).length ? t('queryBuilder.goesTo', { names: conns.filter((c) => c.from === node.id).map((c) => nodes.find((n) => n.id === c.to)).filter(Boolean).map((n) => nodeName(n!)).join(', ') }) : '',
+                t('queryBuilder.boxKeysHint')
+              ].filter(Boolean).join(' ')}
+              onFocus={(e) => {
+                // Keyboard focus selects it (a click selects as it always has).
+                if (e.target !== e.currentTarget || !e.currentTarget.matches(':focus-visible')) return
+                if (!selNodesRef.current.has(node.id)) setSelNodes(new Set([node.id]))
+                setSelConn(null)
+              }}
+              onKeyDown={(e) => {
+                if (e.target !== e.currentTarget) return
+                const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key]
+                if (!d) return
+                e.preventDefault()
+                const step = e.shiftKey ? 50 : 10
+                setNodes((p) => p.map((n) => (n.id === node.id ? { ...n, x: Math.max(0, n.x + d[0] * step), y: Math.max(0, n.y + d[1] * step) } : n)))
+              }}
+              onContextMenu={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setSelNodes(new Set([node.id]))
+                setNodeMenu({ id: node.id, x: e.clientX, y: e.clientY })
+              }}
               onMouseDown={(e) => nodeDown(e, node.id)}
               onClick={(e) => e.stopPropagation()}
               style={{
@@ -1925,6 +1987,60 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
             : <><Icon icon={faCircle} style={{ fontSize: 6, marginInlineEnd: 4 }} />{t('queryBuilder.statusConnect')}</>}
         </span>
       </div>
+
+      {/* A box's menu: what its output can go to, its connections, delete. */}
+      {nodeMenu && menuNode && (() => {
+        const done = () => setNodeMenu(null)
+        const targets = menuNode.kind === 'result' ? [] : nodes.filter((n) => n.id !== menuNode.id && n.kind !== 'code' && !wouldCycle(menuNode.id, n.id, conns))
+        const linked = conns.filter((c) => c.from === menuNode.id || c.to === menuNode.id)
+        return (
+          <div className="context-menu" style={{ left: nodeMenu.x, top: nodeMenu.y, position: 'fixed', zIndex: 1000 }} onClick={(e) => e.stopPropagation()}>
+            {targets.length > 0 && (
+              <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{t('queryBuilder.connectTo')}</div>
+            )}
+            {targets.flatMap((n) => {
+              const slots = inputSlots(n)
+              return Array.from({ length: slots }, (_, i) => {
+                const taken = conns.find((c) => c.to === n.id && c.toPort === i)
+                const takenBy = taken && taken.from !== menuNode.id ? nodes.find((x) => x.id === taken.from) : undefined
+                if (taken && taken.from === menuNode.id) return null
+                return (
+                  <div key={n.id + ':' + i} className="context-menu-item" onClick={() => { connect(menuNode.id, n.id, i); done() }}>
+                    {nodeName(n)}{slots > 1 ? ` — ${t('queryBuilder.inputN', { n: i + 1 })}` : ''}
+                    {takenBy ? ` (${t('queryBuilder.replaces', { name: nodeName(takenBy) })})` : ''}
+                  </div>
+                )
+              })
+            })}
+            {linked.length > 0 && <div className="context-menu-separator" />}
+            {linked.map((c) => {
+              const other = nodes.find((n) => n.id === (c.from === menuNode.id ? c.to : c.from))
+              return (
+                <div key={c.id} className="context-menu-item" onClick={() => { setConns((p) => p.filter((x) => x.id !== c.id)); done() }}>
+                  {t('queryBuilder.disconnectFrom', { name: other ? nodeName(other) : '' })}
+                </div>
+              )
+            })}
+            {menuNode.kind !== 'result' && (
+              <>
+                <div className="context-menu-separator" />
+                <div
+                  className="context-menu-item"
+                  style={{ color: 'var(--danger)' }}
+                  onClick={() => {
+                    setConns((p) => p.filter((c) => c.from !== menuNode.id && c.to !== menuNode.id))
+                    setNodes((p) => p.filter((n) => n.id !== menuNode.id))
+                    setSelNodes(new Set())
+                    done()
+                  }}
+                >
+                  {t('common.delete')}
+                </div>
+              </>
+            )}
+          </div>
+        )
+      })()}
     </div>
   )
 }

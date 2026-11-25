@@ -8,6 +8,13 @@ import { FreeTextNode } from './FreeTextNode'
 import { Icon, MEMO_RANGED_ICON } from '../../Icon'
 import { useTranslation } from 'react-i18next'
 import { isLetterKey } from '../../../utils/keys'
+import { dropZone } from '../../../utils/key-activate'
+
+/** A free text's name: its first line, without markdown. */
+function freeTextName(ft: FreeTextElement): string {
+  const line = (ft.content || '').split('\n').map((l) => l.replace(/[#*_>`~[\]()-]+/g, ' ').trim()).find(Boolean) || ''
+  return line.length > 50 ? line.slice(0, 49) + '…' : line
+}
 
 interface Props {
   elements: MapElementType[]
@@ -202,6 +209,10 @@ export function MapCanvas({
   // Keyboard handler
   useEffect(() => {
     const handler = (e: KeyboardEvent): void => {
+      // Only while the keyboard is on the map (not, say, in the Code
+      // Browser beside it, whose keys these are then).
+      const active = document.activeElement
+      if (active && active !== document.body && !containerRef.current?.contains(active)) return
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (
           document.activeElement?.tagName === 'INPUT' ||
@@ -528,6 +539,35 @@ export function MapCanvas({
     onPanChange({ x: cw / 2 - cx, y: ch / 2 - cy })
   }, [allNodes, onPanChange])
 
+  // Deleting one connection or box from a menu: select it, then delete
+  // the selection once the selection has arrived.
+  const [pendingDelete, setPendingDelete] = useState<{ conn?: string; element?: string } | null>(null)
+  useEffect(() => {
+    if (!pendingDelete) return
+    const ready = pendingDelete.conn
+      ? selectedConnectionIds.size === 1 && selectedConnectionIds.has(pendingDelete.conn) && selectedElementIds.size === 0 && selectedFreeTextIds.size === 0
+      : selectedElementIds.size === 1 && selectedElementIds.has(pendingDelete.element!) && selectedConnectionIds.size === 0 && selectedFreeTextIds.size === 0
+    if (!ready) return
+    setPendingDelete(null)
+    onDeleteSelected()
+  }, [pendingDelete, selectedConnectionIds, selectedElementIds, selectedFreeTextIds, onDeleteSelected])
+  const deleteOnly = useCallback((what: { conn?: string; element?: string }) => {
+    onSelectElements(new Set(what.element ? [what.element] : []))
+    onSelectConnections(new Set(what.conn ? [what.conn] : []))
+    onSelectFreeTexts(new Set())
+    setPendingDelete(what)
+  }, [onSelectElements, onSelectConnections, onSelectFreeTexts])
+  const nameOf = useCallback((id: string): string => {
+    const el = elements.find((x) => x.id === id)
+    if (el) return el.label
+    const ft = freeTexts.find((x) => x.id === id)
+    return ft ? freeTextName(ft) || t('map.text') : ''
+  }, [elements, freeTexts, t])
+  const describe = useCallback((id: string): string => {
+    const linked = connections.filter((c) => c.fromId === id || c.toId === id).map((c) => nameOf(c.fromId === id ? c.toId : c.fromId)).filter(Boolean)
+    return [linked.length ? t('map.linkedTo', { names: linked.join(', ') }) : '', t('map.boxKeysHint')].filter(Boolean).join(' ')
+  }, [connections, nameOf, t])
+
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault()
@@ -535,6 +575,13 @@ export function MapCanvas({
       // Hit-test elements (newest-on-top last, so iterate in reverse).
       // Memos and freetexts can't host an attached analysis memo — fall
       // through to the canvas-level action in that case.
+      // A box's own menu (right-click on it, or Shift+F10 while it has the
+      // keyboard): connecting and disconnecting it, as well as memos.
+      const onBox = (e.target as Element | null)?.closest?.<HTMLElement>('[data-map-element]')
+      if (onBox) {
+        setContextMenu({ screenPos: { x: e.clientX, y: e.clientY }, canvasPos: pos, elementId: onBox.dataset.mapElement! })
+        return
+      }
       let hitId: string | null = null
       for (let i = elements.length - 1; i >= 0; i--) {
         const el = elements[i]
@@ -599,6 +646,7 @@ export function MapCanvas({
       </div>
     <div
       ref={containerRef}
+      {...dropZone(t('map.map'))}
       onMouseDown={handleCanvasMouseDown}
       onContextMenu={handleContextMenu}
       onDragOver={(e) => e.preventDefault()}
@@ -688,6 +736,16 @@ export function MapCanvas({
             onDoubleClick={onElementDoubleClick}
             onRenderedHeight={onElementRenderedHeight}
             onHoverChange={handleElementHover}
+            description={describe(el.id)}
+            onKeyboardFocus={(id) => {
+              onSelectElements(new Set([id]))
+              onSelectConnections(new Set())
+              onSelectFreeTexts(new Set())
+            }}
+            onKeyboardMove={(id, dx, dy) => {
+              const cur = elements.find((x) => x.id === id)
+              if (cur) onElementMove(id, cur.x + dx, cur.y + dy)
+            }}
           />
         ))}
         {freeTexts.map((ft) => (
@@ -809,19 +867,52 @@ export function MapCanvas({
           style={{ left: contextMenu.screenPos.x, top: contextMenu.screenPos.y }}
           onMouseDown={(e) => e.stopPropagation()}
         >
-          <div
-            className="context-menu-item"
-            onClick={() => {
-              if (contextMenu.elementId) {
-                onAddMemoToElement(contextMenu.elementId)
-              } else {
-                onAddMemoOnCanvas(contextMenu.canvasPos.x, contextMenu.canvasPos.y)
-              }
-              setContextMenu(null)
-            }}
-          >
-            {t('common.addMemo')}
-          </div>
+          {!(contextMenu.elementId && elements.find((x) => x.id === contextMenu.elementId)?.kind === 'memo') && (
+            <div
+              className="context-menu-item"
+              onClick={() => {
+                if (contextMenu.elementId) {
+                  onAddMemoToElement(contextMenu.elementId)
+                } else {
+                  onAddMemoOnCanvas(contextMenu.canvasPos.x, contextMenu.canvasPos.y)
+                }
+                setContextMenu(null)
+              }}
+            >
+              {t('common.addMemo')}
+            </div>
+          )}
+          {contextMenu.elementId && (() => {
+            const id = contextMenu.elementId
+            const linked = connections.filter((c) => c.fromId === id || c.toId === id)
+            const linkedIds = new Set(linked.map((c) => (c.fromId === id ? c.toId : c.fromId)))
+            const targets = [...elements.map((x) => x.id), ...freeTexts.map((x) => x.id)].filter((x) => x !== id && !linkedIds.has(x))
+            return (
+              <>
+                {targets.length > 0 && (
+                  <>
+                    <div className="context-menu-separator" />
+                    <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{t('map.connectTo')}</div>
+                    {targets.map((to) => (
+                      <div key={'to-' + to} className="context-menu-item" onClick={() => { onCreateConnection(id, to); setContextMenu(null) }}>
+                        {nameOf(to)}
+                      </div>
+                    ))}
+                  </>
+                )}
+                {linked.length > 0 && <div className="context-menu-separator" />}
+                {linked.map((c) => (
+                  <div key={'off-' + c.id} className="context-menu-item" onClick={() => { deleteOnly({ conn: c.id }); setContextMenu(null) }}>
+                    {t('map.disconnectFrom', { name: nameOf(c.fromId === id ? c.toId : c.fromId) })}
+                  </div>
+                ))}
+                <div className="context-menu-separator" />
+                <div className="context-menu-item" style={{ color: 'var(--danger)' }} onClick={() => { deleteOnly({ element: id }); setContextMenu(null) }}>
+                  {t('common.delete')}
+                </div>
+              </>
+            )
+          })()}
         </div>
       )}
 

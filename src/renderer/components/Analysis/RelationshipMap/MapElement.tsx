@@ -102,6 +102,11 @@ interface Props {
    *  isn't in the focused subset, drop the opacity so the canvas clears. */
   dimmed?: boolean
   onHoverChange?: (id: string, hovered: boolean) => void
+  /** From the keyboard: focus selects it, the arrows move it (by dx, dy). */
+  onKeyboardFocus?: (id: string) => void
+  onKeyboardMove?: (id: string, dx: number, dy: number) => void
+  /** What a screen reader hears after its name: its links, its keys. */
+  description?: string
 }
 
 /** Simple single-label entities that render as chips (pill shape, one row).
@@ -119,7 +124,7 @@ const CHIP_KINDS: Set<MapElementKind> = new Set([
   'survey-question'
 ])
 
-export function MapElement({ element, selected, onHeaderMouseDown, onBodyMouseDown, onDoubleClick, onRenderedHeight, dimmed, onHoverChange }: Props) {
+export function MapElement({ element, selected, onHeaderMouseDown, onBodyMouseDown, onDoubleClick, onRenderedHeight, dimmed, onHoverChange, onKeyboardFocus, onKeyboardMove, description }: Props) {
   const { t } = useTranslation()
   const divRef = useRef<HTMLDivElement>(null)
   const pdfFilePaths = useContext(PdfFilePathsContext)
@@ -165,7 +170,27 @@ export function MapElement({ element, selected, onHeaderMouseDown, onBodyMouseDo
       onDoubleClick(element)
     },
     onMouseEnter: () => onHoverChange?.(element.id, true),
-    onMouseLeave: () => onHoverChange?.(element.id, false)
+    onMouseLeave: () => onHoverChange?.(element.id, false),
+    // From the keyboard: Tab reaches it, the arrows move it (Shift:
+    // further), Enter opens it, Delete deletes it, Shift+F10 is its menu
+    // (connect, disconnect).
+    tabIndex: 0,
+    role: 'group',
+    'aria-label': element.label,
+    'aria-description': description,
+    'data-map-element': element.id,
+    onFocus: (e: React.FocusEvent<HTMLDivElement>) => {
+      if (e.target === e.currentTarget && e.currentTarget.matches(':focus-visible')) onKeyboardFocus?.(element.id)
+    },
+    onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.target !== e.currentTarget) return
+      if (e.key === 'Enter') { e.preventDefault(); onDoubleClick(element); return }
+      const d = ({ ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] } as Record<string, number[]>)[e.key]
+      if (!d) return
+      e.preventDefault()
+      const step = e.shiftKey ? 50 : 10
+      onKeyboardMove?.(element.id, d[0] * step, d[1] * step)
+    }
   } as const
 
   const dimOpacity = dimmed && !selected ? 0.22 : 1

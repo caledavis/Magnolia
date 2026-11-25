@@ -2746,3 +2746,7 @@ textarea {
 [data-bracket][role="button"]:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 1px; }
 .image-scroll-area:focus { outline: none; }
 .image-scroll-area:focus-visible { box-shadow: inset 2px 0 0 var(--accent); }
+[data-query-node]:focus { outline: none; }
+[data-query-node]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[data-map-element]:focus { outline: none; }
+[data-map-element]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

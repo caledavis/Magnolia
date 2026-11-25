@@ -1198,7 +1198,14 @@
     "save": "Сохранить запрос",
     "fromDocuments": "Из этих документов",
     "findContent": "Найти это содержимое",
-    "namePlaceholder": "Название запроса…"
+    "namePlaceholder": "Название запроса…",
+    "canvas": "Запрос",
+    "connectTo": "Соединить с",
+    "replaces": "заменит {{name}}",
+    "disconnectFrom": "Отсоединить от {{name}}",
+    "takes": "Получает {{names}}.",
+    "goesTo": "Передаёт в {{names}}.",
+    "boxKeysHint": "Стрелки перемещают его. Shift+F10 соединяет его с другим блоком, отсоединяет или удаляет."
   },
   "queryDesc": {
     "docs_one": "{{count}} док.",
@@ -1886,7 +1893,12 @@
       "survey-respondent": "РЕСП",
       "survey-question": "ВОПРОС",
       "survey-cell": "ОТВЕТ"
-    }
+    },
+    "text": "Текст",
+    "connectTo": "Соединить с",
+    "disconnectFrom": "Отсоединить от {{name}}",
+    "linkedTo": "Связано с {{names}}.",
+    "boxKeysHint": "Стрелки перемещают его, Enter открывает, Delete удаляет. Shift+F10 соединяет его с другим блоком или отсоединяет."
   },
   "memoPlace": {
     "deletedDocuments": "Удалённые документы",

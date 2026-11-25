@@ -1161,7 +1161,14 @@
     "save": "Desa la consulta",
     "fromDocuments": "D’aquests documents",
     "findContent": "Cerca aquest contingut",
-    "namePlaceholder": "Nom de la consulta…"
+    "namePlaceholder": "Nom de la consulta…",
+    "canvas": "Consulta",
+    "connectTo": "Connecta a",
+    "replaces": "substitueix {{name}}",
+    "disconnectFrom": "Desconnecta de {{name}}",
+    "takes": "Rep {{names}}.",
+    "goesTo": "Va a {{names}}.",
+    "boxKeysHint": "Les fletxes el mouen. Maj+F10 el connecta a un altre quadre, el desconnecta o l’elimina."
   },
   "queryDesc": {
     "docs_one": "{{count}} doc.",
@@ -1821,7 +1828,12 @@
       "survey-respondent": "ENQ",
       "survey-question": "PREGUNTA",
       "survey-cell": "RESPOSTA"
-    }
+    },
+    "text": "Text",
+    "connectTo": "Connecta a",
+    "disconnectFrom": "Desconnecta de {{name}}",
+    "linkedTo": "Enllaçat amb {{names}}.",
+    "boxKeysHint": "Les fletxes el mouen, Retorn l’obre, Supr l’elimina. Maj+F10 el connecta a un altre quadre o el desconnecta."
   },
   "memoPlace": {
     "deletedDocuments": "Documents suprimits",

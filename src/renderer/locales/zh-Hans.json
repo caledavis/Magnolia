@@ -1087,7 +1087,14 @@
     "save": "保存查询",
     "fromDocuments": "来自这些文档",
     "findContent": "查找此内容",
-    "namePlaceholder": "查询名称…"
+    "namePlaceholder": "查询名称…",
+    "canvas": "查询",
+    "connectTo": "连接到",
+    "replaces": "将替换 {{name}}",
+    "disconnectFrom": "断开与 {{name}} 的连接",
+    "takes": "接收 {{names}}。",
+    "goesTo": "输出到 {{names}}。",
+    "boxKeysHint": "方向键移动它。Shift+F10 将它连接到另一个框、断开连接或删除它。"
   },
   "queryDesc": {
     "docs_other": "{{count}} 个文档",
@@ -1691,7 +1698,12 @@
       "survey-respondent": "受访者",
       "survey-question": "问题",
       "survey-cell": "回答"
-    }
+    },
+    "text": "文本",
+    "connectTo": "连接到",
+    "disconnectFrom": "断开与 {{name}} 的连接",
+    "linkedTo": "已连接到 {{names}}。",
+    "boxKeysHint": "方向键移动它，Enter 打开它，Delete 删除它。Shift+F10 将它连接到另一个框或断开连接。"
   },
   "memoPlace": {
     "deletedDocuments": "已删除的文档",

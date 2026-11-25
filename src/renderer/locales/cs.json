@@ -1198,7 +1198,14 @@
     "save": "Uložit dotaz",
     "fromDocuments": "Z těchto dokumentů",
     "findContent": "Najít tento obsah",
-    "namePlaceholder": "Název dotazu…"
+    "namePlaceholder": "Název dotazu…",
+    "canvas": "Dotaz",
+    "connectTo": "Připojit k",
+    "replaces": "nahradí {{name}}",
+    "disconnectFrom": "Odpojit od {{name}}",
+    "takes": "Přijímá {{names}}.",
+    "goesTo": "Vede do {{names}}.",
+    "boxKeysHint": "Šipky ho posouvají. Shift+F10 ho připojí k jinému poli, odpojí nebo smaže."
   },
   "queryDesc": {
     "docs_one": "{{count}} dok.",
@@ -1886,7 +1893,12 @@
       "survey-respondent": "RESP",
       "survey-question": "OTÁZKA",
       "survey-cell": "ODPOVĚĎ"
-    }
+    },
+    "text": "Text",
+    "connectTo": "Připojit k",
+    "disconnectFrom": "Odpojit od {{name}}",
+    "linkedTo": "Propojeno s {{names}}.",
+    "boxKeysHint": "Šipky ho posouvají, Enter ho otevře, Delete ho smaže. Shift+F10 ho připojí k jinému poli nebo odpojí."
   },
   "memoPlace": {
     "deletedDocuments": "Smazané dokumenty",

@@ -1124,7 +1124,14 @@
     "save": "Gem forespørgsel",
     "fromDocuments": "Fra disse dokumenter",
     "findContent": "Find dette indhold",
-    "namePlaceholder": "Forespørgslens navn…"
+    "namePlaceholder": "Forespørgslens navn…",
+    "canvas": "Forespørgsel",
+    "connectTo": "Forbind til",
+    "replaces": "erstatter {{name}}",
+    "disconnectFrom": "Afbryd fra {{name}}",
+    "takes": "Modtager {{names}}.",
+    "goesTo": "Går til {{names}}.",
+    "boxKeysHint": "Piletasterne flytter den. Skift+F10 forbinder den med en anden boks, afbryder eller sletter den."
   },
   "queryDesc": {
     "docs_one": "{{count}} dok.",
@@ -1756,7 +1763,12 @@
       "survey-respondent": "RESP",
       "survey-question": "SPØRGSMÅL",
       "survey-cell": "SVAR"
-    }
+    },
+    "text": "Tekst",
+    "connectTo": "Forbind til",
+    "disconnectFrom": "Afbryd fra {{name}}",
+    "linkedTo": "Forbundet med {{names}}.",
+    "boxKeysHint": "Piletasterne flytter den, Enter åbner den, Delete sletter den. Skift+F10 forbinder den med en anden boks eller afbryder den."
   },
   "memoPlace": {
     "deletedDocuments": "Slettede dokumenter",

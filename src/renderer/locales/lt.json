@@ -1198,7 +1198,14 @@
     "save": "Įrašyti užklausą",
     "fromDocuments": "Iš šių dokumentų",
     "findContent": "Rasti šį turinį",
-    "namePlaceholder": "Užklausos pavadinimas…"
+    "namePlaceholder": "Užklausos pavadinimas…",
+    "canvas": "Užklausa",
+    "connectTo": "Sujungti su",
+    "replaces": "pakeis {{name}}",
+    "disconnectFrom": "Atjungti nuo {{name}}",
+    "takes": "Gauna {{names}}.",
+    "goesTo": "Eina į {{names}}.",
+    "boxKeysHint": "Rodyklės jį perkelia. Shift+F10 sujungia jį su kitu langeliu, atjungia arba ištrina."
   },
   "queryDesc": {
     "docs_one": "{{count}} dok.",
@@ -1886,7 +1893,12 @@
       "survey-respondent": "RESP",
       "survey-question": "KLAUSIMAS",
       "survey-cell": "ATSAKYMAS"
-    }
+    },
+    "text": "Tekstas",
+    "connectTo": "Sujungti su",
+    "disconnectFrom": "Atjungti nuo {{name}}",
+    "linkedTo": "Susieta su {{names}}.",
+    "boxKeysHint": "Rodyklės jį perkelia, Enter atidaro, Delete ištrina. Shift+F10 sujungia jį su kitu langeliu arba atjungia."
   },
   "memoPlace": {
     "deletedDocuments": "Pašalinti dokumentai",

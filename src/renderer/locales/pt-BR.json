@@ -1161,7 +1161,14 @@
     "save": "Salvar consulta",
     "fromDocuments": "Destes documentos",
     "findContent": "Encontrar este conteúdo",
-    "namePlaceholder": "Nome da consulta..."
+    "namePlaceholder": "Nome da consulta...",
+    "canvas": "Consulta",
+    "connectTo": "Conectar a",
+    "replaces": "substitui {{name}}",
+    "disconnectFrom": "Desconectar de {{name}}",
+    "takes": "Recebe {{names}}.",
+    "goesTo": "Vai para {{names}}.",
+    "boxKeysHint": "As setas o movem. Shift+F10 o conecta a outra caixa, ou o desconecta ou exclui."
   },
   "queryDesc": {
     "docs_one": "{{count}} doc.",
@@ -1821,7 +1828,12 @@
       "survey-respondent": "RESP.",
       "survey-question": "PERGUNTA",
       "survey-cell": "RESPOSTA"
-    }
+    },
+    "text": "Texto",
+    "connectTo": "Conectar a",
+    "disconnectFrom": "Desconectar de {{name}}",
+    "linkedTo": "Ligado a {{names}}.",
+    "boxKeysHint": "As setas o movem, Enter o abre, Delete o exclui. Shift+F10 o conecta a outra caixa ou o desconecta."
   },
   "memoPlace": {
     "deletedDocuments": "Documentos excluídos",

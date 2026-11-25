@@ -1161,7 +1161,14 @@
     "save": "Salva query",
     "fromDocuments": "Da questi documenti",
     "findContent": "Trova questo contenuto",
-    "namePlaceholder": "Nome della query…"
+    "namePlaceholder": "Nome della query…",
+    "canvas": "Query",
+    "connectTo": "Collega a",
+    "replaces": "sostituisce {{name}}",
+    "disconnectFrom": "Scollega da {{name}}",
+    "takes": "Riceve {{names}}.",
+    "goesTo": "Va a {{names}}.",
+    "boxKeysHint": "Le frecce lo spostano. Maiusc+F10 lo collega a un altro riquadro, lo scollega o lo elimina."
   },
   "queryDesc": {
     "docs_one": "{{count}} doc.",
@@ -1821,7 +1828,12 @@
       "survey-respondent": "RISP",
       "survey-question": "DOMANDA",
       "survey-cell": "RISPOSTA"
-    }
+    },
+    "text": "Testo",
+    "connectTo": "Collega a",
+    "disconnectFrom": "Scollega da {{name}}",
+    "linkedTo": "Collegato a {{names}}.",
+    "boxKeysHint": "Le frecce lo spostano, Invio lo apre, Canc lo elimina. Maiusc+F10 lo collega a un altro riquadro o lo scollega."
   },
   "memoPlace": {
     "deletedDocuments": "Documenti eliminati",

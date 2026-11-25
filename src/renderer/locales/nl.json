@@ -1124,7 +1124,14 @@
     "save": "Query bewaren",
     "fromDocuments": "Uit deze documenten",
     "findContent": "Deze inhoud zoeken",
-    "namePlaceholder": "Naam van de query..."
+    "namePlaceholder": "Naam van de query...",
+    "canvas": "Zoekvraag",
+    "connectTo": "Verbinden met",
+    "replaces": "vervangt {{name}}",
+    "disconnectFrom": "Loskoppelen van {{name}}",
+    "takes": "Krijgt {{names}}.",
+    "goesTo": "Gaat naar {{names}}.",
+    "boxKeysHint": "De pijltjestoetsen verplaatsen het. Shift+F10 verbindt het met een ander vak, koppelt het los of verwijdert het."
   },
   "queryDesc": {
     "docs_one": "{{count}} doc.",
@@ -1756,7 +1763,12 @@
       "survey-respondent": "RESP",
       "survey-question": "VRAAG",
       "survey-cell": "ANTWOORD"
-    }
+    },
+    "text": "Tekst",
+    "connectTo": "Verbinden met",
+    "disconnectFrom": "Loskoppelen van {{name}}",
+    "linkedTo": "Gekoppeld aan {{names}}.",
+    "boxKeysHint": "De pijltjestoetsen verplaatsen het, Enter opent het, Delete verwijdert het. Shift+F10 verbindt het met een ander vak of koppelt het los."
   },
   "memoPlace": {
     "deletedDocuments": "Verwijderde documenten",

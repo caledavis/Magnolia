@@ -1124,7 +1124,14 @@
     "save": "Abfrage speichern",
     "fromDocuments": "Aus diesen Dokumenten",
     "findContent": "Diesen Inhalt finden",
-    "namePlaceholder": "Name der Abfrage …"
+    "namePlaceholder": "Name der Abfrage …",
+    "canvas": "Abfrage",
+    "connectTo": "Verbinden mit",
+    "replaces": "ersetzt {{name}}",
+    "disconnectFrom": "Trennen von {{name}}",
+    "takes": "Erhält {{names}}.",
+    "goesTo": "Geht an {{names}}.",
+    "boxKeysHint": "Die Pfeiltasten verschieben es. Umschalt+F10 verbindet es mit einem anderen Kasten, trennt oder löscht es."
   },
   "queryDesc": {
     "docs_one": "{{count}} Dok.",
@@ -1756,7 +1763,12 @@
       "survey-respondent": "BEFR",
       "survey-question": "FRAGE",
       "survey-cell": "ANTWORT"
-    }
+    },
+    "text": "Text",
+    "connectTo": "Verbinden mit",
+    "disconnectFrom": "Trennen von {{name}}",
+    "linkedTo": "Verbunden mit {{names}}.",
+    "boxKeysHint": "Die Pfeiltasten verschieben es, Eingabe öffnet es, Entf löscht es. Umschalt+F10 verbindet es mit einem anderen Kasten oder trennt es."
   },
   "memoPlace": {
     "deletedDocuments": "Gelöschte Dokumente",
