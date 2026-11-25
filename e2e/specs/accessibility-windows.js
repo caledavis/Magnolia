@@ -57,6 +57,6 @@ async function spec(t) {
     const raw = await t.until(() => localStorage.getItem('e2e-axe:' + label), 60000, 200)
     const r = raw ? JSON.parse(raw) : null
     if (r?.found) for (const f of r.found) t.log(`  ${label}: ${f}`)
-    t.check(`the ${label} window passes axe in every theme`, !!r && r.ok && r.found.length === 0, r ? (r.error || `${r.found.length} findings`) : 'no result')
+    t.check(`the ${label} window passes axe in every theme`, !!r && r.ok && r.found.length === 0, r ? (r.error || `${r.found.length} findings: ${r.found.join(' | ').slice(0, 1200)}`) : 'no result')
   }
 }

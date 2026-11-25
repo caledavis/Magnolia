@@ -4,6 +4,7 @@ import type { DetectedSpeaker } from '../../utils/transcript-speakers'
 import { useCodeColourPresets } from '../../utils/code-colours'
 import { useTranslation } from 'react-i18next'
 import { CODE_DRAG_TYPE, CODES_DRAG_TYPE } from '../../utils/code-drag'
+import type { SourceFormatData } from '../../models/types'
 
 /** Seconds of audio the play button previews. */
 const CLIP_SECONDS = 5
@@ -44,7 +45,7 @@ interface Props {
   open: boolean
   speakers: DetectedSpeaker[]
   /** The audio/video source the transcript was imported into. */
-  source: { guid: string; sourceType?: string; formatData?: any; name?: string } | undefined
+  source: { guid: string; sourceType?: string; formatData?: SourceFormatData; name?: string } | undefined
   onApply: (assignments: SpeakerAssignment[]) => void
   onClose: () => void
 }

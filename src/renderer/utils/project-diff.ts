@@ -483,7 +483,7 @@ function diffSavedAnalyses(mine: SavedAnalysis[], theirs: SavedAnalysis[]): Save
     if (changedFields.length === 0) continue
     const item: SavedAnalysisDiffItem = { guid: m.guid, bucket: 'bothDiffer', mine: m, theirs: t, changedFields }
     if (m.toolType === 'relationship-map' && t.toolType === 'relationship-map' && changedFields.includes('config')) {
-      item.relationshipMapSummary = diffRelationshipMap(m.config, t.config)
+      item.relationshipMapSummary = diffRelationshipMap(m.config as RelationshipMapConfig, t.config as RelationshipMapConfig)
     }
     items.push(item)
   }

@@ -95,10 +95,10 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
     if (q.pdfRegion) {
       try {
         const src = sources.find((s) => s.guid === q.sourceGuid)
-        const fd = (src as any)?.formatData
+        const fd = src?.formatData
         const filePath = (fd?.imageFilePath as string | undefined) ?? (fd?.pdfFilePath as string | undefined)
         const pdfBase64 = fd?.pdfBase64 as string | undefined
-        const isImage = (src as any)?.sourceType === 'image'
+        const isImage = src?.sourceType === 'image'
           || (!!filePath && sourceTypeFromFilename(filePath) === 'image')
         const dataUrl = isImage
           ? await renderImageRegionThumbnail({
@@ -119,7 +119,7 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
       return
     }
     const src = sources.find((s) => s.guid === q.sourceGuid)
-    const st = (src as any)?.sourceType || sourceTypeFromFilename(q.sourceName)
+    const st = src?.sourceType || sourceTypeFromFilename(q.sourceName)
     const clean = stripFormatting(q.text, st)
     try {
       await navigator.clipboard.writeText(clean)

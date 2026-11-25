@@ -17,13 +17,22 @@ import { t } from '../../i18n'
 import { emptySaveAllowed, noteStateMatchesFile } from '../../stores/empty-save-guard'
 import { keyActivate } from '../../utils/key-activate'
 
+/** A category's items (each kind is a DiffItem of its own type). Document
+ *  text differences are not DiffItems: each caller handles them first. */
+function itemsIn(diff: MergeDiff, category: ItemCategory): DiffItem<unknown>[] {
+  return diff[category]
+}
+
 interface MergeReviewWindowProps {
   onClose: () => void
 }
 
 /** A category's name is merge.cat.<id> in the catalogues. */
+/** A category whose items are DiffItems (document text differences aren't). */
+type ItemCategory = Exclude<FlatCategory, 'documentText'>
+
 interface CategoryMeta {
-  id: FlatCategory
+  id: ItemCategory
   count: (diff: MergeDiff) => number
 }
 
@@ -93,8 +102,9 @@ function ColorPip({ color }: { color?: string }): JSX.Element {
 /** Human-readable one-line label per category's item shape. Falls back to
  *  the guid if nothing more specific applies. Codes get their color pip
  *  inline since users associate the pip with "this is a code". */
-function describeItem(category: FlatCategory, item: DiffItem<any>): React.ReactNode {
-  const obj = item.theirs ?? item.mine
+function describeItem(category: FlatCategory, item: DiffItem<unknown>): React.ReactNode {
+  // The fields an item is named by, whichever kind it is.
+  const obj = (item.theirs ?? item.mine) as { name?: string; color?: string; title?: string; text?: string } | undefined
   switch (category) {
     case 'codes': {
       const code = item as CodeDiffItem
@@ -150,10 +160,10 @@ function BucketSection({
   describe
 }: {
   title: string
-  items: DiffItem<any>[]
-  isChecked: (item: DiffItem<any>) => boolean
-  onToggle: (item: DiffItem<any>) => void
-  describe: (item: DiffItem<any>) => React.ReactNode
+  items: DiffItem<unknown>[]
+  isChecked: (item: DiffItem<unknown>) => boolean
+  onToggle: (item: DiffItem<unknown>) => void
+  describe: (item: DiffItem<unknown>) => React.ReactNode
 }): JSX.Element | null {
   if (items.length === 0) return null
   return (
@@ -168,14 +178,14 @@ function BucketSection({
   )
 }
 
-function FlatCategoryPane({ category, diff }: { category: FlatCategory; diff: MergeDiff }): JSX.Element {
+function FlatCategoryPane({ category, diff }: { category: ItemCategory; diff: MergeDiff }): JSX.Element {
   const { t } = useTranslation()
   const approved = useMergeReviewStore((s) => s.approved[category])
   const toggle = useMergeReviewStore((s) => s.toggle)
   const comparisonEditedBy = useMergeReviewStore((s) => s.comparisonEditedBy)
   const reconciling = useMergeReviewStore((s) => s.reconciling)
   const who = theirs(comparisonEditedBy)
-  const items = (diff as any)[category] as DiffItem<any>[]
+  const items = itemsIn(diff, category)
   const onlyMine = items.filter((i) => i.bucket === 'onlyMine')
   const onlyTheirs = items.filter((i) => i.bucket === 'onlyTheirs')
   const bothDiffer = items.filter((i) => i.bucket === 'bothDiffer')
@@ -188,9 +198,9 @@ function FlatCategoryPane({ category, diff }: { category: FlatCategory; diff: Me
   // apply.ts) read that same set exactly as before, so what an approved
   // onlyMine guid actually does (remove it) is unchanged; only which
   // checkbox state displays as "checked" is inverted here.
-  const isChecked = (item: DiffItem<any>) => item.bucket === 'onlyMine' ? !approved.has(item.guid) : approved.has(item.guid)
-  const onToggle = (item: DiffItem<any>) => toggle(category, item.guid)
-  const describe = (item: DiffItem<any>): React.ReactNode => (
+  const isChecked = (item: DiffItem<unknown>) => item.bucket === 'onlyMine' ? !approved.has(item.guid) : approved.has(item.guid)
+  const onToggle = (item: DiffItem<unknown>) => toggle(category, item.guid)
+  const describe = (item: DiffItem<unknown>): React.ReactNode => (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
       {describeItem(category, item)}
       <span style={{ color: 'var(--text-muted)' }}>— {bucketLabel(item.bucket, comparisonEditedBy, reconciling)}</span>
@@ -545,8 +555,8 @@ function CodingsPane({ diff }: { diff: MergeDiff }): JSX.Element {
 function buildApplyPlan(diff: MergeDiff, approved: Record<FlatCategory, Set<string>>, codingsApproved: Set<string>): ApplyPlan {
   const plan = emptyApplyPlan()
   for (const meta of FLAT_CATEGORIES) {
-    const items = (diff as any)[meta.id] as DiffItem<any>[]
-    ;(plan as any)[meta.id] = items.filter((i) => approved[meta.id].has(i.guid))
+    const items = itemsIn(diff, meta.id)
+    ;(plan as unknown as Record<FlatCategory, DiffItem<unknown>[]>)[meta.id] = items.filter((i) => approved[meta.id].has(i.guid))
   }
   plan.sources = diff.sources.filter((i) => approved.sources.has(i.guid))
   plan.documentText = diff.documentText.filter((d) => approved.documentText.has(d.sourceGuid))
@@ -619,7 +629,7 @@ function splitDiff(diff: MergeDiff): { main: MergeDiff; notebooks: MergeDiff } {
 /** The guids a category's checkboxes cover in one section's diff. */
 function scopeOf(id: FlatCategory, diff: MergeDiff): string[] {
   if (id === 'documentText') return diff.documentText.map((d) => d.sourceGuid)
-  return ((diff as any)[id] as DiffItem<any>[]).map((i) => i.guid)
+  return itemsIn(diff, id).map((i) => i.guid)
 }
 
 function NotebooksPane({ diff }: { diff: MergeDiff }): JSX.Element {
@@ -671,7 +681,7 @@ function keysForSelectAll(id: FlatCategory | 'codings' | 'documentText', diff: M
     return keys
   }
   if (id === 'documentText') return diff.documentText.map((d) => d.sourceGuid)
-  const items = (diff as any)[id] as DiffItem<any>[]
+  const items = itemsIn(diff, id)
   return items.filter((i) => i.bucket !== 'onlyMine').map((i) => i.guid)
 }
 
@@ -691,7 +701,7 @@ function keysForDeselectAll(id: FlatCategory | 'codings' | 'documentText', diff:
     return keys
   }
   if (id === 'documentText') return []
-  const items = (diff as any)[id] as DiffItem<any>[]
+  const items = itemsIn(diff, id)
   return items.filter((i) => i.bucket === 'onlyMine').map((i) => i.guid)
 }
 
@@ -900,7 +910,7 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
       }, 0)
     }
     if (id === 'documentText') return diff.documentText.filter((d) => approved.documentText.has(d.sourceGuid)).length
-    const items = (diff as any)[id] as DiffItem<any>[]
+    const items = itemsIn(diff, id)
     const approvedSet = approved[id as FlatCategory]
     return items.filter((i) => i.bucket === 'onlyMine' ? !approvedSet.has(i.guid) : approvedSet.has(i.guid)).length
   }

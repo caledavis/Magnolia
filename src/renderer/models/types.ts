@@ -108,13 +108,13 @@ export type PersistedTab =
       savedAnalysisGuid?: string
       /** Set for ad-hoc tabs only — full config snapshot so the tool
        *  rehydrates without round-tripping through SavedAnalyses. */
-      adhocConfig?: any
+      adhocConfig?: ToolConfig
     }
   | {
       id: string
       kind: 'query-builder'
       title: string
-      adhocConfig?: any
+      adhocConfig?: ToolConfig
     }
   | { id: string; kind: 'notebook'; folderGuid: string }
 
@@ -247,6 +247,8 @@ export interface AudioFormatData {
   duration: number         // seconds
   channels: number
   sampleRate: number
+  /** Original extension, kept so the QDPX writer can preserve it. */
+  audioExt?: string
   /** Per-transcript-line timestamps — same shape and role as the video
    *  counterpart. Maps 0-based line index (stringified) to the audio time
    *  (seconds) at which that line was typed. Lets the coding gutter show
@@ -286,12 +288,29 @@ export interface ImageFormatData {
   imageExt?: string
 }
 
+/** Format-specific data for PDF sources. */
+export interface PdfFormatData {
+  pdfFilePath?: string     // handle of the PDF's bytes (renderer reads via IPC)
+  pdfBase64?: string       // legacy: only in older projects and fresh imports
+  /** Where each page's text starts in the document's text (codepoints). */
+  pdfPageOffsets?: number[]
+  /** Each page's geometry, written by the backend (pdf_info.rs). */
+  pdfPageSizes?: unknown[]
+}
+
+/** A document's format-specific data: whichever of these fit its kind
+ *  (sourceType). One type, every field optional, so a misspelt field is
+ *  an error while a reader still needn't narrow by kind first. */
+export type SourceFormatData = Partial<
+  SurveyFormatData & AudioFormatData & VideoFormatData & NoteFormatData & ImageFormatData & PdfFormatData
+>
+
 export interface TextSource {
   guid: string
   name: string
   sourceType?: SourceType
   /** Format-specific data (PDF binary, audio binary, page offsets, etc.) */
-  formatData?: any
+  formatData?: SourceFormatData
   plainTextPath?: string
   plainTextContent?: string
   richTextPath?: string
@@ -1112,14 +1131,23 @@ export interface AnalysisInitData {
    *  of quote / query-result elements dropped into the relationship map. */
   pdfFilePaths?: Record<string, string>
   /** Restored saved analysis config (if opening a saved analysis) */
-  savedConfig?: any
+  savedConfig?: ToolConfig
+}
+
+/** A tool's settings as saved (each tool reads its own fields). */
+export type ToolConfig = object
+
+/** The ad-hoc Query Builder tab's settings: what it was opened to edit. */
+export interface QueryBuilderTabConfig {
+  editSavedQueryGuid?: string
+  editCurrentQuery?: boolean
 }
 
 export interface SavedAnalysis {
   guid: string
   toolType: AnalysisToolType
   name: string
-  config: any
+  config: ToolConfig
   createdDateTime: string
   modifiedDateTime?: string
 }

@@ -42,6 +42,7 @@ import { buildExportSvg } from './svg-export'
 import { buildExportSvgFromDom } from './dom-svg-export'
 import { EditableTitleSuffix } from '../../EditableTitleSuffix'
 import { useTranslation } from 'react-i18next'
+import type { RelationshipMapConfig } from './types'
 
 function ToolbarBtn({ active, disabled, onClick, title, children }: {
   active?: boolean; disabled?: boolean; onClick: () => void; title?: string; children: React.ReactNode
@@ -103,7 +104,7 @@ export function InlineRelationshipMap({ mapGuid }: Props) {
   const pdfFilePaths = useMemo(() => {
     const out: Record<string, string> = {}
     for (const src of sources) {
-      const fp = (src as any).formatData?.pdfFilePath ?? (src as any).formatData?.imageFilePath
+      const fp = src.formatData?.pdfFilePath ?? src.formatData?.imageFilePath
       if (fp) out[src.guid] = fp
     }
     return out
@@ -403,11 +404,12 @@ export function InlineRelationshipMap({ mapGuid }: Props) {
         if (sa.toolType === 'relationship-map') {
           const rmStore = useRelationshipMapStore.getState()
           if (rmStore.maps[sa.guid]?.poppedOut) return
+          const cfg = sa.config as Partial<RelationshipMapConfig>
           rmStore.loadSavedMap(sa.guid, sa.name, {
-            elements: sa.config.elements ?? [],
-            freeTexts: sa.config.freeTexts ?? [],
-            connections: sa.config.connections ?? [],
-            pan: sa.config.pan ?? { x: 0, y: 0 }
+            elements: cfg.elements ?? [],
+            freeTexts: cfg.freeTexts ?? [],
+            connections: cfg.connections ?? [],
+            pan: cfg.pan ?? { x: 0, y: 0 }
           })
           useDocumentStore.getState().openToolTab(makeMapTabId(sa.guid))
         } else {

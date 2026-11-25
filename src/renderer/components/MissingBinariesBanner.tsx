@@ -2,6 +2,7 @@ import { useState, type ReactElement } from 'react'
 import { useDocumentStore } from '../stores/document-store'
 import type { MissingBinary } from '../models/types'
 import { useTranslation } from 'react-i18next'
+import { errorMessage } from '../utils/error-message'
 
 /**
  * Surfaced after opening a project that declares PDF/image/audio/video
@@ -43,8 +44,8 @@ export function MissingBinariesBanner({
       }
       reattach(m.guid, res.formatting, res.content)
       onResolved(m.guid)
-    } catch (err: any) {
-      setErrors((e) => ({ ...e, [m.guid]: err?.message || String(err) }))
+    } catch (err) {
+      setErrors((e) => ({ ...e, [m.guid]: errorMessage(err) }))
     } finally {
       setBusyGuid(null)
     }

@@ -10,7 +10,7 @@ import { liveResolveFilter, useQueryStore } from '../stores/query-store'
 import { narrowQueryToCell, queryForCell, type CellScope } from '../utils/narrow-query'
 import { tagMembershipFromTags } from '../utils/survey-cell-scope'
 import { useEffect, type MutableRefObject } from 'react'
-import type { SurveyData, SurveyFormatData, QueryResultsInitData, AnalysisToolType, Query, CodeCondition } from '../models/types'
+import type { SurveyData, SurveyFormatData, QueryResultsInitData, AnalysisToolType, Query, CodeCondition, PlainTextSelection, ToolConfig } from '../models/types'
 import { useProjectStore } from '../stores/project-store'
 import { usePreferencesStore } from '../stores/preferences-store'
 import { codeColourPresetsFor } from '../utils/code-colours'
@@ -441,8 +441,8 @@ function runCellQuery(codeCondition: CodeCondition, docs: string[] | undefined, 
 }
 
 export function useAnalysisMessages(
-  openAnalysis: (toolType: AnalysisToolType, config?: any) => void,
-  openSavedAnalysis: (toolType: AnalysisToolType, savedConfig: any) => void
+  openAnalysis: (toolType: AnalysisToolType, config?: ToolConfig) => void,
+  openSavedAnalysis: (toolType: AnalysisToolType, savedConfig: ToolConfig & { guid?: string; name?: string }) => void
 ): void {
   // Subscribed once, calling the latest functions (see useLatest).
   const latest = useLatest({ openAnalysis, openSavedAnalysis })
@@ -627,7 +627,7 @@ export function useQueryResultsWindowUpdates(poppedOut: boolean): void {
       : false
     const docStore = useDocumentStore.getState()
     const cdStore = useCodeStore.getState()
-    const sourceSelections: Record<string, any[]> = {}
+    const sourceSelections: Record<string, PlainTextSelection[]> = {}
     const pdfFilePaths: Record<string, string> = {}
     const pdfPageOffsets: Record<string, number[]> = {}
     const videoFilePaths: Record<string, string> = {}
@@ -635,14 +635,14 @@ export function useQueryResultsWindowUpdates(poppedOut: boolean): void {
     const surveysByGuid: Record<string, SurveyData> = {}
     for (const src of docStore.sources) {
       if (src.selections.length > 0) sourceSelections[src.guid] = src.selections
-      const fp = (src as any).formatData?.pdfFilePath ?? (src as any).formatData?.imageFilePath
+      const fp = src.formatData?.pdfFilePath ?? src.formatData?.imageFilePath
       if (fp) pdfFilePaths[src.guid] = fp
-      const po = (src as any).formatData?.pdfPageOffsets
+      const po = src.formatData?.pdfPageOffsets
       if (po?.length) pdfPageOffsets[src.guid] = po
-      const vp = (src as any).formatData?.videoFilePath
+      const vp = src.formatData?.videoFilePath
       if (vp) {
         videoFilePaths[src.guid] = vp
-        videoMimeTypes[src.guid] = (src as any).formatData?.mimeType || 'video/mp4'
+        videoMimeTypes[src.guid] = src.formatData?.mimeType || 'video/mp4'
       }
       if (src.sourceType === 'survey') {
         const survey = (src.formatData as SurveyFormatData | undefined)?.survey

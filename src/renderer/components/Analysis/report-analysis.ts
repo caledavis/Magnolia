@@ -51,7 +51,7 @@ import { escHtml } from '../../utils/pdf-export'
 import { visualBoxHex } from '../../utils/code-colours'
 import { TOOL_REGISTRY } from '../../utils/tool-registry'
 import { useProjectStore } from '../../stores/project-store'
-import type { AnalysisInitData } from '../../models/types'
+import type { AnalysisInitData, Query } from '../../models/types'
 import type { AnalysisItemOptions, ReportItem } from './report-export'
 import { t, formatPercent, formatFixed, formatNumber } from '../../i18n'
 
@@ -301,7 +301,7 @@ function resultsInDocumentsHtml(config: any, options: AnalysisItemOptions): stri
 
   const data = buildAnalysisInitData('results-in-documents')
 
-  const queryMap = new Map<string, { name: string; query?: any }>()
+  const queryMap = new Map<string, { name: string; query?: Query }>()
   for (const sq of data.savedQueries || []) queryMap.set(sq.guid, { name: sq.name, query: sq.query })
   const sourceMap = new Map<string, string>(data.sources.map((s) => [s.guid, s.name]))
 

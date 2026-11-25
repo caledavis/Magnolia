@@ -154,7 +154,7 @@ async function copyQueryResult(
       return
     }
     const src = useDocumentStore.getState().sources.find((s) => s.guid === result.sourceGuid)
-    const fd = (src as any)?.formatData
+    const fd = src?.formatData
     const filePath = pdfFilePath ?? (fd?.imageFilePath as string | undefined) ?? (fd?.pdfFilePath as string | undefined)
     const pdfBase64 = fd?.pdfBase64 as string | undefined
     const isImage = sourceType === 'image' || (!!filePath && sourceTypeFromFilename(filePath) === 'image')

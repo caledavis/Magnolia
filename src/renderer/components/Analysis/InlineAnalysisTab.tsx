@@ -37,7 +37,7 @@ import { ResultsInDocuments } from './ResultsInDocuments'
 import { Reports } from './Reports'
 import { QueryBuilderWindow } from '../QueryBuilder/QueryBuilderWindow'
 import { MemoFab } from '../Memos/MemoFab'
-import type { AnalysisToolType } from '../../models/types'
+import type { AnalysisToolType, AnalysisInitData, QueryBuilderTabConfig, ToolConfig } from '../../models/types'
 import { i18n } from '../../i18n'
 
 interface Props {
@@ -76,9 +76,10 @@ export const InlineAnalysisTab = memo(function InlineAnalysisTab({ tabId }: Prop
     // For an ad-hoc Query Builder tab the config snapshot persisted in
     // analysis-tabs-store carries editSavedQueryGuid / editCurrentQuery
     // hints; fall back to a fresh build when there's no snapshot.
+    const qb = instance.config as QueryBuilderTabConfig | undefined
     return buildQueryBuilderInitData({
-      editSavedQueryGuid: instance.config?.editSavedQueryGuid,
-      editCurrentQuery: instance.config?.editCurrentQuery
+      editSavedQueryGuid: qb?.editSavedQueryGuid,
+      editCurrentQuery: qb?.editCurrentQuery
     })
   }, [instance, isQueryBuilder])
 
@@ -119,7 +120,7 @@ export const InlineAnalysisTab = memo(function InlineAnalysisTab({ tabId }: Prop
   // knows where to find it.
   const fabKind: 'saved-analysis' | 'saved-query' = isQueryBuilder ? 'saved-query' : 'saved-analysis'
   const fabTargetGuid: string | undefined = isQueryBuilder
-    ? instance?.config?.editSavedQueryGuid
+    ? (instance?.config as QueryBuilderTabConfig | undefined)?.editSavedQueryGuid
     : instance?.savedAnalysisGuid
 
   // No header bar — the tab itself carries the title and the Pop-out
@@ -169,9 +170,9 @@ export const InlineAnalysisTab = memo(function InlineAnalysisTab({ tabId }: Prop
 })
 
 function resolveSavedConfig(
-  instance: { savedAnalysisGuid?: string; config?: any },
-  savedAnalyses: { guid: string; name: string; toolType: string; config: any }[]
-): any | undefined {
+  instance: { savedAnalysisGuid?: string; config?: ToolConfig },
+  savedAnalyses: { guid: string; name: string; toolType: string; config: ToolConfig }[]
+): (ToolConfig & { guid?: string; name?: string }) | undefined {
   if (instance.savedAnalysisGuid) {
     const sa = savedAnalyses.find((a) => a.guid === instance.savedAnalysisGuid)
     if (sa) return { ...sa.config, guid: sa.guid, name: sa.name }
@@ -182,7 +183,9 @@ function resolveSavedConfig(
 
 function dispatch(
   toolType: AnalysisToolType,
-  data: any,
+  data: AnalysisInitData,
+  // The tool's settings as saved in the project: each tool reads its own
+  // fields (and copes with any missing), so they're handed on as they are.
   savedConfig: any,
   inTab: {
     onClose: () => void

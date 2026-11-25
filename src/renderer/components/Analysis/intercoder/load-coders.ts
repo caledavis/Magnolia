@@ -99,7 +99,7 @@ export function loadRegionExtents(projects: CoderProject[], doc: MatchedDoc): Pr
   if (!field || (st !== 'pdf' && st !== 'image')) return Promise.resolve(null)
   for (const p of projects) {
     const s = p.sources.find((x) => x.guid === doc.members[p.id])
-    const handle = (s?.formatData as Record<string, unknown> | undefined)?.[field]
+    const handle = s?.formatData?.[field]
     if (typeof handle !== 'string') continue
     const key = `${p.filePath ?? OPEN_PROJECT_ID}::${handle}`
     let promise = regionCache.get(key)

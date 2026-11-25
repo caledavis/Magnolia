@@ -26,19 +26,27 @@
 import { create } from 'zustand'
 import { useProjectStore } from './project-store'
 import { makeHmrSafe } from './hmr-preserve'
+import type { ToolConfig } from '../models/types'
 
-export type ToolKind =
-  | 'code-cooccurrences'
-  | 'codes-in-documents'
-  | 'framework-matrix'
-  | 'intercoder-agreement'
-  | 'results-in-documents'
-  | 'code-frequencies'
-  | 'code-orders'
-  | 'word-frequencies'
-  | 'word-combinations'
-  | 'reports'
-  | 'query-builder'
+export const TOOL_KINDS = [
+  'code-cooccurrences',
+  'codes-in-documents',
+  'framework-matrix',
+  'intercoder-agreement',
+  'results-in-documents',
+  'code-frequencies',
+  'code-orders',
+  'word-frequencies',
+  'word-combinations',
+  'reports',
+  'query-builder'
+] as const
+export type ToolKind = (typeof TOOL_KINDS)[number]
+
+/** Whether `kind` (read from a project file) is a tool Magnolia has. */
+export function isToolKind(kind: string): kind is ToolKind {
+  return (TOOL_KINDS as readonly string[]).includes(kind)
+}
 
 export interface AnalysisTabInstance {
   toolType: ToolKind
@@ -47,7 +55,7 @@ export interface AnalysisTabInstance {
   title: string
   /** Last config the tool reported (or seeded from a SavedAnalysis on open).
    *  Persisted so an ad-hoc tab survives project save → reopen. */
-  config: any
+  config: ToolConfig | undefined
   /** True while the tool is open in its own popped-out BrowserWindow. */
   poppedOut: boolean
   /** True when the tool has unsaved edits relative to its last save (or
@@ -63,7 +71,7 @@ interface AnalysisTabsState {
   perToolCounters: Record<string, number>
 
   add: (tabId: string, inst: AnalysisTabInstance) => void
-  setConfig: (tabId: string, config: any) => void
+  setConfig: (tabId: string, config: ToolConfig | undefined) => void
   setTitle: (tabId: string, title: string) => void
   setSavedGuid: (tabId: string, savedGuid: string | undefined) => void
   setPoppedOut: (tabId: string, poppedOut: boolean) => void

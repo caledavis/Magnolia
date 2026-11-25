@@ -52,7 +52,7 @@ import { useMemoStore } from './stores/memo-store'
 import { useQuoteStore } from './stores/quote-store'
 import { flushViewPositions } from './stores/view-position-store'
 import { useRelationshipMapStore } from './stores/relationship-map-store'
-import { useAnalysisTabsStore } from './stores/analysis-tabs-store'
+import { useAnalysisTabsStore, isToolKind } from './stores/analysis-tabs-store'
 import { isAnalysisTab, isMapTab, isQueryBuilderTab, isMergeTab, makeAnalysisTabId, makeMapTabId, makeQueryBuilderTabId, parseAnalysisTabId, PREFERENCES_TAB_ID, MERGE_TAB_ID } from './utils/tab-ids'
 import { requestPreferencesCategory } from './components/Preferences/PreferencesWindow'
 import type { PersistedTabState, MissingBinary, CheckoutMarker, ImportState, SaveOutcome, OpenedProject } from './models/types'
@@ -94,6 +94,18 @@ import { useProjectShortcuts } from './app/keyboard-shortcuts'
 import { collectProject } from './app/project-file'
 import { codeAllResults } from './app/code-results'
 import { useLatest } from './utils/use-latest'
+import { errorMessage } from './utils/error-message'
+import type { QueryBuilderTabConfig, PlainTextSelection, ToolConfig } from './models/types'
+import type { RelationshipMapConfig } from './components/Analysis/RelationshipMap/types'
+
+/** What a save can come back with besides the saved path (see the
+ *  saveProject API): a checkout conflict, or the guard refusing it. */
+function isConflict(r: unknown): r is { conflict: true; marker: CheckoutMarker } {
+  return !!r && typeof r === 'object' && 'conflict' in r
+}
+function isGuardBlocked(r: unknown): r is { guardBlocked: true; message: string } {
+  return !!r && typeof r === 'object' && 'guardBlocked' in r
+}
 
 
 /** Toolbar pill layout: groups a set of related buttons in a row. The
@@ -169,8 +181,8 @@ function App() {
             folderGuid
           }
         ])
-      } catch (err: any) {
-        void window.api.showMessage(t('app.parseFailed', { name: suggestedName, error: err?.message || String(err) }), 'error')
+      } catch (err) {
+        void window.api.showMessage(t('app.parseFailed', { name: suggestedName, error: errorMessage(err) }), 'error')
       }
     },
     [t]
@@ -382,7 +394,7 @@ function App() {
 
   const openMemos = useCallback(() => window.api.openMemosWindow(memosWindowData()), [])
 
-  const openAnalysis = useCallback((toolType: AnalysisToolType, config?: any) => {
+  const openAnalysis = useCallback((toolType: AnalysisToolType, config?: ToolConfig) => {
     // Relationship Maps open as a tab in the Document Viewer instead of a
     // separate window. The user pops it out from there if they want it
     // floating.
@@ -402,7 +414,7 @@ function App() {
     const counter = ats.nextCounter(toolType)
     const title = `${analysisToolTitle(toolType) ?? t('tabs.analysis')} (${counter})`
     ats.add(tabId, {
-      toolType: toolType as any,
+      toolType,
       title,
       config,
       poppedOut: false
@@ -410,18 +422,19 @@ function App() {
     ds.openToolTab(tabId)
   }, [t])
 
-  const openSavedAnalysis = useCallback((toolType: AnalysisToolType, savedConfig: any) => {
+  const openSavedAnalysis = useCallback((toolType: AnalysisToolType, savedConfig: ToolConfig & { guid?: string; name?: string }) => {
     // Saved relationship maps open as a tab.
     if (toolType === 'relationship-map') {
       const guid = savedConfig?.guid
       const name = savedConfig?.name ?? t('app.relationshipMap')
       if (guid) {
         const rmStore = useRelationshipMapStore.getState()
+        const map = savedConfig as Partial<RelationshipMapConfig>
         rmStore.loadSavedMap(guid, name, {
-          elements: savedConfig.elements ?? [],
-          freeTexts: savedConfig.freeTexts ?? [],
-          connections: savedConfig.connections ?? [],
-          pan: savedConfig.pan ?? { x: 0, y: 0 }
+          elements: map.elements ?? [],
+          freeTexts: map.freeTexts ?? [],
+          connections: map.connections ?? [],
+          pan: map.pan ?? { x: 0, y: 0 }
         })
         useDocumentStore.getState().openToolTab(makeMapTabId(guid))
       }
@@ -447,7 +460,7 @@ function App() {
     // project save → reload.
     const tabId = makeAnalysisTabId(toolType, savedGuid)
     ats.add(tabId, {
-      toolType: toolType as any,
+      toolType,
       savedAnalysisGuid: savedGuid,
       title: savedConfig?.name ?? t('tabs.analysis'),
       config: savedConfig,
@@ -475,7 +488,7 @@ function App() {
     // Build source selections map for showing other codes in results
     const docStore = useDocumentStore.getState()
     const cdStore = useCodeStore.getState()
-    const sourceSelections: Record<string, any[]> = {}
+    const sourceSelections: Record<string, PlainTextSelection[]> = {}
     const pdfFilePaths: Record<string, string> = {}
     const pdfPageOffsets: Record<string, number[]> = {}
     const videoFilePaths: Record<string, string> = {}
@@ -483,14 +496,14 @@ function App() {
     const surveysByGuid: Record<string, SurveyData> = {}
     for (const src of docStore.sources) {
       if (src.selections.length > 0) sourceSelections[src.guid] = src.selections
-      const fp = (src as any).formatData?.pdfFilePath ?? (src as any).formatData?.imageFilePath
+      const fp = src.formatData?.pdfFilePath ?? src.formatData?.imageFilePath
       if (fp) pdfFilePaths[src.guid] = fp
-      const po = (src as any).formatData?.pdfPageOffsets
+      const po = src.formatData?.pdfPageOffsets
       if (po?.length) pdfPageOffsets[src.guid] = po
-      const vp = (src as any).formatData?.videoFilePath
+      const vp = src.formatData?.videoFilePath
       if (vp) {
         videoFilePaths[src.guid] = vp
-        videoMimeTypes[src.guid] = (src as any).formatData?.mimeType || 'video/mp4'
+        videoMimeTypes[src.guid] = src.formatData?.mimeType || 'video/mp4'
       }
       if (src.sourceType === 'survey') {
         const survey = (src.formatData as SurveyFormatData | undefined)?.survey
@@ -593,8 +606,11 @@ function App() {
         continue
       }
       if (t.kind === 'analysis') {
+        // A tool this version doesn't have (a file from elsewhere, or a
+        // tool since renamed) can't be reopened.
+        if (!isToolKind(t.toolType)) continue
         const inst: import('./stores/analysis-tabs-store').AnalysisTabInstance = {
-          toolType: t.toolType as any,
+          toolType: t.toolType,
           savedAnalysisGuid: t.savedAnalysisGuid,
           title: t.title,
           config: t.adhocConfig,
@@ -839,15 +855,15 @@ function App() {
         userName: usePreferencesStore.getState().userName.trim() || undefined,
         allowEmpty: emptySaveAllowed()
       })
-    } catch (err: any) {
+    } catch (err) {
       // Most saves are autosaves nobody waits on: without this the failure
       // went only to the console, and changes went unsaved unnoticed.
-      const error = err?.message || String(err)
+      const error = errorMessage(err)
       console.error('[save-project] failed:', err)
       setSaveFailure(error)
       return { ok: false, error }
     }
-    if (result && typeof result === 'object' && (result as any).conflict) {
+    if (isConflict(result)) {
       // Someone else now holds the lock — refused rather than blindly
       // overwriting their already-saved changes. Route to Steal Back
       // (Merge) or Work on a Copy instead of losing either side's edits.
@@ -859,16 +875,16 @@ function App() {
       // user dismisses the dialog without resolving it (dismissing only
       // clears stealBackConflict, same as CheckoutConflictDialog's Cancel
       // — the lock itself, and thus the alert, is unaffected either way).
-      useProjectStore.getState().setCheckoutMarker((result as any).marker)
+      useProjectStore.getState().setCheckoutMarker(result.marker)
       // A quiet save (before opening another project) asks about this
       // itself, rather than offering Steal Back for a project being left.
-      if (!opts.quiet) setStealBackConflict((result as any).marker)
-      return { ok: false, lockedBy: (result as any).marker?.userName || '?' }
+      if (!opts.quiet) setStealBackConflict(result.marker)
+      return { ok: false, lockedBy: result.marker?.userName || '?' }
     }
-    if (result && typeof result === 'object' && (result as any).guardBlocked) {
-      console.warn('[save-project guard]', (result as any).message)
-      setSaveFailure(String((result as any).message))
-      return { ok: false, error: String((result as any).message) }
+    if (isGuardBlocked(result)) {
+      console.warn('[save-project guard]', result.message)
+      setSaveFailure(String(result.message))
+      return { ok: false, error: String(result.message) }
     }
     if (typeof result === 'string') {
       setSaveFailure(null)
@@ -905,8 +921,8 @@ function App() {
     let outcome: SaveOutcome
     try {
       outcome = await handleSaveProject({ quiet: true })
-    } catch (err: any) {
-      outcome = { ok: false, error: err?.message || String(err) }
+    } catch (err) {
+      outcome = { ok: false, error: errorMessage(err) }
     }
     if (outcome.ok) return true
     return window.api.confirmLosingChanges(ps.name, { error: outcome.error, lockedBy: outcome.lockedBy })
@@ -942,10 +958,10 @@ function App() {
       currentFilePath: projectStore.filePath ?? undefined,
       allowEmpty: emptySaveAllowed()
     })
-    if (result && typeof result === 'object' && (result as any).guardBlocked) {
+    if (isGuardBlocked(result)) {
       // Refused (see the writer's guards): say why, rather than nothing.
-      console.warn('[save-project-as guard]', (result as any).message)
-      await window.api.showMessage(String((result as any).message), 'warning')
+      console.warn('[save-project-as guard]', result.message)
+      await window.api.showMessage(String(result.message), 'warning')
       return false
     }
     if (typeof result === 'string') {
@@ -1043,8 +1059,8 @@ function App() {
       userName: usePreferencesStore.getState().userName.trim(),
       allowEmpty: emptySaveAllowed()
     })
-    if (result && typeof result === 'object' && (result as any).guardBlocked) {
-      console.warn('[create-project-copy guard]', (result as any).message)
+    if (isGuardBlocked(result)) {
+      console.warn('[create-project-copy guard]', result.message)
       dismissCheckoutConflict()
       setStealBackConflict(null)
       return
@@ -1339,7 +1355,7 @@ function App() {
     }
     if (editCurrentQuery) {
       const existing = Object.entries(ats.instances).find(
-        ([, inst]) => inst.toolType === 'query-builder' && inst.config?.editCurrentQuery === true
+        ([, inst]) => inst.toolType === 'query-builder' && (inst.config as QueryBuilderTabConfig | undefined)?.editCurrentQuery === true
       )?.[0]
       if (existing && ds.openTabs.includes(existing)) {
         ds.openToolTab(existing)
@@ -1817,14 +1833,14 @@ function App() {
             // reconciliation in the middle of closing the window, and
             // overwriting the other person's already-saved changes would
             // be far worse, so this is a save that failed: ask below.
-            if (result && typeof result === 'object' && (result as any).conflict) {
-              why = { lockedBy: (result as any).marker?.userName || '?' }
-            } else if (result && typeof result === 'object' && (result as any).guardBlocked) {
-              why = { error: String((result as any).message) }
+            if (isConflict(result)) {
+              why = { lockedBy: result.marker?.userName || '?' }
+            } else if (isGuardBlocked(result)) {
+              why = { error: String(result.message) }
             }
-          } catch (err: any) {
+          } catch (err) {
             console.error('Pre-close flush failed:', err)
-            why = { error: err?.message || String(err) }
+            why = { error: errorMessage(err) }
           }
           // The changes would be lost: ask first (heartbeats keep the
           // watchdog away meanwhile). Cancel keeps the window open.
@@ -2799,14 +2815,14 @@ function App() {
 
       <NotKeptBanner
         counts={notKept ?? null}
-        onSaveAs={() => handleSaveProjectAs().then((saved) => { if (saved) setNotKept(null) }).catch((err: any) => setSaveFailure(err?.message || String(err)))}
+        onSaveAs={() => handleSaveProjectAs().then((saved) => { if (saved) setNotKept(null) }).catch((err: unknown) => setSaveFailure(errorMessage(err)))}
         onDismiss={() => setNotKept(null)}
       />
 
       <SaveFailedBanner
         error={saveFailure}
         onRetry={() => saveProjectRef.current()}
-        onSaveAs={() => handleSaveProjectAs().catch((err: any) => setSaveFailure(err?.message || String(err)))}
+        onSaveAs={() => handleSaveProjectAs().catch((err: unknown) => setSaveFailure(errorMessage(err)))}
       />
 
       <MissingBinariesBanner

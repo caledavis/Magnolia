@@ -209,10 +209,10 @@ export const useCodeStore = create<CodeState>((set, get) => ({
     // Recode the merged codes' segments with the target. A passage coded
     // with both would end up with the target twice; keep one.
     const ds = useDocumentStore.getState()
-    const newSources = ds.sources.map((s: any) => ({
+    const newSources = ds.sources.map((s) => ({
       ...s,
-      selections: s.selections.map((sel: any) => {
-        if (!sel.codings?.some((c: any) => recoded.has(c.codeGuid))) return sel
+      selections: s.selections.map((sel) => {
+        if (!sel.codings?.some((c) => recoded.has(c.codeGuid))) return sel
         let seenTarget = false
         const codings = []
         for (const coding of sel.codings) {

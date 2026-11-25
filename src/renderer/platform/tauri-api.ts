@@ -145,10 +145,13 @@ async function completeProjectPdfText<T extends LoadedProject | null>(
 async function completeImportedPdf(doc: RawImport): Promise<ImportedFile> {
   if (!doc._pendingPdfText || doc.error !== undefined) return doc
   delete doc._pendingPdfText
+  const formatting = doc.formatting
   try {
-    const { text, pageOffsets } = await extractPdfText(base64ToBytes(doc.formatting.pdfBase64))
+    // An imported PDF's bytes come with it; without them it can't be read.
+    if (!formatting?.pdfBase64) throw new Error('The imported PDF has no bytes')
+    const { text, pageOffsets } = await extractPdfText(base64ToBytes(formatting.pdfBase64))
     doc.content = text
-    doc.formatting.pdfPageOffsets = pageOffsets
+    formatting.pdfPageOffsets = pageOffsets
     return doc
   } catch (err) {
     // pdf.js's messages are technical; say what's wrong in plain words.

@@ -6,7 +6,7 @@
  * wrappers (which get the same payload without going through IPC).
  */
 import { cachedPageSizes } from './region-sizes'
-import type { AnalysisInitData, AnalysisToolType, Code, SurveyFormatData } from '../models/types'
+import type { AnalysisInitData, AnalysisToolType, Code, SurveyFormatData, PlainTextSelection, ToolConfig } from '../models/types'
 import { buildCellText } from './survey/cell-text'
 import { buildSurveyEntityLabels } from './survey/survey-labels'
 import { useDocumentStore } from '../stores/document-store'
@@ -31,14 +31,14 @@ function flattenCodesWithParent(
 
 export function buildAnalysisInitData(
   toolType: AnalysisToolType,
-  opts?: { savedConfig?: any }
+  opts?: { savedConfig?: ToolConfig }
 ): AnalysisInitData {
   const docStore = useDocumentStore.getState()
   const cdStore = useCodeStore.getState()
   const tgStore = useTagStore.getState()
   const theme = document.documentElement.getAttribute('data-theme') || ''
 
-  const sourceSelections: Record<string, any[]> = {}
+  const sourceSelections: Record<string, PlainTextSelection[]> = {}
   for (const src of docStore.sources) sourceSelections[src.guid] = src.selections
 
   // Codable cells per survey = the open-ended answer cells (the only
@@ -47,7 +47,7 @@ export function buildAnalysisInitData(
   // (sourceContents) is NOT a survey's analysable content.
   const surveyCodableCells: AnalysisInitData['surveyCodableCells'] = {}
   for (const src of docStore.sources) {
-    if ((src as any).sourceType !== 'survey') continue
+    if (src.sourceType !== 'survey') continue
     const survey = (src.formatData as SurveyFormatData | undefined)?.survey
     if (!survey) continue
     const cells: { respondentId: string; questionId: string; text: string }[] = []
@@ -75,9 +75,9 @@ export function buildAnalysisInitData(
     sources: docStore.sources.map((s) => ({
       guid: s.guid,
       name: s.name,
-      sourceType: (s as any).sourceType,
-      duration: (s as any).formatData?.duration,
-      lineTimes: (s as any).formatData?.lineTimes
+      sourceType: s.sourceType,
+      duration: s.formatData?.duration,
+      lineTimes: s.formatData?.lineTimes
     })),
     folders: docStore.folders.map((f) => ({ guid: f.guid, name: f.name, parentGuid: f.parentGuid ?? null, kind: f.kind })),
     sourceFolder: docStore.sourceFolder,
@@ -108,7 +108,7 @@ export function buildAnalysisInitData(
     const qStore = useQueryStore.getState()
     const pdfFilePathsForMap: Record<string, string> = {}
     for (const s of docStore.sources) {
-      const fp = (s as any).formatData?.pdfFilePath ?? (s as any).formatData?.imageFilePath
+      const fp = s.formatData?.pdfFilePath ?? s.formatData?.imageFilePath
       if (fp) pdfFilePathsForMap[s.guid] = fp
     }
     // Full SurveyData per survey source — drives the Surveys section
@@ -116,7 +116,7 @@ export function buildAnalysisInitData(
     // each become draggable nodes).
     const surveysByGuid: Record<string, import('../models/types').SurveyData> = {}
     for (const s of docStore.sources) {
-      if ((s as any).sourceType !== 'survey') continue
+      if (s.sourceType !== 'survey') continue
       const survey = (s.formatData as SurveyFormatData | undefined)?.survey
       if (survey) surveysByGuid[s.guid] = survey
     }

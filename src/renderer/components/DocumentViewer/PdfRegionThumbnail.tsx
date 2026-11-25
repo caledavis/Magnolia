@@ -39,20 +39,20 @@ interface Props {
 export function PdfRegionThumbnail({ sourceGuid, filePath: filePathProp, page, x, y, width, height, maxW = 240, maxH = 160 }: Props) {
   const { t } = useTranslation()
   const source = useDocumentStore((s) => s.sources.find((src) => src.guid === sourceGuid))
-  const formatData = (source as any)?.formatData
+  const formatData = source?.formatData
   const filePath =
     filePathProp ??
-    (formatData?.imageFilePath as string | undefined) ??
-    (formatData?.pdfFilePath as string | undefined)
+    formatData?.imageFilePath ??
+    formatData?.pdfFilePath
   // Freshly-imported PDFs carry their bytes inline (formatData.pdfBase64)
   // rather than a file path. Fall back to that so quote thumbnails work
   // before the project has been saved/reloaded — otherwise the renderer
   // can't find the PDF and shows "PDF file not available".
-  const pdfBase64 = (formatData?.pdfBase64 as string | undefined)
+  const pdfBase64 = formatData?.pdfBase64
   // Source type may be unknown in popped-out windows where the document
   // store isn't populated. Fall back to inferring from the file path.
-  const isImage = (source as any)?.sourceType
-    ? (source as any).sourceType === 'image'
+  const isImage = source?.sourceType
+    ? source.sourceType === 'image'
     : !!filePath && sourceTypeFromFilename(filePath) === 'image'
 
   const [dataUrl, setDataUrl] = useState<string | null>(null)

@@ -130,7 +130,7 @@ export function VideoDocumentViewer({ source, content }: Props) {
     window.api.openMedia(handle)
       .then((media) => decodePeaks(media, { signal: abort.signal, onProgress: setPeaks }))
       .then((p) => { if (!abort.signal.aborted) setPeaks(p) })
-      .catch((err: any) => { if (!abort.signal.aborted) console.warn('Waveform unavailable:', err) })
+      .catch((err: unknown) => { if (!abort.signal.aborted) console.warn('Waveform unavailable:', err) })
     return () => abort.abort()
   }, [hasVideo, videoData?.videoFilePath]) // eslint-disable-line react-hooks/exhaustive-deps
 

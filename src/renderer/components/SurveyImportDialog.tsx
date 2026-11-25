@@ -33,6 +33,7 @@ import type {
 } from '../models/types'
 import { parseSurveyCsvAs, type SurveyFormat } from '../utils/survey/survey-parser'
 import { useTranslation } from 'react-i18next'
+import { errorMessage } from '../utils/error-message'
 
 interface Props {
   /** Initial parsed survey from the importer (parsed under the
@@ -173,8 +174,8 @@ export function SurveyImportDialog({
         Object.fromEntries(reparsed.metadataColumnIds.map((id) => [id, 'metadata' as SurveyColumnType]))
       )
       setParseError(null)
-    } catch (err: any) {
-      setParseError(err?.message || String(err))
+    } catch (err) {
+      setParseError(errorMessage(err))
     }
   }
 

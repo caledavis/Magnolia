@@ -5,12 +5,16 @@ import { useTagStore } from './tag-store'
 import { useQueryStore } from './query-store'
 import { useQuoteStore } from './quote-store'
 
+type StateOf<S extends { getState: () => unknown }> = ReturnType<S['getState']>
+
+/** What undo puts back: the project's data in each store (not what's on
+ *  screen, like which document is being viewed). */
 interface Snapshot {
-  document: any
-  code: any
-  tag: any
-  quote: any
-  query: any
+  document: Pick<StateOf<typeof useDocumentStore>, 'sources' | 'sourceContents' | 'folders' | 'sourceFolder'>
+  code: Pick<StateOf<typeof useCodeStore>, 'codes'>
+  tag: Pick<StateOf<typeof useTagStore>, 'tags' | 'categories'>
+  quote: Pick<StateOf<typeof useQuoteStore>, 'quotes'>
+  query: Pick<StateOf<typeof useQueryStore>, 'savedQueries' | 'currentQuery' | 'results' | 'isActive'>
 }
 
 interface UndoState {

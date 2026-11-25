@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { mediaPathField } from './binary-handles'
 import { loadPdfjs, pdfParams } from './pdfjs'
+import type { SourceFormatData } from '../models/types'
 
 /** Page key ('p1', 'p2', …) → width and height. */
 export type PageSizes = Record<string, { w: number; h: number }>
@@ -15,7 +16,7 @@ export type PageSizes = Record<string, { w: number; h: number }>
 interface SizedSource {
   guid: string
   sourceType?: string
-  formatData?: unknown
+  formatData?: SourceFormatData
 }
 
 const cache = new Map<string, PageSizes | null>()
@@ -23,7 +24,7 @@ const pending = new Map<string, Promise<PageSizes | null>>()
 
 const keyOf = (s: SizedSource): string | null => {
   const field = mediaPathField(s.sourceType)
-  const handle = field ? (s.formatData as Record<string, unknown> | undefined)?.[field] : undefined
+  const handle = field ? s.formatData?.[field] : undefined
   return typeof handle === 'string' && (s.sourceType === 'pdf' || s.sourceType === 'image') ? `${s.guid}::${handle}` : null
 }
 
@@ -68,7 +69,7 @@ export function loadPageSizes(s: SizedSource): Promise<PageSizes | null> {
   let p = pending.get(key)
   if (!p) {
     const field = mediaPathField(s.sourceType)!
-    p = readSizes(s.sourceType!, (s.formatData as Record<string, string>)[field]).then((sizes) => {
+    p = readSizes(s.sourceType!, s.formatData![field]!).then((sizes) => {
       cache.set(key, sizes)
       pending.delete(key)
       return sizes

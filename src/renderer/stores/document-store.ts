@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { TextSource, PlainTextSelection, PdfRegionSelection, TimeRange, Coding, SourceType, DocumentFolder, NoteFormatData } from '../models/types'
+import type { TextSource, PlainTextSelection, PdfRegionSelection, TimeRange, Coding, SourceType, DocumentFolder, NoteFormatData, SourceFormatData } from '../models/types'
 import { generateGuid } from '../utils/guid'
 import { useProjectStore } from './project-store'
 import { useMemoStore } from './memo-store'
@@ -68,7 +68,7 @@ interface DocumentState {
   sourceFolder: Record<string, string> // sourceGuid -> folderGuid
 
   setSources: (sources: TextSource[], contents: Record<string, string>) => void
-  addSource: (name: string, content: string, sourceType?: SourceType, formatData?: any) => string // returns guid
+  addSource: (name: string, content: string, sourceType?: SourceType, formatData?: SourceFormatData) => string // returns guid
   /** Remember the Zotero item a document came from. */
   setZoteroLink: (guid: string, link: string) => void
   /** Re-attach binary content to an existing source whose bytes were
@@ -76,7 +76,7 @@ interface DocumentState {
    *  magnolia-bin:// handle / pdf data) and text content while preserving
    *  the source's guid, codes, and selections. Marks the project dirty so
    *  the next save embeds the recovered bytes. */
-  reattachSourceBinary: (guid: string, formatData: any, content: string) => void
+  reattachSourceBinary: (guid: string, formatData: SourceFormatData | undefined, content: string) => void
   removeSource: (guid: string) => void
   /** @deprecated use selectDocuments / viewDocument instead */
   selectDocument: (guid: string | null) => void
@@ -194,7 +194,7 @@ interface DocumentState {
    *  sits at their old offsets. Time-range (video) codings are left to
    *  updateLineTimes; only character-anchored selections move here. */
   applyTranscriptEdit: (guid: string, content: string) => void
-  updateSourceFormatData: (guid: string, formatData: any) => void
+  updateSourceFormatData: (guid: string, formatData: SourceFormatData) => void
   /** After a save embeds freshly-imported binaries into the .qdpx, swap each
    *  source's transient `overlay://` media handle for the durable
    *  `archive://<guid>.<ext>` handle. Idempotent; does not mark the project
@@ -610,7 +610,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
                 ...s,
                 selections: s.selections.map((sel) => {
                   if (sel.guid !== selectionGuid) return sel
-                  const next: any = { ...sel, timeRange: range }
+                  const next: PlainTextSelection = { ...sel, timeRange: range }
                   if (!preserveAnchor) next.manuallyAnchored = false
                   if (span) {
                     const curStart = sel.startPosition ?? 0
@@ -814,21 +814,21 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     set((state) => ({
       sources: state.sources.map((s) => {
         if (s.guid !== sourceGuid) return s
-        const fd = (s.formatData as any) // SurveyFormatData when sourceType === 'survey'
+        const fd = s.formatData // SurveyFormatData when sourceType === 'survey'
         const survey = fd?.survey
         if (!survey) return s
-        const newQuestions = survey.questions.map((q: any) =>
+        const newQuestions = survey.questions.map((q) =>
           q.id === questionId ? { ...q, type: newType } : q
         )
         // Keep the column-level type in sync so anything that
         // consumes per-column types (the import preview re-open,
         // serialization, etc.) sees a consistent picture.
         const touchedColumnIds = new Set<string>()
-        const target = newQuestions.find((q: any) => q.id === questionId)
+        const target = newQuestions.find((q) => q.id === questionId)
         if (target) {
           for (const c of target.columns) touchedColumnIds.add(c.columnId)
         }
-        const newColumns = survey.columns.map((col: any) =>
+        const newColumns = survey.columns.map((col) =>
           touchedColumnIds.has(col.id) ? { ...col, type: newType } : col
         )
         return {
@@ -984,8 +984,8 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
         const archiveHandle = promotedArchiveHandle(s)
         if (!archiveHandle) return s
         changed = true
-        const field = mediaPathField((s as any).sourceType)!
-        return { ...s, formatData: { ...(s as any).formatData, [field]: archiveHandle } }
+        const field = mediaPathField(s.sourceType)!
+        return { ...s, formatData: { ...s.formatData, [field]: archiveHandle } }
       })
       return changed ? { sources } : {}
     })

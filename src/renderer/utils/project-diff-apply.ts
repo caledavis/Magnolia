@@ -155,8 +155,8 @@ async function sourcesAreIdentical(
   if (!field) return mineText === theirsText // text / markdown — sourceContents IS the whole document
 
   if (mine.sourceType !== 'image' && mineText !== theirsText) return false
-  const mineHandle = (mine.formatData as Record<string, unknown> | undefined)?.[field]
-  const theirsHandle = (theirs.formatData as Record<string, unknown> | undefined)?.[field]
+  const mineHandle = mine.formatData?.[field]
+  const theirsHandle = theirs.formatData?.[field]
   if (typeof mineHandle !== 'string' || typeof theirsHandle !== 'string') return false
   const [mineBytesRaw, theirsBytes] = await Promise.all([
     readMineBinary(mineHandle, mine.sourceType),
@@ -241,7 +241,7 @@ export async function resolveBinarySources(
       continue
     }
     const field = mediaPathField(item.theirs.sourceType)
-    const handle = field ? (item.theirs.formatData as Record<string, unknown> | undefined)?.[field] : undefined
+    const handle = field ? item.theirs.formatData?.[field] : undefined
     if (typeof handle !== 'string') {
       resolved.push(item) // no handle to resolve (shouldn't happen for a binary-flagged item) — pass through as-is
       continue
@@ -251,7 +251,7 @@ export async function resolveBinarySources(
     resolved.push({
       ...item,
       binary: false,
-      theirs: { ...item.theirs, formatData: { ...(item.theirs.formatData as Record<string, unknown>), [field as string]: newHandle } }
+      theirs: { ...item.theirs, formatData: { ...item.theirs.formatData, [field as string]: newHandle } }
     })
   }
   return resolved

@@ -59,6 +59,7 @@ import {
   type MetricCol
 } from './intercoder-tables'
 import { keyActivate } from '../../../utils/key-activate'
+import type { SourceFormatData } from '../../../models/types'
 
 const CONTEXT = 60
 
@@ -554,7 +555,7 @@ function PassageView({ coder, doc, passage, segs, colour }: {
     // falls in the passage (as Query Results shows it), with the lines in
     // this coder's ranges highlighted.
     const transcript = source ? coder.sourceContents[source.guid] ?? '' : ''
-    const lineTimes = (source?.formatData as { lineTimes?: Record<string, number> } | undefined)?.lineTimes
+    const lineTimes = source?.formatData?.lineTimes
     if (transcript && lineTimes) {
       const inRange = (secs: number, from: number, to: number) => secs * 1000 >= from - 0.5 && secs * 1000 < to - 0.1
       const lines = transcript.split('\n')
@@ -638,7 +639,7 @@ function TextSnippet({ text, passage, segs, colour }: { text: string; passage: P
 function RegionPreview({ coder, sourceType, formatData, passage, segs, colour }: {
   coder: CoderProject
   sourceType?: string
-  formatData: unknown
+  formatData: SourceFormatData | undefined
   passage: Passage
   segs: Segment[]
   colour: string
@@ -651,7 +652,7 @@ function RegionPreview({ coder, sourceType, formatData, passage, segs, colour }:
     setImg(null)
     if (coder.filePath) return
     const field = mediaPathField(sourceType)
-    const handle = field ? (formatData as Record<string, unknown> | undefined)?.[field] : undefined
+    const handle = field ? formatData?.[field] : undefined
     if (typeof handle !== 'string') return
     let cancelled = false
     const opts = { filePath: handle, x: view.x, y: view.y, width: view.w, height: view.h }
