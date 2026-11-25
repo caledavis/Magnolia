@@ -1168,7 +1168,10 @@
     "disconnectFrom": "Desconnecta de {{name}}",
     "takes": "Rep {{names}}.",
     "goesTo": "Va a {{names}}.",
-    "boxKeysHint": "Les fletxes el mouen. Maj+F10 el connecta a un altre quadre, el desconnecta o l’elimina."
+    "boxKeysHint": "Les fletxes el mouen. Maj+F10 el connecta a un altre quadre, el desconnecta o l’elimina.",
+    "operatorLabel": "Operador",
+    "removeInputN": "Treu l’entrada {{n}}",
+    "searchTextLabel": "Text que cal cercar"
   },
   "queryDesc": {
     "docs_one": "{{count}} doc.",
@@ -1343,7 +1346,14 @@
     "noneSelected": "No hi ha cap document seleccionat. Connecteu els nodes a Resultat.",
     "survey": "Enquesta",
     "statusHint": "Arrossegueu documents i etiquetes al llenç · Connecteu els nodes a Resultat · Arrossegueu aquí preguntes i enquestats per triar-los",
-    "canvas": "Selecció de documents"
+    "canvas": "Selecció de documents",
+    "categoryLabel": "Categoria",
+    "valueLabel": "Valor",
+    "value2Label": "Segon valor",
+    "typeLabel": "Tipus de document",
+    "folderLabel": "Carpeta",
+    "removeDoc": "Treu {{name}}",
+    "documentsInBox": "Documents d’aquest quadre"
   },
   "prefs": {
     "cat": {

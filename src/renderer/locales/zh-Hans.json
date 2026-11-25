@@ -1094,7 +1094,10 @@
     "disconnectFrom": "断开与 {{name}} 的连接",
     "takes": "接收 {{names}}。",
     "goesTo": "输出到 {{names}}。",
-    "boxKeysHint": "方向键移动它。Shift+F10 将它连接到另一个框、断开连接或删除它。"
+    "boxKeysHint": "方向键移动它。Shift+F10 将它连接到另一个框、断开连接或删除它。",
+    "operatorLabel": "运算符",
+    "removeInputN": "移除输入 {{n}}",
+    "searchTextLabel": "要查找的文本"
   },
   "queryDesc": {
     "docs_other": "{{count}} 个文档",
@@ -1253,7 +1256,14 @@
     "noneSelected": "未选择文档。请将节点连接到结果。",
     "survey": "调查",
     "statusHint": "将文档和标签拖到画布上 · 将节点连接到结果 · 将调查问题和受访者拖到此处以选择它们",
-    "canvas": "文档选择"
+    "canvas": "文档选择",
+    "categoryLabel": "类别",
+    "valueLabel": "值",
+    "value2Label": "第二个值",
+    "typeLabel": "文档类型",
+    "folderLabel": "文件夹",
+    "removeDoc": "移除 {{name}}",
+    "documentsInBox": "此框中的文档"
   },
   "prefs": {
     "cat": {

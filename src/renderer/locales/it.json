@@ -1168,7 +1168,10 @@
     "disconnectFrom": "Scollega da {{name}}",
     "takes": "Riceve {{names}}.",
     "goesTo": "Va a {{names}}.",
-    "boxKeysHint": "Le frecce lo spostano. Maiusc+F10 lo collega a un altro riquadro, lo scollega o lo elimina."
+    "boxKeysHint": "Le frecce lo spostano. Maiusc+F10 lo collega a un altro riquadro, lo scollega o lo elimina.",
+    "operatorLabel": "Operatore",
+    "removeInputN": "Rimuovi l’ingresso {{n}}",
+    "searchTextLabel": "Testo da cercare"
   },
   "queryDesc": {
     "docs_one": "{{count}} doc.",
@@ -1343,7 +1346,14 @@
     "noneSelected": "Nessun documento selezionato. Collega i nodi al Risultato.",
     "survey": "Sondaggio",
     "statusHint": "Trascina documenti ed etichette sull’area di lavoro · Collega i nodi al Risultato · Trascina qui domande e rispondenti del sondaggio per sceglierli",
-    "canvas": "Selezione dei documenti"
+    "canvas": "Selezione dei documenti",
+    "categoryLabel": "Categoria",
+    "valueLabel": "Valore",
+    "value2Label": "Secondo valore",
+    "typeLabel": "Tipo di documento",
+    "folderLabel": "Cartella",
+    "removeDoc": "Rimuovi {{name}}",
+    "documentsInBox": "Documenti in questo riquadro"
   },
   "prefs": {
     "cat": {

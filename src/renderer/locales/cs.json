@@ -1205,7 +1205,10 @@
     "disconnectFrom": "Odpojit od {{name}}",
     "takes": "Přijímá {{names}}.",
     "goesTo": "Vede do {{names}}.",
-    "boxKeysHint": "Šipky ho posouvají. Shift+F10 ho připojí k jinému poli, odpojí nebo smaže."
+    "boxKeysHint": "Šipky ho posouvají. Shift+F10 ho připojí k jinému poli, odpojí nebo smaže.",
+    "operatorLabel": "Operátor",
+    "removeInputN": "Odebrat vstup {{n}}",
+    "searchTextLabel": "Hledaný text"
   },
   "queryDesc": {
     "docs_one": "{{count}} dok.",
@@ -1388,7 +1391,14 @@
     "noneSelected": "Nejsou vybrány žádné dokumenty. Připojte uzly k výsledku.",
     "survey": "Průzkum",
     "statusHint": "Přetáhněte dokumenty a štítky na plátno · Připojte uzly k výsledku · Přetažením otázek a respondentů průzkumu sem je vyberete",
-    "canvas": "Výběr dokumentů"
+    "canvas": "Výběr dokumentů",
+    "categoryLabel": "Kategorie",
+    "valueLabel": "Hodnota",
+    "value2Label": "Druhá hodnota",
+    "typeLabel": "Typ dokumentu",
+    "folderLabel": "Složka",
+    "removeDoc": "Odebrat {{name}}",
+    "documentsInBox": "Dokumenty v tomto poli"
   },
   "prefs": {
     "cat": {

@@ -1168,7 +1168,10 @@
     "disconnectFrom": "Desligar de {{name}}",
     "takes": "Recebe {{names}}.",
     "goesTo": "Vai para {{names}}.",
-    "boxKeysHint": "As setas movem-na. Shift+F10 liga-a a outra caixa, desliga-a ou elimina-a."
+    "boxKeysHint": "As setas movem-na. Shift+F10 liga-a a outra caixa, desliga-a ou elimina-a.",
+    "operatorLabel": "Operador",
+    "removeInputN": "Remover a entrada {{n}}",
+    "searchTextLabel": "Texto a procurar"
   },
   "queryDesc": {
     "docs_one": "{{count}} doc.",
@@ -1343,7 +1346,14 @@
     "noneSelected": "Nenhum documento selecionado. Conecte os nós a Resultado.",
     "survey": "Inquérito",
     "statusHint": "Arraste documentos e etiquetas para a tela · Conecte os nós a Resultado · Arraste perguntas e respondentes para cá para escolhê-los",
-    "canvas": "Seleção de documentos"
+    "canvas": "Seleção de documentos",
+    "categoryLabel": "Categoria",
+    "valueLabel": "Valor",
+    "value2Label": "Segundo valor",
+    "typeLabel": "Tipo de documento",
+    "folderLabel": "Pasta",
+    "removeDoc": "Remover {{name}}",
+    "documentsInBox": "Documentos nesta caixa"
   },
   "prefs": {
     "cat": {

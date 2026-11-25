@@ -1131,7 +1131,10 @@
     "disconnectFrom": "Irrota kohteesta {{name}}",
     "takes": "Saa {{names}}.",
     "goesTo": "Menee kohteisiin {{names}}.",
-    "boxKeysHint": "Nuolinäppäimet siirtävät sitä. Vaihto+F10 yhdistää sen toiseen ruutuun, irrottaa tai poistaa sen."
+    "boxKeysHint": "Nuolinäppäimet siirtävät sitä. Vaihto+F10 yhdistää sen toiseen ruutuun, irrottaa tai poistaa sen.",
+    "operatorLabel": "Operaattori",
+    "removeInputN": "Poista syöte {{n}}",
+    "searchTextLabel": "Haettava teksti"
   },
   "queryDesc": {
     "docs_one": "{{count}} dok.",
@@ -1298,7 +1301,14 @@
     "noneSelected": "Dokumentteja ei ole valittu. Yhdistä solmut tulokseen.",
     "survey": "Kysely",
     "statusHint": "Vedä dokumentteja ja tunnisteita pohjalle · Yhdistä solmut tulokseen · Valitse kyselyn kysymyksiä ja vastaajia vetämällä ne tähän",
-    "canvas": "Asiakirjojen valinta"
+    "canvas": "Asiakirjojen valinta",
+    "categoryLabel": "Luokka",
+    "valueLabel": "Arvo",
+    "value2Label": "Toinen arvo",
+    "typeLabel": "Asiakirjan tyyppi",
+    "folderLabel": "Kansio",
+    "removeDoc": "Poista {{name}}",
+    "documentsInBox": "Tämän ruudun asiakirjat"
   },
   "prefs": {
     "cat": {

@@ -1485,6 +1485,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                   <input
                     type="text"
                     value={node.searchText || ''}
+                    aria-label={t('queryBuilder.searchTextLabel')}
                     placeholder={t('find.placeholder')}
                     onChange={(e) => {
                       const val = e.target.value
@@ -1610,6 +1611,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                     {/* Operator selector */}
                     <div style={{ height: SLOT_H, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <select
+                        aria-label={t('queryBuilder.operatorLabel')}
                         value={op || ''}
                         onChange={(e) => {
                           const val = e.target.value as LogicalOp | ''
@@ -1672,7 +1674,9 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                         >
                           {name || t('queryBuilder.inputN', { n: i + 1 })}
                           {canRemove && (
-                            <span
+                            <button
+                              type="button"
+                              aria-label={t('queryBuilder.removeInputN', { n: i + 1 })}
                               onMouseDown={(ev) => ev.stopPropagation()}
                               onClick={(ev) => {
                                 ev.stopPropagation()
@@ -1693,6 +1697,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                                 )
                               }}
                               style={{
+                                background: 'transparent', border: 'none', padding: 0, font: 'inherit',
                                 position: 'absolute',
                                 insetInlineEnd: 4,
                                 top: 0,
@@ -1706,7 +1711,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
                               title={t('queryBuilder.removeInput')}
                             >
                               <Icon icon={faXmark} />
-                            </span>
+                            </button>
                           )}
                         </div>
                       )

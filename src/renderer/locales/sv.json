@@ -1131,7 +1131,10 @@
     "disconnectFrom": "Koppla från {{name}}",
     "takes": "Tar emot {{names}}.",
     "goesTo": "Går till {{names}}.",
-    "boxKeysHint": "Piltangenterna flyttar den. Skift+F10 kopplar den till en annan ruta, kopplar från eller tar bort den."
+    "boxKeysHint": "Piltangenterna flyttar den. Skift+F10 kopplar den till en annan ruta, kopplar från eller tar bort den.",
+    "operatorLabel": "Operator",
+    "removeInputN": "Ta bort indata {{n}}",
+    "searchTextLabel": "Text att söka efter"
   },
   "queryDesc": {
     "docs_one": "{{count}} dok.",
@@ -1298,7 +1301,14 @@
     "noneSelected": "Inga dokument valda. Koppla noderna till Resultat.",
     "survey": "Enkät",
     "statusHint": "Dra dokument och taggar till arbetsytan · Koppla noderna till Resultat · Dra enkätfrågor och respondenter hit för att välja dem",
-    "canvas": "Dokumenturval"
+    "canvas": "Dokumenturval",
+    "categoryLabel": "Kategori",
+    "valueLabel": "Värde",
+    "value2Label": "Andra värdet",
+    "typeLabel": "Dokumenttyp",
+    "folderLabel": "Mapp",
+    "removeDoc": "Ta bort {{name}}",
+    "documentsInBox": "Dokument i den här rutan"
   },
   "prefs": {
     "cat": {

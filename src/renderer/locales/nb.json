@@ -1131,7 +1131,10 @@
     "disconnectFrom": "Koble fra {{name}}",
     "takes": "Får {{names}}.",
     "goesTo": "Går til {{names}}.",
-    "boxKeysHint": "Piltastene flytter den. Shift+F10 kobler den til en annen boks, kobler den fra eller sletter den."
+    "boxKeysHint": "Piltastene flytter den. Shift+F10 kobler den til en annen boks, kobler den fra eller sletter den.",
+    "operatorLabel": "Operator",
+    "removeInputN": "Fjern inndata {{n}}",
+    "searchTextLabel": "Tekst å søke etter"
   },
   "queryDesc": {
     "docs_one": "{{count}} dok.",
@@ -1298,7 +1301,14 @@
     "noneSelected": "Ingen dokumenter valgt. Koble nodene til Resultat.",
     "survey": "Undersøkelse",
     "statusHint": "Dra dokumenter og etiketter til lerretet · Koble nodene til Resultat · Dra spørsmål og respondenter fra undersøkelser hit for å velge dem",
-    "canvas": "Dokumentutvalg"
+    "canvas": "Dokumentutvalg",
+    "categoryLabel": "Kategori",
+    "valueLabel": "Verdi",
+    "value2Label": "Andre verdi",
+    "typeLabel": "Dokumenttype",
+    "folderLabel": "Mappe",
+    "removeDoc": "Fjern {{name}}",
+    "documentsInBox": "Dokumenter i denne boksen"
   },
   "prefs": {
     "cat": {

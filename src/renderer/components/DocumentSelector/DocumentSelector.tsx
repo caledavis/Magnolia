@@ -1064,6 +1064,35 @@ export function DocumentSelector({
   }, [nodeMenu])
   const menuNode = nodeMenu ? nodes.find((n) => n.id === nodeMenu.id) : undefined
 
+  /* --- a Documents box's documents --- */
+  const removeDocFromNode = useCallback((nodeId: string, guid: string) => {
+    setNodes((p) => p.map((nd) => (nd.id === nodeId ? { ...nd, docGuids: (nd.docGuids || []).filter((g) => g !== guid) } : nd)))
+  }, [])
+  const isDocsDrag = (e: React.DragEvent) =>
+    e.dataTransfer.types.includes('application/x-magnolia-docs') ||
+    e.dataTransfer.types.includes('application/x-magnolia-doc') ||
+    e.dataTransfer.types.includes('application/x-magnolia-doc-reorder')
+  /** Documents dropped (or pasted, from the keyboard) anywhere on the box. */
+  const dropDocsOnNode = (e: React.DragEvent, nodeId: string) => {
+    if (!isDocsDrag(e)) return
+    e.preventDefault()
+    e.stopPropagation()
+    const multi = e.dataTransfer.getData('application/x-magnolia-docs')
+    const single = e.dataTransfer.getData('application/x-magnolia-doc-reorder') || e.dataTransfer.getData('application/x-magnolia-doc')
+    let guids: string[] = []
+    try {
+      if (multi) guids = JSON.parse(multi)
+      else if (single && single.startsWith('{')) guids = [JSON.parse(single).guid]
+      else if (single) guids = [single]
+    } catch { /* ignore */ }
+    if (guids.length === 0) return
+    setNodes((p) => p.map((nd) => {
+      if (nd.id !== nodeId) return nd
+      const existing = new Set(nd.docGuids || [])
+      return { ...nd, docGuids: [...(nd.docGuids || []), ...guids.filter((g) => !existing.has(g))] }
+    }))
+  }
+
   /* ═══ Render ═══ */
 
   return (
@@ -1268,6 +1297,8 @@ export function DocumentSelector({
                 setNodeMenu({ id: node.id, x: e.clientX, y: e.clientY })
               }}
               onMouseDown={(e) => nodeDown(e, node.id)}
+              onDragOver={node.kind === 'docs' ? (e) => { if (isDocsDrag(e)) { e.preventDefault(); e.stopPropagation() } } : undefined}
+              onDrop={node.kind === 'docs' ? (e) => dropDocsOnNode(e, node.id) : undefined}
               onClick={(e) => e.stopPropagation()}
               style={{
                 position: 'absolute',
@@ -1320,20 +1351,19 @@ export function DocumentSelector({
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {sourceMap.get(guid) || t('docSelector.deletedDocument')}
                       </span>
-                      <span
+                      <button
+                        type="button"
+                        aria-label={t('docSelector.removeDoc', { name: sourceMap.get(guid) || t('docSelector.deletedDocument') })}
+                        title={t('docSelector.removeDoc', { name: sourceMap.get(guid) || t('docSelector.deletedDocument') })}
                         onMouseDown={(e) => e.stopPropagation()}
                         onClick={(e) => {
                           e.stopPropagation()
-                          setNodes((p) => p.map((nd) =>
-                            nd.id === node.id
-                              ? { ...nd, docGuids: (nd.docGuids || []).filter((g) => g !== guid) }
-                              : nd
-                          ))
+                          removeDocFromNode(node.id, guid)
                         }}
-                        style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer', flexShrink: 0, marginInlineStart: 2 }}
+                        style={{ background: 'transparent', border: 'none', padding: 0, font: 'inherit', fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer', flexShrink: 0, marginInlineStart: 2 }}
                       >
                         <Icon icon={faXmark} />
-                      </span>
+                      </button>
                     </div>
                   ))}
                   {(node.docGuids?.length || 0) > MAX_VISIBLE_DOCS && (
@@ -1343,34 +1373,6 @@ export function DocumentSelector({
                   )}
                   <div
                     onMouseDown={(e) => e.stopPropagation()}
-                    onDragOver={(e) => {
-                      if (e.dataTransfer.types.includes('application/x-magnolia-docs') ||
-                          e.dataTransfer.types.includes('application/x-magnolia-doc') ||
-                          e.dataTransfer.types.includes('application/x-magnolia-doc-reorder')) {
-                        e.preventDefault()
-                        e.stopPropagation()
-                      }
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      const multi = e.dataTransfer.getData('application/x-magnolia-docs')
-                      const single = e.dataTransfer.getData('application/x-magnolia-doc-reorder') || e.dataTransfer.getData('application/x-magnolia-doc')
-                      let guids: string[] = []
-                      try {
-                        if (multi) guids = JSON.parse(multi)
-                        else if (single && single.startsWith('{')) guids = [JSON.parse(single).guid]
-                        else if (single) guids = [single]
-                      } catch { /* ignore */ }
-                      if (guids.length > 0) {
-                        setNodes((p) => p.map((nd) => {
-                          if (nd.id !== node.id) return nd
-                          const existing = new Set(nd.docGuids || [])
-                          const newGuids = guids.filter((g) => !existing.has(g))
-                          return { ...nd, docGuids: [...(nd.docGuids || []), ...newGuids] }
-                        }))
-                      }
-                    }}
                     style={{
                       height: DROP_ZONE_H, lineHeight: `${DROP_ZONE_H}px`,
                       textAlign: 'center', fontSize: 8, color: 'var(--text-muted)',
@@ -1520,6 +1522,7 @@ export function DocumentSelector({
                   <div style={{ padding: '0 6px 4px', pointerEvents: 'auto' }}>
                     {/* 1. Category */}
                     <select
+                      aria-label={t('docSelector.categoryLabel')}
                       value={effectiveCatGuid || '__uncat__'}
                       onChange={(e) => {
                         const val = e.target.value
@@ -1582,6 +1585,7 @@ export function DocumentSelector({
 
                     {/* 3. Value 1 */}
                     {!dateRange && <select
+                      aria-label={t('docSelector.valueLabel')}
                       value={node.tagGuid || ''}
                       onChange={(e) => {
                         const val = e.target.value
@@ -1611,6 +1615,7 @@ export function DocumentSelector({
                       <>
                       <div style={{ textAlign: 'center', fontSize: 8, color: 'var(--text-muted)', fontStyle: 'italic', marginTop: 2, lineHeight: '12px' }}>{t('docSelector.and')}</div>
                       <select
+                        aria-label={t('docSelector.value2Label')}
                         value={node.tagGuid2 || ''}
                         onChange={(e) => {
                           setNodes((p) => p.map((nd) =>
@@ -1636,6 +1641,7 @@ export function DocumentSelector({
               {node.kind === 'type' && (
                 <div style={{ padding: '0 6px 4px', pointerEvents: 'auto' }}>
                   <select
+                    aria-label={t('docSelector.typeLabel')}
                     value={node.typeExt || ''}
                     onChange={(e) => {
                       setNodes((p) => p.map((nd) =>
@@ -1664,6 +1670,7 @@ export function DocumentSelector({
               {node.kind === 'folder' && (
                 <div style={{ padding: '0 6px 4px', pointerEvents: 'auto' }}>
                   <select
+                    aria-label={t('docSelector.folderLabel')}
                     value={node.folderGuid || ''}
                     onChange={(e) => {
                       setNodes((p) => p.map((nd) =>
@@ -1714,6 +1721,7 @@ export function DocumentSelector({
                     items.push(
                       <div key={`op-${i}`} style={{ height: LABEL_H, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
                         <select
+                          aria-label={t('queryBuilder.operatorLabel')}
                           value={op || ''}
                           title={op ? setOpTooltip(op) : t('queryBuilder.selectOperator')}
                           onChange={(e) => {
@@ -1743,7 +1751,10 @@ export function DocumentSelector({
                           <option value="subtract">{t('docSelector.opOption.subtract')}</option>
                         </select>
                         {ops.length > 1 && (
-                          <span
+                          <button
+                            type="button"
+                            aria-label={t('queryBuilder.removeInputN', { n: (opIdx === 0 ? 0 : opIdx + 1) + 1 })}
+                            title={t('queryBuilder.removeInput')}
                             onMouseDown={(e) => e.stopPropagation()}
                             onClick={(e) => {
                               e.stopPropagation()
@@ -1759,10 +1770,10 @@ export function DocumentSelector({
                                   .map((c) => c.to === node.id && c.toPort > removedPort ? { ...c, toPort: c.toPort - 1 } : c)
                               )
                             }}
-                            style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer', lineHeight: 1, opacity: 0.6 }}
+                            style={{ background: 'transparent', border: 'none', padding: 0, font: 'inherit', fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer', lineHeight: 1, opacity: 0.6 }}
                           >
                             <Icon icon={faXmark} />
-                          </span>
+                          </button>
                         )}
                       </div>
                     )
@@ -2007,6 +2018,19 @@ export function DocumentSelector({
                 )
               })
             })}
+            {menuNode.kind === 'docs' && (menuNode.docGuids?.length ?? 0) > 0 && (
+              <>
+                {targets.length > 0 && <div className="context-menu-separator" />}
+                <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{t('docSelector.documentsInBox')}</div>
+                <div style={{ maxHeight: 240, overflowY: 'auto' }}>
+                  {(menuNode.docGuids ?? []).map((g) => (
+                    <div key={'doc-' + g} className="context-menu-item" onClick={() => { removeDocFromNode(menuNode.id, g); done() }}>
+                      {t('docSelector.removeDoc', { name: sourceMap.get(g) || t('docSelector.deletedDocument') })}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
             {linked.length > 0 && <div className="context-menu-separator" />}
             {linked.map((c) => {
               const other = nodes.find((n) => n.id === (c.from === menuNode.id ? c.to : c.from))

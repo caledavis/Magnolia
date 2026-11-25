@@ -1131,7 +1131,10 @@
     "disconnectFrom": "Trennen von {{name}}",
     "takes": "Erhält {{names}}.",
     "goesTo": "Geht an {{names}}.",
-    "boxKeysHint": "Die Pfeiltasten verschieben es. Umschalt+F10 verbindet es mit einem anderen Kasten, trennt oder löscht es."
+    "boxKeysHint": "Die Pfeiltasten verschieben es. Umschalt+F10 verbindet es mit einem anderen Kasten, trennt oder löscht es.",
+    "operatorLabel": "Operator",
+    "removeInputN": "Eingang {{n}} entfernen",
+    "searchTextLabel": "Zu suchender Text"
   },
   "queryDesc": {
     "docs_one": "{{count}} Dok.",
@@ -1298,7 +1301,14 @@
     "noneSelected": "Keine Dokumente ausgewählt. Verbinden Sie die Knoten mit dem Ergebnis.",
     "survey": "Umfrage",
     "statusHint": "Dokumente und Tags auf die Fläche ziehen · Knoten mit dem Ergebnis verbinden · Fragen und Befragte einer Umfrage hierher ziehen, um sie auszuwählen",
-    "canvas": "Dokumentauswahl"
+    "canvas": "Dokumentauswahl",
+    "categoryLabel": "Kategorie",
+    "valueLabel": "Wert",
+    "value2Label": "Zweiter Wert",
+    "typeLabel": "Dokumenttyp",
+    "folderLabel": "Ordner",
+    "removeDoc": "{{name}} entfernen",
+    "documentsInBox": "Dokumente in diesem Kasten"
   },
   "prefs": {
     "cat": {

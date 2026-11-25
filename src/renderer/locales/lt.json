@@ -1205,7 +1205,10 @@
     "disconnectFrom": "Atjungti nuo {{name}}",
     "takes": "Gauna {{names}}.",
     "goesTo": "Eina į {{names}}.",
-    "boxKeysHint": "Rodyklės jį perkelia. Shift+F10 sujungia jį su kitu langeliu, atjungia arba ištrina."
+    "boxKeysHint": "Rodyklės jį perkelia. Shift+F10 sujungia jį su kitu langeliu, atjungia arba ištrina.",
+    "operatorLabel": "Operatorius",
+    "removeInputN": "Pašalinti įvestį {{n}}",
+    "searchTextLabel": "Ieškomas tekstas"
   },
   "queryDesc": {
     "docs_one": "{{count}} dok.",
@@ -1388,7 +1391,14 @@
     "noneSelected": "Dokumentų nepasirinkta. Prijunkite mazgus prie „Rezultato“.",
     "survey": "Apklausa",
     "statusHint": "Tempkite dokumentus ir žymas į drobę · Prijunkite mazgus prie „Rezultato“ · Nutempkite čia apklausos klausimus ir respondentus, kad juos pasirinktumėte",
-    "canvas": "Dokumentų atranka"
+    "canvas": "Dokumentų atranka",
+    "categoryLabel": "Kategorija",
+    "valueLabel": "Reikšmė",
+    "value2Label": "Antra reikšmė",
+    "typeLabel": "Dokumento tipas",
+    "folderLabel": "Aplankas",
+    "removeDoc": "Pašalinti {{name}}",
+    "documentsInBox": "Dokumentai šiame langelyje"
   },
   "prefs": {
     "cat": {

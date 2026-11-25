@@ -1168,7 +1168,10 @@
     "disconnectFrom": "ניתוק מ-{{name}}",
     "takes": "מקבל {{names}}.",
     "goesTo": "הולך אל {{names}}.",
-    "boxKeysHint": "החצים מזיזים אותו. Shift+F10 מחבר אותו לתיבה אחרת, מנתק או מוחק אותו."
+    "boxKeysHint": "החצים מזיזים אותו. Shift+F10 מחבר אותו לתיבה אחרת, מנתק או מוחק אותו.",
+    "operatorLabel": "אופרטור",
+    "removeInputN": "הסרת קלט {{n}}",
+    "searchTextLabel": "טקסט לחיפוש"
   },
   "queryDesc": {
     "docs_one": "מסמך אחד",
@@ -1343,7 +1346,14 @@
     "noneSelected": "לא נבחרו מסמכים. יש לחבר את הצמתים ל\"תוצאה\".",
     "survey": "סקר",
     "statusHint": "גרירת מסמכים ותגיות אל משטח העבודה · חיבור הצמתים ל\"תוצאה\" · אפשר לגרור לכאן שאלות ומשיבים מסקר כדי לבחור אותם",
-    "canvas": "בחירת מסמכים"
+    "canvas": "בחירת מסמכים",
+    "categoryLabel": "קטגוריה",
+    "valueLabel": "ערך",
+    "value2Label": "ערך שני",
+    "typeLabel": "סוג מסמך",
+    "folderLabel": "תיקייה",
+    "removeDoc": "הסרת {{name}}",
+    "documentsInBox": "מסמכים בתיבה זו"
   },
   "prefs": {
     "cat": {

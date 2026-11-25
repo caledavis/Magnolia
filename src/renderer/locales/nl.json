@@ -1131,7 +1131,10 @@
     "disconnectFrom": "Loskoppelen van {{name}}",
     "takes": "Krijgt {{names}}.",
     "goesTo": "Gaat naar {{names}}.",
-    "boxKeysHint": "De pijltjestoetsen verplaatsen het. Shift+F10 verbindt het met een ander vak, koppelt het los of verwijdert het."
+    "boxKeysHint": "De pijltjestoetsen verplaatsen het. Shift+F10 verbindt het met een ander vak, koppelt het los of verwijdert het.",
+    "operatorLabel": "Operator",
+    "removeInputN": "Invoer {{n}} verwijderen",
+    "searchTextLabel": "Te zoeken tekst"
   },
   "queryDesc": {
     "docs_one": "{{count}} doc.",
@@ -1298,7 +1301,14 @@
     "noneSelected": "Geen documenten geselecteerd. Verbind de knooppunten met Resultaat.",
     "survey": "Enquête",
     "statusHint": "Sleep documenten en tags naar het canvas · Verbind de knooppunten met Resultaat · Sleep enquêtevragen en respondenten hierheen om ze te kiezen",
-    "canvas": "Documentselectie"
+    "canvas": "Documentselectie",
+    "categoryLabel": "Categorie",
+    "valueLabel": "Waarde",
+    "value2Label": "Tweede waarde",
+    "typeLabel": "Documenttype",
+    "folderLabel": "Map",
+    "removeDoc": "{{name}} verwijderen",
+    "documentsInBox": "Documenten in dit vak"
   },
   "prefs": {
     "cat": {

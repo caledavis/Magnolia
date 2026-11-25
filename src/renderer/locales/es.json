@@ -1168,7 +1168,10 @@
     "disconnectFrom": "Desconectar de {{name}}",
     "takes": "Recibe {{names}}.",
     "goesTo": "Va a {{names}}.",
-    "boxKeysHint": "Las flechas lo mueven. Mayús+F10 lo conecta a otro cuadro, o lo desconecta o lo elimina."
+    "boxKeysHint": "Las flechas lo mueven. Mayús+F10 lo conecta a otro cuadro, o lo desconecta o lo elimina.",
+    "operatorLabel": "Operador",
+    "removeInputN": "Quitar la entrada {{n}}",
+    "searchTextLabel": "Texto que buscar"
   },
   "queryDesc": {
     "docs_one": "{{count}} doc.",
@@ -1343,7 +1346,14 @@
     "noneSelected": "No hay documentos seleccionados. Conecta los nodos a Resultado.",
     "survey": "Encuesta",
     "statusHint": "Arrastra documentos y etiquetas al lienzo · Conecta los nodos a Resultado · Arrastra aquí preguntas y encuestados para elegirlos",
-    "canvas": "Selección de documentos"
+    "canvas": "Selección de documentos",
+    "categoryLabel": "Categoría",
+    "valueLabel": "Valor",
+    "value2Label": "Segundo valor",
+    "typeLabel": "Tipo de documento",
+    "folderLabel": "Carpeta",
+    "removeDoc": "Quitar {{name}}",
+    "documentsInBox": "Documentos de este cuadro"
   },
   "prefs": {
     "cat": {

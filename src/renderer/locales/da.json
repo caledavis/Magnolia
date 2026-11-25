@@ -1131,7 +1131,10 @@
     "disconnectFrom": "Afbryd fra {{name}}",
     "takes": "Modtager {{names}}.",
     "goesTo": "Går til {{names}}.",
-    "boxKeysHint": "Piletasterne flytter den. Skift+F10 forbinder den med en anden boks, afbryder eller sletter den."
+    "boxKeysHint": "Piletasterne flytter den. Skift+F10 forbinder den med en anden boks, afbryder eller sletter den.",
+    "operatorLabel": "Operator",
+    "removeInputN": "Fjern input {{n}}",
+    "searchTextLabel": "Tekst, der skal søges efter"
   },
   "queryDesc": {
     "docs_one": "{{count}} dok.",
@@ -1298,7 +1301,14 @@
     "noneSelected": "Ingen dokumenter valgt. Forbind noderne til Resultat.",
     "survey": "Undersøgelse",
     "statusHint": "Træk dokumenter og tags til lærredet · Forbind noderne til Resultat · Træk spørgsmål og respondenter fra undersøgelser hertil for at vælge dem",
-    "canvas": "Dokumentvalg"
+    "canvas": "Dokumentvalg",
+    "categoryLabel": "Kategori",
+    "valueLabel": "Værdi",
+    "value2Label": "Anden værdi",
+    "typeLabel": "Dokumenttype",
+    "folderLabel": "Mappe",
+    "removeDoc": "Fjern {{name}}",
+    "documentsInBox": "Dokumenter i denne boks"
   },
   "prefs": {
     "cat": {

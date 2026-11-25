@@ -1279,7 +1279,10 @@
     "disconnectFrom": "فصل عن {{name}}",
     "takes": "يستقبل {{names}}.",
     "goesTo": "يذهب إلى {{names}}.",
-    "boxKeysHint": "تحرّكه الأسهم. يربطه Shift+F10 بمربع آخر أو يفصله أو يحذفه."
+    "boxKeysHint": "تحرّكه الأسهم. يربطه Shift+F10 بمربع آخر أو يفصله أو يحذفه.",
+    "operatorLabel": "العامل",
+    "removeInputN": "إزالة المُدخل {{n}}",
+    "searchTextLabel": "النص المراد البحث عنه"
   },
   "queryDesc": {
     "docs_zero": "لا توجد مستندات",
@@ -1478,7 +1481,14 @@
     "noneSelected": "لم تُحدَّد أي مستندات. صِل العُقد بالنتيجة.",
     "survey": "استبيان",
     "statusHint": "اسحب المستندات والوسوم إلى اللوحة · صِل العُقد بالنتيجة · اسحب أسئلة الاستبيان ومستجيبيه إلى هنا لاختيارهم",
-    "canvas": "اختيار المستندات"
+    "canvas": "اختيار المستندات",
+    "categoryLabel": "الفئة",
+    "valueLabel": "القيمة",
+    "value2Label": "القيمة الثانية",
+    "typeLabel": "نوع المستند",
+    "folderLabel": "المجلد",
+    "removeDoc": "إزالة {{name}}",
+    "documentsInBox": "المستندات في هذا المربع"
   },
   "prefs": {
     "cat": {

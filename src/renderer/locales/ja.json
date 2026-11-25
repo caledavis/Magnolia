@@ -1094,7 +1094,10 @@
     "disconnectFrom": "{{name}} から切断",
     "takes": "{{names}} を受け取ります。",
     "goesTo": "{{names}} へ渡します。",
-    "boxKeysHint": "矢印キーで移動します。Shift+F10 で別のボックスに接続、切断、または削除します。"
+    "boxKeysHint": "矢印キーで移動します。Shift+F10 で別のボックスに接続、切断、または削除します。",
+    "operatorLabel": "演算子",
+    "removeInputN": "入力 {{n}} を外す",
+    "searchTextLabel": "検索するテキスト"
   },
   "queryDesc": {
     "docs_other": "{{count}} 件",
@@ -1253,7 +1256,14 @@
     "noneSelected": "ドキュメントが選択されていません。ノードを「結果」につないでください。",
     "survey": "アンケート",
     "statusHint": "ドキュメントとタグをキャンバスへドラッグ · ノードを「結果」につなぐ · アンケートの質問や回答者をここへドラッグして選ぶ",
-    "canvas": "文書の選択"
+    "canvas": "文書の選択",
+    "categoryLabel": "カテゴリ",
+    "valueLabel": "値",
+    "value2Label": "2 つ目の値",
+    "typeLabel": "文書の種類",
+    "folderLabel": "フォルダ",
+    "removeDoc": "{{name}} を外す",
+    "documentsInBox": "このボックスの文書"
   },
   "prefs": {
     "cat": {

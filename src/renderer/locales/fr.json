@@ -1168,7 +1168,10 @@
     "disconnectFrom": "Délier de {{name}}",
     "takes": "Reçoit {{names}}.",
     "goesTo": "Va vers {{names}}.",
-    "boxKeysHint": "Les flèches le déplacent. Maj+F10 le relie à une autre boîte, le délie ou le supprime."
+    "boxKeysHint": "Les flèches le déplacent. Maj+F10 le relie à une autre boîte, le délie ou le supprime.",
+    "operatorLabel": "Opérateur",
+    "removeInputN": "Retirer l’entrée {{n}}",
+    "searchTextLabel": "Texte à rechercher"
   },
   "queryDesc": {
     "docs_one": "{{count}} doc.",
@@ -1343,7 +1346,14 @@
     "noneSelected": "Aucun document sélectionné. Reliez les nœuds au Résultat.",
     "survey": "Enquête",
     "statusHint": "Faites glisser documents et étiquettes sur le canevas · Reliez les nœuds au Résultat · Faites glisser ici des questions et des répondants d’enquête pour les choisir",
-    "canvas": "Sélection de documents"
+    "canvas": "Sélection de documents",
+    "categoryLabel": "Catégorie",
+    "valueLabel": "Valeur",
+    "value2Label": "Deuxième valeur",
+    "typeLabel": "Type de document",
+    "folderLabel": "Dossier",
+    "removeDoc": "Retirer {{name}}",
+    "documentsInBox": "Documents de cette boîte"
   },
   "prefs": {
     "cat": {

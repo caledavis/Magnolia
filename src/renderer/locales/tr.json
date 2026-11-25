@@ -1131,7 +1131,10 @@
     "disconnectFrom": "{{name}} bağlantısını kes",
     "takes": "{{names}} alır.",
     "goesTo": "{{names}} öğesine gider.",
-    "boxKeysHint": "Oklar onu taşır. Shift+F10 onu başka bir kutuya bağlar, bağlantısını keser ya da siler."
+    "boxKeysHint": "Oklar onu taşır. Shift+F10 onu başka bir kutuya bağlar, bağlantısını keser ya da siler.",
+    "operatorLabel": "İşleç",
+    "removeInputN": "{{n}}. girişi kaldır",
+    "searchTextLabel": "Aranacak metin"
   },
   "queryDesc": {
     "docs_one": "{{count}} belge",
@@ -1298,7 +1301,14 @@
     "noneSelected": "Belge seçilmedi. Düğümleri Sonuç’a bağlayın.",
     "survey": "Anket",
     "statusHint": "Belgeleri ve etiketleri tuvale sürükleyin · Düğümleri Sonuç’a bağlayın · Seçmek için anket sorularını ve katılımcıları buraya sürükleyin",
-    "canvas": "Belge seçimi"
+    "canvas": "Belge seçimi",
+    "categoryLabel": "Kategori",
+    "valueLabel": "Değer",
+    "value2Label": "İkinci değer",
+    "typeLabel": "Belge türü",
+    "folderLabel": "Klasör",
+    "removeDoc": "{{name}} öğesini kaldır",
+    "documentsInBox": "Bu kutudaki belgeler"
   },
   "prefs": {
     "cat": {

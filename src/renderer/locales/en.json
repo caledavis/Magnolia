@@ -1131,7 +1131,10 @@
     "disconnectFrom": "Disconnect from {{name}}",
     "takes": "Takes {{names}}.",
     "goesTo": "Goes to {{names}}.",
-    "boxKeysHint": "The arrows move it. Shift+F10 connects it to another box, or disconnects or deletes it."
+    "boxKeysHint": "The arrows move it. Shift+F10 connects it to another box, or disconnects or deletes it.",
+    "operatorLabel": "Operator",
+    "removeInputN": "Remove input {{n}}",
+    "searchTextLabel": "Text to find"
   },
   "queryDesc": {
     "docs_one": "{{count}} doc",
@@ -1298,7 +1301,14 @@
     "noneSelected": "No documents selected. Connect nodes to Result.",
     "survey": "Survey",
     "statusHint": "Drag documents & tags onto canvas · Connect nodes to Result · Drag survey questions & respondents here to choose them",
-    "canvas": "Document selection"
+    "canvas": "Document selection",
+    "categoryLabel": "Category",
+    "valueLabel": "Value",
+    "value2Label": "Second value",
+    "typeLabel": "Document type",
+    "folderLabel": "Folder",
+    "removeDoc": "Remove {{name}}",
+    "documentsInBox": "Documents in this box"
   },
   "prefs": {
     "cat": {
