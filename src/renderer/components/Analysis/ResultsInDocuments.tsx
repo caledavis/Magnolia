@@ -28,6 +28,7 @@ import { formatNumber } from '../../i18n'
 import { cellOfColumns } from '../../utils/narrow-query'
 import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
 import { keyActivate, dropZone } from '../../utils/key-activate'
+import { ZERO_CELL } from './zero-cell'
 
 /** Each "Group by" entry is one of:
  *   - a single tag → one row in the grid;
@@ -823,8 +824,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                               background: col.isSubtotal ? 'color-mix(in srgb, var(--text-secondary) 6%, transparent)' : undefined,
                               fontWeight: col.isSubtotal ? 700 : undefined,
                               cursor: val > 0 ? 'pointer' : 'default',
-                              color: val === 0 ? 'var(--text-muted)' : undefined,
-                              opacity: val === 0 ? 0.4 : 1
+                              ...(val === 0 ? ZERO_CELL : null)
                             }}>
                               {/* Fixed-height inner box pins the cell to
                                   32 px in both modes — see CodesInDocs. */}
@@ -846,8 +846,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                           textAlign: 'center',
                           fontWeight: 700,
                           cursor: showColTotals[j] > 0 && combinedQuery ? 'pointer' : 'default',
-                          color: showColTotals[j] === 0 ? 'var(--text-muted)' : undefined,
-                          opacity: showColTotals[j] === 0 ? 0.4 : 1
+                          ...(showColTotals[j] === 0 ? ZERO_CELL : null)
                         }}>
                           {formatNumber(showColTotals[j])}
                         </td>
@@ -883,8 +882,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                         textAlign: 'center',
                         fontWeight: 700,
                         cursor: rt > 0 ? 'pointer' : 'default',
-                        color: rt === 0 ? 'var(--text-muted)' : undefined,
-                        opacity: rt === 0 ? 0.4 : 1
+                        ...(rt === 0 ? ZERO_CELL : null)
                       }}>
                         {formatNumber(rt)}
                       </td>
@@ -896,8 +894,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                       textAlign: 'center',
                       fontWeight: 700,
                       cursor: showGrandTotal > 0 && combinedQuery ? 'pointer' : 'default',
-                      color: showGrandTotal === 0 ? 'var(--text-muted)' : undefined,
-                      opacity: showGrandTotal === 0 ? 0.4 : 1
+                      ...(showGrandTotal === 0 ? ZERO_CELL : null)
                     }}>
                       {formatNumber(showGrandTotal)}
                     </td>

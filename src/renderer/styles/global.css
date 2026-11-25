@@ -393,7 +393,7 @@
   --text-primary: #E6EAF0;
   --text-secondary: #A8B0BC;
   /* Muted text reads at 4.5:1 or better (WCAG AA) on every dark surface. */
-  --text-muted: #98A0AC;
+  --text-muted: #9AA2AE; /* 4.5:1 on the shaded subtotal columns too */
   --accent: #5B8FFF;
   --link: #8ab4ff;
   --accent-hover: #7AA5FF;

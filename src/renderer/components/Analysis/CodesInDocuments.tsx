@@ -37,6 +37,7 @@ import type { CellScope } from '../../utils/narrow-query'
 import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
 import { keyActivate, dropZone } from '../../utils/key-activate'
 import { useColumnWindow } from '../../utils/use-column-window'
+import { ZERO_CELL } from './zero-cell'
 
 interface Props {
   data: AnalysisInitData
@@ -703,8 +704,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                             background: col.isSubtotal ? SUBTOTAL_TINT : (inBand[j] ? BAND_TINT : undefined),
                             fontWeight: col.isSubtotal ? 700 : undefined,
                             cursor: val > 0 ? 'pointer' : 'default',
-                            color: val === 0 ? 'var(--text-muted)' : undefined,
-                            opacity: val === 0 ? 0.4 : 1
+                            ...(val === 0 ? ZERO_CELL : null)
                           }}>
                             {/* Fixed-height inner box pins the cell to
                                 exactly 32 px regardless of content type
@@ -744,8 +744,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                         textAlign: 'center',
                         fontWeight: 700,
                         cursor: showRowTotals[i] > 0 ? 'pointer' : 'default',
-                        color: showRowTotals[i] === 0 ? 'var(--text-muted)' : undefined,
-                        opacity: showRowTotals[i] === 0 ? 0.4 : 1
+                        ...(showRowTotals[i] === 0 ? ZERO_CELL : null)
                       }}>
                         {formatNumber(showRowTotals[i])}
                       </td>
@@ -774,8 +773,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                         textAlign: 'center',
                         fontWeight: 700,
                         cursor: ct > 0 ? 'pointer' : 'default',
-                        color: ct === 0 ? 'var(--text-muted)' : undefined,
-                        opacity: ct === 0 ? 0.4 : 1
+                        ...(ct === 0 ? ZERO_CELL : null)
                       }}>
                         {formatNumber(ct)}
                       </td>
@@ -800,8 +798,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                       textAlign: 'center',
                       fontWeight: 700,
                       cursor: showGrandTotal > 0 ? 'pointer' : 'default',
-                      color: showGrandTotal === 0 ? 'var(--text-muted)' : undefined,
-                      opacity: showGrandTotal === 0 ? 0.4 : 1
+                      ...(showGrandTotal === 0 ? ZERO_CELL : null)
                     }}>
                       {formatNumber(showGrandTotal)}
                     </td>

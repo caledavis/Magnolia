@@ -35,6 +35,7 @@ import { draggedCodeGuids } from '../../utils/code-drag'
 import type { CellScope } from '../../utils/narrow-query'
 import { keyActivate, dropZone } from '../../utils/key-activate'
 import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
+import { ZERO_CELL } from './zero-cell'
 
 interface Props {
   data: AnalysisInitData
@@ -632,8 +633,8 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                               borderBottom: '1px solid var(--border-color)',
                               background: inBand[j] ? BAND_TINT : undefined,
                               textAlign: 'center',
-                              // A zero is muted, still readable (WCAG AA).
-                              color: val === 0 ? 'var(--text-muted)' : undefined,
+                              // A zero recedes, still readable (zero-cell.ts).
+                              ...(val === 0 ? ZERO_CELL : null),
                               cursor: val > 0 ? 'pointer' : undefined
                             }}
                             onClick={() => {

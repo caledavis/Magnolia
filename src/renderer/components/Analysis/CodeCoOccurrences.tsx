@@ -21,6 +21,7 @@ import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
 import type { CellScope } from '../../utils/narrow-query'
 import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
 import { keyActivate, dropZone } from '../../utils/key-activate'
+import { ZERO_CELL } from './zero-cell'
 
 interface Props {
   data: AnalysisInitData
@@ -458,8 +459,8 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                               borderBottom: '1px solid var(--border-color)',
                               cursor: !isSame && val > 0 ? 'pointer' : 'default',
                               background: isSame ? 'var(--bg-secondary)' : undefined,
-                              color: isSame ? 'var(--text-muted)' : val === 0 ? 'var(--text-muted)' : undefined,
-                              opacity: isSame ? 1 : val === 0 ? 0.4 : 1
+                              color: isSame ? 'var(--text-muted)' : undefined,
+                              ...(!isSame && val === 0 ? ZERO_CELL : null)
                             }}
                           >
                             {/* Fixed-height inner box pins the cell to
@@ -479,8 +480,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                         textAlign: 'center',
                         fontWeight: 700,
                         cursor: showRowTotals[i] > 0 ? 'pointer' : 'default',
-                        color: showRowTotals[i] === 0 ? 'var(--text-muted)' : undefined,
-                        opacity: showRowTotals[i] === 0 ? 0.4 : 1
+                        ...(showRowTotals[i] === 0 ? ZERO_CELL : null)
                       }}>
                         {formatNumber(showRowTotals[i])}
                       </td>
@@ -506,8 +506,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                         textAlign: 'center',
                         fontWeight: 700,
                         cursor: ct > 0 ? 'pointer' : 'default',
-                        color: ct === 0 ? 'var(--text-muted)' : undefined,
-                        opacity: ct === 0 ? 0.4 : 1
+                        ...(ct === 0 ? ZERO_CELL : null)
                       }}>
                         {formatNumber(ct)}
                       </td>
@@ -519,8 +518,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                       textAlign: 'center',
                       fontWeight: 700,
                       cursor: showGrandTotal > 0 ? 'pointer' : 'default',
-                      color: showGrandTotal === 0 ? 'var(--text-muted)' : undefined,
-                      opacity: showGrandTotal === 0 ? 0.4 : 1
+                      ...(showGrandTotal === 0 ? ZERO_CELL : null)
                     }}>
                       {formatNumber(showGrandTotal)}
                     </td>

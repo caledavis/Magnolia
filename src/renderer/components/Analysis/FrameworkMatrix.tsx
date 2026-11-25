@@ -67,6 +67,7 @@ import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
 import { keyActivate, dropZone } from '../../utils/key-activate'
+import { ZERO_CELL } from './zero-cell'
 
 interface Props {
   data: AnalysisInitData
@@ -746,8 +747,8 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
                               position: 'absolute', top: 5, insetInlineEnd: 6, pointerEvents: 'none',
                               fontSize: 9, fontWeight: 600, lineHeight: '14px', minWidth: 14, padding: '0 4px', textAlign: 'center',
                               borderRadius: 7, background: 'var(--bg-tertiary)',
-                              color: count === 0 ? 'var(--text-muted)' : 'var(--text-secondary)',
-                              opacity: count === 0 ? 0.6 : 1
+                              color: 'var(--text-secondary)',
+                              ...(count === 0 ? { ...ZERO_CELL, fontSize: 9 } : null)
                             }}
                           >
                             {formatNumber(count)}
