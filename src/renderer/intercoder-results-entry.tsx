@@ -5,6 +5,8 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { IntercoderResultsWindow } from './components/Analysis/intercoder/IntercoderResultsWindow'
 import './styles/global.css'
+// Keyboard and screen-reader access to the right-click menus.
+import './utils/keyboard-access'
 import { applyStoredAppearance, installAppearanceListeners } from './utils/apply-theme'
 
 document.addEventListener('dragover', (e) => e.preventDefault())

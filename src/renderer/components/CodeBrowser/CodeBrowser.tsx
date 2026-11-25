@@ -12,6 +12,7 @@ import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle } from '../..
 import { usePreferencesStore } from '../../stores/preferences-store'
 import { codeColourPresetsFor, useCodeColourPresets } from '../../utils/code-colours'
 import { CODES_DRAG_TYPE, codeGuidsFromJson } from '../../utils/code-drag'
+import { useTreeKeyboard } from '../../utils/use-tree-keyboard'
 
 interface Props {
   onNewCode: () => void
@@ -309,6 +310,10 @@ function CodeTreeItem({
           }
         }}
         ref={rowRef}
+        role="treeitem"
+        aria-level={depth + 1}
+        aria-selected={isSelected}
+        aria-expanded={code.children.length > 0 ? effectiveExpanded : undefined}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -368,6 +373,7 @@ function CodeTreeItem({
             the chevron position — preserves the visual hierarchy at
             every depth. */}
         <span
+          data-tree-toggle
           onClick={code.children.length > 0 ? (e) => {
             e.stopPropagation()
             setExpanded(!expanded)
@@ -828,6 +834,7 @@ export function CodeBrowser({ onNewCode, onClose, onPopOut, isPoppedOut }: Props
   const findCode = useCodeStore((s) => s.findCode)
   const sources = useDocumentStore((s) => s.sources)
   const [selectedCodeGuids, setSelectedCodeGuids] = useState<Set<string>>(new Set())
+  const codeTree = useTreeKeyboard(t('panes.codes'))
   const [editingMemoGuid, setEditingMemoGuid] = useState<string | null>(null)
   const [editingCodeGuid, setEditingCodeGuid] = useState<string | null>(null)
   const [mergeConfirm, setMergeConfirm] = useState<{ sourceGuid: string; targetGuid: string } | null>(null)
@@ -1009,7 +1016,7 @@ export function CodeBrowser({ onNewCode, onClose, onPopOut, isPoppedOut }: Props
         {onPopOut && <button className="panel-header-popout" onClick={onPopOut} title={isPoppedOut ? t('panel.popIn') : t('panel.popOut')} aria-label={isPoppedOut ? t('panel.popInLabel') : t('panel.popOutLabel')}><Icon icon={isPoppedOut ? faDownLeftAndUpRightToCenter : faUpRightFromSquare} /></button>}
         {onClose && <button className="panel-header-close" onClick={onClose} title={t('panel.close')} aria-label={t('panel.close')}><Icon icon={faXmark} /></button>}
       </div>
-      <div className="panel-content">
+      <div className="panel-content" {...codeTree}>
         {codes.length === 0 && (
           <div
             className="empty-state"

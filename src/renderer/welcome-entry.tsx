@@ -6,6 +6,8 @@ import ReactDOM from 'react-dom/client'
 import { WelcomeScreen } from './components/Welcome/WelcomeScreen'
 import { applyStoredAppearance, installAppearanceListeners } from './utils/apply-theme'
 import './styles/global.css'
+// Keyboard and screen-reader access to the right-click menus.
+import './utils/keyboard-access'
 
 // Pick up the user's saved appearance (theme + text size) so the welcome
 // screen matches the look they last selected, rather than always

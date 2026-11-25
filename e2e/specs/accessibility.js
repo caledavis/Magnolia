@@ -11,6 +11,10 @@ async function spec(t) {
     s.onerror = () => reject(new Error('axe did not load'))
     document.head.appendChild(s)
   })
+  // Judge everything settled, not part-way through a fade (contrast).
+  const still = document.createElement('style')
+  still.textContent = '*, *::before, *::after { transition: none !important; animation: none !important; }'
+  document.head.appendChild(still)
   const docs = (await t.module('stores/document-store')).useDocumentStore
   const tabs = (await t.module('stores/analysis-tabs-store')).useAnalysisTabsStore
   const tabIds = await t.module('utils/tab-ids')
@@ -22,7 +26,7 @@ async function spec(t) {
       const e = (all[v.id] = all[v.id] || { impact: v.impact, help: v.help, views: new Set(), count: 0, samples: [] })
       e.views.add(view)
       e.count += v.nodes.length
-      for (const n of v.nodes.slice(0, 3)) if (e.samples.length < 4) e.samples.push(n.html.slice(0, 140))
+      for (const n of v.nodes.slice(0, 3)) if (e.samples.length < 4) e.samples.push(n.html.slice(0, 140) + (n.failureSummary ? ' — ' + n.failureSummary.replace(/\s+/g, ' ').slice(0, 160) : ''))
     }
   }
   const text = docs.getState().sources.find((s) => (s.sourceType ?? 'text') === 'text')

@@ -141,7 +141,8 @@
   background: #ffff00;
   color: #000000;
 }
-:root[data-theme="high-contrast"] .context-menu-item:hover {
+:root[data-theme="high-contrast"] .context-menu-item:hover,
+:root[data-theme="high-contrast"] .context-menu-item:focus {
   color: #000000;
 }
 
@@ -1630,6 +1631,13 @@ div:hover > .folder-row-add,
   gap: 8px;
 }
 
+/* The item the keyboard is on (hovering focuses it too, see
+ * utils/keyboard-access.ts) looks like the one the mouse is over. */
+.context-menu-item:focus {
+  outline: none;
+  background: var(--selection-bg);
+}
+
 .context-menu-item:hover {
   /* Softer hover background — matches the in-text highlight tone
    * (--selection-bg) instead of the saturated accent. Each text
@@ -2686,4 +2694,12 @@ textarea {
 @media (prefers-reduced-motion: reduce) {
   .file-drop-cue { animation: none; }
   .import-progress-spinner { animation-duration: 2.4s; }
+}
+
+/* The row of a list or tree the keyboard is on (utils/use-tree-keyboard.ts).
+ * An inset ring rather than an outline: rows set their own outline inline
+ * (drop targets), which would override one here. */
+[role="treeitem"]:focus { outline: none; }
+[role="treeitem"]:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--accent);
 }

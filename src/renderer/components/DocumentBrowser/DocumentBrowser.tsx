@@ -16,6 +16,7 @@ import { isNotebook, noteData, sortNotes } from '../../utils/notes'
 import { makeNotebookTabId } from '../../utils/tab-ids'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
+import { useTreeKeyboard } from '../../utils/use-tree-keyboard'
 
 // Prefer the source's declared type (set on import for audio/video/image/
 // pdf). Only fall back to sniffing the filename for sources whose type is
@@ -291,12 +292,25 @@ function FolderItem({
         }}
         onContextMenu={(e) => onContextMenuFolder(e, folder.guid)}
         data-notebook-guid={notebook ? folder.guid : undefined}
+        role="treeitem"
+        aria-level={depth + 1}
+        aria-expanded={effectiveExpanded}
+        aria-selected={overviewOpen}
+        data-tree-enter="click"
       >
-        <Icon
-          icon={effectiveExpanded ? faChevronDown : faChevronRight}
-          style={{ fontSize: 9, flexShrink: 0, width: 10, textAlign: 'center', opacity: 0.6 }}
+        {/* The fold control (for the keyboard, too: use-tree-keyboard). A
+            folder folds wherever it's clicked, so its arrow passes the
+            click on; a notebook's arrow folds it, its row opens it. */}
+        <span
+          data-tree-toggle
+          style={{ display: 'contents' }}
           onClick={notebook ? (e: React.MouseEvent) => { e.stopPropagation(); setExpanded(!expanded) } : undefined}
-        />
+        >
+          <Icon
+            icon={effectiveExpanded ? faChevronDown : faChevronRight}
+            style={{ fontSize: 9, flexShrink: 0, width: 10, textAlign: 'center', opacity: 0.6 }}
+          />
+        </span>
         <Icon className={PALETTE_ICON_CLASS} icon={notebook ? faNotebookPen : faFolder} style={{ fontSize: 13, flexShrink: 0, width: 16, textAlign: 'center', opacity: 0.75, color: 'var(--text-muted)', ...tint('folder') }} />
         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {folder.name}
@@ -585,6 +599,10 @@ function DocItem({
       }}
       onContextMenu={(e) => onContextMenu(e, source.guid)}
       data-document-guid={source.guid}
+      role="treeitem"
+      aria-level={depth + 1}
+      aria-selected={isSelected}
+      aria-current={isViewed ? 'page' : undefined}
     >
       {/* Drop position indicator line */}
       {dropPosition && (
@@ -946,6 +964,10 @@ function SurveyItem({
           onViewSurveyChild(source.guid, 'summary')
         }}
         onContextMenu={(e) => onContextMenu(e, source.guid)}
+        role="treeitem"
+        aria-level={depth + 1}
+        aria-selected={isSelected || rootIsActiveView}
+        data-tree-enter="click"
       >
         {/* No chevron on the survey root — surveys are always
             expanded, so the survey icon aligns with peer DocItems
@@ -998,6 +1020,10 @@ function SurveyItem({
               e.dataTransfer.setData('text/plain', t('survey.respondents'))
             }}
             onClick={() => setRespondentsOpen(!respondentsOpen)}
+            role="treeitem"
+            aria-level={depth + 2}
+            aria-expanded={respondentsOpen}
+            data-tree-enter="click"
             title={t('survey.respondentsDragTitle')}
           >
             <span style={{ width: 12, display: 'inline-flex', justifyContent: 'center', flexShrink: 0 }}>
@@ -1053,6 +1079,11 @@ function SurveyItem({
                     else onViewSurveyChild(source.guid, 'respondent', r.id)
                   }}
                   onContextMenu={(e) => onContextMenuSurveyChild(e, source.guid, 'respondent', r.id, r.displayName)}
+                  role="treeitem"
+                  aria-level={depth + 3}
+                  aria-selected={active || selected}
+                  aria-expanded={cells.length > 0 ? isExpanded : undefined}
+                  data-tree-enter="click"
                   {...tagDropHandlers('respondent', r.id)}
                   title={r.rawRespondentId ? t('survey.respondentId', { id: r.rawRespondentId }) : undefined}
                 >
@@ -1064,6 +1095,7 @@ function SurveyItem({
                       the indentation still lines up with neighbours. */}
                   {cells.length > 0 ? (
                     <span
+                      data-tree-toggle
                       onClick={(e) => {
                         e.stopPropagation()
                         toggleRespondent(r.id)
@@ -1124,6 +1156,9 @@ function SurveyItem({
                         })
                       }}
                       style={{ ...rowStyle(60, false), cursor: 'pointer' }}
+                      role="treeitem"
+                      aria-level={depth + 4}
+                      data-tree-enter="click"
                       title={`${q.text}\n\n${text}`}
                     >
                       <span style={{ flexShrink: 0, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums', marginInlineEnd: 4, minWidth: 14, fontSize: 10 }}>
@@ -1143,6 +1178,10 @@ function SurveyItem({
           <div
             style={rowStyle(20, false)}
             onClick={() => setQuestionsOpen(!questionsOpen)}
+            role="treeitem"
+            aria-level={depth + 2}
+            aria-expanded={questionsOpen}
+            data-tree-enter="click"
           >
             <span style={{ width: 12, display: 'inline-flex', justifyContent: 'center', flexShrink: 0 }}>
               <Icon icon={questionsOpen ? faChevronDown : faChevronRight} style={{ fontSize: 9, color: 'var(--text-muted)' }} />
@@ -1184,6 +1223,10 @@ function SurveyItem({
                   else onViewSurveyChild(source.guid, 'question', q.id)
                 }}
                 onContextMenu={(e) => onContextMenuSurveyChild(e, source.guid, 'question', q.id, q.text)}
+                role="treeitem"
+                aria-level={depth + 3}
+                aria-selected={active || selected}
+                data-tree-enter="click"
                 {...tagDropHandlers('question', q.id)}
                 title={q.text}
               >
@@ -1228,6 +1271,9 @@ function TagItem({
   const { t } = useTranslation()
   return (
     <div
+      role="treeitem"
+      aria-level={depth > 1 ? 2 : 1}
+      aria-selected={!!isSelected}
       draggable
       onDragStart={(e) => {
         // If this tag is selected and there are other selected tags, drag them all
@@ -1326,6 +1372,10 @@ function TagCategoryItem({
   return (
     <div>
       <div
+        role="treeitem"
+        aria-level={1}
+        aria-expanded={effectiveExpanded}
+        data-tree-enter="click"
         draggable
         onDragStart={(e) => {
           // Drag all tags in this category
@@ -2110,6 +2160,8 @@ function ManageDocumentTagsDialog({
 
 export function DocumentBrowser({ onSurveyImport, showManageDocTags, onCloseManageDocTags, onClose, onPopOut, isPoppedOut }: Props) {
   const { t } = useTranslation()
+  const documentTree = useTreeKeyboard(t('panes.documents'))
+  const tagTree = useTreeKeyboard(t('tags.heading'))
   // Enforced checkout lock: reading/browsing documents stays live no
   // matter who holds the lock. The mutating controls below (new folder,
   // drop-to-import, rename/delete/move via context menu) stay clickable —
@@ -2689,6 +2741,7 @@ export function DocumentBrowser({ onSurveyImport, showManageDocTags, onCloseMana
       <div
         className="panel-content"
         style={{ height: '100%' }}
+        {...documentTree}
         onDragEnter={(e) => {
           if (lockedBy) return
           if (
@@ -2920,7 +2973,7 @@ export function DocumentBrowser({ onSurveyImport, showManageDocTags, onCloseMana
                 <Icon icon={faPlus} />
               </button>
             </div>
-            <div className="panel-content" style={{ height: '100%', display: tagsCollapsed ? 'none' : undefined }}>
+            <div className="panel-content" style={{ height: '100%', display: tagsCollapsed ? 'none' : undefined }} {...tagTree}>
               {tags.length === 0 && categories.length === 0 && (
                 <div
                   className="empty-state"
