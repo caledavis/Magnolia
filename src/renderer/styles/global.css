@@ -202,7 +202,8 @@
   --border-color: #A0AEC0;
   --text-primary: #1A2633;
   --text-secondary: #3A4A60;
-  --text-muted: #5A7088;
+  /* 4.5:1 or better (WCAG AA) on every surface, selection included. */
+  --text-muted: #536880;
   --accent: #2563EB;
   --accent-hover: #1D55D9;
   /* Red text, and white on red, at 4.8:1 (WCAG AA). */
@@ -392,7 +393,7 @@
   --text-primary: #E6EAF0;
   --text-secondary: #A8B0BC;
   /* Muted text reads at 4.5:1 or better (WCAG AA) on every dark surface. */
-  --text-muted: #949CA8;
+  --text-muted: #98A0AC;
   --accent: #5B8FFF;
   --link: #8ab4ff;
   --accent-hover: #7AA5FF;

@@ -426,8 +426,7 @@ export function ResultItem({
               color: 'var(--text-muted)',
               marginTop: 2,
               cursor: 'pointer',
-              userSelect: 'none',
-              opacity: 0.7
+              userSelect: 'none'
             }}
           >
             {isExpanded ? t('results.showLess') : t('results.showMore')}
