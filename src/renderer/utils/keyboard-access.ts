@@ -15,7 +15,18 @@
  *    never disagree about which is current.
  * Shift+F10 (or the context-menu key) opens the menu of what has focus, as
  * a right-click on it would.
+ *
+ * Dragging, from the keyboard: Cmd/Ctrl+C on something that can be dragged
+ * (a code, a document, a tag, a query: whatever is selected with it) picks
+ * it up; Cmd/Ctrl+V on where it could be dropped (a tool's drop area, a
+ * document, a folder, a code, a text) puts it there; Escape puts it down.
+ * Both run the drag's own handlers (dragstart on the item, then dragenter,
+ * dragover and drop on the target, dragend on the item), so the result is
+ * exactly a drag's. A screen reader hears what was picked up and whether
+ * it was accepted. Copying text (a selection, a field) is left alone.
  */
+import { i18n } from '../i18n'
+import { isMac } from './platform'
 
 const MENU = '.context-menu'
 const ITEM = '.context-menu-item'
@@ -65,7 +76,84 @@ function restoreFocus(menu: Element): void {
   }
 }
 
+// ── Dragging from the keyboard ──
+
+let held: { source: HTMLElement; data: DataTransfer; name: string } | null = null
+let liveRegion: HTMLElement | null = null
+
+function announce(message: string): void {
+  if (!liveRegion || !liveRegion.isConnected) {
+    liveRegion = document.createElement('div')
+    liveRegion.setAttribute('aria-live', 'assertive')
+    liveRegion.style.cssText = 'position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0'
+    document.body.appendChild(liveRegion)
+  }
+  // Re-set so the same words are said again.
+  liveRegion.textContent = ''
+  requestAnimationFrame(() => { if (liveRegion) liveRegion.textContent = message })
+}
+
+/** Typing or text being copied: the keys are theirs. */
+function inText(el: Element | null): boolean {
+  if (!el) return false
+  if (el.closest('input, textarea, select, [contenteditable="true"], [contenteditable=""]')) return true
+  const sel = window.getSelection()
+  return !!sel && !sel.isCollapsed && sel.toString().trim() !== '' && !(el as HTMLElement).closest('.text-document')
+}
+
+function nameOf(el: HTMLElement): string {
+  const label = el.getAttribute('aria-label') || el.innerText || el.textContent || ''
+  return label.split('\n').map((l) => l.trim()).find(Boolean)?.slice(0, 60) ?? ''
+}
+
+function dragEvent(type: string, target: HTMLElement, data: DataTransfer): boolean {
+  const r = target.getBoundingClientRect()
+  // At the middle, where a row takes a drop into itself rather than
+  // beside it.
+  return target.dispatchEvent(new DragEvent(type, {
+    bubbles: true, cancelable: true, dataTransfer: data,
+    clientX: r.left + r.width / 2, clientY: r.top + r.height / 2
+  }))
+}
+
+/** Cmd/Ctrl+C: pick up what has focus, if it can be dragged. */
+function pickUp(e: Event): boolean {
+  const active = document.activeElement as HTMLElement | null
+  if (!active || inText(active)) return false
+  const source = active.closest<HTMLElement>('[draggable="true"]')
+  if (!source) return false
+  const data = new DataTransfer()
+  dragEvent('dragstart', source, data)
+  if (data.types.length === 0) return false
+  e.preventDefault()
+  held = { source, data, name: nameOf(source) }
+  announce(i18n.t('keys.pickedUp', { name: held.name, paste: isMac ? '⌘V' : 'Ctrl+V' }))
+  return true
+}
+
+/** Cmd/Ctrl+V: put it on what has focus. */
+function putDown(e: Event): boolean {
+  const target = document.activeElement as HTMLElement | null
+  if (!held || !target || target === document.body || target.closest('input, textarea, select, [contenteditable="true"]')) return false
+  e.preventDefault()
+  const { source, data, name } = held
+  dragEvent('dragenter', target, data)
+  dragEvent('dragover', target, data)
+  const accepted = !dragEvent('drop', target, data)
+  if (source.isConnected) dragEvent('dragend', source, data)
+  held = null
+  announce(i18n.t(accepted ? 'keys.put' : 'keys.cantPut', { name }))
+  return true
+}
+
 function onKeyDown(e: KeyboardEvent): void {
+  const mod = isMac ? e.metaKey && !e.ctrlKey : e.ctrlKey && !e.metaKey
+  if (mod && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'c' && pickUp(e)) return
+  if (mod && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'v' && putDown(e)) return
+  if (e.key === 'Escape' && held && !document.activeElement?.closest(MENU)) {
+    held = null
+    announce(i18n.t('keys.cancelled'))
+  }
   // Open the focused thing's menu, as a right-click would.
   if ((e.key === 'F10' && e.shiftKey) || e.key === 'ContextMenu') {
     const target = document.activeElement as HTMLElement | null
@@ -129,6 +217,10 @@ function install(): void {
   if ((window as { __keyboardAccess?: boolean }).__keyboardAccess) return
   ;(window as { __keyboardAccess?: boolean }).__keyboardAccess = true
   document.addEventListener('keydown', onKeyDown, true)
+  // The Edit menu's Copy and Paste (when it takes the keys first, as macOS
+  // menus do while they're enabled) arrive as these instead.
+  document.addEventListener('copy', (e) => { pickUp(e) }, true)
+  document.addEventListener('paste', (e) => { putDown(e) }, true)
   document.addEventListener('mouseover', onMouseOver, true)
   new MutationObserver((records) => {
     for (const r of records) {

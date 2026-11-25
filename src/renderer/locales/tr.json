@@ -2033,5 +2033,11 @@
     "extraTranscripts_one": "Kayıtların ek dökümleri (yalnızca ilki tutulur): {{count}}",
     "extraTranscripts_other": "Kayıtların ek dökümleri (yalnızca ilki tutulur): {{count}}",
     "advice": "Dosyada henüz hiçbir şey değişmedi, ancak Magnolia projeyi dosyanın üzerine kaydettiğinde bunlar dosyadan kaybolacak. Orijinali olduğu gibi tutmak için projeyi şimdi yeni bir dosya olarak kaydedin."
+  },
+  "keys": {
+    "pickedUp": "{{name}} alındı. Ait olduğu yere gidin ve oraya koymak için {{paste}} tuşuna, iptal etmek için Escape tuşuna basın.",
+    "put": "{{name}} oraya kondu.",
+    "cantPut": "{{name}} oraya konamaz.",
+    "cancelled": "Bırakıldı."
   }
 }

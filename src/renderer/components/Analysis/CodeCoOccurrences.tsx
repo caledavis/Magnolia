@@ -20,7 +20,7 @@ import { formatNumber } from '../../i18n'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
 import type { CellScope } from '../../utils/narrow-query'
 import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
-import { keyActivate } from '../../utils/key-activate'
+import { keyActivate, dropZone } from '../../utils/key-activate'
 
 interface Props {
   data: AnalysisInitData
@@ -62,6 +62,7 @@ function CodeDropZone({ label, onDrop: onDropCodes, existingGuids }: {
       style={{ ...dropZoneStyle, ...(over ? dropZoneActiveStyle : {}), flex: 1 }}
       onDragOver={(e) => { if (isCodeDrag(e)) { e.preventDefault(); setOver(true) } }}
       onDragLeave={() => setOver(false)}
+      {...dropZone(label)}
       onDrop={(e) => {
         e.preventDefault()
         e.stopPropagation()
@@ -336,6 +337,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
         <div
           className="analysis-section"
           onDragOver={(e) => { if (isCodeDrag(e)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy' } }}
+          {...dropZone(t('analysis.results'))}
           onDrop={handleGridDrop}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>

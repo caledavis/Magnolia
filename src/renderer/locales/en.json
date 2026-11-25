@@ -2033,5 +2033,11 @@
     "extraTranscripts_one": "{{count}} extra transcript of a recording (only a recording’s first is kept)",
     "extraTranscripts_other": "{{count}} extra transcripts of recordings (only each recording’s first is kept)",
     "advice": "Nothing has changed in the file yet, but once Magnolia saves the project over it, these will be gone from it. To keep the original as it is, save the project as a new file now."
+  },
+  "keys": {
+    "pickedUp": "Picked up {{name}}. Go to where it belongs and press {{paste}} to put it there, or Escape to cancel.",
+    "put": "Put {{name}} there.",
+    "cantPut": "{{name}} can’t go there.",
+    "cancelled": "Put down."
   }
 }

@@ -2118,5 +2118,11 @@
     "extraTranscripts_one": "Transcrições extra de gravações (só a primeira se mantém): {{count}}",
     "extraTranscripts_other": "Transcrições extra de gravações (só a primeira se mantém): {{count}}",
     "advice": "Ainda nada mudou no ficheiro, mas quando o Magnolia guardar o projeto por cima dele, isto perde-se. Para manter o original como está, guarde agora o projeto como um ficheiro novo."
+  },
+  "keys": {
+    "pickedUp": "{{name}} apanhado. Vá até onde deve ficar e prima {{paste}} para o colocar lá, ou Escape para cancelar.",
+    "put": "{{name}} colocado ali.",
+    "cantPut": "{{name}} não pode ir para ali.",
+    "cancelled": "Largado."
   }
 }

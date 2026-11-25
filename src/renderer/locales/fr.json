@@ -2118,5 +2118,11 @@
     "extraTranscripts_one": "Transcriptions supplémentaires d’enregistrements (seule la première est gardée) : {{count}}",
     "extraTranscripts_other": "Transcriptions supplémentaires d’enregistrements (seule la première est gardée) : {{count}}",
     "advice": "Rien n’a encore changé dans le fichier, mais dès que Magnolia enregistrera le projet par-dessus, ces éléments en disparaîtront. Pour garder l’original tel quel, enregistrez maintenant le projet dans un nouveau fichier."
+  },
+  "keys": {
+    "pickedUp": "{{name}} pris. Allez là où il doit aller et appuyez sur {{paste}} pour l’y mettre, ou sur Échap pour annuler.",
+    "put": "{{name}} mis là.",
+    "cantPut": "{{name}} ne peut pas aller là.",
+    "cancelled": "Reposé."
   }
 }

@@ -2033,5 +2033,11 @@
     "extraTranscripts_one": "Weitere Transkripte von Aufnahmen (nur das erste bleibt): {{count}}",
     "extraTranscripts_other": "Weitere Transkripte von Aufnahmen (nur das erste bleibt): {{count}}",
     "advice": "In der Datei hat sich noch nichts geändert, aber sobald Magnolia das Projekt darüber speichert, fehlen sie darin. Um das Original unverändert zu behalten, speichern Sie das Projekt jetzt als neue Datei."
+  },
+  "keys": {
+    "pickedUp": "{{name}} aufgenommen. Gehen Sie dorthin, wo es hingehört, und drücken Sie {{paste}}, um es dort abzulegen, oder Escape zum Abbrechen.",
+    "put": "{{name}} dort abgelegt.",
+    "cantPut": "{{name}} kann dort nicht hin.",
+    "cancelled": "Abgelegt."
   }
 }

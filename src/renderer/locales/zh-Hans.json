@@ -1948,5 +1948,11 @@
     "setMemos_other": "集合中的备忘录：{{count}}",
     "extraTranscripts_other": "录音的额外转录稿（只保留第一个）：{{count}}",
     "advice": "文件目前还没有任何改变，但一旦 Magnolia 将项目保存覆盖到该文件，这些内容就会从中消失。若要保持原文件不变，请现在将项目另存为新文件。"
+  },
+  "keys": {
+    "pickedUp": "已拿起 {{name}}。移到它应在的位置，按 {{paste}} 放在那里，或按 Escape 取消。",
+    "put": "已将 {{name}} 放在那里。",
+    "cantPut": "{{name}} 不能放在那里。",
+    "cancelled": "已放下。"
   }
 }

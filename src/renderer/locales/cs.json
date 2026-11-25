@@ -2203,5 +2203,11 @@
     "extraTranscripts_one": "Další přepisy nahrávek (zůstane jen první): {{count}}",
     "extraTranscripts_other": "Další přepisy nahrávek (zůstane jen první): {{count}}",
     "advice": "V souboru se zatím nic nezměnilo, ale jakmile do něj Magnolia projekt uloží, tyto věci z něj zmizí. Chcete-li zachovat původní soubor beze změny, uložte projekt nyní jako nový soubor."
+  },
+  "keys": {
+    "pickedUp": "{{name}} vzato. Přejděte tam, kam patří, a stiskněte {{paste}}, abyste to tam vložili, nebo Escape pro zrušení.",
+    "put": "{{name}} vloženo sem.",
+    "cantPut": "{{name}} sem nepatří.",
+    "cancelled": "Položeno zpět."
   }
 }

@@ -2118,5 +2118,11 @@
     "extraTranscripts_one": "Transcripcions addicionals d’enregistraments (només es conserva la primera): {{count}}",
     "extraTranscripts_other": "Transcripcions addicionals d’enregistraments (només es conserva la primera): {{count}}",
     "advice": "Encara no ha canviat res al fitxer, però quan el Magnolia hi desi el projecte a sobre, això es perdrà. Per conservar l’original tal com és, deseu ara el projecte com un fitxer nou."
+  },
+  "keys": {
+    "pickedUp": "{{name}} agafat. Aneu on ha d’anar i premeu {{paste}} per posar-lo allà, o Escapada per cancel·lar.",
+    "put": "{{name}} posat allà.",
+    "cantPut": "{{name}} no pot anar allà.",
+    "cancelled": "Deixat."
   }
 }

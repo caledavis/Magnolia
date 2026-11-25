@@ -35,7 +35,7 @@ import { formatNumber } from '../../i18n'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
 import type { CellScope } from '../../utils/narrow-query'
 import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
-import { keyActivate } from '../../utils/key-activate'
+import { keyActivate, dropZone } from '../../utils/key-activate'
 
 interface Props {
   data: AnalysisInitData
@@ -490,6 +490,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
             }
           }}
           onDragLeave={() => setTagDropOver(false)}
+          {...dropZone(t('analysis.groupedBy'))}
           onDrop={handleTagDrop}
         >
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: groupBy.length > 0 ? 8 : 0, position: 'relative', zIndex: 1 }}>
@@ -523,6 +524,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
           style={{ position: 'relative' }}
           onDragOver={(e) => { if (isCodeDrag(e)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; setDropOver(true) } }}
           onDragLeave={() => setDropOver(false)}
+          {...dropZone(t('analysis.results'))}
           onDrop={handleDrop}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, position: 'relative', zIndex: 1 }}>

@@ -137,4 +137,33 @@ async function spec(t) {
       } else key('Escape')
     }
   }
+
+  // ── Dragging, from the keyboard: copy, then paste ──
+  const mac = navigator.platform.startsWith('Mac')
+  const copyKey = () => key('c', mac ? { metaKey: true } : { ctrlKey: true })
+  const pasteKey = () => key('v', mac ? { metaKey: true } : { ctrlKey: true })
+  const tagsStore = (await t.module('stores/tag-store')).useTagStore
+  // A code into an empty Codes in Documents.
+  const empty = tabIds.makeAnalysisTabId('codes-in-documents', 'paste')
+  tabs.getState().add(empty, { toolType: 'codes-in-documents', title: 'CiD', config: {}, poppedOut: false })
+  docs.getState().openToolTab(empty)
+  const zone = await t.until(() => [...document.querySelectorAll('[data-drop-zone][aria-label="Results"]')].find((z) => t.visible(z)), 10000)
+  t.check('an analysis tool’s drop area takes the focus', !!zone)
+  const wellbeing = codes.getState().flatCodes().find((c) => c.name === 'Wellbeing')
+  const codeRow = [...tree('Codes').querySelectorAll('[role="treeitem"]')].find((r) => r.textContent.includes('Wellbeing'))
+  codeRow.focus()
+  copyKey()
+  zone.focus()
+  pasteKey()
+  t.check('copying a code and pasting it on the tool adds it, as a drag would', !!(await t.until(() => tabs.getState().instances[empty]?.config?.codeGuids?.includes(wellbeing.guid) || [...zone.querySelectorAll('th, td')].some((c) => c.textContent.includes('Wellbeing')), 5000)))
+  // A tag onto a document.
+  const tag = tagsStore.getState().tags.find((g) => (g.value ?? g.name) === 'International')
+  const target = docs.getState().sources.find((s) => (s.sourceType ?? 'text') === 'text' && !tag.memberSourceGuids.includes(s.guid))
+  const tagRow = [...tree('Tags').querySelectorAll('[role="treeitem"]')].find((r) => r.textContent.trim().startsWith('International'))
+  const docRow = document.querySelector(`[data-document-guid="${target.guid}"][role="treeitem"]`)
+  tagRow.focus()
+  copyKey()
+  docRow.focus()
+  pasteKey()
+  t.check('copying a tag and pasting it on a document tags it', !!(await t.until(() => tagsStore.getState().tags.find((g) => g.guid === tag.guid)?.memberSourceGuids.includes(target.guid), 5000)))
 }

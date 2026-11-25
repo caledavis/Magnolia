@@ -2033,5 +2033,11 @@
     "extraTranscripts_one": "Tallenteiden lisälitteroinnit (vain ensimmäinen säilyy): {{count}}",
     "extraTranscripts_other": "Tallenteiden lisälitteroinnit (vain ensimmäinen säilyy): {{count}}",
     "advice": "Tiedostoon ei ole vielä muutettu mitään, mutta kun Magnolia tallentaa projektin sen päälle, nämä katoavat siitä. Jos haluat säilyttää alkuperäisen sellaisenaan, tallenna projekti nyt uudeksi tiedostoksi."
+  },
+  "keys": {
+    "pickedUp": "{{name}} poimittu. Siirry paikkaan, johon se kuuluu, ja paina {{paste}} laittaaksesi sen sinne, tai Esc peruuttaaksesi.",
+    "put": "{{name}} laitettu sinne.",
+    "cantPut": "{{name}} ei voi mennä sinne.",
+    "cancelled": "Laskettu pois."
   }
 }

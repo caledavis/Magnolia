@@ -2033,5 +2033,11 @@
     "extraTranscripts_one": "Extra transcripten van opnames (alleen het eerste blijft): {{count}}",
     "extraTranscripts_other": "Extra transcripten van opnames (alleen het eerste blijft): {{count}}",
     "advice": "Er is nog niets aan het bestand veranderd, maar zodra Magnolia het project eroverheen bewaart, zijn deze weg. Wil je het origineel houden zoals het is, bewaar het project dan nu als nieuw bestand."
+  },
+  "keys": {
+    "pickedUp": "{{name}} opgepakt. Ga naar waar het hoort en druk op {{paste}} om het daar neer te zetten, of op Escape om te annuleren.",
+    "put": "{{name}} daar neergezet.",
+    "cantPut": "{{name}} kan daar niet heen.",
+    "cancelled": "Neergelegd."
   }
 }

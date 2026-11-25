@@ -51,7 +51,7 @@ import {
   type AnalysisItemOptions
 } from './report-export'
 import { useTranslation } from 'react-i18next'
-import { keyActivate } from '../../utils/key-activate'
+import { keyActivate, dropZone } from '../../utils/key-activate'
 
 interface Props {
   data: AnalysisInitData
@@ -473,6 +473,7 @@ export function Reports({ savedConfig, inTab }: Props) {
           e.dataTransfer.dropEffect = dropEffectFor(e)
           if (isReorderDrag(e) && draggingIdRef.current) liveReorder(draggingIdRef.current, e.clientY)
         }}
+        {...dropZone(t('reports.canvasHint'))}
         onDrop={(e) => handleDropAt(items.length, e)}
       >
         {items.length === 0 ? (

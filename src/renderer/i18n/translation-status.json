@@ -1766,6 +1766,10 @@
     "notKept.setMemos_other": "{{count}} memos in sets",
     "notKept.extraTranscripts_one": "{{count}} extra transcript of a recording (only a recording’s first is kept)",
     "notKept.extraTranscripts_other": "{{count}} extra transcripts of recordings (only each recording’s first is kept)",
-    "notKept.advice": "Nothing has changed in the file yet, but once Magnolia saves the project over it, these will be gone from it. To keep the original as it is, save the project as a new file now."
+    "notKept.advice": "Nothing has changed in the file yet, but once Magnolia saves the project over it, these will be gone from it. To keep the original as it is, save the project as a new file now.",
+    "keys.pickedUp": "Picked up {{name}}. Go to where it belongs and press {{paste}} to put it there, or Escape to cancel.",
+    "keys.put": "Put {{name}} there.",
+    "keys.cantPut": "{{name}} can’t go there.",
+    "keys.cancelled": "Put down."
   }
 }

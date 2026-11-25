@@ -12,7 +12,7 @@ import { codeSet } from './word-counts'
 import { runQueryLive, useQueryStore } from '../../stores/query-store'
 import { useTranslation } from 'react-i18next'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
-import { keyActivate } from '../../utils/key-activate'
+import { keyActivate, dropZone } from '../../utils/key-activate'
 
 /** What the words are counted in: whole documents, the passages coded
  *  with the chosen codes, or the results of the chosen saved queries
@@ -147,6 +147,7 @@ function DropSection({ title, hint, accepts, onDrop, children }: {
         }
       }}
       onDragLeave={() => setDropOver(false)}
+      {...dropZone(title)}
       onDrop={(e) => {
         e.preventDefault()
         setDropOver(false)

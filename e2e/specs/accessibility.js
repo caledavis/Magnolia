@@ -18,6 +18,9 @@ async function spec(t) {
   still.textContent = '*, *::before, *::after { transition: none !important; animation: none !important; }'
   document.head.appendChild(still)
 
+  // A small window, as on the build machines: more panes overflow and scroll.
+  await t.call('automation_set_size', { width: 1100, height: 720 })
+  await t.sleep(800)
   const docs = (await t.module('stores/document-store')).useDocumentStore
   const tabs = (await t.module('stores/analysis-tabs-store')).useAnalysisTabsStore
   const codes = (await t.module('stores/code-store')).useCodeStore
@@ -72,5 +75,5 @@ async function spec(t) {
     t.log('    in ' + [...e.where].slice(0, 8).join('; '))
     for (const s of e.samples) t.log('    ' + s)
   }
-  t.check('no accessibility violations axe can find, in any theme', rules.length === 0, rules.map(([id, e]) => `${id} ×${e.count}`).join(', '))
+  t.check('no accessibility violations axe can find, in any theme', rules.length === 0, rules.map(([id, e]) => `${id} ×${e.count}: ${e.samples.slice(0, 3).join(' | ')}`).join(' || ').slice(0, 1500))
 }

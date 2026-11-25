@@ -2203,5 +2203,11 @@
     "extraTranscripts_one": "Papildomos įrašų transkripcijos (išlieka tik pirmoji): {{count}}",
     "extraTranscripts_other": "Papildomos įrašų transkripcijos (išlieka tik pirmoji): {{count}}",
     "advice": "Faile dar niekas nepasikeitė, bet kai Magnolia įrašys projektą ant jo, šių dalykų jame nebeliks. Jei norite išsaugoti originalą tokį, koks yra, dabar įrašykite projektą kaip naują failą."
+  },
+  "keys": {
+    "pickedUp": "{{name}} paimta. Eikite ten, kur tai priklauso, ir paspauskite {{paste}}, kad padėtumėte, arba Escape, kad atšauktumėte.",
+    "put": "{{name}} padėta ten.",
+    "cantPut": "{{name}} negali būti ten.",
+    "cancelled": "Padėta atgal."
   }
 }

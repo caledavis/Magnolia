@@ -2033,5 +2033,11 @@
     "extraTranscripts_one": "Ekstra transkripsjoner av opptak (bare den første beholdes): {{count}}",
     "extraTranscripts_other": "Ekstra transkripsjoner av opptak (bare den første beholdes): {{count}}",
     "advice": "Ingenting er endret i filen ennå, men når Magnolia lagrer prosjektet over den, forsvinner disse fra den. Lagre prosjektet som en ny fil nå for å beholde originalen som den er."
+  },
+  "keys": {
+    "pickedUp": "{{name}} plukket opp. Gå dit det hører hjemme, og trykk {{paste}} for å legge det der, eller Escape for å avbryte.",
+    "put": "{{name}} lagt der.",
+    "cantPut": "{{name}} kan ikke være der.",
+    "cancelled": "Lagt fra deg."
   }
 }

@@ -40,12 +40,16 @@ export function useTreeKeyboard(label: string): {
     if (!tree) return
     const rows = rowsOf(tree)
     if (rows.length === 0) {
-      tree.removeAttribute('role')
-      tree.removeAttribute('aria-label')
+      // Empty: a named region the keyboard can still reach (to scroll it,
+      // or to hear that it's empty).
+      tree.setAttribute('role', 'region')
+      tree.setAttribute('aria-label', label)
+      tree.tabIndex = 0
       return
     }
     tree.setAttribute('role', 'tree')
     tree.setAttribute('aria-label', label)
+    tree.removeAttribute('tabindex')
     const focused = rows.find((r) => r === document.activeElement)
     const current = focused ?? rows.find((r) => r.tabIndex === 0) ?? rows.find((r) => r.getAttribute('aria-selected') === 'true') ?? rows[0]
     for (const r of tree.querySelectorAll<HTMLElement>(ROW)) r.tabIndex = r === current ? 0 : -1

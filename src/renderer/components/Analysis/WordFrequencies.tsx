@@ -45,6 +45,7 @@ import { useTranslation } from 'react-i18next'
 import { formatNumber, currentLanguage } from '../../i18n'
 import type { CellScope } from '../../utils/narrow-query'
 import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
+import { dropZone } from '../../utils/key-activate'
 
 interface Props {
   data: AnalysisInitData
@@ -604,6 +605,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
               }
             }}
             onDragLeave={() => setTagDropOver(false)}
+            {...dropZone(t('analysis.groupedBy'))}
             onDrop={handleTagDrop}
           >
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: groupBy.length > 0 ? 8 : 0, position: 'relative', zIndex: 1 }}>

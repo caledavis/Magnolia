@@ -30,7 +30,7 @@ import { useTranslation } from 'react-i18next'
 import { formatPercent } from '../../i18n'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
 import type { CellScope } from '../../utils/narrow-query'
-import { keyActivate } from '../../utils/key-activate'
+import { keyActivate, dropZone } from '../../utils/key-activate'
 
 interface Props {
   data: AnalysisInitData
@@ -540,6 +540,7 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
             }
           }}
           onDragLeave={() => setTagDropOver(false)}
+          {...dropZone(t('analysis.groupedBy'))}
           onDrop={handleTagDrop}
         >
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: groupBy.length > 0 ? 8 : 0, position: 'relative', zIndex: 1 }}>
@@ -578,6 +579,7 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
             }
           }}
           onDragLeave={() => setDropOver(false)}
+          {...dropZone(t('analysis.results'))}
           onDrop={handleDrop}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, position: 'relative', zIndex: 1 }}>

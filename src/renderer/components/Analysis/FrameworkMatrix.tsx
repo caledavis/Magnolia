@@ -66,7 +66,7 @@ import { useAnalysisTabsStore } from '../../stores/analysis-tabs-store'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
-import { keyActivate } from '../../utils/key-activate'
+import { keyActivate, dropZone } from '../../utils/key-activate'
 
 interface Props {
   data: AnalysisInitData
@@ -582,6 +582,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
         onDragLeave={(e) => {
           if (!e.currentTarget.contains(e.relatedTarget as Node)) setDropOver(false)
         }}
+        {...dropZone(t('framework.dropHint'))}
         onDrop={(e) => {
           if (e.dataTransfer.types.includes(REORDER_MIME)) {
             e.preventDefault()

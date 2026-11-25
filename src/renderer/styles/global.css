@@ -2732,3 +2732,7 @@ textarea {
 /* In a selected row, muted text (a count, a date) takes the secondary
  * colour: on the selection's tint the muted one falls below 4.5:1. */
 [aria-selected="true"], [aria-current="page"] { --text-muted: var(--text-secondary); }
+
+/* An area that takes drops, the keyboard on it (utils/key-activate.ts). */
+[data-drop-zone]:focus { outline: none; }
+[data-drop-zone]:focus-visible { outline: 2px dashed var(--accent); outline-offset: -2px; }

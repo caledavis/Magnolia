@@ -80,7 +80,7 @@ import {
   exportRows,
   type IntercoderSnapshot
 } from './intercoder-tables'
-import { keyActivate } from '../../../utils/key-activate'
+import { keyActivate, dropZone } from '../../../utils/key-activate'
 
 export interface IntercoderConfig {
   /** Coders' project files in order; OPEN_PROJECT_ID for the open one. */
@@ -724,6 +724,7 @@ function Pane({ title, step, actions, children, dropOver, onDragOver, onDragLeav
     <div
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
+      {...dropZone(title)}
       onDrop={onDrop}
       style={{
         position: 'relative', display: 'flex', flexDirection: 'column', minHeight: 0,

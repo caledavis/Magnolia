@@ -11,7 +11,7 @@ import { DocumentSelector, type DocumentFilterState } from '../DocumentSelector/
 import { documentsSummary } from './documents-filter'
 import { mayBeSurveyEntityDrag, parseSurveyEntityDrop, withSurveyEntity } from '../DocumentSelector/SurveyScope'
 import { useTranslation } from 'react-i18next'
-import { keyActivate } from '../../utils/key-activate'
+import { keyActivate, dropZone } from '../../utils/key-activate'
 
 export function DocumentsSection({ data, filter, onChange, filteredSourceGuids }: {
   data: AnalysisInitData
@@ -41,6 +41,7 @@ export function DocumentsSection({ data, filter, onChange, filteredSourceGuids }
           e.dataTransfer.dropEffect = 'copy'
         }
       }}
+      {...dropZone(t('analysis.fromDocuments'))}
       onDrop={handleDrop}
     >
       <div {...keyActivate({ expanded: open })} onClick={() => setOpen(!open)} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>

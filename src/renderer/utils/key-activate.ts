@@ -41,3 +41,13 @@ export function keyActivate(opts: {
   if (opts.checked !== undefined) props['aria-checked'] = opts.checked
   return props
 }
+
+/**
+ * For an area that takes drops (an analysis tool's "drag codes here"):
+ * focusable and named, so the keyboard's paste (utils/keyboard-access.ts:
+ * Cmd/Ctrl+C on a code, Cmd/Ctrl+V here) can reach it even while it's
+ * empty. A focused one shows a ring (global.css, [data-drop-zone]).
+ */
+export function dropZone(label: string): Record<string, unknown> {
+  return { tabIndex: 0, role: 'group', 'aria-label': label, 'data-drop-zone': '' }
+}

@@ -33,7 +33,8 @@ import { useTranslation } from 'react-i18next'
 import { formatPercent, t as tr } from '../../i18n'
 import { draggedCodeGuids } from '../../utils/code-drag'
 import type { CellScope } from '../../utils/narrow-query'
-import { keyActivate } from '../../utils/key-activate'
+import { keyActivate, dropZone } from '../../utils/key-activate'
+import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
 
 interface Props {
   data: AnalysisInitData
@@ -70,6 +71,7 @@ const SERIES_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#
 
 export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
   const { t } = useTranslation()
+  const tableKeys = useGridKeyboard(t('tools.codeFrequencies.label'))
   const [docFilter, setDocFilter] = useState<DocumentFilterState>(documentFilterFromConfig(savedConfig))
   const [codeGuids, setCodeGuids] = useState<string[]>(savedConfig?.codeGuids ?? [])
   const [groupBy, setGroupBy] = useState<GroupByEntry[]>(
@@ -452,6 +454,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
             }
           }}
           onDragLeave={() => setTagDropOver(false)}
+          {...dropZone(t('analysis.groupedBy'))}
           onDrop={handleTagDrop}
         >
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: groupBy.length > 0 ? 8 : 0, position: 'relative', zIndex: 1 }}>
@@ -491,6 +494,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
             }
           }}
           onDragLeave={() => setDropOver(false)}
+          {...dropZone(t('analysis.results'))}
           onDrop={(e) => { setDropOver(false); handleDrop(e) }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, position: 'relative', zIndex: 1 }}>
@@ -561,7 +565,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }} tabIndex={0} role="region" aria-label={t('tools.codeFrequencies.label')}>
-              <table style={{ borderCollapse: 'collapse', fontSize: 11 }}>
+              <table {...tableKeys} style={{ borderCollapse: 'collapse', fontSize: 11 }}>
                 <thead>
                   {hasGroupedHeader && (
                     <tr>
@@ -622,13 +626,14 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                         return (
                           <td
                             key={col.id}
+                            {...gridCell()}
                             style={{
                               padding: '4px 6px',
                               borderBottom: '1px solid var(--border-color)',
                               background: inBand[j] ? BAND_TINT : undefined,
                               textAlign: 'center',
+                              // A zero is muted, still readable (WCAG AA).
                               color: val === 0 ? 'var(--text-muted)' : undefined,
-                              opacity: val === 0 ? 0.4 : 1,
                               cursor: val > 0 ? 'pointer' : undefined
                             }}
                             onClick={() => {
