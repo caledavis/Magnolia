@@ -918,7 +918,9 @@
     "tryAgain": "Tentar novamente",
     "saveAs": "Guardar como…",
     "saving": "A guardar…",
-    "lockedBy": "{{name}} tem agora o controlo do projeto."
+    "lockedBy": "{{name}} tem agora o controlo do projeto.",
+    "pill": "Não guardado",
+    "pillTitle": "Não foi possível guardar o projeto, por isso as suas últimas alterações não estão guardadas. Clique para ver detalhes."
   },
   "memoEdit": {
     "deleteConfirm": "Eliminar o memo «{{title}}»? Não é possível anular.",
@@ -2116,7 +2118,9 @@
   "newerFormat": {
     "title": "Aberto só para leitura",
     "text": "Este projeto foi guardado por uma versão mais recente do Magnolia ({{savedBy}}). Pode consultá-lo aqui, mas as alterações não serão guardadas, para que nada do que a versão mais recente acrescentou se perca. Atualize o Magnolia para trabalhar nele.",
-    "cantSave": "Este projeto foi guardado por uma versão mais recente do Magnolia ({{savedBy}}), pelo que esta versão não o pode guardar nem guardar uma cópia dele. Atualize o Magnolia para trabalhar nele."
+    "cantSave": "Este projeto foi guardado por uma versão mais recente do Magnolia ({{savedBy}}), pelo que esta versão não o pode guardar nem guardar uma cópia dele. Atualize o Magnolia para trabalhar nele.",
+    "pill": "Só de leitura",
+    "pillTitle": "Uma versão mais recente do Magnolia guardou este projeto, por isso as alterações não podem ser guardadas. Clique para ver detalhes."
   },
   "notKept": {
     "title": "Parte deste projeto não pode ser mantida no Magnolia",
@@ -2148,7 +2152,9 @@
     "extraTranscripts_many": "Transcrições extra de gravações (só a primeira se mantém): {{count}}",
     "extraTranscripts_one": "Transcrições extra de gravações (só a primeira se mantém): {{count}}",
     "extraTranscripts_other": "Transcrições extra de gravações (só a primeira se mantém): {{count}}",
-    "advice": "Ainda nada mudou no ficheiro, mas quando o Magnolia guardar o projeto por cima dele, isto perde-se. Para manter o original como está, guarde agora o projeto como um ficheiro novo."
+    "advice": "Ainda nada mudou no ficheiro, mas quando o Magnolia guardar o projeto por cima dele, isto perde-se. Para manter o original como está, guarde agora o projeto como um ficheiro novo.",
+    "pill": "Nem tudo é mantido",
+    "pillTitle": "Este ficheiro contém coisas que o Magnolia não pode manter: guardar por cima deixa-as de fora. Clique para ver detalhes."
   },
   "keys": {
     "pickedUp": "{{name}} apanhado. Vá até onde deve ficar e prima {{paste}} para o colocar lá, ou Escape para cancelar.",

@@ -918,7 +918,9 @@
     "tryAgain": "Réessayer",
     "saveAs": "Enregistrer sous…",
     "saving": "Enregistrement…",
-    "lockedBy": "{{name}} a désormais le contrôle du projet."
+    "lockedBy": "{{name}} a désormais le contrôle du projet.",
+    "pill": "Non enregistré",
+    "pillTitle": "L’enregistrement du projet a échoué : vos dernières modifications ne sont pas enregistrées. Cliquez pour en savoir plus."
   },
   "memoEdit": {
     "deleteConfirm": "Supprimer le mémo « {{title}} » ? Cette action est irréversible.",
@@ -2116,7 +2118,9 @@
   "newerFormat": {
     "title": "Ouvert en lecture seule",
     "text": "Ce projet a été enregistré par une version plus récente de Magnolia ({{savedBy}}). Vous pouvez le consulter ici, mais vos modifications ne seront pas enregistrées, afin que rien de ce que la version plus récente a ajouté ne soit perdu. Mettez Magnolia à jour pour travailler sur ce projet.",
-    "cantSave": "Ce projet a été enregistré par une version plus récente de Magnolia ({{savedBy}}) : cette version ne peut donc ni l’enregistrer ni en enregistrer une copie. Mettez Magnolia à jour pour travailler sur ce projet."
+    "cantSave": "Ce projet a été enregistré par une version plus récente de Magnolia ({{savedBy}}) : cette version ne peut donc ni l’enregistrer ni en enregistrer une copie. Mettez Magnolia à jour pour travailler sur ce projet.",
+    "pill": "Lecture seule",
+    "pillTitle": "Une version plus récente de Magnolia a enregistré ce projet : les modifications ne peuvent pas être enregistrées. Cliquez pour en savoir plus."
   },
   "notKept": {
     "title": "Une partie de ce projet ne peut pas être conservée dans Magnolia",
@@ -2148,7 +2152,9 @@
     "extraTranscripts_many": "Transcriptions supplémentaires d’enregistrements (seule la première est gardée) : {{count}}",
     "extraTranscripts_one": "Transcriptions supplémentaires d’enregistrements (seule la première est gardée) : {{count}}",
     "extraTranscripts_other": "Transcriptions supplémentaires d’enregistrements (seule la première est gardée) : {{count}}",
-    "advice": "Rien n’a encore changé dans le fichier, mais dès que Magnolia enregistrera le projet par-dessus, ces éléments en disparaîtront. Pour garder l’original tel quel, enregistrez maintenant le projet dans un nouveau fichier."
+    "advice": "Rien n’a encore changé dans le fichier, mais dès que Magnolia enregistrera le projet par-dessus, ces éléments en disparaîtront. Pour garder l’original tel quel, enregistrez maintenant le projet dans un nouveau fichier.",
+    "pill": "Pas tout conservé",
+    "pillTitle": "Ce fichier contient des éléments que Magnolia ne peut pas conserver : les enregistrer par-dessus les supprime. Cliquez pour en savoir plus."
   },
   "keys": {
     "pickedUp": "{{name}} pris. Allez là où il doit aller et appuyez sur {{paste}} pour l’y mettre, ou sur Échap pour annuler.",

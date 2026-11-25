@@ -860,7 +860,9 @@
     "tryAgain": "重试",
     "saveAs": "另存为…",
     "saving": "正在保存…",
-    "lockedBy": "{{name}} 现在控制此项目。"
+    "lockedBy": "{{name}} 现在控制此项目。",
+    "pill": "未保存",
+    "pillTitle": "项目保存失败，您最近的更改尚未保存。点击查看详情。"
   },
   "memoEdit": {
     "deleteConfirm": "删除备忘录“{{title}}”？此操作无法撤销。",
@@ -1964,7 +1966,9 @@
   "newerFormat": {
     "title": "已以只读方式打开",
     "text": "此项目由较新版本的 Magnolia（{{savedBy}}）保存。您可以在这里浏览，但更改不会被保存，以免丢失新版本添加的任何内容。请更新 Magnolia 后再处理此项目。",
-    "cantSave": "此项目由较新版本的 Magnolia（{{savedBy}}）保存，因此此版本无法保存它，也无法保存它的副本。请更新 Magnolia 后再处理此项目。"
+    "cantSave": "此项目由较新版本的 Magnolia（{{savedBy}}）保存，因此此版本无法保存它，也无法保存它的副本。请更新 Magnolia 后再处理此项目。",
+    "pill": "只读",
+    "pillTitle": "此项目由更新版本的 Magnolia 保存，因此无法保存更改。点击查看详情。"
   },
   "notKept": {
     "title": "此项目的部分内容无法保留在 Magnolia 中",
@@ -1978,7 +1982,9 @@
     "caseLinks_other": "从个案到代码或段落的链接：{{count}}",
     "setMemos_other": "集合中的备忘录：{{count}}",
     "extraTranscripts_other": "录音的额外转录稿（只保留第一个）：{{count}}",
-    "advice": "文件目前还没有任何改变，但一旦 Magnolia 将项目保存覆盖到该文件，这些内容就会从中消失。若要保持原文件不变，请现在将项目另存为新文件。"
+    "advice": "文件目前还没有任何改变，但一旦 Magnolia 将项目保存覆盖到该文件，这些内容就会从中消失。若要保持原文件不变，请现在将项目另存为新文件。",
+    "pill": "未全部保留",
+    "pillTitle": "此文件包含 Magnolia 无法保留的内容：覆盖保存会丢失这些内容。点击查看详情。"
   },
   "keys": {
     "pickedUp": "已拿起 {{name}}。移到它应在的位置，按 {{paste}} 放在那里，或按 Escape 取消。",

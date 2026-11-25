@@ -889,7 +889,9 @@
     "tryAgain": "Prøv igen",
     "saveAs": "Gem som…",
     "saving": "Gemmer…",
-    "lockedBy": "{{name}} har nu kontrollen over projektet."
+    "lockedBy": "{{name}} har nu kontrollen over projektet.",
+    "pill": "Ikke gemt",
+    "pillTitle": "Projektet kunne ikke gemmes, så dine seneste ændringer er ikke gemt. Klik for detaljer."
   },
   "memoEdit": {
     "deleteConfirm": "Slet memoet »{{title}}«? Det kan ikke fortrydes.",
@@ -2040,7 +2042,9 @@
   "newerFormat": {
     "title": "Åbnet skrivebeskyttet",
     "text": "Dette projekt er gemt med en nyere version af Magnolia ({{savedBy}}). Du kan se det her, men ændringer bliver ikke gemt, så intet af det, den nyere version har tilføjet, går tabt. Opdater Magnolia for at arbejde med det.",
-    "cantSave": "Dette projekt er gemt med en nyere version af Magnolia ({{savedBy}}), så denne version kan hverken gemme det eller gemme en kopi af det. Opdater Magnolia for at arbejde med det."
+    "cantSave": "Dette projekt er gemt med en nyere version af Magnolia ({{savedBy}}), så denne version kan hverken gemme det eller gemme en kopi af det. Opdater Magnolia for at arbejde med det.",
+    "pill": "Skrivebeskyttet",
+    "pillTitle": "En nyere Magnolia har gemt dette projekt, så ændringer kan ikke gemmes. Klik for detaljer."
   },
   "notKept": {
     "title": "Noget af dette projekt kan ikke bevares i Magnolia",
@@ -2063,7 +2067,9 @@
     "setMemos_other": "Memoer i sæt: {{count}}",
     "extraTranscripts_one": "Ekstra transskriptioner af optagelser (kun den første bevares): {{count}}",
     "extraTranscripts_other": "Ekstra transskriptioner af optagelser (kun den første bevares): {{count}}",
-    "advice": "Intet er ændret i filen endnu, men når Magnolia gemmer projektet oven i den, forsvinder disse fra den. Gem projektet som en ny fil nu for at beholde originalen, som den er."
+    "advice": "Intet er ændret i filen endnu, men når Magnolia gemmer projektet oven i den, forsvinder disse fra den. Gem projektet som en ny fil nu for at beholde originalen, som den er.",
+    "pill": "Ikke alt bevares",
+    "pillTitle": "Filen indeholder ting, Magnolia ikke kan bevare: gemmer du oven i den, forsvinder de. Klik for detaljer."
   },
   "keys": {
     "pickedUp": "{{name}} samlet op. Gå derhen, hvor det hører hjemme, og tryk {{paste}} for at lægge det der, eller Escape for at annullere.",

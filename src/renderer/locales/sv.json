@@ -889,7 +889,9 @@
     "tryAgain": "Försök igen",
     "saveAs": "Spara som…",
     "saving": "Sparar…",
-    "lockedBy": "{{name}} har nu kontrollen över projektet."
+    "lockedBy": "{{name}} har nu kontrollen över projektet.",
+    "pill": "Inte sparat",
+    "pillTitle": "Det gick inte att spara projektet, så dina senaste ändringar är inte sparade. Klicka för detaljer."
   },
   "memoEdit": {
     "deleteConfirm": "Radera memot ”{{title}}”? Det går inte att ångra.",
@@ -2040,7 +2042,9 @@
   "newerFormat": {
     "title": "Öppnat skrivskyddat",
     "text": "Det här projektet sparades med en nyare version av Magnolia ({{savedBy}}). Du kan titta igenom det här, men ändringar sparas inte, så att inget av det som den nyare versionen har lagt till går förlorat. Uppdatera Magnolia för att arbeta med det.",
-    "cantSave": "Det här projektet sparades med en nyare version av Magnolia ({{savedBy}}), så den här versionen kan varken spara det eller spara en kopia av det. Uppdatera Magnolia för att arbeta med det."
+    "cantSave": "Det här projektet sparades med en nyare version av Magnolia ({{savedBy}}), så den här versionen kan varken spara det eller spara en kopia av det. Uppdatera Magnolia för att arbeta med det.",
+    "pill": "Skrivskyddat",
+    "pillTitle": "En nyare Magnolia sparade det här projektet, så ändringar kan inte sparas. Klicka för detaljer."
   },
   "notKept": {
     "title": "En del av projektet kan inte behållas i Magnolia",
@@ -2063,7 +2067,9 @@
     "setMemos_other": "Memon i mängder: {{count}}",
     "extraTranscripts_one": "Extra transkriptioner av inspelningar (bara den första behålls): {{count}}",
     "extraTranscripts_other": "Extra transkriptioner av inspelningar (bara den första behålls): {{count}}",
-    "advice": "Inget har ändrats i filen än, men när Magnolia sparar projektet över den försvinner dessa ur den. Spara projektet som en ny fil nu om du vill behålla originalet som det är."
+    "advice": "Inget har ändrats i filen än, men när Magnolia sparar projektet över den försvinner dessa ur den. Spara projektet som en ny fil nu om du vill behålla originalet som det är.",
+    "pill": "Allt behålls inte",
+    "pillTitle": "Filen innehåller saker som Magnolia inte kan behålla: sparar du över den försvinner de. Klicka för detaljer."
   },
   "keys": {
     "pickedUp": "{{name}} har plockats upp. Gå dit det hör hemma och tryck {{paste}} för att lägga det där, eller Escape för att avbryta.",

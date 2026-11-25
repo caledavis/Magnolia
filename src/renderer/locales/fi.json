@@ -889,7 +889,9 @@
     "tryAgain": "Yritä uudelleen",
     "saveAs": "Tallenna nimellä…",
     "saving": "Tallennetaan…",
-    "lockedBy": "{{name}} hallitsee nyt projektia."
+    "lockedBy": "{{name}} hallitsee nyt projektia.",
+    "pill": "Ei tallennettu",
+    "pillTitle": "Projektin tallennus epäonnistui, joten viimeisimmät muutoksesi eivät ole tallessa. Napsauta saadaksesi lisätietoja."
   },
   "memoEdit": {
     "deleteConfirm": "Poistetaanko muistio ”{{title}}”? Toimintoa ei voi kumota.",
@@ -2040,7 +2042,9 @@
   "newerFormat": {
     "title": "Avattu vain luku -tilassa",
     "text": "Tämä projekti on tallennettu Magnolian uudemmalla versiolla ({{savedBy}}). Voit tarkastella sitä täällä, mutta muutoksia ei tallenneta, jotta mitään uudemman version lisäämää ei menetetä. Päivitä Magnolia, jotta voit työskennellä projektin parissa.",
-    "cantSave": "Tämä projekti on tallennettu Magnolian uudemmalla versiolla ({{savedBy}}), joten tämä versio ei voi tallentaa sitä eikä sen kopiota. Päivitä Magnolia, jotta voit työskennellä projektin parissa."
+    "cantSave": "Tämä projekti on tallennettu Magnolian uudemmalla versiolla ({{savedBy}}), joten tämä versio ei voi tallentaa sitä eikä sen kopiota. Päivitä Magnolia, jotta voit työskennellä projektin parissa.",
+    "pill": "Vain luku",
+    "pillTitle": "Uudempi Magnolia tallensi tämän projektin, joten muutoksia ei voi tallentaa. Napsauta saadaksesi lisätietoja."
   },
   "notKept": {
     "title": "Osaa tästä projektista ei voi säilyttää Magnoliassa",
@@ -2063,7 +2067,9 @@
     "setMemos_other": "Muistiot joukoissa: {{count}}",
     "extraTranscripts_one": "Tallenteiden lisälitteroinnit (vain ensimmäinen säilyy): {{count}}",
     "extraTranscripts_other": "Tallenteiden lisälitteroinnit (vain ensimmäinen säilyy): {{count}}",
-    "advice": "Tiedostoon ei ole vielä muutettu mitään, mutta kun Magnolia tallentaa projektin sen päälle, nämä katoavat siitä. Jos haluat säilyttää alkuperäisen sellaisenaan, tallenna projekti nyt uudeksi tiedostoksi."
+    "advice": "Tiedostoon ei ole vielä muutettu mitään, mutta kun Magnolia tallentaa projektin sen päälle, nämä katoavat siitä. Jos haluat säilyttää alkuperäisen sellaisenaan, tallenna projekti nyt uudeksi tiedostoksi.",
+    "pill": "Kaikki ei säily",
+    "pillTitle": "Tiedostossa on asioita, joita Magnolia ei voi säilyttää: sen päälle tallentaminen jättää ne pois. Napsauta saadaksesi lisätietoja."
   },
   "keys": {
     "pickedUp": "{{name}} poimittu. Siirry paikkaan, johon se kuuluu, ja paina {{paste}} laittaaksesi sen sinne, tai Esc peruuttaaksesi.",

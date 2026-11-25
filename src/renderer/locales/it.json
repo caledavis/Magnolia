@@ -918,7 +918,9 @@
     "tryAgain": "Riprova",
     "saveAs": "Salva come…",
     "saving": "Salvataggio…",
-    "lockedBy": "Ora il controllo del progetto ce l’ha {{name}}."
+    "lockedBy": "Ora il controllo del progetto ce l’ha {{name}}.",
+    "pill": "Non salvato",
+    "pillTitle": "Il salvataggio del progetto non è riuscito, quindi le ultime modifiche non sono salvate. Fai clic per i dettagli."
   },
   "memoEdit": {
     "deleteConfirm": "Eliminare il memo «{{title}}»? L’operazione non può essere annullata.",
@@ -2116,7 +2118,9 @@
   "newerFormat": {
     "title": "Aperto in sola lettura",
     "text": "Questo progetto è stato salvato da una versione più recente di Magnolia ({{savedBy}}). Puoi consultarlo qui, ma le modifiche non verranno salvate, così non si perde nulla di ciò che la versione più recente ha aggiunto. Aggiorna Magnolia per lavorarci.",
-    "cantSave": "Questo progetto è stato salvato da una versione più recente di Magnolia ({{savedBy}}), quindi questa versione non può salvarlo né salvarne una copia. Aggiorna Magnolia per lavorarci."
+    "cantSave": "Questo progetto è stato salvato da una versione più recente di Magnolia ({{savedBy}}), quindi questa versione non può salvarlo né salvarne una copia. Aggiorna Magnolia per lavorarci.",
+    "pill": "Sola lettura",
+    "pillTitle": "Una versione più recente di Magnolia ha salvato questo progetto, quindi le modifiche non si possono salvare. Fai clic per i dettagli."
   },
   "notKept": {
     "title": "Parte di questo progetto non può essere conservata in Magnolia",
@@ -2148,7 +2152,9 @@
     "extraTranscripts_many": "Trascrizioni aggiuntive di registrazioni (resta solo la prima): {{count}}",
     "extraTranscripts_one": "Trascrizioni aggiuntive di registrazioni (resta solo la prima): {{count}}",
     "extraTranscripts_other": "Trascrizioni aggiuntive di registrazioni (resta solo la prima): {{count}}",
-    "advice": "Nel file non è ancora cambiato nulla, ma quando Magnolia salverà il progetto sopra di esso, questi elementi andranno persi. Per conservare l’originale così com’è, salva ora il progetto come nuovo file."
+    "advice": "Nel file non è ancora cambiato nulla, ma quando Magnolia salverà il progetto sopra di esso, questi elementi andranno persi. Per conservare l’originale così com’è, salva ora il progetto come nuovo file.",
+    "pill": "Non tutto conservato",
+    "pillTitle": "Questo file contiene elementi che Magnolia non può conservare: salvandoci sopra vanno persi. Fai clic per i dettagli."
   },
   "keys": {
     "pickedUp": "{{name}} preso. Vai dove deve andare e premi {{paste}} per metterlo lì, o Esc per annullare.",

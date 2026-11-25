@@ -918,7 +918,9 @@
     "tryAgain": "Torna-ho a provar",
     "saveAs": "Desa com a…",
     "saving": "S’està desant…",
-    "lockedBy": "Ara {{name}} té el control del projecte."
+    "lockedBy": "Ara {{name}} té el control del projecte.",
+    "pill": "No desat",
+    "pillTitle": "No s’ha pogut desar el projecte, així que els darrers canvis no estan desats. Feu clic per veure’n els detalls."
   },
   "memoEdit": {
     "deleteConfirm": "Voleu suprimir el memo «{{title}}»? No es pot desfer.",
@@ -2116,7 +2118,9 @@
   "newerFormat": {
     "title": "Obert només de lectura",
     "text": "Aquest projecte s’ha desat amb una versió més recent del Magnolia ({{savedBy}}). Podeu consultar-lo aquí, però els canvis no es desaran, perquè no es perdi res del que hi ha afegit la versió més recent. Actualitzeu el Magnolia per treballar-hi.",
-    "cantSave": "Aquest projecte s’ha desat amb una versió més recent del Magnolia ({{savedBy}}), de manera que aquesta versió no el pot desar ni desar-ne una còpia. Actualitzeu el Magnolia per treballar-hi."
+    "cantSave": "Aquest projecte s’ha desat amb una versió més recent del Magnolia ({{savedBy}}), de manera que aquesta versió no el pot desar ni desar-ne una còpia. Actualitzeu el Magnolia per treballar-hi.",
+    "pill": "Només lectura",
+    "pillTitle": "Una versió més nova del Magnolia ha desat aquest projecte, així que els canvis no es poden desar. Feu clic per veure’n els detalls."
   },
   "notKept": {
     "title": "Part d’aquest projecte no es pot conservar al Magnolia",
@@ -2148,7 +2152,9 @@
     "extraTranscripts_many": "Transcripcions addicionals d’enregistraments (només es conserva la primera): {{count}}",
     "extraTranscripts_one": "Transcripcions addicionals d’enregistraments (només es conserva la primera): {{count}}",
     "extraTranscripts_other": "Transcripcions addicionals d’enregistraments (només es conserva la primera): {{count}}",
-    "advice": "Encara no ha canviat res al fitxer, però quan el Magnolia hi desi el projecte a sobre, això es perdrà. Per conservar l’original tal com és, deseu ara el projecte com un fitxer nou."
+    "advice": "Encara no ha canviat res al fitxer, però quan el Magnolia hi desi el projecte a sobre, això es perdrà. Per conservar l’original tal com és, deseu ara el projecte com un fitxer nou.",
+    "pill": "No tot es conserva",
+    "pillTitle": "Aquest fitxer conté coses que el Magnolia no pot conservar: si hi deseu a sobre, es perden. Feu clic per veure’n els detalls."
   },
   "keys": {
     "pickedUp": "{{name}} agafat. Aneu on ha d’anar i premeu {{paste}} per posar-lo allà, o Escapada per cancel·lar.",

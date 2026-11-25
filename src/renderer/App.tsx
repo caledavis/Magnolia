@@ -58,9 +58,10 @@ import { isAnalysisTab, isMapTab, isQueryBuilderTab, isMergeTab, makeAnalysisTab
 import { requestPreferencesCategory } from './components/Preferences/PreferencesWindow'
 import type { PersistedTabState, MissingBinary, CheckoutMarker, ImportState, SaveOutcome, OpenedProject } from './models/types'
 import { MissingBinariesBanner } from './components/MissingBinariesBanner'
-import { SaveFailedBanner } from './components/SaveFailedBanner'
-import { NewerFormatBanner } from './components/NewerFormatBanner'
-import { NotKeptBanner } from './components/NotKeptBanner'
+import { SaveFailedAlert } from './components/SaveFailedAlert'
+import { AlertPill } from './components/AlertDialog'
+import { NewerFormatAlert } from './components/NewerFormatAlert'
+import { NotKeptAlert, notKeptKinds } from './components/NotKeptAlert'
 import { CheckoutConflictDialog } from './components/CheckoutConflictDialog'
 import { StealBackDialog } from './components/StealBackDialog'
 import { NameGateOverlay } from './components/NameGateOverlay'
@@ -214,8 +215,18 @@ function App() {
   // different — see StealBackDialog.
   const [stealBackConflict, setStealBackConflict] = useState<CheckoutMarker | null>(null)
   // Why saving the project last failed, while it keeps failing (shown by
-  // SaveFailedBanner; cleared by the next save that works).
+  // SaveFailedAlert; cleared by the next save that works).
   const [saveFailure, setSaveFailure] = useState<string | null>(null)
+  // Each alert opens when its situation starts; closed, its pill in the
+  // toolbar's corner stays until the situation ends, and reopens it.
+  const [saveFailureOpen, setSaveFailureOpen] = useState(false)
+  const [notKeptOpen, setNotKeptOpen] = useState(false)
+  const hadSaveFailure = useRef(false)
+  useEffect(() => {
+    if (saveFailure && !hadSaveFailure.current) setSaveFailureOpen(true)
+    if (!saveFailure) setSaveFailureOpen(false)
+    hadSaveFailure.current = !!saveFailure
+  }, [saveFailure])
 
   useEffect(() => {
     return window.api.onProjectLoadProgress((p) => setLoadProgress(p))
@@ -782,6 +793,7 @@ function App() {
       setMissingBinaries(data.missingBinaries ?? [])
       useProjectStore.getState().setNewerFormat(data.newerFormat?.savedBy ?? null)
       setNotKept(data.notKept ?? null)
+      setNotKeptOpen(notKeptKinds(data.notKept ?? null).length > 0)
       applyCheckoutInfo(data)
       if (data.filePath) {
         window.api.trackRecentProject(project.name, data.filePath)
@@ -827,7 +839,7 @@ function App() {
       console.warn('[save-project guard] skipping save during project load')
       return { ok: true }
     }
-    // Saved by a newer Magnolia: read-only (NewerFormatBanner says why).
+    // Saved by a newer Magnolia: read-only (NewerFormatAlert says why).
     const newerFormat = useProjectStore.getState().newerFormat
     if (newerFormat) {
       useProjectStore.setState({ newerFormatNotice: true })
@@ -1790,6 +1802,7 @@ function App() {
         setMissingBinaries(data.missingBinaries ?? [])
         useProjectStore.getState().setNewerFormat(data.newerFormat?.savedBy ?? null)
         setNotKept(data.notKept ?? null)
+        setNotKeptOpen(notKeptKinds(data.notKept ?? null).length > 0)
         applyCheckoutInfo(data)
         window.api.trackRecentProject(project.name, filePath)
       } catch (err) {
@@ -2500,6 +2513,19 @@ function App() {
             window controls are the only way to move, resize, or close the
             frameless window (GitHub issue #15). */}
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', height: '100%' }}>
+          {saveFailure && (
+            <AlertPill label={t('saveFailed.pill')} title={t('saveFailed.pillTitle')} onClick={() => setSaveFailureOpen(true)} />
+          )}
+          {projectStore.newerFormat && (
+            <AlertPill
+              label={t('newerFormat.pill')}
+              title={t('newerFormat.pillTitle')}
+              onClick={() => useProjectStore.setState({ newerFormatNotice: true })}
+            />
+          )}
+          {notKeptKinds(notKept ?? null).length > 0 && (
+            <AlertPill label={t('notKept.pill')} title={t('notKept.pillTitle')} onClick={() => setNotKeptOpen(true)} />
+          )}
           <CheckOutButton />
           <WindowControls />
         </div>
@@ -2818,18 +2844,21 @@ function App() {
         )
       })()}
 
-      <NewerFormatBanner />
+      <NewerFormatAlert />
 
-      <NotKeptBanner
+      <NotKeptAlert
         counts={notKept ?? null}
+        open={notKeptOpen}
         onSaveAs={() => handleSaveProjectAs().then((saved) => { if (saved) setNotKept(null) }).catch((err: unknown) => setSaveFailure(errorMessage(err)))}
-        onDismiss={() => setNotKept(null)}
+        onClose={() => setNotKeptOpen(false)}
       />
 
-      <SaveFailedBanner
+      <SaveFailedAlert
         error={saveFailure}
+        open={saveFailureOpen}
         onRetry={() => saveProjectRef.current()}
         onSaveAs={() => handleSaveProjectAs().catch((err: unknown) => setSaveFailure(errorMessage(err)))}
+        onClose={() => setSaveFailureOpen(false)}
       />
 
       <MissingBinariesBanner

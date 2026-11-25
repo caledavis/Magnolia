@@ -889,7 +889,9 @@
     "tryAgain": "Erneut versuchen",
     "saveAs": "Speichern unter …",
     "saving": "Wird gespeichert …",
-    "lockedBy": "{{name}} hat jetzt die Kontrolle über das Projekt."
+    "lockedBy": "{{name}} hat jetzt die Kontrolle über das Projekt.",
+    "pill": "Nicht gesichert",
+    "pillTitle": "Das Sichern des Projekts ist fehlgeschlagen, Ihre letzten Änderungen sind also nicht gesichert. Klicken für Details."
   },
   "memoEdit": {
     "deleteConfirm": "Memo „{{title}}“ löschen? Das kann nicht widerrufen werden.",
@@ -2040,7 +2042,9 @@
   "newerFormat": {
     "title": "Schreibgeschützt geöffnet",
     "text": "Dieses Projekt wurde mit einer neueren Version von Magnolia gespeichert ({{savedBy}}). Sie können es hier ansehen, aber Änderungen werden nicht gespeichert, damit nichts verloren geht, was die neuere Version hinzugefügt hat. Aktualisieren Sie Magnolia, um an dem Projekt zu arbeiten.",
-    "cantSave": "Dieses Projekt wurde mit einer neueren Version von Magnolia gespeichert ({{savedBy}}). Diese Version kann daher weder das Projekt noch eine Kopie davon speichern. Aktualisieren Sie Magnolia, um an dem Projekt zu arbeiten."
+    "cantSave": "Dieses Projekt wurde mit einer neueren Version von Magnolia gespeichert ({{savedBy}}). Diese Version kann daher weder das Projekt noch eine Kopie davon speichern. Aktualisieren Sie Magnolia, um an dem Projekt zu arbeiten.",
+    "pill": "Schreibgeschützt",
+    "pillTitle": "Ein neueres Magnolia hat dieses Projekt gesichert, daher können Änderungen nicht gesichert werden. Klicken für Details."
   },
   "notKept": {
     "title": "Ein Teil dieses Projekts kann in Magnolia nicht erhalten bleiben",
@@ -2063,7 +2067,9 @@
     "setMemos_other": "Memos in Sets: {{count}}",
     "extraTranscripts_one": "Weitere Transkripte von Aufnahmen (nur das erste bleibt): {{count}}",
     "extraTranscripts_other": "Weitere Transkripte von Aufnahmen (nur das erste bleibt): {{count}}",
-    "advice": "In der Datei hat sich noch nichts geändert, aber sobald Magnolia das Projekt darüber speichert, fehlen sie darin. Um das Original unverändert zu behalten, speichern Sie das Projekt jetzt als neue Datei."
+    "advice": "In der Datei hat sich noch nichts geändert, aber sobald Magnolia das Projekt darüber speichert, fehlen sie darin. Um das Original unverändert zu behalten, speichern Sie das Projekt jetzt als neue Datei.",
+    "pill": "Nicht alles bleibt",
+    "pillTitle": "Diese Datei enthält Dinge, die Magnolia nicht behalten kann: Beim Überschreiben fallen sie weg. Klicken für Details."
   },
   "keys": {
     "pickedUp": "{{name}} aufgenommen. Gehen Sie dorthin, wo es hingehört, und drücken Sie {{paste}}, um es dort abzulegen, oder Escape zum Abbrechen.",

@@ -889,7 +889,9 @@
     "tryAgain": "Yeniden dene",
     "saveAs": "Farklı kaydet…",
     "saving": "Kaydediliyor…",
-    "lockedBy": "Projenin denetimi artık {{name}} adlı kişide."
+    "lockedBy": "Projenin denetimi artık {{name}} adlı kişide.",
+    "pill": "Kaydedilmedi",
+    "pillTitle": "Proje kaydedilemedi, bu yüzden son değişiklikleriniz kaydedilmedi. Ayrıntılar için tıklayın."
   },
   "memoEdit": {
     "deleteConfirm": "“{{title}}” memosu silinsin mi? Bu işlem geri alınamaz.",
@@ -2040,7 +2042,9 @@
   "newerFormat": {
     "title": "Salt okunur açıldı",
     "text": "Bu proje Magnolia’nın daha yeni bir sürümüyle kaydedildi ({{savedBy}}). Burada inceleyebilirsiniz, ancak yeni sürümün eklediği hiçbir şey kaybolmasın diye değişiklikler kaydedilmeyecek. Proje üzerinde çalışmak için Magnolia’yı güncelleyin.",
-    "cantSave": "Bu proje Magnolia’nın daha yeni bir sürümüyle kaydedildi ({{savedBy}}), bu yüzden bu sürüm ne projeyi ne de kopyasını kaydedebilir. Proje üzerinde çalışmak için Magnolia’yı güncelleyin."
+    "cantSave": "Bu proje Magnolia’nın daha yeni bir sürümüyle kaydedildi ({{savedBy}}), bu yüzden bu sürüm ne projeyi ne de kopyasını kaydedebilir. Proje üzerinde çalışmak için Magnolia’yı güncelleyin.",
+    "pill": "Salt okunur",
+    "pillTitle": "Bu projeyi daha yeni bir Magnolia kaydetti, bu yüzden değişiklikler kaydedilemez. Ayrıntılar için tıklayın."
   },
   "notKept": {
     "title": "Bu projenin bir kısmı Magnolia’da tutulamıyor",
@@ -2063,7 +2067,9 @@
     "setMemos_other": "Kümelerdeki notlar: {{count}}",
     "extraTranscripts_one": "Kayıtların ek dökümleri (yalnızca ilki tutulur): {{count}}",
     "extraTranscripts_other": "Kayıtların ek dökümleri (yalnızca ilki tutulur): {{count}}",
-    "advice": "Dosyada henüz hiçbir şey değişmedi, ancak Magnolia projeyi dosyanın üzerine kaydettiğinde bunlar dosyadan kaybolacak. Orijinali olduğu gibi tutmak için projeyi şimdi yeni bir dosya olarak kaydedin."
+    "advice": "Dosyada henüz hiçbir şey değişmedi, ancak Magnolia projeyi dosyanın üzerine kaydettiğinde bunlar dosyadan kaybolacak. Orijinali olduğu gibi tutmak için projeyi şimdi yeni bir dosya olarak kaydedin.",
+    "pill": "Hepsi korunmuyor",
+    "pillTitle": "Bu dosya Magnolia'nın koruyamadığı şeyler içeriyor: üzerine kaydetmek onları dışarıda bırakır. Ayrıntılar için tıklayın."
   },
   "keys": {
     "pickedUp": "{{name}} alındı. Ait olduğu yere gidin ve oraya koymak için {{paste}} tuşuna, iptal etmek için Escape tuşuna basın.",

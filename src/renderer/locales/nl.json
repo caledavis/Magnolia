@@ -889,7 +889,9 @@
     "tryAgain": "Probeer opnieuw",
     "saveAs": "Bewaar als…",
     "saving": "Bewaren…",
-    "lockedBy": "{{name}} heeft nu de controle over het project."
+    "lockedBy": "{{name}} heeft nu de controle over het project.",
+    "pill": "Niet bewaard",
+    "pillTitle": "Het bewaren van dit project is mislukt, dus uw laatste wijzigingen zijn niet bewaard. Klik voor details."
   },
   "memoEdit": {
     "deleteConfirm": "Memo \"{{title}}\" verwijderen? Dit kan niet ongedaan worden gemaakt.",
@@ -2040,7 +2042,9 @@
   "newerFormat": {
     "title": "Alleen-lezen geopend",
     "text": "Dit project is bewaard met een nieuwere versie van Magnolia ({{savedBy}}). Je kunt het hier bekijken, maar wijzigingen worden niet bewaard, zodat niets verloren gaat van wat de nieuwere versie heeft toegevoegd. Werk Magnolia bij om aan het project te werken.",
-    "cantSave": "Dit project is bewaard met een nieuwere versie van Magnolia ({{savedBy}}), dus deze versie kan het niet bewaren, en ook geen kopie ervan. Werk Magnolia bij om aan het project te werken."
+    "cantSave": "Dit project is bewaard met een nieuwere versie van Magnolia ({{savedBy}}), dus deze versie kan het niet bewaren, en ook geen kopie ervan. Werk Magnolia bij om aan het project te werken.",
+    "pill": "Alleen-lezen",
+    "pillTitle": "Een nieuwere Magnolia heeft dit project bewaard, dus wijzigingen kunnen niet worden bewaard. Klik voor details."
   },
   "notKept": {
     "title": "Een deel van dit project kan Magnolia niet bewaren",
@@ -2063,7 +2067,9 @@
     "setMemos_other": "Memo’s in sets: {{count}}",
     "extraTranscripts_one": "Extra transcripten van opnames (alleen het eerste blijft): {{count}}",
     "extraTranscripts_other": "Extra transcripten van opnames (alleen het eerste blijft): {{count}}",
-    "advice": "Er is nog niets aan het bestand veranderd, maar zodra Magnolia het project eroverheen bewaart, zijn deze weg. Wil je het origineel houden zoals het is, bewaar het project dan nu als nieuw bestand."
+    "advice": "Er is nog niets aan het bestand veranderd, maar zodra Magnolia het project eroverheen bewaart, zijn deze weg. Wil je het origineel houden zoals het is, bewaar het project dan nu als nieuw bestand.",
+    "pill": "Niet alles behouden",
+    "pillTitle": "Dit bestand bevat dingen die Magnolia niet kan behouden: wie eroverheen bewaart, laat ze weg. Klik voor details."
   },
   "keys": {
     "pickedUp": "{{name}} opgepakt. Ga naar waar het hoort en druk op {{paste}} om het daar neer te zetten, of op Escape om te annuleren.",

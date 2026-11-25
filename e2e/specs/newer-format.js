@@ -9,7 +9,7 @@ async function spec(t) {
   const docs = (await t.module('stores/document-store')).useDocumentStore
 
   t.check('the project knows a newer Magnolia saved it', project.getState().newerFormat === 'Magnolia 9.0.0', project.getState().newerFormat)
-  const banner = () => [...document.querySelectorAll('[role="alert"]')].find((e) => /Opened read-only/.test(e.innerText))
+  const banner = () => [...document.querySelectorAll('[role="alertdialog"]')].find((e) => /Opened read-only/.test(e.innerText))
   const shown = await t.until(banner, 10000)
   t.check('the user is told it’s read-only, and why', !!shown && /Magnolia 9\.0\.0/.test(shown.innerText))
   t.check('it has a way to look for an update', !!shown && /Check for Updates/.test(shown.innerText))
@@ -17,9 +17,18 @@ async function spec(t) {
   t.press([...shown.querySelectorAll('button')].find((b) => b.textContent === 'OK'))
   t.check('the notice can be put away', !!(await t.until(() => !banner(), 5000)))
 
+  const pill = [...document.querySelectorAll('.app-toolbar button')].find((b) => b.textContent.trim() === 'Read-only')
+  t.check('a Read-only pill stays in the toolbar', !!pill)
+
   codes.getState().addCode('Not to be saved', '#888888')
   t.check('an edit leaves the project unchanged on disk', !project.getState().isDirty)
-  t.check('and brings the notice back', !!(await t.until(banner, 5000)))
+  // Just closed: an edit doesn't bring the dialog straight back (an edit is
+  // often a keystroke); it comes back at most once a minute.
+  await t.sleep(500)
+  t.check('an edit straight after closing it doesn’t reopen it', !banner())
+  pill?.click()
+  t.check('the pill brings the notice back', !!(await t.until(banner, 5000)))
+  t.press([...banner().querySelectorAll('button')].find((b) => b.textContent === 'OK'))
 
   // Asked directly, the backend refuses too.
   const result = await window.api.saveProject({

@@ -889,7 +889,9 @@
     "tryAgain": "Prøv igjen",
     "saveAs": "Lagre som …",
     "saving": "Lagrer …",
-    "lockedBy": "{{name}} har nå kontrollen over prosjektet."
+    "lockedBy": "{{name}} har nå kontrollen over prosjektet.",
+    "pill": "Ikke lagret",
+    "pillTitle": "Lagringen av prosjektet mislyktes, så de siste endringene dine er ikke lagret. Klikk for detaljer."
   },
   "memoEdit": {
     "deleteConfirm": "Slette memoen «{{title}}»? Dette kan ikke angres.",
@@ -2040,7 +2042,9 @@
   "newerFormat": {
     "title": "Åpnet skrivebeskyttet",
     "text": "Dette prosjektet ble lagret med en nyere versjon av Magnolia ({{savedBy}}). Du kan se gjennom det her, men endringer blir ikke lagret, slik at ingenting av det den nyere versjonen har lagt til, går tapt. Oppdater Magnolia for å arbeide med det.",
-    "cantSave": "Dette prosjektet ble lagret med en nyere versjon av Magnolia ({{savedBy}}), så denne versjonen kan verken lagre det eller lagre en kopi av det. Oppdater Magnolia for å arbeide med det."
+    "cantSave": "Dette prosjektet ble lagret med en nyere versjon av Magnolia ({{savedBy}}), så denne versjonen kan verken lagre det eller lagre en kopi av det. Oppdater Magnolia for å arbeide med det.",
+    "pill": "Skrivebeskyttet",
+    "pillTitle": "En nyere Magnolia lagret dette prosjektet, så endringer kan ikke lagres. Klikk for detaljer."
   },
   "notKept": {
     "title": "Noe av dette prosjektet kan ikke beholdes i Magnolia",
@@ -2063,7 +2067,9 @@
     "setMemos_other": "Notater i sett: {{count}}",
     "extraTranscripts_one": "Ekstra transkripsjoner av opptak (bare den første beholdes): {{count}}",
     "extraTranscripts_other": "Ekstra transkripsjoner av opptak (bare den første beholdes): {{count}}",
-    "advice": "Ingenting er endret i filen ennå, men når Magnolia lagrer prosjektet over den, forsvinner disse fra den. Lagre prosjektet som en ny fil nå for å beholde originalen som den er."
+    "advice": "Ingenting er endret i filen ennå, men når Magnolia lagrer prosjektet over den, forsvinner disse fra den. Lagre prosjektet som en ny fil nå for å beholde originalen som den er.",
+    "pill": "Ikke alt beholdes",
+    "pillTitle": "Denne filen inneholder ting Magnolia ikke kan beholde: lagrer du over den, forsvinner de. Klikk for detaljer."
   },
   "keys": {
     "pickedUp": "{{name}} plukket opp. Gå dit det hører hjemme, og trykk {{paste}} for å legge det der, eller Escape for å avbryte.",

@@ -39,9 +39,9 @@ interface ProjectState {
   checkoutConflictMarker: CheckoutMarker | null
   /** Who saved the open project ("Magnolia 3.0.0") when that was a newer
    *  Magnolia, in a format this one may not fully understand: it's open
-   *  read-only (see NewerFormatBanner). Null for every other project. */
+   *  read-only (see NewerFormatAlert). Null for every other project. */
   newerFormat: string | null
-  /** Whether NewerFormatBanner is showing: from opening, and again at each
+  /** Whether NewerFormatAlert is showing: from opening, and again at each
    *  refused edit. */
   newerFormatNotice: boolean
 
@@ -87,6 +87,9 @@ const defaultUserGuid = generateGuid()
 export function isUntitledName(name: string): boolean {
   return name === 'Untitled Project' || name === t('project.untitled')
 }
+
+/** When the read-only alert was last closed (see markDirty). */
+let newerFormatDismissedAt = 0
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
   name: 'Untitled Project',
@@ -176,9 +179,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   // Object.assign merge and silently clobber the inner call's update.
   markDirty: () => {
     // Read-only (saved by a newer Magnolia): the edit stays unsaved, and
-    // the banner says why again.
+    // the alert says why again (not more than once a minute: it's a
+    // dialog, and an edit is often a keystroke).
     if (get().newerFormat) {
-      set({ newerFormatNotice: true })
+      if (Date.now() - newerFormatDismissedAt > 60_000) set({ newerFormatNotice: true })
       return
     }
     const marker = get().checkoutMarker
@@ -203,7 +207,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }),
   dismissCheckoutConflict: () => set({ checkoutConflictMarker: null }),
   setNewerFormat: (savedBy) => set({ newerFormat: savedBy, newerFormatNotice: !!savedBy }),
-  dismissNewerFormatNotice: () => set({ newerFormatNotice: false })
+  dismissNewerFormatNotice: () => {
+    newerFormatDismissedAt = Date.now()
+    set({ newerFormatNotice: false })
+  }
 }))
 
 makeHmrSafe('projectStore', useProjectStore)

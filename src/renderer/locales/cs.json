@@ -947,7 +947,9 @@
     "tryAgain": "Zkusit znovu",
     "saveAs": "Uložit jako…",
     "saving": "Ukládání…",
-    "lockedBy": "Kontrolu nad projektem má teď {{name}}."
+    "lockedBy": "Kontrolu nad projektem má teď {{name}}.",
+    "pill": "Neuloženo",
+    "pillTitle": "Uložení projektu selhalo, takže vaše poslední změny nejsou uložené. Klikněte pro podrobnosti."
   },
   "memoEdit": {
     "deleteConfirm": "Smazat poznámku „{{title}}“? Tuto akci nelze vrátit.",
@@ -2192,7 +2194,9 @@
   "newerFormat": {
     "title": "Otevřeno jen pro čtení",
     "text": "Tento projekt byl uložen novější verzí aplikace Magnolia ({{savedBy}}). Můžete si ho zde prohlížet, ale změny se neuloží, aby se neztratilo nic z toho, co novější verze přidala. Chcete-li na projektu pracovat, aktualizujte aplikaci Magnolia.",
-    "cantSave": "Tento projekt byl uložen novější verzí aplikace Magnolia ({{savedBy}}), takže ho tato verze nemůže uložit ani uložit jeho kopii. Chcete-li na projektu pracovat, aktualizujte aplikaci Magnolia."
+    "cantSave": "Tento projekt byl uložen novější verzí aplikace Magnolia ({{savedBy}}), takže ho tato verze nemůže uložit ani uložit jeho kopii. Chcete-li na projektu pracovat, aktualizujte aplikaci Magnolia.",
+    "pill": "Jen pro čtení",
+    "pillTitle": "Tento projekt uložila novější Magnolia, takže změny nelze uložit. Klikněte pro podrobnosti."
   },
   "notKept": {
     "title": "Část tohoto projektu nelze v aplikaci Magnolia zachovat",
@@ -2233,7 +2237,9 @@
     "extraTranscripts_many": "Další přepisy nahrávek (zůstane jen první): {{count}}",
     "extraTranscripts_one": "Další přepisy nahrávek (zůstane jen první): {{count}}",
     "extraTranscripts_other": "Další přepisy nahrávek (zůstane jen první): {{count}}",
-    "advice": "V souboru se zatím nic nezměnilo, ale jakmile do něj Magnolia projekt uloží, tyto věci z něj zmizí. Chcete-li zachovat původní soubor beze změny, uložte projekt nyní jako nový soubor."
+    "advice": "V souboru se zatím nic nezměnilo, ale jakmile do něj Magnolia projekt uloží, tyto věci z něj zmizí. Chcete-li zachovat původní soubor beze změny, uložte projekt nyní jako nový soubor.",
+    "pill": "Ne vše se zachová",
+    "pillTitle": "Tento soubor obsahuje věci, které Magnolia neumí zachovat: uložením přes něj se ztratí. Klikněte pro podrobnosti."
   },
   "keys": {
     "pickedUp": "{{name}} vzato. Přejděte tam, kam patří, a stiskněte {{paste}}, abyste to tam vložili, nebo Escape pro zrušení.",

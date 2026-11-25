@@ -36,7 +36,7 @@ export interface OpenedProject extends Project {
    *  understand: opened read-only. */
   newerFormat?: { savedBy: string }
   /** What the file holds that Magnolia can't keep, by kind (from another
-   *  program, usually): shown by NotKeptBanner. */
+   *  program, usually): shown by NotKeptAlert. */
   notKept?: Partial<Record<NotKeptKind, number>>
 }
 

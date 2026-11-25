@@ -889,7 +889,9 @@
     "tryAgain": "Try Again",
     "saveAs": "Save As…",
     "saving": "Saving…",
-    "lockedBy": "{{name}} has control of the project now."
+    "lockedBy": "{{name}} has control of the project now.",
+    "pill": "Not saved",
+    "pillTitle": "Saving this project failed, so your latest changes aren't saved. Click for details."
   },
   "memoEdit": {
     "deleteConfirm": "Delete memo \"{{title}}\"? This cannot be undone.",
@@ -2040,7 +2042,9 @@
   "newerFormat": {
     "title": "Opened read-only",
     "text": "This project was saved by a newer version of Magnolia ({{savedBy}}). You can look through it here, but changes won’t be saved, so that nothing the newer version added is lost. Update Magnolia to work on it.",
-    "cantSave": "This project was saved by a newer version of Magnolia ({{savedBy}}), so this version can’t save it or a copy of it. Update Magnolia to work on it."
+    "cantSave": "This project was saved by a newer version of Magnolia ({{savedBy}}), so this version can’t save it or a copy of it. Update Magnolia to work on it.",
+    "pill": "Read-only",
+    "pillTitle": "A newer Magnolia saved this project, so changes can't be saved. Click for details."
   },
   "notKept": {
     "title": "Some of this project can’t be kept in Magnolia",
@@ -2063,7 +2067,9 @@
     "setMemos_other": "{{count}} memos in sets",
     "extraTranscripts_one": "{{count}} extra transcript of a recording (only a recording’s first is kept)",
     "extraTranscripts_other": "{{count}} extra transcripts of recordings (only each recording’s first is kept)",
-    "advice": "Nothing has changed in the file yet, but once Magnolia saves the project over it, these will be gone from it. To keep the original as it is, save the project as a new file now."
+    "advice": "Nothing has changed in the file yet, but once Magnolia saves the project over it, these will be gone from it. To keep the original as it is, save the project as a new file now.",
+    "pill": "Not all kept",
+    "pillTitle": "This file holds things Magnolia can't keep: saving over it leaves them out. Click for details."
   },
   "keys": {
     "pickedUp": "Picked up {{name}}. Go to where it belongs and press {{paste}} to put it there, or Escape to cancel.",

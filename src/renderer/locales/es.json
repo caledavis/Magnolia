@@ -918,7 +918,9 @@
     "tryAgain": "Reintentar",
     "saveAs": "Guardar como…",
     "saving": "Guardando…",
-    "lockedBy": "{{name}} tiene ahora el control del proyecto."
+    "lockedBy": "{{name}} tiene ahora el control del proyecto.",
+    "pill": "Sin guardar",
+    "pillTitle": "No se pudo guardar el proyecto, así que sus últimos cambios no están guardados. Haga clic para ver detalles."
   },
   "memoEdit": {
     "deleteConfirm": "¿Eliminar el memo «{{title}}»? No se puede deshacer.",
@@ -2116,7 +2118,9 @@
   "newerFormat": {
     "title": "Abierto en modo de solo lectura",
     "text": "Este proyecto se guardó con una versión más reciente de Magnolia ({{savedBy}}). Puedes consultarlo aquí, pero los cambios no se guardarán, para que no se pierda nada de lo que añadió la versión más reciente. Actualiza Magnolia para trabajar en él.",
-    "cantSave": "Este proyecto se guardó con una versión más reciente de Magnolia ({{savedBy}}), así que esta versión no puede guardarlo ni guardar una copia. Actualiza Magnolia para trabajar en él."
+    "cantSave": "Este proyecto se guardó con una versión más reciente de Magnolia ({{savedBy}}), así que esta versión no puede guardarlo ni guardar una copia. Actualiza Magnolia para trabajar en él.",
+    "pill": "Solo lectura",
+    "pillTitle": "Una versión más reciente de Magnolia guardó este proyecto, así que los cambios no se pueden guardar. Haga clic para ver detalles."
   },
   "notKept": {
     "title": "Parte de este proyecto no se puede conservar en Magnolia",
@@ -2148,7 +2152,9 @@
     "extraTranscripts_many": "Transcripciones adicionales de grabaciones (solo se conserva la primera): {{count}}",
     "extraTranscripts_one": "Transcripciones adicionales de grabaciones (solo se conserva la primera): {{count}}",
     "extraTranscripts_other": "Transcripciones adicionales de grabaciones (solo se conserva la primera): {{count}}",
-    "advice": "Aún no ha cambiado nada en el archivo, pero cuando Magnolia guarde el proyecto sobre él, esto desaparecerá. Para conservar el original tal como está, guarda ahora el proyecto como un archivo nuevo."
+    "advice": "Aún no ha cambiado nada en el archivo, pero cuando Magnolia guarde el proyecto sobre él, esto desaparecerá. Para conservar el original tal como está, guarda ahora el proyecto como un archivo nuevo.",
+    "pill": "No todo se conserva",
+    "pillTitle": "Este archivo contiene cosas que Magnolia no puede conservar: al guardar encima, se pierden. Haga clic para ver detalles."
   },
   "keys": {
     "pickedUp": "{{name}}: recogido. Ve adonde corresponda y pulsa {{paste}} para ponerlo ahí, o Escape para cancelar.",
