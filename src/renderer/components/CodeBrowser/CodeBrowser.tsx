@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { Trans, useTranslation } from 'react-i18next'
 import { useCodeStore } from '../../stores/code-store'
 import { useDocumentStore } from '../../stores/document-store'
@@ -509,7 +510,9 @@ function CodeTreeItem({
           />
         ))}
 
-      {contextMenu && (
+      {/* On the page itself, not inside the codes tree, which may hold
+          only its rows (ARIA). It's fixed-positioned either way. */}
+      {contextMenu && createPortal(
         <div
           ref={menuPos.ref}
           className="context-menu"
@@ -605,7 +608,8 @@ function CodeTreeItem({
           >
             {t('common.delete')}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {showColorPicker && (

@@ -560,7 +560,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
               {t('analysis.buildGridHint')}
             </div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto' }} tabIndex={0} role="region" aria-label={t('tools.codeFrequencies.label')}>
               <table style={{ borderCollapse: 'collapse', fontSize: 11 }}>
                 <thead>
                   {hasGroupedHeader && (
@@ -683,7 +683,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
               ))}
             </div>
 
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto' }} tabIndex={0} role="region" aria-label={t('tools.codeFrequencies.label')}>
               <svg ref={chartRef} width={chartW} height={chartH} style={{ background: 'var(--bg-primary)', borderRadius: 'var(--radius-sm)' }}>
                 {/* Y axis */}
                 <line x1={marginInlineStart} y1={5} x2={marginInlineStart} y2={chartH - marginBottom} stroke={themeColors.borderColor} />

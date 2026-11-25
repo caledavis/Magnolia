@@ -205,7 +205,8 @@
   --text-muted: #5A7088;
   --accent: #2563EB;
   --accent-hover: #1D55D9;
-  --danger: #EF4444;
+  /* Red text, and white on red, at 4.8:1 (WCAG AA). */
+  --danger: #DC2626;
   --success: #10B981;
   --selection-bg: #DBE9FF;
   --btn-text: #FFFFFF;
@@ -390,14 +391,16 @@
   --border-color: #3A4250;
   --text-primary: #E6EAF0;
   --text-secondary: #A8B0BC;
-  --text-muted: #6E7682;
+  /* Muted text reads at 4.5:1 or better (WCAG AA) on every dark surface. */
+  --text-muted: #949CA8;
   --accent: #5B8FFF;
   --link: #8ab4ff;
   --accent-hover: #7AA5FF;
   --danger: #F87171;
   --success: #34D399;
   --selection-bg: #2D3F5C;
-  --btn-text: #FFFFFF;
+  /* Dark text on the light blue of a filled button: white on it is 3:1. */
+  --btn-text: #0B1220;
   --btn-secondary-hover: #2D343F;
   --scrollbar-bg: transparent;
   --scrollbar-thumb: #404858;
@@ -2724,3 +2727,7 @@ textarea {
 @keyframes text-caret-blink { 50% { opacity: 0; } }
 .text-caret { animation: text-caret-blink 1.1s step-end infinite; }
 @media (prefers-reduced-motion: reduce) { .text-caret { animation: none; } }
+
+/* In a selected row, muted text (a count, a date) takes the secondary
+ * colour: on the selection's tint the muted one falls below 4.5:1. */
+[aria-selected="true"], [aria-current="page"] { --text-muted: var(--text-secondary); }

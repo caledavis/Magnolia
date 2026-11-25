@@ -540,7 +540,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
           <div className="analysis-section" style={{ flex: 1 }}>
             <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>{t('analysis.onlyTheseWords')}</div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>{t('combos.onlyHint')}</div>
-            <textarea
+            <textarea aria-label={t('analysis.onlyTheseWords')}
               value={includeWords}
               onChange={(e) => setIncludeWords(e.target.value)}
               placeholder={t('analysis.wordsPlaceholder')}
@@ -551,7 +551,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
             <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>{t('analysis.leaveOutWords')}</div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6 }}>{t('combos.leaveOutHint')}</div>
             <StopWordsPicker value={excludeWords} onChange={setExcludeWords} />
-            <textarea
+            <textarea aria-label={t('analysis.leaveOutWords')}
               value={excludeWords}
               onChange={(e) => setExcludeWords(e.target.value)}
               style={{ width: '100%', height: 60, resize: 'vertical' }}

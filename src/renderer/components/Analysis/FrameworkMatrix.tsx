@@ -720,6 +720,8 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
                           <textarea
                             ref={(el) => { if (el) textareas.current.set(textKey, el); else textareas.current.delete(textKey) }}
                             value={summaries[k] ?? ''}
+                            // The cell's row and column name it, for a screen reader.
+                            aria-label={`${row.label}, ${codeMap.get(cg)?.name ?? t('framework.deletedCode')}`}
                             onChange={(e) => setSummary(row, cg, e.target.value)}
                             onFocus={() => handleCellFocus(row, cg)}
                             onKeyDown={(e) => { if (e.key === 'Escape') (e.target as HTMLTextAreaElement).blur() }}
@@ -730,7 +732,8 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
                               background: 'transparent', color: 'var(--text-primary)', font: 'inherit', lineHeight: 1.4,
                               // Grow with the text so the row gets taller instead of scrolling.
                               fieldSizing: 'content',
-                              opacity: count === 0 && !isSel ? 0.55 : 1,
+                              // Dimmed, still readable (4.5:1, WCAG AA).
+                              opacity: count === 0 && !isSel ? 0.75 : 1,
                               // While reordering, let dragover fall through to the
                               // matrix instead of showing a text caret in the cells.
                               pointerEvents: reordering ? 'none' : undefined
