@@ -36,6 +36,7 @@ import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
 import type { CellScope } from '../../utils/narrow-query'
 import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
 import { keyActivate, dropZone } from '../../utils/key-activate'
+import { useColumnWindow } from '../../utils/use-column-window'
 
 interface Props {
   data: AnalysisInitData
@@ -247,20 +248,28 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
   // Tint for the derived percentage columns (subtotal-% and % of total).
   const PCT_TINT = 'color-mix(in srgb, var(--text-secondary) 6%, transparent)'
 
-  // Each subtotal column is followed by an adjacent "% of row total"
-  // column, so a category/folder band's spanning header must widen by
-  // the number of subtotal columns it contains.
-  const headerGroupSpans = useMemo(() => {
-    const spans: number[] = []
+
+  // Only the columns in view are drawn (a project's thousand documents
+  // would otherwise be tens of thousands of cells): a subtotal column
+  // brings its % column with it.
+  const colWidths = useMemo(() => columns.map((c) => (c.isSubtotal ? 100 : 50)), [columns])
+  const win = useColumnWindow(colWidths)
+  const shown = columns.slice(win.start, win.end)
+  const spacer = (px: number, edge: React.CSSProperties) =>
+    px > 0 ? <td aria-hidden="true" style={{ width: px, minWidth: px, maxWidth: px, padding: 0, ...edge }} /> : null
+  // The grouped header row, cut to the window: each band's span counts
+  // only its drawn columns.
+  const shownGroups = useMemo(() => {
+    const out: { g: (typeof headerGroups)[number]; span: number }[] = []
     let cursor = 0
     for (const g of headerGroups) {
-      let extra = 0
-      for (let k = cursor; k < cursor + g.span; k++) if (columns[k]?.isSubtotal) extra++
-      spans.push(g.span + extra)
+      let span = 0
+      for (let k = Math.max(cursor, win.start); k < Math.min(cursor + g.span, win.end); k++) span += columns[k]?.isSubtotal ? 2 : 1
+      if (span > 0) out.push({ g, span })
       cursor += g.span
     }
-    return spans
-  }, [headerGroups, columns])
+    return out
+  }, [headerGroups, columns, win.start, win.end])
 
   const addCodes = useCallback((guids: string[]) => {
     setCodeGuids((prev) => {
@@ -579,16 +588,17 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
               />
             </div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
+            <div ref={win.ref} style={{ overflowX: 'auto' }}>
               <table {...tableKeys} style={{ borderCollapse: 'collapse', fontSize: 11 }}>
                 <thead>
                   {hasGroupedHeader && (
                     <tr>
                       <th style={{ padding: '0 6px 4px', borderBottom: '1px solid var(--border-color)' }} />
-                      {headerGroups.map((g, gi) => (
+                      {spacer(win.before, { borderBottom: '1px solid var(--border-color)' })}
+                      {shownGroups.map(({ g, span }) => (
                         <th
                           key={`hg:${g.id}`}
-                          colSpan={headerGroupSpans[gi]}
+                          colSpan={span}
                           style={{
                             padding: '4px 6px',
                             borderBottom: '1px solid var(--border-color)',
@@ -604,6 +614,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                           {g.label ?? ''}
                         </th>
                       ))}
+                      {spacer(win.after, { borderBottom: '1px solid var(--border-color)' })}
                       {/* Spacers above the Total and % of Total columns. */}
                       <th style={{ borderBottom: '1px solid var(--border-color)' }} />
                       <th style={{ borderBottom: '1px solid var(--border-color)' }} />
@@ -611,7 +622,8 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                   )}
                   <tr>
                     <th style={{ padding: 4, borderBottom: '1px solid var(--border-color)', textAlign: 'start', minWidth: 100, verticalAlign: 'bottom' }}>{t('analysis.code')}</th>
-                    {columns.map((col, j) => (
+                    {spacer(win.before, { borderBottom: '1px solid var(--border-color)' })}
+                    {shown.map((col, k) => { const j = win.start + k; return (
                       <Fragment key={col.id}>
                         <th
                           style={{
@@ -639,7 +651,8 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                           </th>
                         )}
                       </Fragment>
-                    ))}
+                    ) })}
+                    {spacer(win.after, { borderBottom: '1px solid var(--border-color)' })}
                     <th style={{ width: 50, minWidth: 50, maxWidth: 50, borderBottom: '1px solid var(--border-color)', verticalAlign: 'bottom', height: 80, padding: 0, position: 'relative' }}>
                       <div style={{ position: 'absolute', bottom: 6, left: '50%', transformOrigin: 'bottom left', transform: 'rotate(-20deg)', whiteSpace: 'nowrap', fontSize: 10, fontWeight: 700 }}>{t('analysis.total')}</div>
                     </th>
@@ -664,7 +677,9 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                         {truncate(codeMap.get(codeGuid)?.name || '', 16)}
                         <span {...keyActivate({ label: t('common.remove') })} onClick={() => setCodeGuids((p) => p.filter((g) => g !== codeGuid))} style={{ marginInlineStart: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>x</span>
                       </td>
-                      {columns.map((col, j) => {
+                      {spacer(win.before, { borderBottom: '1px solid var(--border-color)' })}
+                      {shown.map((col, k) => {
+                        const j = win.start + k
                         const val = showGrid[i][j]
                         // Clamp the ratio at 1: subtotal cells exceed
                         // maxVal (which deliberately excludes subtotals
@@ -721,6 +736,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                           </Fragment>
                         )
                       })}
+                      {spacer(win.after, { borderBottom: '1px solid var(--border-color)' })}
                       <td {...gridCell()} onClick={() => handleRowTotalClick(i)} style={{
                         width: 50, minWidth: 50, maxWidth: 50, height: 32,
                         borderBottom: '1px solid var(--border-color)',
@@ -748,7 +764,8 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                   {/* Total row */}
                   <tr>
                     <td style={{ padding: '4px 6px', borderTop: '2px solid var(--border-color)', fontWeight: 700 }}>{t('analysis.total')}</td>
-                    {showColTotals.map((ct, j) => (
+                    {spacer(win.before, { borderTop: '2px solid var(--border-color)' })}
+                    {showColTotals.slice(win.start, win.end).map((ct, k) => { const j = win.start + k; return (
                       <Fragment key={columns[j].id}>
                       <td {...gridCell()} onClick={() => handleColTotalClick(j)} style={{
                         width: 50, minWidth: 50, maxWidth: 50, height: 32,
@@ -774,7 +791,8 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                         </td>
                       )}
                       </Fragment>
-                    ))}
+                    ) })}
+                    {spacer(win.after, { borderTop: '2px solid var(--border-color)' })}
                     <td {...gridCell()} onClick={handleGrandTotalClick} style={{
                       width: 50, minWidth: 50, maxWidth: 50, height: 32,
                       borderTop: '2px solid var(--border-color)',
