@@ -727,7 +727,9 @@
     "exportCodedPdfTitle": "Exportar este documento como PDF, con sus segmentos codificados resaltados y etiquetados",
     "exportingPdf": "Exportando…",
     "exportPdfWithCodes": "Exportar como PDF con códigos",
-    "exportPdfPlain": "Exportar como PDF"
+    "exportPdfPlain": "Exportar como PDF",
+    "keyboardHint": "Las teclas de flecha recorren el texto y, con Mayúsculas, lo seleccionan. Después, el atajo de un código, o Mayúsculas+F10 para el menú, codifica la selección.",
+    "selectedText": "Seleccionado: {{text}}"
   },
   "tabs": {
     "untitledMap": "Mapa sin título",

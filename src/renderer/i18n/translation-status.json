@@ -610,6 +610,8 @@
     "viewer.exportingPdf": "Exporting…",
     "viewer.exportPdfWithCodes": "Export as PDF with Codes",
     "viewer.exportPdfPlain": "Export as PDF",
+    "viewer.keyboardHint": "The arrow keys move through the text, and with Shift they select it. A code’s shortcut, or Shift+F10 for the menu, then codes the selection.",
+    "viewer.selectedText": "Selected: {{text}}",
     "tabs.untitledMap": "Untitled map",
     "tabs.queryBuilder": "Query Builder",
     "tabs.analysis": "Analysis",

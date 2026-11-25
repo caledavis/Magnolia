@@ -727,7 +727,9 @@
     "exportCodedPdfTitle": "Exporta aquest document com a PDF, amb els segments codificats ressaltats i etiquetats",
     "exportingPdf": "S’està exportant…",
     "exportPdfWithCodes": "Exporta com a PDF amb codis",
-    "exportPdfPlain": "Exporta com a PDF"
+    "exportPdfPlain": "Exporta com a PDF",
+    "keyboardHint": "Les fletxes es mouen pel text i, amb Majúscules, el seleccionen. Després, la drecera d’un codi, o Majúscules+F10 per al menú, codifica la selecció.",
+    "selectedText": "Seleccionat: {{text}}"
   },
   "tabs": {
     "untitledMap": "Mapa sense títol",

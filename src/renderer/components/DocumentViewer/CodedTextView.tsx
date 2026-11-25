@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useRef, useCallback, useState, useEffect, useLayoutEffect } from 'react'
+import React, { memo, useMemo, useRef, useCallback, useState, useEffect, useLayoutEffect, useId } from 'react'
 import type { PlainTextSelection, Code, Memo, SourceType } from '../../models/types'
 import { codepointCount } from '../../utils/unicode'
 import { Icon, QUOTE_ICON, MEMO_POINT_ICON, MEMO_RANGED_ICON } from '../Icon'
@@ -15,6 +15,7 @@ import { blendColors, multiColorUnderline } from '../../utils/code-highlight'
 import { computeTextEdit } from '../../utils/text-edit-offsets'
 import { continueListEdit, toggleMarkEdit } from '../../utils/notes'
 import { useTranslation } from 'react-i18next'
+import { moveCaret, type Caret } from '../../utils/text-caret'
 
 interface Props {
   text: string
@@ -107,6 +108,12 @@ function lineAtCp(lineStarts: number[], cp: number): number {
  *  front took seconds for a book-length text. A block is kept once
  *  built, so a text selection or a measured overlay never loses the
  *  DOM it refers to. */
+/** Read by screen readers, not shown. */
+const VISUALLY_HIDDEN: React.CSSProperties = {
+  position: 'absolute', width: 1, height: 1, margin: -1, padding: 0, overflow: 'hidden',
+  clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0
+}
+
 const BLOCK_LINES = 100
 /** Documents shorter than this render in full, as they always have. */
 const BLOCK_MIN_LINES = 400
@@ -119,6 +126,25 @@ const LINE_PX = 22
  *  a non-cpoffset element (e.g. whitespace between spans, a line wrapper
  *  past its last atom), falls back to the nearest preceding cpoffset span's
  *  end position. */
+/** The DOM point of code point `cp` in the text (none if its line isn't
+ *  rendered). The reverse of resolveCpInContainer. */
+function domPointAt(container: HTMLElement, cp: number): { node: Node; offset: number } | null {
+  let last: { node: Node; offset: number } | null = null
+  for (const span of container.querySelectorAll<HTMLElement>('[data-cpoffset]')) {
+    if (span.closest('[data-coding-overlay]')) continue
+    const start = parseInt(span.dataset.cpoffset!, 10)
+    const chars = [...(span.textContent || '')]
+    let node: Node = span
+    while (node.firstChild && node.firstChild.nodeType !== Node.TEXT_NODE) node = node.firstChild
+    const textNode = node.firstChild ?? node
+    if (cp >= start && cp <= start + chars.length) {
+      return { node: textNode, offset: chars.slice(0, cp - start).join('').length }
+    }
+    if (start <= cp) last = { node: textNode, offset: (textNode.textContent || '').length }
+  }
+  return last
+}
+
 function resolveCpInContainer(container: HTMLElement, node: Node, offset: number): number | null {
   let targetNode: Node
   let charOffset: number
@@ -214,6 +240,18 @@ function CodedTextViewImpl({
   const [memoPopup, setMemoPopup] = useState<{ items: Memo[]; x: number; y: number; isQuote?: boolean; showDelete?: boolean } | null>(null)
 
   const activeRange = externalHighlightRange || lockedRange || hoveredRange
+
+  // The keyboard's caret in a read-only text (utils/text-caret.ts): its
+  // selection goes through lockedRange, as a clicked label's does, so it
+  // is a real selection that can be coded. A collapsed caret is drawn.
+  const [caret, setCaretState] = useState<Caret | null>(null)
+  // Each key sees the caret the previous one left, even if the view hasn't
+  // re-rendered in between (key repeat).
+  const caretRef = useRef<Caret | null>(null)
+  const setCaret = useCallback((c: Caret | null) => { caretRef.current = c; setCaretState(c) }, [])
+  const [caretBox, setCaretBox] = useState<{ left: number; top: number; height: number } | null>(null)
+  const [announcement, setAnnouncement] = useState('')
+  const hintId = useId()
 
   const codeMap = useMemo(() => {
     const m = new Map<string, Code>()
@@ -411,6 +449,11 @@ function CodedTextViewImpl({
     const sel = window.getSelection()
     if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
       if (editable) onSelectionCleared?.()
+      // A click puts the keyboard's caret there.
+      if (!editable && sel && sel.rangeCount > 0) {
+        const cp = resolveCpInContainer(containerRef.current, sel.anchorNode!, sel.anchorOffset)
+        if (cp !== null) setCaret({ anchor: cp, focus: cp })
+      }
       return
     }
 
@@ -420,12 +463,75 @@ function CodedTextViewImpl({
     const startCp = resolveCpInContainer(container, range.startContainer, range.startOffset)
     const endCp = resolveCpInContainer(container, range.endContainer, range.endOffset)
     if (startCp === null || endCp === null) return
+    // The keyboard carries on from a mouse selection.
+    if (!editable) setCaret({ anchor: startCp, focus: endCp })
 
     if (startCp < endCp) {
       const selectedText = [...text].slice(startCp, endCp).join('')
       onTextSelected(startCp, endCp, selectedText)
     }
-  }, [text, onTextSelected, editable, onSelectionCleared])
+  }, [text, onTextSelected, editable, onSelectionCleared, setCaret])
+
+  // ── The keyboard's caret (read-only text) ──
+  const textCps = useMemo(() => [...text], [text])
+  const [textFocused, setTextFocused] = useState(false)
+  const handleCaretKey = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (editable || e.target !== e.currentTarget) return
+    const current = caretRef.current ?? { anchor: 0, focus: 0 }
+    const wasSelection = current.anchor !== current.focus
+    let next: Caret | null = null
+    let said = ''
+    if (e.key === 'Escape' && wasSelection) {
+      next = { anchor: current.focus, focus: current.focus }
+    } else if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'a') {
+      next = { anchor: 0, focus: textCps.length }
+    } else {
+      const moved = moveCaret(current, e, textCps, lineStarts, getComputedStyle(e.currentTarget).direction === 'rtl')
+      if (!moved) return
+      next = moved.caret
+      said = moved.passed
+    }
+    e.preventDefault()
+    setCaret(next)
+    const start = Math.min(next.anchor, next.focus)
+    const end = Math.max(next.anchor, next.focus)
+    if (start !== end && (e.shiftKey || e.key.toLowerCase() === 'a')) {
+      const chosen = textCps.slice(start, end).join('')
+      said = t('viewer.selectedText', { text: chosen.length > 300 ? chosen.slice(0, 300) + '…' : chosen })
+    } else if (start === end && wasSelection) {
+      onSelectionCleared?.()
+    }
+    setAnnouncement(said.trim() === '' ? (said.length > 0 ? ' ' : '') : said)
+  }, [editable, setCaret, textCps, lineStarts, t, onSelectionCleared])
+
+  // The caret's selection is the view's selection (lockedRange), so a
+  // code's shortcut, its menu (Shift+F10) or a new code applies to it.
+  useEffect(() => {
+    if (editable || !caret) return
+    const start = Math.min(caret.anchor, caret.focus)
+    const end = Math.max(caret.anchor, caret.focus)
+    setLockedRange(start !== end ? { startCp: start, endCp: end } : null)
+  }, [caret, editable])
+
+  // Draw a collapsed caret where it is, while the text has the focus, and
+  // keep it in view.
+  useLayoutEffect(() => {
+    const el = containerRef.current
+    if (editable || !caret || !el || !textFocused) { setCaretBox(null); return }
+    const point = domPointAt(el, caret.focus)
+    if (!point) { setCaretBox(null); return }
+    const holder = point.node.nodeType === Node.TEXT_NODE ? point.node.parentElement : (point.node as HTMLElement)
+    holder?.scrollIntoView({ block: 'nearest' })
+    if (caret.anchor !== caret.focus) { setCaretBox(null); return }
+    const r = document.createRange()
+    r.setStart(point.node, Math.min(point.offset, (point.node.textContent || '').length))
+    r.collapse(true)
+    let rect: DOMRect | undefined = r.getClientRects()[0]
+    if (!rect || rect.height === 0) rect = holder?.getBoundingClientRect()
+    if (!rect) { setCaretBox(null); return }
+    const box = el.getBoundingClientRect()
+    setCaretBox({ left: rect.left - box.left, top: rect.top - box.top, height: rect.height || 18 })
+  }, [caret, editable, textFocused])
 
   // Precompute memo ranges for highlighting
   const memoRanges = useMemo(() => {
@@ -1527,10 +1633,11 @@ function CodedTextViewImpl({
     }
     add(externalHighlightRange)
     add(lockedRange)
+    if (caret) add({ startCp: Math.min(caret.anchor, caret.focus), endCp: Math.max(caret.anchor, caret.focus) + 1 })
     add(playbackHighlightRange)
     if (activeTimestampLine != null) out.add(Math.floor(activeTimestampLine / BLOCK_LINES))
     return out
-  }, [blocked, lineStarts, externalHighlightRange, lockedRange, playbackHighlightRange, activeTimestampLine])
+  }, [blocked, lineStarts, externalHighlightRange, lockedRange, playbackHighlightRange, activeTimestampLine, caret])
 
   const shownBlocks = useMemo(() => {
     const out = new Set(builtBlocks)
@@ -1641,6 +1748,28 @@ function CodedTextViewImpl({
       className="text-document"
       onMouseUp={handleMouseUp}
       onMouseDown={() => { if (lockedRange) setLockedRange(null) }}
+      // Read-only text takes the focus, for its keyboard caret.
+      {...(editable ? {} : {
+        tabIndex: 0,
+        'aria-describedby': hintId,
+        onKeyDown: handleCaretKey,
+        // A menu opened from the keyboard (Shift+F10) lands on the view
+        // itself: pass it to the text at the caret, where right-clicks are
+        // handled, and open it there.
+        onContextMenu: (e: React.MouseEvent) => {
+          if (e.target !== e.currentTarget || !containerRef.current) return
+          const point = domPointAt(containerRef.current, caretRef.current?.focus ?? 0)
+          const holder = point && (point.node.nodeType === Node.TEXT_NODE ? point.node.parentElement : (point.node as HTMLElement))
+          const span = holder?.closest<HTMLElement>('[data-cpoffset]')
+          if (!span) return
+          e.preventDefault()
+          e.stopPropagation()
+          const r = span.getBoundingClientRect()
+          span.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, button: 2, clientX: r.left + 4, clientY: r.bottom }))
+        },
+        onFocus: (e: React.FocusEvent) => { if (e.target === e.currentTarget) setTextFocused(true) },
+        onBlur: (e: React.FocusEvent) => { if (e.target === e.currentTarget) setTextFocused(false) }
+      })}
       style={{
         fontFamily: 'var(--font-doc)',
         fontSize: 14,
@@ -1650,6 +1779,21 @@ function CodedTextViewImpl({
         userSelect: 'text'
       }}
     >
+      {!editable && (
+        <div data-coding-overlay="1" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
+          {/* What the keyboard does here, and what it just did, for a
+              screen reader (not shown). */}
+          <span id={hintId} style={VISUALLY_HIDDEN}>{t('viewer.keyboardHint')}</span>
+          <span aria-live="polite" style={VISUALLY_HIDDEN}>{announcement}</span>
+          {caretBox && (
+            <div
+              aria-hidden="true"
+              className="text-caret"
+              style={{ position: 'absolute', left: caretBox.left, top: caretBox.top, height: caretBox.height, width: 2, background: 'var(--text-primary)', pointerEvents: 'none', zIndex: 2 }}
+            />
+          )}
+        </div>
+      )}
       {/* Bracket overlay — positioned by DOM measurement, independent of line wrapping */}
       <div ref={bracketOverlayRef} data-coding-overlay="1" data-bracket-overlay="1" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', userSelect: 'none', WebkitUserSelect: 'none', zIndex: 1 }} />
       {/* Label overlay — React-rendered so mouseenter/click handlers

@@ -705,7 +705,9 @@
     "exportCodedPdfTitle": "Vie tämä dokumentti PDF-muodossa, koodatut segmentit korostettuina ja nimettyinä",
     "exportingPdf": "Viedään…",
     "exportPdfWithCodes": "Vie PDF-muodossa koodien kanssa",
-    "exportPdfPlain": "Vie PDF-muodossa"
+    "exportPdfPlain": "Vie PDF-muodossa",
+    "keyboardHint": "Nuolinäppäimet liikkuvat tekstissä, ja vaihtonäppäimen kanssa ne valitsevat sitä. Koodin pikanäppäin tai Vaihto+F10 valikkoa varten koodaa sitten valinnan.",
+    "selectedText": "Valittu: {{text}}"
   },
   "tabs": {
     "untitledMap": "Nimetön kartta",

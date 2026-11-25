@@ -727,7 +727,9 @@
     "exportCodedPdfTitle": "Exporter ce document en PDF, avec ses segments codés surlignés et étiquetés",
     "exportingPdf": "Exportation…",
     "exportPdfWithCodes": "Exporter en PDF avec les codes",
-    "exportPdfPlain": "Exporter en PDF"
+    "exportPdfPlain": "Exporter en PDF",
+    "keyboardHint": "Les flèches parcourent le texte et, avec Maj, le sélectionnent. Le raccourci d’un code, ou Maj+F10 pour le menu, code ensuite la sélection.",
+    "selectedText": "Sélection : {{text}}"
   },
   "tabs": {
     "untitledMap": "Carte sans titre",

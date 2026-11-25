@@ -105,4 +105,36 @@ async function spec(t) {
     key('ArrowDown')
     t.check('↓ moves down a row', focused()?.hasAttribute('data-grid-cell') && focused().closest('tr') !== start.closest('tr'))
   }
+
+  // ── Coding text without a mouse ──
+  const text = docs.getState().sources.find((s) => (s.sourceType ?? 'text') === 'text')
+  docs.getState().viewDocument(text.guid)
+  const view = await t.until(() => [...document.querySelectorAll('.text-document[tabindex="0"]')].find((el) => t.visible(el)), 10000)
+  t.check('a document’s text takes the focus', !!view)
+  if (view) {
+    view.focus()
+    const content = docs.getState().sourceContents[text.guid]
+    // Shift+Alt+→ twice: the first two words.
+    for (let i = 0; i < 2; i++) key('ArrowRight', { shiftKey: true, altKey: true })
+    const firstTwo = content.match(/^\W*\w+\W+\w+/)[0].replace(/^\W+/, '')
+    t.check('Shift with the arrows selects text', !!(await t.until(() => window.getSelection().toString().trim() === firstTwo.trim(), 3000)), JSON.stringify(window.getSelection().toString()) + ' vs ' + JSON.stringify(firstTwo))
+    t.check('and a screen reader is told what', !!view.querySelector('[aria-live]')?.textContent.includes(firstTwo.trim()))
+    const codings = () => docs.getState().sources.find((s) => s.guid === text.guid).selections.reduce((n, sel) => n + sel.codings.length, 0)
+    const before = codings()
+    key('F10', { shiftKey: true })
+    const menu = await t.until(() => document.querySelector('.context-menu[role="menu"]'), 3000)
+    t.check('Shift+F10 opens the coding menu for it', !!menu)
+    if (menu) {
+      const code = (await t.module('stores/code-store')).useCodeStore.getState().flatCodes()[0]
+      const item = await t.until(() => [...menu.querySelectorAll('[role="menuitem"]')].find((el) => el.textContent.trim() === code.name), 3000)
+      t.check('the menu lists the codes', !!item, [...menu.querySelectorAll('[role="menuitem"]')].map((el) => el.textContent.trim()).join(' | ').slice(0, 300))
+      if (item) {
+        item.focus()
+        key('Enter')
+        t.check('Enter on a code codes the selection', !!(await t.until(() => codings() === before + 1, 3000)))
+        const added = docs.getState().sources.find((s) => s.guid === text.guid).selections.find((sel) => sel.codings.some((c) => c.codeGuid === code.guid) && content.slice(sel.startPosition, sel.endPosition).trim() === firstTwo.trim())
+        t.check('the coded passage is the selected words', !!added)
+      } else key('Escape')
+    }
+  }
 }

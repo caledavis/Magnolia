@@ -683,7 +683,9 @@
     "exportCodedPdfTitle": "将此文档导出为 PDF，并突出显示和标注已编码片段",
     "exportingPdf": "正在导出…",
     "exportPdfWithCodes": "导出为带代码的 PDF",
-    "exportPdfPlain": "导出为 PDF"
+    "exportPdfPlain": "导出为 PDF",
+    "keyboardHint": "用方向键在文本中移动，配合 Shift 键选择文本。然后用代码的快捷键，或按 Shift+F10 打开菜单，为所选内容编码。",
+    "selectedText": "已选择：{{text}}"
   },
   "tabs": {
     "untitledMap": "未命名地图",

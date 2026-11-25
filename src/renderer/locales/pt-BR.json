@@ -727,7 +727,9 @@
     "exportCodedPdfTitle": "Exportar este documento como PDF, com os segmentos codificados destacados e rotulados",
     "exportingPdf": "Exportando…",
     "exportPdfWithCodes": "Exportar como PDF com códigos",
-    "exportPdfPlain": "Exportar como PDF"
+    "exportPdfPlain": "Exportar como PDF",
+    "keyboardHint": "As setas percorrem o texto e, com Shift, selecionam. Depois, o atalho de um código, ou Shift+F10 para o menu, codifica a seleção.",
+    "selectedText": "Selecionado: {{text}}"
   },
   "tabs": {
     "untitledMap": "Mapa sem título",

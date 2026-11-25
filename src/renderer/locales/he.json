@@ -727,7 +727,9 @@
     "exportCodedPdfTitle": "ייצוא המסמך הזה כ-PDF, עם הקטעים המקודדים מודגשים ומסומנים",
     "exportingPdf": "מייצא…",
     "exportPdfWithCodes": "ייצוא כ-PDF עם קודים",
-    "exportPdfPlain": "ייצוא כ-PDF"
+    "exportPdfPlain": "ייצוא כ-PDF",
+    "keyboardHint": "מקשי החיצים נעים בטקסט, ועם Shift הם בוחרים בו. קיצור הדרך של קוד, או Shift+F10 לתפריט, מקודד אז את הבחירה.",
+    "selectedText": "נבחר: {{text}}"
   },
   "tabs": {
     "untitledMap": "מפה ללא שם",

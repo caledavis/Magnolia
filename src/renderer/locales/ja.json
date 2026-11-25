@@ -683,7 +683,9 @@
     "exportCodedPdfTitle": "このドキュメントを、コード化したセグメントを強調・ラベル付けして PDF として書き出します",
     "exportingPdf": "書き出しています…",
     "exportPdfWithCodes": "コード付きで PDF として書き出す",
-    "exportPdfPlain": "PDF として書き出す"
+    "exportPdfPlain": "PDF として書き出す",
+    "keyboardHint": "矢印キーでテキスト内を移動し、Shift と一緒に押すと選択します。そのあと、コードのショートカット、またはメニューを開く Shift+F10 で選択範囲をコーディングします。",
+    "selectedText": "選択: {{text}}"
   },
   "tabs": {
     "untitledMap": "名称未設定のマップ",

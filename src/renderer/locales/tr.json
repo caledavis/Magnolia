@@ -705,7 +705,9 @@
     "exportCodedPdfTitle": "Bu belgeyi, kodlanmış bölümleri vurgulanıp etiketlenmiş olarak PDF’ye aktarın",
     "exportingPdf": "Dışa aktarılıyor…",
     "exportPdfWithCodes": "Kodlarla PDF olarak dışa aktar",
-    "exportPdfPlain": "PDF olarak dışa aktar"
+    "exportPdfPlain": "PDF olarak dışa aktar",
+    "keyboardHint": "Ok tuşları metinde ilerler, Shift ile birlikte metni seçer. Ardından bir kodun kısayolu ya da menü için Shift+F10 seçimi kodlar.",
+    "selectedText": "Seçildi: {{text}}"
   },
   "tabs": {
     "untitledMap": "Adsız harita",

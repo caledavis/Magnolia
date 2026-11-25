@@ -749,7 +749,9 @@
     "exportCodedPdfTitle": "Exportovat tento dokument jako PDF se zvýrazněnými a označenými kódovanými úseky",
     "exportingPdf": "Exportování…",
     "exportPdfWithCodes": "Exportovat jako PDF s kódy",
-    "exportPdfPlain": "Exportovat jako PDF"
+    "exportPdfPlain": "Exportovat jako PDF",
+    "keyboardHint": "Šipky se pohybují textem, se Shiftem ho vybírají. Klávesová zkratka kódu nebo Shift+F10 pro nabídku pak výběr okóduje.",
+    "selectedText": "Vybráno: {{text}}"
   },
   "tabs": {
     "untitledMap": "Mapa bez názvu",

@@ -705,7 +705,9 @@
     "exportCodedPdfTitle": "Eksporter dette dokumentet som PDF, med de kodede segmentene uthevet og merket",
     "exportingPdf": "Eksporterer …",
     "exportPdfWithCodes": "Eksporter som PDF med koder",
-    "exportPdfPlain": "Eksporter som PDF"
+    "exportPdfPlain": "Eksporter som PDF",
+    "keyboardHint": "Piltastene beveger seg gjennom teksten, og med Skift merker de den. En kodes snarvei, eller Skift+F10 for menyen, koder så det merkede.",
+    "selectedText": "Merket: {{text}}"
   },
   "tabs": {
     "untitledMap": "Kart uten navn",

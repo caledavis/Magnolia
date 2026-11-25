@@ -705,7 +705,9 @@
     "exportCodedPdfTitle": "Export this document as a PDF, with its coded segments highlighted and labelled",
     "exportingPdf": "Exporting…",
     "exportPdfWithCodes": "Export as PDF with Codes",
-    "exportPdfPlain": "Export as PDF"
+    "exportPdfPlain": "Export as PDF",
+    "keyboardHint": "The arrow keys move through the text, and with Shift they select it. A code’s shortcut, or Shift+F10 for the menu, then codes the selection.",
+    "selectedText": "Selected: {{text}}"
   },
   "tabs": {
     "untitledMap": "Untitled map",

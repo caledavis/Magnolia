@@ -705,7 +705,9 @@
     "exportCodedPdfTitle": "Dieses Dokument als PDF exportieren, mit hervorgehobenen und beschrifteten codierten Segmenten",
     "exportingPdf": "Wird exportiert …",
     "exportPdfWithCodes": "Als PDF mit Codes exportieren",
-    "exportPdfPlain": "Als PDF exportieren"
+    "exportPdfPlain": "Als PDF exportieren",
+    "keyboardHint": "Die Pfeiltasten bewegen sich durch den Text, mit Umschalt markieren sie ihn. Das Tastenkürzel eines Codes oder Umschalt+F10 für das Menü codiert dann die Auswahl.",
+    "selectedText": "Ausgewählt: {{text}}"
   },
   "tabs": {
     "untitledMap": "Karte ohne Titel",

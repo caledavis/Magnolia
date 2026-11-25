@@ -793,7 +793,9 @@
     "exportCodedPdfTitle": "تصدير هذا المستند بتنسيق PDF، مع إبراز المقاطع المرمّزة وتسميتها",
     "exportingPdf": "جارٍ التصدير…",
     "exportPdfWithCodes": "تصدير بتنسيق PDF مع الرموز",
-    "exportPdfPlain": "تصدير بتنسيق PDF"
+    "exportPdfPlain": "تصدير بتنسيق PDF",
+    "keyboardHint": "تتنقّل مفاتيح الأسهم في النص، ومع Shift تحدّده. ثم يرمّز اختصار رمزٍ ما، أو Shift+F10 للقائمة، النصَّ المحدَّد.",
+    "selectedText": "المحدَّد: {{text}}"
   },
   "tabs": {
     "untitledMap": "خريطة بلا عنوان",

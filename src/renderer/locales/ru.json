@@ -749,7 +749,9 @@
     "exportCodedPdfTitle": "Экспортировать этот документ в PDF с выделенными и подписанными закодированными фрагментами",
     "exportingPdf": "Экспорт…",
     "exportPdfWithCodes": "Экспорт в PDF с кодами",
-    "exportPdfPlain": "Экспорт в PDF"
+    "exportPdfPlain": "Экспорт в PDF",
+    "keyboardHint": "Стрелки перемещают по тексту, а вместе с Shift выделяют его. Затем сочетание клавиш кода или Shift+F10 для меню кодирует выделенное.",
+    "selectedText": "Выделено: {{text}}"
   },
   "tabs": {
     "untitledMap": "Карта без названия",

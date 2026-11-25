@@ -749,7 +749,9 @@
     "exportCodedPdfTitle": "Eksportuoti šį dokumentą kaip PDF, paryškinant ir pažymint užkoduotus fragmentus",
     "exportingPdf": "Eksportuojama…",
     "exportPdfWithCodes": "Eksportuoti kaip PDF su kodais",
-    "exportPdfPlain": "Eksportuoti kaip PDF"
+    "exportPdfPlain": "Eksportuoti kaip PDF",
+    "keyboardHint": "Rodyklių klavišai juda tekstu, o su Shift jį pažymi. Tada kodo spartusis klavišas arba Shift+F10 meniu užkoduoja pažymėtą tekstą.",
+    "selectedText": "Pažymėta: {{text}}"
   },
   "tabs": {
     "untitledMap": "Žemėlapis be pavadinimo",

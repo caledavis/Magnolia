@@ -2717,3 +2717,10 @@ textarea {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
+
+/* A read-only text the keyboard is in (its caret: CodedTextView). */
+.text-document:focus { outline: none; }
+.text-document:focus-visible { box-shadow: inset 2px 0 0 var(--accent); }
+@keyframes text-caret-blink { 50% { opacity: 0; } }
+.text-caret { animation: text-caret-blink 1.1s step-end infinite; }
+@media (prefers-reduced-motion: reduce) { .text-caret { animation: none; } }

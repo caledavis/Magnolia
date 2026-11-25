@@ -705,7 +705,9 @@
     "exportCodedPdfTitle": "Dit document exporteren als pdf, met de gecodeerde segmenten gemarkeerd en gelabeld",
     "exportingPdf": "Exporteren…",
     "exportPdfWithCodes": "Exporteren als pdf met codes",
-    "exportPdfPlain": "Exporteren als pdf"
+    "exportPdfPlain": "Exporteren als pdf",
+    "keyboardHint": "Met de pijltjestoetsen ga je door de tekst, met Shift erbij selecteer je. De sneltoets van een code, of Shift+F10 voor het menu, codeert dan de selectie.",
+    "selectedText": "Geselecteerd: {{text}}"
   },
   "tabs": {
     "untitledMap": "Naamloze kaart",
