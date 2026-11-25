@@ -13,7 +13,8 @@ async function spec(t) {
   const tabs = (await t.module('stores/analysis-tabs-store')).useAnalysisTabsStore
   const tabIds = await t.module('utils/tab-ids')
 
-  t.log(`opened: ${Math.round(performance.now())} ms after the window started loading (${docs.getState().sources.length} documents)`)
+  // The harness waits 2 s after the project opens before a spec starts.
+  t.log(`opened: ${Math.round(performance.now()) - 2000} ms after the window started loading (${docs.getState().sources.length} documents)`)
 
   let last = performance.now()
   let longest = 0
@@ -42,7 +43,8 @@ async function spec(t) {
     return !!(await t.until(() => { const s = queries.getState(); return s.isActive && !s.isLoading }, 120000, 20))
   }
 
-  await measure('save', async () => {
+  // Autosave waits 2 s after the last change, so this is that and the save.
+  await measure('autosave (2 s wait + save)', async () => {
     project.getState().markDirty()
     return !!(await t.until(() => !project.getState().isDirty, 120000, 20))
   })
