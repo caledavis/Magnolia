@@ -639,7 +639,9 @@ button {
   font-family: var(--font-family);
   font-size: var(--font-size-sm);
   cursor: pointer;
-  border: none;
+  /* Invisible, in the button's own colour: a filled button is the same
+     height as a secondary one, whose border is visible. */
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   padding: 4px 10px;
   background: var(--accent);
