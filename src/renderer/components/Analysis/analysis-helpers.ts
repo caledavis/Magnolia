@@ -147,6 +147,33 @@ function unionLength(ranges: { start: number; end: number }[]): number {
  *  (or if it can't be), it's estimated from the furthest corner of any box
  *  on it, and a recording's unknown length from the latest moment coded
  *  in it — see sizeEstimated. */
+// Per-call lookups a grid makes thousands of times (a code × a column ×
+// its documents): a document by guid, and a text's length in codepoints
+// (counting a long transcript's characters is the slow part). Cached
+// against the data's own arrays and strings, so new data is new caches.
+const sourceIndexes = new WeakMap<object, Map<string, AnalysisInitData['sources'][number]>>()
+function sourceOf(data: AnalysisInitData, guid: string): AnalysisInitData['sources'][number] | undefined {
+  let index = sourceIndexes.get(data.sources)
+  if (!index) {
+    index = new Map(data.sources.map((s) => [s.guid, s]))
+    sourceIndexes.set(data.sources, index)
+  }
+  return index.get(guid)
+}
+const lengthCaches = new WeakMap<object, Map<string, number>>()
+/** The length of `data.sourceContents[guid]` in codepoints. */
+function contentLength(data: AnalysisInitData, guid: string): number {
+  let cache = lengthCaches.get(data.sourceContents)
+  if (!cache) { cache = new Map(); lengthCaches.set(data.sourceContents, cache) }
+  let len = cache.get(guid)
+  if (len === undefined) {
+    const content = data.sourceContents[guid]
+    len = content ? cpLen(content) : 0
+    cache.set(guid, len)
+  }
+  return len
+}
+
 export function codeFrequencyInSource(
   data: AnalysisInitData,
   sourceGuid: string,
@@ -156,7 +183,7 @@ export function codeFrequencyInSource(
   const codeSels = selectionsWithCode(sels, codeGuid)
   if (codeSels.length === 0) return 0
 
-  const source = data.sources.find((s) => s.guid === sourceGuid)
+  const source = sourceOf(data, sourceGuid)
   const sourceType = source?.sourceType ?? 'text'
 
   if (sourceType === 'survey') {
@@ -180,7 +207,7 @@ export function codeFrequencyInSource(
       const ranges = times.map((t) => ({ start: t!.startTime, end: t!.endTime }))
       return (unionLength(clipRanges(ranges, duration)) / duration) * 100
     }
-    const totalCp = content ? Array.from(content).length : 0
+    const totalCp = content ? contentLength(data, sourceGuid) : 0
     if (totalCp > 0) {
       const ranges = codeSels.map((s) => ({ start: s.startPosition, end: s.endPosition }))
       return (unionLength(clipRanges(ranges, totalCp)) / totalCp) * 100
@@ -193,8 +220,7 @@ export function codeFrequencyInSource(
   if (sourceType === 'pdf') {
     const codeBoxes = codeSels.filter((s) => !!s.pdfRegion)
     const codeText = codeSels.filter((s) => !s.pdfRegion && s.endPosition > s.startPosition)
-    const content = data.sourceContents[sourceGuid]
-    const totalCp = content ? Array.from(content).length : 0
+    const totalCp = contentLength(data, sourceGuid)
     const parts: number[] = []
     if (codeText.length > 0 && totalCp > 0) {
       parts.push((unionLength(clipRanges(codeText.map((s) => ({ start: s.startPosition, end: s.endPosition })), totalCp)) / totalCp) * 100)
@@ -204,8 +230,7 @@ export function codeFrequencyInSource(
   }
 
   // text / markdown / fallback
-  const content = data.sourceContents[sourceGuid]
-  const totalCp = content ? Array.from(content).length : 0
+  const totalCp = contentLength(data, sourceGuid)
   if (totalCp === 0) return 0
   const ranges = codeSels.map((s) => ({ start: s.startPosition, end: s.endPosition }))
   const covered = unionLength(clipRanges(ranges, totalCp))
@@ -215,7 +240,7 @@ export function codeFrequencyInSource(
 /** A recording's length in seconds: its own, or — when unknown — the
  *  latest moment coded in it (see sizeEstimated). */
 function recordingLength(data: AnalysisInitData, sourceGuid: string): number {
-  const own = data.sources.find((s) => s.guid === sourceGuid)?.duration ?? 0
+  const own = sourceOf(data, sourceGuid)?.duration ?? 0
   if (own > 0) return own
   let latest = 0
   for (const s of data.sourceSelections[sourceGuid] || []) if (s.timeRange) latest = Math.max(latest, s.timeRange.endTime)

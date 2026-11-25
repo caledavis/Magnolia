@@ -36,6 +36,8 @@ import type { CellScope } from '../../utils/narrow-query'
 import { keyActivate, dropZone } from '../../utils/key-activate'
 import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
 import { ZERO_CELL } from './zero-cell'
+import { useColumnWindow, useScrollView } from '../../utils/use-column-window'
+import { flushSync } from 'react-dom'
 
 interface Props {
   data: AnalysisInitData
@@ -224,6 +226,23 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
   }, [columns, headerGroups])
   const BAND_TINT = 'color-mix(in srgb, var(--text-secondary) 4%, transparent)'
 
+  // Only the table's columns in view are drawn (see use-column-window).
+  const colWidths = useMemo(() => columns.map(() => 60), [columns])
+  const win = useColumnWindow(colWidths)
+  const shown = columns.slice(win.start, win.end)
+  const spacer = (px: number) =>
+    px > 0 ? <td aria-hidden="true" style={{ width: px, minWidth: px, maxWidth: px, padding: 0, borderBottom: '1px solid var(--border-color)' }} /> : null
+  const shownGroups = useMemo(() => {
+    const out: { g: (typeof headerGroups)[number]; span: number }[] = []
+    let cursor = 0
+    for (const g of headerGroups) {
+      const span = Math.max(0, Math.min(cursor + g.span, win.end) - Math.max(cursor, win.start))
+      if (span > 0) out.push({ g, span })
+      cursor += g.span
+    }
+    return out
+  }, [headerGroups, win.start, win.end])
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     const guids = draggedCodeGuids(e)
@@ -287,13 +306,26 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
 
   // Bar chart dimensions, scaled to data so the chart looks
   // proportionate regardless of how many codes / series are shown.
-  const chartW = Math.max(400, codeGuids.length * (columns.length * 16 + 30) + 60)
+  // Exactly as wide as its bars: each code's group is a 14 px bar per
+  // column plus 10, groups 16 apart, after the 40 px axis margin and a 20
+  // px gap (as the bars are placed below), with 20 px to spare.
+  const chartW = Math.max(400, 40 + 20 + codeGuids.length * (columns.length * 14 + 10 + 16) + 20)
   // Height grows with the number of codes (groups). Driving from
   // codeGuids.length is more visible than tracking chartW, because
   // chartW already grows quickly with series and would otherwise
   // dominate the formula. The clamp keeps a usable plot area for
   // a single code and bounds the chart at ~one screen tall.
   const chartH = Math.min(560, Math.max(220, 160 + codeGuids.length * 24))
+  // Only the bars in view are drawn (a bar per code per column is tens of
+  // thousands on a large project), except while the chart is exported.
+  const chartView = useScrollView(chartW > 6000)
+  const [drawAllBars, setDrawAllBars] = useState(false)
+  const barRange = (groupX: number, n: number): [number, number] => {
+    if (drawAllBars || chartW <= 6000) return [0, n]
+    const lo = chartView.view.offset - chartView.margin - groupX
+    const hi = chartView.view.offset + chartView.view.width + chartView.margin - groupX
+    return [Math.max(0, Math.floor(lo / 14)), Math.min(n, Math.ceil(hi / 14))]
+  }
 
   // Font sizes scale with chart height. The 8 px floor matches the
   // previous fixed value (legible on the smallest chart); the upper
@@ -374,7 +406,10 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
     }
 
     const totalH = legendH + chartH
+    // Every bar, not just those in view.
+    flushSync(() => setDrawAllBars(true))
     const chartHtml = chartRef.current.outerHTML
+    setDrawAllBars(false)
     const combined = `<svg xmlns="http://www.w3.org/2000/svg" width="${chartW}" height="${totalH}" viewBox="0 0 ${chartW} ${totalH}"><rect width="${chartW}" height="${totalH}" fill="#ffffff"/>${legendParts.join('')}<g transform="translate(0, ${legendH})">${chartHtml}</g></svg>`
 
     window.api.exportSvg(combined, 'code-frequencies-chart.svg')
@@ -565,16 +600,19 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
               {t('analysis.buildGridHint')}
             </div>
           ) : (
-            <div style={{ overflowX: 'auto' }} tabIndex={0} role="region" aria-label={t('tools.codeFrequencies.label')}>
-              <table {...tableKeys} style={{ borderCollapse: 'collapse', fontSize: 11 }}>
+            <div ref={win.ref} style={{ overflowX: 'auto' }} tabIndex={0} role="region" aria-label={t('tools.codeFrequencies.label')}>
+              {/* Room at the end for the last column's slanted label, so the
+                  scroll width is the same whether it's drawn or not. */}
+              <table {...tableKeys} style={{ borderCollapse: 'collapse', fontSize: 11, marginInlineEnd: 140 }}>
                 <thead>
                   {hasGroupedHeader && (
                     <tr>
                       <th style={{ padding: '0 6px 4px', borderBottom: '1px solid var(--border-color)' }} />
-                      {headerGroups.map((g) => (
+                      {spacer(win.before)}
+                      {shownGroups.map(({ g, span }) => (
                         <th
                           key={`hg:${g.id}`}
-                          colSpan={g.span}
+                          colSpan={span}
                           style={{
                             padding: '4px 6px',
                             borderBottom: '1px solid var(--border-color)',
@@ -590,11 +628,13 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                           {g.label ?? ''}
                         </th>
                       ))}
+                      {spacer(win.after)}
                     </tr>
                   )}
                   <tr>
                     <th style={{ padding: 4, borderBottom: '1px solid var(--border-color)', textAlign: 'start', minWidth: 100, verticalAlign: 'bottom' }}>{t('analysis.code')}</th>
-                    {columns.map((col, j) => (
+                    {spacer(win.before)}
+                    {shown.map((col, k) => { const j = win.start + k; return (
                       <th
                         key={col.id}
                         style={{
@@ -611,7 +651,8 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                           {columnLabel(col, 24)}
                         </div>
                       </th>
-                    ))}
+                    ) })}
+                    {spacer(win.after)}
                   </tr>
                 </thead>
                 <tbody>
@@ -622,7 +663,9 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                         {truncate(codeMap.get(codeGuid)?.name || '', 16)}
                         <span {...keyActivate({ label: t('common.remove') })} onClick={() => setCodeGuids((p) => p.filter((g) => g !== codeGuid))} style={{ marginInlineStart: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>x</span>
                       </td>
-                      {columns.map((col, j) => {
+                      {spacer(win.before)}
+                      {shown.map((col, k) => {
+                        const j = win.start + k
                         const val = grid[i][j]
                         return (
                           <td
@@ -647,6 +690,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                           </td>
                         )
                       })}
+                      {spacer(win.after)}
                     </tr>
                   ))}
                 </tbody>
@@ -689,7 +733,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
               ))}
             </div>
 
-            <div style={{ overflowX: 'auto' }} tabIndex={0} role="region" aria-label={t('tools.codeFrequencies.label')}>
+            <div ref={chartView.ref} style={{ overflowX: 'auto' }} tabIndex={0} role="region" aria-label={t('tools.codeFrequencies.label')}>
               <svg ref={chartRef} width={chartW} height={chartH} style={{ background: 'var(--bg-primary)', borderRadius: 'var(--radius-sm)' }}>
                 {/* Y axis */}
                 <line x1={marginInlineStart} y1={5} x2={marginInlineStart} y2={chartH - marginBottom} stroke={themeColors.borderColor} />
@@ -708,9 +752,11 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                 {codeGuids.map((codeGuid, ci) => {
                   const groupW = columns.length * 14 + 10
                   const groupX = marginInlineStart + 20 + ci * (groupW + 16)
+                  const [from, to] = barRange(groupX, columns.length)
                   return (
                     <g key={codeGuid}>
-                      {columns.map((col, si) => {
+                      {columns.slice(from, to).map((col, k) => {
+                        const si = from + k
                         const val = grid[ci][si]
                         const barH = (val / Math.max(maxPct, 100)) * barMaxH
                         const barX = groupX + si * 14

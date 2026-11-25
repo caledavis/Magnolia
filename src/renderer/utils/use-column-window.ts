@@ -13,10 +13,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const MARGIN = 800 // px drawn beyond each edge of the view
 
-export function useColumnWindow(widths: number[], minColumns = 80) {
+/** How far a horizontally scrolling box is scrolled, and how wide it is
+ *  (kept up to date while `enabled`). */
+export function useScrollView(enabled: boolean) {
   const ref = useRef<HTMLDivElement | null>(null)
   const [view, setView] = useState({ offset: 0, width: 2000 })
-  const enabled = widths.length >= minColumns
 
   const measure = useCallback(() => {
     const el = ref.current
@@ -46,6 +47,13 @@ export function useColumnWindow(widths: number[], minColumns = 80) {
     }
   }, [enabled, measure])
 
+  return { ref, view, margin: MARGIN }
+}
+
+export function useColumnWindow(widths: number[], minColumns = 80) {
+  const enabled = widths.length >= minColumns
+  const { ref, view } = useScrollView(enabled)
+
   const starts = useMemo(() => {
     const s = new Array<number>(widths.length + 1)
     s[0] = 0
@@ -63,5 +71,5 @@ export function useColumnWindow(widths: number[], minColumns = 80) {
     let end = start
     while (end < n && starts[end] < hi) end++
     return { ref, start, end, before: starts[start], after: starts[n] - starts[end] }
-  }, [enabled, view, starts, widths.length])
+  }, [enabled, ref, view, starts, widths.length])
 }
