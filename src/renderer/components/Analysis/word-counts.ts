@@ -36,15 +36,38 @@ export function wordFilter(includeWords: string, excludeWords: string): WordFilt
 /** Add the words of `texts` to `freq` (a new map when omitted). */
 export function countWords(texts: Iterable<string>, filter: WordFilter, freq = new Map<string, number>()): Map<string, number> {
   for (const text of texts) {
-    // Words as text search finds them (utils/words), in any script.
-    for (const { word: w } of wordTokens(text.toLowerCase())) {
-      if (!isCountedWord(w)) continue
+    for (const [w, n] of wordsIn(text)) {
       if (filter.exclude.has(w)) continue
       if (filter.include && !filter.include.has(w)) continue
-      freq.set(w, (freq.get(w) || 0) + 1)
+      freq.set(w, (freq.get(w) || 0) + n)
     }
   }
   return freq
+}
+
+/** A text's counted words (lowercased, utils/words) and how often each
+ *  occurs, before any include/exclude list. Splitting a project's text
+ *  into words is the slow part of the word tools, and the same documents
+ *  are counted again for each series, each re-grouping and each report,
+ *  so it's kept for the texts counted most recently. */
+const WORDS_KEPT = 4000
+const wordsCache = new Map<string, Map<string, number>>()
+function wordsIn(text: string): Map<string, number> {
+  const hit = wordsCache.get(text)
+  if (hit) {
+    // Most recently used last.
+    wordsCache.delete(text)
+    wordsCache.set(text, hit)
+    return hit
+  }
+  const counts = new Map<string, number>()
+  // Words as text search finds them (utils/words), in any script.
+  for (const { word: w } of wordTokens(text.toLowerCase())) {
+    if (isCountedWord(w)) counts.set(w, (counts.get(w) || 0) + 1)
+  }
+  wordsCache.set(text, counts)
+  if (wordsCache.size > WORDS_KEPT) wordsCache.delete(wordsCache.keys().next().value!)
+  return counts
 }
 
 function sourceTypeOf(d: AnalysisInitData, sourceGuid: string) {
