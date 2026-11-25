@@ -715,7 +715,8 @@
     "mergeProjects": "Yhdistä projektit",
     "unsavedChanges": "Tallentamattomia muutoksia",
     "closeTab": "Sulje välilehti",
-    "unsavedQuestion": "Kohteessa ”{{name}}” on tallentamattomia muutoksia. Mitä haluat tehdä?"
+    "unsavedQuestion": "Kohteessa ”{{name}}” on tallentamattomia muutoksia. Mitä haluat tehdä?",
+    "openDocuments": "Avoimet dokumentit"
   },
   "notes": {
     "untitled": "Nimetön muistiinpano",

@@ -715,7 +715,8 @@
     "mergeProjects": "Slå sammen prosjekter",
     "unsavedChanges": "Ulagrede endringer",
     "closeTab": "Lukk fanen",
-    "unsavedQuestion": "«{{name}}» har ulagrede endringer. Hva vil du gjøre?"
+    "unsavedQuestion": "«{{name}}» har ulagrede endringer. Hva vil du gjøre?",
+    "openDocuments": "Åpne dokumenter"
   },
   "notes": {
     "untitled": "Notat uten navn",

@@ -715,7 +715,8 @@
     "mergeProjects": "Projekte zusammenführen",
     "unsavedChanges": "Nicht gespeicherte Änderungen",
     "closeTab": "Tab schließen",
-    "unsavedQuestion": "„{{name}}“ hat nicht gespeicherte Änderungen. Was möchten Sie tun?"
+    "unsavedQuestion": "„{{name}}“ hat nicht gespeicherte Änderungen. Was möchten Sie tun?",
+    "openDocuments": "Geöffnete Dokumente"
   },
   "notes": {
     "untitled": "Notiz ohne Titel",

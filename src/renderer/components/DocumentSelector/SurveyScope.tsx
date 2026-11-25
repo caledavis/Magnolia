@@ -16,6 +16,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { SurveyEntityRef } from '../../models/types'
 import { useTranslation } from 'react-i18next'
 import { t } from '../../i18n'
+import { keyActivate } from '../../utils/key-activate'
 
 export type SurveyScopeKind = 'questions' | 'respondents'
 
@@ -104,6 +105,7 @@ export function SurveyScopeLine({ kind, surveyName, labels, chosen, onChange, na
   return (
     <>
       <div
+        {...keyActivate({ expanded: !!anchor })}
         onClick={(e) => setAnchor(anchor ? null : (e.currentTarget as HTMLElement).getBoundingClientRect())}
         title={t(`scope.chooseTitle.${kind}`, { survey: surveyName })}
         style={{ padding: '1px 6px 0 16px', fontSize: 9, color: all ? 'var(--text-muted)' : 'var(--accent)', cursor: 'pointer', fontWeight: all ? 400 : 600 }}

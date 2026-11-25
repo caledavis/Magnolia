@@ -715,7 +715,8 @@
     "mergeProjects": "Flet projekter",
     "unsavedChanges": "Ikke-gemte ændringer",
     "closeTab": "Luk fanen",
-    "unsavedQuestion": "»{{name}}« har ændringer, der ikke er gemt. Hvad vil du gøre?"
+    "unsavedQuestion": "»{{name}}« har ændringer, der ikke er gemt. Hvad vil du gøre?",
+    "openDocuments": "Åbne dokumenter"
   },
   "notes": {
     "untitled": "Note uden navn",

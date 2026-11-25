@@ -737,7 +737,8 @@
     "mergeProjects": "Combinar proyectos",
     "unsavedChanges": "Cambios sin guardar",
     "closeTab": "Cerrar pestaña",
-    "unsavedQuestion": "«{{name}}» tiene cambios sin guardar. ¿Qué quieres hacer?"
+    "unsavedQuestion": "«{{name}}» tiene cambios sin guardar. ¿Qué quieres hacer?",
+    "openDocuments": "Documentos abiertos"
   },
   "notes": {
     "untitled": "Nota sin título",

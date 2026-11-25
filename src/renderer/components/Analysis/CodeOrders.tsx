@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next'
 import { formatPercent } from '../../i18n'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
 import type { CellScope } from '../../utils/narrow-query'
+import { keyActivate } from '../../utils/key-activate'
 
 interface Props {
   data: AnalysisInitData
@@ -595,7 +596,7 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
                   <span key={guid} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
                     <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: info?.color || '#888' }} />
                     {info?.name || guid}
-                    <span onClick={() => setCodeGuids((p) => p.filter((g) => g !== guid))} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>&times;</span>
+                    <span {...keyActivate({ label: t('common.remove') })} onClick={() => setCodeGuids((p) => p.filter((g) => g !== guid))} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>&times;</span>
                   </span>
                 )
               })}

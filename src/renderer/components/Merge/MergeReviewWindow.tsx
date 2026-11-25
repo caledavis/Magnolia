@@ -15,6 +15,7 @@ import { stripFormatting } from '../../utils/strip-formatting'
 import type { Code, DocumentFolder } from '../../models/types'
 import { t } from '../../i18n'
 import { emptySaveAllowed, noteStateMatchesFile } from '../../stores/empty-save-guard'
+import { keyActivate } from '../../utils/key-activate'
 
 interface MergeReviewWindowProps {
   onClose: () => void
@@ -931,6 +932,7 @@ export function MergeReviewWindow({ onClose }: MergeReviewWindowProps): JSX.Elem
             return (
               <div
                 key={cat.id}
+                {...keyActivate({ pressed: selected === cat.id })}
                 onClick={() => setSelected(cat.id)}
                 style={{
                   display: 'flex', justifyContent: 'space-between', padding: '6px 16px', cursor: 'pointer', fontSize: 12.5,

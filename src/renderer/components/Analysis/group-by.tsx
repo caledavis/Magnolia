@@ -3,6 +3,7 @@ import type { AnalysisInitData } from '../../models/types'
 import { Icon, faXmark, faFolder, faNotebookPen, faTag, faTags, faUser } from '../Icon'
 import { useTranslation } from 'react-i18next'
 import { t } from '../../i18n'
+import { keyActivate } from '../../utils/key-activate'
 
 /** Drag MIME emitted by the Document Browser's survey "Respondents"
  *  header. Its payload is the survey's source guid. */
@@ -299,7 +300,7 @@ export function GroupByChips({
               <Icon icon={faUser} style={{ fontSize: 10, color: 'var(--text-muted)' }} />
               {surveyName ?? t('survey.respondents')}
               {surveyName && <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>{t('analysis.respondentsSuffix')}</span>}
-              <span onClick={() => onRemove(entry)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
+              <span {...keyActivate({ label: t('common.remove') })} onClick={() => onRemove(entry)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
             </span>
           )
         }
@@ -309,7 +310,7 @@ export function GroupByChips({
             <span key={`t:${entry.tagGuid}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
               <Icon icon={faTag} style={{ fontSize: 10, color: 'var(--text-muted)' }} />
               {tag?.value || tag?.name || entry.name || t('common.tag')}
-              <span onClick={() => onRemove(entry)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
+              <span {...keyActivate({ label: t('common.remove') })} onClick={() => onRemove(entry)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
             </span>
           )
         }
@@ -321,7 +322,7 @@ export function GroupByChips({
               <Icon icon={faTags} style={{ fontSize: 10, color: 'var(--text-muted)' }} />
               {cat?.name || entry.name || t('analysis.category')}
               <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>({childCount})</span>
-              <span onClick={() => onRemove(entry)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
+              <span {...keyActivate({ label: t('common.remove') })} onClick={() => onRemove(entry)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
             </span>
           )
         }
@@ -338,7 +339,7 @@ export function GroupByChips({
             <Icon icon={folder?.kind === 'notebook' ? faNotebookPen : faFolder} style={{ fontSize: 10, color: 'var(--text-muted)' }} />
             {folder?.name || entry.name || t('docSelector.kind.folder')}
             <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>({docCount})</span>
-            <span onClick={() => onRemove(entry)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
+            <span {...keyActivate({ label: t('common.remove') })} onClick={() => onRemove(entry)} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
           </span>
         )
       })}

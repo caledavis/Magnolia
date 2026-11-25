@@ -715,7 +715,8 @@
     "mergeProjects": "Sammanfoga projekt",
     "unsavedChanges": "Osparade ändringar",
     "closeTab": "Stäng fliken",
-    "unsavedQuestion": "”{{name}}” har osparade ändringar. Vad vill du göra?"
+    "unsavedQuestion": "”{{name}}” har osparade ändringar. Vad vill du göra?",
+    "openDocuments": "Öppna dokument"
   },
   "notes": {
     "untitled": "Namnlös anteckning",

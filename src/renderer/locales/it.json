@@ -737,7 +737,8 @@
     "mergeProjects": "Unisci progetti",
     "unsavedChanges": "Modifiche non salvate",
     "closeTab": "Chiudi pannello",
-    "unsavedQuestion": "«{{name}}» ha modifiche non salvate. Cosa vuoi fare?"
+    "unsavedQuestion": "«{{name}}» ha modifiche non salvate. Cosa vuoi fare?",
+    "openDocuments": "Documenti aperti"
   },
   "notes": {
     "untitled": "Nota senza titolo",

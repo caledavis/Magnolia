@@ -44,6 +44,7 @@ import { SegmentedControl } from './SegmentedControl'
 import { useTranslation } from 'react-i18next'
 import { formatNumber, currentLanguage } from '../../i18n'
 import type { CellScope } from '../../utils/narrow-query'
+import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
 
 interface Props {
   data: AnalysisInitData
@@ -165,6 +166,7 @@ function useThemeAccentHsl(): { h: number; s: number; l: number } {
 
 export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
   const { t } = useTranslation()
+  const tableKeys = useGridKeyboard(t('tools.wordFrequencies.label'))
   const [docFilter, setDocFilter] = useState<DocumentFilterState>(documentFilterFromConfig(savedConfig))
   const [groupBy, setGroupBy] = useState<GroupByEntry[]>(
     () => savedConfig?.groupBy ?? migrateLegacyGroupBy(savedConfig?.groupByTags)
@@ -665,7 +667,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
               <button className="secondary" style={{ fontSize: 10, padding: '3px 8px' }} onClick={handleExportCsv}>{t('analysis.exportCsv')}</button>
             </div>
             <div style={{ maxHeight: 350, overflowY: 'auto' }}>
-              <table style={{ borderCollapse: 'collapse', fontSize: 11, width: '100%' }}>
+              <table {...tableKeys} style={{ borderCollapse: 'collapse', fontSize: 11, width: '100%' }}>
                 <thead>
                   <tr>
                     <th style={{ padding: '3px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'start' }}>{t('words.word')}</th>
@@ -674,7 +676,7 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
                 </thead>
                 <tbody>
                   {wordFreqs.slice(0, 200).map(([word, count]) => (
-                    <tr key={word} onClick={() => handleWordClick(word)} style={{ cursor: 'pointer' }} title={coded ? t('words.searchCoded', { word }) : byQuery ? t('words.searchQuery', { word }) : t('words.search', { word })}>
+                    <tr {...gridCell()} key={word} onClick={() => handleWordClick(word)} style={{ cursor: 'pointer' }} title={coded ? t('words.searchCoded', { word }) : byQuery ? t('words.searchQuery', { word }) : t('words.search', { word })}>
                       <td style={{ padding: '2px 6px', borderBottom: '1px solid var(--border-color)' }}>{word}</td>
                       <td style={{ padding: '2px 6px', borderBottom: '1px solid var(--border-color)', textAlign: 'end' }}>{formatNumber(count)}</td>
                     </tr>

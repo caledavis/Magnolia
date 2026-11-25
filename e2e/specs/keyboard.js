@@ -24,7 +24,7 @@ async function spec(t) {
   const guid = focused().dataset.documentGuid
   t.check('↓ reaches a document', !!guid)
   key('Enter')
-  t.check('Enter opens it', !!(await t.until(() => docs.getState().activeTabId === guid || document.querySelector(`[data-document-guid="${guid}"][aria-current="page"]`), 5000)))
+  t.check('Enter opens it', !!(await t.until(() => docs.getState().viewedDocumentGuid === guid, 5000)))
   const before = focused()
   key('ArrowUp')
   t.check('↑ moves to the row above', focused() !== before && focused().getAttribute('role') === 'treeitem')
@@ -67,5 +67,42 @@ async function spec(t) {
     if (!pane) { t.log(`${label}: empty`); continue }
     const rows = [...pane.querySelectorAll('[role="treeitem"]')].filter((r) => r.offsetParent !== null)
     t.check(`the ${label} pane is a tree, one row in the Tab order`, rows.length === 0 || rows.filter((r) => r.tabIndex === 0).length === 1, `${rows.length} rows`)
+  }
+
+  // ── Document tabs ──
+  const sources = docs.getState().sources
+  docs.getState().viewDocument(sources[0].guid)
+  docs.getState().viewDocument(sources[1].guid)
+  await t.sleep(500)
+  const tablist = document.querySelector('[role="tablist"][aria-label="Open documents"]')
+  t.check('the open documents are a tab list', !!tablist)
+  const active = tablist?.querySelector('[role="tab"][aria-selected="true"]')
+  t.check('the open one is the tab in the Tab order', !!active && active.tabIndex === 0)
+  if (active) {
+    active.focus()
+    const was = docs.getState().viewedDocumentGuid
+    key('ArrowLeft')
+    t.check('← opens the tab before it', !!(await t.until(() => docs.getState().viewedDocumentGuid !== was, 3000)))
+    t.check('and takes the focus', !!(await t.until(() => focused()?.getAttribute('aria-selected') === 'true', 3000)))
+  }
+
+  // ── An analysis table ──
+  const tabs = (await t.module('stores/analysis-tabs-store')).useAnalysisTabsStore
+  const tabIds = await t.module('utils/tab-ids')
+  const codes = (await t.module('stores/code-store')).useCodeStore
+  const id = tabIds.makeAnalysisTabId('codes-in-documents', 'keys')
+  tabs.getState().add(id, { toolType: 'codes-in-documents', title: 'Codes in Documents', config: { codeGuids: codes.getState().flatCodes().map((c) => c.guid) }, poppedOut: false })
+  docs.getState().openToolTab(id)
+  const grid = await t.until(() => [...document.querySelectorAll('[role="grid"]')].find((g) => t.visible(g)), 15000)
+  t.check('Codes in Documents is a grid', !!grid)
+  if (grid) {
+    const cells = grid.querySelectorAll('[data-grid-cell]')
+    t.check('one of its cells is in the Tab order', [...cells].filter((c) => c.tabIndex === 0).length === 1, `${cells.length} cells`)
+    const start = [...cells].find((c) => c.tabIndex === 0)
+    start.focus()
+    key('ArrowRight')
+    t.check('→ moves to the next cell', focused() !== start && focused()?.hasAttribute('data-grid-cell'))
+    key('ArrowDown')
+    t.check('↓ moves down a row', focused()?.hasAttribute('data-grid-cell') && focused().closest('tr') !== start.closest('tr'))
   }
 }

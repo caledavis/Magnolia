@@ -715,7 +715,8 @@
     "mergeProjects": "Projecten samenvoegen",
     "unsavedChanges": "Niet-bewaarde wijzigingen",
     "closeTab": "Tabblad sluiten",
-    "unsavedQuestion": "\"{{name}}\" heeft niet-bewaarde wijzigingen. Wat wil je doen?"
+    "unsavedQuestion": "\"{{name}}\" heeft niet-bewaarde wijzigingen. Wat wil je doen?",
+    "openDocuments": "Geopende documenten"
   },
   "notes": {
     "untitled": "Naamloze notitie",

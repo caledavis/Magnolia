@@ -38,6 +38,7 @@ import {
   type Passage,
   type Segment
 } from './intercoder-model'
+import { gridCell, useGridKeyboard } from '../../../utils/use-grid-keyboard'
 import {
   metricColumns,
   metricValue,
@@ -57,6 +58,7 @@ import {
   type IntercoderSnapshot,
   type MetricCol
 } from './intercoder-tables'
+import { keyActivate } from '../../../utils/key-activate'
 
 const CONTEXT = 60
 
@@ -105,6 +107,7 @@ interface Props extends IntercoderResultsData {
 
 export function IntercoderResults(p: Props) {
   const { t } = useTranslation()
+  const tableKeys = useGridKeyboard(t('tools.intercoderAgreement.label'))
   const tint = useIconTint()
   const { snapshot, view, measure, threshold, showingSaved, byCoderOffered, drill, scroller } = p
   const expandedSet = useMemo(() => new Set(p.expanded), [p.expanded])
@@ -286,7 +289,7 @@ export function IntercoderResults(p: Props) {
       // to the box's top and the code column to its side. The tool
       // itself only ever scrolls up and down.
       <div ref={tableBoxRef} style={{ overflow: 'auto', maxHeight: drill && !showingSaved ? drillTableHeight(scrollerHeight) : 'max(240px, calc(100vh - 200px))', background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
-        <table style={{ borderCollapse: 'separate', borderSpacing: 0, fontSize: 12, minWidth: '100%' }}>
+        <table {...tableKeys} style={{ borderCollapse: 'separate', borderSpacing: 0, fontSize: 12, minWidth: '100%' }}>
           <thead>
             <tr ref={headRowRef}>
               <th ref={codeHeadRef} data-pinned="" rowSpan={2} style={{ ...headStyle, ...stickyHead(0), insetInlineStart: 0, zIndex: 3, borderInlineEnd: '1px solid var(--border-color)', textAlign: 'start', minWidth: 220, cursor: 'help' }} title={t('intercoder.codeTitle')}>{t('intercoder.code')}</th>
@@ -314,7 +317,7 @@ export function IntercoderResults(p: Props) {
                   }} title={r.title ?? r.label}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                       {isCode && (
-                        <span onClick={() => p.onToggleExpanded(r.codeKey!)} style={{ cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex', width: 10 }} title={t('intercoder.showDocuments')}>
+                        <span {...keyActivate({ expanded: expandedSet.has(r.codeKey!) })} onClick={() => p.onToggleExpanded(r.codeKey!)} style={{ cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex', width: 10 }} title={t('intercoder.showDocuments')}>
                           <Icon icon={expandedSet.has(r.codeKey!) ? faChevronDown : faChevronRight} style={{ fontSize: 10 }} />
                         </span>
                       )}
@@ -331,7 +334,7 @@ export function IntercoderResults(p: Props) {
                     const clickable = !showingSaved && r.kind !== 'overall' && c.pair !== null && r.codeKey
                     const isSel = !!drill && c.pair === drill.pair && r.codeKey === drill.codeKey && (r.docKey ?? null) === drill.docKey
                     return (
-                      <td
+                      <td {...gridCell()}
                         key={i}
                         onClick={clickable ? () => p.onDrill({ codeKey: r.codeKey!, docKey: r.docKey ?? null, pair: c.pair! }) : undefined}
                         data-selected={isSel && groupStarts[i] ? '' : undefined}
@@ -495,7 +498,7 @@ function DrillDown({ coders, docs, code, pair, measure, threshold, onClose }: {
           <input type="checkbox" checked={showAgreed} onChange={(e) => setShowAgreed(e.target.checked)} />
           {t('intercoder.showAgreed')}
         </label>
-        <span onClick={onClose} title={t('common.close')} style={xStyle}><Icon icon={faXmark} style={{ fontSize: 11 }} /></span>
+        <span {...keyActivate({ label: t('common.close') })} onClick={onClose} title={t('common.close')} style={xStyle}><Icon icon={faXmark} style={{ fontSize: 11 }} /></span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)' }}>
         <div style={{ padding: '6px 10px' }}>{first.label}</div>

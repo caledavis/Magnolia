@@ -202,6 +202,8 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
   return (
     <div
       className="tab-bar"
+      role="tablist"
+      aria-label={t('tabs.openDocuments')}
       onDragLeave={(e) => {
         if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
           setDragOverIdx(null)
@@ -225,6 +227,26 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
             onDrop={(e) => handleDrop(e, i)}
             onDragEnd={handleDragEnd}
             onClick={() => { if (!isEditingThis) onSelectTab(guid) }}
+            role="tab"
+            aria-selected={isActive}
+            tabIndex={isActive ? 0 : -1}
+            onKeyDown={(e) => {
+              if (e.target !== e.currentTarget) return
+              // ← → (and Home End) open the neighbouring tab, as the ribbon's
+              // tabs do; Delete or Backspace closes this one.
+              const keys: Record<string, number> = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: openTabs.length - 1 }
+              if (e.key in keys) {
+                e.preventDefault()
+                const rtl = getComputedStyle(e.currentTarget).direction === 'rtl'
+                const to = rtl && (e.key === 'ArrowRight' || e.key === 'ArrowLeft') ? 2 * i - keys[e.key] : keys[e.key]
+                onSelectTab(openTabs[(to + openTabs.length) % openTabs.length])
+                const strip = e.currentTarget.parentElement
+                requestAnimationFrame(() => strip?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus())
+              } else if (e.key === 'Delete' || e.key === 'Backspace') {
+                e.preventDefault()
+                requestClose(guid)
+              }
+            }}
             onDoubleClick={() => {
               // Rename map tabs in place; document tabs stay read-only.
               if (mapGuid) {
@@ -291,7 +313,7 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
                 {name}
               </span>
             )}
-            <span
+            <span aria-hidden="true"
               className="tab-close"
               onClick={(e) => { e.stopPropagation(); requestClose(guid) }}
               title={t('tabs.closeTab')}

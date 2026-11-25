@@ -56,6 +56,7 @@ import { buildPhraseNetwork, layoutPhraseNetwork, linkTitle, neighbours, LABEL_G
 import { useTranslation } from 'react-i18next'
 import { formatPercent, formatFixed, formatNumber, currentLanguage } from '../../i18n'
 import type { CellScope } from '../../utils/narrow-query'
+import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
 
 export type CombinationsView = 'phrases' | 'associations' | 'tree'
 /** How Phrases are shown. */
@@ -260,6 +261,8 @@ const tdStyle: React.CSSProperties = { padding: '2px 6px', borderBottom: '1px so
 
 export function WordCombinations({ data: propData, savedConfig, inTab }: Props) {
   const { t } = useTranslation()
+  const phraseGrid = useGridKeyboard(t('tools.wordCombinations.label'))
+  const wordGrid = useGridKeyboard(t('tools.wordCombinations.label'))
   const [initial] = useState((): WordCombinationsConfig => {
     const { guid: _guid, name: _name, ...saved } = savedConfig ?? { guid: '', name: '' }
     return { ...defaultCombinationsConfig(), ...saved }
@@ -649,7 +652,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                   {t('combos.phraseCount', { count: phrases.length })}{phrases.length > PHRASE_ROWS ? ` ${t('combos.showingTop', { n: PHRASE_ROWS })}` : ''}
                 </div>
                 <div style={{ maxHeight: 420, overflowY: 'auto' }}>
-                  <table style={{ borderCollapse: 'collapse', fontSize: 11, width: '100%', maxWidth: 520 }}>
+                  <table {...phraseGrid} style={{ borderCollapse: 'collapse', fontSize: 11, width: '100%', maxWidth: 520 }}>
                     <thead>
                       <tr>
                         <th style={thStyle}>{t('combos.phrase')}</th>
@@ -658,7 +661,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                     </thead>
                     <tbody>
                       {phrases.slice(0, PHRASE_ROWS).map(({ phrase, count }) => (
-                        <tr key={phrase} onClick={() => searchFor(phrase)} style={{ cursor: 'pointer' }} title={t('words.search', { word: phrase })}>
+                        <tr {...gridCell()} key={phrase} onClick={() => searchFor(phrase)} style={{ cursor: 'pointer' }} title={t('words.search', { word: phrase })}>
                           <td style={tdStyle}>{phrase}</td>
                           <td style={{ ...tdStyle, textAlign: 'end' }}>{formatNumber(count)}</td>
                         </tr>
@@ -697,7 +700,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                 {t('combos.appearsInSentences', { word: focus, n: associations.focusSentences, count: associations.sentences })}
               </div>
               <div style={{ maxHeight: 420, overflowY: 'auto', maxWidth: 520 }}>
-                <table style={{ borderCollapse: 'collapse', fontSize: 11, width: '100%' }}>
+                <table {...wordGrid} style={{ borderCollapse: 'collapse', fontSize: 11, width: '100%' }}>
                   <thead>
                     <tr>
                       <th style={thStyle}>{t('words.word')}</th>
@@ -708,7 +711,7 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
                   </thead>
                   <tbody>
                     {associations.rows.slice(0, ASSOCIATION_ROWS).map((r) => (
-                      <tr key={r.word} onClick={() => searchSentences(r.word)} style={{ cursor: 'pointer' }} title={t('combos.findSentences', { a: focus, b: r.word })}>
+                      <tr {...gridCell()} key={r.word} onClick={() => searchSentences(r.word)} style={{ cursor: 'pointer' }} title={t('combos.findSentences', { a: focus, b: r.word })}>
                         <td style={tdStyle}>{r.word}</td>
                         <td style={{ ...tdStyle, textAlign: 'end' }}>{formatNumber(r.together)}</td>
                         <td style={{ ...tdStyle, textAlign: 'end' }}>{formatPercent(r.share * 100)}</td>

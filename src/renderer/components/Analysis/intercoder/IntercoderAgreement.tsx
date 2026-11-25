@@ -80,6 +80,7 @@ import {
   exportRows,
   type IntercoderSnapshot
 } from './intercoder-tables'
+import { keyActivate } from '../../../utils/key-activate'
 
 export interface IntercoderConfig {
   /** Coders' project files in order; OPEN_PROJECT_ID for the open one. */
@@ -596,7 +597,7 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
                       {t('intercoder.locate')}
                     </button>
                   )}
-                  <span onClick={() => removePath(p)} title={t('intercoder.removeProject')} style={xStyle}><Icon icon={faXmark} style={{ fontSize: 10 }} /></span>
+                  <span {...keyActivate({ label: t('intercoder.removeProject') })} onClick={() => removePath(p)} title={t('intercoder.removeProject')} style={xStyle}><Icon icon={faXmark} style={{ fontSize: 10 }} /></span>
                 </div>
               )
             })}
@@ -622,6 +623,7 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
               return (
                 <div
                   key={d.key}
+                  {...keyActivate({ pressed: isFocus })}
                   style={{ ...rowStyle, background: isFocus ? 'color-mix(in srgb, var(--accent) 14%, transparent)' : undefined, cursor: 'pointer' }}
                   onClick={() => setFocusDoc(isFocus ? null : d.key)}
                   title={n < 2 ? t('intercoder.docNotShared') : t('intercoder.docInProjects', { count: n, total: coders.length })}
@@ -635,6 +637,7 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
                   )}
                   {n < coders.length && <span style={countBadge}>{formatNumber(n)}/{formatNumber(coders.length)}</span>}
                   <span
+                    {...keyActivate({ label: t('intercoder.removeDocument') })}
                     onClick={(e) => { e.stopPropagation(); removeDoc(d); if (isFocus) setFocusDoc(null) }}
                     title={t('intercoder.removeDocument')}
                     style={xStyle}
@@ -663,7 +666,7 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: c.color || '#888', flexShrink: 0 }} />
                   <span style={{ ...ellipsis, flex: 1 }}>{c.name}</span>
                   {n < coders.length && <span style={countBadge} title={t('intercoder.codeInProjects', { count: n, total: coders.length })}>{formatNumber(n)}/{formatNumber(coders.length)}</span>}
-                  <span onClick={() => removeCode(c)} title={t('intercoder.removeCode')} style={xStyle}><Icon icon={faXmark} style={{ fontSize: 10 }} /></span>
+                  <span {...keyActivate({ label: t('intercoder.removeCode') })} onClick={() => removeCode(c)} title={t('intercoder.removeCode')} style={xStyle}><Icon icon={faXmark} style={{ fontSize: 10 }} /></span>
                 </div>
               )
             })}

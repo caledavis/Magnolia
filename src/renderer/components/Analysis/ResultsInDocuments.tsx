@@ -26,6 +26,8 @@ import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
 import { cellOfColumns } from '../../utils/narrow-query'
+import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
+import { keyActivate } from '../../utils/key-activate'
 
 /** Each "Group by" entry is one of:
  *   - a single tag → one row in the grid;
@@ -111,6 +113,7 @@ export function runResultsQueries(
 
 export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props) {
   const { t } = useTranslation()
+  const tableKeys = useGridKeyboard(t('tools.resultsInDocuments.label'))
   const live = useLiveAnalysisData()
   const [questionScope, setQuestionScope] = useState<QuestionScopeRef[]>(savedConfig?.questionScope ?? [])
   const data = useMemo(() => ({ ...propData, ...live }), [propData, live])
@@ -647,7 +650,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ borderCollapse: 'collapse', fontSize: 11 }}>
+              <table {...tableKeys} style={{ borderCollapse: 'collapse', fontSize: 11 }}>
                 <thead>
                   <tr>
                     {/* Empty cells above the left-side label column(s).
@@ -675,6 +678,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                         {/* Remove button anchored top-right so it doesn't
                             collide with the rotated label at the bottom. */}
                         <span
+                          {...keyActivate({ label: t('common.remove') })}
                           onClick={() => setQueryGuids((p) => p.filter((g) => g !== qGuid))}
                           title={t('resultsInDocs.removeQuery')}
                           style={{
@@ -807,7 +811,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                           const boxSize = val > 0 ? 6 + ratio * 18 : 3
                           const boxColor = val > 0 ? visualBoxColour(ratio) : 'var(--bg-tertiary)'
                           return (
-                            <td key={qGuid} onClick={() => handleCellClick(i, j)} style={{
+                            <td {...gridCell()} key={qGuid} onClick={() => handleCellClick(i, j)} style={{
                               width: 50, minWidth: 50, maxWidth: 50, padding: 0,
                               borderBottom: '1px solid var(--border-color)',
                               // Subtotal rows: bold, faint band background,
@@ -831,7 +835,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                           )
                         })}
                         {/* Per-row total (across queries) */}
-                        <td onClick={() => handleColTotalClick(j)} style={{
+                        <td {...gridCell()} onClick={() => handleColTotalClick(j)} style={{
                           width: 50, minWidth: 50, maxWidth: 50, height: 32,
                           borderBottom: '1px solid var(--border-color)',
                           borderInlineStart: '2px solid var(--border-color)',
@@ -871,7 +875,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                       </span>
                     </td>
                     {showRowTotals.map((rt, i) => (
-                      <td key={queryGuids[i]} onClick={() => handleRowTotalClick(i)} style={{
+                      <td {...gridCell()} key={queryGuids[i]} onClick={() => handleRowTotalClick(i)} style={{
                         width: 50, minWidth: 50, maxWidth: 50, height: 32,
                         borderTop: '2px solid var(--border-color)',
                         textAlign: 'center',
@@ -883,7 +887,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
                         {formatNumber(rt)}
                       </td>
                     ))}
-                    <td onClick={handleGrandTotalClick} style={{
+                    <td {...gridCell()} onClick={handleGrandTotalClick} style={{
                       width: 50, minWidth: 50, maxWidth: 50, height: 32,
                       borderTop: '2px solid var(--border-color)',
                       borderInlineStart: '2px solid var(--border-color)',

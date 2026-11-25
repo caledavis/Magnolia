@@ -16,6 +16,7 @@ import { COLOURFUL_INTERFACE_ENABLED, colourfulInterfaceFromSaved } from '../../
 import { useTranslation } from 'react-i18next'
 import { LANGUAGE_IDS, normaliseLanguagePreference, resolveLanguage, setLanguagePreference, setDigitsPreference, digitChoices, digitsSample, type LanguagePreference, type DigitsPreference } from '../../i18n'
 import { keyCombo } from '../../utils/keys'
+import { keyActivate } from '../../utils/key-activate'
 
 interface FootPedalMappings {
   playPause: string
@@ -210,11 +211,11 @@ function AppearanceSettings({
   return (
     <div style={{ marginBottom: 24 }}>
       <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14, color: 'var(--text-secondary)' }}>{t('prefs.themeHeading')}</h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div role="radiogroup" aria-label={t('prefs.themeHeading')} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {THEME_OPTIONS.map((opt) => {
           const selected = opt.id === value
           return (
-            <div
+            <div {...keyActivate({ role: 'radio', checked: selected })}
               key={opt.id}
               onClick={() => onChange(opt.id)}
               style={{
@@ -828,7 +829,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
           category's settings). Fills remaining height. */}
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {/* Categories sidebar */}
-        <div style={{
+        <div role="tablist" aria-orientation="vertical" aria-label={t('tabs.preferences')} style={{
           width: 180,
           flexShrink: 0,
           borderInlineEnd: '1px solid var(--border-color)',
@@ -838,7 +839,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
           {CATEGORIES.map((cat) => {
             const active = cat.id === selectedCategory
             return (
-              <div
+              <div {...keyActivate({ role: 'tab', selected: active })}
                 key={cat.id}
                 data-pref-cat={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}

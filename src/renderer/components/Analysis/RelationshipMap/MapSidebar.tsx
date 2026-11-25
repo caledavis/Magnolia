@@ -20,6 +20,7 @@ import { buildCellText } from '../../../utils/survey/cell-text'
 import { TOOL_REGISTRY } from '../../../utils/tool-registry'
 import { useTranslation } from 'react-i18next'
 import { t } from '../../../i18n'
+import { keyActivate } from '../../../utils/key-activate'
 
 interface Props {
   data: AnalysisInitData
@@ -34,7 +35,7 @@ function Section({ title, defaultOpen = false, children }: {
   const [open, setOpen] = useState(defaultOpen)
   return (
     <div className="analysis-section" style={{ marginBottom: 10, padding: 0 }}>
-      <div
+      <div {...keyActivate({ expanded: open })}
         onClick={() => setOpen(!open)}
         style={{
           padding: '10px 12px', fontSize: 11, fontWeight: 700,
@@ -60,7 +61,7 @@ function TreeNode({ label, depth, defaultOpen = false, children }: {
   const hasChildren = !!children
   return (
     <>
-      <div
+      <div {...keyActivate({ expanded: hasChildren ? open : undefined })}
         onClick={() => hasChildren && setOpen(!open)}
         style={{
           paddingInlineStart: 8 + depth * 16, paddingInlineEnd: 8, paddingTop: 2, paddingBottom: 2,
@@ -123,7 +124,7 @@ function DraggableItem({ kind, data, label, depth = 0, icon, iconColor, colorPip
   registerItem(uid, { kind, data, label })
   useEffect(() => () => unregisterItem(uid), [uid, unregisterItem])
   return (
-    <div
+    <div {...keyActivate({})}
       draggable
       data-uid={uid}
       onClick={(e) => handleClick(uid, { kind, data, label }, e)}

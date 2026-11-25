@@ -12,6 +12,8 @@ import { useTranslation } from 'react-i18next'
 import { t, formatDateTime, formatNumber } from '../../i18n'
 import { flattenCodes } from '../../utils/code-tree'
 import type { CodeMenuAction } from '../../models/window-messages'
+import { useTreeKeyboard } from '../../utils/use-tree-keyboard'
+import { keyActivate } from '../../utils/key-activate'
 
 /** A row of the code list, drawn exactly like a row of the Codes pane
  *  (CodeTreeItem in CodeBrowser.tsx): chevron slot, colour pip, name,
@@ -71,6 +73,10 @@ function CompactCodeEntry({
           onSelectCode(code.guid)
         }}
         onDoubleClick={() => onEditCode(code.guid)}
+        role="treeitem"
+        aria-level={depth + 1}
+        aria-selected={selectedGuid === code.guid}
+        aria-expanded={code.children.length > 0 ? expanded : undefined}
         onContextMenu={(e) => {
           e.preventDefault()
           e.stopPropagation()
@@ -80,6 +86,7 @@ function CompactCodeEntry({
         title={t('common.doubleClickToEdit')}
       >
         <span
+          data-tree-toggle
           onClick={code.children.length > 0 ? (e) => {
             e.stopPropagation()
             setExpanded(!expanded)
@@ -171,6 +178,7 @@ function EditCodeDialog({
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <span
               className="color-pip"
+              {...keyActivate({ label: t('codes.changeColor'), expanded: showColorPicker })}
               onClick={() => setShowColorPicker((v) => !v)}
               style={{
                 background: color,
@@ -203,6 +211,7 @@ function EditCodeDialog({
                 {colourPresets.map((c) => (
                   <div
                     key={c}
+                    {...keyActivate({ label: `${t('codes.changeColor')} ${c}` })}
                     onClick={() => {
                       setColor(c)
                       setShowColorPicker(false)
@@ -378,6 +387,7 @@ const HEADER_BUTTON: React.CSSProperties = { fontSize: 11, padding: '2px 8px', t
 
 export function CodebookWindow() {
   const { t } = useTranslation()
+  const codeTree = useTreeKeyboard(t('panes.codes'))
   const [codes, setCodes] = useState<Code[]>([])
   const [codeCounts, setCodeCounts] = useState<Record<string, number>>({})
   // The right-click menu, the code being renamed in place and the code
@@ -469,7 +479,7 @@ export function CodebookWindow() {
               <span style={{ flex: 1 }}>{t('panes.codes')}</span>
               <span style={{ fontWeight: 400, letterSpacing: 0 }}>{formatNumber(allCodes.length)}</span>
             </div>
-            <div className="panel-content">
+            <div className="panel-content" {...codeTree}>
               {codes.length === 0 ? (
                 <div className="empty-state" style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
                   {t('codes.empty')}
@@ -554,6 +564,7 @@ export function CodebookWindow() {
                 {colourPresets.map((c) => (
                   <div
                     key={c}
+                    {...keyActivate({ label: `${t('codes.changeColor')} ${c}` })}
                     onClick={() => { recolor(c); setColourGuid(null) }}
                     style={{
                       width: 28,

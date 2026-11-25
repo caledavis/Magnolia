@@ -737,7 +737,8 @@
     "mergeProjects": "Unir projetos",
     "unsavedChanges": "Alterações não guardadas",
     "closeTab": "Fechar separador",
-    "unsavedQuestion": "«{{name}}» tem alterações não guardadas. O que pretende fazer?"
+    "unsavedQuestion": "«{{name}}» tem alterações não guardadas. O que pretende fazer?",
+    "openDocuments": "Documentos abertos"
   },
   "notes": {
     "untitled": "Nota sem título",

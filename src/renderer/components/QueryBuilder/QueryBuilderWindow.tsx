@@ -16,6 +16,7 @@ import { useRegisterToolSave } from '../../hooks/use-register-tool-save'
 import { generateGuid } from '../../utils/guid'
 import { useTranslation } from 'react-i18next'
 import { t } from '../../i18n'
+import { keyActivate } from '../../utils/key-activate'
 
 function describeDocFilter(
   df: Query['documentFilter'],
@@ -559,7 +560,7 @@ export function QueryBuilderWindow({ initData, inTab }: Props = {}) {
       <div style={{ flex: 1, overflow: 'auto', padding: '14px 20px' }}>
             {/* ── Part 1: From these documents (collapsible) ── */}
             <div className="analysis-section" style={{ marginBottom: 14 }}>
-              <div
+              <div {...keyActivate({ expanded: docSectionOpen })}
                 onClick={() => setDocSectionOpen(!docSectionOpen)}
                 style={{
                   display: 'flex',

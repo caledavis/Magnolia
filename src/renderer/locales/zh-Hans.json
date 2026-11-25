@@ -693,7 +693,8 @@
     "mergeProjects": "合并项目",
     "unsavedChanges": "未保存的更改",
     "closeTab": "关闭标签页",
-    "unsavedQuestion": "“{{name}}”有未保存的更改。您要怎么做？"
+    "unsavedQuestion": "“{{name}}”有未保存的更改。您要怎么做？",
+    "openDocuments": "已打开的文档"
   },
   "notes": {
     "untitled": "未命名笔记",

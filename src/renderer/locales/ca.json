@@ -737,7 +737,8 @@
     "mergeProjects": "Fusiona projectes",
     "unsavedChanges": "Canvis sense desar",
     "closeTab": "Tanca la pestanya",
-    "unsavedQuestion": "«{{name}}» té canvis sense desar. Què voleu fer?"
+    "unsavedQuestion": "«{{name}}» té canvis sense desar. Què voleu fer?",
+    "openDocuments": "Documents oberts"
   },
   "notes": {
     "untitled": "Nota sense títol",

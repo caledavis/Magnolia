@@ -759,7 +759,8 @@
     "mergeProjects": "Projektų suliejimas",
     "unsavedChanges": "Neįrašyti pakeitimai",
     "closeTab": "Užverti kortelę",
-    "unsavedQuestion": "„{{name}}“ turi neįrašytų pakeitimų. Ką norite daryti?"
+    "unsavedQuestion": "„{{name}}“ turi neįrašytų pakeitimų. Ką norite daryti?",
+    "openDocuments": "Atidaryti dokumentai"
   },
   "notes": {
     "untitled": "Užrašas be pavadinimo",

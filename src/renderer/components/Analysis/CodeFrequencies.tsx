@@ -33,6 +33,7 @@ import { useTranslation } from 'react-i18next'
 import { formatPercent, t as tr } from '../../i18n'
 import { draggedCodeGuids } from '../../utils/code-drag'
 import type { CellScope } from '../../utils/narrow-query'
+import { keyActivate } from '../../utils/key-activate'
 
 interface Props {
   data: AnalysisInitData
@@ -614,7 +615,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
                       <td style={{ padding: '4px 6px', borderBottom: '1px solid var(--border-color)', fontWeight: 600, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: codeMap.get(codeGuid)?.color || '#888', marginInlineEnd: 4, verticalAlign: 'middle' }} />
                         {truncate(codeMap.get(codeGuid)?.name || '', 16)}
-                        <span onClick={() => setCodeGuids((p) => p.filter((g) => g !== codeGuid))} style={{ marginInlineStart: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>x</span>
+                        <span {...keyActivate({ label: t('common.remove') })} onClick={() => setCodeGuids((p) => p.filter((g) => g !== codeGuid))} style={{ marginInlineStart: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>x</span>
                       </td>
                       {columns.map((col, j) => {
                         const val = grid[i][j]

@@ -715,7 +715,8 @@
     "mergeProjects": "Merge Projects",
     "unsavedChanges": "Unsaved changes",
     "closeTab": "Close tab",
-    "unsavedQuestion": "\"{{name}}\" has unsaved changes. What would you like to do?"
+    "unsavedQuestion": "\"{{name}}\" has unsaved changes. What would you like to do?",
+    "openDocuments": "Open documents"
   },
   "notes": {
     "untitled": "Untitled note",

@@ -2703,3 +2703,17 @@ textarea {
 [role="treeitem"]:focus-visible {
   box-shadow: inset 0 0 0 2px var(--accent);
 }
+
+/* A control or table cell the keyboard is on (utils/key-activate.ts,
+ * utils/use-grid-keyboard.ts). */
+[data-key-activate]:focus,
+[data-grid-cell]:focus { outline: none; }
+[data-key-activate]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: 3px;
+}
+[data-grid-cell]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}

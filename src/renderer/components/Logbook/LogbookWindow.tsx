@@ -8,6 +8,7 @@ import type { LogbookEntry, LogbookInitData } from '../../models/types'
 import { generateGuid } from '../../utils/guid'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { useTranslation } from 'react-i18next'
+import { keyActivate } from '../../utils/key-activate'
 
 /** How logbook times are shown: date and time. */
 const ENTRY_TIME: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
@@ -25,7 +26,7 @@ function EntryRow({
 }) {
   const { t } = useTranslation()
   return (
-    <div
+    <div {...keyActivate({ pressed: isSelected })}
       style={{
         padding: '6px 10px',
         borderBottom: '1px solid var(--border-color)',

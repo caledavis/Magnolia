@@ -737,7 +737,8 @@
     "mergeProjects": "מיזוג פרויקטים",
     "unsavedChanges": "שינויים שלא נשמרו",
     "closeTab": "סגירת הכרטיסייה",
-    "unsavedQuestion": "ב-\"{{name}}\" יש שינויים שלא נשמרו. מה לעשות?"
+    "unsavedQuestion": "ב-\"{{name}}\" יש שינויים שלא נשמרו. מה לעשות?",
+    "openDocuments": "מסמכים פתוחים"
   },
   "notes": {
     "untitled": "רשומה ללא שם",

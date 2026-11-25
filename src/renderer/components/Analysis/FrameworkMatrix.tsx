@@ -66,6 +66,7 @@ import { useAnalysisTabsStore } from '../../stores/analysis-tabs-store'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
+import { keyActivate } from '../../utils/key-activate'
 
 interface Props {
   data: AnalysisInitData
@@ -619,7 +620,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
                         />
                         <span style={{ width: 8, height: 8, borderRadius: '50%', background: code?.color || '#888', flexShrink: 0 }} />
                         <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{code?.name ?? t('framework.deletedCode')}</span>
-                        <span onClick={() => removeCode(cg)} title={t('framework.removeColumn')} style={{ cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex' }}>
+                        <span {...keyActivate({ label: t('framework.removeColumn') })} onClick={() => removeCode(cg)} title={t('framework.removeColumn')} style={{ cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex' }}>
                           <Icon icon={faXmark} style={{ fontSize: 10 }} />
                         </span>
                       </div>
@@ -650,7 +651,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
                         <span style={{ width: HANDLE_W, flexShrink: 0 }} />
                       )}
                       {row.isGroup ? (
-                        <span onClick={() => toggleCollapsed(row.path)} style={{ cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex', width: 10, flexShrink: 0 }}>
+                        <span {...keyActivate({ expanded: !collapsed.includes(row.path) })} onClick={() => toggleCollapsed(row.path)} style={{ cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex', width: 10, flexShrink: 0 }}>
                           <Icon icon={collapsed.includes(row.path) ? faChevronRight : faChevronDown} style={{ fontSize: 10 }} />
                         </span>
                       ) : (
@@ -676,6 +677,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
                       )}
                       {(row.entryIndex !== undefined || row.orphanOf) && (
                         <span
+                          {...keyActivate({ label: row.orphanOf ? t('framework.discardRow') : t('framework.removeRow') })}
                           onClick={() => (row.orphanOf ? discardOrphan(row) : removeEntry(row))}
                           title={row.orphanOf ? t('framework.discardRow') : t('framework.removeRow')}
                           style={{ cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex', flexShrink: 0 }}

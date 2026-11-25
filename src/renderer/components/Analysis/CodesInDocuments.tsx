@@ -34,6 +34,8 @@ import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
 import type { CellScope } from '../../utils/narrow-query'
+import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
+import { keyActivate } from '../../utils/key-activate'
 
 interface Props {
   data: AnalysisInitData
@@ -96,6 +98,7 @@ function frameworkRowsForColumns(columns: AnalysisColumn[], data: AnalysisInitDa
 
 export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) {
   const { t } = useTranslation()
+  const tableKeys = useGridKeyboard(t('tools.codesInDocuments.label'))
   const [docFilter, setDocFilter] = useState<DocumentFilterState>(documentFilterFromConfig(savedConfig))
   const [codeGuids, setCodeGuids] = useState<string[]>(savedConfig?.codeGuids ?? [])
   const [groupBy, setGroupBy] = useState<GroupByEntry[]>(
@@ -575,7 +578,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ borderCollapse: 'collapse', fontSize: 11 }}>
+              <table {...tableKeys} style={{ borderCollapse: 'collapse', fontSize: 11 }}>
                 <thead>
                   {hasGroupedHeader && (
                     <tr>
@@ -657,7 +660,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                       <td style={{ padding: '4px 6px', paddingInlineStart: 6 + depth * 14, borderBottom: '1px solid var(--border-color)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>
                         <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: codeMap.get(codeGuid)?.color || '#888', marginInlineEnd: 4, verticalAlign: 'middle' }} />
                         {truncate(codeMap.get(codeGuid)?.name || '', 16)}
-                        <span onClick={() => setCodeGuids((p) => p.filter((g) => g !== codeGuid))} style={{ marginInlineStart: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>x</span>
+                        <span {...keyActivate({ label: t('common.remove') })} onClick={() => setCodeGuids((p) => p.filter((g) => g !== codeGuid))} style={{ marginInlineStart: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>x</span>
                       </td>
                       {columns.map((col, j) => {
                         const val = showGrid[i][j]
@@ -677,7 +680,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                         const boxColor = val > 0 ? visualBoxColour(ratio) : 'var(--bg-tertiary)'
                         return (
                           <Fragment key={col.id}>
-                          <td onClick={() => handleDoubleClick(i, j)} style={{
+                          <td {...gridCell()} onClick={() => handleDoubleClick(i, j)} style={{
                             width: 50, minWidth: 50, maxWidth: 50, padding: 0,
                             borderBottom: '1px solid var(--border-color)',
                             background: col.isSubtotal ? SUBTOTAL_TINT : (inBand[j] ? BAND_TINT : undefined),
@@ -716,7 +719,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                           </Fragment>
                         )
                       })}
-                      <td onClick={() => handleRowTotalClick(i)} style={{
+                      <td {...gridCell()} onClick={() => handleRowTotalClick(i)} style={{
                         width: 50, minWidth: 50, maxWidth: 50, height: 32,
                         borderBottom: '1px solid var(--border-color)',
                         borderInlineStart: '2px solid var(--border-color)',
@@ -745,7 +748,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                     <td style={{ padding: '4px 6px', borderTop: '2px solid var(--border-color)', fontWeight: 700 }}>{t('analysis.total')}</td>
                     {showColTotals.map((ct, j) => (
                       <Fragment key={columns[j].id}>
-                      <td onClick={() => handleColTotalClick(j)} style={{
+                      <td {...gridCell()} onClick={() => handleColTotalClick(j)} style={{
                         width: 50, minWidth: 50, maxWidth: 50, height: 32,
                         borderTop: '2px solid var(--border-color)',
                         background: columns[j].isSubtotal ? SUBTOTAL_TINT : (inBand[j] ? BAND_TINT : undefined),
@@ -770,7 +773,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
                       )}
                       </Fragment>
                     ))}
-                    <td onClick={handleGrandTotalClick} style={{
+                    <td {...gridCell()} onClick={handleGrandTotalClick} style={{
                       width: 50, minWidth: 50, maxWidth: 50, height: 32,
                       borderTop: '2px solid var(--border-color)',
                       borderInlineStart: '2px solid var(--border-color)',

@@ -715,7 +715,8 @@
     "mergeProjects": "परियोजनाओं का विलय",
     "unsavedChanges": "असहेजे परिवर्तन",
     "closeTab": "टैब बंद करें",
-    "unsavedQuestion": "“{{name}}” में असहेजे परिवर्तन हैं। आप क्या करना चाहेंगे?"
+    "unsavedQuestion": "“{{name}}” में असहेजे परिवर्तन हैं। आप क्या करना चाहेंगे?",
+    "openDocuments": "खुले दस्तावेज़"
   },
   "notes": {
     "untitled": "शीर्षकहीन नोट",

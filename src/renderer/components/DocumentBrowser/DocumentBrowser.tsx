@@ -17,6 +17,7 @@ import { makeNotebookTabId } from '../../utils/tab-ids'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
 import { useTreeKeyboard } from '../../utils/use-tree-keyboard'
+import { keyActivate } from '../../utils/key-activate'
 
 // Prefer the source's declared type (set on import for audio/video/image/
 // pdf). Only fall back to sniffing the filename for sources whose type is
@@ -1528,6 +1529,7 @@ function ApplyDocumentTagsDialog({
             <div style={{ marginBottom: 8 }}>
               <div
                 onClick={() => toggleSection('__general')}
+                {...keyActivate({ expanded: !collapsedSections.has('__general') })}
                 style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 4, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, userSelect: 'none' }}
               >
                 <Icon icon={collapsedSections.has('__general') ? faChevronRight : faChevronDown} style={{ fontSize: 8 }} />
@@ -1546,6 +1548,7 @@ function ApplyDocumentTagsDialog({
               <div key={cat.guid} style={{ marginBottom: 8 }}>
                 <div
                   onClick={() => toggleSection(cat.guid)}
+                  {...keyActivate({ expanded: !isCollapsed })}
                   style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 4, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, userSelect: 'none' }}
                 >
                   <Icon icon={isCollapsed ? faChevronRight : faChevronDown} style={{ fontSize: 8 }} />
@@ -1844,6 +1847,7 @@ function ManageDocumentTagsDialog({
         ) : (
           <span
             style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }}
+            {...keyActivate()}
             onClick={(e) => { e.stopPropagation(); setRenamingTag(tag.guid); setRenameTagVal(label) }}
           >
             {label}
@@ -1915,10 +1919,15 @@ function ManageDocumentTagsDialog({
               <div key={cat.guid} style={{ marginBottom: 2 }}>
                 {/* Header row */}
                 <div style={sectionHeaderStyle} onClick={() => toggle(cat.guid)}>
-                  <Icon
-                    icon={isOpen ? faChevronDown : faChevronRight}
-                    style={{ fontSize: 9, color: 'var(--text-muted)', width: 10, textAlign: 'center' }}
-                  />
+                  {/* The fold control for the keyboard (the row folds on a
+                      click anywhere, the click passes on to it); the name
+                      beside it renames. */}
+                  <span style={{ display: 'inline-flex' }} {...keyActivate({ expanded: isOpen, label: cat.name })}>
+                    <Icon
+                      icon={isOpen ? faChevronDown : faChevronRight}
+                      style={{ fontSize: 9, color: 'var(--text-muted)', width: 10, textAlign: 'center' }}
+                    />
+                  </span>
                   {isRenamingCat ? (
                     <input
                       autoFocus
@@ -1941,6 +1950,7 @@ function ManageDocumentTagsDialog({
                   ) : (
                     <span
                       style={{ flex: 1, fontSize: 'var(--font-size-sm)', fontWeight: 600, cursor: 'text' }}
+                      {...keyActivate()}
                       onClick={(e) => { e.stopPropagation(); setRenamingCat(cat.guid); setRenameCatVal(cat.name) }}
                     >
                       {cat.name}
@@ -1985,7 +1995,7 @@ function ManageDocumentTagsDialog({
           {/* ── General (uncategorised) section ── */}
           {(uncategorised.length > 0 || categories.length === 0) && (
             <div style={{ marginBottom: 2 }}>
-              <div style={sectionHeaderStyle} onClick={() => toggle('__general')}>
+              <div style={sectionHeaderStyle} onClick={() => toggle('__general')} {...keyActivate({ expanded: expanded.has('__general') })}>
                 <Icon
                   icon={expanded.has('__general') ? faChevronDown : faChevronRight}
                   style={{ fontSize: 9, color: 'var(--text-muted)', width: 10, textAlign: 'center' }}
@@ -2942,6 +2952,7 @@ export function DocumentBrowser({ onSurveyImport, showManageDocTags, onCloseMana
               ) : (
                 <span
                   onClick={toggleTagsCollapsed}
+                  {...keyActivate({ expanded: !tagsCollapsed })}
                   title={tagsCollapsed ? t('tags.show') : t('tags.hide')}
                   style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', userSelect: 'none' }}
                 >

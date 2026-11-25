@@ -759,7 +759,8 @@
     "mergeProjects": "Злиття проєктів",
     "unsavedChanges": "Незбережені зміни",
     "closeTab": "Закрити вкладку",
-    "unsavedQuestion": "У «{{name}}» є незбережені зміни. Що зробити?"
+    "unsavedQuestion": "У «{{name}}» є незбережені зміни. Що зробити?",
+    "openDocuments": "Відкриті документи"
   },
   "notes": {
     "untitled": "Запис без назви",

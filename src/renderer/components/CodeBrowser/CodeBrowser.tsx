@@ -13,6 +13,7 @@ import { usePreferencesStore } from '../../stores/preferences-store'
 import { codeColourPresetsFor, useCodeColourPresets } from '../../utils/code-colours'
 import { CODES_DRAG_TYPE, codeGuidsFromJson } from '../../utils/code-drag'
 import { useTreeKeyboard } from '../../utils/use-tree-keyboard'
+import { keyActivate } from '../../utils/key-activate'
 
 interface Props {
   onNewCode: () => void
@@ -616,7 +617,7 @@ function CodeTreeItem({
             <h2>{t('codes.chooseColorHeading')}</h2>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
               {colourPresets.map((c) => (
-                <div
+                <div {...keyActivate({ label: `${t('codes.changeColor')} ${c}` })}
                   key={c}
                   onClick={() => {
                     onRecolor(code.guid, c)
@@ -692,7 +693,7 @@ export function CodeEditDialog({
         {/* Name + color pip */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
           <div style={{ position: 'relative', flexShrink: 0 }}>
-            <span
+            <span {...keyActivate({ label: t('codes.changeColor'), expanded: showColorPicker })}
               className="color-pip"
               onClick={() => setShowColorPicker((v) => !v)}
               style={{
@@ -729,7 +730,7 @@ export function CodeEditDialog({
                 onClick={(e) => e.stopPropagation()}
               >
                 {defaultColors.map((c) => (
-                  <div
+                  <div {...keyActivate({ label: `${t('codes.changeColor')} ${c}` })}
                     key={c}
                     onClick={() => { setColor(c); setShowColorPicker(false) }}
                     style={{

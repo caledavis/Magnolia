@@ -11,6 +11,7 @@ import { DocumentSelector, type DocumentFilterState } from '../DocumentSelector/
 import { documentsSummary } from './documents-filter'
 import { mayBeSurveyEntityDrag, parseSurveyEntityDrop, withSurveyEntity } from '../DocumentSelector/SurveyScope'
 import { useTranslation } from 'react-i18next'
+import { keyActivate } from '../../utils/key-activate'
 
 export function DocumentsSection({ data, filter, onChange, filteredSourceGuids }: {
   data: AnalysisInitData
@@ -42,7 +43,7 @@ export function DocumentsSection({ data, filter, onChange, filteredSourceGuids }
       }}
       onDrop={handleDrop}
     >
-      <div onClick={() => setOpen(!open)} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+      <div {...keyActivate({ expanded: open })} onClick={() => setOpen(!open)} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
         <Icon icon={open ? faChevronDown : faChevronRight} style={{ fontSize: 12, color: 'var(--text-muted)' }} />
         <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--text-secondary)' }}>{t('analysis.fromDocuments')}</span>
         <span style={{ fontSize: 11, color: 'var(--text-muted)', marginInlineStart: 'auto' }}>

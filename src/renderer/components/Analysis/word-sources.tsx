@@ -12,6 +12,7 @@ import { codeSet } from './word-counts'
 import { runQueryLive, useQueryStore } from '../../stores/query-store'
 import { useTranslation } from 'react-i18next'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
+import { keyActivate } from '../../utils/key-activate'
 
 /** What the words are counted in: whole documents, the passages coded
  *  with the chosen codes, or the results of the chosen saved queries
@@ -202,7 +203,7 @@ export function CodesSection({ codes, codeSets, onChangeCodes, includeSubcodes, 
             <span key={g} style={chipStyle}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: code.color || 'var(--text-muted)', flexShrink: 0 }} />
               {code.name}
-              <span onClick={() => onChangeCodes((p) => p.filter((x) => x !== g))} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
+              <span {...keyActivate({ label: t('common.remove') })} onClick={() => onChangeCodes((p) => p.filter((x) => x !== g))} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
             </span>
           )
         })}
@@ -247,7 +248,7 @@ export function QueriesSection({ runs, onChangeQueries, boxCount }: {
           <span key={g} style={chipStyle}>
             {run.name}
             <span style={{ color: 'var(--text-muted)' }}>({run.results.length})</span>
-            <span onClick={() => onChangeQueries((p) => p.filter((x) => x !== g))} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
+            <span {...keyActivate({ label: t('common.remove') })} onClick={() => onChangeQueries((p) => p.filter((x) => x !== g))} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}><Icon icon={faXmark} /></span>
           </span>
         ))}
       </div>

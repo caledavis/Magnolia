@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { keyActivate } from '../utils/key-activate'
 
 interface Props {
   /** The current name to render after the colon. */
@@ -77,7 +78,7 @@ export function EditableTitleSuffix({ name, onRename, autoEdit, placeholder }: P
   }
 
   return (
-    <span
+    <span {...keyActivate({})}
       onClick={startEdit}
       title={t('common.clickToRename')}
       style={{

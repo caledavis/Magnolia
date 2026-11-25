@@ -737,7 +737,8 @@
     "mergeProjects": "Fusionner des projets",
     "unsavedChanges": "Modifications non enregistrées",
     "closeTab": "Fermer l’onglet",
-    "unsavedQuestion": "« {{name}} » contient des modifications non enregistrées. Que voulez-vous faire ?"
+    "unsavedQuestion": "« {{name}} » contient des modifications non enregistrées. Que voulez-vous faire ?",
+    "openDocuments": "Documents ouverts"
   },
   "notes": {
     "untitled": "Note sans titre",

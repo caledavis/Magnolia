@@ -715,7 +715,8 @@
     "mergeProjects": "Projeleri birleştir",
     "unsavedChanges": "Kaydedilmemiş değişiklikler",
     "closeTab": "Sekmeyi kapat",
-    "unsavedQuestion": "“{{name}}” içinde kaydedilmemiş değişiklikler var. Ne yapmak istersiniz?"
+    "unsavedQuestion": "“{{name}}” içinde kaydedilmemiş değişiklikler var. Ne yapmak istersiniz?",
+    "openDocuments": "Açık belgeler"
   },
   "notes": {
     "untitled": "Adsız not",

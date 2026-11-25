@@ -51,6 +51,7 @@ import {
   type AnalysisItemOptions
 } from './report-export'
 import { useTranslation } from 'react-i18next'
+import { keyActivate } from '../../utils/key-activate'
 
 interface Props {
   data: AnalysisInitData
@@ -583,7 +584,7 @@ function ReportRow({
         <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {item.kind !== 'section' && item.kind !== 'text' ? label : ''}
         </span>
-        <span onClick={onRemove} title={t('common.remove')} style={{ cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0, display: 'inline-flex' }}>
+        <span {...keyActivate({ label: t('common.remove') })} onClick={onRemove} title={t('common.remove')} style={{ cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0, display: 'inline-flex' }}>
           <Icon icon={faXmark} style={{ fontSize: 12 }} />
         </span>
       </div>

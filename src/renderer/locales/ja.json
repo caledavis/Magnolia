@@ -693,7 +693,8 @@
     "mergeProjects": "プロジェクトを結合",
     "unsavedChanges": "未保存の変更",
     "closeTab": "タブを閉じる",
-    "unsavedQuestion": "「{{name}}」には未保存の変更があります。どうしますか？"
+    "unsavedQuestion": "「{{name}}」には未保存の変更があります。どうしますか？",
+    "openDocuments": "開いているドキュメント"
   },
   "notes": {
     "untitled": "名称未設定のノート",

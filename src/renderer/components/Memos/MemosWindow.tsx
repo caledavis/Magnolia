@@ -25,6 +25,7 @@ import { groupMemos, memoMatches, type MemoPlace } from '../../utils/memo-places
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { useClampedMenuPosition } from '../../utils/use-clamped-menu-position'
 import { useTranslation } from 'react-i18next'
+import { keyActivate } from '../../utils/key-activate'
 
 /** How memo times are shown here: date and time. */
 const MEMO_TIME: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
@@ -39,7 +40,7 @@ function MemoRow({ memo, place, selected, onClick, onDoubleClick, onContextMenu 
 }) {
   const { t } = useTranslation()
   return (
-    <div
+    <div {...keyActivate({ pressed: selected })}
       className="codebook-entry"
       style={{ padding: '5px 10px 5px 26px', cursor: 'pointer', background: selected ? 'var(--selection-bg)' : undefined }}
       onClick={onClick}

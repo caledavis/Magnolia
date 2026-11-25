@@ -803,7 +803,8 @@
     "mergeProjects": "دمج المشاريع",
     "unsavedChanges": "تغييرات غير محفوظة",
     "closeTab": "إغلاق علامة التبويب",
-    "unsavedQuestion": "توجد تغييرات غير محفوظة في “{{name}}”. ماذا تريد أن تفعل؟"
+    "unsavedQuestion": "توجد تغييرات غير محفوظة في “{{name}}”. ماذا تريد أن تفعل؟",
+    "openDocuments": "المستندات المفتوحة"
   },
   "notes": {
     "untitled": "ملاحظة بلا عنوان",

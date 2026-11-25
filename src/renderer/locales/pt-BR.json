@@ -737,7 +737,8 @@
     "mergeProjects": "Mesclar projetos",
     "unsavedChanges": "Alterações não salvas",
     "closeTab": "Fechar aba",
-    "unsavedQuestion": "\"{{name}}\" tem alterações não salvas. O que você quer fazer?"
+    "unsavedQuestion": "\"{{name}}\" tem alterações não salvas. O que você quer fazer?",
+    "openDocuments": "Documentos abertos"
   },
   "notes": {
     "untitled": "Nota sem título",

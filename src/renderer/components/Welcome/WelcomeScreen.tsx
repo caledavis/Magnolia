@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 // to change the welcome image.
 import welcomeBgUrl from '../../../../graphic_files/welcome-bg.png'
 import magnoliaUrl from '../../assets/magnoliaqda-welcome.svg'
+import { keyActivate } from '../../utils/key-activate'
 
 export function WelcomeScreen() {
   const { t } = useTranslation()
@@ -131,7 +132,7 @@ export function WelcomeScreen() {
               </div>
             ) : (
               recentProjects.map((proj, i) => (
-                <div
+                <div {...keyActivate({})}
                   key={proj.path}
                   onClick={() => window.api.sendWelcomeAction('open-recent:' + proj.path)}
                   style={{

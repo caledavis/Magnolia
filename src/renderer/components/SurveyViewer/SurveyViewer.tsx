@@ -84,6 +84,8 @@ import { useTranslation } from 'react-i18next'
 import { t, formatDateTime, formatPercent, formatNumber, compareText } from '../../i18n'
 import { digitKey } from '../../utils/keys'
 import { draggedCodeGuids, isCodeDrag } from '../../utils/code-drag'
+import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
+import { keyActivate } from '../../utils/key-activate'
 
 interface Props {
   source: TextSource
@@ -562,6 +564,7 @@ function QuestionTypeBadge({
         flexShrink: 0
       }}
       title={isClickable ? t('survey.changeTypeTitle') : undefined}
+      {...(isClickable ? keyActivate({ expanded: open }) : {})}
       onClick={(e) => {
         if (!isClickable) return
         e.stopPropagation()
@@ -1955,6 +1958,7 @@ function SummaryView({
   onJumpToRespondent: (rid: string) => void
 }) {
   const { t } = useTranslation()
+  const tableKeys = useGridKeyboard(t('survey.summaryDefaultName'))
   const totalRespondents = survey.respondents.length
   const totalQuestions = survey.questions.length
 
@@ -2000,7 +2004,7 @@ function SummaryView({
 
       <section style={{ marginTop: 28 }}>
         <h2 style={summaryHeadingStyle}>{t('survey.questions')}</h2>
-        <table style={summaryTableStyle}>
+        <table {...tableKeys} style={summaryTableStyle}>
           <thead>
             <tr>
               <th style={summaryThStyle}>#</th>
@@ -2030,7 +2034,7 @@ function SummaryView({
                     ? computeMultiSelectDistribution(survey, q)
                     : null
               return (
-                <tr
+                <tr {...gridCell()}
                   key={q.id}
                   className="survey-summary-row"
                   onClick={() => onJumpToQuestion(q.id)}
@@ -2086,7 +2090,7 @@ function SummaryView({
               for (const q of survey.questions) if (respondentAnsweredQuestion(r, q)) answered++
               const pct = totalQuestions === 0 ? 0 : Math.round((answered / totalQuestions) * 100)
               return (
-                <tr
+                <tr {...gridCell()}
                   key={r.id}
                   className="survey-summary-row"
                   onClick={() => onJumpToRespondent(r.id)}

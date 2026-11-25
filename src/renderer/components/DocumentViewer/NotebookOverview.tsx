@@ -15,9 +15,11 @@ import { exportNotebookPdf } from '../../utils/coded-pdf/export-coded-pdf'
 import { ExportMenuButton, type ExportMenuItem } from './DocumentToolbar'
 import { Icon, faPlus } from '../Icon'
 import { useProjectStore, useCheckoutLockedBy } from '../../stores/project-store'
+import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
 
 export function NotebookOverview({ folderGuid }: { folderGuid: string }) {
   const { t } = useTranslation()
+  const tableKeys = useGridKeyboard(t('notebook.openNote'))
   const folder = useDocumentStore((s) => s.folders.find((f) => f.guid === folderGuid))
   const sources = useDocumentStore((s) => s.sources)
   const sourceFolder = useDocumentStore((s) => s.sourceFolder)
@@ -111,7 +113,7 @@ export function NotebookOverview({ folderGuid }: { folderGuid: string }) {
         {notes.length === 0 ? (
           <p style={{ marginTop: 28, color: 'var(--text-muted)', fontSize: 13 }}>{t('notebook.empty')}</p>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, marginTop: 28 }}>
+          <table {...tableKeys} style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, marginTop: 28 }}>
             <thead>
               <tr>
                 <th style={thStyle}>{t('notebook.colDate')}</th>
@@ -122,7 +124,7 @@ export function NotebookOverview({ folderGuid }: { folderGuid: string }) {
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr
+                <tr {...gridCell()}
                   key={r.note.guid}
                   className="notebook-row"
                   onClick={() => viewDocument(r.note.guid)}

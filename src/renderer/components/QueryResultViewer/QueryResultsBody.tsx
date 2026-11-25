@@ -41,6 +41,7 @@ import { renderPdfRegionThumbnail } from '../../utils/pdf-thumbnail'
 import { renderImageRegionThumbnail } from '../../utils/image-thumbnail'
 import { useDocumentStore } from '../../stores/document-store'
 import { useTranslation } from 'react-i18next'
+import { keyActivate } from '../../utils/key-activate'
 
 /** Group results by sourceGuid, preserving order of first appearance. */
 /** Where a result is: its passage, and its range (or time) in it. */
@@ -415,6 +416,7 @@ export function ResultItem({
           </div>
 
           <div
+            {...keyActivate({ expanded: isExpanded })}
             onClick={(e) => {
               e.stopPropagation()
               onToggleExpand()
@@ -551,6 +553,7 @@ export function QueryResultsBody({
                 zIndex: 1
               }}
               onClick={() => toggleGroup(group.sourceGuid)}
+              {...keyActivate({ expanded: !isCollapsed })}
             >
               <Icon
                 icon={isCollapsed ? faChevronRight : faChevronDown}
@@ -567,6 +570,7 @@ export function QueryResultsBody({
                   whiteSpace: 'nowrap',
                   cursor: onOpenSource ? 'pointer' : undefined
                 }}
+                {...(onOpenSource ? keyActivate() : {})}
                 onClick={onOpenSource
                   ? (e) => { e.stopPropagation(); onOpenSource(group.sourceGuid) }
                   : undefined}

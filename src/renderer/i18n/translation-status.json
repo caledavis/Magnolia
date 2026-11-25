@@ -618,6 +618,7 @@
     "tabs.unsavedChanges": "Unsaved changes",
     "tabs.closeTab": "Close tab",
     "tabs.unsavedQuestion": "\"{{name}}\" has unsaved changes. What would you like to do?",
+    "tabs.openDocuments": "Open documents",
     "notes.untitled": "Untitled note",
     "notes.titleLabel": "Note title",
     "notes.dateTime": "Date and time of the observation",

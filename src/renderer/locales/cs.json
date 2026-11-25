@@ -759,7 +759,8 @@
     "mergeProjects": "Sloučit projekty",
     "unsavedChanges": "Neuložené změny",
     "closeTab": "Zavřít kartu",
-    "unsavedQuestion": "„{{name}}“ obsahuje neuložené změny. Co chcete udělat?"
+    "unsavedQuestion": "„{{name}}“ obsahuje neuložené změny. Co chcete udělat?",
+    "openDocuments": "Otevřené dokumenty"
   },
   "notes": {
     "untitled": "Záznam bez názvu",

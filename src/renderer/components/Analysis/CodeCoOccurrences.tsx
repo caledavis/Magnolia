@@ -19,6 +19,8 @@ import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../../i18n'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
 import type { CellScope } from '../../utils/narrow-query'
+import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
+import { keyActivate } from '../../utils/key-activate'
 
 interface Props {
   data: AnalysisInitData
@@ -77,6 +79,7 @@ function CodeDropZone({ label, onDrop: onDropCodes, existingGuids }: {
 
 export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props) {
   const { t } = useTranslation()
+  const tableKeys = useGridKeyboard(t('tools.codeCooccurrences.label'))
   const [docFilter, setDocFilter] = useState<DocumentFilterState>(documentFilterFromConfig(savedConfig))
   const [rowCodeGuids, setRowCodeGuids] = useState<string[]>(savedConfig?.rowCodeGuids ?? [])
   const [colCodeGuids, setColCodeGuids] = useState<string[]>(savedConfig?.colCodeGuids ?? [])
@@ -398,7 +401,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ borderCollapse: 'collapse', fontSize: 11 }}>
+              <table {...tableKeys} style={{ borderCollapse: 'collapse', fontSize: 11 }}>
                 <thead>
                   <tr>
                     <th style={{ padding: 4, borderBottom: '1px solid var(--border-color)', textAlign: 'start', minWidth: 100 }} />
@@ -407,7 +410,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                         <div style={{ position: 'absolute', bottom: 6, left: '50%', transformOrigin: 'bottom left', transform: 'rotate(-20deg)', whiteSpace: 'nowrap', fontSize: 10, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130, display: 'flex', alignItems: 'center', gap: 3 }}>
                           <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: codeMap.get(g)?.color || '#888', flexShrink: 0 }} />
                           {truncate(codeMap.get(g)?.name || '', 22)}
-                          <span onClick={() => setColCodeGuids((p) => p.filter((x) => x !== g))} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer', flexShrink: 0 }}>x</span>
+                          <span {...keyActivate({ label: t('common.remove') })} onClick={() => setColCodeGuids((p) => p.filter((x) => x !== g))} style={{ fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer', flexShrink: 0 }}>x</span>
                         </div>
                       </th>
                     ))}
@@ -432,7 +435,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                       <td style={{ padding: '4px 6px', paddingInlineStart: 6 + depth * 14, borderBottom: '1px solid var(--border-color)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>
                         <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: codeMap.get(rowGuid)?.color || '#888', marginInlineEnd: 4, verticalAlign: 'middle' }} />
                         {truncate(codeMap.get(rowGuid)?.name || '', 14)}
-                        <span onClick={() => setRowCodeGuids((p) => p.filter((x) => x !== rowGuid))} style={{ marginInlineStart: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>x</span>
+                        <span {...keyActivate({ label: t('common.remove') })} onClick={() => setRowCodeGuids((p) => p.filter((x) => x !== rowGuid))} style={{ marginInlineStart: 4, fontSize: 9, color: 'var(--text-muted)', cursor: 'pointer' }}>x</span>
                       </td>
                       {colCodeGuids.map((colGuid, j) => {
                         const val = showMatrix[i][j]
@@ -445,7 +448,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                         const boxSize = val > 0 ? 6 + ratio * 18 : 3
                         const boxColor = val > 0 ? visualBoxColour(ratio) : 'var(--bg-tertiary)'
                         return (
-                          <td
+                          <td {...gridCell()}
                             key={colGuid}
                             onClick={() => handleDoubleClick(i, j)}
                             style={{
@@ -467,7 +470,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                           </td>
                         )
                       })}
-                      <td onClick={() => handleRowTotalClick(i)} style={{
+                      <td {...gridCell()} onClick={() => handleRowTotalClick(i)} style={{
                         width: 50, minWidth: 50, maxWidth: 50, height: 32,
                         borderBottom: '1px solid var(--border-color)',
                         borderInlineStart: '2px solid var(--border-color)',
@@ -495,7 +498,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                   <tr>
                     <td style={{ padding: '4px 6px', borderTop: '2px solid var(--border-color)', fontWeight: 700 }}>{t('analysis.total')}</td>
                     {showColTotals.map((ct, j) => (
-                      <td key={colCodeGuids[j]} onClick={() => handleColTotalClick(j)} style={{
+                      <td {...gridCell()} key={colCodeGuids[j]} onClick={() => handleColTotalClick(j)} style={{
                         width: 50, minWidth: 50, maxWidth: 50, height: 32,
                         borderTop: '2px solid var(--border-color)',
                         textAlign: 'center',
@@ -507,7 +510,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
                         {formatNumber(ct)}
                       </td>
                     ))}
-                    <td onClick={handleGrandTotalClick} style={{
+                    <td {...gridCell()} onClick={handleGrandTotalClick} style={{
                       width: 50, minWidth: 50, maxWidth: 50, height: 32,
                       borderTop: '2px solid var(--border-color)',
                       borderInlineStart: '2px solid var(--border-color)',
