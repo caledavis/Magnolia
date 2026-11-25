@@ -27,6 +27,12 @@ interface Props {
   onUpdate: (content: string) => void
   onEditorReady: (editor: any) => void
   onResize: (id: string, update: { x: number; y: number; width: number; height: number }) => void
+  /** From the keyboard (as a map box): focus selects it, the arrows move
+   *  it by (dx, dy); its name and links, for a screen reader. */
+  onKeyboardFocus?: (id: string) => void
+  onKeyboardMove?: (id: string, dx: number, dy: number) => void
+  label?: string
+  description?: string
 }
 
 const HANDLE_SIZE = 8
@@ -77,7 +83,7 @@ function ResizeHandle({ position, onResizeStart }: {
 
 const ALL_HANDLES: HandlePos[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']
 
-export function FreeTextNode({ freeText, selected, focused, zoom, onMouseDown, onConnectorMouseDown, onFocus, onUpdate, onEditorReady, onResize }: Props) {
+export function FreeTextNode({ freeText, selected, focused, zoom, onMouseDown, onConnectorMouseDown, onFocus, onUpdate, onEditorReady, onResize, onKeyboardFocus, onKeyboardMove, label, description }: Props) {
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const resizingRef = useRef<{
@@ -148,6 +154,17 @@ export function FreeTextNode({ freeText, selected, focused, zoom, onMouseDown, o
   // requestAnimationFrame waits until the next paint, by which point
   // EditorContent's componentDidMount has run. The retry loop covers
   // the rare case where the view DOM hasn't been re-parented yet.
+  // When editing stops (Escape), the keyboard goes back to the note
+  // itself rather than being lost to the page.
+  const wasFocused = useRef(false)
+  useEffect(() => {
+    const el = containerRef.current
+    if (wasFocused.current && !focused && el && (el.contains(document.activeElement) || document.activeElement === document.body)) {
+      el.focus({ preventScroll: true })
+    }
+    wasFocused.current = focused
+  }, [focused])
+
   useEffect(() => {
     if (!editor || !focused) return
     let cancelled = false
@@ -276,6 +293,27 @@ export function FreeTextNode({ freeText, selected, focused, zoom, onMouseDown, o
       onDoubleClick={(e) => {
         e.stopPropagation()
         onFocus()
+      }}
+      // From the keyboard, like a map box: Tab reaches it, the arrows move
+      // it (Shift: further), Enter edits it (Escape stops), Delete deletes
+      // it, Shift+F10 is its menu. While editing, the text has the keys.
+      tabIndex={focused ? -1 : 0}
+      role="group"
+      aria-label={label}
+      aria-description={description}
+      data-map-element={freeText.id}
+      data-free-text=""
+      onFocus={(e) => {
+        if (e.target === e.currentTarget && e.currentTarget.matches(':focus-visible')) onKeyboardFocus?.(freeText.id)
+      }}
+      onKeyDown={(e) => {
+        if (e.target !== e.currentTarget || focused) return
+        if (e.key === 'Enter') { e.preventDefault(); onFocus(); return }
+        const d = ({ ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] } as Record<string, number[]>)[e.key]
+        if (!d) return
+        e.preventDefault()
+        const step = e.shiftKey ? 50 : 10
+        onKeyboardMove?.(freeText.id, d[0] * step, d[1] * step)
       }}
       style={{
         position: 'absolute',

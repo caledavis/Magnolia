@@ -541,20 +541,19 @@ export function MapCanvas({
 
   // Deleting one connection or box from a menu: select it, then delete
   // the selection once the selection has arrived.
-  const [pendingDelete, setPendingDelete] = useState<{ conn?: string; element?: string } | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<{ conn?: string; element?: string; freeText?: string } | null>(null)
   useEffect(() => {
     if (!pendingDelete) return
-    const ready = pendingDelete.conn
-      ? selectedConnectionIds.size === 1 && selectedConnectionIds.has(pendingDelete.conn) && selectedElementIds.size === 0 && selectedFreeTextIds.size === 0
-      : selectedElementIds.size === 1 && selectedElementIds.has(pendingDelete.element!) && selectedConnectionIds.size === 0 && selectedFreeTextIds.size === 0
+    const only = (set: Set<string>, id?: string) => (id ? set.size === 1 && set.has(id) : set.size === 0)
+    const ready = only(selectedConnectionIds, pendingDelete.conn) && only(selectedElementIds, pendingDelete.element) && only(selectedFreeTextIds, pendingDelete.freeText)
     if (!ready) return
     setPendingDelete(null)
     onDeleteSelected()
   }, [pendingDelete, selectedConnectionIds, selectedElementIds, selectedFreeTextIds, onDeleteSelected])
-  const deleteOnly = useCallback((what: { conn?: string; element?: string }) => {
+  const deleteOnly = useCallback((what: { conn?: string; element?: string; freeText?: string }) => {
     onSelectElements(new Set(what.element ? [what.element] : []))
     onSelectConnections(new Set(what.conn ? [what.conn] : []))
-    onSelectFreeTexts(new Set())
+    onSelectFreeTexts(new Set(what.freeText ? [what.freeText] : []))
     setPendingDelete(what)
   }, [onSelectElements, onSelectConnections, onSelectFreeTexts])
   const nameOf = useCallback((id: string): string => {
@@ -761,6 +760,17 @@ export function MapCanvas({
             onUpdate={(content) => onUpdateFreeText(ft.id, content)}
             onEditorReady={(editor) => onEditorReady(ft.id, editor)}
             onResize={onResizeFreeText}
+            label={freeTextName(ft) || t('map.text')}
+            description={describe(ft.id)}
+            onKeyboardFocus={(id) => {
+              onSelectFreeTexts(new Set([id]))
+              onSelectElements(new Set())
+              onSelectConnections(new Set())
+            }}
+            onKeyboardMove={(id, dx, dy) => {
+              const cur = freeTexts.find((x) => x.id === id)
+              if (cur) onMoveFreeText(id, cur.x + dx, cur.y + dy)
+            }}
           />
         ))}
 
@@ -867,7 +877,7 @@ export function MapCanvas({
           style={{ left: contextMenu.screenPos.x, top: contextMenu.screenPos.y }}
           onMouseDown={(e) => e.stopPropagation()}
         >
-          {!(contextMenu.elementId && elements.find((x) => x.id === contextMenu.elementId)?.kind === 'memo') && (
+          {!(contextMenu.elementId && (elements.find((x) => x.id === contextMenu.elementId)?.kind === 'memo' || freeTexts.some((x) => x.id === contextMenu.elementId))) && (
             <div
               className="context-menu-item"
               onClick={() => {
@@ -907,7 +917,7 @@ export function MapCanvas({
                   </div>
                 ))}
                 <div className="context-menu-separator" />
-                <div className="context-menu-item" style={{ color: 'var(--danger)' }} onClick={() => { deleteOnly({ element: id }); setContextMenu(null) }}>
+                <div className="context-menu-item" style={{ color: 'var(--danger)' }} onClick={() => { deleteOnly(freeTexts.some((x) => x.id === id) ? { freeText: id } : { element: id }); setContextMenu(null) }}>
                   {t('common.delete')}
                 </div>
               </>
