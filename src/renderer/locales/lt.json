@@ -1387,7 +1387,8 @@
     "selectedDocuments": "Pasirinkti dokumentai",
     "noneSelected": "Dokumentų nepasirinkta. Prijunkite mazgus prie „Rezultato“.",
     "survey": "Apklausa",
-    "statusHint": "Tempkite dokumentus ir žymas į drobę · Prijunkite mazgus prie „Rezultato“ · Nutempkite čia apklausos klausimus ir respondentus, kad juos pasirinktumėte"
+    "statusHint": "Tempkite dokumentus ir žymas į drobę · Prijunkite mazgus prie „Rezultato“ · Nutempkite čia apklausos klausimus ir respondentus, kad juos pasirinktumėte",
+    "canvas": "Dokumentų atranka"
   },
   "prefs": {
     "cat": {

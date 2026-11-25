@@ -1297,7 +1297,8 @@
     "selectedDocuments": "Valda dokument",
     "noneSelected": "Inga dokument valda. Koppla noderna till Resultat.",
     "survey": "Enkät",
-    "statusHint": "Dra dokument och taggar till arbetsytan · Koppla noderna till Resultat · Dra enkätfrågor och respondenter hit för att välja dem"
+    "statusHint": "Dra dokument och taggar till arbetsytan · Koppla noderna till Resultat · Dra enkätfrågor och respondenter hit för att välja dem",
+    "canvas": "Dokumenturval"
   },
   "prefs": {
     "cat": {

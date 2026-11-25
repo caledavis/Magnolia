@@ -1297,7 +1297,8 @@
     "selectedDocuments": "Valgte dokumenter",
     "noneSelected": "Ingen dokumenter valgt. Forbind noderne til Resultat.",
     "survey": "Undersøgelse",
-    "statusHint": "Træk dokumenter og tags til lærredet · Forbind noderne til Resultat · Træk spørgsmål og respondenter fra undersøgelser hertil for at vælge dem"
+    "statusHint": "Træk dokumenter og tags til lærredet · Forbind noderne til Resultat · Træk spørgsmål og respondenter fra undersøgelser hertil for at vælge dem",
+    "canvas": "Dokumentvalg"
   },
   "prefs": {
     "cat": {

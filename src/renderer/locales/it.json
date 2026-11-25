@@ -1342,7 +1342,8 @@
     "selectedDocuments": "Documenti selezionati",
     "noneSelected": "Nessun documento selezionato. Collega i nodi al Risultato.",
     "survey": "Sondaggio",
-    "statusHint": "Trascina documenti ed etichette sull’area di lavoro · Collega i nodi al Risultato · Trascina qui domande e rispondenti del sondaggio per sceglierli"
+    "statusHint": "Trascina documenti ed etichette sull’area di lavoro · Collega i nodi al Risultato · Trascina qui domande e rispondenti del sondaggio per sceglierli",
+    "canvas": "Selezione dei documenti"
   },
   "prefs": {
     "cat": {

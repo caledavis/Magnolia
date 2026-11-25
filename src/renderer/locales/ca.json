@@ -1342,7 +1342,8 @@
     "selectedDocuments": "Documents seleccionats",
     "noneSelected": "No hi ha cap document seleccionat. Connecteu els nodes a Resultat.",
     "survey": "Enquesta",
-    "statusHint": "Arrossegueu documents i etiquetes al llenç · Connecteu els nodes a Resultat · Arrossegueu aquí preguntes i enquestats per triar-los"
+    "statusHint": "Arrossegueu documents i etiquetes al llenç · Connecteu els nodes a Resultat · Arrossegueu aquí preguntes i enquestats per triar-los",
+    "canvas": "Selecció de documents"
   },
   "prefs": {
     "cat": {

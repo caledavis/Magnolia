@@ -1342,7 +1342,8 @@
     "selectedDocuments": "Documents sélectionnés",
     "noneSelected": "Aucun document sélectionné. Reliez les nœuds au Résultat.",
     "survey": "Enquête",
-    "statusHint": "Faites glisser documents et étiquettes sur le canevas · Reliez les nœuds au Résultat · Faites glisser ici des questions et des répondants d’enquête pour les choisir"
+    "statusHint": "Faites glisser documents et étiquettes sur le canevas · Reliez les nœuds au Résultat · Faites glisser ici des questions et des répondants d’enquête pour les choisir",
+    "canvas": "Sélection de documents"
   },
   "prefs": {
     "cat": {

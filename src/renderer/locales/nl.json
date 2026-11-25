@@ -1297,7 +1297,8 @@
     "selectedDocuments": "Geselecteerde documenten",
     "noneSelected": "Geen documenten geselecteerd. Verbind de knooppunten met Resultaat.",
     "survey": "Enquête",
-    "statusHint": "Sleep documenten en tags naar het canvas · Verbind de knooppunten met Resultaat · Sleep enquêtevragen en respondenten hierheen om ze te kiezen"
+    "statusHint": "Sleep documenten en tags naar het canvas · Verbind de knooppunten met Resultaat · Sleep enquêtevragen en respondenten hierheen om ze te kiezen",
+    "canvas": "Documentselectie"
   },
   "prefs": {
     "cat": {

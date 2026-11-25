@@ -1297,7 +1297,8 @@
     "selectedDocuments": "Valgte dokumenter",
     "noneSelected": "Ingen dokumenter valgt. Koble nodene til Resultat.",
     "survey": "Undersøkelse",
-    "statusHint": "Dra dokumenter og etiketter til lerretet · Koble nodene til Resultat · Dra spørsmål og respondenter fra undersøkelser hit for å velge dem"
+    "statusHint": "Dra dokumenter og etiketter til lerretet · Koble nodene til Resultat · Dra spørsmål og respondenter fra undersøkelser hit for å velge dem",
+    "canvas": "Dokumentutvalg"
   },
   "prefs": {
     "cat": {

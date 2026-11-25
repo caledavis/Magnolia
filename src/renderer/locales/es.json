@@ -1342,7 +1342,8 @@
     "selectedDocuments": "Documentos seleccionados",
     "noneSelected": "No hay documentos seleccionados. Conecta los nodos a Resultado.",
     "survey": "Encuesta",
-    "statusHint": "Arrastra documentos y etiquetas al lienzo · Conecta los nodos a Resultado · Arrastra aquí preguntas y encuestados para elegirlos"
+    "statusHint": "Arrastra documentos y etiquetas al lienzo · Conecta los nodos a Resultado · Arrastra aquí preguntas y encuestados para elegirlos",
+    "canvas": "Selección de documentos"
   },
   "prefs": {
     "cat": {

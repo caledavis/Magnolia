@@ -1297,7 +1297,8 @@
     "selectedDocuments": "Ausgewählte Dokumente",
     "noneSelected": "Keine Dokumente ausgewählt. Verbinden Sie die Knoten mit dem Ergebnis.",
     "survey": "Umfrage",
-    "statusHint": "Dokumente und Tags auf die Fläche ziehen · Knoten mit dem Ergebnis verbinden · Fragen und Befragte einer Umfrage hierher ziehen, um sie auszuwählen"
+    "statusHint": "Dokumente und Tags auf die Fläche ziehen · Knoten mit dem Ergebnis verbinden · Fragen und Befragte einer Umfrage hierher ziehen, um sie auszuwählen",
+    "canvas": "Dokumentauswahl"
   },
   "prefs": {
     "cat": {

@@ -1102,6 +1102,7 @@
     "docSelector.noneSelected": "No documents selected. Connect nodes to Result.",
     "docSelector.survey": "Survey",
     "docSelector.statusHint": "Drag documents & tags onto canvas · Connect nodes to Result · Drag survey questions & respondents here to choose them",
+    "docSelector.canvas": "Document selection",
     "prefs.cat.general": "General",
     "prefs.cat.appearance": "Appearance",
     "prefs.cat.mediaPlayback": "Media Playback",

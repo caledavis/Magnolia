@@ -19,6 +19,7 @@ import { SurveyScopeLine, chosenIds, mayBeSurveyEntityDrag, parseSurveyEntityDro
 import { useTranslation } from 'react-i18next'
 import { t, compareText } from '../../i18n'
 import { isLetterKey } from '../../utils/keys'
+import { dropZone } from '../../utils/key-activate'
 
 /** A document category's name (docSelector.category.<category>). */
 const categoryLabel = (category: DocCategory): string => t(`docSelector.category.${category}`)
@@ -451,6 +452,21 @@ export function DocumentSelector({
 }: Props) {
   const { t } = useTranslation()
   const canvasRef = useRef<HTMLDivElement>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
+  // A box's menu (right-click or Shift+F10): connect, disconnect, delete.
+  const [nodeMenu, setNodeMenu] = useState<{ id: string; x: number; y: number } | null>(null)
+  /** A box's name, as it reads on the canvas (menus, screen readers). */
+  const nodeName = (n: DNode): string => {
+    if (n.kind === 'docs') return t('queryDesc.docs', { count: n.docGuids?.length || 0 })
+    if (n.kind === 'tag') return n.tagName || t('common.tag')
+    if (n.kind === 'type') return n.typeExt ? categoryLabel(n.typeExt as DocCategory) : kindLabel('type')
+    if (n.kind === 'folder') return folders.find((f) => f.guid === n.folderGuid)?.name || kindLabel('folder')
+    if (n.kind === 'setOp') {
+      const op = n.setOps?.find((o) => o != null)
+      return op ? `${kindLabel('setOp')} — ${setOpTooltip(op)}` : kindLabel('setOp')
+    }
+    return kindLabel(n.kind)
+  }
   const wireRef = useRef<SVGPathElement>(null)
   // Update module-level context so nodeH can compute accurate tag node heights
   _ctxTags = tags
@@ -616,6 +632,9 @@ export function DocumentSelector({
       // contentEditable (TipTap rich-text editors), or this window-level
       // handler steals the key from those editors app-wide.
       if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || (e.target as HTMLElement).isContentEditable) return
+      // Only while the keyboard is in the selector (not in a pane beside it).
+      const active = document.activeElement
+      if (active && active !== document.body && !rootRef.current?.contains(active)) return
       if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); doDelete() }
       if ((e.metaKey || e.ctrlKey) && isLetterKey(e, 'c')) doCopy()
       if ((e.metaKey || e.ctrlKey) && isLetterKey(e, 'v')) doPaste()
@@ -1034,10 +1053,22 @@ export function DocumentSelector({
     return result
   }, [nodes, conns, tagMembers, respondentTagMembers, questionTagMembers, surveyEntityLabels, t])
 
+  /* --- a box's menu --- */
+  useEffect(() => {
+    if (!nodeMenu) return
+    const close = (e: MouseEvent) => {
+      if (!(e.target as Element | null)?.closest?.('.context-menu')) setNodeMenu(null)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [nodeMenu])
+  const menuNode = nodeMenu ? nodes.find((n) => n.id === nodeMenu.id) : undefined
+
   /* ═══ Render ═══ */
 
   return (
     <div
+      ref={rootRef}
       onDragOver={(e) => {
         if (mayBeSurveyEntityDrag(e)) {
           e.preventDefault()
@@ -1111,6 +1142,7 @@ export function DocumentSelector({
       <div style={{ display: 'flex', gap: 10 }}>
       <div
         ref={canvasRef}
+        {...dropZone(t('docSelector.canvas'))}
         onClick={canvasClick}
         onMouseDown={canvasMouseDown}
         onDragOver={handleDragOver}
@@ -1205,6 +1237,36 @@ export function DocumentSelector({
             <div
               key={node.id}
               title={kindTooltip(node.kind)}
+              // From the keyboard: Tab reaches it, the arrows move it (Shift:
+              // further), Delete deletes it, Shift+F10 connects it.
+              tabIndex={0}
+              role="group"
+              data-selector-node={node.id}
+              aria-label={nodeName(node)}
+              aria-description={[
+                inConns.length ? t('queryBuilder.takes', { names: inConns.map((c) => nodes.find((n) => n.id === c.from)).filter(Boolean).map((n) => nodeName(n!)).join(', ') }) : '',
+                conns.some((c) => c.from === node.id) ? t('queryBuilder.goesTo', { names: conns.filter((c) => c.from === node.id).map((c) => nodes.find((n) => n.id === c.to)).filter(Boolean).map((n) => nodeName(n!)).join(', ') }) : '',
+                t('queryBuilder.boxKeysHint')
+              ].filter(Boolean).join(' ')}
+              onFocus={(e) => {
+                // Keyboard focus selects it (a click selects as it always has).
+                if (e.target !== e.currentTarget || !e.currentTarget.matches(':focus-visible')) return
+                if (!selNodes.has(node.id)) setSelNodes(new Set([node.id]))
+              }}
+              onKeyDown={(e) => {
+                if (e.target !== e.currentTarget) return
+                const d = ({ ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] } as Record<string, number[]>)[e.key]
+                if (!d) return
+                e.preventDefault()
+                const step = e.shiftKey ? 50 : 10
+                setNodes((p) => p.map((n) => (n.id === node.id ? { ...n, x: Math.max(0, n.x + d[0] * step), y: Math.max(0, n.y + d[1] * step) } : n)))
+              }}
+              onContextMenu={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setSelNodes(new Set([node.id]))
+                setNodeMenu({ id: node.id, x: e.clientX, y: e.clientY })
+              }}
               onMouseDown={(e) => nodeDown(e, node.id)}
               onClick={(e) => e.stopPropagation()}
               style={{
@@ -1914,6 +1976,66 @@ export function DocumentSelector({
           ? t('queryBuilder.statusSelected', { count: selNodes.size, copy: modKey('C'), paste: modKey('V') })
           : t('docSelector.statusHint')}
       </div>
+      {/* A box's menu: what its output can go to, its connections, delete. */}
+      {nodeMenu && menuNode && (() => {
+        const done = () => setNodeMenu(null)
+        const targets = menuNode.kind === 'result' ? [] : nodes.filter((n) => n.id !== menuNode.id && inputSlots(n) > 0 && !wouldCycle(menuNode.id, n.id, conns))
+        const linked = conns.filter((c) => c.from === menuNode.id || c.to === menuNode.id)
+        return (
+          <div className="context-menu" style={{ left: nodeMenu.x, top: nodeMenu.y, position: 'fixed', zIndex: 1000 }} onClick={(e) => e.stopPropagation()}>
+            {targets.length > 0 && (
+              <div style={{ padding: '4px 14px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{t('queryBuilder.connectTo')}</div>
+            )}
+            {targets.flatMap((n) => {
+              const slots = inputSlots(n)
+              return Array.from({ length: slots }, (_, i) => {
+                const taken = conns.find((c) => c.to === n.id && c.toPort === i)
+                if (taken && taken.from === menuNode.id) return null
+                const takenBy = taken ? nodes.find((x) => x.id === taken.from) : undefined
+                return (
+                  <div
+                    key={n.id + ':' + i}
+                    className="context-menu-item"
+                    onClick={() => {
+                      setConns((p) => [...p.filter((c) => !(c.to === n.id && c.toPort === i)), { id: uid(), from: menuNode.id, to: n.id, toPort: i }])
+                      done()
+                    }}
+                  >
+                    {nodeName(n)}{slots > 1 ? ` — ${t('queryBuilder.inputN', { n: i + 1 })}` : ''}
+                    {takenBy ? ` (${t('queryBuilder.replaces', { name: nodeName(takenBy) })})` : ''}
+                  </div>
+                )
+              })
+            })}
+            {linked.length > 0 && <div className="context-menu-separator" />}
+            {linked.map((c) => {
+              const other = nodes.find((n) => n.id === (c.from === menuNode.id ? c.to : c.from))
+              return (
+                <div key={c.id} className="context-menu-item" onClick={() => { setConns((p) => p.filter((x) => x.id !== c.id)); done() }}>
+                  {t('queryBuilder.disconnectFrom', { name: other ? nodeName(other) : '' })}
+                </div>
+              )
+            })}
+            {menuNode.kind !== 'result' && (
+              <>
+                <div className="context-menu-separator" />
+                <div
+                  className="context-menu-item"
+                  style={{ color: 'var(--danger)' }}
+                  onClick={() => {
+                    setConns((p) => p.filter((c) => c.from !== menuNode.id && c.to !== menuNode.id))
+                    setNodes((p) => p.filter((n) => n.id !== menuNode.id))
+                    setSelNodes(new Set())
+                    done()
+                  }}
+                >
+                  {t('common.delete')}
+                </div>
+              </>
+            )}
+          </div>
+        )
+      })()}
     </div>
   )
 }

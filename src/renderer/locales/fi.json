@@ -1297,7 +1297,8 @@
     "selectedDocuments": "Valitut dokumentit",
     "noneSelected": "Dokumentteja ei ole valittu. Yhdistä solmut tulokseen.",
     "survey": "Kysely",
-    "statusHint": "Vedä dokumentteja ja tunnisteita pohjalle · Yhdistä solmut tulokseen · Valitse kyselyn kysymyksiä ja vastaajia vetämällä ne tähän"
+    "statusHint": "Vedä dokumentteja ja tunnisteita pohjalle · Yhdistä solmut tulokseen · Valitse kyselyn kysymyksiä ja vastaajia vetämällä ne tähän",
+    "canvas": "Asiakirjojen valinta"
   },
   "prefs": {
     "cat": {

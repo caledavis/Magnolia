@@ -1342,7 +1342,8 @@
     "selectedDocuments": "Documentos selecionados",
     "noneSelected": "Nenhum documento selecionado. Conecte os nós a Resultado.",
     "survey": "Pesquisa",
-    "statusHint": "Arraste documentos e etiquetas para a tela · Conecte os nós a Resultado · Arraste perguntas e respondentes para cá para escolhê-los"
+    "statusHint": "Arraste documentos e etiquetas para a tela · Conecte os nós a Resultado · Arraste perguntas e respondentes para cá para escolhê-los",
+    "canvas": "Seleção de documentos"
   },
   "prefs": {
     "cat": {

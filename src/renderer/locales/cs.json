@@ -1387,7 +1387,8 @@
     "selectedDocuments": "Vybrané dokumenty",
     "noneSelected": "Nejsou vybrány žádné dokumenty. Připojte uzly k výsledku.",
     "survey": "Průzkum",
-    "statusHint": "Přetáhněte dokumenty a štítky na plátno · Připojte uzly k výsledku · Přetažením otázek a respondentů průzkumu sem je vyberete"
+    "statusHint": "Přetáhněte dokumenty a štítky na plátno · Připojte uzly k výsledku · Přetažením otázek a respondentů průzkumu sem je vyberete",
+    "canvas": "Výběr dokumentů"
   },
   "prefs": {
     "cat": {

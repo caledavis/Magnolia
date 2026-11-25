@@ -1297,7 +1297,8 @@
     "selectedDocuments": "Selected Documents",
     "noneSelected": "No documents selected. Connect nodes to Result.",
     "survey": "Survey",
-    "statusHint": "Drag documents & tags onto canvas · Connect nodes to Result · Drag survey questions & respondents here to choose them"
+    "statusHint": "Drag documents & tags onto canvas · Connect nodes to Result · Drag survey questions & respondents here to choose them",
+    "canvas": "Document selection"
   },
   "prefs": {
     "cat": {
