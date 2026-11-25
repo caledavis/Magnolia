@@ -29,6 +29,9 @@ async function spec(t) {
     const start = performance.now()
     const ok = await run()
     const took = Math.round(performance.now() - start)
+    // Let the heartbeat record a block that has just ended: the check that
+    // ended run() can come before it.
+    await t.sleep(60)
     const freeze = Math.round(longest)
     results.push({ label, took, freeze })
     t.log(`${label}: ${took} ms, longest freeze ${freeze} ms${ok === false ? ' (DID NOT FINISH)' : ''}`)
