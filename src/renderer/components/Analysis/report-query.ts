@@ -4,12 +4,9 @@
  * data at export time (no stale data) and rendered as matches grouped by
  * document, mirroring the Query Results export.
  */
-import { buildAnalysisInitData } from '../../utils/build-analysis-init-data'
-import { executeQuery } from '../../utils/query-engine'
 import { groupByDocument } from '../QueryResultViewer/QueryResultsBody'
 import { escHtml } from '../../utils/pdf-export'
-import { useQueryStore } from '../../stores/query-store'
-import { useDocumentStore } from '../../stores/document-store'
+import { useQueryStore, runQueryLive } from '../../stores/query-store'
 import { surveyCellCitation } from './report-survey-cite'
 import { t } from '../../i18n'
 
@@ -34,25 +31,13 @@ export function renderQueryItemHtml(refGuid: string, anchor: string, prefix = ''
     return `<div class="report-block" id="${anchor}"><div class="report-item-head">${prefix}${escHtml(t('reports.query'))}</div><div class="empty">${escHtml(t('reports.deletedQuery'))}</div></div>`
   }
 
-  const base = buildAnalysisInitData('reports')
-  // Use the full document-store sources so executeQuery can resolve survey
-  // cell text (it reads source.formatData.survey). The trimmed
-  // base.sources omit formatData, which left every survey match's text
-  // blank in the report.
-  const execSources = useDocumentStore.getState().sources.map((s) => ({
-    guid: s.guid,
-    name: s.name,
-    sourceType: (s as any).sourceType,
-    formatData: (s as any).formatData,
-    selections: ((s as any).selections || []).map((sel: any) => ({ ...sel, codings: sel.codings || [] }))
-  }))
-  const execCodes = base.codes.map((c) => ({ guid: c.guid, name: c.name, color: c.color, isCodable: c.isCodable, children: [] }))
-  const execTags = base.tags.map((t) => ({ guid: t.guid, name: t.name, memberSourceGuids: base.tagMembers[t.guid] || [] }))
-  const execFolders = (base.folders || []).map((f) => ({ guid: f.guid, name: f.name, parentGuid: f.parentGuid }))
-
+  // The same run as the Query panel's (runQueryLive): the whole project,
+  // the code tree for "include subcodes", tags with their survey cells,
+  // the document filter resolved live. A report's own trimmed copies of
+  // these once found only the parent code's passages.
   let results
   try {
-    results = executeQuery(sq.query, execSources as any, base.sourceContents, execCodes as any, execTags as any, base.sourceFolder, execFolders)
+    results = runQueryLive(sq.query).results
   } catch {
     return `<div class="report-block" id="${anchor}"><div class="report-item-head">${prefix}${escHtml(t('reports.headWith', { kind: t('reports.query'), name: sq.name }))}</div><div class="empty">${escHtml(t('reports.couldNotRunQuery'))}</div></div>`
   }
