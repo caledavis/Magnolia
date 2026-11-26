@@ -137,7 +137,11 @@ async function spec(t) {
   list()?.focus()
 
   // A new code under another reads as Parent/New code; rejected.
+  await t.sleep(700)
+  const stepsBefore = undo.getState().undoStack.length
   ask('propose_new_code', { name: 'Child test', parent: cRef ?? 'C1', reason: 'Narrower.' })
+  await t.sleep(700)
+  t.check('a proposal arriving isn\'t an Undo step', undo.getState().undoStack.length === stepsBefore, `${undo.getState().undoStack.length} (was ${stepsBefore})`)
   await t.until(() => list()?.querySelectorAll('[data-proposal]').length === 4, 3000)
   await key('End')
   t.check('a new code shows where it goes, as Parent/New code', (focused()?.textContent ?? '').includes(`${firstCode.name}/Child test`), focused()?.textContent.slice(0, 80))
@@ -150,6 +154,16 @@ async function spec(t) {
   t.check('the renaming is reached with End', /Renamed by AI/.test(focused()?.textContent ?? ''), focused()?.textContent.slice(0, 80))
   await key('e')
   t.check('a rejected change isn\'t made', codes.getState().findCode(firstCode.guid).name === firstCode.name && ai.getState().proposals.some((p) => p.change.type === 'editCode' && p.status === 'denied'))
+  // Rejecting is an Undo step: Undo brings it back to review, Redo rejects it again.
+  const renameStatus = () => ai.getState().proposals.find((p) => p.change.type === 'editCode')?.status
+  await t.sleep(700)
+  t.check('rejecting is an Undo step', undo.getState().undoStack.length === 1, String(undo.getState().undoStack.length))
+  undo.getState().undo()
+  t.check('Undo brings a rejected proposal back to review', renameStatus() === 'pending')
+  undo.getState().redo()
+  t.check('and Redo rejects it again', renameStatus() === 'denied')
+  await t.sleep(700)
+  undo.getState().clearHistory()
 
   // Approve the coding (R): its new code comes with it.
   await key('Home')

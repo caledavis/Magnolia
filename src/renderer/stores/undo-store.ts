@@ -4,6 +4,8 @@ import { useCodeStore } from './code-store'
 import { useTagStore } from './tag-store'
 import { useQueryStore } from './query-store'
 import { useQuoteStore } from './quote-store'
+import { useAiStore, type AiProposal } from './ai-store'
+import { useProjectStore } from './project-store'
 
 type StateOf<S extends { getState: () => unknown }> = ReturnType<S['getState']>
 
@@ -18,7 +20,24 @@ interface Snapshot {
   // arrive a moment after a change, which could make them an Undo step of
   // their own. After an undo or redo the query is run again instead.
   query: Pick<StateOf<typeof useQueryStore>, 'savedQueries' | 'currentQuery' | 'isActive'>
+  // AI Assistance's decisions (approving and rejecting), so Undo brings a
+  // proposal back to review. Only the decisions: a proposal arriving from
+  // an AI app isn't an Undo step (Undo never takes away one not yet seen).
+  ai: { decisions: string; proposals: AiProposal[]; createdCodes: Record<string, string> }
 }
+
+/** What's been decided, as a value that changes only when a decision does. */
+const decisionsOf = (() => {
+  const cache = new WeakMap<AiProposal[], string>()
+  return (proposals: AiProposal[]): string => {
+    let d = cache.get(proposals)
+    if (d === undefined) {
+      d = proposals.filter((p) => p.status !== 'pending').map((p) => `${p.id}:${p.status}`).join('|')
+      cache.set(proposals, d)
+    }
+    return d
+  }
+})()
 
 interface UndoState {
   undoStack: Snapshot[]
@@ -60,7 +79,11 @@ function takeSnapshot(): Snapshot {
     },
     quote: {
       quotes: useQuoteStore.getState().quotes
-    }
+    },
+    ai: (() => {
+      const ai = useAiStore.getState()
+      return { decisions: decisionsOf(ai.proposals), proposals: ai.proposals, createdCodes: ai.createdCodes }
+    })()
   }
 }
 
@@ -70,6 +93,19 @@ function restoreSnapshot(snapshot: Snapshot): void {
   useTagStore.setState(snapshot.tag)
   useQueryStore.setState(snapshot.query)
   if (snapshot.quote) useQuoteStore.setState(snapshot.quote)
+  // The decisions as they were; proposals that have arrived since stay.
+  if (snapshot.ai) {
+    const was = new Map(snapshot.ai.proposals.map((p) => [p.id, p]))
+    const ai = useAiStore.getState()
+    useAiStore.setState({
+      proposals: ai.proposals.map((p) => {
+        const then = was.get(p.id)
+        return then ? { ...p, status: then.status, decidedAt: then.decidedAt, failure: then.failure, undone: undefined } : p
+      }),
+      createdCodes: snapshot.ai.createdCodes
+    })
+    useProjectStore.getState().markDirty()
+  }
   // The query's results, for the project as it now is.
   if (snapshot.query.isActive) useQueryStore.getState().runQuery()
   else useQueryStore.setState({ results: [], isLoading: false })
@@ -163,7 +199,8 @@ function snapshotValues(s: Snapshot): unknown[] {
     s.code.codes,
     s.tag.tags, s.tag.categories,
     s.query.savedQueries, s.query.currentQuery, s.query.isActive,
-    s.quote.quotes
+    s.quote.quotes,
+    s.ai.decisions, s.ai.createdCodes
   ]
 }
 
@@ -214,3 +251,4 @@ useCodeStore.subscribe(onStoreChange)
 useTagStore.subscribe(onStoreChange)
 useQueryStore.subscribe(onStoreChange)
 useQuoteStore.subscribe(onStoreChange)
+useAiStore.subscribe(onStoreChange)
