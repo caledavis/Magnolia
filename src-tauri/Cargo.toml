@@ -9,7 +9,7 @@ edition = "2024"
 
 [lib]
 name = "magnolia_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+crate-type = ["cdylib", "rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
