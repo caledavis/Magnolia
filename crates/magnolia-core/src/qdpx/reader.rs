@@ -10,6 +10,7 @@
 //! (foreign files and fresh imports) are flagged `_pendingPdfText`, because
 //! Magnolia's character offsets are defined by pdf.js — see `pdf_info`.
 
+use crate::util::normalize_guid;
 use super::archive::Archive;
 use super::deserializer::deserialize_project;
 use super::graph_refi::{GraphEntity, graph_to_map};
@@ -372,19 +373,36 @@ pub fn read_qdpx(path: &Path, progress: Option<Progress>) -> Result<Value, Strin
     }
 
     // ── Survey REFI reconciliation ──
-    let refi_variables = take(&mut project, "_refiVariables")
+    // Magnolia's own tags in a category are variables in the file, with the
+    // category's guid (tag_variables.rs); they're read from the categories'
+    // records, so the file's copies are left out of everything below.
+    let own = super::tag_variables::own_variable_guids(&project);
+    let not_own = |v: &Value| !own.contains(&normalize_guid(get_str(v, "variableGuid")));
+    let refi_variables: Vec<Value> = take(&mut project, "_refiVariables")
         .and_then(|v| v.as_array().cloned())
-        .unwrap_or_default();
-    let refi_cases = take(&mut project, "_refiCases")
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|v| !own.contains(&normalize_guid(get_str(v, "guid"))))
+        .collect();
+    let refi_cases: Vec<Value> = take(&mut project, "_refiCases")
         .and_then(|v| v.as_array().cloned())
-        .unwrap_or_default();
+        .unwrap_or_default()
+        .into_iter()
+        .map(|mut c| {
+            let kept: Vec<Value> = get_arr(&c, "values").iter().filter(|v| not_own(v)).cloned().collect();
+            c["values"] = kept.into();
+            c
+        })
+        .collect();
     // A document's own variable values, taken off before anything else.
     let document_values: Vec<(String, Vec<Value>)> = sources
         .iter_mut()
         .filter_map(|s| {
             let values = take(s, "_refiVariableValues")?.as_array()?.clone();
+            let values: Vec<Value> = values.into_iter().filter(not_own).collect();
             Some((get_str(s, "guid").unwrap_or("").to_string(), values))
         })
+        .filter(|(_, v)| !v.is_empty())
         .collect();
     // Cases describing documents (as NVivo writes its cases) become tags on
     // those documents; the rest are a survey's respondents.
@@ -424,6 +442,8 @@ pub fn read_qdpx(path: &Path, progress: Option<Progress>) -> Result<Value, Strin
         .collect();
 
     project["sources"] = sources.into();
+    // Tags in a category, from their categories' records.
+    super::tag_variables::restore_from_backup(&mut project);
     for k in [
         "_refiNotes",
         "_refiNoteAnchors",

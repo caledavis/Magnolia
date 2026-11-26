@@ -106,7 +106,14 @@ fn build_respondent_doc(r: &Value, open_ended: &[&Value]) -> (String, HashMap<St
     (text, answer_start)
 }
 
-pub fn survey_to_refi(survey: &Value, source_guid: &str, selections: &[Value]) -> SurveyRefi {
+/// `tag_values`: each respondent's tags as variable values (see
+/// tag_variables), by respondent id, added to their case.
+pub fn survey_to_refi(
+    survey: &Value,
+    source_guid: &str,
+    selections: &[Value],
+    tag_values: &std::collections::HashMap<String, Vec<Value>>,
+) -> SurveyRefi {
     let columns = get_arr(survey, "columns");
     let lookup_column = |id: &str| columns.iter().find(|c| get_str(c, "id") == Some(id));
     let mut variables = Vec::new();
@@ -283,6 +290,9 @@ pub fn survey_to_refi(survey: &Value, source_guid: &str, selections: &[Value]) -
                 "respondentId": rid,
             }));
             source_ref_guids.push(doc_guid);
+        }
+        if let Some(extra) = tag_values.get(rid) {
+            values.extend(extra.iter().cloned());
         }
         cases.push(json!({
             "guid": new_guid(),

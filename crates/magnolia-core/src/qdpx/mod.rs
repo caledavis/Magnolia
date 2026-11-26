@@ -10,5 +10,6 @@ pub mod graph_refi;
 pub mod reader;
 pub mod serializer;
 pub mod survey_refi;
+pub mod tag_variables;
 pub mod transcript_refi;
 pub mod writer;

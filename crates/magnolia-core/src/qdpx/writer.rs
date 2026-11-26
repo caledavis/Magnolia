@@ -332,13 +332,17 @@ pub fn write_qdpx(
         json_entry(&mut zip, "magnolia-folders.json", &v)?;
     }
 
-    // Tag categories + the Magnolia-only bits of each tag.
+    // Tag categories, each with its tags whole (what they're read back from:
+    // they're variables in the XML, see tag_variables.rs), and the
+    // Magnolia-only bits of each tag that's a set.
     let mut tag_ext = Obj::new();
     if !get_arr(project, "tagCategories").is_empty() {
-        tag_ext.insert("categories".into(), project["tagCategories"].clone());
+        tag_ext.insert("categories".into(), super::tag_variables::categories_with_backup(project).into());
     }
+    let tag_vars = super::tag_variables::TagVariables::of(project);
     let tag_meta: Vec<Value> = get_arr(project, "sets")
         .iter()
+        .filter(|s| !tag_vars.is_categorised(s))
         .filter(|s| {
             has(s, "categoryGuid")
                 || has(s, "value")

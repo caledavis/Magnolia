@@ -6,6 +6,7 @@
 
 use super::graph_refi::collect_graphs;
 use super::survey_refi::survey_to_refi;
+use super::tag_variables::TagVariables;
 use super::transcript_refi::is_transcript_coding;
 use crate::util::{
     get_arr, get_f64, get_nonempty, get_str, has, js_num_to_string, js_round, js_to_string, truthy,
@@ -471,6 +472,17 @@ fn serialize_case(c: &Value) -> El {
         .attr("guid", get_str(c, "guid").unwrap_or(""))
         .attr("name", get_str(c, "name").unwrap_or(""));
     for val in get_arr(c, "values") {
+        el.push(variable_value(val));
+    }
+    for g in get_arr(c, "sourceRefGuids") {
+        el.push(El::new("SourceRef").attr("targetGUID", g.as_str().unwrap_or("")));
+    }
+    el
+}
+
+/// `<VariableValue>`: its variable, then the one value of its type.
+fn variable_value(val: &Value) -> El {
+    {
         let mut vv = El::new("VariableValue").child(
             El::new("VariableRef").attr("targetGUID", get_str(val, "variableGuid").unwrap_or("")),
         );
@@ -491,12 +503,8 @@ fn serialize_case(c: &Value) -> El {
         } else if let Some(d) = present("dateTimeValue") {
             vv.push(El::text("DateTimeValue", js_to_string(d)));
         }
-        el.push(vv);
+        vv
     }
-    for g in get_arr(c, "sourceRefGuids") {
-        el.push(El::new("SourceRef").attr("targetGUID", g.as_str().unwrap_or("")));
-    }
-    el
 }
 
 fn serialize_respondent_doc(d: &Value) -> El {
@@ -622,6 +630,8 @@ pub fn serialize_project(project: &Value, app_version: &str) -> String {
         p.push(El::new("CodeBook").child(c));
     }
 
+    // Tags in a category are variables (tag_variables.rs).
+    let tag_vars = TagVariables::of(project);
     let mut variables = Vec::new();
     let mut cases = Vec::new();
     let mut respondent_docs = Vec::new();
@@ -637,10 +647,18 @@ pub fn serialize_project(project: &Value, app_version: &str) -> String {
         else {
             continue;
         };
+        let survey_guid = crate::util::normalize_guid(get_str(s, "guid"));
+        let respondent_tags: HashMap<String, Vec<Value>> = tag_vars
+            .on_respondent
+            .iter()
+            .filter(|((sg, _), _)| *sg == survey_guid)
+            .map(|((_, id), v)| (id.clone(), v.clone()))
+            .collect();
         let refi = survey_to_refi(
             survey,
             get_str(s, "guid").unwrap_or(""),
             get_arr(s, "selections"),
+            &respondent_tags,
         );
         variables.extend(refi.variables);
         cases.extend(refi.cases);
@@ -656,6 +674,7 @@ pub fn serialize_project(project: &Value, app_version: &str) -> String {
         }
         respondent_docs.extend(refi.respondent_docs);
     }
+    variables.extend(tag_vars.variables.iter().cloned());
     if !variables.is_empty() {
         p.push(El {
             name: "Variables".into(),
@@ -726,6 +745,16 @@ pub fn serialize_project(project: &Value, app_version: &str) -> String {
             .children
             .extend(of_type("image").map(serialize_image_source));
         src_el.children.extend(video_xml);
+        // Each document's tags in a category, as values of their variables:
+        // last in every kind of source (VariableValue* ends each sequence).
+        for el in &mut src_el.children {
+            let guid = el.attrs.iter().find(|(k, _)| k == "guid").map(|(_, v)| crate::util::normalize_guid(Some(v)));
+            if let Some(values) = guid.and_then(|g| tag_vars.on_document.get(&g)) {
+                for v in values {
+                    el.push(variable_value(v));
+                }
+            }
+        }
         p.push(src_el);
     }
 
@@ -771,7 +800,8 @@ pub fn serialize_project(project: &Value, app_version: &str) -> String {
         });
     }
 
-    let sets = get_arr(project, "sets");
+    // Tags without a category: plain groups, the standard's sets.
+    let sets: Vec<&Value> = get_arr(project, "sets").iter().filter(|s| !tag_vars.is_categorised(s)).collect();
     if !sets.is_empty() {
         let mut sets_el = El::new("Sets");
         for s in sets {
