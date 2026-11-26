@@ -44,7 +44,7 @@ async function spec(t) {
   t.check('the AI Assistance Viewer opens to ask', !!review && /Claude Desktop wants to use this project/.test(review.textContent), review?.textContent.slice(0, 200))
   t.check('nothing was read', ai.getState().sessions.length === 0)
   t.check('it says the user is responsible for their use of AI', /It is your responsibility to ensure/.test(review.textContent))
-  { const box = [...review.querySelectorAll('[role="alert"]')][0]; const close = [...review.querySelectorAll('button')].find((b) => b.textContent === 'Close'); t.check('the box lines up with the heading', !!box && !!close && Math.abs(box.getBoundingClientRect().right - close.getBoundingClientRect().right) < 2, `${box?.getBoundingClientRect().right} vs ${close?.getBoundingClientRect().right}`) }
+  { const box = [...review.querySelectorAll('[role="alert"]')][0]; const close = [...review.querySelectorAll('button')].find((b) => b.textContent === 'Close'); const scroller = box?.closest('div[style*="overflow-y: auto"]'); const bar = scroller ? scroller.offsetWidth - scroller.clientWidth : 0; t.check('the box lines up with the heading (allowing for a scrollbar beside it)', !!box && !!close && Math.abs(box.getBoundingClientRect().right + bar - close.getBoundingClientRect().right) < 2, `${box?.getBoundingClientRect().right} + ${bar} vs ${close?.getBoundingClientRect().right}`) }
   ;[...review.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Allow')?.click()
   await t.sleep(50)
   t.check('allowing is kept with the project', ai.getState().projectAi().appsAllowed === true)
@@ -85,7 +85,8 @@ async function spec(t) {
     const found = []
     for (const theme of ['magnolia', 'magnolia-dark', 'high-contrast']) {
       document.documentElement.setAttribute('data-theme', theme)
-      await t.sleep(150)
+      // Long enough for the colours' transitions (as accessibility.js).
+      await t.sleep(1200)
       const res = await window.axe.run(el, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, resultTypes: ['violations'] })
       for (const v of res.violations) found.push(`[${theme}] ${v.id}: ` + v.nodes.slice(0, 2).map((n) => n.html.slice(0, 90) + ' — ' + (n.failureSummary ?? '').replace(/\s+/g, ' ').slice(0, 120)).join(' / '))
     }
