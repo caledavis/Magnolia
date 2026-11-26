@@ -1,6 +1,7 @@
 //! WebKitGTK printing to a PDF file (print-to-file backend).
 
 use super::PdfOptions;
+use std::ffi::{CStr, c_int, c_void};
 use std::path::Path;
 use std::sync::mpsc;
 use std::time::Duration;
@@ -16,19 +17,50 @@ const MM_PER_INCH: f64 = 25.4;
 /// what it is instead: the virtual printer that takes PDF (the English
 /// name first, should there be more than one).
 fn file_printer() -> Option<String> {
-    let found: std::rc::Rc<std::cell::RefCell<Vec<String>>> = Default::default();
-    let list = found.clone();
-    gtk::enumerate_printers(
-        move |p| {
-            if p.is_virtual() && p.accepts_pdf() {
-                list.borrow_mut().push(p.name().to_string());
-            }
-            false
-        },
-        true,
-    );
-    let names = found.take();
+    let mut names: Vec<String> = Vec::new();
+    // SAFETY: `names` outlives the call (`wait` is true, so every printer
+    // has been listed when it returns), and is only reached through the
+    // callback, on this thread.
+    unsafe {
+        printers::gtk_enumerate_printers(collect, (&mut names as *mut Vec<String>).cast(), None, 1);
+    }
     names.iter().find(|n| n.as_str() == "Print to File").or_else(|| names.first()).cloned()
+}
+
+/// Called for each printer: notes the virtual ones that take PDF.
+unsafe extern "C" fn collect(printer: *mut printers::GtkPrinter, data: *mut c_void) -> c_int {
+    // SAFETY: GTK passes a live printer and our `data` (see file_printer).
+    unsafe {
+        if printers::gtk_printer_is_virtual(printer) != 0 && printers::gtk_printer_accepts_pdf(printer) != 0 {
+            let name = printers::gtk_printer_get_name(printer);
+            if !name.is_null() {
+                let names = &mut *data.cast::<Vec<String>>();
+                names.push(CStr::from_ptr(name).to_string_lossy().into_owned());
+            }
+        }
+    }
+    0 // keep going
+}
+
+/// GTK's list of printers (gtk/gtkunixprint.h). They're part of GTK 3
+/// itself, but the gtk crate doesn't wrap them, so they're declared here.
+mod printers {
+    use std::ffi::{c_char, c_int, c_void};
+
+    #[repr(C)]
+    pub struct GtkPrinter {
+        _private: [u8; 0],
+    }
+
+    pub type GtkPrinterFunc = unsafe extern "C" fn(*mut GtkPrinter, *mut c_void) -> c_int;
+
+    #[link(name = "gtk-3")]
+    unsafe extern "C" {
+        pub fn gtk_enumerate_printers(func: GtkPrinterFunc, data: *mut c_void, destroy: Option<unsafe extern "C" fn(*mut c_void)>, wait: c_int);
+        pub fn gtk_printer_is_virtual(printer: *mut GtkPrinter) -> c_int;
+        pub fn gtk_printer_accepts_pdf(printer: *mut GtkPrinter) -> c_int;
+        pub fn gtk_printer_get_name(printer: *mut GtkPrinter) -> *const c_char;
+    }
 }
 
 pub fn print(

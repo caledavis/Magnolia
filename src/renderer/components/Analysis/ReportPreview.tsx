@@ -130,7 +130,7 @@ export function ReportPreview({ title, items }: { title: string; items: ReportIt
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 16px', minHeight: 'var(--report-bar-height)', boxSizing: 'border-box', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-panel)', flexShrink: 0, fontSize: 11, color: 'var(--text-muted)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 16px', height: 'var(--report-bar-height)', boxSizing: 'border-box', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-panel)', flexShrink: 0, fontSize: 11, color: 'var(--text-muted)' }}>
         <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{t('reports.preview')}</span>
         <span aria-live="polite">{building ? t('reports.previewUpdating') : ''}</span>
       </div>
