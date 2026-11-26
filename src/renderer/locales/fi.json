@@ -199,7 +199,8 @@
         "notFound": "Projektin kansiota ei löydy. Se on ehkä siirretty tai nimetty uudelleen, tai se on levyllä, joka ei ole liitettynä."
       },
       "caseCategory": "Tapaus",
-      "documentDescription": "Kuvaus: {{name}}"
+      "documentDescription": "Kuvaus: {{name}}",
+      "layoutChanged": "Asiakirjan asettelu muuttui, kun se kirjoitettiin PDF:ksi. Yritä tuoda se uudelleen."
     }
   },
   "tools": {
@@ -1726,7 +1727,8 @@
     "networkNote": "{{shown}}. Viivat yhdistävät sanat, jotka seuraavat niissä toisiaan; pois jätettyjä sanoja ei piirretä.",
     "comingSoon": "{{name}} – taulukot työkalulle {{tool}} ovat tulossa.",
     "couldNotRegenerate": "Tätä analyysia ei voitu luoda uudelleen.",
-    "respondentN": "Vastaaja {{n}}"
+    "respondentN": "Vastaaja {{n}}",
+    "codeOrder": "Koodien järjestys"
   },
   "map": {
     "doubleClickToEdit": "Muokkaa kaksoisklikkaamalla",

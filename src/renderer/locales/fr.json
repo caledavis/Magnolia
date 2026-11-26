@@ -202,7 +202,8 @@
         "notFound": "Le dossier du projet est introuvable. Il a peut-être été déplacé ou renommé, ou se trouve sur un disque qui n’est pas connecté."
       },
       "caseCategory": "Cas",
-      "documentDescription": "Description de {{name}}"
+      "documentDescription": "Description de {{name}}",
+      "layoutChanged": "La mise en page du document a changé pendant son écriture en PDF. Essayez de l’importer à nouveau."
     }
   },
   "tools": {
@@ -1791,7 +1792,8 @@
     "networkNote": "{{shown}}. Les lignes relient les mots qui s’y suivent ; les mots exclus ne sont pas dessinés.",
     "comingSoon": "{{name}} — la génération de tableaux pour {{tool}} arrive bientôt.",
     "couldNotRegenerate": "Impossible de régénérer cette analyse.",
-    "respondentN": "Répondant {{n}}"
+    "respondentN": "Répondant {{n}}",
+    "codeOrder": "Ordre des codes"
   },
   "map": {
     "doubleClickToEdit": "Double-cliquez pour modifier",

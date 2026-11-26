@@ -205,7 +205,8 @@
         "notFound": "Složku projektu nelze najít. Možná byla přesunuta nebo přejmenována, nebo je na disku, který není připojený."
       },
       "caseCategory": "Případ",
-      "documentDescription": "Popis: {{name}}"
+      "documentDescription": "Popis: {{name}}",
+      "layoutChanged": "Rozvržení dokumentu se změnilo během jeho zápisu do PDF. Zkuste ho importovat znovu."
     }
   },
   "tools": {
@@ -1856,7 +1857,8 @@
     "networkNote": "{{shown}}. Čáry spojují slova, která v nich následují po sobě; vynechaná slova se nekreslí.",
     "comingSoon": "{{name}} – generování tabulek pro {{tool}} brzy přibude.",
     "couldNotRegenerate": "Tuto analýzu se nepodařilo znovu vygenerovat.",
-    "respondentN": "Respondent {{n}}"
+    "respondentN": "Respondent {{n}}",
+    "codeOrder": "Pořadí kódů"
   },
   "map": {
     "doubleClickToEdit": "Poklepáním upravíte",

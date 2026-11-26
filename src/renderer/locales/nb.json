@@ -199,7 +199,8 @@
         "notFound": "Finner ikke mappen til prosjektet. Den kan være flyttet eller har fått nytt navn, eller ligge på en disk som ikke er koblet til."
       },
       "caseCategory": "Case",
-      "documentDescription": "Beskrivelse av {{name}}"
+      "documentDescription": "Beskrivelse av {{name}}",
+      "layoutChanged": "Oppsettet i dokumentet endret seg mens det ble skrevet som PDF. Prøv å importere det på nytt."
     }
   },
   "tools": {
@@ -1726,7 +1727,8 @@
     "networkNote": "{{shown}}. Linjene forbinder ordene som følger etter hverandre i dem; utelatte ord tegnes ikke.",
     "comingSoon": "{{name}} – tabeller for {{tool}} kommer snart.",
     "couldNotRegenerate": "Kunne ikke lage denne analysen på nytt.",
-    "respondentN": "Respondent {{n}}"
+    "respondentN": "Respondent {{n}}",
+    "codeOrder": "Rekkefølge av koder"
   },
   "map": {
     "doubleClickToEdit": "Dobbeltklikk for å redigere",

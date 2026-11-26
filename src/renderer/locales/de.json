@@ -199,7 +199,8 @@
         "notFound": "Der Ordner des Projekts wurde nicht gefunden. Er wurde vielleicht verschoben oder umbenannt oder liegt auf einem Datenträger, der nicht angeschlossen ist."
       },
       "caseCategory": "Fall",
-      "documentDescription": "Beschreibung von {{name}}"
+      "documentDescription": "Beschreibung von {{name}}",
+      "layoutChanged": "Das Layout des Dokuments hat sich beim Schreiben als PDF geändert. Versuchen Sie, es erneut zu importieren."
     }
   },
   "tools": {
@@ -1726,7 +1727,8 @@
     "networkNote": "{{shown}}. Linien verbinden die Wörter, die darin aufeinander folgen; ausgelassene Wörter werden nicht gezeichnet.",
     "comingSoon": "{{name}} – Tabellen für {{tool}} folgen bald.",
     "couldNotRegenerate": "Diese Analyse konnte nicht neu erstellt werden.",
-    "respondentN": "Befragte Person {{n}}"
+    "respondentN": "Befragte Person {{n}}",
+    "codeOrder": "Reihenfolge der Codes"
   },
   "map": {
     "doubleClickToEdit": "Zum Bearbeiten doppelklicken",

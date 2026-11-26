@@ -199,7 +199,8 @@
         "notFound": "Projektets mappe kan ikke findes. Den er måske flyttet eller omdøbt, eller ligger på en disk, der ikke er tilsluttet."
       },
       "caseCategory": "Case",
-      "documentDescription": "Beskrivelse af {{name}}"
+      "documentDescription": "Beskrivelse af {{name}}",
+      "layoutChanged": "Dokumentets layout ændrede sig, mens det blev skrevet som PDF. Prøv at importere det igen."
     }
   },
   "tools": {
@@ -1726,7 +1727,8 @@
     "networkNote": "{{shown}}. Linjerne forbinder de ord, der følger efter hinanden i dem; udeladte ord tegnes ikke.",
     "comingSoon": "{{name}} – tabeller for {{tool}} kommer snart.",
     "couldNotRegenerate": "Analysen kunne ikke genskabes.",
-    "respondentN": "Respondent {{n}}"
+    "respondentN": "Respondent {{n}}",
+    "codeOrder": "Rækkefølge af koder"
   },
   "map": {
     "doubleClickToEdit": "Dobbeltklik for at redigere",

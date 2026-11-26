@@ -202,7 +202,8 @@
         "notFound": "לא ניתן למצוא את התיקייה של הפרויקט. ייתכן שהיא הועברה או ששמה שונה, או שהיא בדיסק שאינו מחובר."
       },
       "caseCategory": "מקרה",
-      "documentDescription": "תיאור של {{name}}"
+      "documentDescription": "תיאור של {{name}}",
+      "layoutChanged": "פריסת המסמך השתנתה בזמן שנכתב כ-PDF. נסו לייבא אותו שוב."
     }
   },
   "tools": {
@@ -1791,7 +1792,8 @@
     "networkNote": "{{shown}}. קווים מחברים את המילים שבאות בהם זו אחר זו; מילים שהושמטו אינן מצוירות.",
     "comingSoon": "{{name}} — טבלאות עבור {{tool}} יגיעו בקרוב.",
     "couldNotRegenerate": "לא ניתן ליצור מחדש את הניתוח הזה.",
-    "respondentN": "משיב {{n}}"
+    "respondentN": "משיב {{n}}",
+    "codeOrder": "סדר הקודים"
   },
   "map": {
     "doubleClickToEdit": "לחיצה כפולה לעריכה",

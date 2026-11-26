@@ -199,7 +199,8 @@
         "notFound": "Projektets mapp hittas inte. Den kan ha flyttats eller bytt namn, eller ligga på en disk som inte är ansluten."
       },
       "caseCategory": "Fall",
-      "documentDescription": "Beskrivning av {{name}}"
+      "documentDescription": "Beskrivning av {{name}}",
+      "layoutChanged": "Dokumentets layout ändrades medan det skrevs som PDF. Försök importera det igen."
     }
   },
   "tools": {
@@ -1726,7 +1727,8 @@
     "networkNote": "{{shown}}. Linjerna förbinder orden som följer på varandra i dem; utelämnade ord ritas inte.",
     "comingSoon": "{{name}} – tabeller för {{tool}} kommer snart.",
     "couldNotRegenerate": "Det gick inte att återskapa analysen.",
-    "respondentN": "Respondent {{n}}"
+    "respondentN": "Respondent {{n}}",
+    "codeOrder": "Kodernas ordning"
   },
   "map": {
     "doubleClickToEdit": "Dubbelklicka för att redigera",

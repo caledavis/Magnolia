@@ -199,7 +199,8 @@
         "notFound": "Projenin klasörü bulunamıyor. Taşınmış ya da yeniden adlandırılmış veya bağlı olmayan bir diskte olabilir."
       },
       "caseCategory": "Vaka",
-      "documentDescription": "{{name}} açıklaması"
+      "documentDescription": "{{name}} açıklaması",
+      "layoutChanged": "Belgenin düzeni PDF olarak yazılırken değişti. Yeniden içe aktarmayı deneyin."
     }
   },
   "tools": {
@@ -1726,7 +1727,8 @@
     "networkNote": "{{shown}}. Çizgiler, ifadelerde birbirini izleyen sözcükleri birleştirir; dışarıda bırakılan sözcükler çizilmez.",
     "comingSoon": "{{name}} — {{tool}} için tablo oluşturma yakında geliyor.",
     "couldNotRegenerate": "Bu analiz yeniden oluşturulamadı.",
-    "respondentN": "Katılımcı {{n}}"
+    "respondentN": "Katılımcı {{n}}",
+    "codeOrder": "Kodların sırası"
   },
   "map": {
     "doubleClickToEdit": "Düzenlemek için çift tıklayın",

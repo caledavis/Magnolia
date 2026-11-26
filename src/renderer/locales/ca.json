@@ -202,7 +202,8 @@
         "notFound": "No es troba la carpeta del projecte. Potser s’ha mogut o se n’ha canviat el nom, o és en un disc que no està connectat."
       },
       "caseCategory": "Cas",
-      "documentDescription": "Descripció de {{name}}"
+      "documentDescription": "Descripció de {{name}}",
+      "layoutChanged": "La compaginació del document ha canviat mentre s’escrivia com a PDF. Proveu d’importar-lo de nou."
     }
   },
   "tools": {
@@ -1791,7 +1792,8 @@
     "networkNote": "{{shown}}. Les línies uneixen les paraules que se segueixen; les paraules excloses no es dibuixen.",
     "comingSoon": "{{name}} — aviat es podran generar taules per a {{tool}}.",
     "couldNotRegenerate": "No s’ha pogut tornar a generar aquesta anàlisi.",
-    "respondentN": "Enquestat {{n}}"
+    "respondentN": "Enquestat {{n}}",
+    "codeOrder": "Ordre dels codis"
   },
   "map": {
     "doubleClickToEdit": "Feu doble clic per editar",

@@ -196,7 +196,8 @@
         "notFound": "找不到项目所在的文件夹。它可能已被移动或重命名，或位于未连接的磁盘上。"
       },
       "caseCategory": "个案",
-      "documentDescription": "{{name}} 的描述"
+      "documentDescription": "{{name}} 的描述",
+      "layoutChanged": "文档在写成 PDF 时版式发生了变化。请尝试重新导入。"
     }
   },
   "tools": {
@@ -1661,7 +1662,8 @@
     "networkNote": "{{shown}}。线条连接其中前后相接的词语；已排除的词不绘制。",
     "comingSoon": "{{name}}——{{tool}} 的表格生成即将推出。",
     "couldNotRegenerate": "无法重新生成此分析。",
-    "respondentN": "受访者 {{n}}"
+    "respondentN": "受访者 {{n}}",
+    "codeOrder": "代码顺序"
   },
   "map": {
     "doubleClickToEdit": "连按两次以编辑",

@@ -480,7 +480,7 @@ function codeOrdersHtml(config: any, _options: AnalysisItemOptions): string {
       return `<tr><td class="rowhead">${escHtml(row.label)}</td><td class="co-seq">${orderedCodeChips(rd, row.sourceGuids, codeGuids, codeMap)}</td></tr>`
     })
     .join('')
-  return `<div class="report-wide"><table class="report-table report-co"><thead><tr><th class="rowhead">Document</th><th class="rowhead">Order of codes</th></tr></thead><tbody>${body}</tbody></table></div>`
+  return `<div class="report-wide"><table class="report-table report-co"><thead><tr><th class="rowhead">${escHtml(t('reports.document'))}</th><th class="rowhead">${escHtml(t('reports.codeOrder'))}</th></tr></thead><tbody>${body}</tbody></table></div>`
 }
 
 // ── Word Frequencies visualisations (bar chart + word cloud) ───────

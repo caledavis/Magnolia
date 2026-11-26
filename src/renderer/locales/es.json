@@ -202,7 +202,8 @@
         "notFound": "No se encuentra la carpeta del proyecto. Puede que se haya movido o cambiado de nombre, o que esté en un disco que no está conectado."
       },
       "caseCategory": "Caso",
-      "documentDescription": "Descripción de {{name}}"
+      "documentDescription": "Descripción de {{name}}",
+      "layoutChanged": "La maquetación del documento cambió mientras se escribía como PDF. Pruebe a importarlo de nuevo."
     }
   },
   "tools": {
@@ -1791,7 +1792,8 @@
     "networkNote": "{{shown}}. Las líneas unen las palabras que se siguen en ellas; las palabras excluidas no se dibujan.",
     "comingSoon": "{{name}} — pronto se podrán generar tablas de {{tool}}.",
     "couldNotRegenerate": "No se pudo regenerar este análisis.",
-    "respondentN": "Encuestado {{n}}"
+    "respondentN": "Encuestado {{n}}",
+    "codeOrder": "Orden de los códigos"
   },
   "map": {
     "doubleClickToEdit": "Haz doble clic para editar",

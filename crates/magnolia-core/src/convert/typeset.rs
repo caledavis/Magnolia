@@ -64,7 +64,7 @@ fn typeset_pdf(html: &str) -> Result<Vec<u8>, String> {
     world.add_file(TEXT_LAYER_NAME, layer_json);
     let second = compile(&world)?;
     if text_layer(&second, &world, &doc.leaves) != layer {
-        return Err("The document's layout changed while it was being written as a PDF.".into());
+        return Err(crate::message::tr("layoutChanged", "The document’s layout changed while it was being written as a PDF. Try importing it again.", &[]));
     }
     let options = typst_pdf::PdfOptions { creator: Smart::Custom(Some("Magnolia".into())), ..Default::default() };
     typst_pdf::pdf(&second, &options).map_err(|errs| errs.iter().map(|e| e.message.to_string()).collect::<Vec<_>>().join("; "))

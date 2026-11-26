@@ -202,7 +202,8 @@
         "notFound": "Não é possível encontrar a pasta do projeto. Pode ter sido movida ou mudado de nome, ou estar num disco que não está ligado."
       },
       "caseCategory": "Caso",
-      "documentDescription": "Descrição de {{name}}"
+      "documentDescription": "Descrição de {{name}}",
+      "layoutChanged": "O esquema do documento mudou enquanto era gravado como PDF. Tente importá-lo novamente."
     }
   },
   "tools": {
@@ -1791,7 +1792,8 @@
     "networkNote": "{{shown}}. As linhas ligam as palavras que se seguem nelas; as palavras excluídas não são desenhadas.",
     "comingSoon": "{{name}} — em breve será possível gerar tabelas de {{tool}}.",
     "couldNotRegenerate": "Não foi possível regenerar esta análise.",
-    "respondentN": "Respondente {{n}}"
+    "respondentN": "Respondente {{n}}",
+    "codeOrder": "Ordem dos códigos"
   },
   "map": {
     "doubleClickToEdit": "Clique duas vezes para editar",

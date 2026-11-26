@@ -205,7 +205,8 @@
         "notFound": "Nepavyksta rasti projekto aplanko. Galbūt jis perkeltas ar pervadintas arba yra neprijungtame diske."
       },
       "caseCategory": "Atvejis",
-      "documentDescription": "Aprašas: {{name}}"
+      "documentDescription": "Aprašas: {{name}}",
+      "layoutChanged": "Dokumento išdėstymas pasikeitė, kol jis buvo rašomas kaip PDF. Pabandykite jį importuoti dar kartą."
     }
   },
   "tools": {
@@ -1856,7 +1857,8 @@
     "networkNote": "{{shown}}. Linijos jungia jose vienas po kito einančius žodžius; praleisti žodžiai nepiešiami.",
     "comingSoon": "{{name}} – {{tool}} lentelės netrukus.",
     "couldNotRegenerate": "Nepavyko iš naujo sugeneruoti šios analizės.",
-    "respondentN": "Respondentas {{n}}"
+    "respondentN": "Respondentas {{n}}",
+    "codeOrder": "Kodų tvarka"
   },
   "map": {
     "doubleClickToEdit": "Dukart spustelėkite, kad redaguotumėte",

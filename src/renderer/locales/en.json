@@ -199,7 +199,8 @@
         "notFound": "The project’s folder can’t be found. It may have been moved or renamed, or be on a disk that isn’t connected."
       },
       "caseCategory": "Case",
-      "documentDescription": "Description of {{name}}"
+      "documentDescription": "Description of {{name}}",
+      "layoutChanged": "The document’s layout changed while it was being written as a PDF. Try importing it again."
     }
   },
   "tools": {
@@ -1726,7 +1727,8 @@
     "networkNote": "{{shown}}. Lines join the words that follow each other in them; left-out words aren’t drawn.",
     "comingSoon": "{{name}} — table generation for {{tool}} is coming soon.",
     "couldNotRegenerate": "Could not regenerate this analysis.",
-    "respondentN": "Respondent {{n}}"
+    "respondentN": "Respondent {{n}}",
+    "codeOrder": "Order of codes"
   },
   "map": {
     "doubleClickToEdit": "Double-click to edit",

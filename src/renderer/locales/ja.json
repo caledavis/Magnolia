@@ -196,7 +196,8 @@
         "notFound": "プロジェクトのフォルダが見つかりません。移動または名前の変更が行われたか、接続されていないディスク上にある可能性があります。"
       },
       "caseCategory": "ケース",
-      "documentDescription": "{{name}} の説明"
+      "documentDescription": "{{name}} の説明",
+      "layoutChanged": "PDF として書き出す途中で文書のレイアウトが変わりました。もう一度読み込んでみてください。"
     }
   },
   "tools": {
@@ -1661,7 +1662,8 @@
     "networkNote": "{{shown}}。線はその中で続けて現れる単語をつなぎます。除外した単語は描かれません。",
     "comingSoon": "{{name}} — {{tool}} の表は近日対応予定です。",
     "couldNotRegenerate": "この分析を再生成できませんでした。",
-    "respondentN": "回答者 {{n}}"
+    "respondentN": "回答者 {{n}}",
+    "codeOrder": "コードの順序"
   },
   "map": {
     "doubleClickToEdit": "ダブルクリックして編集",

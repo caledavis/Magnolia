@@ -199,7 +199,8 @@
         "notFound": "De map van het project is niet te vinden. Misschien is die verplaatst of hernoemd, of staat die op een schijf die niet is aangesloten."
       },
       "caseCategory": "Casus",
-      "documentDescription": "Beschrijving van {{name}}"
+      "documentDescription": "Beschrijving van {{name}}",
+      "layoutChanged": "De opmaak van het document veranderde terwijl het als pdf werd geschreven. Probeer het opnieuw te importeren."
     }
   },
   "tools": {
@@ -1726,7 +1727,8 @@
     "networkNote": "{{shown}}. Lijnen verbinden de woorden die elkaar erin volgen; weggelaten woorden worden niet getekend.",
     "comingSoon": "{{name}} — tabellen voor {{tool}} komen binnenkort.",
     "couldNotRegenerate": "Kan deze analyse niet opnieuw maken.",
-    "respondentN": "Respondent {{n}}"
+    "respondentN": "Respondent {{n}}",
+    "codeOrder": "Volgorde van codes"
   },
   "map": {
     "doubleClickToEdit": "Dubbelklik om te bewerken",
