@@ -600,7 +600,10 @@ const listGrid: React.CSSProperties = {
   // Room on every side for the highlighted row's outline (the list clips
   // what's outside it).
   listStyle: 'none', margin: '10px -4px 0', padding: 4, overflowY: 'auto', minHeight: 0,
-  display: 'grid', gridTemplateColumns: 'max-content minmax(0, 1fr) minmax(0, 1.7fr) minmax(0, max-content) max-content',
+  // The document's column is capped (titles can be very long: they'd
+  // squeeze the code and passage to nothing), and those two never
+  // collapse.
+  display: 'grid', gridTemplateColumns: 'max-content minmax(140px, 1fr) minmax(180px, 1.7fr) fit-content(200px) max-content',
   columnGap: 14, rowGap: 6, alignContent: 'start'
 }
 const row: React.CSSProperties = { gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: 'subgrid', alignItems: 'center' }
