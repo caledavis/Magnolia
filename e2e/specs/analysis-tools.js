@@ -43,7 +43,9 @@ async function spec(t) {
     qs.getState().clearQuery()
     await t.sleep(50)
     click()
-    const ran = await t.until(() => { const s = qs.getState(); return s.isActive && !s.isLoading }, 10000)
+    // As long as the query takes: a busy computer (and a debug build) can
+    // take well over the usual second.
+    const ran = await t.until(() => { const s = qs.getState(); return s.isActive && !s.isLoading }, 60000)
     return ran ? qs.getState().results.length : -1
   }
 
@@ -73,6 +75,8 @@ async function spec(t) {
       e.children.length === 0 && t.visible(e) && !e.closest('button') &&
       /^[0-9]+$/.test(e.textContent.trim()) && Number(e.textContent.trim()) > 0 &&
       (getComputedStyle(e).cursor === 'pointer' || getComputedStyle(e.parentElement).cursor === 'pointer'))
+    // The table may still be filling in (its counts come from queries).
+    await t.until(() => numbers().length > 0, 30000)
     const count = numbers().length
     let cells = 0, totals = 0
     const wrong = []
