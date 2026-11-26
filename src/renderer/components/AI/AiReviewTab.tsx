@@ -318,14 +318,16 @@ function excerpt(text: string, max = 90): string {
   return one.length > max ? one.slice(0, max - 1).trimEnd() + '…' : one
 }
 
-/** A label: gold for a new code, blue for a new coding. */
-function Chip({ children, tone }: { children: React.ReactNode; tone?: 'new' | 'coding' }) {
+/** A label: gold for a new code, blue for a new coding, red for a change
+ *  to a code. */
+function Chip({ children, tone }: { children: React.ReactNode; tone?: 'new' | 'coding' | 'change' }) {
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', whiteSpace: 'nowrap',
       color: 'var(--text-primary)', borderRadius: 4, padding: '1px 6px',
       background: tone === 'new' ? 'color-mix(in srgb, var(--rb-gold) 30%, var(--bg-panel))'
         : tone === 'coding' ? 'color-mix(in srgb, var(--rb-blue) 24%, var(--bg-panel))'
+        : tone === 'change' ? 'color-mix(in srgb, var(--rb-coral) 26%, var(--bg-panel))'
         : 'var(--bg-tertiary)'
     }}>
       {(tone === 'new' || tone === 'coding') && <Icon icon={faPlus} style={{ width: 11, height: 11 }} />}
@@ -614,10 +616,18 @@ const iconButton: React.CSSProperties = {
   borderRadius: 6, border: '1px solid var(--border-color)', background: 'var(--bg-panel)', cursor: 'pointer'
 }
 
+/** A label's colour, by the kind of proposal. */
+function toneOf(p: AiProposal, isNew: boolean): 'new' | 'coding' | 'change' | undefined {
+  if (isNew) return 'new'
+  if (p.change.type === 'addCoding') return 'coding'
+  if (p.change.type === 'editCode') return 'change'
+  return undefined
+}
+
 /** A proposal's label, by kind: gold for a new code, blue for a new
- *  coding, grey for a change or a removal. */
+ *  coding, red for a change to a code, grey for a removal. */
 function KindLabel({ p, s }: { p: AiProposal; s: { kind: string; isNew: boolean } }) {
-  return <Chip tone={s.isNew ? 'new' : p.change.type === 'addCoding' ? 'coding' : undefined}>{s.kind}</Chip>
+  return <Chip tone={toneOf(p, s.isNew)}>{s.kind}</Chip>
 }
 
 function PendingLine({ p, leaving, active, open, onToggle, onApprove, onReject }: { p: AiProposal; leaving: boolean; active: boolean; open: boolean; onToggle: () => void; onApprove: () => void; onReject: () => void }) {
@@ -769,7 +779,7 @@ function BarrelItem({ p, current, position, onClick }: { p: AiProposal; current:
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, fontSize: 14, flexWrap: 'wrap' }}>
-        <Chip tone={s.isNew ? 'new' : c.type === 'addCoding' ? 'coding' : undefined}>{s.kind}</Chip>
+        <Chip tone={toneOf(p, s.isNew)}>{s.kind}</Chip>
         <CodePath parts={s.parts} color={s.color} />
         {s.doc && <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>· {s.doc}</span>}
         <span style={{ marginInlineStart: 'auto', flexShrink: 0, fontSize: 11.5, color: 'var(--text-secondary)' }}>
