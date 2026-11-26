@@ -14,7 +14,10 @@ interface Snapshot {
   code: Pick<StateOf<typeof useCodeStore>, 'codes'>
   tag: Pick<StateOf<typeof useTagStore>, 'tags' | 'categories'>
   quote: Pick<StateOf<typeof useQuoteStore>, 'quotes'>
-  query: Pick<StateOf<typeof useQueryStore>, 'savedQueries' | 'currentQuery' | 'results' | 'isActive'>
+  // Not the query's results: they're worked out from the rest, and only
+  // arrive a moment after a change, which could make them an Undo step of
+  // their own. After an undo or redo the query is run again instead.
+  query: Pick<StateOf<typeof useQueryStore>, 'savedQueries' | 'currentQuery' | 'isActive'>
 }
 
 interface UndoState {
@@ -53,7 +56,6 @@ function takeSnapshot(): Snapshot {
     query: {
       savedQueries: qs.savedQueries,
       currentQuery: qs.currentQuery,
-      results: qs.results,
       isActive: qs.isActive
     },
     quote: {
@@ -68,6 +70,9 @@ function restoreSnapshot(snapshot: Snapshot): void {
   useTagStore.setState(snapshot.tag)
   useQueryStore.setState(snapshot.query)
   if (snapshot.quote) useQuoteStore.setState(snapshot.quote)
+  // The query's results, for the project as it now is.
+  if (snapshot.query.isActive) useQueryStore.getState().runQuery()
+  else useQueryStore.setState({ results: [], isLoading: false })
 }
 
 export const useUndoStore = create<UndoState>((set, get) => ({
@@ -134,7 +139,7 @@ function snapshotValues(s: Snapshot): unknown[] {
     s.document.sources, s.document.sourceContents, s.document.folders, s.document.sourceFolder,
     s.code.codes,
     s.tag.tags, s.tag.categories,
-    s.query.savedQueries, s.query.currentQuery, s.query.results, s.query.isActive,
+    s.query.savedQueries, s.query.currentQuery, s.query.isActive,
     s.quote.quotes
   ]
 }
