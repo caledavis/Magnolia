@@ -2486,19 +2486,6 @@
       "deny": "رفض",
       "approveAll": "الموافقة على الكل",
       "denyAll": "رفض الكل",
-      "approveChosen_zero": "موافقة ({{count}})",
-      "approveChosen_one": "موافقة ({{count}})",
-      "approveChosen_two": "موافقة ({{count}})",
-      "approveChosen_few": "موافقة ({{count}})",
-      "approveChosen_many": "موافقة ({{count}})",
-      "approveChosen_other": "موافقة ({{count}})",
-      "denyChosen_zero": "رفض ({{count}})",
-      "denyChosen_one": "رفض ({{count}})",
-      "denyChosen_two": "رفض ({{count}})",
-      "denyChosen_few": "رفض ({{count}})",
-      "denyChosen_many": "رفض ({{count}})",
-      "denyChosen_other": "رفض ({{count}})",
-      "choose": "اختيار",
       "applied_zero": "لم يُجرَ أي تغيير.",
       "applied_one": "أُجري تغيير واحد. يمكن التراجع عنه بأمر «تراجع».",
       "applied_two": "أُجري تغييران. يمكن التراجع عنهما بأمر «تراجع».",
@@ -2514,7 +2501,9 @@
       "denied_other": "رُفض {{count}} تغيير.",
       "kind": {
         "newCode": "رمز جديد",
-        "removal": "إزالة ترميز"
+        "removal": "إزالة ترميز",
+        "editCode": "تغيير على رمز",
+        "coding": "ترميز"
       },
       "rename": "إعادة التسمية إلى “{{name}}”",
       "describe": "وصف جديد",
@@ -2539,13 +2528,13 @@
         "pending": "للمراجعة"
       },
       "appsOff": "لا يمكن لتطبيقات الذكاء الاصطناعي على هذا الحاسوب استخدام Magnolia بعد: اسمح لها من التفضيلات. بعد ذلك تظهر هنا الرموز والترميزات التي يقترحها Claude Desktop (أو تطبيق ذكاء اصطناعي آخر) لتوافق عليها أو ترفضها.",
-      "more_zero": "{{count}} أخرى",
-      "more_one": "{{count}} أخرى",
-      "more_two": "{{count}} أخرى",
-      "more_few": "{{count}} أخرى",
-      "more_many": "{{count}} أخرى",
-      "more_other": "{{count}} أخرى",
-      "fewer": "عرض أقل"
+      "position": "{{n}} من {{count}}",
+      "listLabel": "التغييرات المقترحة",
+      "viewFocused": "مركّز",
+      "viewList": "قائمة",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ للتنقل"
     },
     "apps": {
       "intro": "باشتراك في Claude، يمكنك استخدام Claude Desktop مع Magnolia دون مفتاح API: يقرأ المشروع المفتوح ويقترح تغييرات توافق عليها أو ترفضها في Magnolia. وتعمل أيضًا التطبيقات الأخرى التي تدعم Model Context Protocol ‏(MCP).",

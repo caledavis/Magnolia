@@ -2056,15 +2056,14 @@
       "deny": "拒绝",
       "approveAll": "全部批准",
       "denyAll": "全部拒绝",
-      "approveChosen_other": "批准 {{count}} 项",
-      "denyChosen_other": "拒绝 {{count}} 项",
-      "choose": "选择",
       "applied_other": "已完成 {{count}} 项更改。撤销即可恢复。",
       "appliedSome": "已完成 {{count}} 项；{{failed}} 项未能完成（见“已拒绝”）。",
       "denied_other": "已拒绝 {{count}} 项更改。",
       "kind": {
         "newCode": "新代码",
-        "removal": "移除编码"
+        "removal": "移除编码",
+        "editCode": "更改代码",
+        "coding": "编码"
       },
       "rename": "重命名为“{{name}}”",
       "describe": "新描述",
@@ -2084,8 +2083,13 @@
         "pending": "待审核"
       },
       "appsOff": "此电脑上的 AI 应用还不能使用 Magnolia：请在偏好设置中允许。之后，Claude Desktop（或其他 AI 应用）建议的代码和编码会显示在这里，供您批准或拒绝。",
-      "more_other": "还有 {{count}} 项",
-      "fewer": "收起"
+      "position": "第 {{n}} 项，共 {{count}} 项",
+      "listLabel": "提议的更改",
+      "viewFocused": "聚焦",
+      "viewList": "列表",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ 移动"
     },
     "apps": {
       "intro": "有了 Claude 订阅，您无需 API 密钥即可将 Claude Desktop 与 Magnolia 搭配使用：它会读取打开的项目并建议更改，由您在 Magnolia 中批准或拒绝。其他支持 Model Context Protocol（MCP）的应用也可以使用。",

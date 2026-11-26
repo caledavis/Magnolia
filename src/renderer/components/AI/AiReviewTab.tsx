@@ -7,10 +7,10 @@
  *
  * Each proposal shows what it would do, in context (a coding's passage
  * with the text around it, a link to it in its document), and the AI's
- * reason. Proposals can be decided one by one, or chosen and decided
+ * reason. Proposals can be decided one by one, a code at a time, or all
  * together; approved ones are made at once, so one Undo takes them back.
  */
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAiStore, type AiProposal, type ProposalStatus } from '../../stores/ai-store'
 import { useCodeStore } from '../../stores/code-store'
@@ -22,12 +22,14 @@ import { usePreferencesStore } from '../../stores/preferences-store'
 import { PREFERENCES_TAB_ID } from '../../utils/tab-ids'
 import { requestPreferencesCategory } from '../Preferences/PreferencesWindow'
 import type { Code, SurveyFormatData } from '../../models/types'
-import { Icon, faSparkles, faCheck, faXmark, faChevronDown, faChevronRight } from '../Icon'
+import { Icon, faSparkles, faCheck, faXmark, faPlus } from '../Icon'
 import { SegmentedControl } from '../Analysis/SegmentedControl'
 import { announce } from '../../utils/keyboard-access'
 import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
 
 type Filter = 'pending' | 'approved' | 'denied'
+type ReviewView = 'focused' | 'list'
+const VIEW_KEY = 'magnolia-ai-review-view'
 
 const FILTERS: { id: Filter; statuses: ProposalStatus[] }[] = [
   { id: 'pending', statuses: ['pending'] },
@@ -42,41 +44,35 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
   const appRequest = useAiStore((s) => s.appRequest)
   const appsEnabled = usePreferencesStore((s) => s.aiAppsEnabled)
   const [filter, setFilter] = useState<Filter>('pending')
-  const [chosen, setChosen] = useState<Set<string>>(new Set())
+  // To Review as the focused list (one at a time) or a plain list;
+  // remembered.
+  const [view, setView] = useState<ReviewView>(() => {
+    try { return localStorage.getItem(VIEW_KEY) === 'list' ? 'list' : 'focused' } catch { return 'focused' }
+  })
+  const chooseView = (v: ReviewView) => {
+    setView(v)
+    try { localStorage.setItem(VIEW_KEY, v) } catch { /* not kept */ }
+  }
 
   const shown = useMemo(() => {
     const statuses = FILTERS.find((f) => f.id === filter)!.statuses
     return proposals.filter((p) => statuses.includes(p.status))
   }, [proposals, filter])
-  // By code (a proposed code with the codings that need it), in the
-  // order first proposed.
-  const createdCodes = useAiStore((s) => s.createdCodes)
-  const groups = useMemo(() => {
-    const byKey = new Map<string, AiProposal[]>()
-    for (const p of shown) {
-      const k = groupKey(p, createdCodes)
-      byKey.set(k, [...(byKey.get(k) ?? []), p])
-    }
-    return [...byKey.entries()]
-  }, [shown, createdCodes])
+
   const count = (f: Filter) => proposals.filter((p) => FILTERS.find((x) => x.id === f)!.statuses.includes(p.status)).length
   const pendingShown = shown.filter((p) => p.status === 'pending')
-  const chosenPending = pendingShown.filter((p) => chosen.has(p.id)).map((p) => p.id)
 
   const doApprove = (ids: string[]) => {
     if (!ids.length) return
     const { applied, failed } = approve(ids)
-    setChosen(new Set())
     announce(failed ? t('ai.review.appliedSome', { count: applied, failed }) : t('ai.review.applied', { count: applied }))
   }
   const doReject = (ids: string[]) => {
     if (!ids.length) return
     const all = withDependents(ids, useAiStore.getState().proposals)
     deny(ids)
-    setChosen(new Set())
     announce(t('ai.review.denied', { count: all.length }))
   }
-  const toggle = (id: string) => setChosen((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -92,8 +88,8 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
       </div>
 
 
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ padding: '8px 20px 32px' }}>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '8px 20px 16px', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           {!appsEnabled ? (
             <Banner>
               <span style={{ flex: 1 }}>{t('ai.review.appsOff')}</span>
@@ -113,41 +109,38 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
             <SegmentedControl
               label={t('ai.review.show')}
               value={filter}
-              onChange={(f) => { setFilter(f); setChosen(new Set()) }}
+              onChange={setFilter}
               options={FILTERS.map((f) => ({ value: f.id, label: t(`ai.review.filter.${f.id}`, { count: count(f.id) }) }))}
             />
+            {filter === 'pending' && (
+              <SegmentedControl
+                label={t('analysis.view')}
+                value={view}
+                onChange={chooseView}
+                options={[{ value: 'focused', label: t('ai.review.viewFocused') }, { value: 'list', label: t('ai.review.viewList') }]}
+              />
+            )}
             <span style={{ flex: 1 }} />
             {filter === 'pending' && pendingShown.length > 0 && (
               <>
-                <button className="secondary" onClick={() => doReject(chosenPending.length ? chosenPending : pendingShown.map((p) => p.id))}>
-                  {chosenPending.length ? t('ai.review.denyChosen', { count: chosenPending.length }) : t('ai.review.denyAll')}
-                </button>
-                <button onClick={() => doApprove(chosenPending.length ? chosenPending : pendingShown.map((p) => p.id))}>
-                  {chosenPending.length ? t('ai.review.approveChosen', { count: chosenPending.length }) : t('ai.review.approveAll')}
-                </button>
+                <button className="secondary" onClick={() => doReject(pendingShown.map((p) => p.id))}>{t('ai.review.denyAll')}</button>
+                <button onClick={() => doApprove(pendingShown.map((p) => p.id))}>{t('ai.review.approveAll')}</button>
               </>
             )}
           </div>
 
-          {groups.length === 0 && (
+          {shown.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)', fontSize: 12.5, lineHeight: 1.6 }}>
               <Icon icon={faSparkles} className={PALETTE_ICON_CLASS} style={{ width: 28, height: 28, opacity: 0.8 }} />
               <p style={{ margin: '10px auto 0', maxWidth: 420 }}>{t(`ai.review.empty.${filter}`)}</p>
             </div>
+          ) : (
+            filter === 'pending' && view === 'focused'
+              ? <Barrel items={shown} onApprove={(id) => doApprove([id])} onReject={(id) => doReject([id])} />
+              : filter === 'pending'
+              ? <PendingList items={shown} onApprove={(id) => doApprove([id])} onReject={(id) => doReject([id])} />
+              : <DecidedList items={shown} />
           )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
-            {groups.map(([key, items]) => (
-              <CodeBlock
-                key={key}
-                groupKey={key}
-                items={items}
-                chosen={chosen}
-                onToggle={toggle}
-                onApprove={doApprove}
-                onReject={doReject}
-              />
-            ))}
-          </div>
         </div>
       </div>
     </div>
@@ -203,10 +196,10 @@ function Context({ sourceGuid, start, end, cell, color }: { sourceGuid: string; 
 function CodePath({ parts, color }: { parts: string[]; color?: string }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0, flexWrap: 'wrap' }}>
-      {color && <span aria-hidden style={{ width: 9, height: 9, borderRadius: '50%', background: color, flexShrink: 0 }} />}
+      {color && <span aria-hidden style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />}
       <span>
         {parts.slice(0, -1).map((name, i) => (
-          <span key={i} style={{ color: 'var(--text-muted)' }}>{name}<span style={{ margin: '0 4px' }}>/</span></span>
+          <span key={i} style={{ color: 'var(--text-secondary)' }}>{name}<span style={{ margin: '0 4px' }}>/</span></span>
         ))}
         <strong>{parts[parts.length - 1]}</strong>
       </span>
@@ -222,15 +215,6 @@ function pathOf(codes: Code[], guid: string): Code[] | null {
     if (below) return [c, ...below]
   }
   return null
-}
-
-/** Which code a proposal is about: its block in the Viewer. */
-function groupKey(p: AiProposal, created: Record<string, string>): string {
-  const c = p.change
-  const byRef = (ref: string) => (created[ref] ? `code:${created[ref]}` : `ref:${ref}`)
-  if (c.type === 'newCode') return byRef(c.ref)
-  if (c.type === 'addCoding') return c.codeGuid ? `code:${c.codeGuid}` : byRef(c.codeRef!)
-  return `code:${c.codeGuid}`
 }
 
 /** A code's path and colour, by guid or by a proposed code's reference. */
@@ -265,79 +249,17 @@ function excerpt(text: string, max = 90): string {
   return one.length > max ? one.slice(0, max - 1).trimEnd() + '…' : one
 }
 
-/** How many of a block's rows show before "N more". */
-const ROWS_SHOWN = 5
-
-const iconButton: React.CSSProperties = {
-  display: 'grid', placeItems: 'center', width: 26, height: 24, padding: 0,
-  borderRadius: 6, border: '1px solid var(--border-color)', background: 'var(--bg-panel)', cursor: 'pointer'
-}
-
-/** One code: the proposed code (or the existing one) and the changes
- *  proposed for it, a row each. */
-function CodeBlock({ groupKey: key, items, chosen, onToggle, onApprove, onReject }: {
-  groupKey: string; items: AiProposal[]; chosen: Set<string>
-  onToggle: (id: string) => void; onApprove: (ids: string[]) => void; onReject: (ids: string[]) => void
-}) {
-  const { t } = useTranslation()
-  const { path, colour } = useCodeInfo()
-  const [showAll, setShowAll] = useState(false)
-  const head = items.find((p) => p.change.type === 'newCode')
-  const rows = items.filter((p) => p !== head)
-  const guid = key.startsWith('code:') ? key.slice(5) : undefined
-  const ref = key.startsWith('ref:') ? key.slice(4) : head?.change.type === 'newCode' ? head.change.ref : undefined
-  const parts = head?.change.type === 'newCode' ? [...path(head.change.parentGuid, head.change.parentRef), head.change.name] : path(guid, ref)
-  const color = head?.change.type === 'newCode' ? head.change.color ?? colour(guid, ref) : colour(guid, ref)
-  const pending = items.filter((p) => p.status === 'pending')
-  const visible = showAll ? rows : rows.slice(0, ROWS_SHOWN)
-
+function Chip({ children, tone }: { children: React.ReactNode; tone?: 'new' }) {
   return (
-    <section
-      aria-label={parts.join(' / ')}
-      style={{ borderRadius: 8, border: '1px solid var(--border-color)', borderInlineStart: `3px solid ${color ?? 'var(--border-color)'}`, background: 'var(--bg-panel)', overflow: 'hidden' }}
-    >
-      <div data-proposal={head?.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', flexWrap: 'wrap' }}>
-        {head?.status === 'pending' && <input type="checkbox" checked={chosen.has(head.id)} onChange={() => onToggle(head.id)} aria-label={t('ai.review.choose')} />}
-        <span style={{ fontSize: 13 }}><CodePath parts={parts} color={color} /></span>
-        {head && <Chip>{t('ai.review.kind.newCode')}</Chip>}
-        {head && head.status !== 'pending' && <Status p={head} />}
-        <span style={{ flex: 1 }} />
-        {pending.length > 1 && (
-          <button type="button" className="secondary" onClick={() => onReject(pending.map((p) => p.id))}>{t('ai.review.denyAll')}</button>
-        )}
-        {head?.status === 'pending' && pending.length === 1 && (
-          <button type="button" className="secondary" onClick={() => onReject([head.id])}>{t('ai.review.deny')}</button>
-        )}
-        {pending.length > 0 && (head || pending.length > 1) && (
-          <button type="button" onClick={() => onApprove(pending.map((p) => p.id))}>
-            {pending.length > 1 ? t('ai.review.approveChosen', { count: pending.length }) : t('ai.review.approve')}
-          </button>
-        )}
-      </div>
-      {head?.change.type === 'newCode' && (head.change.description || head.reason) && (
-        <div style={{ padding: '0 12px 8px', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-          {head.change.description && <p style={{ margin: 0 }}>{head.change.description}</p>}
-          {head.reason && <p style={{ margin: head.change.description ? '2px 0 0' : 0, color: 'var(--text-muted)' }}>{t('ai.review.reason', { reason: head.reason })}</p>}
-        </div>
-      )}
-      {rows.length > 0 && (
-        <ul style={{ listStyle: 'none', margin: 0, padding: 0, borderTop: '1px solid var(--border-color)' }}>
-          {visible.map((p) => (
-            <Row key={p.id} p={p} color={color} chosen={chosen.has(p.id)} onToggle={() => onToggle(p.id)} onApprove={() => onApprove([p.id])} onReject={() => onReject([p.id])} />
-          ))}
-        </ul>
-      )}
-      {rows.length > ROWS_SHOWN && (
-        <button type="button" onClick={() => setShowAll((v) => !v)} aria-expanded={showAll} style={{ display: 'block', width: '100%', textAlign: 'start', padding: '6px 12px', border: 'none', borderTop: '1px solid var(--border-color)', background: 'none', color: 'var(--accent)', fontSize: 12, cursor: 'pointer' }}>
-          {showAll ? t('ai.review.fewer') : t('ai.review.more', { count: rows.length - ROWS_SHOWN })}
-        </button>
-      )}
-    </section>
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase',
+      color: 'var(--text-primary)', borderRadius: 4, padding: '1px 6px',
+      background: tone === 'new' ? 'color-mix(in srgb, var(--rb-gold) 30%, var(--bg-panel))' : 'var(--bg-tertiary)'
+    }}>
+      {tone === 'new' && <Icon icon={faPlus} style={{ width: 11, height: 11 }} />}
+      {children}
+    </span>
   )
-}
-
-function Chip({ children }: { children: React.ReactNode }) {
-  return <span style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--text-secondary)', background: 'var(--bg-tertiary)', borderRadius: 4, padding: '1px 6px' }}>{children}</span>
 }
 
 /** Approved / Rejected / Not made: the colour in the icon, the word in
@@ -353,85 +275,334 @@ function Status({ p }: { p: AiProposal }) {
   )
 }
 
-/** One change to a code: a line that opens to show it in context. */
-function Row({ p, color, chosen, onToggle, onApprove, onReject }: { p: AiProposal; color?: string; chosen: boolean; onToggle: () => void; onApprove: () => void; onReject: () => void }) {
+/** How many proposals show above and below the current one. */
+const AROUND = 3
+
+/**
+ * The proposals to review, one at a time: the current one in the middle,
+ * in full, and those either side faint, so that moving reads as scrolling
+ * through cards. ↑ ↓ (or the wheel) move; W or Enter approves, Q or Delete
+ * rejects, and the next one moves up. A listbox whose one option is the
+ * current proposal; the buttons are beneath it (not inside an option).
+ */
+function Barrel({ items, onApprove, onReject }: { items: AiProposal[]; onApprove: (id: string) => void; onReject: (id: string) => void }) {
   const { t } = useTranslation()
-  const { path } = useCodeInfo()
+  const [index, setIndex] = useState(0)
+  const ref = useRef<HTMLDivElement>(null)
+  const n = items.length
+  const at = Math.min(index, n - 1)
+  const current = items[at]
+  const pending = current?.status === 'pending'
+  // Space above the first card and below the last, so either can come to
+  // the middle.
+  const [pad, setPad] = useState(0)
+
+  const cards = () => [...(ref.current?.querySelectorAll<HTMLElement>('[data-proposal]') ?? [])]
+  const smooth = () => !matchMedia('(prefers-reduced-motion: reduce)').matches
+  /** Bring card `i` to the middle. */
+  const bring = (i: number, animate = true) => {
+    const el = cards()[i]
+    const box = ref.current
+    if (!el || !box) return
+    box.scrollTo({ top: el.offsetTop + el.offsetHeight / 2 - box.clientHeight / 2, behavior: animate && smooth() ? 'smooth' : 'auto' })
+  }
+
+  // As it scrolls: the card nearest the middle is the current one, and
+  // the others fade by how far they are from it.
+  const frame = useRef(0)
+  // Where a key or click sent it: the current one is that one at once (not
+  // each card the scroll passes on the way).
+  const target = useRef<number | null>(null)
+  const follow = () => {
+    cancelAnimationFrame(frame.current)
+    frame.current = requestAnimationFrame(() => {
+      const box = ref.current
+      if (!box) return
+      const mid = box.scrollTop + box.clientHeight / 2
+      let nearest = 0
+      let best = Infinity
+      cards().forEach((el, i) => {
+        const d = Math.abs(el.offsetTop + el.offsetHeight / 2 - mid)
+        if (d < best) { best = d; nearest = i }
+        const away = Math.max(0, d - el.offsetHeight / 2) / 120
+        el.style.opacity = String(d < 4 ? 1 : Math.max(0.08, 1 - 0.25 - away * 0.5))
+      })
+      if (target.current !== null) {
+        if (nearest !== target.current) return
+        target.current = null
+      }
+      setIndex(nearest)
+    })
+  }
+
+  useLayoutEffect(() => {
+    const box = ref.current
+    if (!box) return
+    const size = () => { setPad(Math.max(0, box.clientHeight / 2 - 80)); follow() }
+    size()
+    const ro = new ResizeObserver(size)
+    ro.observe(box)
+    box.focus()
+    return () => { ro.disconnect(); cancelAnimationFrame(frame.current) }
+    // Once, on showing: follow reads the list as it is each time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  // After a decision the list is shorter: the next one takes the place.
+  useLayoutEffect(() => {
+    bring(Math.min(index, n - 1), false)
+    follow()
+    // Only when the list's length or padding changes (not as it scrolls).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [n, pad])
+
+  const go = (i: number) => {
+    const to = Math.max(0, Math.min(n - 1, i))
+    target.current = to
+    setIndex(to)
+    bring(to)
+  }
+  const decide = (yes: boolean) => {
+    if (!pending) return
+    if (yes) onApprove(current.id)
+    else onReject(current.id)
+    ref.current?.focus()
+  }
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return
+    const k = e.key
+    if (k === 'ArrowUp') go(at - 1)
+    else if (k === 'ArrowDown') go(at + 1)
+    else if (k === 'Home') go(0)
+    else if (k === 'End') go(n - 1)
+    else if (k === 'PageUp') go(at - AROUND)
+    else if (k === 'PageDown') go(at + AROUND)
+    // Approve and reject by the two keys beside each other on the left
+    // (W and Q on QWERTY, by position, so the same keys on any layout),
+    // the other hand on the arrows; or Enter and Delete.
+    else if (k === 'Enter' || e.code === 'KeyW') decide(true)
+    else if (k === 'Delete' || k === 'Backspace' || e.code === 'KeyQ') decide(false)
+    else return
+    e.preventDefault()
+  }
+
+  const kbd: React.CSSProperties = { fontFamily: 'inherit', fontSize: 10.5, padding: '0 5px', marginInlineStart: 6, borderRadius: 4, border: '1px solid currentColor', opacity: 0.85 }
+  const c = current?.change
+
+  return (
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 12 }}>
+      <div
+        ref={ref}
+        role="listbox"
+        tabIndex={0}
+        aria-label={t('ai.review.listLabel')}
+        aria-activedescendant={current ? `ai-proposal-${current.id}` : undefined}
+        onKeyDown={onKeyDown}
+        onScroll={follow}
+        // Scrolls smoothly, and settles on a card (scroll-snap).
+        className="ai-barrel"
+        // Room at the sides for the current card's shadow (the list clips
+        // what's outside it).
+        style={{ flex: 1, minHeight: 0, width: '100%', maxWidth: 820, position: 'relative', outline: 'none', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, padding: '0 30px' }}
+      >
+        <div aria-hidden style={{ flexShrink: 0, height: pad }} />
+        {items.map((p, i) => (
+          <BarrelItem
+            key={p.id}
+            p={p}
+            current={i === at}
+            position={t('ai.review.position', { n: at + 1, count: n })}
+            onClick={() => go(i)}
+          />
+        ))}
+        <div aria-hidden style={{ flexShrink: 0, height: pad }} />
+      </div>
+      {/* The current one's actions (beneath the list, not inside it). */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', maxWidth: 760, marginTop: 10, fontSize: 11.5, color: 'var(--text-secondary)' }}>
+        <span>{t('ai.review.keysMove')}</span>
+        <span style={{ flex: 1 }} />
+        {c?.type === 'addCoding' && (
+          <button type="button" className="secondary" onClick={() => useDocumentStore.getState().viewDocumentAt(c.sourceGuid, c.start, c.end)}>{t('ai.review.showInDocument')}</button>
+        )}
+        {pending && (
+          <>
+            <button type="button" className="secondary" onClick={() => decide(false)}>{t('ai.review.deny')}<kbd style={kbd}>{t('ai.review.keyReject')}</kbd></button>
+            <button type="button" onClick={() => decide(true)}>{t('ai.review.approve')}<kbd style={kbd}>{t('ai.review.keyApprove')}</kbd></button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** Changes to review, as a plain list: a line each, with ✕ and ✓, that
+ *  opens to show the passage and the reason. */
+function PendingList({ items, onApprove, onReject }: { items: AiProposal[]; onApprove: (id: string) => void; onReject: (id: string) => void }) {
+  const { t } = useTranslation()
+  return (
+    <ul aria-label={t('ai.review.listLabel')} style={{ listStyle: 'none', margin: '14px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto', minHeight: 0 }}>
+      {items.map((p) => <PendingLine key={p.id} p={p} onApprove={() => onApprove(p.id)} onReject={() => onReject(p.id)} />)}
+    </ul>
+  )
+}
+
+const iconButton: React.CSSProperties = {
+  display: 'grid', placeItems: 'center', width: 26, height: 24, padding: 0,
+  borderRadius: 6, border: '1px solid var(--border-color)', background: 'var(--bg-panel)', cursor: 'pointer'
+}
+
+function PendingLine({ p, onApprove, onReject }: { p: AiProposal; onApprove: () => void; onReject: () => void }) {
+  const { t } = useTranslation()
   const proposals = useAiStore((s) => s.proposals)
   const sources = useDocumentStore((s) => s.sources)
   const [open, setOpen] = useState(false)
+  const s = useSummary(p)
   const c = p.change
-  const pending = p.status === 'pending'
-  const docName = (guid: string) => (sources.find((s) => s.guid === guid)?.name ?? t('ai.review.missingDocument')).replace(/\.[a-z0-9]{2,4}$/i, '')
-  const needs = pending ? withRequirements([p.id], proposals).filter((id) => id !== p.id) : []
+  const needs = withRequirements([p.id], proposals).filter((id) => id !== p.id)
+  const sel = c.type === 'removeCoding' ? sources.find((x) => x.guid === c.sourceGuid)?.selections.find((x) => x.guid === c.selectionGuid) : undefined
+  return (
+    <li data-proposal={p.id} style={{ borderRadius: 8, border: `1px solid ${s.isNew ? 'color-mix(in srgb, var(--rb-gold) 60%, var(--border-color))' : 'var(--border-color)'}`, background: 'var(--bg-panel)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px 8px 16px', fontSize: 12.5 }}>
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10, padding: 0, border: 'none', background: 'none', textAlign: 'start', cursor: 'pointer', color: 'var(--text-primary)', fontSize: 12.5 }}
+        >
+          {s.isNew && <Chip tone="new">{s.kind}</Chip>}
+          <span style={{ flexShrink: 0, maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><CodePath parts={s.parts} color={s.color} /></span>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{excerpt(s.text, 120)}</span>
+          {s.doc && <span style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap', fontSize: 12 }}>{s.doc}</span>}
+        </button>
+        <button type="button" aria-label={t('ai.review.deny')} title={t('ai.review.deny')} onClick={onReject} style={iconButton}>
+          <Icon icon={faXmark} style={{ width: 13, height: 13, color: 'var(--text-secondary)' }} />
+        </button>
+        <button type="button" aria-label={t('ai.review.approve')} title={t('ai.review.approve')} onClick={onApprove} style={{ ...iconButton, background: 'var(--accent)', borderColor: 'var(--accent)' }}>
+          <Icon icon={faCheck} style={{ width: 13, height: 13, color: '#fff' }} />
+        </button>
+      </div>
+      <div className={open ? 'ai-barrel-details' : 'ai-barrel-details closed'} style={{ display: 'grid', gridTemplateRows: open ? '1fr' : '0fr' }}>
+        <div style={{ overflow: 'hidden', minHeight: 0, padding: open ? '0 16px 12px' : '0 16px' }}>
+          {c.type === 'addCoding' && <Context sourceGuid={c.sourceGuid} start={c.start} end={c.end} cell={c.surveyCell} color={s.color} />}
+          {c.type === 'removeCoding' && sel && <Context sourceGuid={c.sourceGuid} start={sel.startPosition} end={sel.endPosition} cell={sel.surveyCell} color={s.color} />}
+          {(c.type === 'newCode' || c.type === 'editCode') && s.text && <p style={{ margin: '8px 0 0', fontSize: 12.5, lineHeight: 1.55 }}>{s.text}</p>}
+          {p.reason && <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{t('ai.review.reason', { reason: p.reason })}</p>}
+          {needs.length > 0 && <p style={{ margin: '4px 0 0', fontSize: 11.5, color: 'var(--text-secondary)' }}>{t('ai.review.alsoApproves', { count: needs.length })}</p>}
+          {c.type === 'addCoding' && (
+            <button type="button" onClick={() => useDocumentStore.getState().viewDocumentAt(c.sourceGuid, c.start, c.end)} style={{ marginTop: 6, padding: 0, border: 'none', background: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: 11.5 }}>{t('ai.review.showInDocument')}</button>
+          )}
+        </div>
+      </div>
+    </li>
+  )
+}
 
-  let line: React.ReactNode
-  let detail: React.ReactNode = null
-  if (c.type === 'addCoding' || c.type === 'removeCoding') {
-    const sel = c.type === 'removeCoding' ? sources.find((s) => s.guid === c.sourceGuid)?.selections.find((s) => s.guid === c.selectionGuid) : undefined
-    line = (
-      <>
-        {c.type === 'removeCoding' && <Chip>{t('ai.review.kind.removal')}</Chip>}
-        <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{docName(c.sourceGuid)}</span>
-        <span style={{ color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>“{excerpt(c.text)}”</span>
-      </>
-    )
-    detail = c.type === 'addCoding'
-      ? <Context sourceGuid={c.sourceGuid} start={c.start} end={c.end} cell={c.surveyCell} color={color} />
-      : sel ? <Context sourceGuid={c.sourceGuid} start={sel.startPosition} end={sel.endPosition} cell={sel.surveyCell} color={color} /> : null
-  } else if (c.type === 'editCode') {
+/** Approved or rejected changes: a line each. */
+function DecidedList({ items }: { items: AiProposal[] }) {
+  const { t } = useTranslation()
+  return (
+    <ul aria-label={t('ai.review.listLabel')} style={{ listStyle: 'none', margin: '14px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto', minHeight: 0 }}>
+      {[...items].reverse().map((p) => <DecidedLine key={p.id} p={p} />)}
+    </ul>
+  )
+}
+
+function DecidedLine({ p }: { p: AiProposal }) {
+  const s = useSummary(p)
+  return (
+    <li data-proposal={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-panel)', fontSize: 12.5, minWidth: 0 }}>
+      <span style={{ flexShrink: 0, maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><CodePath parts={s.parts} color={s.color} /></span>
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{excerpt(s.text, 120)}</span>
+      {s.doc && <span style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap', fontSize: 12 }}>{s.doc}</span>}
+      <span style={{ marginInlineStart: 'auto', flexShrink: 0 }}><Status p={p} /></span>
+    </li>
+  )
+}
+
+/** What a proposal is about, in a line: the code and the passage or change. */
+function useSummary(p: AiProposal) {
+  const { t } = useTranslation()
+  const { path, colour } = useCodeInfo()
+  const sources = useDocumentStore((s) => s.sources)
+  const c = p.change
+  const docName = (guid: string) => (sources.find((s) => s.guid === guid)?.name ?? t('ai.review.missingDocument')).replace(/\.[a-z0-9]{2,4}$/i, '')
+  if (c.type === 'newCode') {
+    return { kind: t('ai.review.kind.newCode'), isNew: p.status !== 'approved', parts: [...path(c.parentGuid, c.parentRef), c.name], color: c.color, text: c.description ?? '', doc: '' }
+  }
+  if (c.type === 'editCode') {
     const what = [
       c.name ? t('ai.review.rename', { name: c.name }) : '',
       c.description !== undefined ? `${t('ai.review.describe')}: ${c.description || t('ai.review.noDescription')}` : '',
       c.move ? (c.move.parentGuid || c.move.parentRef ? t('ai.review.moveUnder', { name: path(c.move.parentGuid, c.move.parentRef).join(' / ') }) : t('ai.review.moveTop')) : ''
     ].filter(Boolean).join(' · ')
-    line = <span style={{ color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{what}</span>
+    return { kind: t('ai.review.kind.editCode'), isNew: false, parts: path(c.codeGuid), color: colour(c.codeGuid), text: what, doc: '' }
   }
-  const at = c.type === 'addCoding' ? c : null
+  const codeRef = c.type === 'addCoding' ? c.codeRef : undefined
+  return {
+    kind: c.type === 'addCoding' ? t('ai.review.kind.coding') : t('ai.review.kind.removal'),
+    isNew: false,
+    parts: path(c.codeGuid, codeRef),
+    color: colour(c.codeGuid, codeRef),
+    text: c.text,
+    doc: docName(c.sourceGuid)
+  }
+}
+
+/**
+ * One proposal in the list, in full. The one in the middle is at full
+ * strength, raised; the others fade the further away they are, so that
+ * moving through the list reads as scrolling through cards.
+ */
+function BarrelItem({ p, current, position, onClick }: { p: AiProposal; current: boolean; position: string; onClick: () => void }) {
+  const { t } = useTranslation()
+  const proposals = useAiStore((s) => s.proposals)
+  const sources = useDocumentStore((s) => s.sources)
+  const s = useSummary(p)
+  const c = p.change
+  const needs = p.status === 'pending' ? withRequirements([p.id], proposals).filter((id) => id !== p.id) : []
+  const sel = c.type === 'removeCoding' ? sources.find((x) => x.guid === c.sourceGuid)?.selections.find((x) => x.guid === c.selectionGuid) : undefined
 
   return (
-    <li data-proposal={p.id} style={{ borderTop: '1px solid var(--border-color)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', fontSize: 12.5 }}>
-        {pending && <input type="checkbox" checked={chosen} onChange={onToggle} aria-label={t('ai.review.choose')} />}
-        <button
-          type="button"
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-          style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, padding: 0, border: 'none', background: 'none', textAlign: 'start', cursor: 'pointer', color: 'var(--text-primary)', fontSize: 12.5 }}
-        >
-          <Icon icon={open ? faChevronDown : faChevronRight} style={{ width: 12, height: 12, flexShrink: 0, color: 'var(--text-muted)' }} />
-          {line}
-        </button>
-        {pending ? (
-          <>
-            <button type="button" aria-label={t('ai.review.deny')} title={t('ai.review.deny')} onClick={onReject} style={iconButton}>
-              <Icon icon={faXmark} style={{ width: 13, height: 13, color: 'var(--text-secondary)' }} />
-            </button>
-            <button type="button" aria-label={t('ai.review.approve')} title={t('ai.review.approve')} onClick={onApprove} style={{ ...iconButton, background: 'var(--accent)', borderColor: 'var(--accent)' }}>
-              <Icon icon={faCheck} style={{ width: 13, height: 13, color: '#fff' }} />
-            </button>
-          </>
-        ) : (
-          <Status p={p} />
-        )}
+    <div
+      id={current ? `ai-proposal-${p.id}` : undefined}
+      // Only the current one is an option: the faint ones either side are
+      // a preview, for the eye (a screen reader reads the current one, and
+      // where it is, as ↑ ↓ move).
+      role={current ? 'option' : undefined}
+      aria-selected={current ? true : undefined}
+      aria-hidden={current ? undefined : true}
+      data-current={current ? '' : undefined}
+      data-proposal={p.id}
+      onClick={current ? undefined : onClick}
+      className="ai-barrel-item"
+      style={{
+        flexShrink: 0, borderRadius: 12, background: 'var(--bg-panel)', cursor: current ? 'default' : 'pointer',
+        padding: '14px 18px',
+        border: `1px solid ${s.isNew ? 'color-mix(in srgb, var(--rb-gold) 60%, var(--border-color))' : 'var(--border-color)'}`,
+        boxShadow: current ? '0 6px 24px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08)' : 'none'
+        // (Its fade, by its distance from the middle, is set as the list
+        // scrolls: see Barrel.)
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, fontSize: 14, flexWrap: 'wrap' }}>
+        <Chip tone={s.isNew ? 'new' : undefined}>{s.kind}</Chip>
+        <CodePath parts={s.parts} color={s.color} />
+        {s.doc && <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>· {s.doc}</span>}
+        <span style={{ marginInlineStart: 'auto', flexShrink: 0, fontSize: 11.5, color: 'var(--text-secondary)' }}>
+          {current ? position : p.status !== 'pending' ? <Status p={p} /> : null}
+        </span>
       </div>
-      {open && (
-        <div style={{ padding: '0 12px 10px 42px' }}>
-          {detail}
-          {p.reason && <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{t('ai.review.reason', { reason: p.reason })}</p>}
-          {needs.length > 0 && <p style={{ margin: '4px 0 0', fontSize: 11.5, color: 'var(--text-muted)' }}>{t('ai.review.alsoApproves', { count: needs.length })}</p>}
-          {p.status === 'failed' && (
-            <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)' }}>
-              <Icon icon={faXmark} style={{ color: 'var(--danger)', width: 13, height: 13, flexShrink: 0 }} />
-              {t('ai.review.failed', { why: p.failure ?? '' })}
-            </p>
-          )}
-          <div style={{ display: 'flex', gap: 10, marginTop: 6, fontSize: 11, color: 'var(--text-muted)' }}>
-            <span>{p.model}</span>
-            {at && <button type="button" onClick={() => useDocumentStore.getState().viewDocumentAt(at.sourceGuid, at.start, at.end)} style={{ padding: 0, border: 'none', background: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: 11 }}>{t('ai.review.showInDocument')}</button>}
-          </div>
-        </div>
+      {c.type === 'addCoding' && <Context sourceGuid={c.sourceGuid} start={c.start} end={c.end} cell={c.surveyCell} color={s.color} />}
+      {c.type === 'removeCoding' && sel && <Context sourceGuid={c.sourceGuid} start={sel.startPosition} end={sel.endPosition} cell={sel.surveyCell} color={s.color} />}
+      {(c.type === 'newCode' || c.type === 'editCode') && s.text && <p style={{ margin: '10px 0 0', fontSize: 13, lineHeight: 1.55, color: 'var(--text-primary)' }}>{s.text}</p>}
+      {p.reason && <p style={{ margin: '10px 0 0', fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{t('ai.review.reason', { reason: p.reason })}</p>}
+      {needs.length > 0 && <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)' }}>{t('ai.review.alsoApproves', { count: needs.length })}</p>}
+      {p.status === 'failed' && (
+        <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '6px 0 0', fontSize: 12, color: 'var(--text-secondary)' }}>
+          <Icon icon={faXmark} style={{ color: 'var(--danger)', width: 13, height: 13, flexShrink: 0 }} />
+          {t('ai.review.failed', { why: p.failure ?? '' })}
+        </p>
       )}
-    </li>
+    </div>
   )
 }

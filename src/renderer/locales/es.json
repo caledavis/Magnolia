@@ -2228,13 +2228,6 @@
       "deny": "Rechazar",
       "approveAll": "Aprobar todo",
       "denyAll": "Rechazar todo",
-      "approveChosen_one": "Aprobar {{count}}",
-      "approveChosen_many": "Aprobar {{count}}",
-      "approveChosen_other": "Aprobar {{count}}",
-      "denyChosen_one": "Rechazar {{count}}",
-      "denyChosen_many": "Rechazar {{count}}",
-      "denyChosen_other": "Rechazar {{count}}",
-      "choose": "Elegir",
       "applied_one": "Se aplicó {{count}} cambio. Puedes revertirlo con Deshacer.",
       "applied_many": "Se aplicaron {{count}} cambios. Puedes revertirlos con Deshacer.",
       "applied_other": "Se aplicaron {{count}} cambios. Puedes revertirlos con Deshacer.",
@@ -2244,7 +2237,9 @@
       "denied_other": "Se rechazaron {{count}} cambios.",
       "kind": {
         "newCode": "Código nuevo",
-        "removal": "Quitar codificación"
+        "removal": "Quitar codificación",
+        "editCode": "Cambio en un código",
+        "coding": "Codificación"
       },
       "rename": "Cambiar el nombre a «{{name}}»",
       "describe": "Descripción nueva",
@@ -2266,10 +2261,13 @@
         "pending": "Por revisar"
       },
       "appsOff": "Las aplicaciones de IA de este equipo aún no pueden usar Magnolia: permítelas en Preferencias. Después, los códigos y codificaciones que sugiera Claude Desktop (u otra aplicación de IA) aparecerán aquí para que los apruebes o rechaces.",
-      "more_one": "{{count}} más",
-      "more_many": "{{count}} más",
-      "more_other": "{{count}} más",
-      "fewer": "Mostrar menos"
+      "position": "{{n}} de {{count}}",
+      "listLabel": "Cambios propuestos",
+      "viewFocused": "Enfocada",
+      "viewList": "Lista",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ para moverte"
     },
     "apps": {
       "intro": "Con una suscripción a Claude, puedes usar Claude Desktop con Magnolia, sin clave de API: lee el proyecto abierto y sugiere cambios, que tú apruebas o rechazas en Magnolia. También funcionan otras aplicaciones compatibles con el Model Context Protocol (MCP).",

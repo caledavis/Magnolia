@@ -2142,11 +2142,6 @@
       "deny": "Ablehnen",
       "approveAll": "Alle annehmen",
       "denyAll": "Alle ablehnen",
-      "approveChosen_one": "{{count}} annehmen",
-      "approveChosen_other": "{{count}} annehmen",
-      "denyChosen_one": "{{count}} ablehnen",
-      "denyChosen_other": "{{count}} ablehnen",
-      "choose": "Auswählen",
       "applied_one": "{{count}} Änderung vorgenommen. „Widerrufen“ nimmt sie zurück.",
       "applied_other": "{{count}} Änderungen vorgenommen. „Widerrufen“ nimmt sie zurück.",
       "appliedSome": "{{count}} vorgenommen; {{failed}} nicht möglich (siehe Abgelehnt).",
@@ -2154,7 +2149,9 @@
       "denied_other": "{{count}} Änderungen abgelehnt.",
       "kind": {
         "newCode": "Neuer Code",
-        "removal": "Codierung entfernen"
+        "removal": "Codierung entfernen",
+        "editCode": "Änderung am Code",
+        "coding": "Codierung"
       },
       "rename": "Umbenennen in „{{name}}“",
       "describe": "Neue Beschreibung",
@@ -2175,9 +2172,13 @@
         "pending": "Zu prüfen"
       },
       "appsOff": "KI-Apps auf diesem Computer können Magnolia noch nicht verwenden: Erlauben Sie es in den Einstellungen. Danach erscheinen hier die Codes und Codierungen, die Claude Desktop (oder eine andere KI-App) vorschlägt, damit Sie sie annehmen oder ablehnen.",
-      "more_one": "{{count}} weitere",
-      "more_other": "{{count}} weitere",
-      "fewer": "Weniger anzeigen"
+      "position": "{{n}} von {{count}}",
+      "listLabel": "Vorgeschlagene Änderungen",
+      "viewFocused": "Fokussiert",
+      "viewList": "Liste",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ zum Wechseln"
     },
     "apps": {
       "intro": "Mit einem Claude-Abo können Sie Claude Desktop mit Magnolia nutzen, ohne API-Schlüssel: Es liest das geöffnete Projekt und schlägt Änderungen vor, die Sie in Magnolia annehmen oder ablehnen. Andere Apps, die das Model Context Protocol (MCP) unterstützen, funktionieren ebenfalls.",

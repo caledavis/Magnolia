@@ -2314,15 +2314,6 @@
       "deny": "Atmesti",
       "approveAll": "Patvirtinti visus",
       "denyAll": "Atmesti visus",
-      "approveChosen_one": "Patvirtinti {{count}}",
-      "approveChosen_few": "Patvirtinti {{count}}",
-      "approveChosen_many": "Patvirtinti {{count}}",
-      "approveChosen_other": "Patvirtinti {{count}}",
-      "denyChosen_one": "Atmesti {{count}}",
-      "denyChosen_few": "Atmesti {{count}}",
-      "denyChosen_many": "Atmesti {{count}}",
-      "denyChosen_other": "Atmesti {{count}}",
-      "choose": "Pasirinkti",
       "applied_one": "Atliktas {{count}} pakeitimas. Komanda „Atšaukti“ jį atšauks.",
       "applied_few": "Atlikti {{count}} pakeitimai. Komanda „Atšaukti“ juos atšauks.",
       "applied_many": "Atlikta {{count}} pakeitimo. Komanda „Atšaukti“ juos atšauks.",
@@ -2334,7 +2325,9 @@
       "denied_other": "Atmesta {{count}} pakeitimų.",
       "kind": {
         "newCode": "Naujas kodas",
-        "removal": "Kodavimo šalinimas"
+        "removal": "Kodavimo šalinimas",
+        "editCode": "Kodo pakeitimas",
+        "coding": "Kodavimas"
       },
       "rename": "Pervardyti į „{{name}}“",
       "describe": "Naujas aprašas",
@@ -2357,11 +2350,13 @@
         "pending": "Laukia peržiūros"
       },
       "appsOff": "Šio kompiuterio DI programos dar negali naudoti Magnolia: leiskite jas nuostatose. Tada čia bus rodomi Claude Desktop (ar kitos DI programos) siūlomi kodai ir kodavimai, kuriuos galėsite patvirtinti arba atmesti.",
-      "more_one": "Dar {{count}}",
-      "more_few": "Dar {{count}}",
-      "more_many": "Dar {{count}}",
-      "more_other": "Dar {{count}}",
-      "fewer": "Rodyti mažiau"
+      "position": "{{n}} iš {{count}}",
+      "listLabel": "Siūlomi pakeitimai",
+      "viewFocused": "Sutelktas",
+      "viewList": "Sąrašas",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ judėti"
     },
     "apps": {
       "intro": "Turėdami Claude prenumeratą, galite naudoti Claude Desktop su Magnolia be API rakto: jis perskaito atvirą projektą ir siūlo pakeitimus, kuriuos patvirtinate arba atmetate programoje Magnolia. Veikia ir kitos programos, palaikančios Model Context Protocol (MCP).",

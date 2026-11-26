@@ -2228,13 +2228,6 @@
       "deny": "Refuser",
       "approveAll": "Tout approuver",
       "denyAll": "Tout refuser",
-      "approveChosen_one": "Approuver {{count}}",
-      "approveChosen_many": "Approuver {{count}}",
-      "approveChosen_other": "Approuver {{count}}",
-      "denyChosen_one": "Refuser {{count}}",
-      "denyChosen_many": "Refuser {{count}}",
-      "denyChosen_other": "Refuser {{count}}",
-      "choose": "Choisir",
       "applied_one": "{{count}} modification effectuée. « Annuler » la défait.",
       "applied_many": "{{count}} modifications effectuées. « Annuler » les défait.",
       "applied_other": "{{count}} modifications effectuées. « Annuler » les défait.",
@@ -2244,7 +2237,9 @@
       "denied_other": "{{count}} modifications refusées.",
       "kind": {
         "newCode": "Nouveau code",
-        "removal": "Retrait du codage"
+        "removal": "Retrait du codage",
+        "editCode": "Modification du code",
+        "coding": "Codage"
       },
       "rename": "Renommer en « {{name}} »",
       "describe": "Nouvelle description",
@@ -2266,10 +2261,13 @@
         "pending": "À examiner"
       },
       "appsOff": "Les applications d’IA de cet ordinateur ne peuvent pas encore utiliser Magnolia : autorisez-les dans les préférences. Les codes et codages suggérés par Claude Desktop (ou une autre application d’IA) apparaîtront alors ici, pour que vous les approuviez ou les refusiez.",
-      "more_one": "{{count}} de plus",
-      "more_many": "{{count}} de plus",
-      "more_other": "{{count}} de plus",
-      "fewer": "Afficher moins"
+      "position": "{{n}} sur {{count}}",
+      "listLabel": "Modifications proposées",
+      "viewFocused": "Ciblée",
+      "viewList": "Liste",
+      "keyApprove": "Z",
+      "keyReject": "A",
+      "keysMove": "↑ ↓ pour se déplacer"
     },
     "apps": {
       "intro": "Avec un abonnement Claude, vous pouvez utiliser Claude Desktop avec Magnolia, sans clé API : il lit le projet ouvert et suggère des modifications, que vous approuvez ou refusez dans Magnolia. D’autres applications compatibles avec le Model Context Protocol (MCP) fonctionnent aussi.",

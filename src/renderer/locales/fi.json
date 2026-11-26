@@ -2142,11 +2142,6 @@
       "deny": "Hylkää",
       "approveAll": "Hyväksy kaikki",
       "denyAll": "Hylkää kaikki",
-      "approveChosen_one": "Hyväksy {{count}}",
-      "approveChosen_other": "Hyväksy {{count}}",
-      "denyChosen_one": "Hylkää {{count}}",
-      "denyChosen_other": "Hylkää {{count}}",
-      "choose": "Valitse",
       "applied_one": "{{count}} muutos tehty. Kumoa peruu sen.",
       "applied_other": "{{count}} muutosta tehty. Kumoa peruu ne.",
       "appliedSome": "{{count}} tehty; {{failed}} ei voitu tehdä (katso Hylätyt).",
@@ -2154,7 +2149,9 @@
       "denied_other": "{{count}} muutosta hylätty.",
       "kind": {
         "newCode": "Uusi koodi",
-        "removal": "Koodauksen poisto"
+        "removal": "Koodauksen poisto",
+        "editCode": "Koodin muutos",
+        "coding": "Koodaus"
       },
       "rename": "Nimeä uudelleen: ”{{name}}”",
       "describe": "Uusi kuvaus",
@@ -2175,9 +2172,13 @@
         "pending": "Tarkistettava"
       },
       "appsOff": "Tämän tietokoneen tekoälysovellukset eivät vielä voi käyttää Magnoliaa: salli ne asetuksissa. Sen jälkeen Claude Desktopin (tai muun tekoälysovelluksen) ehdottamat koodit ja koodaukset näkyvät tässä hyväksyttäviksi tai hylättäviksi.",
-      "more_one": "{{count}} lisää",
-      "more_other": "{{count}} lisää",
-      "fewer": "Näytä vähemmän"
+      "position": "{{n}}/{{count}}",
+      "listLabel": "Ehdotetut muutokset",
+      "viewFocused": "Kohdistettu",
+      "viewList": "Luettelo",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ siirtyy"
     },
     "apps": {
       "intro": "Claude-tilauksella voit käyttää Claude Desktopia Magnolian kanssa ilman API-avainta: se lukee avoimen projektin ja ehdottaa muutoksia, jotka hyväksyt tai hylkäät Magnoliassa. Myös muut sovellukset, jotka tukevat Model Context Protocol (MCP) -protokollaa, toimivat.",

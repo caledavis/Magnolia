@@ -90,9 +90,11 @@ export function announce(message: string): void {
     liveRegion.style.cssText = 'position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0'
     document.body.appendChild(liveRegion)
   }
-  // Re-set so the same words are said again.
+  // Re-set so the same words are said again (a moment later, by timer: a
+  // window in the background may not draw the frame a requestAnimationFrame
+  // waits for).
   liveRegion.textContent = ''
-  requestAnimationFrame(() => { if (liveRegion) liveRegion.textContent = message })
+  setTimeout(() => { if (liveRegion) liveRegion.textContent = message }, 50)
 }
 
 /** Typing or text being copied: the keys are theirs. */

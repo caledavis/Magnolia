@@ -2228,13 +2228,6 @@
       "deny": "Rifiuta",
       "approveAll": "Approva tutte",
       "denyAll": "Rifiuta tutte",
-      "approveChosen_one": "Approva {{count}}",
-      "approveChosen_many": "Approva {{count}}",
-      "approveChosen_other": "Approva {{count}}",
-      "denyChosen_one": "Rifiuta {{count}}",
-      "denyChosen_many": "Rifiuta {{count}}",
-      "denyChosen_other": "Rifiuta {{count}}",
-      "choose": "Scegli",
       "applied_one": "{{count}} modifica applicata. Puoi tornare indietro con Annulla.",
       "applied_many": "{{count}} modifiche applicate. Puoi tornare indietro con Annulla.",
       "applied_other": "{{count}} modifiche applicate. Puoi tornare indietro con Annulla.",
@@ -2244,7 +2237,9 @@
       "denied_other": "{{count}} modifiche rifiutate.",
       "kind": {
         "newCode": "Nuovo codice",
-        "removal": "Rimozione codifica"
+        "removal": "Rimozione codifica",
+        "editCode": "Modifica a un codice",
+        "coding": "Codifica"
       },
       "rename": "Rinomina in «{{name}}»",
       "describe": "Nuova descrizione",
@@ -2266,10 +2261,13 @@
         "pending": "Da rivedere"
       },
       "appsOff": "Le app di IA di questo computer non possono ancora usare Magnolia: consentile in Impostazioni. Poi i codici e le codifiche suggeriti da Claude Desktop (o da un’altra app di IA) compariranno qui, da approvare o rifiutare.",
-      "more_one": "Altri {{count}}",
-      "more_many": "Altri {{count}}",
-      "more_other": "Altri {{count}}",
-      "fewer": "Mostra meno"
+      "position": "{{n}} di {{count}}",
+      "listLabel": "Modifiche proposte",
+      "viewFocused": "Focalizzata",
+      "viewList": "Elenco",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ per spostarti"
     },
     "apps": {
       "intro": "Con un abbonamento a Claude puoi usare Claude Desktop con Magnolia, senza chiave API: legge il progetto aperto e suggerisce modifiche, che approvi o rifiuti in Magnolia. Funzionano anche altre app che supportano il Model Context Protocol (MCP).",

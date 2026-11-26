@@ -77,51 +77,72 @@ async function spec(t) {
   ask('propose_code_change', { code: cRef ?? 'C1', name: 'Renamed by AI', reason: 'Clearer.' })
   t.check('nothing has changed yet', !codes.getState().flatCodes().some((c) => c.name === 'Test AI code') && codes.getState().findCode(firstCode.guid).name === firstCode.name)
 
-  // Each change has a line (a new code its block's heading); a block per code.
-  const items = () => [...review.querySelectorAll('[data-proposal]')]
-  const blocks = () => [...review.querySelectorAll('section[aria-label]')]
-  const codingRow = () => items().find((e) => e.tagName === 'LI' && e.textContent.includes(quote.slice(0, 20)))
-  t.check('the Viewer lists each change as it comes, grouped by code', !!(await t.until(() => items().length === 3, 3000)) && blocks().length === 2, items().map((c) => c.textContent.slice(0, 60)).join(' | '))
-  codingRow()?.querySelector('button[aria-expanded]')?.click()
-  await t.sleep(100)
-  t.check('a coding opens to show its passage in context', codingRow()?.querySelector('mark')?.textContent === quote, codingRow()?.textContent.slice(0, 120))
+  // A list to move through: the current change in full, the others as lines.
+  const list = () => review.querySelector('[role="listbox"]')
+  const focused = () => list()?.querySelector('[aria-selected="true"]')
+  const keyCodes = { q: 'KeyQ', w: 'KeyW' }
+  const key = async (k) => { list()?.dispatchEvent(new KeyboardEvent('keydown', { key: k, code: keyCodes[k] ?? k, bubbles: true })); await t.sleep(500) }
+  t.check('the Viewer lists each change as it comes', !!(await t.until(() => list()?.querySelectorAll('[data-proposal]').length === 3, 3000)), list()?.textContent.slice(0, 200))
+  t.check('the first is shown in full: the new code', /Test AI code/.test(focused()?.textContent ?? '') && /New code/.test(focused()?.textContent ?? ''), focused()?.textContent.slice(0, 100))
+  t.check('the list has the keyboard', document.activeElement === list())
+  await key('ArrowDown')
+  t.check('↓ moves to the coding, its passage in context', focused()?.querySelector('mark')?.textContent === quote, focused()?.textContent.slice(0, 120))
+  t.check('it says where it is', /2 of 3/.test(focused()?.textContent ?? ''))
   // axe, in each theme.
   const axeThemes = async (el) => {
     const before = document.documentElement.getAttribute('data-theme')
     const found = []
+    // The colours as they end up: no transitions while checking (a window
+    // in the background may not run them).
+    const still = document.createElement('style')
+    still.textContent = '*, *::before, *::after { transition: none !important; animation: none !important; }'
+    document.head.appendChild(still)
     for (const theme of ['magnolia', 'magnolia-dark', 'high-contrast']) {
       document.documentElement.setAttribute('data-theme', theme)
-      // Long enough for the colours' transitions (as accessibility.js).
-      await t.sleep(1200)
+      await t.sleep(300)
       const res = await window.axe.run(el, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, resultTypes: ['violations'] })
       for (const v of res.violations) found.push(`[${theme}] ${v.id}: ` + v.nodes.slice(0, 2).map((n) => n.html.slice(0, 90) + ' — ' + (n.failureSummary ?? '').replace(/\s+/g, ' ').slice(0, 120)).join(' / '))
     }
     if (before) document.documentElement.setAttribute('data-theme', before); else document.documentElement.removeAttribute('data-theme')
+    still.remove()
     return found
   }
-  const pips = blocks().filter((c) => c.querySelector('span[aria-hidden][style*="border-radius: 50%"]'))
-  t.check('each code shows its colour, a proposed one too', pips.length === 2, String(pips.length))
+  t.check('the coding shows its (proposed) code\'s colour', !!focused()?.querySelector('span[aria-hidden][style*="border-radius: 50%"]'))
   const v1 = await axeThemes(review)
   t.check('the Viewer passes axe in every theme, with changes to review', v1.length === 0, v1.join(' || ').slice(0, 1200))
 
+  // The plain list, instead: a line each, with Reject and Approve.
+  const radio = (name) => [...review.querySelectorAll('[role="radio"]')].find((b) => b.textContent.trim() === name)
+  radio('List')?.click()
+  await t.sleep(150)
+  const lines = [...review.querySelectorAll('li[data-proposal]')]
+  t.check('List shows each change as a line, to decide there', lines.length === 3 && lines.every((l) => l.querySelector('button[aria-label="Approve"]') && l.querySelector('button[aria-label="Reject"]')), String(lines.length))
+  const v1b = await axeThemes(review)
+  t.check('and passes axe in every theme', v1b.length === 0, v1b.join(' || ').slice(0, 800))
+  radio('Focused')?.click()
+  await t.sleep(150)
+  list()?.focus()
+
   // A new code under another reads as Parent/New code; rejected.
   ask('propose_new_code', { name: 'Child test', parent: cRef ?? 'C1', reason: 'Narrower.' })
-  const child = await t.until(() => blocks().find((c) => /Child test/.test(c.textContent)), 3000)
-  t.check('a new code shows where it goes, as Parent/New code', !!child && child.textContent.includes(`${firstCode.name}/Child test`), child?.textContent.slice(0, 80))
-  ;[...(child?.querySelectorAll('button') ?? [])].find((b) => b.textContent === 'Reject')?.click()
-  await t.sleep(100)
+  await t.until(() => list()?.querySelectorAll('[data-proposal]').length === 4, 3000)
+  await key('End')
+  t.check('a new code shows where it goes, as Parent/New code', (focused()?.textContent ?? '').includes(`${firstCode.name}/Child test`), focused()?.textContent.slice(0, 80))
+  await key('q')
 
-  // Reject the renaming.
+  // Reject the renaming (Q), from the keyboard.
   await t.sleep(700)
   undo.getState().clearHistory()
-  const renameRow = items().find((c) => /Renamed by AI/.test(c.textContent))
-  renameRow?.querySelector('button[aria-label="Reject"]')?.click()
-  await t.sleep(100)
-  t.check('a denied change isn\'t made', codes.getState().findCode(firstCode.guid).name === firstCode.name && ai.getState().proposals.some((p) => p.change.type === 'editCode' && p.status === 'denied'))
+  await key('End')
+  t.check('the renaming is reached with End', /Renamed by AI/.test(focused()?.textContent ?? ''), focused()?.textContent.slice(0, 80))
+  await key('q')
+  t.check('a rejected change isn\'t made', codes.getState().findCode(firstCode.guid).name === firstCode.name && ai.getState().proposals.some((p) => p.change.type === 'editCode' && p.status === 'denied'))
 
-  // Approve the coding: its new code comes with it.
-  t.check('the coding says it needs the new code', /also approves the new code/.test(codingRow()?.textContent ?? ''))
-  codingRow()?.querySelector('button[aria-label="Approve"]')?.click()
+  // Approve the coding (W): its new code comes with it.
+  await key('Home')
+  await key('ArrowDown')
+  t.check('the coding says it needs the new code', /also approves the new code/.test(focused()?.textContent ?? ''), focused()?.textContent.slice(0, 120))
+  await key('w')
   await t.sleep(100)
   const made = codes.getState().flatCodes().find((c) => c.name === 'Test AI code')
   t.check('approving the coding makes the code too', !!made && made.description === 'When a participant says so.')

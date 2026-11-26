@@ -2142,11 +2142,6 @@
       "deny": "Afwijzen",
       "approveAll": "Alles goedkeuren",
       "denyAll": "Alles afwijzen",
-      "approveChosen_one": "{{count}} goedkeuren",
-      "approveChosen_other": "{{count}} goedkeuren",
-      "denyChosen_one": "{{count}} afwijzen",
-      "denyChosen_other": "{{count}} afwijzen",
-      "choose": "Kiezen",
       "applied_one": "{{count}} wijziging aangebracht. Met Herstel draai je die terug.",
       "applied_other": "{{count}} wijzigingen aangebracht. Met Herstel draai je ze terug.",
       "appliedSome": "{{count}} aangebracht; {{failed}} lukte niet (zie Afgewezen).",
@@ -2154,7 +2149,9 @@
       "denied_other": "{{count}} wijzigingen afgewezen.",
       "kind": {
         "newCode": "Nieuwe code",
-        "removal": "Codering verwijderen"
+        "removal": "Codering verwijderen",
+        "editCode": "Wijziging van code",
+        "coding": "Codering"
       },
       "rename": "Naam wijzigen in \"{{name}}\"",
       "describe": "Nieuwe beschrijving",
@@ -2175,9 +2172,13 @@
         "pending": "Te beoordelen"
       },
       "appsOff": "AI-apps op deze computer kunnen Magnolia nog niet gebruiken: sta ze toe in Voorkeuren. Daarna verschijnen hier de codes en coderingen die Claude Desktop (of een andere AI-app) voorstelt, zodat je ze kunt goedkeuren of afwijzen.",
-      "more_one": "Nog {{count}}",
-      "more_other": "Nog {{count}}",
-      "fewer": "Minder tonen"
+      "position": "{{n}} van {{count}}",
+      "listLabel": "Voorgestelde wijzigingen",
+      "viewFocused": "Gericht",
+      "viewList": "Lijst",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ om te bewegen"
     },
     "apps": {
       "intro": "Met een Claude-abonnement kun je Claude Desktop met Magnolia gebruiken, zonder API-sleutel: het leest het geopende project en stelt wijzigingen voor, die je in Magnolia goedkeurt of afwijst. Andere apps die het Model Context Protocol (MCP) ondersteunen, werken ook.",

@@ -2228,13 +2228,6 @@
       "deny": "Recusar",
       "approveAll": "Aprovar todas",
       "denyAll": "Recusar todas",
-      "approveChosen_one": "Aprovar {{count}}",
-      "approveChosen_many": "Aprovar {{count}}",
-      "approveChosen_other": "Aprovar {{count}}",
-      "denyChosen_one": "Recusar {{count}}",
-      "denyChosen_many": "Recusar {{count}}",
-      "denyChosen_other": "Recusar {{count}}",
-      "choose": "Escolher",
       "applied_one": "{{count}} alteração feita. Pode revertê-la com Anular.",
       "applied_many": "{{count}} alterações feitas. Pode revertê-las com Anular.",
       "applied_other": "{{count}} alterações feitas. Pode revertê-las com Anular.",
@@ -2244,7 +2237,9 @@
       "denied_other": "{{count}} alterações recusadas.",
       "kind": {
         "newCode": "Código novo",
-        "removal": "Remover codificação"
+        "removal": "Remover codificação",
+        "editCode": "Alteração de código",
+        "coding": "Codificação"
       },
       "rename": "Renomear para «{{name}}»",
       "describe": "Nova descrição",
@@ -2266,10 +2261,13 @@
         "pending": "Por rever"
       },
       "appsOff": "As aplicações de IA deste computador ainda não podem usar o Magnolia: permita-as nas Preferências. Depois, os códigos e codificações que o Claude Desktop (ou outra aplicação de IA) sugerir aparecem aqui, para aprovar ou recusar.",
-      "more_one": "Mais {{count}}",
-      "more_many": "Mais {{count}}",
-      "more_other": "Mais {{count}}",
-      "fewer": "Mostrar menos"
+      "position": "{{n}} de {{count}}",
+      "listLabel": "Alterações propostas",
+      "viewFocused": "Focada",
+      "viewList": "Lista",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ para mover"
     },
     "apps": {
       "intro": "Com uma subscrição do Claude, pode usar o Claude Desktop com o Magnolia, sem chave de API: este lê o projeto aberto e sugere alterações, que aprova ou recusa no Magnolia. Outras aplicações compatíveis com o Model Context Protocol (MCP) também funcionam.",

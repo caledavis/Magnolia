@@ -2228,13 +2228,6 @@
       "deny": "דחייה",
       "approveAll": "אישור הכול",
       "denyAll": "דחיית הכול",
-      "approveChosen_one": "אישור {{count}}",
-      "approveChosen_two": "אישור {{count}}",
-      "approveChosen_other": "אישור {{count}}",
-      "denyChosen_one": "דחיית {{count}}",
-      "denyChosen_two": "דחיית {{count}}",
-      "denyChosen_other": "דחיית {{count}}",
-      "choose": "בחירה",
       "applied_one": "בוצע שינוי אחד. ביטול מחזיר אותו.",
       "applied_two": "בוצעו {{count}} שינויים. ביטול מחזיר אותם.",
       "applied_other": "בוצעו {{count}} שינויים. ביטול מחזיר אותם.",
@@ -2244,7 +2237,9 @@
       "denied_other": "{{count}} שינויים נדחו.",
       "kind": {
         "newCode": "קוד חדש",
-        "removal": "הסרת קידוד"
+        "removal": "הסרת קידוד",
+        "editCode": "שינוי בקוד",
+        "coding": "קידוד"
       },
       "rename": "שינוי השם ל-\"{{name}}\"",
       "describe": "תיאור חדש",
@@ -2266,10 +2261,13 @@
         "pending": "לסקירה"
       },
       "appsOff": "אפליקציות בינה מלאכותית במחשב זה עדיין לא יכולות להשתמש ב־Magnolia: יש לאשר אותן בהעדפות. לאחר מכן הקודים והקידודים ש־Claude Desktop (או אפליקציית בינה מלאכותית אחרת) מציעה יופיעו כאן לאישור או לדחייה.",
-      "more_one": "עוד {{count}}",
-      "more_two": "עוד {{count}}",
-      "more_other": "עוד {{count}}",
-      "fewer": "הצגת פחות"
+      "position": "{{n}} מתוך {{count}}",
+      "listLabel": "שינויים מוצעים",
+      "viewFocused": "ממוקד",
+      "viewList": "רשימה",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ למעבר"
     },
     "apps": {
       "intro": "עם מינוי ל-Claude אפשר להשתמש ב-Claude Desktop עם Magnolia, בלי מפתח API: הוא קורא את הפרויקט הפתוח ומציע שינויים, ואותם מאשרים או דוחים ב-Magnolia. גם אפליקציות אחרות שתומכות ב-Model Context Protocol (MCP) עובדות.",

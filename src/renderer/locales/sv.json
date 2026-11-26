@@ -2142,11 +2142,6 @@
       "deny": "Avvisa",
       "approveAll": "Godkänn alla",
       "denyAll": "Avvisa alla",
-      "approveChosen_one": "Godkänn {{count}}",
-      "approveChosen_other": "Godkänn {{count}}",
-      "denyChosen_one": "Avvisa {{count}}",
-      "denyChosen_other": "Avvisa {{count}}",
-      "choose": "Välj",
       "applied_one": "{{count}} ändring gjord. Ångra tar tillbaka den.",
       "applied_other": "{{count}} ändringar gjorda. Ångra tar tillbaka dem.",
       "appliedSome": "{{count}} gjorda; {{failed}} gick inte att göra (se Avvisade).",
@@ -2154,7 +2149,9 @@
       "denied_other": "{{count}} ändringar avvisade.",
       "kind": {
         "newCode": "Ny kod",
-        "removal": "Ta bort kodning"
+        "removal": "Ta bort kodning",
+        "editCode": "Ändring av kod",
+        "coding": "Kodning"
       },
       "rename": "Byt namn till ”{{name}}”",
       "describe": "Ny beskrivning",
@@ -2175,9 +2172,13 @@
         "pending": "Att granska"
       },
       "appsOff": "AI-appar på den här datorn kan inte använda Magnolia än: tillåt dem i Inställningar. Sedan visas de koder och kodningar som Claude Desktop (eller en annan AI-app) föreslår här, så att du kan godkänna eller avvisa dem.",
-      "more_one": "{{count}} till",
-      "more_other": "{{count}} till",
-      "fewer": "Visa färre"
+      "position": "{{n}} av {{count}}",
+      "listLabel": "Föreslagna ändringar",
+      "viewFocused": "Fokuserad",
+      "viewList": "Lista",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ för att flytta"
     },
     "apps": {
       "intro": "Med ett Claude-abonnemang kan du använda Claude Desktop med Magnolia, utan API-nyckel: den läser det öppna projektet och föreslår ändringar, som du godkänner eller avvisar i Magnolia. Andra appar som stöder Model Context Protocol (MCP) fungerar också.",

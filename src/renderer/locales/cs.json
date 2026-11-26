@@ -2314,15 +2314,6 @@
       "deny": "Zamítnout",
       "approveAll": "Schválit vše",
       "denyAll": "Zamítnout vše",
-      "approveChosen_one": "Schválit {{count}}",
-      "approveChosen_few": "Schválit {{count}}",
-      "approveChosen_many": "Schválit {{count}}",
-      "approveChosen_other": "Schválit {{count}}",
-      "denyChosen_one": "Zamítnout {{count}}",
-      "denyChosen_few": "Zamítnout {{count}}",
-      "denyChosen_many": "Zamítnout {{count}}",
-      "denyChosen_other": "Zamítnout {{count}}",
-      "choose": "Vybrat",
       "applied_one": "Provedena {{count}} změna. Příkaz Zpět ji vrátí.",
       "applied_few": "Provedeny {{count}} změny. Příkaz Zpět je vrátí.",
       "applied_many": "Provedeno {{count}} změn. Příkaz Zpět je vrátí.",
@@ -2334,7 +2325,9 @@
       "denied_other": "Zamítnuto {{count}} změn.",
       "kind": {
         "newCode": "Nový kód",
-        "removal": "Odebrání kódování"
+        "removal": "Odebrání kódování",
+        "editCode": "Změna kódu",
+        "coding": "Kódování"
       },
       "rename": "Přejmenovat na „{{name}}“",
       "describe": "Nový popis",
@@ -2357,11 +2350,13 @@
         "pending": "Ke kontrole"
       },
       "appsOff": "Aplikace AI v tomto počítači zatím nemohou aplikaci Magnolia používat: povolte je v Předvolbách. Kódy a kódování, které navrhne Claude Desktop (nebo jiná aplikace AI), se pak zobrazí zde ke schválení nebo zamítnutí.",
-      "more_one": "Další {{count}}",
-      "more_few": "Další {{count}}",
-      "more_many": "Další {{count}}",
-      "more_other": "Další {{count}}",
-      "fewer": "Zobrazit méně"
+      "position": "{{n}} z {{count}}",
+      "listLabel": "Navržené změny",
+      "viewFocused": "Zaměřené",
+      "viewList": "Seznam",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ pro pohyb"
     },
     "apps": {
       "intro": "S předplatným Claude můžete používat Claude Desktop s aplikací Magnolia bez klíče API: přečte otevřený projekt a navrhne změny, které v aplikaci Magnolia schválíte, nebo zamítnete. Fungují i další aplikace, které podporují Model Context Protocol (MCP).",

@@ -2142,11 +2142,6 @@
       "deny": "Avvis",
       "approveAll": "Godkjenn alle",
       "denyAll": "Avvis alle",
-      "approveChosen_one": "Godkjenn {{count}}",
-      "approveChosen_other": "Godkjenn {{count}}",
-      "denyChosen_one": "Avvis {{count}}",
-      "denyChosen_other": "Avvis {{count}}",
-      "choose": "Velg",
       "applied_one": "{{count}} endring gjort. Angre tar den tilbake.",
       "applied_other": "{{count}} endringer gjort. Angre tar dem tilbake.",
       "appliedSome": "{{count}} gjort; {{failed}} kunne ikke gjøres (se Avvist).",
@@ -2154,7 +2149,9 @@
       "denied_other": "{{count}} endringer avvist.",
       "kind": {
         "newCode": "Ny kode",
-        "removal": "Fjern koding"
+        "removal": "Fjern koding",
+        "editCode": "Endring av kode",
+        "coding": "Koding"
       },
       "rename": "Gi nytt navn: «{{name}}»",
       "describe": "Ny beskrivelse",
@@ -2175,9 +2172,13 @@
         "pending": "Til gjennomgang"
       },
       "appsOff": "KI-apper på denne datamaskinen kan ikke bruke Magnolia ennå: tillat dem i Innstillinger. Deretter vises kodene og kodingene som Claude Desktop (eller en annen KI-app) foreslår, her, slik at du kan godkjenne eller avvise dem.",
-      "more_one": "{{count}} til",
-      "more_other": "{{count}} til",
-      "fewer": "Vis færre"
+      "position": "{{n}} av {{count}}",
+      "listLabel": "Foreslåtte endringer",
+      "viewFocused": "Fokusert",
+      "viewList": "Liste",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ for å flytte"
     },
     "apps": {
       "intro": "Med et Claude-abonnement kan du bruke Claude Desktop med Magnolia, uten API-nøkkel: den leser det åpne prosjektet og foreslår endringer, som du godkjenner eller avviser i Magnolia. Andre apper som støtter Model Context Protocol (MCP), fungerer også.",

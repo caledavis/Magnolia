@@ -2314,15 +2314,6 @@
       "deny": "Отклонить",
       "approveAll": "Одобрить все",
       "denyAll": "Отклонить все",
-      "approveChosen_one": "Одобрить ({{count}})",
-      "approveChosen_few": "Одобрить ({{count}})",
-      "approveChosen_many": "Одобрить ({{count}})",
-      "approveChosen_other": "Одобрить ({{count}})",
-      "denyChosen_one": "Отклонить ({{count}})",
-      "denyChosen_few": "Отклонить ({{count}})",
-      "denyChosen_many": "Отклонить ({{count}})",
-      "denyChosen_other": "Отклонить ({{count}})",
-      "choose": "Выбрать",
       "applied_one": "Внесено {{count}} изменение. Команда «Отменить» вернёт всё как было.",
       "applied_few": "Внесено {{count}} изменения. Команда «Отменить» вернёт всё как было.",
       "applied_many": "Внесено {{count}} изменений. Команда «Отменить» вернёт всё как было.",
@@ -2334,7 +2325,9 @@
       "denied_other": "Отклонено {{count}} изменения.",
       "kind": {
         "newCode": "Новый код",
-        "removal": "Удаление кодирования"
+        "removal": "Удаление кодирования",
+        "editCode": "Изменение кода",
+        "coding": "Кодирование"
       },
       "rename": "Переименовать в «{{name}}»",
       "describe": "Новое описание",
@@ -2357,11 +2350,13 @@
         "pending": "На проверку"
       },
       "appsOff": "ИИ-приложения на этом компьютере пока не могут использовать Magnolia: разрешите это в настройках. Тогда коды и кодирование, которые предложит Claude Desktop (или другое ИИ-приложение), появятся здесь, чтобы вы могли их одобрить или отклонить.",
-      "more_one": "Ещё {{count}}",
-      "more_few": "Ещё {{count}}",
-      "more_many": "Ещё {{count}}",
-      "more_other": "Ещё {{count}}",
-      "fewer": "Показать меньше"
+      "position": "{{n}} из {{count}}",
+      "listLabel": "Предложенные изменения",
+      "viewFocused": "По одному",
+      "viewList": "Список",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ — перемещение"
     },
     "apps": {
       "intro": "С подпиской Claude можно работать в Claude Desktop вместе с Magnolia без ключа API: он читает открытый проект и предлагает изменения, которые вы одобряете или отклоняете в Magnolia. Подойдут и другие приложения с поддержкой Model Context Protocol (MCP).",

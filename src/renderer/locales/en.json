@@ -2142,11 +2142,6 @@
       "deny": "Reject",
       "approveAll": "Approve All",
       "denyAll": "Reject All",
-      "approveChosen_one": "Approve {{count}}",
-      "approveChosen_other": "Approve {{count}}",
-      "denyChosen_one": "Reject {{count}}",
-      "denyChosen_other": "Reject {{count}}",
-      "choose": "Choose",
       "applied_one": "{{count}} change made. Undo takes it back.",
       "applied_other": "{{count}} changes made. Undo takes them back.",
       "appliedSome": "{{count}} made; {{failed}} couldn't be (see Rejected).",
@@ -2154,7 +2149,9 @@
       "denied_other": "{{count}} changes rejected.",
       "kind": {
         "newCode": "New code",
-        "removal": "Remove coding"
+        "removal": "Remove coding",
+        "editCode": "Change to code",
+        "coding": "Coding"
       },
       "rename": "Rename to “{{name}}”",
       "describe": "New description",
@@ -2175,9 +2172,13 @@
         "pending": "To review"
       },
       "appsOff": "AI apps on this computer can't use Magnolia yet: allow them in Preferences. Then the codes and codings that Claude Desktop (or another AI app) suggests appear here, for you to approve or reject.",
-      "more_one": "{{count}} more",
-      "more_other": "{{count}} more",
-      "fewer": "Show fewer"
+      "position": "{{n}} of {{count}}",
+      "listLabel": "Proposed changes",
+      "viewFocused": "Focused",
+      "viewList": "List",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ to move"
     },
     "apps": {
       "intro": "With a Claude subscription, you can use Claude Desktop with Magnolia, with no API key: it reads the open project and suggests changes, which you approve or deny in Magnolia. Other apps that support the Model Context Protocol (MCP) work too.",

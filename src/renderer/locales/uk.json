@@ -2314,15 +2314,6 @@
       "deny": "Відхилити",
       "approveAll": "Схвалити всі",
       "denyAll": "Відхилити всі",
-      "approveChosen_one": "Схвалити ({{count}})",
-      "approveChosen_few": "Схвалити ({{count}})",
-      "approveChosen_many": "Схвалити ({{count}})",
-      "approveChosen_other": "Схвалити ({{count}})",
-      "denyChosen_one": "Відхилити ({{count}})",
-      "denyChosen_few": "Відхилити ({{count}})",
-      "denyChosen_many": "Відхилити ({{count}})",
-      "denyChosen_other": "Відхилити ({{count}})",
-      "choose": "Вибрати",
       "applied_one": "Внесено {{count}} зміну. Команда «Скасувати» поверне все як було.",
       "applied_few": "Внесено {{count}} зміни. Команда «Скасувати» поверне все як було.",
       "applied_many": "Внесено {{count}} змін. Команда «Скасувати» поверне все як було.",
@@ -2334,7 +2325,9 @@
       "denied_other": "Відхилено {{count}} зміни.",
       "kind": {
         "newCode": "Новий код",
-        "removal": "Вилучення кодування"
+        "removal": "Вилучення кодування",
+        "editCode": "Зміна коду",
+        "coding": "Кодування"
       },
       "rename": "Перейменувати на «{{name}}»",
       "describe": "Новий опис",
@@ -2357,11 +2350,13 @@
         "pending": "На перевірку"
       },
       "appsOff": "ШІ-застосунки на цьому комп’ютері ще не можуть використовувати Magnolia: дозвольте це в параметрах. Тоді коди й кодування, які запропонує Claude Desktop (або інший ШІ-застосунок), з’являться тут, щоб ви могли їх схвалити або відхилити.",
-      "more_one": "Ще {{count}}",
-      "more_few": "Ще {{count}}",
-      "more_many": "Ще {{count}}",
-      "more_other": "Ще {{count}}",
-      "fewer": "Показати менше"
+      "position": "{{n}} з {{count}}",
+      "listLabel": "Запропоновані зміни",
+      "viewFocused": "По одному",
+      "viewList": "Список",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ — переміщення"
     },
     "apps": {
       "intro": "З підпискою Claude можна працювати в Claude Desktop разом із Magnolia без ключа API: він читає відкритий проєкт і пропонує зміни, які ви схвалюєте або відхиляєте в Magnolia. Підійдуть і інші застосунки з підтримкою Model Context Protocol (MCP).",

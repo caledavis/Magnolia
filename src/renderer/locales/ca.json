@@ -2228,13 +2228,6 @@
       "deny": "Rebutja",
       "approveAll": "Aprova-ho tot",
       "denyAll": "Rebutja-ho tot",
-      "approveChosen_one": "Aprova’n {{count}}",
-      "approveChosen_many": "Aprova’n {{count}}",
-      "approveChosen_other": "Aprova’n {{count}}",
-      "denyChosen_one": "Rebutja’n {{count}}",
-      "denyChosen_many": "Rebutja’n {{count}}",
-      "denyChosen_other": "Rebutja’n {{count}}",
-      "choose": "Tria",
       "applied_one": "S’ha fet {{count}} canvi. Podeu desfer-lo amb Desfés.",
       "applied_many": "S’han fet {{count}} canvis. Podeu desfer-los amb Desfés.",
       "applied_other": "S’han fet {{count}} canvis. Podeu desfer-los amb Desfés.",
@@ -2244,7 +2237,9 @@
       "denied_other": "S’han rebutjat {{count}} canvis.",
       "kind": {
         "newCode": "Codi nou",
-        "removal": "Treure la codificació"
+        "removal": "Treure la codificació",
+        "editCode": "Canvi en un codi",
+        "coding": "Codificació"
       },
       "rename": "Canvia el nom a «{{name}}»",
       "describe": "Descripció nova",
@@ -2266,10 +2261,13 @@
         "pending": "Per revisar"
       },
       "appsOff": "Les aplicacions d’IA d’aquest ordinador encara no poden utilitzar el Magnolia: permeteu-les a les preferències. Després, els codis i les codificacions que suggereixi el Claude Desktop (o una altra aplicació d’IA) apareixeran aquí perquè els aproveu o rebutgeu.",
-      "more_one": "{{count}} més",
-      "more_many": "{{count}} més",
-      "more_other": "{{count}} més",
-      "fewer": "Mostra’n menys"
+      "position": "{{n}} de {{count}}",
+      "listLabel": "Canvis proposats",
+      "viewFocused": "Enfocada",
+      "viewList": "Llista",
+      "keyApprove": "W",
+      "keyReject": "Q",
+      "keysMove": "↑ ↓ per moure-us"
     },
     "apps": {
       "intro": "Amb una subscripció a Claude, podeu fer servir Claude Desktop amb el Magnolia, sense clau d’API: llegeix el projecte obert i suggereix canvis, que vós aproveu o rebutgeu al Magnolia. També funcionen altres aplicacions compatibles amb el Model Context Protocol (MCP).",

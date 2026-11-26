@@ -2757,3 +2757,21 @@ textarea {
 [data-map-element]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 [data-selector-node]:focus { outline: none; }
 [data-selector-node]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* AI Assistance Viewer (components/AI/AiReviewTab.tsx): a light line
+ * between a code's changes. */
+.ai-row + .ai-row { border-top: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent); }
+
+/* The AI Assistance Viewer's list (AiReviewTab.tsx): it scrolls smoothly
+ * and settles with a card in the middle; the cards fade by their distance
+ * from it as it scrolls. */
+.ai-barrel { scroll-snap-type: y mandatory; scrollbar-width: none; }
+.ai-barrel::-webkit-scrollbar { display: none; }
+.ai-barrel > .ai-barrel-item { scroll-snap-align: center; }
+.ai-barrel-item { transition: box-shadow 0.3s ease; }
+.ai-barrel-details { transition: grid-template-rows 0.45s cubic-bezier(0.32, 0.72, 0, 1); }
+.ai-barrel-details > div { transition: opacity 0.3s ease 0.12s; }
+.ai-barrel-details.closed > div { opacity: 0; transition: opacity 0.18s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .ai-barrel-item, .ai-barrel-details, .ai-barrel-details > div { transition: none; }
+}
