@@ -12,7 +12,7 @@ import { useAiStore, type AiSession, type AiProposal } from '../../stores/ai-sto
 import { useDocumentStore } from '../../stores/document-store'
 import { AI_REVIEW_TAB_ID } from '../tab-ids'
 import { useProjectStore } from '../../stores/project-store'
-import { emptyRefs, runTool } from './tools'
+import { runTool } from './tools'
 import { generateGuid } from '../guid'
 
 interface AppCall {
@@ -53,14 +53,14 @@ export function answerAppCall(call: AppCall): void {
     showViewer()
     return answer(call.callId, `The user hasn't yet let AI apps use this project ("${project.name}"). Magnolia is asking them now, in its AI Assistance Viewer: ask them to allow it there, then try again.`, true)
   }
-  // The session (one per connection): its references (D3, P12…).
+  // The session (one per connection), for grouping its proposals; the
+  // references (D3, P12…) are the project's.
   const sessionId = `app:${call.session}`
-  let session = ai.sessions.find((x) => x.id === sessionId)
-  if (!session) {
-    session = { id: sessionId, app: name, createdAt: new Date().toISOString(), refs: emptyRefs() }
-    useAiStore.setState((s) => ({ sessions: [session!, ...s.sessions] }))
+  if (!ai.sessions.some((x) => x.id === sessionId)) {
+    const session: AiSession = { id: sessionId, app: name, createdAt: new Date().toISOString() }
+    useAiStore.setState((s) => ({ sessions: [session, ...s.sessions] }))
   }
-  const refs = structuredClone(session.refs)
+  const refs = structuredClone(ai.refs)
   const hadPending = ai.proposals.some((p) => p.status === 'pending')
   const outcome = runTool(call.name, call.input ?? {}, refs)
   const now = new Date().toISOString()
@@ -68,7 +68,7 @@ export function answerAppCall(call: AppCall): void {
     id: generateGuid(), chatId: sessionId, change: p.change, reason: p.reason, status: 'pending', createdAt: now, model: name
   }))
   useAiStore.setState((s) => ({
-    sessions: s.sessions.map((x: AiSession) => (x.id === sessionId ? { ...x, refs } : x)),
+    refs,
     proposals: proposals.length ? [...s.proposals, ...proposals] : s.proposals
   }))
   project.markDirty()

@@ -1,7 +1,7 @@
 /**
  * AI Assistance in a project: whether AI apps on this computer (Claude
  * Desktop and others, through Magnolia's connector, src-tauri/src/mcp.rs)
- * may use it, each app session's references, and the changes they
+ * may use it, the references the apps are given, and the changes they
  * proposed. Saved in the project, in Magnolia's own magnolia-ai.json
  * (the standard has no place for it).
  *
@@ -12,7 +12,7 @@
 import { create } from 'zustand'
 import { useProjectStore } from './project-store'
 import { makeHmrSafe } from './hmr-preserve'
-import type { AiChange, ChatRefs } from '../utils/ai/tools'
+import { emptyRefs, type AiChange, type ChatRefs } from '../utils/ai/tools'
 
 /** One app's session with the project (a connection from it). */
 export interface AiSession {
@@ -20,8 +20,6 @@ export interface AiSession {
   /** The app, e.g. "Claude Desktop". */
   app: string
   createdAt: string
-  /** The references handed out in this session (D3, C5, P12, N1…). */
-  refs: ChatRefs
 }
 
 export type ProposalStatus = 'pending' | 'approved' | 'denied' | 'failed'
@@ -48,8 +46,12 @@ export interface ProjectAi {
   /** Whether AI apps on this computer may use it. */
   appsAllowed?: boolean
   sessions: AiSession[]
+  /** The references handed out (D3, C5, P12, N1…): the project's, not a
+   *  session's, so they mean the same thing however many connections an
+   *  app makes (Claude Desktop starts the connector more than once). */
+  refs: ChatRefs
   proposals: AiProposal[]
-  /** New codes approved, by their session's reference: `${sessionId}:${N1}` → guid. */
+  /** New codes approved, by their reference (N1…) → guid. */
   createdCodes: Record<string, string>
 }
 
@@ -66,7 +68,11 @@ interface AiState extends ProjectAi {
   clearAll: () => void
 }
 
-const EMPTY: ProjectAi = { appsAllowed: undefined, sessions: [], proposals: [], createdCodes: {} }
+const EMPTY: ProjectAi = { appsAllowed: undefined, sessions: [], refs: emptyRefs(), proposals: [], createdCodes: {} }
+
+/** Passages kept in the saved references (the newest): a long-used
+ *  project would otherwise collect every search result ever given. */
+const KEPT_PASSAGES = 2000
 
 export const useAiStore = create<AiState>((set, get) => ({
   ...EMPTY,
@@ -77,6 +83,7 @@ export const useAiStore = create<AiState>((set, get) => ({
     set({
       appsAllowed: data?.appsAllowed,
       sessions,
+      refs: data?.refs ?? emptyRefs(),
       proposals: data?.proposals ?? [],
       createdCodes: data?.createdCodes ?? {},
       appRequest: null
@@ -84,8 +91,10 @@ export const useAiStore = create<AiState>((set, get) => ({
   },
 
   projectAi: () => {
-    const { appsAllowed, sessions, proposals, createdCodes } = get()
-    return { appsAllowed, sessions, proposals, createdCodes }
+    const { appsAllowed, sessions, refs, proposals, createdCodes } = get()
+    const passages = Object.entries(refs.passages)
+    const kept = passages.length <= KEPT_PASSAGES ? refs : { ...refs, passages: Object.fromEntries(passages.slice(-KEPT_PASSAGES)) }
+    return { appsAllowed, sessions, refs: kept, proposals, createdCodes }
   },
 
   allowApps: (allowed) => {
@@ -102,7 +111,7 @@ export const useAiStore = create<AiState>((set, get) => ({
 
   setCreatedCode: (key, guid) => set((s) => ({ createdCodes: { ...s.createdCodes, [key]: guid } })),
 
-  clearAll: () => set({ ...EMPTY, appRequest: null })
+  clearAll: () => set({ ...EMPTY, refs: emptyRefs(), appRequest: null })
 }))
 
 makeHmrSafe('ai', useAiStore)

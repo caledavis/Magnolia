@@ -256,18 +256,18 @@ function ProposalCard({ p, chosen, onToggle, onApprove, onReject }: { p: AiPropo
   const path = (guid?: string, ref?: string): string[] => {
     if (guid) return pathOf(codes, guid)?.map((x) => x.name) ?? [t('ai.review.missingCode')]
     if (!ref) return []
-    const made = created[`${p.chatId}:${ref}`]
+    const made = created[ref]
     if (made && pathOf(codes, made)) return pathOf(codes, made)!.map((x) => x.name)
-    const proposal = proposals.find((x) => x.chatId === p.chatId && x.change.type === 'newCode' && x.change.ref === ref)
+    const proposal = proposals.find((x) => x.change.type === 'newCode' && x.change.ref === ref)
     if (!proposal || proposal.change.type !== 'newCode') return [ref]
     return [...path(proposal.change.parentGuid, proposal.change.parentRef), proposal.change.name]
   }
   /** A code's colour; a proposed one's, as chosen when proposed. */
   const colourOf = (guid?: string, ref?: string): string | undefined => {
-    const g = guid ?? (ref ? created[`${p.chatId}:${ref}`] : undefined)
+    const g = guid ?? (ref ? created[ref] : undefined)
     const existing = g ? pathOf(codes, g)?.at(-1)?.color : undefined
     if (existing || !ref) return existing
-    const proposal = proposals.find((x) => x.chatId === p.chatId && x.change.type === 'newCode' && x.change.ref === ref)
+    const proposal = proposals.find((x) => x.change.type === 'newCode' && x.change.ref === ref)
     return proposal?.change.type === 'newCode' ? newCodeColour(proposal) : undefined
   }
   const newCodeColour = (q: AiProposal): string | undefined =>

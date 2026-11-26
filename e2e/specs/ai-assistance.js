@@ -61,6 +61,12 @@ async function spec(t) {
   const docsList = ask('list_documents').content
   const dRef = docsList.split('\n').find((l) => l.includes(`| ${doc.name} |`)).split(' |')[0]
   const cRef = ask('list_codes').content.split('\n').find((l) => l.includes(` ${firstCode.name}`))?.trim().split(' ')[0]
+  // A second connection (Claude Desktop starts the connector more than
+  // once) uses the same references.
+  const other = (name, input = {}) => { const callId = `o${++n}`; apps.answerAppCall({ callId, session: 's2', client: 'claude-ai', name, input }); return answers[callId] }
+  const again = other('read_document', { document: dRef })
+  t.check('references mean the same in another connection', !again.isError && again.content.includes(quote), again.content.slice(0, 120))
+  t.check('and are numbered the same', other('list_documents').content.split('\n').find((l) => l.includes(`| ${doc.name} |`))?.startsWith(dRef + ' '))
   const read = ask('read_document', { document: dRef })
   t.check('the app reads a document', !read.isError && read.content.includes(quote))
   ask('propose_new_code', { name: 'Test AI code', description: 'When a participant says so.', reason: 'Recurs.' })

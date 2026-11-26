@@ -4,10 +4,10 @@
  * changes to codes and codings. It can't change anything: a proposal goes
  * to the AI Assistance Viewer, where the user approves or denies it.
  *
- * The AI refers to things by short references this chat hands out (D3 for a
- * document, C5 for a code, P12 for a passage, N1 for a code it proposed),
- * kept with the chat, so it never has to copy a long id exactly, and its
- * answers can cite passages ([P12]) that the chat turns into links.
+ * The AI refers to things by short references (D3 for a document, C5 for a
+ * code, P12 for a passage, N1 for a code it proposed), kept with the
+ * project so they mean the same in every call, and it never has to copy a
+ * long id exactly.
  *
  * Offsets are code points, as everywhere in Magnolia.
  */
@@ -110,7 +110,9 @@ function refFor(map: Record<string, string>, prefix: string, guid: string): stri
 }
 
 function passageRef(refs: ChatRefs, p: PassageRef): string {
-  const ref = `P${Object.keys(refs.passages).length + 1}`
+  // After the highest yet (older ones may have been let go: see ai-store).
+  const last = Object.keys(refs.passages).reduce((n, k) => Math.max(n, Number(k.slice(1)) || 0), 0)
+  const ref = `P${last + 1}`
   refs.passages[ref] = p
   return ref
 }

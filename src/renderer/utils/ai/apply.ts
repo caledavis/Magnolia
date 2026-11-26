@@ -28,9 +28,9 @@ import { onUndoRestore } from '../../stores/undo-store'
 
 const t = (key: string, vars?: Record<string, unknown>) => i18n.t(key, vars) as string
 
-/** The proposal that proposed new code `ref` in a chat. */
-function newCodeProposal(all: AiProposal[], chatId: string, ref: string): AiProposal | undefined {
-  return all.find((p) => p.chatId === chatId && p.change.type === 'newCode' && p.change.ref === ref)
+/** The proposal that proposed new code `ref`. */
+function newCodeProposal(all: AiProposal[], ref: string): AiProposal | undefined {
+  return all.find((p) => p.change.type === 'newCode' && p.change.ref === ref)
 }
 
 /** The new code a proposal needs, if it needs one. */
@@ -51,7 +51,7 @@ export function withRequirements(ids: string[], all: AiProposal[]): string[] {
     const p = all.find((x) => x.id === id)
     const ref = p && needs(p)
     if (!p || !ref) continue
-    const parent = newCodeProposal(all, p.chatId, ref)
+    const parent = newCodeProposal(all, ref)
     if (parent && parent.status === 'pending' && !out.has(parent.id)) {
       out.add(parent.id)
       queue.push(parent.id)
@@ -70,7 +70,7 @@ export function withDependents(ids: string[], all: AiProposal[]): string[] {
     if (!p || p.change.type !== 'newCode') continue
     const ref = p.change.ref
     for (const d of all) {
-      if (d.chatId === p.chatId && d.status === 'pending' && needs(d) === ref && !out.has(d.id)) {
+      if (d.status === 'pending' && needs(d) === ref && !out.has(d.id)) {
         out.add(d.id)
         queue.push(d.id)
       }
@@ -133,19 +133,19 @@ export function approve(ids: string[]): { applied: number; failed: number } {
   while (pendingCodes.length) {
     const i = pendingCodes.findIndex((p) => {
       const parentRef = (p.change as { parentRef?: string }).parentRef
-      return !parentRef || placed.has(`${p.chatId}:${parentRef}`) || !chosen.some((q) => q.chatId === p.chatId && q.change.type === 'newCode' && q.change.ref === parentRef)
+      return !parentRef || placed.has(parentRef) || !chosen.some((q) => q.change.type === 'newCode' && q.change.ref === parentRef)
     })
     const next = pendingCodes.splice(i < 0 ? 0 : i, 1)[0]
     order.push(next)
-    placed.add(`${next.chatId}:${(next.change as { ref: string }).ref}`)
+    placed.add((next.change as { ref: string }).ref)
   }
   order.push(...chosen.filter((p) => p.change.type === 'editCode'), ...chosen.filter((p) => p.change.type === 'addCoding'), ...chosen.filter((p) => p.change.type === 'removeCoding'))
 
   const codes = useCodeStore.getState()
   const docs = useDocumentStore.getState()
   const created = { ...ai.createdCodes }
-  const resolve = (chatId: string, guid?: string, ref?: string): string | undefined =>
-    guid ?? (ref ? created[`${chatId}:${ref}`] : undefined)
+  const resolve = (guid?: string, ref?: string): string | undefined =>
+    guid ?? (ref ? created[ref] : undefined)
   const codeName = (guid?: string, ref?: string) => codes.findCode(guid ?? '')?.name ?? (ref ? ref : '')
   const results = new Map<string, { status: 'approved' | 'failed'; failure?: string }>()
   const palette = codeColourPresetsFor(usePreferencesStore.getState())
@@ -155,18 +155,18 @@ export function approve(ids: string[]): { applied: number; failed: number } {
     const ok = () => results.set(p.id, { status: 'approved' })
     const failed = (why: string) => results.set(p.id, { status: 'failed', failure: why })
     if (c.type === 'newCode') {
-      const parentGuid = resolve(p.chatId, c.parentGuid, c.parentRef)
+      const parentGuid = resolve(c.parentGuid, c.parentRef)
       if ((c.parentGuid || c.parentRef) && (!parentGuid || !codes.findCode(parentGuid))) { failed(t('ai.fail.noParent')); continue }
       const parent = parentGuid ? codes.findCode(parentGuid) : undefined
       const colour = c.color || parent?.color || palette[codes.flatCodes().length % palette.length]
       const guid = useCodeStore.getState().addCode(c.name, colour, parentGuid)
       if (c.description) useCodeStore.getState().setCodeDescription(guid, c.description)
-      created[`${p.chatId}:${c.ref}`] = guid
+      created[c.ref] = guid
       ok()
     } else if (c.type === 'editCode') {
       if (!codes.findCode(c.codeGuid)) { failed(t('ai.fail.noCode')); continue }
       if (c.move) {
-        const parentGuid = resolve(p.chatId, c.move.parentGuid, c.move.parentRef)
+        const parentGuid = resolve(c.move.parentGuid, c.move.parentRef)
         if ((c.move.parentGuid || c.move.parentRef) && !parentGuid) { failed(t('ai.fail.noParent')); continue }
         useCodeStore.getState().moveCode(c.codeGuid, parentGuid ?? null)
       }
@@ -174,7 +174,7 @@ export function approve(ids: string[]): { applied: number; failed: number } {
       if (c.description !== undefined) useCodeStore.getState().setCodeDescription(c.codeGuid, c.description)
       ok()
     } else if (c.type === 'addCoding') {
-      const codeGuid = resolve(p.chatId, c.codeGuid, c.codeRef)
+      const codeGuid = resolve(c.codeGuid, c.codeRef)
       const source = useDocumentStore.getState().sources.find((s) => s.guid === c.sourceGuid)
       if (!codeGuid || !useCodeStore.getState().findCode(codeGuid)) { failed(t('ai.fail.noCode')); continue }
       if (!source) { failed(t('ai.fail.noDocument')); continue }
@@ -225,7 +225,7 @@ function inProject(p: AiProposal, created: Record<string, string>): boolean {
   const sources = useDocumentStore.getState().sources
   switch (c.type) {
     case 'newCode': {
-      const guid = created[`${p.chatId}:${c.ref}`]
+      const guid = created[c.ref]
       return !!guid && !!codes.findCode(guid)
     }
     case 'editCode': {
@@ -236,7 +236,7 @@ function inProject(p: AiProposal, created: Record<string, string>): boolean {
       return true
     }
     case 'addCoding': {
-      const codeGuid = c.codeGuid ?? (c.codeRef ? created[`${p.chatId}:${c.codeRef}`] : undefined)
+      const codeGuid = c.codeGuid ?? (c.codeRef ? created[c.codeRef] : undefined)
       const source = sources.find((s) => s.guid === c.sourceGuid)
       return !!codeGuid && !!source?.selections.some((s) =>
         s.startPosition === c.start && s.endPosition === c.end &&

@@ -36,6 +36,7 @@ const CALL_TIMEOUT: Duration = Duration::from_secs(120);
 
 const INSTRUCTIONS: &str = "Magnolia is a program for qualitative data analysis; these tools work on the project open in it. \
 Read with list_documents and list_codes first, then read_document, search_text and coded_passages, reading only what a question needs. \
+References (D1 for a document, C1 a code, P1 a passage, N1 a proposed code) belong to the project and mean the same thing in every call. \
 You cannot change the project: propose_new_code, propose_code_change, propose_coding and propose_remove_coding only make suggestions, which the researcher approves or denies in Magnolia's AI Assistance Viewer; say so, and never claim a change has been made. \
 Quote passages exactly as they are in the document when proposing codings, with a short reason for each, and prefer the project's existing codes. \
 Ground claims in quoted passages; don't invent quotes or numbers. The researcher decides what the data means.";
