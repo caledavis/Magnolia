@@ -2294,7 +2294,8 @@
       "appsTitle": "Leisti šio kompiuterio DI programoms naudoti šį projektą?",
       "allowApps": "Leisti",
       "notNow": "Ne dabar",
-      "stopApps": "Neleisti DI programoms jo naudoti"
+      "stopApps": "Neleisti DI programoms jo naudoti",
+      "responsibility": "Jūs atsakote už tai, kad dirbtinio intelekto naudojimas atitiktų visus teisinius ir etinius įsipareigojimus, kuriuos turite atitinkamoms suinteresuotosioms šalims."
     },
     "review": {
       "title": "DI pagalba",
@@ -2305,7 +2306,7 @@
         "denied": "Atmesta ({{count}})"
       },
       "empty": {
-        "pending": "Nėra ką peržiūrėti. Paprašykite Claude Desktop (ar kitos DI programos) pasiūlyti kodų ar kodavimo.",
+        "pending": "Nėra ką peržiūrėti. Paprašykite savo kompiuterio DI programos pasiūlyti kodų ar kodavimų.",
         "approved": "Dar nepatvirtinta jokių pakeitimų.",
         "denied": "Jokių pakeitimų neatmesta."
       },

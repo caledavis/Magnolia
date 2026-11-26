@@ -2208,7 +2208,8 @@
       "appsTitle": "¿Permitir que las aplicaciones de IA de este equipo usen este proyecto?",
       "allowApps": "Permitir",
       "notNow": "Ahora no",
-      "stopApps": "Impedir que las aplicaciones de IA lo usen"
+      "stopApps": "Impedir que las aplicaciones de IA lo usen",
+      "responsibility": "Es tu responsabilidad asegurarte de que tu uso de la inteligencia artificial cumpla todas las obligaciones legales y éticas que tienes con las partes interesadas pertinentes."
     },
     "review": {
       "title": "Asistencia de IA",
@@ -2219,7 +2220,7 @@
         "denied": "Rechazados ({{count}})"
       },
       "empty": {
-        "pending": "Nada que revisar. Pide a Claude Desktop (u otra aplicación de IA) sugerencias de códigos o codificaciones.",
+        "pending": "Nada que revisar. Pide a tu aplicación de IA de escritorio que sugiera códigos o codificaciones.",
         "approved": "Todavía no se aprobó ningún cambio.",
         "denied": "No se rechazó ningún cambio."
       },

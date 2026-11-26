@@ -2122,7 +2122,8 @@
       "appsTitle": "KI-Apps auf diesem Computer erlauben, dieses Projekt zu nutzen?",
       "allowApps": "Erlauben",
       "notNow": "Nicht jetzt",
-      "stopApps": "Nutzung durch KI-Apps beenden"
+      "stopApps": "Nutzung durch KI-Apps beenden",
+      "responsibility": "Sie sind dafür verantwortlich, dass Ihre Nutzung künstlicher Intelligenz allen rechtlichen und ethischen Pflichten entspricht, die Sie gegenüber den betroffenen Beteiligten haben."
     },
     "review": {
       "title": "KI-Assistenz",
@@ -2133,7 +2134,7 @@
         "denied": "Abgelehnt ({{count}})"
       },
       "empty": {
-        "pending": "Nichts zu prüfen. Bitten Sie Claude Desktop (oder eine andere KI-App) um Vorschläge für Codes oder Codierungen.",
+        "pending": "Nichts zu prüfen. Bitten Sie Ihre KI-Desktop-App um Vorschläge für Codes oder Codierungen.",
         "approved": "Noch keine Änderungen angenommen.",
         "denied": "Keine Änderungen abgelehnt."
       },

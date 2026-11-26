@@ -2122,7 +2122,8 @@
       "appsTitle": "La KI-apper på denne datamaskinen bruke dette prosjektet?",
       "allowApps": "Tillat",
       "notNow": "Ikke nå",
-      "stopApps": "Hindre KI-apper i å bruke det"
+      "stopApps": "Hindre KI-apper i å bruke det",
+      "responsibility": "Det er ditt ansvar å sørge for at bruken din av kunstig intelligens oppfyller alle juridiske og etiske forpliktelser du har overfor relevante interessenter."
     },
     "review": {
       "title": "KI-assistanse",
@@ -2133,7 +2134,7 @@
         "denied": "Avvist ({{count}})"
       },
       "empty": {
-        "pending": "Ingenting å gjennomgå. Be Claude Desktop (eller en annen KI-app) om forslag til koder eller kodinger.",
+        "pending": "Ingenting å gjennomgå. Be KI-skrivebordsappen din om forslag til koder eller kodinger.",
         "approved": "Ingen endringer godkjent ennå.",
         "denied": "Ingen endringer avvist."
       },

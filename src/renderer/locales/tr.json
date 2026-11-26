@@ -2122,7 +2122,8 @@
       "appsTitle": "Bu bilgisayardaki yapay zekâ uygulamaları bu projeyi kullanabilsin mi?",
       "allowApps": "İzin ver",
       "notNow": "Şimdi değil",
-      "stopApps": "Yapay zekâ uygulamalarının erişimini durdur"
+      "stopApps": "Yapay zekâ uygulamalarının erişimini durdur",
+      "responsibility": "Yapay zekâyı kullanımınızın, ilgili paydaşlara karşı tüm yasal ve etik yükümlülüklerinize uygun olmasını sağlamak sizin sorumluluğunuzdadır."
     },
     "review": {
       "title": "Yapay zekâ yardımı",
@@ -2133,7 +2134,7 @@
         "denied": "Reddedilen ({{count}})"
       },
       "empty": {
-        "pending": "İncelenecek bir şey yok. Claude Desktop’tan (ya da başka bir yapay zekâ uygulamasından) kod ya da kodlama önerisi isteyin.",
+        "pending": "İncelenecek bir şey yok. Masaüstü yapay zekâ uygulamanızdan kod veya kodlama önermesini isteyin.",
         "approved": "Henüz onaylanan değişiklik yok.",
         "denied": "Reddedilen değişiklik yok."
       },

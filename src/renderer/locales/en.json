@@ -2122,7 +2122,8 @@
       "appsTitle": "Let AI apps on this computer use this project?",
       "allowApps": "Allow",
       "notNow": "Not Now",
-      "stopApps": "Stop AI apps using it"
+      "stopApps": "Stop AI apps using it",
+      "responsibility": "It is your responsibility to ensure that your use of artificial intelligence complies with all legal and ethical obligations you owe towards relevant stakeholders."
     },
     "review": {
       "title": "AI Assistance",
@@ -2133,7 +2134,7 @@
         "denied": "Rejected ({{count}})"
       },
       "empty": {
-        "pending": "Nothing to review. Ask Claude Desktop (or another AI app) for suggested codes or codings.",
+        "pending": "Nothing to review. Ask your desktop AI app for suggested codes or codings.",
         "approved": "No changes approved yet.",
         "denied": "No changes rejected."
       },

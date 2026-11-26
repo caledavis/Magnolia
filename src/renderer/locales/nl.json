@@ -2122,7 +2122,8 @@
       "appsTitle": "AI-apps op deze computer dit project laten gebruiken?",
       "allowApps": "Toestaan",
       "notNow": "Niet nu",
-      "stopApps": "Gebruik door AI-apps stoppen"
+      "stopApps": "Gebruik door AI-apps stoppen",
+      "responsibility": "Je bent er zelf verantwoordelijk voor dat je gebruik van kunstmatige intelligentie voldoet aan alle wettelijke en ethische verplichtingen die je hebt tegenover de betrokken belanghebbenden."
     },
     "review": {
       "title": "AI-assistentie",
@@ -2133,7 +2134,7 @@
         "denied": "Afgewezen ({{count}})"
       },
       "empty": {
-        "pending": "Niets te beoordelen. Vraag Claude Desktop (of een andere AI-app) om voorgestelde codes of coderingen.",
+        "pending": "Niets te beoordelen. Vraag je AI-desktopapp om codes of coderingen voor te stellen.",
         "approved": "Nog geen wijzigingen goedgekeurd.",
         "denied": "Geen wijzigingen afgewezen."
       },

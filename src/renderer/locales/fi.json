@@ -2122,7 +2122,8 @@
       "appsTitle": "Sallitko tämän tietokoneen tekoälysovellusten käyttää tätä projektia?",
       "allowApps": "Salli",
       "notNow": "Ei nyt",
-      "stopApps": "Estä tekoälysovelluksia käyttämästä sitä"
+      "stopApps": "Estä tekoälysovelluksia käyttämästä sitä",
+      "responsibility": "Sinun vastuullasi on varmistaa, että tekoälyn käyttösi täyttää kaikki oikeudelliset ja eettiset velvoitteet, jotka sinulla on asianosaisia sidosryhmiä kohtaan."
     },
     "review": {
       "title": "Tekoälyapu",
@@ -2133,7 +2134,7 @@
         "denied": "Hylätyt ({{count}})"
       },
       "empty": {
-        "pending": "Ei tarkistettavaa. Pyydä Claude Desktopilta (tai muulta tekoälysovellukselta) ehdotuksia koodeiksi tai koodauksiksi.",
+        "pending": "Ei tarkistettavaa. Pyydä työpöydän tekoälysovellustasi ehdottamaan koodeja tai koodauksia.",
         "approved": "Muutoksia ei ole vielä hyväksytty.",
         "denied": "Muutoksia ei ole hylätty."
       },

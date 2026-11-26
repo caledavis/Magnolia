@@ -2122,7 +2122,8 @@
       "appsTitle": "Låta AI-appar på den här datorn använda det här projektet?",
       "allowApps": "Tillåt",
       "notNow": "Inte nu",
-      "stopApps": "Hindra AI-appar från att använda det"
+      "stopApps": "Hindra AI-appar från att använda det",
+      "responsibility": "Det är ditt ansvar att se till att din användning av artificiell intelligens uppfyller alla rättsliga och etiska skyldigheter som du har gentemot berörda intressenter."
     },
     "review": {
       "title": "AI-assistans",
@@ -2133,7 +2134,7 @@
         "denied": "Avvisade ({{count}})"
       },
       "empty": {
-        "pending": "Inget att granska. Be Claude Desktop (eller en annan AI-app) om förslag på koder eller kodningar.",
+        "pending": "Inget att granska. Be din AI-skrivbordsapp föreslå koder eller kodningar.",
         "approved": "Inga ändringar godkända än.",
         "denied": "Inga ändringar avvisade."
       },

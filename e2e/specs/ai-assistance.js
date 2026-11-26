@@ -43,6 +43,8 @@ async function spec(t) {
   let review = await t.until(findReview, 3000)
   t.check('the AI Assistance Viewer opens to ask', !!review && /Claude Desktop wants to use this project/.test(review.textContent), review?.textContent.slice(0, 200))
   t.check('nothing was read', ai.getState().sessions.length === 0)
+  t.check('it says the user is responsible for their use of AI', /It is your responsibility to ensure/.test(review.textContent))
+  { const box = [...review.querySelectorAll('[role="alert"]')][0]; const close = [...review.querySelectorAll('button')].find((b) => b.textContent === 'Close'); t.check('the box lines up with the heading', !!box && !!close && Math.abs(box.getBoundingClientRect().right - close.getBoundingClientRect().right) < 2, `${box?.getBoundingClientRect().right} vs ${close?.getBoundingClientRect().right}`) }
   ;[...review.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Allow')?.click()
   await t.sleep(50)
   t.check('allowing is kept with the project', ai.getState().projectAi().appsAllowed === true)

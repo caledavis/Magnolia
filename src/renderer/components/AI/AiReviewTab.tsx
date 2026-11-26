@@ -94,21 +94,24 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
         <button className="secondary" onClick={onClose}>{t('common.close')}</button>
       </div>
 
-      {!appsEnabled ? (
-        <Banner>
-          <span style={{ flex: 1 }}>{t('ai.review.appsOff')}</span>
-          <button type="button" onClick={openSettings}>{t('ai.pane.openSettings')}</button>
-        </Banner>
-      ) : !appsAllowed ? (
-        <Banner strong>
-          <strong style={{ flex: 1, color: 'var(--text-primary)' }}>{appRequest ? t('ai.pane.appAsks', { name: appRequest }) : t('ai.pane.appsTitle')}</strong>
-          {appRequest && <button type="button" className="secondary" onClick={() => useAiStore.getState().setAppRequest(null)}>{t('ai.pane.notNow')}</button>}
-          <button type="button" onClick={() => useAiStore.getState().allowApps(true)}>{t('ai.pane.allowApps')}</button>
-        </Banner>
-      ) : null}
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ maxWidth: 860, padding: '8px 20px 32px' }}>
+        <div style={{ padding: '8px 20px 32px' }}>
+          {!appsEnabled ? (
+            <Banner>
+              <span style={{ flex: 1 }}>{t('ai.review.appsOff')}</span>
+              <button type="button" onClick={openSettings}>{t('ai.pane.openSettings')}</button>
+            </Banner>
+          ) : !appsAllowed ? (
+            <Banner strong>
+              <div style={{ flex: 1 }}>
+                <strong style={{ color: 'var(--text-primary)' }}>{appRequest ? t('ai.pane.appAsks', { name: appRequest }) : t('ai.pane.appsTitle')}</strong>
+                <p style={{ margin: '4px 0 0' }}>{t('ai.pane.responsibility')}</p>
+              </div>
+              {appRequest && <button type="button" className="secondary" onClick={() => useAiStore.getState().setAppRequest(null)}>{t('ai.pane.notNow')}</button>}
+              <button type="button" onClick={() => useAiStore.getState().allowApps(true)}>{t('ai.pane.allowApps')}</button>
+            </Banner>
+          ) : null}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
             <SegmentedControl
               label={t('ai.review.show')}
@@ -170,7 +173,7 @@ function openSettings() {
 /** A notice across the top of the Viewer. */
 function Banner({ children, strong }: { children: React.ReactNode; strong?: boolean }) {
   return (
-    <div role={strong ? 'alert' : undefined} style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '8px 20px 0', padding: '12px 14px', maxWidth: 820, borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontSize: 12.5, lineHeight: 1.5, color: 'var(--text-secondary)' }}>
+    <div role={strong ? 'alert' : undefined} style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '0 0 12px', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontSize: 12.5, lineHeight: 1.5, color: 'var(--text-secondary)' }}>
       {children}
     </div>
   )
