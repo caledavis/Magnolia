@@ -2128,7 +2128,6 @@
     },
     "review": {
       "title": "AI-assistentie",
-      "subtitle": "De wijzigingen die de AI heeft voorgesteld. Er verandert niets in het project totdat je ze goedkeurt.",
       "show": "Tonen",
       "filter": {
         "pending": "Te beoordelen ({{count}})",

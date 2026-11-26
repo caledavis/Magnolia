@@ -2128,7 +2128,6 @@
     },
     "review": {
       "title": "AI Assistance",
-      "subtitle": "The changes AI apps have proposed. Nothing changes in the project until you approve it.",
       "show": "Show",
       "filter": {
         "pending": "To Review ({{count}})",

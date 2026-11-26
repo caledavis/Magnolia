@@ -2042,7 +2042,6 @@
     },
     "review": {
       "title": "AI 辅助",
-      "subtitle": "AI 建议的更改。在您批准之前，项目不会有任何变化。",
       "show": "显示",
       "filter": {
         "pending": "待审核（{{count}}）",

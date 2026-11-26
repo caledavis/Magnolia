@@ -2214,7 +2214,6 @@
     },
     "review": {
       "title": "Assistance IA",
-      "subtitle": "Les modifications proposées par l’IA. Rien ne change dans le projet tant que vous ne les avez pas approuvées.",
       "show": "Afficher",
       "filter": {
         "pending": "À examiner ({{count}})",

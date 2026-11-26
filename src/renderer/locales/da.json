@@ -2128,7 +2128,6 @@
     },
     "review": {
       "title": "AI-assistance",
-      "subtitle": "De ændringer, AI’en har foreslået. Intet ændres i projektet, før du godkender det.",
       "show": "Vis",
       "filter": {
         "pending": "Til gennemgang ({{count}})",

@@ -1849,7 +1849,6 @@
     "ai.pane.notNow": "Not Now",
     "ai.pane.stopApps": "Stop AI apps using it",
     "ai.review.title": "AI Assistance",
-    "ai.review.subtitle": "The changes AI apps have proposed. Nothing changes in the project until you approve it.",
     "ai.review.show": "Show",
     "ai.review.filter.pending": "To Review ({{count}})",
     "ai.review.filter.approved": "Approved ({{count}})",

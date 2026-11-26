@@ -2214,7 +2214,6 @@
     },
     "review": {
       "title": "Assistência de IA",
-      "subtitle": "As alterações que a IA propôs. Nada muda no projeto até as aprovar.",
       "show": "Mostrar",
       "filter": {
         "pending": "Por rever ({{count}})",

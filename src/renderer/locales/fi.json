@@ -2128,7 +2128,6 @@
     },
     "review": {
       "title": "Tekoälyapu",
-      "subtitle": "Tekoälyn ehdottamat muutokset. Projektissa ei muutu mitään, ennen kuin hyväksyt muutoksen.",
       "show": "Näytä",
       "filter": {
         "pending": "Tarkistettavat ({{count}})",

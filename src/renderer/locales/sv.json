@@ -2128,7 +2128,6 @@
     },
     "review": {
       "title": "AI-assistans",
-      "subtitle": "Ändringarna som AI:n har föreslagit. Inget ändras i projektet förrän du godkänner det.",
       "show": "Visa",
       "filter": {
         "pending": "Att granska ({{count}})",

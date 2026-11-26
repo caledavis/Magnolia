@@ -2128,7 +2128,6 @@
     },
     "review": {
       "title": "Yapay zekâ yardımı",
-      "subtitle": "Yapay zekânın önerdiği değişiklikler. Siz onaylayana kadar projede hiçbir şey değişmez.",
       "show": "Göster",
       "filter": {
         "pending": "İncelenecek ({{count}})",

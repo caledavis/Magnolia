@@ -2128,7 +2128,6 @@
     },
     "review": {
       "title": "KI-assistanse",
-      "subtitle": "Endringene KI-en har foreslått. Ingenting endres i prosjektet før du godkjenner det.",
       "show": "Vis",
       "filter": {
         "pending": "Til gjennomgang ({{count}})",

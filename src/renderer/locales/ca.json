@@ -2214,7 +2214,6 @@
     },
     "review": {
       "title": "Assistència d’IA",
-      "subtitle": "Els canvis que ha proposat la IA. No canvia res al projecte fins que no ho aproveu.",
       "show": "Mostra",
       "filter": {
         "pending": "Per revisar ({{count}})",

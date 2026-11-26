@@ -2042,7 +2042,6 @@
     },
     "review": {
       "title": "AI 支援",
-      "subtitle": "AI が提案した変更です。承認するまで、プロジェクトは何も変わりません。",
       "show": "表示",
       "filter": {
         "pending": "確認待ち（{{count}}）",

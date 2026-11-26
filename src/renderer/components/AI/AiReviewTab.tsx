@@ -82,20 +82,17 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-primary)' }}>
-      <header style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 24px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-panel)' }}>
-        <span aria-hidden style={{ display: 'grid', placeItems: 'center', width: 34, height: 34, borderRadius: 8, background: 'color-mix(in srgb, var(--rb-gold) 16%, transparent)', flexShrink: 0 }}>
-          <Icon icon={faSparkles} className={PALETTE_ICON_CLASS} style={{ width: 18, height: 18 }} />
-        </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>{t('ai.review.title')}</h2>
-          <p style={{ margin: '2px 0 0', fontSize: 11.5, color: 'var(--text-muted)' }}>{t('ai.review.subtitle')}</p>
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      <div style={{ padding: '14px 20px 6px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', flex: 1, minWidth: 0 }}>
+          <Icon icon={faSparkles} className="analysis-header-icon" style={{ fontSize: 16 }} />
+          {t('ai.review.title')}
+        </h2>
         {appsEnabled && appsAllowed && (
           <button type="button" className="secondary" onClick={() => useAiStore.getState().allowApps(false)}>{t('ai.pane.stopApps')}</button>
         )}
         <button className="secondary" onClick={onClose}>{t('common.close')}</button>
-      </header>
+      </div>
 
       {!appsEnabled ? (
         <Banner>
@@ -115,7 +112,7 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
       ) : null}
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ maxWidth: 860, margin: '0 auto', padding: '16px 24px 32px' }}>
+        <div style={{ maxWidth: 860, padding: '8px 20px 32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
             <SegmentedControl
               label={t('ai.review.show')}
@@ -178,7 +175,7 @@ function openSettings() {
 /** A notice across the top of the Viewer. */
 function Banner({ children, strong }: { children: React.ReactNode; strong?: boolean }) {
   return (
-    <div role={strong ? 'alert' : undefined} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 24px', borderBottom: '1px solid var(--border-color)', background: strong ? 'color-mix(in srgb, var(--rb-gold) 10%, var(--bg-panel))' : 'var(--bg-secondary)', fontSize: 12.5, lineHeight: 1.5, color: 'var(--text-secondary)' }}>
+    <div role={strong ? 'alert' : undefined} style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '8px 20px 0', padding: '12px 14px', maxWidth: 820, borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontSize: 12.5, lineHeight: 1.5, color: 'var(--text-secondary)' }}>
       {children}
     </div>
   )

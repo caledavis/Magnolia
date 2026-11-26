@@ -2128,7 +2128,6 @@
     },
     "review": {
       "title": "KI-Assistenz",
-      "subtitle": "Die Änderungen, die die KI vorgeschlagen hat. Im Projekt ändert sich nichts, bis Sie sie annehmen.",
       "show": "Anzeigen",
       "filter": {
         "pending": "Zu prüfen ({{count}})",

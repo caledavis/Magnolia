@@ -2300,7 +2300,6 @@
     },
     "review": {
       "title": "Asistence AI",
-      "subtitle": "Změny, které AI navrhla. V projektu se nic nezmění, dokud změnu neschválíte.",
       "show": "Zobrazit",
       "filter": {
         "pending": "Ke kontrole ({{count}})",

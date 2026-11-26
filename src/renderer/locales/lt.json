@@ -2300,7 +2300,6 @@
     },
     "review": {
       "title": "DI pagalba",
-      "subtitle": "DI pasiūlyti pakeitimai. Projekte niekas nepasikeis, kol jų nepatvirtinsite.",
       "show": "Rodyti",
       "filter": {
         "pending": "Laukia peržiūros ({{count}})",
