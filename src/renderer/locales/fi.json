@@ -2122,7 +2122,7 @@
       "appsTitle": "Sallitko tämän tietokoneen tekoälysovellusten käyttää tätä projektia?",
       "allowApps": "Salli",
       "notNow": "Ei nyt",
-      "stopApps": "Estä tekoälysovelluksia käyttämästä sitä",
+      "stopApps": "Peru tekoälyn käyttöoikeus",
       "responsibility": "Sinun vastuullasi on varmistaa, että tekoälyn käyttösi täyttää kaikki oikeudelliset ja eettiset velvoitteet, jotka sinulla on asianosaisia sidosryhmiä kohtaan."
     },
     "review": {

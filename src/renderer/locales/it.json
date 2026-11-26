@@ -2208,7 +2208,7 @@
       "appsTitle": "Consentire alle app di IA su questo computer di usare questo progetto?",
       "allowApps": "Consenti",
       "notNow": "Non ora",
-      "stopApps": "Impedisci alle app di IA di usarlo",
+      "stopApps": "Revoca accesso IA",
       "responsibility": "È tua responsabilità assicurarti che il tuo uso dell’intelligenza artificiale rispetti tutti gli obblighi legali ed etici che hai nei confronti delle parti interessate."
     },
     "review": {

@@ -2294,7 +2294,7 @@
       "appsTitle": "Povolit aplikacím AI na tomto počítači používat tento projekt?",
       "allowApps": "Povolit",
       "notNow": "Teď ne",
-      "stopApps": "Zakázat aplikacím AI jeho používání",
+      "stopApps": "Odebrat přístup AI",
       "responsibility": "Je vaší odpovědností zajistit, aby vaše používání umělé inteligence bylo v souladu se všemi právními a etickými povinnostmi, které máte vůči dotčeným stranám."
     },
     "review": {

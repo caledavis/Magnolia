@@ -1845,7 +1845,7 @@
     "ai.pane.appsTitle": "Let AI apps on this computer use this project?",
     "ai.pane.allowApps": "Allow",
     "ai.pane.notNow": "Not Now",
-    "ai.pane.stopApps": "Stop AI apps using it",
+    "ai.pane.stopApps": "Revoke AI Access",
     "ai.pane.responsibility": "It is your responsibility to ensure that your use of artificial intelligence complies with all legal and ethical obligations you owe towards relevant stakeholders.",
     "ai.review.title": "AI Assistance",
     "ai.review.show": "Show",

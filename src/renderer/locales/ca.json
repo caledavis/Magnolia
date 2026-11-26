@@ -2208,7 +2208,7 @@
       "appsTitle": "Voleu permetre que les aplicacions d’IA d’aquest ordinador facin servir aquest projecte?",
       "allowApps": "Permet",
       "notNow": "Ara no",
-      "stopApps": "Impedeix que les aplicacions d’IA el facin servir",
+      "stopApps": "Revoca l’accés de la IA",
       "responsibility": "És responsabilitat vostra assegurar-vos que l’ús que feu de la intel·ligència artificial compleix totes les obligacions legals i ètiques que teniu envers les parts interessades pertinents."
     },
     "review": {

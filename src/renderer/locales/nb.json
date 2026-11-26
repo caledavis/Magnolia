@@ -2122,7 +2122,7 @@
       "appsTitle": "La KI-apper på denne datamaskinen bruke dette prosjektet?",
       "allowApps": "Tillat",
       "notNow": "Ikke nå",
-      "stopApps": "Hindre KI-apper i å bruke det",
+      "stopApps": "Tilbakekall KI-tilgang",
       "responsibility": "Det er ditt ansvar å sørge for at bruken din av kunstig intelligens oppfyller alle juridiske og etiske forpliktelser du har overfor relevante interessenter."
     },
     "review": {

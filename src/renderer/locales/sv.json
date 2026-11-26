@@ -2122,7 +2122,7 @@
       "appsTitle": "Låta AI-appar på den här datorn använda det här projektet?",
       "allowApps": "Tillåt",
       "notNow": "Inte nu",
-      "stopApps": "Hindra AI-appar från att använda det",
+      "stopApps": "Återkalla AI-åtkomst",
       "responsibility": "Det är ditt ansvar att se till att din användning av artificiell intelligens uppfyller alla rättsliga och etiska skyldigheter som du har gentemot berörda intressenter."
     },
     "review": {

@@ -2294,7 +2294,7 @@
       "appsTitle": "Leisti šio kompiuterio DI programoms naudoti šį projektą?",
       "allowApps": "Leisti",
       "notNow": "Ne dabar",
-      "stopApps": "Neleisti DI programoms jo naudoti",
+      "stopApps": "Atšaukti DI prieigą",
       "responsibility": "Jūs atsakote už tai, kad dirbtinio intelekto naudojimas atitiktų visus teisinius ir etinius įsipareigojimus, kuriuos turite atitinkamoms suinteresuotosioms šalims."
     },
     "review": {

@@ -2122,7 +2122,7 @@
       "appsTitle": "Bu bilgisayardaki yapay zekâ uygulamaları bu projeyi kullanabilsin mi?",
       "allowApps": "İzin ver",
       "notNow": "Şimdi değil",
-      "stopApps": "Yapay zekâ uygulamalarının erişimini durdur",
+      "stopApps": "Yapay zekâ erişimini kaldır",
       "responsibility": "Yapay zekâyı kullanımınızın, ilgili paydaşlara karşı tüm yasal ve etik yükümlülüklerinize uygun olmasını sağlamak sizin sorumluluğunuzdadır."
     },
     "review": {

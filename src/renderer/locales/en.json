@@ -2122,7 +2122,7 @@
       "appsTitle": "Let AI apps on this computer use this project?",
       "allowApps": "Allow",
       "notNow": "Not Now",
-      "stopApps": "Stop AI apps using it",
+      "stopApps": "Revoke AI Access",
       "responsibility": "It is your responsibility to ensure that your use of artificial intelligence complies with all legal and ethical obligations you owe towards relevant stakeholders."
     },
     "review": {
