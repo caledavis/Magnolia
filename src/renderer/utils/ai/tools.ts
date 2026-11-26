@@ -18,6 +18,8 @@ import { flattenCodesWithDepth } from '../code-tree'
 import { buildCellText } from '../survey/cell-text'
 import { textForSelection } from '../query-engine'
 import toolSpecs from './tool-specs.json'
+import { codeColourPresetsFor } from '../code-colours'
+import { usePreferencesStore } from '../../stores/preferences-store'
 
 /** A passage a chat has shown the AI (cited as [P12]). */
 export interface PassageRef {
@@ -38,12 +40,14 @@ export interface ChatRefs {
   passages: Record<string, PassageRef>
   /** N1… : proposals of new codes. */
   newCodes: Record<string, string>
+  /** Their colours, chosen when proposed (so they show as they'll be). */
+  newCodeColours?: Record<string, string>
 }
 
 export const emptyRefs = (): ChatRefs => ({ documents: {}, codes: {}, passages: {}, newCodes: {} })
 
 export type AiChange =
-  | { type: 'newCode'; ref: string; name: string; description?: string; parentGuid?: string; parentRef?: string }
+  | { type: 'newCode'; ref: string; name: string; description?: string; parentGuid?: string; parentRef?: string; color?: string }
   | { type: 'editCode'; codeGuid: string; name?: string; description?: string; move?: { parentGuid?: string; parentRef?: string } }
   | { type: 'addCoding'; sourceGuid: string; start: number; end: number; surveyCell?: { respondentId: string; questionId: string }; codeGuid?: string; codeRef?: string; text: string }
   | { type: 'removeCoding'; sourceGuid: string; selectionGuid: string; codingGuid: string; codeGuid: string; text: string }
@@ -366,10 +370,17 @@ function proposeNewCode(input: Input, refs: ChatRefs): ToolOutcome {
   }
   const ref = `N${Object.keys(refs.newCodes).length + 1}`
   refs.newCodes[ref] = name
+  // Its colour, as the user would choose it: its parent's, else the next
+  // of the palette.
+  const palette = codeColourPresetsFor(usePreferencesStore.getState())
+  const color = (parent.parentGuid && useCodeStore.getState().findCode(parent.parentGuid)?.color)
+    || (parent.parentRef && refs.newCodeColours?.[parent.parentRef])
+    || palette[(useCodeStore.getState().flatCodes().length + Object.keys(refs.newCodes).length - 1) % palette.length]
+  refs.newCodeColours = { ...refs.newCodeColours, [ref]: color }
   const description = typeof input.description === 'string' && input.description.trim() ? input.description.trim() : undefined
   return {
     content: `Proposed as ${ref} (not created until the user approves it). Use ${ref} as the code of proposed codings.`,
-    proposals: [{ change: { type: 'newCode', ref, name, description, ...parent }, reason: String(input.reason ?? '') }]
+    proposals: [{ change: { type: 'newCode', ref, name, description, ...parent, color }, reason: String(input.reason ?? '') }]
   }
 }
 

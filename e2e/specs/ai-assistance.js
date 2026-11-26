@@ -70,8 +70,23 @@ async function spec(t) {
 
   const cards = () => [...review.querySelectorAll('section > ul > li')]
   t.check('the Viewer lists each change as it comes, with its passage in context', !!(await t.until(() => cards().length === 3, 3000)) && cards().some((c) => c.querySelector('mark')?.textContent === quote), cards().map((c) => c.textContent.slice(0, 60)).join(' | '))
-  const r = await window.axe.run(review, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, resultTypes: ['violations'] })
-  t.check('the Viewer passes axe', r.violations.length === 0, r.violations.map((v) => v.id + ': ' + v.nodes.slice(0, 2).map((n) => n.html.slice(0, 100)).join(' / ')).join(' || '))
+  // axe, in each theme.
+  const axeThemes = async (el) => {
+    const before = document.documentElement.getAttribute('data-theme')
+    const found = []
+    for (const theme of ['magnolia', 'magnolia-dark', 'high-contrast']) {
+      document.documentElement.setAttribute('data-theme', theme)
+      await t.sleep(150)
+      const res = await window.axe.run(el, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, resultTypes: ['violations'] })
+      for (const v of res.violations) found.push(`[${theme}] ${v.id}: ` + v.nodes.slice(0, 2).map((n) => n.html.slice(0, 90) + ' — ' + (n.failureSummary ?? '').replace(/\s+/g, ' ').slice(0, 120)).join(' / '))
+    }
+    if (before) document.documentElement.setAttribute('data-theme', before); else document.documentElement.removeAttribute('data-theme')
+    return found
+  }
+  const pips = cards().filter((c) => c.querySelector('span[aria-hidden][style*="border-radius: 50%"]'))
+  t.check('the new code and its coding show the code\'s colour', pips.length >= 2, String(pips.length))
+  const v1 = await axeThemes(review)
+  t.check('the Viewer passes axe in every theme, with changes to review', v1.length === 0, v1.join(' || ').slice(0, 1200))
 
   // A new code under another reads as Parent/New code; rejected.
   ask('propose_new_code', { name: 'Child test', parent: cRef ?? 'C1', reason: 'Narrower.' })
@@ -110,6 +125,17 @@ async function spec(t) {
   t.check('and puts them back to be reviewed', ai.getState().proposals.filter((p) => p.status === 'pending').length === 2)
   undo.getState().redo()
   t.check('Redo makes them again, approved', codes.getState().flatCodes().some((c) => c.name === 'Test AI code') && ai.getState().proposals.filter((p) => p.status === 'approved').length === 2)
+
+  // Decided changes, on each filter, in each theme.
+  const filterBtn = (name) => [...review.querySelectorAll('[role="radio"]')].find((b) => b.textContent.startsWith(name))
+  const v2 = []
+  for (const name of ['Approved', 'Rejected']) {
+    filterBtn(name)?.click()
+    await t.sleep(150)
+    v2.push(...(await axeThemes(review)).map((x) => `${name}: ${x}`))
+  }
+  t.check('and with decided ones', v2.length === 0, v2.join(' || ').slice(0, 1200))
+  filterBtn('To Review')?.click()
 
   // Preferences → AI Assistance.
   docs.getState().openToolTab((await t.module('utils/tab-ids')).PREFERENCES_TAB_ID)

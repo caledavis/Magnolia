@@ -158,7 +158,7 @@ export function approve(ids: string[]): { applied: number; failed: number } {
       const parentGuid = resolve(p.chatId, c.parentGuid, c.parentRef)
       if ((c.parentGuid || c.parentRef) && (!parentGuid || !codes.findCode(parentGuid))) { failed(t('ai.fail.noParent')); continue }
       const parent = parentGuid ? codes.findCode(parentGuid) : undefined
-      const colour = parent?.color || palette[codes.flatCodes().length % palette.length]
+      const colour = c.color || parent?.color || palette[codes.flatCodes().length % palette.length]
       const guid = useCodeStore.getState().addCode(c.name, colour, parentGuid)
       if (c.description) useCodeStore.getState().setCodeDescription(guid, c.description)
       created[`${p.chatId}:${c.ref}`] = guid

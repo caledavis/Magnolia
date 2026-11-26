@@ -24,7 +24,7 @@ import { PREFERENCES_TAB_ID } from '../../utils/tab-ids'
 import { requestPreferencesCategory } from '../Preferences/PreferencesWindow'
 import type { Code, SurveyFormatData } from '../../models/types'
 import type { AiChange } from '../../utils/ai/tools'
-import { Icon, faSparkles } from '../Icon'
+import { Icon, faSparkles, faCheck, faXmark } from '../Icon'
 import { SegmentedControl } from '../Analysis/SegmentedControl'
 import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
 
@@ -199,9 +199,9 @@ function Context({ sourceGuid, start, end, cell }: { sourceGuid: string; start: 
   const after = chars.slice(end, end + 120).join('')
   return (
     <blockquote style={{ margin: '8px 0 0', padding: '8px 12px', borderRadius: 6, background: 'var(--bg-secondary)', fontSize: 12.5, lineHeight: 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-      <span style={{ color: 'var(--text-muted)' }}>{start > 120 ? '…' : ''}{before}</span>
-      <mark style={{ background: 'var(--selection-bg)', color: 'inherit' }}>{passage}</mark>
-      <span style={{ color: 'var(--text-muted)' }}>{after}{end + 120 < chars.length ? '…' : ''}</span>
+      <span style={{ color: 'var(--text-secondary)' }}>{start > 120 ? '…' : ''}{before}</span>
+      <mark style={{ background: 'var(--selection-bg)', color: 'var(--text-primary)', fontWeight: 500 }}>{passage}</mark>
+      <span style={{ color: 'var(--text-secondary)' }}>{after}{end + 120 < chars.length ? '…' : ''}</span>
     </blockquote>
   )
 }
@@ -256,9 +256,13 @@ function ProposalCard({ p, chosen, onToggle, onApprove, onReject }: { p: AiPropo
     if (!proposal || proposal.change.type !== 'newCode') return [ref]
     return [...path(proposal.change.parentGuid, proposal.change.parentRef), proposal.change.name]
   }
-  const colourOf = (guid?: string, ref?: string) => {
+  /** A code's colour; a proposed one's, as chosen when proposed. */
+  const colourOf = (guid?: string, ref?: string): string | undefined => {
     const g = guid ?? (ref ? created[`${p.chatId}:${ref}`] : undefined)
-    return (g && pathOf(codes, g)?.at(-1)?.color) || undefined
+    const existing = g ? pathOf(codes, g)?.at(-1)?.color : undefined
+    if (existing || !ref) return existing
+    const proposal = proposals.find((x) => x.chatId === p.chatId && x.change.type === 'newCode' && x.change.ref === ref)
+    return proposal?.change.type === 'newCode' ? proposal.change.color : undefined
   }
   const needs = p.status === 'pending' ? withRequirements([p.id], proposals).filter((id) => id !== p.id) : []
   const open = (sourceGuid: string, start: number, end: number) => useDocumentStore.getState().viewDocumentAt(sourceGuid, start, end)
@@ -270,7 +274,7 @@ function ProposalCard({ p, chosen, onToggle, onApprove, onReject }: { p: AiPropo
   let accent = KIND_COLOUR[c.type]
   if (c.type === 'newCode') {
     kind = t('ai.review.kind.newCode')
-    title = <CodePath parts={[...path(c.parentGuid, c.parentRef), c.name]} color={colourOf(c.parentGuid, c.parentRef)} />
+    title = <CodePath parts={[...path(c.parentGuid, c.parentRef), c.name]} color={c.color ?? colourOf(c.parentGuid, c.parentRef)} />
     if (c.description) body = <p style={{ margin: '6px 0 0', fontSize: 12.5, color: 'var(--text-secondary)' }}>{c.description}</p>
   } else if (c.type === 'editCode') {
     kind = t('ai.review.kind.editCode')
@@ -295,13 +299,17 @@ function ProposalCard({ p, chosen, onToggle, onApprove, onReject }: { p: AiPropo
     body = sel ? <Context sourceGuid={c.sourceGuid} start={sel.startPosition} end={sel.endPosition} cell={sel.surveyCell} /> : <p style={{ fontSize: 12.5 }}>“{c.text}”</p>
   }
   const at = c.type === 'addCoding' ? { g: c.sourceGuid, s: c.start, e: c.end } : null
+  // The colour is in the icon; the word is in the text colour (coloured
+  // text this small doesn't contrast enough on every theme).
+  const statusIcon = p.status === 'approved' ? faCheck : faXmark
   const statusColour = p.status === 'approved' ? 'var(--success)' : p.status === 'failed' ? 'var(--danger)' : 'var(--text-muted)'
 
   return (
     <li style={{
       position: 'relative', display: 'flex', gap: 12, padding: '12px 14px 12px 16px', borderRadius: 8,
-      background: 'var(--bg-panel)', border: '1px solid var(--border-color)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-      borderInlineStart: `3px solid ${accent}`, opacity: pending ? 1 : 0.78
+      border: '1px solid var(--border-color)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+      borderInlineStart: `3px solid ${pending ? accent : 'var(--border-color)'}`,
+      background: 'var(--bg-panel)'
     }}>
       {pending && <input type="checkbox" checked={chosen} onChange={onToggle} aria-label={t('ai.review.choose')} style={{ marginTop: 2 }} />}
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -314,7 +322,12 @@ function ProposalCard({ p, chosen, onToggle, onApprove, onReject }: { p: AiPropo
           <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{t('ai.review.reason', { reason: p.reason })}</p>
         )}
         {needs.length > 0 && <p style={{ margin: '4px 0 0', fontSize: 11.5, color: 'var(--text-muted)' }}>{t('ai.review.alsoApproves', { count: needs.length })}</p>}
-        {p.status === 'failed' && <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--danger)' }}>{t('ai.review.failed', { why: p.failure ?? '' })}</p>}
+        {p.status === 'failed' && (
+          <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)' }}>
+            <Icon icon={faXmark} style={{ color: 'var(--danger)', width: 13, height: 13, flexShrink: 0 }} />
+            {t('ai.review.failed', { why: p.failure ?? '' })}
+          </p>
+        )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, fontSize: 11, color: 'var(--text-muted)' }}>
           <span>{p.model}</span>
           {at && <button type="button" onClick={() => open(at.g, at.s, at.e)} style={{ padding: 0, border: 'none', background: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: 11 }}>{t('ai.review.showInDocument')}</button>}
@@ -325,7 +338,10 @@ function ProposalCard({ p, chosen, onToggle, onApprove, onReject }: { p: AiPropo
               <button onClick={onApprove}>{t('ai.review.approve')}</button>
             </>
           ) : (
-            <span style={{ fontWeight: 600, color: statusColour }}>{t(`ai.review.status.${p.status}`)}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 600, color: 'var(--text-secondary)' }}>
+              <Icon icon={statusIcon} style={{ color: statusColour, width: 13, height: 13 }} />
+              {t(`ai.review.status.${p.status}`)}
+            </span>
           )}
         </div>
       </div>
