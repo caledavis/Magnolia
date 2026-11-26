@@ -233,3 +233,18 @@ instance, adds `_many`).
   インポート/エクスポート be better for researchers? Memos are メモ and
   notebook notes ノート. The Zotero message uses Zotero's Japanese setting
   names from memory: please check them against Zotero.
+- **AI Assistance (all languages, added November 2026):** please check:
+  - the feature's name (for example *Asistencia de IA*, *KI-Assistenz*, *Assistance IA*, *Помощь ИИ*, *AI 辅助*);
+  - the words for **Approve** and **Deny**;
+  - **keychain**: the drafts use macOS's word (*llavero*, *Schlüsselbund*, *trousseau*…), but Windows (Credential Manager) and Linux (the keyring) use other words;
+  - **ethics approval**: is it the usual research term?
+  - the example questions in the empty chat, which speak to the AI (informally in French and German).
+  
+  Per language:
+  - **Hebrew:** "the AI" is feminine (הבינה המלאכותית).
+  - **Turkish:** the lines built around a colon so names take no suffix ("Anahtar alın: {{name}}.").
+  - **Finnish:** names left uninflected after a noun ("palvelusta {{name}}").
+  - **Greek:** ΤΝ, or the Latin "AI"?
+  - **Lithuanian:** *raktinė* for the keychain. Separately, the existing `intercoder.passageCount_many` and `_other` look swapped.
+  - **European Portuguese and Catalan:** the consent text's way of addressing the user.
+  - **Japanese:** "{{count}} 件を確認" on the pane's review button.

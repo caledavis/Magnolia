@@ -89,7 +89,8 @@
       "sponsor": "Magnolia’ya sponsor ol…",
       "aboutCredits": "Özgür ve açık kaynaklı nitel veri analizi.",
       "aboutBuiltWith": "Tauri, Rust, React, TipTap ve PDF.js ile geliştirildi. Simgeler Lucide’dan.",
-      "diagnostics": "Tanılama bilgileri…"
+      "diagnostics": "Tanılama bilgileri…",
+      "panelAssistant": "Yapay zekâ yardımı"
     },
     "dialog": {
       "openProject": "QDPX projesi aç",
@@ -260,7 +261,8 @@
     "queries": "Sorgular",
     "memos": "Kayıtlı memolar",
     "quotes": "Kayıtlı alıntılar",
-    "analyses": "Kayıtlı analizler"
+    "analyses": "Kayıtlı analizler",
+    "assistant": "Yapay zekâ yardımı"
   },
   "toolbar": {
     "label": "Araç çubuğu",
@@ -1322,7 +1324,8 @@
       "mediaPlayback": "Medya oynatma",
       "paperSize": "Kâğıt boyutu",
       "updates": "Güncellemeler",
-      "support": "Magnolia’yı destekleyin"
+      "support": "Magnolia’yı destekleyin",
+      "aiAssistance": "Yapay zekâ yardımı"
     },
     "toolbarStyle": {
       "ribbon": "Şerit",
@@ -1401,7 +1404,8 @@
       "logbook": "Günlük",
       "memos": "Memolar",
       "quotes": "Alıntılar",
-      "tabs": "Sekmeler"
+      "tabs": "Sekmeler",
+      "ai": "Yapay zekâ yardımı"
     },
     "mergeBlocks": "Diğer panelleri kullanmak için birleştirmeyi bitirin ya da iptal edin",
     "noCodesInReport": "Kodlar rapora eklenemez",
@@ -2093,5 +2097,166 @@
     "copy": "Kopyala",
     "copied": "Kopyalandı. Bildiriminize yapıştırın.",
     "copyFailed": "Kopyalanamadı: metni seçip kendiniz kopyalayın."
+  },
+  "ai": {
+    "prefs": {
+      "intro": "Yapay zekâ yardımı kendi yapay zekâ hizmetinizi kullanır: Anthropic, OpenAI ya da başka bir sağlayıcıdan alınan bir anahtar (kullandığınız kadar, Claude veya ChatGPT aboneliğinden ayrı olarak sağlayıcı tarafından ücretlendirilir) ya da bu bilgisayarda çalışan bir model.",
+      "privacy": "Bir proje için yapay zekâ yardımını açana kadar o projeden hiçbir şey gönderilmez. Sonrasında yapay zekâ yalnızca istediği şeyleri okur ve sohbette okuduğu her şey gösterilir. Etik kurul onayınızın verilerinizin seçtiğiniz hizmete gönderilmesine izin verdiğinden emin olun; bu bilgisayardaki bir model her şeyi bilgisayarda tutar.",
+      "service": "Hizmet",
+      "none": "Yok (yapay zekâ yardımı kapalı)",
+      "custom": "Başka bir hizmet…",
+      "onThisComputer": "{{name}} (bu bilgisayarda)",
+      "kind": "API türü",
+      "kindOpenai": "OpenAI uyumlu",
+      "kindAnthropic": "Anthropic",
+      "address": "Adres",
+      "localNote": "Bu hizmet bu bilgisayarda çalışır: yapay zekânın okuduğu her şey burada kalır. Yapay zekâ yardımını kullanmadan önce hizmeti başlatın.",
+      "key": "API anahtarı",
+      "keyOptional": "API anahtarı (hizmet gerektiriyorsa)",
+      "keySaved": "Bu adres için kayıtlı bir anahtar var.",
+      "removeKey": "Anahtarı kaldır",
+      "saveKey": "Anahtarı kaydet",
+      "getKey": "Anahtar alın: {{name}}.",
+      "keyCost": "Hizmet, kullandığınız kadar ücret alır.",
+      "keyKept": "Anahtarınız bilgisayarınızın anahtar zincirinde saklanır ve yalnızca bu adrese gönderilir.",
+      "model": "Model",
+      "check": "Bağlantıyı denetle",
+      "checking": "Denetleniyor…",
+      "connected_one": "Bağlandı. Hizmet {{count}} model sunuyor.",
+      "connected_other": "Bağlandı. Hizmet {{count}} model sunuyor."
+    },
+    "error": {
+      "noKey": "Bu hizmet için anahtar yok. Ayarlar → Yapay zekâ yardımı bölümünden bir anahtar ekleyin.",
+      "auth": "Hizmet anahtarı kabul etmedi.",
+      "notFound": "Hizmet adresi ya da modeli tanımadı.",
+      "rateLimit": "Hizmet çok fazla istek gönderildiğini bildiriyor. Bir dakika bekleyip yeniden deneyin.",
+      "overloaded": "Hizmet meşgul. Biraz sonra yeniden deneyin.",
+      "unreachable": "Magnolia hizmete ulaşamadı. Adresi ve bağlantınızı denetleyin (bu bilgisayardaki bir model için de modelin çalıştığını).",
+      "badAddress": "Bu, Magnolia’nın kullanabileceği bir web adresi değil.",
+      "keychain": "Magnolia bilgisayarınızın anahtar zincirini kullanamadı.",
+      "provider": "Hizmet bir sorun bildirdi.",
+      "cancelled": "Durduruldu.",
+      "tooManySteps": "Yapay zekâ birçok adımdan sonra hâlâ çalışıyordu, bu yüzden Magnolia onu durdurdu. Devam etmesini isteyin ya da soruyu daraltın."
+    },
+    "activity": {
+      "listDocuments_one": "Projenin {{count}} belgesi listelendi",
+      "listDocuments_other": "Projenin {{count}} belgesi listelendi",
+      "listCodes_one": "Projenin {{count}} kodu listelendi",
+      "listCodes_other": "Projenin {{count}} kodu listelendi",
+      "read": "{{name}} okundu (karakter {{from}}–{{to}}, toplam {{total}})",
+      "readSurvey_one": "{{name}} içinde {{count}} yanıt okundu",
+      "readSurvey_other": "{{name}} içinde {{count}} yanıt okundu",
+      "search_one": "“{{text}}” arandı ({{count}} eşleşme)",
+      "search_other": "“{{text}}” arandı ({{count}} eşleşme)",
+      "codedPassages_one": "{{name}} koduyla kodlanmış {{count}} pasaj okundu",
+      "codedPassages_other": "{{name}} koduyla kodlanmış {{count}} pasaj okundu",
+      "proposedCode": "Yeni bir kod önerildi: {{name}}",
+      "proposedChange": "Bir değişiklik önerildi: {{name}}",
+      "proposedCoding": "{{name}} içindeki bir pasajın {{code}} koduyla kodlanması önerildi",
+      "proposedRemoval": "{{name}} içindeki bir pasajdan {{code}} kodunun kaldırılması önerildi",
+      "problem": "Var olmayan bir şey istendi",
+      "unknownTool": "Magnolia’da olmayan bir araç istendi ({{name}})",
+      "failed": "Bir istek başarısız oldu ({{name}})",
+      "cutOff": "Bir istek yarıda kesildi"
+    },
+    "log": {
+      "title_one": "Yapay zekâ yardımı: {{count}} değişiklik onaylandı",
+      "title_other": "Yapay zekâ yardımı: {{count}} değişiklik onaylandı",
+      "intro": "Öneren model: {{model}}. Sorulan:",
+      "newCode": "Yeni kod **{{name}}**",
+      "editCode": "Kod değiştirildi: **{{name}}**",
+      "addCoding": "{{document}} içinde “{{quote}}”, **{{code}}** koduyla kodlandı",
+      "removeCoding": "{{document}} içinde “{{quote}}” alıntısından **{{code}}** kaldırıldı"
+    },
+    "fail": {
+      "noParent": "Altına girmesi gereken kod artık projede yok.",
+      "noCode": "Kod artık projede yok.",
+      "noDocument": "Belge artık projede yok.",
+      "textChanged": "Öneri yapıldıktan sonra belgenin o kısımdaki metni değişti.",
+      "codingGone": "Bu kodlama artık projede yok."
+    },
+    "pane": {
+      "noService": "Yapay zekâ yardımı kendi yapay zekâ hizmetinizi kullanır. Ayarlar’dan bir hizmet ve modelini seçin.",
+      "openSettings": "Ayarları aç",
+      "consentTitle": "Bu proje için yapay zekâ yardımı açılsın mı?",
+      "consentChanged": "Yapay zekâ hizmeti değişti. Bu proje için yapay zekâ yardımı yeni hizmetle açılsın mı?",
+      "consentRemote": "Yapay zekâ, size yanıt vermek için bu projenin gereken kısımlarını okuyacak ve bunlar şu hizmete gönderilecek: {{name}} ({{address}}). Bunun verileriniz için izinli olduğundan emin olun (örneğin etik kurul onayınızla).",
+      "consentLocal": "Yapay zekâ, size yanıt vermek için bu projenin gereken kısımlarını okuyacak. {{name}} bu bilgisayarda çalıştığı için hiçbir şey bilgisayardan çıkmaz.",
+      "consentReview": "Sohbette yapay zekânın okuduğu her şey listelenir. Yapay zekâ projeyi değiştiremez: önerdiği her değişikliği siz onaylar ya da reddedersiniz.",
+      "turnOn": "Aç",
+      "newChat": "Yeni sohbet",
+      "newChatOption": "Yeni sohbet",
+      "chats": "Sohbetler",
+      "conversation": "Sohbet",
+      "empty": "Verileriniz hakkında soru sorun ya da kod ve kodlama önerileri isteyin. Örneğin: “Katılımcılar maliyet hakkında ne diyor?” veya “Görüşme 3 için kod öner.”",
+      "working": "Çalışıyor…",
+      "message": "Mesaj",
+      "placeholder": "Verileriniz hakkında sorun…",
+      "send": "Gönder",
+      "stop": "Durdur",
+      "using": "{{name}} · {{model}}",
+      "review_one": "{{count}} öğeyi incele",
+      "review_other": "{{count}} öğeyi incele",
+      "reviewTitle_one": "İncelenecek {{count}} değişiklik",
+      "reviewTitle_other": "İncelenecek {{count}} değişiklik",
+      "proposed_one": "{{count}} değişiklik önerildi: inceleyin",
+      "proposed_other": "{{count}} değişiklik önerildi: inceleyin"
+    },
+    "review": {
+      "title": "Yapay zekâ yardımı",
+      "subtitle": "Yapay zekânın önerdiği değişiklikler. Siz onaylayana kadar projede hiçbir şey değişmez.",
+      "show": "Göster",
+      "filter": {
+        "pending": "İncelenecek ({{count}})",
+        "approved": "Onaylanan ({{count}})",
+        "denied": "Reddedilen ({{count}})"
+      },
+      "empty": {
+        "pending": "İncelenecek bir şey yok. Yapay zekâ yardımı bölmesinde yapay zekâdan kod ya da kodlama önerisi isteyin.",
+        "approved": "Henüz onaylanan değişiklik yok.",
+        "denied": "Reddedilen değişiklik yok."
+      },
+      "approve": "Onayla",
+      "deny": "Reddet",
+      "approveAll": "Tümünü onayla",
+      "denyAll": "Tümünü reddet",
+      "approveChosen_one": "{{count}} öğeyi onayla",
+      "approveChosen_other": "{{count}} öğeyi onayla",
+      "denyChosen_one": "{{count}} öğeyi reddet",
+      "denyChosen_other": "{{count}} öğeyi reddet",
+      "choose": "Seç",
+      "applied_one": "{{count}} değişiklik yapıldı. Geri al ile geri alabilirsiniz.",
+      "applied_other": "{{count}} değişiklik yapıldı. Geri al ile geri alabilirsiniz.",
+      "appliedSome": "{{count}} değişiklik yapıldı; {{failed}} değişiklik yapılamadı (Reddedilen bölümüne bakın).",
+      "denied_one": "{{count}} değişiklik reddedildi.",
+      "denied_other": "{{count}} değişiklik reddedildi.",
+      "deletedChat": "Silinmiş bir sohbet",
+      "kind": {
+        "newCode": "Yeni kod",
+        "editCode": "Kod değişikliği",
+        "addCoding": "{{code}} koduyla kodla",
+        "removeCoding": "{{code}} kodunu kaldır"
+      },
+      "under": "üst kod: {{name}}",
+      "newCodeName": "{{name}} (yeni)",
+      "rename": "Yeni ad: “{{name}}”",
+      "describe": "Yeni açıklama",
+      "noDescription": "yok",
+      "moveUnder": "Şu kodun altına taşı: {{name}}",
+      "moveTop": "En üst düzeye taşı",
+      "missingCode": "(artık projede olmayan bir kod)",
+      "missingDocument": "(artık projede olmayan bir belge)",
+      "reason": "Yapay zekânın gerekçesi: {{reason}}",
+      "alsoApproves_one": "Bunu onaylamak, gerektirdiği yeni kodu da onaylar.",
+      "alsoApproves_other": "Bunu onaylamak, gerektirdiği {{count}} yeni kodu da onaylar.",
+      "failed": "Yapılamadı: {{why}}",
+      "showInDocument": "Belgede göster",
+      "status": {
+        "approved": "Onaylandı",
+        "denied": "Reddedildi",
+        "failed": "Yapılamadı",
+        "pending": "İncelenecek"
+      }
+    }
   }
 }

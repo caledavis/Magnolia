@@ -89,7 +89,8 @@
       "sponsor": "Sponsorér Magnolia…",
       "aboutCredits": "Fri og open source-software til kvalitativ dataanalyse.",
       "aboutBuiltWith": "Bygget med Tauri, Rust, React, TipTap og PDF.js. Ikoner fra Lucide.",
-      "diagnostics": "Diagnostiske oplysninger…"
+      "diagnostics": "Diagnostiske oplysninger…",
+      "panelAssistant": "AI-assistance"
     },
     "dialog": {
       "openProject": "Åbn QDPX-projekt",
@@ -260,7 +261,8 @@
     "queries": "Forespørgsler",
     "memos": "Gemte memoer",
     "quotes": "Gemte citater",
-    "analyses": "Gemte analyser"
+    "analyses": "Gemte analyser",
+    "assistant": "AI-assistance"
   },
   "toolbar": {
     "label": "Værktøjslinje",
@@ -1322,7 +1324,8 @@
       "mediaPlayback": "Medieafspilning",
       "paperSize": "Papirstørrelse",
       "updates": "Opdateringer",
-      "support": "Støt Magnolia"
+      "support": "Støt Magnolia",
+      "aiAssistance": "AI-assistance"
     },
     "toolbarStyle": {
       "ribbon": "Bånd",
@@ -1401,7 +1404,8 @@
       "logbook": "Logbog",
       "memos": "Memoer",
       "quotes": "Citater",
-      "tabs": "Faner"
+      "tabs": "Faner",
+      "ai": "AI-assistance"
     },
     "mergeBlocks": "Afslut eller annuller fletningen for at bruge andre paneler",
     "noCodesInReport": "Koder kan ikke føjes til en rapport",
@@ -2093,5 +2097,166 @@
     "copy": "Kopiér",
     "copied": "Kopieret. Indsæt det i din rapport.",
     "copyFailed": "Kunne ikke kopiere: markér teksten, og kopiér den."
+  },
+  "ai": {
+    "prefs": {
+      "intro": "AI-assistance bruger din egen AI-tjeneste: en nøgle fra Anthropic, OpenAI eller en anden udbyder (som opkræver betaling for det, du bruger, uafhængigt af et Claude- eller ChatGPT-abonnement) eller en model, der kører på denne computer.",
+      "privacy": "Intet fra et projekt sendes, før du slår AI-assistance til for det projekt. Derefter læser AI’en kun det, den beder om, og chatten viser alt, hvad den læser. Kontrollér, at din etiske godkendelse tillader, at dine data sendes til den tjeneste, du vælger; en model på denne computer holder alt på computeren.",
+      "service": "Tjeneste",
+      "none": "Ingen (AI-assistance slået fra)",
+      "custom": "En anden tjeneste…",
+      "onThisComputer": "{{name}} (på denne computer)",
+      "kind": "API-type",
+      "kindOpenai": "OpenAI-kompatibel",
+      "kindAnthropic": "Anthropic",
+      "address": "Adresse",
+      "localNote": "Denne tjeneste kører på denne computer: det, AI’en læser, bliver her. Start den, før du bruger AI-assistance.",
+      "key": "API-nøgle",
+      "keyOptional": "API-nøgle (hvis tjenesten kræver en)",
+      "keySaved": "Der er gemt en nøgle til denne adresse.",
+      "removeKey": "Fjern nøgle",
+      "saveKey": "Gem nøgle",
+      "getKey": "Få en nøgle fra {{name}}.",
+      "keyCost": "Tjenesten tager betaling for det, du bruger.",
+      "keyKept": "Din nøgle opbevares i din computers nøglering og sendes kun til denne adresse.",
+      "model": "Model",
+      "check": "Kontrollér forbindelse",
+      "checking": "Kontrollerer…",
+      "connected_one": "Forbundet. Tjenesten tilbyder {{count}} model.",
+      "connected_other": "Forbundet. Tjenesten tilbyder {{count}} modeller."
+    },
+    "error": {
+      "noKey": "Der er ingen nøgle til denne tjeneste. Tilføj en under Indstillinger → AI-assistance.",
+      "auth": "Tjenesten accepterede ikke nøglen.",
+      "notFound": "Tjenesten genkendte ikke adressen eller modellen.",
+      "rateLimit": "Tjenesten siger, at der er sendt for mange anmodninger. Vent et minut, og prøv igen.",
+      "overloaded": "Tjenesten er optaget. Prøv igen om lidt.",
+      "unreachable": "Magnolia kunne ikke nå tjenesten. Kontrollér adressen og din forbindelse (og, for en model på denne computer, at den kører).",
+      "badAddress": "Det er ikke en webadresse, Magnolia kan bruge.",
+      "keychain": "Magnolia kunne ikke bruge din computers nøglering.",
+      "provider": "Tjenesten meldte om et problem.",
+      "cancelled": "Stoppet.",
+      "tooManySteps": "AI’en arbejdede stadig efter mange trin, så Magnolia stoppede den. Bed den om at fortsætte, eller gør spørgsmålet snævrere."
+    },
+    "activity": {
+      "listDocuments_one": "Listede projektets {{count}} dokument",
+      "listDocuments_other": "Listede projektets {{count}} dokumenter",
+      "listCodes_one": "Listede projektets {{count}} kode",
+      "listCodes_other": "Listede projektets {{count}} koder",
+      "read": "Læste {{name}} (tegn {{from}}–{{to}} af {{total}})",
+      "readSurvey_one": "Læste {{count}} svar i {{name}}",
+      "readSurvey_other": "Læste {{count}} svar i {{name}}",
+      "search_one": "Søgte efter »{{text}}« ({{count}} match)",
+      "search_other": "Søgte efter »{{text}}« ({{count}} match)",
+      "codedPassages_one": "Læste den {{count}} passage, der er kodet med {{name}}",
+      "codedPassages_other": "Læste de {{count}} passager, der er kodet med {{name}}",
+      "proposedCode": "Foreslog en ny kode, {{name}}",
+      "proposedChange": "Foreslog en ændring af {{name}}",
+      "proposedCoding": "Foreslog at kode en passage i {{name}} med {{code}}",
+      "proposedRemoval": "Foreslog at fjerne {{code}} fra en passage i {{name}}",
+      "problem": "Bad om noget, der ikke fandtes",
+      "unknownTool": "Bad om et værktøj, som Magnolia ikke har ({{name}})",
+      "failed": "En anmodning mislykkedes ({{name}})",
+      "cutOff": "En anmodning blev afbrudt"
+    },
+    "log": {
+      "title_one": "AI-assistance: {{count}} ændring godkendt",
+      "title_other": "AI-assistance: {{count}} ændringer godkendt",
+      "intro": "Foreslået af {{model}}, da den blev spurgt:",
+      "newCode": "Ny kode **{{name}}**",
+      "editCode": "Ændrede koden **{{name}}**",
+      "addCoding": "Kodede »{{quote}}« i {{document}} med **{{code}}**",
+      "removeCoding": "Fjernede **{{code}}** fra »{{quote}}« i {{document}}"
+    },
+    "fail": {
+      "noParent": "Koden, den skulle ligge under, er ikke længere i projektet.",
+      "noCode": "Koden er ikke længere i projektet.",
+      "noDocument": "Dokumentet er ikke længere i projektet.",
+      "textChanged": "Dokumentets tekst er ændret dér, siden ændringen blev foreslået.",
+      "codingGone": "Den kodning er ikke længere i projektet."
+    },
+    "pane": {
+      "noService": "AI-assistance bruger din egen AI-tjeneste. Vælg en, og dens model, i Indstillinger.",
+      "openSettings": "Åbn Indstillinger",
+      "consentTitle": "Slå AI-assistance til for dette projekt?",
+      "consentChanged": "AI-tjenesten er ændret. Slå AI-assistance til for dette projekt med den nye?",
+      "consentRemote": "AI’en læser de dele af projektet, den har brug for til at svare dig, og de sendes til {{name}} ({{address}}). Kontrollér, at det er tilladt for dine data, for eksempel i din etiske godkendelse.",
+      "consentLocal": "AI’en læser de dele af projektet, den har brug for til at svare dig. {{name}} kører på denne computer, så intet forlader den.",
+      "consentReview": "Chatten viser alt, hvad AI’en læser. Den kan ikke ændre projektet: du godkender eller afviser hver ændring, den foreslår.",
+      "turnOn": "Slå til",
+      "newChat": "Ny chat",
+      "newChatOption": "Ny chat",
+      "chats": "Chats",
+      "conversation": "Samtale",
+      "empty": "Spørg om dine data, eller bed om forslag til koder og kodninger. For eksempel: »Hvad siger deltagerne om pris?« eller »Foreslå koder til interview 3.«",
+      "working": "Arbejder…",
+      "message": "Besked",
+      "placeholder": "Spørg om dine data…",
+      "send": "Send",
+      "stop": "Stop",
+      "using": "{{name}} · {{model}}",
+      "review_one": "Gennemgå {{count}}",
+      "review_other": "Gennemgå {{count}}",
+      "reviewTitle_one": "{{count}} ændring til gennemgang",
+      "reviewTitle_other": "{{count}} ændringer til gennemgang",
+      "proposed_one": "{{count}} ændring foreslået: gennemgå den",
+      "proposed_other": "{{count}} ændringer foreslået: gennemgå dem"
+    },
+    "review": {
+      "title": "AI-assistance",
+      "subtitle": "De ændringer, AI’en har foreslået. Intet ændres i projektet, før du godkender det.",
+      "show": "Vis",
+      "filter": {
+        "pending": "Til gennemgang ({{count}})",
+        "approved": "Godkendte ({{count}})",
+        "denied": "Afviste ({{count}})"
+      },
+      "empty": {
+        "pending": "Intet at gennemgå. Bed AI’en i panelet AI-assistance om forslag til koder eller kodninger.",
+        "approved": "Ingen ændringer godkendt endnu.",
+        "denied": "Ingen ændringer afvist."
+      },
+      "approve": "Godkend",
+      "deny": "Afvis",
+      "approveAll": "Godkend alle",
+      "denyAll": "Afvis alle",
+      "approveChosen_one": "Godkend {{count}}",
+      "approveChosen_other": "Godkend {{count}}",
+      "denyChosen_one": "Afvis {{count}}",
+      "denyChosen_other": "Afvis {{count}}",
+      "choose": "Vælg",
+      "applied_one": "{{count}} ændring foretaget. Fortryd tager den tilbage.",
+      "applied_other": "{{count}} ændringer foretaget. Fortryd tager dem tilbage.",
+      "appliedSome": "{{count}} foretaget; {{failed}} kunne ikke foretages (se Afviste).",
+      "denied_one": "{{count}} ændring afvist.",
+      "denied_other": "{{count}} ændringer afvist.",
+      "deletedChat": "En slettet chat",
+      "kind": {
+        "newCode": "Ny kode",
+        "editCode": "Ændring af kode",
+        "addCoding": "Kod med {{code}}",
+        "removeCoding": "Fjern {{code}}"
+      },
+      "under": "under {{name}}",
+      "newCodeName": "{{name}} (ny)",
+      "rename": "Omdøb til »{{name}}«",
+      "describe": "Ny beskrivelse",
+      "noDescription": "ingen",
+      "moveUnder": "Flyt under {{name}}",
+      "moveTop": "Flyt til øverste niveau",
+      "missingCode": "(en kode, der ikke længere er i projektet)",
+      "missingDocument": "(et dokument, der ikke længere er i projektet)",
+      "reason": "AI’ens begrundelse: {{reason}}",
+      "alsoApproves_one": "Når du godkender dette, godkender du også den nye kode, det kræver.",
+      "alsoApproves_other": "Når du godkender dette, godkender du også de {{count}} nye koder, det kræver.",
+      "failed": "Kunne ikke foretages: {{why}}",
+      "showInDocument": "Vis i dokumentet",
+      "status": {
+        "approved": "Godkendt",
+        "denied": "Afvist",
+        "failed": "Ikke foretaget",
+        "pending": "Til gennemgang"
+      }
+    }
   }
 }

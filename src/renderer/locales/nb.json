@@ -89,7 +89,8 @@
       "sponsor": "Spons Magnolia …",
       "aboutCredits": "Fri programvare med åpen kildekode for kvalitativ dataanalyse.",
       "aboutBuiltWith": "Laget med Tauri, Rust, React, TipTap og PDF.js. Ikoner fra Lucide.",
-      "diagnostics": "Diagnoseinformasjon…"
+      "diagnostics": "Diagnoseinformasjon…",
+      "panelAssistant": "KI-assistanse"
     },
     "dialog": {
       "openProject": "Åpne QDPX-prosjekt",
@@ -260,7 +261,8 @@
     "queries": "Spørringer",
     "memos": "Lagrede memoer",
     "quotes": "Lagrede sitater",
-    "analyses": "Lagrede analyser"
+    "analyses": "Lagrede analyser",
+    "assistant": "KI-assistanse"
   },
   "toolbar": {
     "label": "Verktøylinje",
@@ -1322,7 +1324,8 @@
       "mediaPlayback": "Medieavspilling",
       "paperSize": "Papirstørrelse",
       "updates": "Oppdateringer",
-      "support": "Støtt Magnolia"
+      "support": "Støtt Magnolia",
+      "aiAssistance": "KI-assistanse"
     },
     "toolbarStyle": {
       "ribbon": "Bånd",
@@ -1401,7 +1404,8 @@
       "logbook": "Loggbok",
       "memos": "Memoer",
       "quotes": "Sitater",
-      "tabs": "Faner"
+      "tabs": "Faner",
+      "ai": "KI-assistanse"
     },
     "mergeBlocks": "Fullfør eller avbryt sammenslåingen for å bruke andre paneler",
     "noCodesInReport": "Koder kan ikke legges til i en rapport",
@@ -2093,5 +2097,166 @@
     "copy": "Kopier",
     "copied": "Kopiert. Lim det inn i rapporten.",
     "copyFailed": "Kunne ikke kopiere: merk teksten og kopier den."
+  },
+  "ai": {
+    "prefs": {
+      "intro": "KI-assistanse bruker din egen KI-tjeneste: en nøkkel fra Anthropic, OpenAI eller en annen leverandør (de tar betalt for det du bruker, atskilt fra et Claude- eller ChatGPT-abonnement), eller en modell som kjører på denne datamaskinen.",
+      "privacy": "Ingenting fra et prosjekt sendes før du slår på KI-assistanse for det prosjektet. Deretter leser KI-en bare det den ber om, og chatten viser alt den leser. Sjekk at den etiske godkjenningen din tillater at dataene sendes til tjenesten du velger; en modell på denne datamaskinen holder alt her.",
+      "service": "Tjeneste",
+      "none": "Ingen (KI-assistanse av)",
+      "custom": "En annen tjeneste …",
+      "onThisComputer": "{{name}} (på denne datamaskinen)",
+      "kind": "API-type",
+      "kindOpenai": "OpenAI-kompatibel",
+      "kindAnthropic": "Anthropic",
+      "address": "Adresse",
+      "localNote": "Denne tjenesten kjører på denne datamaskinen: det KI-en leser, blir her. Start den før du bruker KI-assistanse.",
+      "key": "API-nøkkel",
+      "keyOptional": "API-nøkkel (hvis tjenesten trenger en)",
+      "keySaved": "En nøkkel er lagret for denne adressen.",
+      "removeKey": "Fjern nøkkel",
+      "saveKey": "Lagre nøkkel",
+      "getKey": "Få en nøkkel fra {{name}}.",
+      "keyCost": "Tjenesten tar betalt for det du bruker.",
+      "keyKept": "Nøkkelen din oppbevares i nøkkelringen på datamaskinen, og sendes aldri til noe annet enn denne adressen.",
+      "model": "Modell",
+      "check": "Sjekk tilkoblingen",
+      "checking": "Sjekker …",
+      "connected_one": "Tilkoblet. Tjenesten tilbyr {{count}} modell.",
+      "connected_other": "Tilkoblet. Tjenesten tilbyr {{count}} modeller."
+    },
+    "error": {
+      "noKey": "Det finnes ingen nøkkel for denne tjenesten. Legg til en i Innstillinger → KI-assistanse.",
+      "auth": "Tjenesten godtok ikke nøkkelen.",
+      "notFound": "Tjenesten kjente ikke igjen adressen eller modellen.",
+      "rateLimit": "Tjenesten sier at det er sendt for mange forespørsler. Vent et minutt og prøv igjen.",
+      "overloaded": "Tjenesten er opptatt. Prøv igjen om litt.",
+      "unreachable": "Magnolia fikk ikke kontakt med tjenesten. Sjekk adressen og tilkoblingen din (og, for en modell på denne datamaskinen, at den kjører).",
+      "badAddress": "Det er ikke en nettadresse Magnolia kan bruke.",
+      "keychain": "Magnolia fikk ikke brukt nøkkelringen på datamaskinen.",
+      "provider": "Tjenesten meldte om et problem.",
+      "cancelled": "Stoppet.",
+      "tooManySteps": "KI-en arbeidet fortsatt etter mange steg, så Magnolia stoppet den. Be den fortsette, eller avgrens spørsmålet."
+    },
+    "activity": {
+      "listDocuments_one": "Listet opp prosjektets {{count}} dokument",
+      "listDocuments_other": "Listet opp prosjektets {{count}} dokumenter",
+      "listCodes_one": "Listet opp prosjektets {{count}} kode",
+      "listCodes_other": "Listet opp prosjektets {{count}} koder",
+      "read": "Leste {{name}} (tegn {{from}}–{{to}} av {{total}})",
+      "readSurvey_one": "Leste {{count}} svar i {{name}}",
+      "readSurvey_other": "Leste {{count}} svar i {{name}}",
+      "search_one": "Søkte etter «{{text}}» ({{count}} treff)",
+      "search_other": "Søkte etter «{{text}}» ({{count}} treff)",
+      "codedPassages_one": "Leste {{count}} passasje kodet med {{name}}",
+      "codedPassages_other": "Leste {{count}} passasjer kodet med {{name}}",
+      "proposedCode": "Foreslo en ny kode, {{name}}",
+      "proposedChange": "Foreslo en endring av {{name}}",
+      "proposedCoding": "Foreslo å kode en passasje i {{name}} med {{code}}",
+      "proposedRemoval": "Foreslo å fjerne {{code}} fra en passasje i {{name}}",
+      "problem": "Ba om noe som ikke fantes",
+      "unknownTool": "Ba om et verktøy Magnolia ikke har ({{name}})",
+      "failed": "En forespørsel mislyktes ({{name}})",
+      "cutOff": "En forespørsel ble avbrutt"
+    },
+    "log": {
+      "title_one": "KI-assistanse: {{count}} endring godkjent",
+      "title_other": "KI-assistanse: {{count}} endringer godkjent",
+      "intro": "Foreslått av {{model}}, på spørsmålet:",
+      "newCode": "Ny kode **{{name}}**",
+      "editCode": "Endret koden **{{name}}**",
+      "addCoding": "Kodet «{{quote}}» i {{document}} med **{{code}}**",
+      "removeCoding": "Fjernet **{{code}}** fra «{{quote}}» i {{document}}"
+    },
+    "fail": {
+      "noParent": "Koden den skulle ligge under, finnes ikke lenger i prosjektet.",
+      "noCode": "Koden finnes ikke lenger i prosjektet.",
+      "noDocument": "Dokumentet finnes ikke lenger i prosjektet.",
+      "textChanged": "Teksten i dokumentet er endret der siden forslaget ble gjort.",
+      "codingGone": "Den kodingen finnes ikke lenger i prosjektet."
+    },
+    "pane": {
+      "noService": "KI-assistanse bruker din egen KI-tjeneste. Velg en, og modellen, i Innstillinger.",
+      "openSettings": "Åpne Innstillinger",
+      "consentTitle": "Slå på KI-assistanse for dette prosjektet?",
+      "consentChanged": "KI-tjenesten er endret. Slå på KI-assistanse for dette prosjektet med den nye?",
+      "consentRemote": "KI-en leser de delene av prosjektet den trenger for å svare deg, og de sendes til {{name}} ({{address}}). Sjekk at dette er tillatt for dataene dine, for eksempel av den etiske godkjenningen din.",
+      "consentLocal": "KI-en leser de delene av prosjektet den trenger for å svare deg. {{name}} kjører på denne datamaskinen, så ingenting forlater den.",
+      "consentReview": "Chatten viser alt KI-en leser. Den kan ikke endre prosjektet: du godkjenner eller avviser hver endring den foreslår.",
+      "turnOn": "Slå på",
+      "newChat": "Ny chat",
+      "newChatOption": "Ny chat",
+      "chats": "Chatter",
+      "conversation": "Samtale",
+      "empty": "Spør om dataene dine, eller be om forslag til koder og kodinger. For eksempel: «Hva sier deltakerne om kostnader?» eller «Foreslå koder for intervju 3.»",
+      "working": "Arbeider …",
+      "message": "Melding",
+      "placeholder": "Spør om dataene dine …",
+      "send": "Send",
+      "stop": "Stopp",
+      "using": "{{name}} · {{model}}",
+      "review_one": "Gjennomgå {{count}}",
+      "review_other": "Gjennomgå {{count}}",
+      "reviewTitle_one": "{{count}} endring å gjennomgå",
+      "reviewTitle_other": "{{count}} endringer å gjennomgå",
+      "proposed_one": "{{count}} endring foreslått: gjennomgå den",
+      "proposed_other": "{{count}} endringer foreslått: gjennomgå dem"
+    },
+    "review": {
+      "title": "KI-assistanse",
+      "subtitle": "Endringene KI-en har foreslått. Ingenting endres i prosjektet før du godkjenner det.",
+      "show": "Vis",
+      "filter": {
+        "pending": "Til gjennomgang ({{count}})",
+        "approved": "Godkjent ({{count}})",
+        "denied": "Avvist ({{count}})"
+      },
+      "empty": {
+        "pending": "Ingenting å gjennomgå. Be KI-en i KI-assistanse-panelet om forslag til koder eller kodinger.",
+        "approved": "Ingen endringer godkjent ennå.",
+        "denied": "Ingen endringer avvist."
+      },
+      "approve": "Godkjenn",
+      "deny": "Avvis",
+      "approveAll": "Godkjenn alle",
+      "denyAll": "Avvis alle",
+      "approveChosen_one": "Godkjenn {{count}}",
+      "approveChosen_other": "Godkjenn {{count}}",
+      "denyChosen_one": "Avvis {{count}}",
+      "denyChosen_other": "Avvis {{count}}",
+      "choose": "Velg",
+      "applied_one": "{{count}} endring gjort. Angre tar den tilbake.",
+      "applied_other": "{{count}} endringer gjort. Angre tar dem tilbake.",
+      "appliedSome": "{{count}} gjort; {{failed}} kunne ikke gjøres (se Avvist).",
+      "denied_one": "{{count}} endring avvist.",
+      "denied_other": "{{count}} endringer avvist.",
+      "deletedChat": "En slettet chat",
+      "kind": {
+        "newCode": "Ny kode",
+        "editCode": "Endring av kode",
+        "addCoding": "Kod med {{code}}",
+        "removeCoding": "Fjern {{code}}"
+      },
+      "under": "under {{name}}",
+      "newCodeName": "{{name}} (ny)",
+      "rename": "Gi nytt navn: «{{name}}»",
+      "describe": "Ny beskrivelse",
+      "noDescription": "ingen",
+      "moveUnder": "Flytt under {{name}}",
+      "moveTop": "Flytt til øverste nivå",
+      "missingCode": "(en kode som ikke lenger er i prosjektet)",
+      "missingDocument": "(et dokument som ikke lenger er i prosjektet)",
+      "reason": "KI-ens begrunnelse: {{reason}}",
+      "alsoApproves_one": "Når du godkjenner dette, godkjennes også den nye koden det trenger.",
+      "alsoApproves_other": "Når du godkjenner dette, godkjennes også de {{count}} nye kodene det trenger.",
+      "failed": "Kunne ikke gjøres: {{why}}",
+      "showInDocument": "Vis i dokumentet",
+      "status": {
+        "approved": "Godkjent",
+        "denied": "Avvist",
+        "failed": "Ikke gjort",
+        "pending": "Til gjennomgang"
+      }
+    }
   }
 }

@@ -89,7 +89,8 @@
       "sponsor": "Sponsra Magnolia…",
       "aboutCredits": "Fri programvara med öppen källkod för kvalitativ dataanalys.",
       "aboutBuiltWith": "Byggt med Tauri, Rust, React, TipTap och PDF.js. Ikoner från Lucide.",
-      "diagnostics": "Diagnostikinformation…"
+      "diagnostics": "Diagnostikinformation…",
+      "panelAssistant": "AI-assistans"
     },
     "dialog": {
       "openProject": "Öppna QDPX-projekt",
@@ -260,7 +261,8 @@
     "queries": "Sökfrågor",
     "memos": "Sparade memon",
     "quotes": "Sparade citat",
-    "analyses": "Sparade analyser"
+    "analyses": "Sparade analyser",
+    "assistant": "AI-assistans"
   },
   "toolbar": {
     "label": "Verktygsfält",
@@ -1322,7 +1324,8 @@
       "mediaPlayback": "Mediauppspelning",
       "paperSize": "Pappersstorlek",
       "updates": "Uppdateringar",
-      "support": "Stöd Magnolia"
+      "support": "Stöd Magnolia",
+      "aiAssistance": "AI-assistans"
     },
     "toolbarStyle": {
       "ribbon": "Menyfliksområde",
@@ -1401,7 +1404,8 @@
       "logbook": "Loggbok",
       "memos": "Memon",
       "quotes": "Citat",
-      "tabs": "Flikar"
+      "tabs": "Flikar",
+      "ai": "AI-assistans"
     },
     "mergeBlocks": "Slutför eller avbryt sammanfogningen för att använda andra paneler",
     "noCodesInReport": "Koder kan inte läggas till i en rapport",
@@ -2093,5 +2097,166 @@
     "copy": "Kopiera",
     "copied": "Kopierat. Klistra in det i din rapport.",
     "copyFailed": "Det gick inte att kopiera: markera texten och kopiera den."
+  },
+  "ai": {
+    "prefs": {
+      "intro": "AI-assistans använder din egen AI-tjänst: en nyckel från Anthropic, OpenAI eller en annan leverantör (som tar betalt för det du använder, separat från ett Claude- eller ChatGPT-abonnemang), eller en modell som körs på den här datorn.",
+      "privacy": "Inget från ett projekt skickas förrän du slår på AI-assistans för projektet. Sedan läser AI:n bara det den ber om, och chatten visar allt den läser. Kontrollera att ditt etikgodkännande tillåter att dina data skickas till den tjänst du väljer; en modell på den här datorn håller allt kvar på den.",
+      "service": "Tjänst",
+      "none": "Ingen (AI-assistans av)",
+      "custom": "En annan tjänst…",
+      "onThisComputer": "{{name}} (på den här datorn)",
+      "kind": "Typ av API",
+      "kindOpenai": "OpenAI-kompatibel",
+      "kindAnthropic": "Anthropic",
+      "address": "Adress",
+      "localNote": "Tjänsten körs på den här datorn: det AI:n läser stannar här. Starta den innan du använder AI-assistans.",
+      "key": "API-nyckel",
+      "keyOptional": "API-nyckel (om tjänsten behöver en)",
+      "keySaved": "En nyckel är sparad för den här adressen.",
+      "removeKey": "Ta bort nyckel",
+      "saveKey": "Spara nyckel",
+      "getKey": "Skaffa en nyckel från {{name}}.",
+      "keyCost": "Tjänsten tar betalt för det du använder.",
+      "keyKept": "Din nyckel förvaras i datorns nyckelring och skickas bara till den här adressen.",
+      "model": "Modell",
+      "check": "Kontrollera anslutning",
+      "checking": "Kontrollerar…",
+      "connected_one": "Ansluten. Tjänsten erbjuder {{count}} modell.",
+      "connected_other": "Ansluten. Tjänsten erbjuder {{count}} modeller."
+    },
+    "error": {
+      "noKey": "Det finns ingen nyckel för den här tjänsten. Lägg till en under Inställningar → AI-assistans.",
+      "auth": "Tjänsten godtog inte nyckeln.",
+      "notFound": "Tjänsten kände inte igen adressen eller modellen.",
+      "rateLimit": "Tjänsten säger att för många förfrågningar har skickats. Vänta en minut och försök igen.",
+      "overloaded": "Tjänsten är upptagen. Försök igen om en stund.",
+      "unreachable": "Magnolia kunde inte nå tjänsten. Kontrollera adressen och din anslutning (och, för en modell på den här datorn, att den körs).",
+      "badAddress": "Det är inte en webbadress som Magnolia kan använda.",
+      "keychain": "Magnolia kunde inte använda datorns nyckelring.",
+      "provider": "Tjänsten rapporterade ett problem.",
+      "cancelled": "Stoppad.",
+      "tooManySteps": "AI:n arbetade fortfarande efter många steg, så Magnolia stoppade den. Be den fortsätta, eller avgränsa frågan."
+    },
+    "activity": {
+      "listDocuments_one": "Listade projektets {{count}} dokument",
+      "listDocuments_other": "Listade projektets {{count}} dokument",
+      "listCodes_one": "Listade projektets {{count}} kod",
+      "listCodes_other": "Listade projektets {{count}} koder",
+      "read": "Läste {{name}} (tecken {{from}}–{{to}} av {{total}})",
+      "readSurvey_one": "Läste {{count}} svar i {{name}}",
+      "readSurvey_other": "Läste {{count}} svar i {{name}}",
+      "search_one": "Sökte efter ”{{text}}” ({{count}} träff)",
+      "search_other": "Sökte efter ”{{text}}” ({{count}} träffar)",
+      "codedPassages_one": "Läste det avsnitt som kodats med {{name}} ({{count}})",
+      "codedPassages_other": "Läste de {{count}} avsnitt som kodats med {{name}}",
+      "proposedCode": "Föreslog en ny kod, {{name}}",
+      "proposedChange": "Föreslog en ändring av {{name}}",
+      "proposedCoding": "Föreslog att koda ett avsnitt i {{name}} med {{code}}",
+      "proposedRemoval": "Föreslog att ta bort {{code}} från ett avsnitt i {{name}}",
+      "problem": "Bad om något som inte fanns",
+      "unknownTool": "Bad om ett verktyg som Magnolia inte har ({{name}})",
+      "failed": "En förfrågan misslyckades ({{name}})",
+      "cutOff": "En förfrågan avbröts"
+    },
+    "log": {
+      "title_one": "AI-assistans: {{count}} ändring godkänd",
+      "title_other": "AI-assistans: {{count}} ändringar godkända",
+      "intro": "Föreslaget av {{model}}, på frågan:",
+      "newCode": "Ny kod **{{name}}**",
+      "editCode": "Ändrade koden **{{name}}**",
+      "addCoding": "Kodade ”{{quote}}” i {{document}} med **{{code}}**",
+      "removeCoding": "Tog bort **{{code}}** från ”{{quote}}” i {{document}}"
+    },
+    "fail": {
+      "noParent": "Koden som den skulle ligga under finns inte längre i projektet.",
+      "noCode": "Koden finns inte längre i projektet.",
+      "noDocument": "Dokumentet finns inte längre i projektet.",
+      "textChanged": "Dokumentets text har ändrats där sedan förslaget gjordes.",
+      "codingGone": "Den kodningen finns inte längre i projektet."
+    },
+    "pane": {
+      "noService": "AI-assistans använder din egen AI-tjänst. Välj en, och dess modell, i Inställningar.",
+      "openSettings": "Öppna Inställningar",
+      "consentTitle": "Slå på AI-assistans för det här projektet?",
+      "consentChanged": "AI-tjänsten har ändrats. Slå på AI-assistans för det här projektet med den nya?",
+      "consentRemote": "AI:n läser de delar av projektet som den behöver för att svara dig, och de skickas till {{name}} ({{address}}). Kontrollera att det är tillåtet för dina data, till exempel enligt ditt etikgodkännande.",
+      "consentLocal": "AI:n läser de delar av projektet som den behöver för att svara dig. {{name}} körs på den här datorn, så inget lämnar den.",
+      "consentReview": "Chatten visar allt som AI:n läser. Den kan inte ändra projektet: du godkänner eller avvisar varje ändring den föreslår.",
+      "turnOn": "Slå på",
+      "newChat": "Ny chatt",
+      "newChatOption": "Ny chatt",
+      "chats": "Chattar",
+      "conversation": "Konversation",
+      "empty": "Fråga om dina data, eller be om förslag på koder och kodningar. Till exempel: ”Vad säger deltagarna om kostnaden?” eller ”Föreslå koder för intervju 3.”",
+      "working": "Arbetar…",
+      "message": "Meddelande",
+      "placeholder": "Fråga om dina data…",
+      "send": "Skicka",
+      "stop": "Stoppa",
+      "using": "{{name}} · {{model}}",
+      "review_one": "Granska {{count}}",
+      "review_other": "Granska {{count}}",
+      "reviewTitle_one": "{{count}} ändring att granska",
+      "reviewTitle_other": "{{count}} ändringar att granska",
+      "proposed_one": "{{count}} ändring föreslagen: granska den",
+      "proposed_other": "{{count}} ändringar föreslagna: granska dem"
+    },
+    "review": {
+      "title": "AI-assistans",
+      "subtitle": "Ändringarna som AI:n har föreslagit. Inget ändras i projektet förrän du godkänner det.",
+      "show": "Visa",
+      "filter": {
+        "pending": "Att granska ({{count}})",
+        "approved": "Godkända ({{count}})",
+        "denied": "Avvisade ({{count}})"
+      },
+      "empty": {
+        "pending": "Inget att granska. Be AI:n i panelen AI-assistans om förslag på koder eller kodningar.",
+        "approved": "Inga ändringar godkända än.",
+        "denied": "Inga ändringar avvisade."
+      },
+      "approve": "Godkänn",
+      "deny": "Avvisa",
+      "approveAll": "Godkänn alla",
+      "denyAll": "Avvisa alla",
+      "approveChosen_one": "Godkänn {{count}}",
+      "approveChosen_other": "Godkänn {{count}}",
+      "denyChosen_one": "Avvisa {{count}}",
+      "denyChosen_other": "Avvisa {{count}}",
+      "choose": "Välj",
+      "applied_one": "{{count}} ändring gjord. Ångra tar tillbaka den.",
+      "applied_other": "{{count}} ändringar gjorda. Ångra tar tillbaka dem.",
+      "appliedSome": "{{count}} gjorda; {{failed}} gick inte att göra (se Avvisade).",
+      "denied_one": "{{count}} ändring avvisad.",
+      "denied_other": "{{count}} ändringar avvisade.",
+      "deletedChat": "En raderad chatt",
+      "kind": {
+        "newCode": "Ny kod",
+        "editCode": "Ändring av kod",
+        "addCoding": "Koda med {{code}}",
+        "removeCoding": "Ta bort {{code}}"
+      },
+      "under": "under {{name}}",
+      "newCodeName": "{{name}} (ny)",
+      "rename": "Byt namn till ”{{name}}”",
+      "describe": "Ny beskrivning",
+      "noDescription": "ingen",
+      "moveUnder": "Flytta under {{name}}",
+      "moveTop": "Flytta till översta nivån",
+      "missingCode": "(en kod som inte längre finns i projektet)",
+      "missingDocument": "(ett dokument som inte längre finns i projektet)",
+      "reason": "AI:ns motivering: {{reason}}",
+      "alsoApproves_one": "Om du godkänner detta godkänns också den nya kod som behövs.",
+      "alsoApproves_other": "Om du godkänner detta godkänns också de {{count}} nya koder som behövs.",
+      "failed": "Kunde inte göras: {{why}}",
+      "showInDocument": "Visa i dokumentet",
+      "status": {
+        "approved": "Godkänd",
+        "denied": "Avvisad",
+        "failed": "Inte gjord",
+        "pending": "Att granska"
+      }
+    }
   }
 }

@@ -89,7 +89,8 @@
       "sponsor": "Magnolia unterstützen …",
       "aboutCredits": "Kostenlose Open-Source-Software für qualitative Datenanalyse.",
       "aboutBuiltWith": "Entwickelt mit Tauri, Rust, React, TipTap und PDF.js. Symbole von Lucide.",
-      "diagnostics": "Diagnoseinformationen…"
+      "diagnostics": "Diagnoseinformationen…",
+      "panelAssistant": "KI-Assistenz"
     },
     "dialog": {
       "openProject": "QDPX-Projekt öffnen",
@@ -260,7 +261,8 @@
     "queries": "Abfragen",
     "memos": "Gespeicherte Memos",
     "quotes": "Gespeicherte Zitate",
-    "analyses": "Gespeicherte Analysen"
+    "analyses": "Gespeicherte Analysen",
+    "assistant": "KI-Assistenz"
   },
   "toolbar": {
     "label": "Symbolleiste",
@@ -1322,7 +1324,8 @@
       "mediaPlayback": "Medienwiedergabe",
       "paperSize": "Papierformat",
       "updates": "Updates",
-      "support": "Magnolia unterstützen"
+      "support": "Magnolia unterstützen",
+      "aiAssistance": "KI-Assistenz"
     },
     "toolbarStyle": {
       "ribbon": "Menüband",
@@ -1401,7 +1404,8 @@
       "logbook": "Logbuch",
       "memos": "Memos",
       "quotes": "Zitate",
-      "tabs": "Tabs"
+      "tabs": "Tabs",
+      "ai": "KI-Assistenz"
     },
     "mergeBlocks": "Schließen Sie die Zusammenführung ab oder brechen Sie sie ab, um andere Bereiche zu nutzen",
     "noCodesInReport": "Codes können nicht zu einem Bericht hinzugefügt werden",
@@ -2093,5 +2097,166 @@
     "copy": "Kopieren",
     "copied": "Kopiert. Fügen Sie es in Ihre Meldung ein.",
     "copyFailed": "Kopieren fehlgeschlagen: Markieren Sie den Text und kopieren Sie ihn."
+  },
+  "ai": {
+    "prefs": {
+      "intro": "Die KI-Assistenz nutzt Ihren eigenen KI-Dienst: einen Schlüssel von Anthropic, OpenAI oder einem anderen Anbieter (der Ihnen die Nutzung berechnet, getrennt von einem Claude- oder ChatGPT-Abo) oder ein Modell, das auf diesem Computer läuft.",
+      "privacy": "Aus einem Projekt wird nichts gesendet, bis Sie die KI-Assistenz für dieses Projekt einschalten. Dann liest die KI nur, was sie anfragt, und der Chat zeigt alles, was sie liest. Prüfen Sie, ob Ihr Ethikvotum erlaubt, Ihre Daten an den gewählten Dienst zu senden; ein Modell auf diesem Computer behält alles auf ihm.",
+      "service": "Dienst",
+      "none": "Keiner (KI-Assistenz aus)",
+      "custom": "Anderer Dienst …",
+      "onThisComputer": "{{name}} (auf diesem Computer)",
+      "kind": "API-Typ",
+      "kindOpenai": "OpenAI-kompatibel",
+      "kindAnthropic": "Anthropic",
+      "address": "Adresse",
+      "localNote": "Dieser Dienst läuft auf diesem Computer: Was die KI liest, bleibt hier. Starten Sie ihn, bevor Sie die KI-Assistenz nutzen.",
+      "key": "API-Schlüssel",
+      "keyOptional": "API-Schlüssel (falls der Dienst einen braucht)",
+      "keySaved": "Für diese Adresse ist ein Schlüssel gespeichert.",
+      "removeKey": "Schlüssel entfernen",
+      "saveKey": "Schlüssel speichern",
+      "getKey": "Einen Schlüssel von {{name}} holen.",
+      "keyCost": "Der Dienst berechnet Ihnen die Nutzung.",
+      "keyKept": "Ihr Schlüssel wird im Schlüsselbund Ihres Computers aufbewahrt und nur an diese Adresse gesendet.",
+      "model": "Modell",
+      "check": "Verbindung prüfen",
+      "checking": "Wird geprüft …",
+      "connected_one": "Verbunden. Der Dienst bietet {{count}} Modell an.",
+      "connected_other": "Verbunden. Der Dienst bietet {{count}} Modelle an."
+    },
+    "error": {
+      "noKey": "Für diesen Dienst gibt es keinen Schlüssel. Fügen Sie unter Einstellungen → KI-Assistenz einen hinzu.",
+      "auth": "Der Dienst hat den Schlüssel nicht angenommen.",
+      "notFound": "Der Dienst hat die Adresse oder das Modell nicht erkannt.",
+      "rateLimit": "Laut dem Dienst wurden zu viele Anfragen gesendet. Warten Sie eine Minute und versuchen Sie es erneut.",
+      "overloaded": "Der Dienst ist ausgelastet. Versuchen Sie es gleich noch einmal.",
+      "unreachable": "Magnolia konnte den Dienst nicht erreichen. Prüfen Sie die Adresse und Ihre Verbindung (und bei einem Modell auf diesem Computer, ob es läuft).",
+      "badAddress": "Das ist keine Webadresse, die Magnolia verwenden kann.",
+      "keychain": "Magnolia konnte den Schlüsselbund Ihres Computers nicht verwenden.",
+      "provider": "Der Dienst hat ein Problem gemeldet.",
+      "cancelled": "Gestoppt.",
+      "tooManySteps": "Die KI arbeitete nach vielen Schritten noch immer, daher hat Magnolia sie gestoppt. Bitten Sie sie, weiterzumachen, oder stellen Sie die Frage enger."
+    },
+    "activity": {
+      "listDocuments_one": "Dokumente des Projekts aufgelistet ({{count}})",
+      "listDocuments_other": "Dokumente des Projekts aufgelistet ({{count}})",
+      "listCodes_one": "Codes des Projekts aufgelistet ({{count}})",
+      "listCodes_other": "Codes des Projekts aufgelistet ({{count}})",
+      "read": "{{name}} gelesen (Zeichen {{from}}–{{to}} von {{total}})",
+      "readSurvey_one": "{{count}} Antwort in {{name}} gelesen",
+      "readSurvey_other": "{{count}} Antworten in {{name}} gelesen",
+      "search_one": "Nach „{{text}}“ gesucht ({{count}} Treffer)",
+      "search_other": "Nach „{{text}}“ gesucht ({{count}} Treffer)",
+      "codedPassages_one": "Die mit {{name}} codierte Passage gelesen ({{count}})",
+      "codedPassages_other": "Die {{count}} mit {{name}} codierten Passagen gelesen",
+      "proposedCode": "Einen neuen Code vorgeschlagen: {{name}}",
+      "proposedChange": "Eine Änderung an {{name}} vorgeschlagen",
+      "proposedCoding": "Vorgeschlagen, eine Passage in {{name}} mit {{code}} zu codieren",
+      "proposedRemoval": "Vorgeschlagen, {{code}} von einer Passage in {{name}} zu entfernen",
+      "problem": "Etwas angefragt, das es nicht gab",
+      "unknownTool": "Ein Werkzeug angefragt, das Magnolia nicht hat ({{name}})",
+      "failed": "Eine Anfrage ist fehlgeschlagen ({{name}})",
+      "cutOff": "Eine Anfrage wurde abgebrochen"
+    },
+    "log": {
+      "title_one": "KI-Assistenz: {{count}} Änderung angenommen",
+      "title_other": "KI-Assistenz: {{count}} Änderungen angenommen",
+      "intro": "Vorgeschlagen von {{model}} auf die Frage:",
+      "newCode": "Neuer Code **{{name}}**",
+      "editCode": "Code **{{name}}** geändert",
+      "addCoding": "„{{quote}}“ in {{document}} mit **{{code}}** codiert",
+      "removeCoding": "**{{code}}** von „{{quote}}“ in {{document}} entfernt"
+    },
+    "fail": {
+      "noParent": "Der Code, unter den er kommen sollte, ist nicht mehr im Projekt.",
+      "noCode": "Der Code ist nicht mehr im Projekt.",
+      "noDocument": "Das Dokument ist nicht mehr im Projekt.",
+      "textChanged": "Der Text des Dokuments hat sich an dieser Stelle seit dem Vorschlag geändert.",
+      "codingGone": "Diese Codierung ist nicht mehr im Projekt."
+    },
+    "pane": {
+      "noService": "Die KI-Assistenz nutzt Ihren eigenen KI-Dienst. Wählen Sie in den Einstellungen einen Dienst und sein Modell.",
+      "openSettings": "Einstellungen öffnen",
+      "consentTitle": "KI-Assistenz für dieses Projekt einschalten?",
+      "consentChanged": "Der KI-Dienst hat sich geändert. KI-Assistenz für dieses Projekt mit dem neuen Dienst einschalten?",
+      "consentRemote": "Die KI liest die Teile dieses Projekts, die sie für ihre Antwort braucht, und diese werden an {{name}} ({{address}}) gesendet. Prüfen Sie, ob das für Ihre Daten erlaubt ist, zum Beispiel laut Ihrem Ethikvotum.",
+      "consentLocal": "Die KI liest die Teile dieses Projekts, die sie für ihre Antwort braucht. {{name}} läuft auf diesem Computer, also verlässt nichts den Computer.",
+      "consentReview": "Der Chat listet alles auf, was die KI liest. Sie kann das Projekt nicht ändern: Sie nehmen jede vorgeschlagene Änderung an oder lehnen sie ab.",
+      "turnOn": "Einschalten",
+      "newChat": "Neuer Chat",
+      "newChatOption": "Neuer Chat",
+      "chats": "Chats",
+      "conversation": "Unterhaltung",
+      "empty": "Fragen Sie nach Ihren Daten oder nach Vorschlägen für Codes und Codierungen. Zum Beispiel: „Was sagen die Teilnehmenden über die Kosten?“ oder „Schlage Codes für Interview 3 vor.“",
+      "working": "Wird bearbeitet …",
+      "message": "Nachricht",
+      "placeholder": "Fragen Sie nach Ihren Daten …",
+      "send": "Senden",
+      "stop": "Stoppen",
+      "using": "{{name}} · {{model}}",
+      "review_one": "{{count}} prüfen",
+      "review_other": "{{count}} prüfen",
+      "reviewTitle_one": "{{count}} Änderung zu prüfen",
+      "reviewTitle_other": "{{count}} Änderungen zu prüfen",
+      "proposed_one": "{{count}} Änderung vorgeschlagen: Prüfen Sie sie",
+      "proposed_other": "{{count}} Änderungen vorgeschlagen: Prüfen Sie sie"
+    },
+    "review": {
+      "title": "KI-Assistenz",
+      "subtitle": "Die Änderungen, die die KI vorgeschlagen hat. Im Projekt ändert sich nichts, bis Sie sie annehmen.",
+      "show": "Anzeigen",
+      "filter": {
+        "pending": "Zu prüfen ({{count}})",
+        "approved": "Angenommen ({{count}})",
+        "denied": "Abgelehnt ({{count}})"
+      },
+      "empty": {
+        "pending": "Nichts zu prüfen. Bitten Sie die KI im Bereich KI-Assistenz um Vorschläge für Codes oder Codierungen.",
+        "approved": "Noch keine Änderungen angenommen.",
+        "denied": "Keine Änderungen abgelehnt."
+      },
+      "approve": "Annehmen",
+      "deny": "Ablehnen",
+      "approveAll": "Alle annehmen",
+      "denyAll": "Alle ablehnen",
+      "approveChosen_one": "{{count}} annehmen",
+      "approveChosen_other": "{{count}} annehmen",
+      "denyChosen_one": "{{count}} ablehnen",
+      "denyChosen_other": "{{count}} ablehnen",
+      "choose": "Auswählen",
+      "applied_one": "{{count}} Änderung vorgenommen. „Widerrufen“ nimmt sie zurück.",
+      "applied_other": "{{count}} Änderungen vorgenommen. „Widerrufen“ nimmt sie zurück.",
+      "appliedSome": "{{count}} vorgenommen; {{failed}} nicht möglich (siehe Abgelehnt).",
+      "denied_one": "{{count}} Änderung abgelehnt.",
+      "denied_other": "{{count}} Änderungen abgelehnt.",
+      "deletedChat": "Ein gelöschter Chat",
+      "kind": {
+        "newCode": "Neuer Code",
+        "editCode": "Änderung am Code",
+        "addCoding": "Mit {{code}} codieren",
+        "removeCoding": "{{code}} entfernen"
+      },
+      "under": "unter {{name}}",
+      "newCodeName": "{{name}} (neu)",
+      "rename": "Umbenennen in „{{name}}“",
+      "describe": "Neue Beschreibung",
+      "noDescription": "keine",
+      "moveUnder": "Unter {{name}} verschieben",
+      "moveTop": "Auf oberste Ebene verschieben",
+      "missingCode": "(ein Code, der nicht mehr im Projekt ist)",
+      "missingDocument": "(ein Dokument, das nicht mehr im Projekt ist)",
+      "reason": "Begründung der KI: {{reason}}",
+      "alsoApproves_one": "Damit wird auch der neue Code angenommen, den diese Änderung braucht.",
+      "alsoApproves_other": "Damit werden auch die {{count}} neuen Codes angenommen, die diese Änderung braucht.",
+      "failed": "Nicht möglich: {{why}}",
+      "showInDocument": "Im Dokument zeigen",
+      "status": {
+        "approved": "Angenommen",
+        "denied": "Abgelehnt",
+        "failed": "Nicht vorgenommen",
+        "pending": "Zu prüfen"
+      }
+    }
   }
 }

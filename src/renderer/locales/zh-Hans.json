@@ -89,7 +89,8 @@
       "sponsor": "赞助 Magnolia…",
       "aboutCredits": "免费开源的质性数据分析软件。",
       "aboutBuiltWith": "使用 Tauri、Rust、React、TipTap 和 PDF.js 构建。图标来自 Lucide。",
-      "diagnostics": "诊断信息…"
+      "diagnostics": "诊断信息…",
+      "panelAssistant": "AI 辅助"
     },
     "dialog": {
       "openProject": "打开 QDPX 项目",
@@ -257,7 +258,8 @@
     "queries": "查询",
     "memos": "已存备忘录",
     "quotes": "已存引文",
-    "analyses": "已存分析"
+    "analyses": "已存分析",
+    "assistant": "AI 辅助"
   },
   "toolbar": {
     "label": "工具栏",
@@ -1277,7 +1279,8 @@
       "mediaPlayback": "媒体播放",
       "paperSize": "纸张大小",
       "updates": "更新",
-      "support": "支持 Magnolia"
+      "support": "支持 Magnolia",
+      "aiAssistance": "AI 辅助"
     },
     "toolbarStyle": {
       "ribbon": "功能区",
@@ -1356,7 +1359,8 @@
       "logbook": "日志",
       "memos": "备忘录",
       "quotes": "引文",
-      "tabs": "标签页"
+      "tabs": "标签页",
+      "ai": "AI 辅助"
     },
     "mergeBlocks": "请先完成或取消合并，再使用其他窗格",
     "noCodesInReport": "代码无法添加到报告",
@@ -2008,5 +2012,151 @@
     "copy": "复制",
     "copied": "已复制。请粘贴到您的报告中。",
     "copyFailed": "无法复制：请选中文本后自行复制。"
+  },
+  "ai": {
+    "prefs": {
+      "intro": "AI 辅助使用您自己的 AI 服务：来自 Anthropic、OpenAI 或其他提供商的密钥（按用量由提供商收费，与 Claude 或 ChatGPT 订阅分开计费），或在这台电脑上运行的模型。",
+      "privacy": "在您为某个项目开启 AI 辅助之前，不会发送该项目的任何内容。开启后，AI 只读取它请求的内容，且聊天中会显示它读取的每一项。请确认您的伦理审查批准允许将数据发送到所选服务；使用这台电脑上的模型时，所有内容都留在本机。",
+      "service": "服务",
+      "none": "无（AI 辅助已关闭）",
+      "custom": "其他服务…",
+      "onThisComputer": "{{name}}（在这台电脑上）",
+      "kind": "API 类型",
+      "kindOpenai": "兼容 OpenAI",
+      "kindAnthropic": "Anthropic",
+      "address": "地址",
+      "localNote": "此服务在这台电脑上运行：AI 读取的内容都留在本机。使用 AI 辅助前请先启动它。",
+      "key": "API 密钥",
+      "keyOptional": "API 密钥（如果服务需要）",
+      "keySaved": "已为此地址保存密钥。",
+      "removeKey": "移除密钥",
+      "saveKey": "保存密钥",
+      "getKey": "从 {{name}} 获取密钥。",
+      "keyCost": "服务按用量收费。",
+      "keyKept": "您的密钥保存在电脑的钥匙串中，只会发送到此地址。",
+      "model": "模型",
+      "check": "检查连接",
+      "checking": "正在检查…",
+      "connected_other": "已连接。该服务提供 {{count}} 个模型。"
+    },
+    "error": {
+      "noKey": "此服务没有密钥。请在“偏好设置”→“AI 辅助”中添加。",
+      "auth": "服务未接受该密钥。",
+      "notFound": "服务无法识别该地址或模型。",
+      "rateLimit": "服务提示请求过多。请稍等一分钟后重试。",
+      "overloaded": "服务繁忙。请稍后重试。",
+      "unreachable": "Magnolia 无法连接该服务。请检查地址和网络连接（如果是这台电脑上的模型，请确认它正在运行）。",
+      "badAddress": "这不是 Magnolia 可以使用的网址。",
+      "keychain": "Magnolia 无法使用电脑的钥匙串。",
+      "provider": "服务报告了一个问题。",
+      "cancelled": "已停止。",
+      "tooManySteps": "AI 经过许多步骤后仍在工作，因此 Magnolia 停止了它。请让它继续，或缩小问题范围。"
+    },
+    "activity": {
+      "listDocuments_other": "列出了项目的 {{count}} 个文档",
+      "listCodes_other": "列出了项目的 {{count}} 个代码",
+      "read": "读取了 {{name}}（共 {{total}} 个字符中的第 {{from}}–{{to}} 个）",
+      "readSurvey_other": "读取了 {{name}} 中的 {{count}} 条回答",
+      "search_other": "搜索了“{{text}}”（{{count}} 个匹配）",
+      "codedPassages_other": "读取了用 {{name}} 编码的 {{count}} 个段落",
+      "proposedCode": "建议了新代码 {{name}}",
+      "proposedChange": "建议更改 {{name}}",
+      "proposedCoding": "建议用 {{code}} 编码 {{name}} 中的一个段落",
+      "proposedRemoval": "建议从 {{name}} 的一个段落中移除 {{code}}",
+      "problem": "请求了不存在的内容",
+      "unknownTool": "请求了 Magnolia 没有的工具（{{name}}）",
+      "failed": "一个请求失败了（{{name}}）",
+      "cutOff": "一个请求被中断了"
+    },
+    "log": {
+      "title_other": "AI 辅助：已批准 {{count}} 项更改",
+      "intro": "由 {{model}} 建议，所提的请求为：",
+      "newCode": "新代码 **{{name}}**",
+      "editCode": "更改了代码 **{{name}}**",
+      "addCoding": "用 **{{code}}** 编码了 {{document}} 中的“{{quote}}”",
+      "removeCoding": "从 {{document}} 中的“{{quote}}”移除了 **{{code}}**"
+    },
+    "fail": {
+      "noParent": "它要放入的上级代码已不在项目中。",
+      "noCode": "该代码已不在项目中。",
+      "noDocument": "该文档已不在项目中。",
+      "textChanged": "自提出建议以来，文档该处的文本已更改。",
+      "codingGone": "该编码已不在项目中。"
+    },
+    "pane": {
+      "noService": "AI 辅助使用您自己的 AI 服务。请在“偏好设置”中选择服务及其模型。",
+      "openSettings": "打开偏好设置",
+      "consentTitle": "为此项目开启 AI 辅助？",
+      "consentChanged": "AI 服务已更改。要使用新服务为此项目开启 AI 辅助吗？",
+      "consentRemote": "AI 会读取此项目中回答您所需的部分，这些内容将发送到 {{name}}（{{address}}）。请确认您的数据允许这样做，例如是否符合伦理审查批准。",
+      "consentLocal": "AI 会读取此项目中回答您所需的部分。{{name}} 在这台电脑上运行，因此不会有任何内容离开本机。",
+      "consentReview": "聊天会列出 AI 读取的所有内容。它无法更改项目：它建议的每项更改都由您批准或拒绝。",
+      "turnOn": "开启",
+      "newChat": "新建聊天",
+      "newChatOption": "新建聊天",
+      "chats": "聊天",
+      "conversation": "对话",
+      "empty": "询问有关数据的问题，或请它建议代码和编码。例如：“参与者对费用有什么看法？”或“为访谈 3 建议代码。”",
+      "working": "正在处理…",
+      "message": "消息",
+      "placeholder": "询问有关数据的问题…",
+      "send": "发送",
+      "stop": "停止",
+      "using": "{{name}} · {{model}}",
+      "review_other": "审核 {{count}} 项",
+      "reviewTitle_other": "{{count}} 项更改待审核",
+      "proposed_other": "已建议 {{count}} 项更改：请审核"
+    },
+    "review": {
+      "title": "AI 辅助",
+      "subtitle": "AI 建议的更改。在您批准之前，项目不会有任何变化。",
+      "show": "显示",
+      "filter": {
+        "pending": "待审核（{{count}}）",
+        "approved": "已批准（{{count}}）",
+        "denied": "已拒绝（{{count}}）"
+      },
+      "empty": {
+        "pending": "没有待审核的内容。请在“AI 辅助”窗格中让 AI 建议代码或编码。",
+        "approved": "尚未批准任何更改。",
+        "denied": "没有被拒绝的更改。"
+      },
+      "approve": "批准",
+      "deny": "拒绝",
+      "approveAll": "全部批准",
+      "denyAll": "全部拒绝",
+      "approveChosen_other": "批准 {{count}} 项",
+      "denyChosen_other": "拒绝 {{count}} 项",
+      "choose": "选择",
+      "applied_other": "已完成 {{count}} 项更改。撤销即可恢复。",
+      "appliedSome": "已完成 {{count}} 项；{{failed}} 项未能完成（见“已拒绝”）。",
+      "denied_other": "已拒绝 {{count}} 项更改。",
+      "deletedChat": "已删除的聊天",
+      "kind": {
+        "newCode": "新代码",
+        "editCode": "更改代码",
+        "addCoding": "用 {{code}} 编码",
+        "removeCoding": "移除 {{code}}"
+      },
+      "under": "位于 {{name}} 下",
+      "newCodeName": "{{name}}（新）",
+      "rename": "重命名为“{{name}}”",
+      "describe": "新描述",
+      "noDescription": "无",
+      "moveUnder": "移到 {{name}} 下",
+      "moveTop": "移到顶层",
+      "missingCode": "（已不在项目中的代码）",
+      "missingDocument": "（已不在项目中的文档）",
+      "reason": "AI 的理由：{{reason}}",
+      "alsoApproves_other": "批准此项也会批准它所需的 {{count}} 个新代码。",
+      "failed": "未能完成：{{why}}",
+      "showInDocument": "在文档中显示",
+      "status": {
+        "approved": "已批准",
+        "denied": "已拒绝",
+        "failed": "未执行",
+        "pending": "待审核"
+      }
+    }
   }
 }

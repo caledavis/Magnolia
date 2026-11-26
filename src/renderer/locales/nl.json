@@ -89,7 +89,8 @@
       "sponsor": "Sponsor Magnolia…",
       "aboutCredits": "Vrije en opensource kwalitatieve data-analyse.",
       "aboutBuiltWith": "Gemaakt met Tauri, Rust, React, TipTap en PDF.js. Pictogrammen van Lucide.",
-      "diagnostics": "Diagnostische informatie…"
+      "diagnostics": "Diagnostische informatie…",
+      "panelAssistant": "AI-assistentie"
     },
     "dialog": {
       "openProject": "Open QDPX-project",
@@ -260,7 +261,8 @@
     "queries": "Query's",
     "memos": "Bewaarde memo's",
     "quotes": "Bewaarde citaten",
-    "analyses": "Bewaarde analyses"
+    "analyses": "Bewaarde analyses",
+    "assistant": "AI-assistentie"
   },
   "toolbar": {
     "label": "Werkbalk",
@@ -1322,7 +1324,8 @@
       "mediaPlayback": "Media afspelen",
       "paperSize": "Papierformaat",
       "updates": "Updates",
-      "support": "Steun Magnolia"
+      "support": "Steun Magnolia",
+      "aiAssistance": "AI-assistentie"
     },
     "toolbarStyle": {
       "ribbon": "Lint",
@@ -1401,7 +1404,8 @@
       "logbook": "logboek",
       "memos": "memo's",
       "quotes": "citaten",
-      "tabs": "tabbladen"
+      "tabs": "tabbladen",
+      "ai": "AI-assistentie"
     },
     "mergeBlocks": "Rond de samenvoeging af of annuleer die om andere panelen te gebruiken",
     "noCodesInReport": "Codes kunnen niet aan een rapport worden toegevoegd",
@@ -2093,5 +2097,166 @@
     "copy": "Kopiëren",
     "copied": "Gekopieerd. Plak het in uw melding.",
     "copyFailed": "Kopiëren lukte niet: selecteer de tekst en kopieer die zelf."
+  },
+  "ai": {
+    "prefs": {
+      "intro": "AI-assistentie gebruikt je eigen AI-dienst: een sleutel van Anthropic, OpenAI of een andere aanbieder (die je laat betalen voor wat je gebruikt, los van een abonnement op Claude of ChatGPT), of een model dat op deze computer draait.",
+      "privacy": "Er wordt niets uit een project verstuurd totdat je AI-assistentie voor dat project inschakelt. Daarna leest de AI alleen wat hij opvraagt, en de chat toont alles wat hij leest. Controleer of je ethische goedkeuring toestaat dat je gegevens naar de gekozen dienst worden gestuurd; een model op deze computer houdt alles op deze computer.",
+      "service": "Dienst",
+      "none": "Geen (AI-assistentie uit)",
+      "custom": "Andere dienst…",
+      "onThisComputer": "{{name}} (op deze computer)",
+      "kind": "Soort API",
+      "kindOpenai": "OpenAI-compatibel",
+      "kindAnthropic": "Anthropic",
+      "address": "Adres",
+      "localNote": "Deze dienst draait op deze computer: wat de AI leest, blijft hier. Start de dienst voordat je AI-assistentie gebruikt.",
+      "key": "API-sleutel",
+      "keyOptional": "API-sleutel (als de dienst er een nodig heeft)",
+      "keySaved": "Er is een sleutel bewaard voor dit adres.",
+      "removeKey": "Sleutel verwijderen",
+      "saveKey": "Sleutel bewaren",
+      "getKey": "Vraag een sleutel aan bij {{name}}.",
+      "keyCost": "De dienst rekent af naar gebruik.",
+      "keyKept": "Je sleutel wordt bewaard in de sleutelhanger van je computer en alleen naar dit adres gestuurd.",
+      "model": "Model",
+      "check": "Verbinding controleren",
+      "checking": "Controleren…",
+      "connected_one": "Verbonden. De dienst biedt {{count}} model.",
+      "connected_other": "Verbonden. De dienst biedt {{count}} modellen."
+    },
+    "error": {
+      "noKey": "Er is geen sleutel voor deze dienst. Voeg er een toe in Voorkeuren → AI-assistentie.",
+      "auth": "De dienst heeft de sleutel niet geaccepteerd.",
+      "notFound": "De dienst herkende het adres of het model niet.",
+      "rateLimit": "De dienst meldt dat er te veel verzoeken zijn gestuurd. Wacht een minuut en probeer het opnieuw.",
+      "overloaded": "De dienst is bezet. Probeer het zo opnieuw.",
+      "unreachable": "Magnolia kon de dienst niet bereiken. Controleer het adres en je verbinding (en, bij een model op deze computer, of het draait).",
+      "badAddress": "Dat is geen webadres dat Magnolia kan gebruiken.",
+      "keychain": "Magnolia kon de sleutelhanger van je computer niet gebruiken.",
+      "provider": "De dienst meldde een probleem.",
+      "cancelled": "Gestopt.",
+      "tooManySteps": "De AI was na veel stappen nog bezig, dus heeft Magnolia hem gestopt. Vraag hem door te gaan, of maak de vraag specifieker."
+    },
+    "activity": {
+      "listDocuments_one": "Documenten van het project opgevraagd ({{count}})",
+      "listDocuments_other": "Documenten van het project opgevraagd ({{count}})",
+      "listCodes_one": "Codes van het project opgevraagd ({{count}})",
+      "listCodes_other": "Codes van het project opgevraagd ({{count}})",
+      "read": "{{name}} gelezen (tekens {{from}}–{{to}} van {{total}})",
+      "readSurvey_one": "{{count}} antwoord in {{name}} gelezen",
+      "readSurvey_other": "{{count}} antwoorden in {{name}} gelezen",
+      "search_one": "Gezocht naar \"{{text}}\" ({{count}} overeenkomst)",
+      "search_other": "Gezocht naar \"{{text}}\" ({{count}} overeenkomsten)",
+      "codedPassages_one": "De passage gecodeerd met {{name}} gelezen ({{count}})",
+      "codedPassages_other": "De {{count}} passages gecodeerd met {{name}} gelezen",
+      "proposedCode": "Een nieuwe code voorgesteld: {{name}}",
+      "proposedChange": "Een wijziging van {{name}} voorgesteld",
+      "proposedCoding": "Voorgesteld om een passage in {{name}} met {{code}} te coderen",
+      "proposedRemoval": "Voorgesteld om {{code}} te verwijderen bij een passage in {{name}}",
+      "problem": "Om iets gevraagd dat er niet was",
+      "unknownTool": "Om een tool gevraagd die Magnolia niet heeft ({{name}})",
+      "failed": "Een verzoek is mislukt ({{name}})",
+      "cutOff": "Een verzoek werd afgebroken"
+    },
+    "log": {
+      "title_one": "AI-assistentie: {{count}} wijziging goedgekeurd",
+      "title_other": "AI-assistentie: {{count}} wijzigingen goedgekeurd",
+      "intro": "Voorgesteld door {{model}}, op de vraag:",
+      "newCode": "Nieuwe code **{{name}}**",
+      "editCode": "Code **{{name}}** gewijzigd",
+      "addCoding": "\"{{quote}}\" in {{document}} gecodeerd met **{{code}}**",
+      "removeCoding": "**{{code}}** verwijderd bij \"{{quote}}\" in {{document}}"
+    },
+    "fail": {
+      "noParent": "De code waaronder hij moest komen, staat niet meer in het project.",
+      "noCode": "De code staat niet meer in het project.",
+      "noDocument": "Het document staat niet meer in het project.",
+      "textChanged": "De tekst van het document is daar veranderd sinds het voorstel.",
+      "codingGone": "Die codering staat niet meer in het project."
+    },
+    "pane": {
+      "noService": "AI-assistentie gebruikt je eigen AI-dienst. Kies een dienst en het model ervan in Voorkeuren.",
+      "openSettings": "Voorkeuren openen",
+      "consentTitle": "AI-assistentie inschakelen voor dit project?",
+      "consentChanged": "De AI-dienst is veranderd. AI-assistentie voor dit project inschakelen met de nieuwe dienst?",
+      "consentRemote": "De AI leest de delen van dit project die hij nodig heeft om je te antwoorden, en die worden naar {{name}} ({{address}}) gestuurd. Controleer of dat voor je gegevens mag, bijvoorbeeld volgens je ethische goedkeuring.",
+      "consentLocal": "De AI leest de delen van dit project die hij nodig heeft om je te antwoorden. {{name}} draait op deze computer, dus er verlaat niets deze computer.",
+      "consentReview": "De chat toont alles wat de AI leest. Hij kan het project niet wijzigen: jij keurt elke voorgestelde wijziging goed of wijst die af.",
+      "turnOn": "Inschakelen",
+      "newChat": "Nieuwe chat",
+      "newChatOption": "Nieuwe chat",
+      "chats": "Chats",
+      "conversation": "Gesprek",
+      "empty": "Stel een vraag over je gegevens, of vraag om voorgestelde codes en coderingen. Bijvoorbeeld: \"Wat zeggen deelnemers over de kosten?\" of \"Stel codes voor voor interview 3.\"",
+      "working": "Bezig…",
+      "message": "Bericht",
+      "placeholder": "Stel een vraag over je gegevens…",
+      "send": "Versturen",
+      "stop": "Stoppen",
+      "using": "{{name}} · {{model}}",
+      "review_one": "{{count}} beoordelen",
+      "review_other": "{{count}} beoordelen",
+      "reviewTitle_one": "{{count}} wijziging te beoordelen",
+      "reviewTitle_other": "{{count}} wijzigingen te beoordelen",
+      "proposed_one": "{{count}} wijziging voorgesteld: beoordeel die",
+      "proposed_other": "{{count}} wijzigingen voorgesteld: beoordeel ze"
+    },
+    "review": {
+      "title": "AI-assistentie",
+      "subtitle": "De wijzigingen die de AI heeft voorgesteld. Er verandert niets in het project totdat je ze goedkeurt.",
+      "show": "Tonen",
+      "filter": {
+        "pending": "Te beoordelen ({{count}})",
+        "approved": "Goedgekeurd ({{count}})",
+        "denied": "Afgewezen ({{count}})"
+      },
+      "empty": {
+        "pending": "Niets te beoordelen. Vraag de AI in het paneel AI-assistentie om voorgestelde codes of coderingen.",
+        "approved": "Nog geen wijzigingen goedgekeurd.",
+        "denied": "Geen wijzigingen afgewezen."
+      },
+      "approve": "Goedkeuren",
+      "deny": "Afwijzen",
+      "approveAll": "Alles goedkeuren",
+      "denyAll": "Alles afwijzen",
+      "approveChosen_one": "{{count}} goedkeuren",
+      "approveChosen_other": "{{count}} goedkeuren",
+      "denyChosen_one": "{{count}} afwijzen",
+      "denyChosen_other": "{{count}} afwijzen",
+      "choose": "Kiezen",
+      "applied_one": "{{count}} wijziging aangebracht. Met Herstel draai je die terug.",
+      "applied_other": "{{count}} wijzigingen aangebracht. Met Herstel draai je ze terug.",
+      "appliedSome": "{{count}} aangebracht; {{failed}} lukte niet (zie Afgewezen).",
+      "denied_one": "{{count}} wijziging afgewezen.",
+      "denied_other": "{{count}} wijzigingen afgewezen.",
+      "deletedChat": "Een verwijderde chat",
+      "kind": {
+        "newCode": "Nieuwe code",
+        "editCode": "Wijziging van code",
+        "addCoding": "Coderen met {{code}}",
+        "removeCoding": "{{code}} verwijderen"
+      },
+      "under": "onder {{name}}",
+      "newCodeName": "{{name}} (nieuw)",
+      "rename": "Naam wijzigen in \"{{name}}\"",
+      "describe": "Nieuwe beschrijving",
+      "noDescription": "geen",
+      "moveUnder": "Verplaatsen naar onder {{name}}",
+      "moveTop": "Verplaatsen naar hoogste niveau",
+      "missingCode": "(een code die niet meer in het project staat)",
+      "missingDocument": "(een document dat niet meer in het project staat)",
+      "reason": "Reden van de AI: {{reason}}",
+      "alsoApproves_one": "Als je dit goedkeurt, keur je ook de nieuwe code goed die ervoor nodig is.",
+      "alsoApproves_other": "Als je dit goedkeurt, keur je ook de {{count}} nieuwe codes goed die ervoor nodig zijn.",
+      "failed": "Kon niet worden aangebracht: {{why}}",
+      "showInDocument": "Tonen in document",
+      "status": {
+        "approved": "Goedgekeurd",
+        "denied": "Afgewezen",
+        "failed": "Niet aangebracht",
+        "pending": "Te beoordelen"
+      }
+    }
   }
 }

@@ -89,7 +89,8 @@
       "sponsor": "Tue Magnoliaa…",
       "aboutCredits": "Ilmainen avoimen lähdekoodin laadullisen aineiston analyysiohjelma.",
       "aboutBuiltWith": "Tehty Taurilla, Rustilla, Reactilla, TipTapilla ja PDF.js:llä. Kuvakkeet: Lucide.",
-      "diagnostics": "Diagnostiikkatiedot…"
+      "diagnostics": "Diagnostiikkatiedot…",
+      "panelAssistant": "Tekoälyapu"
     },
     "dialog": {
       "openProject": "Avaa QDPX-projekti",
@@ -260,7 +261,8 @@
     "queries": "Haut",
     "memos": "Tallennetut muistiot",
     "quotes": "Tallennetut lainaukset",
-    "analyses": "Tallennetut analyysit"
+    "analyses": "Tallennetut analyysit",
+    "assistant": "Tekoälyapu"
   },
   "toolbar": {
     "label": "Työkalupalkki",
@@ -1322,7 +1324,8 @@
       "mediaPlayback": "Median toisto",
       "paperSize": "Paperikoko",
       "updates": "Päivitykset",
-      "support": "Tue Magnoliaa"
+      "support": "Tue Magnoliaa",
+      "aiAssistance": "Tekoälyapu"
     },
     "toolbarStyle": {
       "ribbon": "Valintanauha",
@@ -1401,7 +1404,8 @@
       "logbook": "Lokikirja",
       "memos": "Muistiot",
       "quotes": "Lainaukset",
-      "tabs": "Välilehdet"
+      "tabs": "Välilehdet",
+      "ai": "Tekoälyapu"
     },
     "mergeBlocks": "Viimeistele tai peru yhdistäminen käyttääksesi muita paneeleja",
     "noCodesInReport": "Koodeja ei voi lisätä raporttiin",
@@ -2093,5 +2097,166 @@
     "copy": "Kopioi",
     "copied": "Kopioitu. Liitä se ilmoitukseesi.",
     "copyFailed": "Kopiointi epäonnistui: valitse teksti ja kopioi se."
+  },
+  "ai": {
+    "prefs": {
+      "intro": "Tekoälyapu käyttää omaa tekoälypalveluasi: avainta Anthropicilta, OpenAI:lta tai muulta palveluntarjoajalta (ne laskuttavat käytöstä erikseen, Claude- tai ChatGPT-tilauksesta riippumatta), tai tällä tietokoneella toimivaa mallia.",
+      "privacy": "Projektista ei lähetetä mitään, ennen kuin otat tekoälyavun käyttöön kyseisessä projektissa. Sen jälkeen tekoäly lukee vain sen, mitä se pyytää, ja keskustelussa näkyy kaikki, mitä se lukee. Tarkista, että eettinen lupasi sallii aineistosi lähettämisen valitsemaasi palveluun; tällä tietokoneella toimiva malli pitää kaiken täällä.",
+      "service": "Palvelu",
+      "none": "Ei mitään (tekoälyapu pois päältä)",
+      "custom": "Muu palvelu…",
+      "onThisComputer": "{{name}} (tällä tietokoneella)",
+      "kind": "API-tyyppi",
+      "kindOpenai": "OpenAI-yhteensopiva",
+      "kindAnthropic": "Anthropic",
+      "address": "Osoite",
+      "localNote": "Tämä palvelu toimii tällä tietokoneella: se, mitä tekoäly lukee, pysyy täällä. Käynnistä se ennen kuin käytät tekoälyapua.",
+      "key": "API-avain",
+      "keyOptional": "API-avain (jos palvelu tarvitsee sellaisen)",
+      "keySaved": "Tälle osoitteelle on tallennettu avain.",
+      "removeKey": "Poista avain",
+      "saveKey": "Tallenna avain",
+      "getKey": "Hanki avain palvelusta {{name}}.",
+      "keyCost": "Palvelu laskuttaa käytöstä.",
+      "keyKept": "Avaimesi säilytetään tietokoneesi avainnipussa, ja se lähetetään vain tähän osoitteeseen.",
+      "model": "Malli",
+      "check": "Tarkista yhteys",
+      "checking": "Tarkistetaan…",
+      "connected_one": "Yhdistetty. Palvelu tarjoaa {{count}} mallin.",
+      "connected_other": "Yhdistetty. Palvelu tarjoaa {{count}} mallia."
+    },
+    "error": {
+      "noKey": "Tälle palvelulle ei ole avainta. Lisää avain kohdassa Asetukset → Tekoälyapu.",
+      "auth": "Palvelu ei hyväksynyt avainta.",
+      "notFound": "Palvelu ei tunnistanut osoitetta tai mallia.",
+      "rateLimit": "Palvelun mukaan pyyntöjä on lähetetty liian monta. Odota minuutti ja yritä uudelleen.",
+      "overloaded": "Palvelu on ruuhkautunut. Yritä pian uudelleen.",
+      "unreachable": "Magnolia ei saanut yhteyttä palveluun. Tarkista osoite ja verkkoyhteytesi (ja tällä tietokoneella toimivan mallin kohdalla, että se on käynnissä).",
+      "badAddress": "Tämä ei ole verkko-osoite, jota Magnolia voi käyttää.",
+      "keychain": "Magnolia ei voinut käyttää tietokoneesi avainnippua.",
+      "provider": "Palvelu ilmoitti ongelmasta.",
+      "cancelled": "Pysäytetty.",
+      "tooManySteps": "Tekoäly työskenteli yhä monen vaiheen jälkeen, joten Magnolia pysäytti sen. Pyydä sitä jatkamaan tai rajaa kysymystä."
+    },
+    "activity": {
+      "listDocuments_one": "Listasi projektin {{count}} dokumentin",
+      "listDocuments_other": "Listasi projektin {{count}} dokumenttia",
+      "listCodes_one": "Listasi projektin {{count}} koodin",
+      "listCodes_other": "Listasi projektin {{count}} koodia",
+      "read": "Luki: {{name}} (merkit {{from}}–{{to}}, yhteensä {{total}})",
+      "readSurvey_one": "Luki {{count}} vastauksen kyselystä {{name}}",
+      "readSurvey_other": "Luki {{count}} vastausta kyselystä {{name}}",
+      "search_one": "Haki tekstiä ”{{text}}” ({{count}} osuma)",
+      "search_other": "Haki tekstiä ”{{text}}” ({{count}} osumaa)",
+      "codedPassages_one": "Luki {{count}} kohdan, joka on koodattu koodilla {{name}}",
+      "codedPassages_other": "Luki {{count}} kohtaa, jotka on koodattu koodilla {{name}}",
+      "proposedCode": "Ehdotti uutta koodia: {{name}}",
+      "proposedChange": "Ehdotti muutosta: {{name}}",
+      "proposedCoding": "Ehdotti kohdan koodaamista koodilla {{code}} dokumentissa {{name}}",
+      "proposedRemoval": "Ehdotti koodin {{code}} poistamista kohdasta dokumentissa {{name}}",
+      "problem": "Pyysi jotain, mitä ei ollut olemassa",
+      "unknownTool": "Pyysi työkalua, jota Magnoliassa ei ole ({{name}})",
+      "failed": "Pyyntö epäonnistui ({{name}})",
+      "cutOff": "Pyyntö katkesi"
+    },
+    "log": {
+      "title_one": "Tekoälyapu: {{count}} muutos hyväksytty",
+      "title_other": "Tekoälyapu: {{count}} muutosta hyväksytty",
+      "intro": "Ehdottaja {{model}}, kun siltä kysyttiin:",
+      "newCode": "Uusi koodi **{{name}}**",
+      "editCode": "Muutettiin koodia **{{name}}**",
+      "addCoding": "Koodattiin ”{{quote}}” dokumentissa {{document}} koodilla **{{code}}**",
+      "removeCoding": "Poistettiin **{{code}}** kohdasta ”{{quote}}” dokumentissa {{document}}"
+    },
+    "fail": {
+      "noParent": "Koodia, jonka alle sen piti tulla, ei ole enää projektissa.",
+      "noCode": "Koodia ei ole enää projektissa.",
+      "noDocument": "Dokumenttia ei ole enää projektissa.",
+      "textChanged": "Dokumentin teksti on muuttunut siinä kohdassa ehdotuksen jälkeen.",
+      "codingGone": "Tätä koodausta ei ole enää projektissa."
+    },
+    "pane": {
+      "noService": "Tekoälyapu käyttää omaa tekoälypalveluasi. Valitse palvelu ja sen malli kohdassa Asetukset.",
+      "openSettings": "Avaa asetukset",
+      "consentTitle": "Otatko tekoälyavun käyttöön tässä projektissa?",
+      "consentChanged": "Tekoälypalvelu on vaihtunut. Otatko tekoälyavun käyttöön tässä projektissa uudella palvelulla?",
+      "consentRemote": "Tekoäly lukee ne projektin osat, joita se tarvitsee vastatakseen sinulle, ja ne lähetetään palveluun {{name}} ({{address}}). Tarkista, että tämä on sallittua aineistosi kohdalla, esimerkiksi eettisen lupasi mukaan.",
+      "consentLocal": "Tekoäly lukee ne projektin osat, joita se tarvitsee vastatakseen sinulle. {{name}} toimii tällä tietokoneella, joten mikään ei lähde koneelta.",
+      "consentReview": "Keskustelussa näkyy kaikki, mitä tekoäly lukee. Se ei voi muuttaa projektia: sinä hyväksyt tai hylkäät jokaisen sen ehdottaman muutoksen.",
+      "turnOn": "Ota käyttöön",
+      "newChat": "Uusi keskustelu",
+      "newChatOption": "Uusi keskustelu",
+      "chats": "Keskustelut",
+      "conversation": "Keskustelu",
+      "empty": "Kysy aineistostasi tai pyydä ehdotuksia koodeiksi ja koodauksiksi. Esimerkiksi: ”Mitä osallistujat sanovat kustannuksista?” tai ”Ehdota koodeja haastatteluun 3.”",
+      "working": "Työskennellään…",
+      "message": "Viesti",
+      "placeholder": "Kysy aineistostasi…",
+      "send": "Lähetä",
+      "stop": "Pysäytä",
+      "using": "{{name}} · {{model}}",
+      "review_one": "Tarkista {{count}}",
+      "review_other": "Tarkista {{count}}",
+      "reviewTitle_one": "{{count}} tarkistettava muutos",
+      "reviewTitle_other": "{{count}} tarkistettavaa muutosta",
+      "proposed_one": "{{count}} muutos ehdotettu: tarkista se",
+      "proposed_other": "{{count}} muutosta ehdotettu: tarkista ne"
+    },
+    "review": {
+      "title": "Tekoälyapu",
+      "subtitle": "Tekoälyn ehdottamat muutokset. Projektissa ei muutu mitään, ennen kuin hyväksyt muutoksen.",
+      "show": "Näytä",
+      "filter": {
+        "pending": "Tarkistettavat ({{count}})",
+        "approved": "Hyväksytyt ({{count}})",
+        "denied": "Hylätyt ({{count}})"
+      },
+      "empty": {
+        "pending": "Ei tarkistettavaa. Pyydä tekoälyltä Tekoälyapu-paneelissa ehdotuksia koodeiksi tai koodauksiksi.",
+        "approved": "Muutoksia ei ole vielä hyväksytty.",
+        "denied": "Muutoksia ei ole hylätty."
+      },
+      "approve": "Hyväksy",
+      "deny": "Hylkää",
+      "approveAll": "Hyväksy kaikki",
+      "denyAll": "Hylkää kaikki",
+      "approveChosen_one": "Hyväksy {{count}}",
+      "approveChosen_other": "Hyväksy {{count}}",
+      "denyChosen_one": "Hylkää {{count}}",
+      "denyChosen_other": "Hylkää {{count}}",
+      "choose": "Valitse",
+      "applied_one": "{{count}} muutos tehty. Kumoa peruu sen.",
+      "applied_other": "{{count}} muutosta tehty. Kumoa peruu ne.",
+      "appliedSome": "{{count}} tehty; {{failed}} ei voitu tehdä (katso Hylätyt).",
+      "denied_one": "{{count}} muutos hylätty.",
+      "denied_other": "{{count}} muutosta hylätty.",
+      "deletedChat": "Poistettu keskustelu",
+      "kind": {
+        "newCode": "Uusi koodi",
+        "editCode": "Koodin muutos",
+        "addCoding": "Koodaa koodilla {{code}}",
+        "removeCoding": "Poista {{code}}"
+      },
+      "under": "koodin {{name}} alla",
+      "newCodeName": "{{name}} (uusi)",
+      "rename": "Nimeä uudelleen: ”{{name}}”",
+      "describe": "Uusi kuvaus",
+      "noDescription": "ei mitään",
+      "moveUnder": "Siirrä koodin {{name}} alle",
+      "moveTop": "Siirrä ylimmälle tasolle",
+      "missingCode": "(koodi, jota ei enää ole projektissa)",
+      "missingDocument": "(dokumentti, jota ei enää ole projektissa)",
+      "reason": "Tekoälyn perustelu: {{reason}}",
+      "alsoApproves_one": "Tämän hyväksyminen hyväksyy myös sen tarvitseman uuden koodin.",
+      "alsoApproves_other": "Tämän hyväksyminen hyväksyy myös sen tarvitsemat {{count}} uutta koodia.",
+      "failed": "Ei voitu tehdä: {{why}}",
+      "showInDocument": "Näytä dokumentissa",
+      "status": {
+        "approved": "Hyväksytty",
+        "denied": "Hylätty",
+        "failed": "Ei tehty",
+        "pending": "Tarkistettava"
+      }
+    }
   }
 }

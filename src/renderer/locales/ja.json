@@ -89,7 +89,8 @@
       "sponsor": "Magnolia を支援…",
       "aboutCredits": "無料でオープンソースの質的データ分析ソフトウェア。",
       "aboutBuiltWith": "Tauri、Rust、React、TipTap、PDF.js で作られています。アイコンは Lucide。",
-      "diagnostics": "診断情報…"
+      "diagnostics": "診断情報…",
+      "panelAssistant": "AI 支援"
     },
     "dialog": {
       "openProject": "QDPX プロジェクトを開く",
@@ -257,7 +258,8 @@
     "queries": "クエリ",
     "memos": "保存したメモ",
     "quotes": "保存した引用",
-    "analyses": "保存した分析"
+    "analyses": "保存した分析",
+    "assistant": "AI 支援"
   },
   "toolbar": {
     "label": "ツールバー",
@@ -1277,7 +1279,8 @@
       "mediaPlayback": "メディア再生",
       "paperSize": "用紙サイズ",
       "updates": "アップデート",
-      "support": "Magnolia を支援"
+      "support": "Magnolia を支援",
+      "aiAssistance": "AI 支援"
     },
     "toolbarStyle": {
       "ribbon": "リボン",
@@ -1356,7 +1359,8 @@
       "logbook": "ログブック",
       "memos": "メモ",
       "quotes": "引用",
-      "tabs": "タブ"
+      "tabs": "タブ",
+      "ai": "AI 支援"
     },
     "mergeBlocks": "ほかのパネルを使うには、結合を完了するかキャンセルしてください",
     "noCodesInReport": "コードはレポートに追加できません",
@@ -2008,5 +2012,151 @@
     "copy": "コピー",
     "copied": "コピーしました。報告に貼り付けてください。",
     "copyFailed": "コピーできませんでした。テキストを選択してコピーしてください。"
+  },
+  "ai": {
+    "prefs": {
+      "intro": "AI 支援では、ご自身の AI サービスを使います。Anthropic、OpenAI などのプロバイダーのキー（使った分だけ、Claude や ChatGPT のサブスクリプションとは別にプロバイダーから請求されます）か、このコンピュータで動くモデルを使えます。",
+      "privacy": "プロジェクトで AI 支援をオンにするまで、そのプロジェクトの内容は何も送信されません。オンにした後も、AI が読むのは要求したものだけで、読んだものはすべてチャットに表示されます。選んだサービスにデータを送ることが倫理審査の承認で認められているか確認してください。このコンピュータ上のモデルなら、すべてがこのコンピュータ内にとどまります。",
+      "service": "サービス",
+      "none": "なし（AI 支援はオフ）",
+      "custom": "ほかのサービス…",
+      "onThisComputer": "{{name}}（このコンピュータ上）",
+      "kind": "API の種類",
+      "kindOpenai": "OpenAI 互換",
+      "kindAnthropic": "Anthropic",
+      "address": "アドレス",
+      "localNote": "このサービスはこのコンピュータで動作するため、AI が読んだ内容はここにとどまります。AI 支援を使う前に起動しておいてください。",
+      "key": "API キー",
+      "keyOptional": "API キー（サービスで必要な場合）",
+      "keySaved": "このアドレス用のキーが保存されています。",
+      "removeKey": "キーを削除",
+      "saveKey": "キーを保存",
+      "getKey": "{{name}} からキーを取得してください。",
+      "keyCost": "使った分だけサービスから請求されます。",
+      "keyKept": "キーはコンピュータのキーチェーンに保管され、このアドレス以外には送信されません。",
+      "model": "モデル",
+      "check": "接続を確認",
+      "checking": "確認中…",
+      "connected_other": "接続しました。このサービスでは {{count}} 個のモデルを使えます。"
+    },
+    "error": {
+      "noKey": "このサービスのキーがありません。「環境設定」→「AI 支援」で追加してください。",
+      "auth": "サービスがキーを受け付けませんでした。",
+      "notFound": "サービスがアドレスまたはモデルを認識できませんでした。",
+      "rateLimit": "リクエストが多すぎるとサービスから通知されました。1 分ほど待ってから、もう一度試してください。",
+      "overloaded": "サービスが混み合っています。しばらくしてから、もう一度試してください。",
+      "unreachable": "Magnolia からサービスに接続できませんでした。アドレスとネットワーク接続を確認してください（このコンピュータ上のモデルの場合は、起動しているかも確認してください）。",
+      "badAddress": "Magnolia で使える Web アドレスではありません。",
+      "keychain": "Magnolia からコンピュータのキーチェーンを使えませんでした。",
+      "provider": "サービスから問題が報告されました。",
+      "cancelled": "停止しました。",
+      "tooManySteps": "AI が多くのステップを経てもまだ作業を続けていたため、Magnolia が停止しました。続けるよう頼むか、質問を絞り込んでください。"
+    },
+    "activity": {
+      "listDocuments_other": "プロジェクトの {{count}} 件のドキュメントを一覧しました",
+      "listCodes_other": "プロジェクトの {{count}} 個のコードを一覧しました",
+      "read": "{{name}} を読みました（全 {{total}} 文字中 {{from}}–{{to}} 文字目）",
+      "readSurvey_other": "{{name}} の回答を {{count}} 件読みました",
+      "search_other": "「{{text}}」を検索しました（{{count}} 件一致）",
+      "codedPassages_other": "{{name}} でコード化された {{count}} 箇所を読みました",
+      "proposedCode": "新しいコード {{name}} を提案しました",
+      "proposedChange": "{{name}} の変更を提案しました",
+      "proposedCoding": "{{name}} の箇所を {{code}} でコーディングするよう提案しました",
+      "proposedRemoval": "{{name}} の箇所から {{code}} を外すよう提案しました",
+      "problem": "存在しないものを要求しました",
+      "unknownTool": "Magnolia にないツールを要求しました（{{name}}）",
+      "failed": "リクエストが失敗しました（{{name}}）",
+      "cutOff": "リクエストが途中で打ち切られました"
+    },
+    "log": {
+      "title_other": "AI 支援：{{count}} 件の変更を承認",
+      "intro": "{{model}} による提案。依頼内容：",
+      "newCode": "新しいコード **{{name}}**",
+      "editCode": "コード **{{name}}** を変更",
+      "addCoding": "{{document}} の「{{quote}}」を **{{code}}** でコーディング",
+      "removeCoding": "{{document}} の「{{quote}}」から **{{code}}** を削除"
+    },
+    "fail": {
+      "noParent": "配置先の親コードがプロジェクトにもうありません。",
+      "noCode": "そのコードはプロジェクトにもうありません。",
+      "noDocument": "そのドキュメントはプロジェクトにもうありません。",
+      "textChanged": "提案された後に、その箇所のドキュメントのテキストが変わっています。",
+      "codingGone": "そのコーディングはプロジェクトにもうありません。"
+    },
+    "pane": {
+      "noService": "AI 支援ではご自身の AI サービスを使います。「環境設定」でサービスとモデルを選んでください。",
+      "openSettings": "環境設定を開く",
+      "consentTitle": "このプロジェクトで AI 支援をオンにしますか？",
+      "consentChanged": "AI サービスが変更されました。新しいサービスで、このプロジェクトの AI 支援をオンにしますか？",
+      "consentRemote": "AI は回答に必要な部分だけをこのプロジェクトから読み、その内容は {{name}}（{{address}}）に送信されます。お使いのデータでこれが認められているか、倫理審査の承認などで確認してください。",
+      "consentLocal": "AI は回答に必要な部分だけをこのプロジェクトから読みます。{{name}} はこのコンピュータで動作するため、外部には何も送信されません。",
+      "consentReview": "AI が読んだものはすべてチャットに表示されます。AI がプロジェクトを変更することはできません。提案された変更は、一つずつ承認または却下します。",
+      "turnOn": "オンにする",
+      "newChat": "新しいチャット",
+      "newChatOption": "新しいチャット",
+      "chats": "チャット",
+      "conversation": "会話",
+      "empty": "データについて質問したり、コードやコーディングの提案を頼んだりできます。例：「参加者は費用について何と言っていますか？」「インタビュー 3 のコードを提案してください。」",
+      "working": "作業中…",
+      "message": "メッセージ",
+      "placeholder": "データについて質問…",
+      "send": "送信",
+      "stop": "停止",
+      "using": "{{name}} · {{model}}",
+      "review_other": "{{count}} 件を確認",
+      "reviewTitle_other": "確認待ちの変更：{{count}} 件",
+      "proposed_other": "{{count}} 件の変更が提案されました：確認してください"
+    },
+    "review": {
+      "title": "AI 支援",
+      "subtitle": "AI が提案した変更です。承認するまで、プロジェクトは何も変わりません。",
+      "show": "表示",
+      "filter": {
+        "pending": "確認待ち（{{count}}）",
+        "approved": "承認済み（{{count}}）",
+        "denied": "却下（{{count}}）"
+      },
+      "empty": {
+        "pending": "確認するものはありません。「AI 支援」パネルで、コードやコーディングの提案を AI に頼んでください。",
+        "approved": "まだ承認した変更はありません。",
+        "denied": "却下した変更はありません。"
+      },
+      "approve": "承認",
+      "deny": "却下",
+      "approveAll": "すべて承認",
+      "denyAll": "すべて却下",
+      "approveChosen_other": "{{count}} 件を承認",
+      "denyChosen_other": "{{count}} 件を却下",
+      "choose": "選択",
+      "applied_other": "{{count}} 件の変更を行いました。取り消すと元に戻せます。",
+      "appliedSome": "{{count}} 件を変更しました。{{failed}} 件は変更できませんでした（「却下」を参照）。",
+      "denied_other": "{{count}} 件の変更を却下しました。",
+      "deletedChat": "削除されたチャット",
+      "kind": {
+        "newCode": "新しいコード",
+        "editCode": "コードの変更",
+        "addCoding": "{{code}} でコーディング",
+        "removeCoding": "{{code}} を外す"
+      },
+      "under": "{{name}} の下",
+      "newCodeName": "{{name}}（新規）",
+      "rename": "名前を「{{name}}」に変更",
+      "describe": "新しい説明",
+      "noDescription": "なし",
+      "moveUnder": "{{name}} の下へ移動",
+      "moveTop": "最上位へ移動",
+      "missingCode": "（プロジェクトにもうないコード）",
+      "missingDocument": "（プロジェクトにもうないドキュメント）",
+      "reason": "AI の理由：{{reason}}",
+      "alsoApproves_other": "これを承認すると、必要な新しいコード {{count}} 個も承認されます。",
+      "failed": "変更できませんでした：{{why}}",
+      "showInDocument": "ドキュメントで表示",
+      "status": {
+        "approved": "承認済み",
+        "denied": "却下",
+        "failed": "未変更",
+        "pending": "確認待ち"
+      }
+    }
   }
 }
