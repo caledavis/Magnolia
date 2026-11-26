@@ -152,7 +152,8 @@
       "webview2Failed": "WebView2 でドキュメントをプリントできませんでした",
       "pdfTimedOut": "PDF へのプリントがタイムアウトしました",
       "noWindow": "プリント用ウインドウを作成できませんでした：{{detail}}",
-      "noPdf": "プリントで PDF が作成されませんでした：{{detail}}"
+      "noPdf": "プリントで PDF が作成されませんでした：{{detail}}",
+      "noFilePrinter": "Magnolia はシステムの「ファイルに出力」プリンターで PDF を作成しますが、見つかりませんでした。システムの GTK 印刷サポートをインストールして、もう一度お試しください。"
     },
     "core": {
       "stage": {

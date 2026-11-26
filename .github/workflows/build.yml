@@ -67,3 +67,13 @@ jobs:
         run: |
           cargo build -p magnolia
           ${{ runner.os == 'Linux' && 'xvfb-run -a' || '' }} node e2e/run.mjs
+
+      # PDF export again with the system in Spanish: GTK's print-to-file
+      # printer has a translated name, and Magnolia once asked for it by its
+      # English one, so no PDF was made (GitHub #38).
+      - name: PDF export in another language (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get install -y language-pack-es-base language-pack-gnome-es-base
+          LANGUAGE=es LANG=es_ES.UTF-8 LC_ALL=es_ES.UTF-8 xvfb-run -a node e2e/run.mjs pdf-export

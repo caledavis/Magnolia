@@ -152,7 +152,8 @@
       "webview2Failed": "‏WebView2 לא הצליח להדפיס את המסמך",
       "pdfTimedOut": "תם הזמן להדפסה ל-PDF",
       "noWindow": "לא ניתן ליצור חלון הדפסה: {{detail}}",
-      "noPdf": "ההדפסה לא יצרה PDF: {{detail}}"
+      "noPdf": "ההדפסה לא יצרה PDF: {{detail}}",
+      "noFilePrinter": "Magnolia יוצרת קובצי PDF באמצעות המדפסת „הדפסה לקובץ” של המערכת, ולא מצאה אותה. התקינו את תמיכת ההדפסה של GTK במערכת ונסו שוב."
     },
     "core": {
       "stage": {

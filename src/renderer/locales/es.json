@@ -152,7 +152,8 @@
       "webview2Failed": "WebView2 no pudo imprimir el documento",
       "pdfTimedOut": "Se agotó el tiempo al imprimir en PDF",
       "noWindow": "No se pudo crear la ventana de impresión: {{detail}}",
-      "noPdf": "La impresión no generó ningún PDF: {{detail}}"
+      "noPdf": "La impresión no generó ningún PDF: {{detail}}",
+      "noFilePrinter": "Magnolia crea los PDF con la impresora «Imprimir a archivo» del sistema y no la encontró. Instale el soporte de impresión GTK del sistema e inténtelo de nuevo."
     },
     "core": {
       "stage": {

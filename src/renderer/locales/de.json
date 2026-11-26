@@ -152,7 +152,8 @@
       "webview2Failed": "WebView2 konnte das Dokument nicht drucken",
       "pdfTimedOut": "Zeitüberschreitung beim Drucken als PDF",
       "noWindow": "Druckfenster konnte nicht erstellt werden: {{detail}}",
-      "noPdf": "Beim Drucken entstand kein PDF: {{detail}}"
+      "noPdf": "Beim Drucken entstand kein PDF: {{detail}}",
+      "noFilePrinter": "Magnolia erstellt PDFs mit dem Drucker „In Datei drucken“ Ihres Systems und konnte ihn nicht finden. Installieren Sie die GTK-Druckunterstützung Ihres Systems und versuchen Sie es erneut."
     },
     "core": {
       "stage": {

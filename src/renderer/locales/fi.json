@@ -152,7 +152,8 @@
       "webview2Failed": "WebView2 ei voinut tulostaa dokumenttia",
       "pdfTimedOut": "Aikakatkaisu PDF:ään tulostettaessa",
       "noWindow": "Tulostusikkunaa ei voitu luoda: {{detail}}",
-      "noPdf": "Tulostus ei tuottanut PDF:ää: {{detail}}"
+      "noPdf": "Tulostus ei tuottanut PDF:ää: {{detail}}",
+      "noFilePrinter": "Magnolia tekee PDF-tiedostot järjestelmän ”Tulosta tiedostoon” -tulostimella eikä löytänyt sitä. Asenna järjestelmän GTK-tulostustuki ja yritä uudelleen."
     },
     "core": {
       "stage": {

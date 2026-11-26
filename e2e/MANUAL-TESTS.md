@@ -65,6 +65,13 @@ since its last change.
     play, seek, and show their waveform. On Linux this depends on the
     system's GStreamer codecs; note which formats don't play.
 
+11b. 🐧 **PDF export on KDE Plasma (Wayland), with the system in
+    another language** (GitHub #38, reported on CachyOS in Spanish): export
+    a report, a query's results and a coded document as PDFs; each file is
+    written where the save dialog said. If a PDF can't be made, a message
+    says why (it used to fail without a word). The build machine checks
+    this on Ubuntu in Spanish, but not with KDE's own save dialog.
+
 ## Screen readers
 
 11. 🪟 **NVDA**, 🐧 **Orca**: with the screen reader on, move through the

@@ -152,7 +152,8 @@
       "webview2Failed": "WebView2 kon het document niet afdrukken",
       "pdfTimedOut": "Er is een time-out opgetreden bij het afdrukken naar pdf",
       "noWindow": "Kan het afdrukvenster niet maken: {{detail}}",
-      "noPdf": "Het afdrukken leverde geen pdf op: {{detail}}"
+      "noPdf": "Het afdrukken leverde geen pdf op: {{detail}}",
+      "noFilePrinter": "Magnolia maakt pdf’s met de printer ‘Afdrukken naar bestand’ van uw systeem en kon die niet vinden. Installeer de GTK-afdrukondersteuning van uw systeem en probeer het opnieuw."
     },
     "core": {
       "stage": {

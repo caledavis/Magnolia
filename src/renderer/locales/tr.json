@@ -152,7 +152,8 @@
       "webview2Failed": "WebView2 belgeyi yazdıramadı",
       "pdfTimedOut": "PDF’ye yazdırılırken zaman aşımı oldu",
       "noWindow": "Yazdırma penceresi oluşturulamadı: {{detail}}",
-      "noPdf": "Yazdırma bir PDF üretmedi: {{detail}}"
+      "noPdf": "Yazdırma bir PDF üretmedi: {{detail}}",
+      "noFilePrinter": "Magnolia PDF’leri sistemin “Dosyaya Yazdır” yazıcısıyla oluşturur ve bu yazıcıyı bulamadı. Sisteminizin GTK yazdırma desteğini kurun ve yeniden deneyin."
     },
     "core": {
       "stage": {

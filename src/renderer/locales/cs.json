@@ -152,7 +152,8 @@
       "webview2Failed": "WebView2 nemohl dokument vytisknout",
       "pdfTimedOut": "Při tisku do PDF vypršel časový limit",
       "noWindow": "Nepodařilo se vytvořit okno tisku: {{detail}}",
-      "noPdf": "Tisk nevytvořil žádné PDF: {{detail}}"
+      "noPdf": "Tisk nevytvořil žádné PDF: {{detail}}",
+      "noFilePrinter": "Magnolia vytváří PDF pomocí systémové tiskárny „Tisk do souboru“ a nenašla ji. Nainstalujte podporu tisku GTK pro váš systém a zkuste to znovu."
     },
     "core": {
       "stage": {

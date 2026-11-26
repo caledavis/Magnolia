@@ -152,7 +152,8 @@
       "webview2Failed": "WebView2 no ha pogut imprimir el document",
       "pdfTimedOut": "S’ha esgotat el temps en imprimir a PDF",
       "noWindow": "No s’ha pogut crear la finestra d’impressió: {{detail}}",
-      "noPdf": "La impressió no ha generat cap PDF: {{detail}}"
+      "noPdf": "La impressió no ha generat cap PDF: {{detail}}",
+      "noFilePrinter": "El Magnolia crea els PDF amb la impressora «Imprimeix a un fitxer» del sistema i no l’ha trobada. Instal·leu el suport d’impressió GTK del sistema i torneu-ho a provar."
     },
     "core": {
       "stage": {

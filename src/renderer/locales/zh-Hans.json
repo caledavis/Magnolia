@@ -152,7 +152,8 @@
       "webview2Failed": "WebView2 无法打印该文档",
       "pdfTimedOut": "打印为 PDF 时超时",
       "noWindow": "无法创建打印窗口：{{detail}}",
-      "noPdf": "打印未生成 PDF：{{detail}}"
+      "noPdf": "打印未生成 PDF：{{detail}}",
+      "noFilePrinter": "Magnolia 使用系统的“打印到文件”打印机生成 PDF，但未找到该打印机。请安装系统的 GTK 打印支持后重试。"
     },
     "core": {
       "stage": {

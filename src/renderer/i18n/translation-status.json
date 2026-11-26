@@ -134,6 +134,7 @@
     "native.print.pdfTimedOut": "Timed out while printing to PDF",
     "native.print.noWindow": "Could not create print window: {{detail}}",
     "native.print.noPdf": "Printing produced no PDF: {{detail}}",
+    "native.print.noFilePrinter": "Magnolia makes PDFs with your system’s “Print to File” printer, and couldn’t find it. Install your system’s GTK printing support and try again.",
     "native.core.stage.readingFile": "Reading file",
     "native.core.stage.unpacking": "Unpacking archive",
     "native.core.stage.parsing": "Parsing project",

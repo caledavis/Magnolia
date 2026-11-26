@@ -28,6 +28,8 @@
 // share the renderer's file-serving context, so it can't resolve a
 // relative URL.
 import magnoliaSvg from '../assets/magnoliaqda.svg?raw'
+import { errorMessage } from './error-message'
+import { t } from '../i18n'
 
 const MAGNOLIA_LOGO_DATA_URI = `data:image/svg+xml;base64,${btoa(magnoliaSvg)}`
 
@@ -82,14 +84,22 @@ export function exportPdfWithHeader(
   footerTemplate?: string,
   script?: string
 ): Promise<string | null> {
-  return window.api.exportPdf(
-    html,
-    defaultName,
-    dialogTitle,
-    headerTemplate ?? MAGNOLIA_PDF_HEADER_TEMPLATE,
-    footerTemplate ?? MAGNOLIA_PDF_FOOTER_TEMPLATE,
-    script
-  )
+  // A PDF that couldn't be made says why, whatever is being exported
+  // (a report's failure on Linux went only to the console: GitHub #38).
+  return window.api
+    .exportPdf(
+      html,
+      defaultName,
+      dialogTitle,
+      headerTemplate ?? MAGNOLIA_PDF_HEADER_TEMPLATE,
+      footerTemplate ?? MAGNOLIA_PDF_FOOTER_TEMPLATE,
+      script
+    )
+    .catch((err: unknown) => {
+      console.error('PDF export failed:', err)
+      void window.api.showMessage(t('codedPdf.failed', { detail: errorMessage(err) }), 'error')
+      return null
+    })
 }
 
 // ── Shared page layout ─────────────────────────────────────────────

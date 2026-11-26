@@ -152,7 +152,8 @@
       "webview2Failed": "WebView2 kunne ikke udskrive dokumentet",
       "pdfTimedOut": "Tidsgrænsen blev nået under udskrivning til PDF",
       "noWindow": "Udskrivningsvinduet kunne ikke oprettes: {{detail}}",
-      "noPdf": "Udskrivningen gav ingen PDF: {{detail}}"
+      "noPdf": "Udskrivningen gav ingen PDF: {{detail}}",
+      "noFilePrinter": "Magnolia laver PDF’er med systemets printer “Udskriv til fil” og kunne ikke finde den. Installer systemets GTK-udskrivningsunderstøttelse, og prøv igen."
     },
     "core": {
       "stage": {

@@ -152,7 +152,8 @@
       "webview2Failed": "WebView2 nepavyko išspausdinti dokumento",
       "pdfTimedOut": "Baigėsi spausdinimo į PDF laikas",
       "noWindow": "Nepavyko sukurti spausdinimo lango: {{detail}}",
-      "noPdf": "Spausdinant nesukurtas PDF: {{detail}}"
+      "noPdf": "Spausdinant nesukurtas PDF: {{detail}}",
+      "noFilePrinter": "Magnolia kuria PDF sistemos spausdintuvu „Spausdinti į failą“ ir jo nerado. Įdiekite sistemos GTK spausdinimo palaikymą ir bandykite dar kartą."
     },
     "core": {
       "stage": {

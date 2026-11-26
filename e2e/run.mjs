@@ -63,7 +63,8 @@ function runInApp(name, script, project, dataDir) {
     const scriptPath = join(dirname(project), `${name}.js`)
     writeFileSync(scriptPath, script)
     const child = spawn(BIN, [project], {
-      env: { ...process.env, MAGNOLIA_AUTOMATION: scriptPath, MAGNOLIA_AUTOMATION_DATA: dataDir },
+      // Exports (PDF, CSV…) go to this folder without a save dialog.
+      env: { ...process.env, MAGNOLIA_AUTOMATION: scriptPath, MAGNOLIA_AUTOMATION_DATA: dataDir, MAGNOLIA_AUTOMATION_EXPORTS: dirname(project) },
       stdio: ['ignore', 'ignore', 'pipe']
     })
     const lines = []
