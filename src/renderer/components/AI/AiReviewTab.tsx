@@ -220,15 +220,55 @@ function CodeStack({ parts, color, newCode }: { parts: string[]; color?: string;
         <strong style={one}>{parts[parts.length - 1]}</strong>
         {/* A coding with a code that's only proposed: approving it adds
             the code too (gold, as the code's own row). */}
-        {newCode && (
-          <span title={newCode.note} style={{ flexShrink: 0, display: 'inline-flex' }}>
-            <Chip tone="new">{newCode.label}</Chip>
-            <span style={visuallyHidden}>{newCode.note}</span>
-          </span>
-        )}
+        <FadeOut show={!!newCode}>
+          {newCode && (
+            <span title={newCode.note} style={{ flexShrink: 0, display: 'inline-flex' }}>
+              <Chip tone="new">{newCode.label}</Chip>
+              <span style={visuallyHidden}>{newCode.note}</span>
+            </span>
+          )}
+        </FadeOut>
       </span>
     </span>
   )
+}
+
+/** Its children fade away when `show` turns false (and are then gone),
+ *  instead of vanishing at once. */
+function FadeOut({ show, children }: { show: boolean; children: React.ReactNode }) {
+  const last = useRef<React.ReactNode>(children)
+  if (show) last.current = children
+  const [kept, setKept] = useState(show)
+  useEffect(() => {
+    if (show) { setKept(true); return }
+    const timer = setTimeout(() => setKept(false), FADE_MS)
+    return () => clearTimeout(timer)
+  }, [show])
+  if (!show && !kept) return null
+  return <span className={show ? 'ai-fade' : 'ai-fade out'} style={{ display: 'inline-flex', flexShrink: 0 }}>{show ? children : last.current}</span>
+}
+
+/** How long a fade away takes (as in the styles). */
+const FADE_MS = 420
+
+/** `items`, with those just taken out kept a moment longer (marked
+ *  leaving), where they were, so they can fade away. */
+function useLeaving(items: AiProposal[]): { p: AiProposal; leaving: boolean }[] {
+  const [gone, setGone] = useState<{ p: AiProposal; index: number }[]>([])
+  const before = useRef(items)
+  useLayoutEffect(() => {
+    const now = new Set(items.map((p) => p.id))
+    const removed = before.current.map((p, index) => ({ p, index })).filter((x) => !now.has(x.p.id))
+    before.current = items
+    if (!removed.length) return
+    setGone((g) => [...g, ...removed])
+    setTimeout(() => setGone((g) => g.filter((x) => !removed.some((r) => r.p.id === x.p.id))), FADE_MS)
+  }, [items])
+  const out = items.map((p) => ({ p, leaving: false }))
+  for (const g of [...gone].sort((a, b) => a.index - b.index)) {
+    if (!out.some((x) => x.p.id === g.p.id)) out.splice(Math.min(g.index, out.length), 0, { p: g.p, leaving: true })
+  }
+  return out
 }
 
 const visuallyHidden: React.CSSProperties = { position: 'absolute', width: 1, height: 1, margin: -1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0 }
@@ -482,6 +522,8 @@ function PendingList({ items, onApprove, onReject }: { items: AiProposal[]; onAp
   const [active, setActive] = useState(0)
   const [openId, setOpenId] = useState<string | null>(null)
   const ref = useRef<HTMLUListElement>(null)
+  // Rows just decided (or rejected with their new code) fade away.
+  const rows = useLeaving(items)
   const n = items.length
   const at = Math.min(active, n - 1)
   const show = (i: number) => {
@@ -531,17 +573,21 @@ function PendingList({ items, onApprove, onReject }: { items: AiProposal[]; onAp
         className="ai-list"
         style={listGrid}
       >
-        {items.map((p, i) => (
-          <PendingLine
-            key={p.id}
-            p={p}
-            active={i === at}
-            open={openId === p.id}
-            onToggle={() => { setActive(i); setOpenId((id) => (id === p.id ? null : p.id)) }}
-            onApprove={() => onApprove(p.id)}
-            onReject={() => onReject(p.id)}
-          />
-        ))}
+        {rows.map(({ p, leaving }) => {
+          const i = items.indexOf(p)
+          return (
+            <PendingLine
+              key={p.id}
+              p={p}
+              leaving={leaving}
+              active={!leaving && i === at}
+              open={openId === p.id}
+              onToggle={() => { setActive(i); setOpenId((id) => (id === p.id ? null : p.id)) }}
+              onApprove={() => onApprove(p.id)}
+              onReject={() => onReject(p.id)}
+            />
+          )
+        })}
       </ul>
     </>
   )
@@ -571,7 +617,7 @@ function KindLabel({ p, s }: { p: AiProposal; s: { kind: string; isNew: boolean 
   return <Chip tone={s.isNew ? 'new' : p.change.type === 'addCoding' ? 'coding' : undefined}>{s.kind}</Chip>
 }
 
-function PendingLine({ p, active, open, onToggle, onApprove, onReject }: { p: AiProposal; active: boolean; open: boolean; onToggle: () => void; onApprove: () => void; onReject: () => void }) {
+function PendingLine({ p, leaving, active, open, onToggle, onApprove, onReject }: { p: AiProposal; leaving: boolean; active: boolean; open: boolean; onToggle: () => void; onApprove: () => void; onReject: () => void }) {
   const { t } = useTranslation()
   const proposals = useAiStore((s) => s.proposals)
   const sources = useDocumentStore((s) => s.sources)
@@ -579,8 +625,19 @@ function PendingLine({ p, active, open, onToggle, onApprove, onReject }: { p: Ai
   const c = p.change
   const needs = withRequirements([p.id], proposals).filter((id) => id !== p.id)
   const sel = c.type === 'removeCoding' ? sources.find((x) => x.guid === c.sourceGuid)?.selections.find((x) => x.guid === c.selectionGuid) : undefined
+  // Leaving: it folds from its own height, so those below slide up at once.
+  const li = useRef<HTMLLIElement>(null)
+  useLayoutEffect(() => {
+    if (leaving && li.current) li.current.style.setProperty('--ai-h', `${li.current.offsetHeight}px`)
+  }, [leaving])
   return (
-    <li data-proposal={p.id} data-active={active ? '' : undefined} style={{ ...row, borderRadius: 8, padding: '8px 12px 8px 16px', border: `1px solid ${s.isNew ? 'color-mix(in srgb, var(--rb-gold) 60%, var(--border-color))' : 'var(--border-color)'}`, background: 'var(--bg-panel)', fontSize: 12.5 }}>
+    <li
+      ref={li}
+      data-proposal={leaving ? undefined : p.id}
+      data-active={active ? '' : undefined}
+      className={leaving ? 'ai-leaving' : undefined}
+      aria-hidden={leaving || undefined}
+      style={{ ...row, borderRadius: 8, padding: '8px 12px 8px 16px', border: `1px solid ${s.isNew ? 'color-mix(in srgb, var(--rb-gold) 60%, var(--border-color))' : 'var(--border-color)'}`, background: 'var(--bg-panel)', fontSize: 12.5 }}>
       <button
         type="button"
         aria-expanded={open}
