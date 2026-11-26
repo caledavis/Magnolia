@@ -474,11 +474,11 @@ export function Reports({ savedConfig, inTab }: Props) {
 
       {/* The builder on the left, the report as it will be exported on the
           right (GitHub #38); the divider between them can be dragged. */}
-      <PanelGroup direction="horizontal" autoSaveId="magnolia-report-split" style={{ flex: 1, minHeight: 0, '--report-bar-height': '34px' } as React.CSSProperties}>
+      <PanelGroup direction="horizontal" autoSaveId="magnolia-report-split" style={{ flex: 1, minHeight: 0, '--report-bar-height': '36px' } as React.CSSProperties}>
       <Panel id="builder" order={1} defaultSize={50} minSize={25}>
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       {/* Tool toolbar: draggable Section / Text blocks. */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 20px', minHeight: 'var(--report-bar-height)', boxSizing: 'border-box', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-panel)', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 20px', height: 'var(--report-bar-height)', boxSizing: 'border-box', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-panel)', flexShrink: 0 }}>
         <span style={{ fontSize: 11, color: 'var(--text-muted)', marginInlineEnd: 4 }}>{t('reports.dragToAdd')}</span>
         <PaletteChip block="section" icon={faHeading1} label={t('reports.section')} />
         <PaletteChip block="text" icon={faFont} label={t('reports.text')} />
