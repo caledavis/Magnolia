@@ -18,13 +18,11 @@ import { useDocumentStore } from '../../stores/document-store'
 import { approve, deny, withDependents, withRequirements } from '../../utils/ai/apply'
 import { documentText } from '../../utils/ai/tools'
 import { buildCellText } from '../../utils/survey/cell-text'
-import { formatDateTime } from '../../i18n'
 import { usePreferencesStore } from '../../stores/preferences-store'
 import { PREFERENCES_TAB_ID } from '../../utils/tab-ids'
 import { requestPreferencesCategory } from '../Preferences/PreferencesWindow'
 import type { Code, SurveyFormatData } from '../../models/types'
-import type { AiChange } from '../../utils/ai/tools'
-import { Icon, faSparkles, faCheck, faXmark } from '../Icon'
+import { Icon, faSparkles, faCheck, faXmark, faChevronDown, faChevronRight } from '../Icon'
 import { SegmentedControl } from '../Analysis/SegmentedControl'
 import { announce } from '../../utils/keyboard-access'
 import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
@@ -40,7 +38,6 @@ const FILTERS: { id: Filter; statuses: ProposalStatus[] }[] = [
 export function AiReviewTab({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation()
   const proposals = useAiStore((s) => s.proposals)
-  const sessions = useAiStore((s) => s.sessions)
   const appsAllowed = useAiStore((s) => s.appsAllowed)
   const appRequest = useAiStore((s) => s.appRequest)
   const appsEnabled = usePreferencesStore((s) => s.aiAppsEnabled)
@@ -51,12 +48,17 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
     const statuses = FILTERS.find((f) => f.id === filter)!.statuses
     return proposals.filter((p) => statuses.includes(p.status))
   }, [proposals, filter])
-  // By chat, newest first; within a chat, in the order proposed.
+  // By code (a proposed code with the codings that need it), in the
+  // order first proposed.
+  const createdCodes = useAiStore((s) => s.createdCodes)
   const groups = useMemo(() => {
-    const byChat = new Map<string, AiProposal[]>()
-    for (const p of shown) byChat.set(p.chatId, [...(byChat.get(p.chatId) ?? []), p])
-    return [...byChat.entries()].sort((a, b) => b[1][0].createdAt.localeCompare(a[1][0].createdAt))
-  }, [shown])
+    const byKey = new Map<string, AiProposal[]>()
+    for (const p of shown) {
+      const k = groupKey(p, createdCodes)
+      byKey.set(k, [...(byKey.get(k) ?? []), p])
+    }
+    return [...byKey.entries()]
+  }, [shown, createdCodes])
   const count = (f: Filter) => proposals.filter((p) => FILTERS.find((x) => x.id === f)!.statuses.includes(p.status)).length
   const pendingShown = shown.filter((p) => p.status === 'pending')
   const chosenPending = pendingShown.filter((p) => chosen.has(p.id)).map((p) => p.id)
@@ -75,11 +77,6 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
     announce(t('ai.review.denied', { count: all.length }))
   }
   const toggle = (id: string) => setChosen((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
-
-  const sessionLabel = (id: string) => {
-    const s = sessions.find((x) => x.id === id)
-    return s ? t('ai.review.session', { app: s.app, time: formatDateTime(s.createdAt) }) : t('ai.review.deletedChat')
-  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -138,27 +135,19 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
               <p style={{ margin: '10px auto 0', maxWidth: 420 }}>{t(`ai.review.empty.${filter}`)}</p>
             </div>
           )}
-          {groups.map(([chatId, items]) => (
-            <section key={chatId} style={{ marginTop: 14 }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 8px' }}>
-                <span>{sessionLabel(chatId)}</span>
-                <span style={{ flex: 1, height: 1, background: 'var(--border-color)' }} />
-                <span style={{ fontWeight: 400 }}>{items.length}</span>
-              </h3>
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {items.map((p) => (
-                  <ProposalCard
-                    key={p.id}
-                    p={p}
-                    chosen={chosen.has(p.id)}
-                    onToggle={() => toggle(p.id)}
-                    onApprove={() => doApprove([p.id])}
-                    onReject={() => doReject([p.id])}
-                  />
-                ))}
-              </ul>
-            </section>
-          ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+            {groups.map(([key, items]) => (
+              <CodeBlock
+                key={key}
+                groupKey={key}
+                items={items}
+                chosen={chosen}
+                onToggle={toggle}
+                onApprove={doApprove}
+                onReject={doReject}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -235,122 +224,214 @@ function pathOf(codes: Code[], guid: string): Code[] | null {
   return null
 }
 
-const KIND_COLOUR: Record<AiChange['type'], string> = {
-  newCode: 'var(--rb-gold)',
-  editCode: 'var(--rb-blue)',
-  addCoding: 'var(--rb-blue)',
-  removeCoding: 'var(--rb-coral)'
+/** Which code a proposal is about: its block in the Viewer. */
+function groupKey(p: AiProposal, created: Record<string, string>): string {
+  const c = p.change
+  const byRef = (ref: string) => (created[ref] ? `code:${created[ref]}` : `ref:${ref}`)
+  if (c.type === 'newCode') return byRef(c.ref)
+  if (c.type === 'addCoding') return c.codeGuid ? `code:${c.codeGuid}` : byRef(c.codeRef!)
+  return `code:${c.codeGuid}`
 }
 
-function ProposalCard({ p, chosen, onToggle, onApprove, onReject }: { p: AiProposal; chosen: boolean; onToggle: () => void; onApprove: () => void; onReject: () => void }) {
-  const { t } = useTranslation()
+/** A code's path and colour, by guid or by a proposed code's reference. */
+function useCodeInfo() {
   const proposals = useAiStore((s) => s.proposals)
   const created = useAiStore((s) => s.createdCodes)
   const codes = useCodeStore((s) => s.codes)
-  const sources = useDocumentStore((s) => s.sources)
-  const c = p.change
-  const docName = (guid: string) => sources.find((s) => s.guid === guid)?.name ?? t('ai.review.missingDocument')
-  /** A code's path, by guid, or by a proposed code's reference. */
+  const { t } = useTranslation()
+  const proposed = (ref: string) => {
+    const q = proposals.find((x) => x.change.type === 'newCode' && x.change.ref === ref)
+    return q?.change.type === 'newCode' ? q.change : undefined
+  }
   const path = (guid?: string, ref?: string): string[] => {
-    if (guid) return pathOf(codes, guid)?.map((x) => x.name) ?? [t('ai.review.missingCode')]
-    if (!ref) return []
-    const made = created[ref]
-    if (made && pathOf(codes, made)) return pathOf(codes, made)!.map((x) => x.name)
-    const proposal = proposals.find((x) => x.change.type === 'newCode' && x.change.ref === ref)
-    if (!proposal || proposal.change.type !== 'newCode') return [ref]
-    return [...path(proposal.change.parentGuid, proposal.change.parentRef), proposal.change.name]
-  }
-  /** A code's colour; a proposed one's, as chosen when proposed. */
-  const colourOf = (guid?: string, ref?: string): string | undefined => {
     const g = guid ?? (ref ? created[ref] : undefined)
-    const existing = g ? pathOf(codes, g)?.at(-1)?.color : undefined
-    if (existing || !ref) return existing
-    const proposal = proposals.find((x) => x.change.type === 'newCode' && x.change.ref === ref)
-    return proposal?.change.type === 'newCode' ? newCodeColour(proposal) : undefined
+    const found = g ? pathOf(codes, g) : null
+    if (found) return found.map((x) => x.name)
+    if (guid) return [t('ai.review.missingCode')]
+    const c = ref ? proposed(ref) : undefined
+    return c ? [...path(c.parentGuid, c.parentRef), c.name] : ref ? [ref] : []
   }
-  const newCodeColour = (q: AiProposal): string | undefined =>
-    q.change.type === 'newCode' ? q.change.color : undefined
-  const needs = p.status === 'pending' ? withRequirements([p.id], proposals).filter((id) => id !== p.id) : []
-  const open = (sourceGuid: string, start: number, end: number) => useDocumentStore.getState().viewDocumentAt(sourceGuid, start, end)
-  const pending = p.status === 'pending'
+  const colour = (guid?: string, ref?: string): string | undefined => {
+    const g = guid ?? (ref ? created[ref] : undefined)
+    const found = g ? pathOf(codes, g)?.at(-1)?.color : undefined
+    return found ?? (ref ? proposed(ref)?.color : undefined)
+  }
+  return { path, colour }
+}
 
-  let kind: string
-  let title: React.ReactNode
-  let body: React.ReactNode = null
-  let accent = KIND_COLOUR[c.type]
-  if (c.type === 'newCode') {
-    kind = t('ai.review.kind.newCode')
-    title = <CodePath parts={[...path(c.parentGuid, c.parentRef), c.name]} color={newCodeColour(p)} />
-    if (c.description) body = <p style={{ margin: '6px 0 0', fontSize: 12.5, color: 'var(--text-secondary)' }}>{c.description}</p>
-  } else if (c.type === 'editCode') {
-    kind = t('ai.review.kind.editCode')
-    title = <CodePath parts={path(c.codeGuid)} color={colourOf(c.codeGuid)} />
-    body = (
-      <ul style={{ margin: '6px 0 0', paddingInlineStart: 18, fontSize: 12.5, color: 'var(--text-secondary)' }}>
-        {c.name && <li>{t('ai.review.rename', { name: c.name })}</li>}
-        {c.description !== undefined && <li>{t('ai.review.describe')}: <em>{c.description || t('ai.review.noDescription')}</em></li>}
-        {c.move && <li>{c.move.parentGuid || c.move.parentRef ? t('ai.review.moveUnder', { name: path(c.move.parentGuid, c.move.parentRef).join(' / ') }) : t('ai.review.moveTop')}</li>}
-      </ul>
-    )
-  } else if (c.type === 'addCoding') {
-    kind = t('ai.review.kind.coding')
-    const colour = colourOf(c.codeGuid, c.codeRef)
-    if (colour) accent = colour
-    title = <><CodePath parts={path(c.codeGuid, c.codeRef)} color={colour} /> <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>· {docName(c.sourceGuid)}</span></>
-    body = <Context sourceGuid={c.sourceGuid} start={c.start} end={c.end} cell={c.surveyCell} color={colour} />
-  } else {
-    kind = t('ai.review.kind.removal')
-    title = <><CodePath parts={path(c.codeGuid)} color={colourOf(c.codeGuid)} /> <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>· {docName(c.sourceGuid)}</span></>
-    const sel = sources.find((s) => s.guid === c.sourceGuid)?.selections.find((s) => s.guid === c.selectionGuid)
-    body = sel ? <Context sourceGuid={c.sourceGuid} start={sel.startPosition} end={sel.endPosition} cell={sel.surveyCell} color={colourOf(c.codeGuid)} /> : <p style={{ fontSize: 12.5 }}>“{c.text}”</p>
-  }
-  const at = c.type === 'addCoding' ? { g: c.sourceGuid, s: c.start, e: c.end } : null
-  // The colour is in the icon; the word is in the text colour (coloured
-  // text this small doesn't contrast enough on every theme).
-  const statusIcon = p.status === 'approved' ? faCheck : faXmark
-  const statusColour = p.status === 'approved' ? 'var(--success)' : p.status === 'failed' ? 'var(--danger)' : 'var(--text-muted)'
+/** A short form of a passage, for its row. */
+function excerpt(text: string, max = 90): string {
+  const one = text.replace(/\s+/g, ' ').trim()
+  return one.length > max ? one.slice(0, max - 1).trimEnd() + '…' : one
+}
+
+/** How many of a block's rows show before "N more". */
+const ROWS_SHOWN = 5
+
+const iconButton: React.CSSProperties = {
+  display: 'grid', placeItems: 'center', width: 26, height: 24, padding: 0,
+  borderRadius: 6, border: '1px solid var(--border-color)', background: 'var(--bg-panel)', cursor: 'pointer'
+}
+
+/** One code: the proposed code (or the existing one) and the changes
+ *  proposed for it, a row each. */
+function CodeBlock({ groupKey: key, items, chosen, onToggle, onApprove, onReject }: {
+  groupKey: string; items: AiProposal[]; chosen: Set<string>
+  onToggle: (id: string) => void; onApprove: (ids: string[]) => void; onReject: (ids: string[]) => void
+}) {
+  const { t } = useTranslation()
+  const { path, colour } = useCodeInfo()
+  const [showAll, setShowAll] = useState(false)
+  const head = items.find((p) => p.change.type === 'newCode')
+  const rows = items.filter((p) => p !== head)
+  const guid = key.startsWith('code:') ? key.slice(5) : undefined
+  const ref = key.startsWith('ref:') ? key.slice(4) : head?.change.type === 'newCode' ? head.change.ref : undefined
+  const parts = head?.change.type === 'newCode' ? [...path(head.change.parentGuid, head.change.parentRef), head.change.name] : path(guid, ref)
+  const color = head?.change.type === 'newCode' ? head.change.color ?? colour(guid, ref) : colour(guid, ref)
+  const pending = items.filter((p) => p.status === 'pending')
+  const visible = showAll ? rows : rows.slice(0, ROWS_SHOWN)
 
   return (
-    <li style={{
-      position: 'relative', display: 'flex', gap: 12, padding: '12px 14px 12px 16px', borderRadius: 8,
-      border: '1px solid var(--border-color)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-      borderInlineStart: `3px solid ${pending ? accent : 'var(--border-color)'}`,
-      background: 'var(--bg-panel)'
-    }}>
-      {pending && <input type="checkbox" checked={chosen} onChange={onToggle} aria-label={t('ai.review.choose')} style={{ marginTop: 2 }} />}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 13 }}>
-          <span style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--text-secondary)', background: 'var(--bg-tertiary)', borderRadius: 4, padding: '1px 6px' }}>{kind}</span>
-          {title}
-        </div>
-        {body}
-        {p.reason && (
-          <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{t('ai.review.reason', { reason: p.reason })}</p>
+    <section
+      aria-label={parts.join(' / ')}
+      style={{ borderRadius: 8, border: '1px solid var(--border-color)', borderInlineStart: `3px solid ${color ?? 'var(--border-color)'}`, background: 'var(--bg-panel)', overflow: 'hidden' }}
+    >
+      <div data-proposal={head?.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', flexWrap: 'wrap' }}>
+        {head?.status === 'pending' && <input type="checkbox" checked={chosen.has(head.id)} onChange={() => onToggle(head.id)} aria-label={t('ai.review.choose')} />}
+        <span style={{ fontSize: 13 }}><CodePath parts={parts} color={color} /></span>
+        {head && <Chip>{t('ai.review.kind.newCode')}</Chip>}
+        {head && head.status !== 'pending' && <Status p={head} />}
+        <span style={{ flex: 1 }} />
+        {pending.length > 1 && (
+          <button type="button" className="secondary" onClick={() => onReject(pending.map((p) => p.id))}>{t('ai.review.denyAll')}</button>
         )}
-        {needs.length > 0 && <p style={{ margin: '4px 0 0', fontSize: 11.5, color: 'var(--text-muted)' }}>{t('ai.review.alsoApproves', { count: needs.length })}</p>}
-        {p.status === 'failed' && (
-          <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)' }}>
-            <Icon icon={faXmark} style={{ color: 'var(--danger)', width: 13, height: 13, flexShrink: 0 }} />
-            {t('ai.review.failed', { why: p.failure ?? '' })}
-          </p>
+        {head?.status === 'pending' && pending.length === 1 && (
+          <button type="button" className="secondary" onClick={() => onReject([head.id])}>{t('ai.review.deny')}</button>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, fontSize: 11, color: 'var(--text-muted)' }}>
-          <span>{p.model}</span>
-          {at && <button type="button" onClick={() => open(at.g, at.s, at.e)} style={{ padding: 0, border: 'none', background: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: 11 }}>{t('ai.review.showInDocument')}</button>}
-          <span style={{ flex: 1 }} />
-          {pending ? (
-            <>
-              <button className="secondary" onClick={onReject}>{t('ai.review.deny')}</button>
-              <button onClick={onApprove}>{t('ai.review.approve')}</button>
-            </>
-          ) : (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 600, color: 'var(--text-secondary)' }}>
-              <Icon icon={statusIcon} style={{ color: statusColour, width: 13, height: 13 }} />
-              {t(`ai.review.status.${p.status}`)}
-            </span>
-          )}
-        </div>
+        {pending.length > 0 && (head || pending.length > 1) && (
+          <button type="button" onClick={() => onApprove(pending.map((p) => p.id))}>
+            {pending.length > 1 ? t('ai.review.approveChosen', { count: pending.length }) : t('ai.review.approve')}
+          </button>
+        )}
       </div>
+      {head?.change.type === 'newCode' && (head.change.description || head.reason) && (
+        <div style={{ padding: '0 12px 8px', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          {head.change.description && <p style={{ margin: 0 }}>{head.change.description}</p>}
+          {head.reason && <p style={{ margin: head.change.description ? '2px 0 0' : 0, color: 'var(--text-muted)' }}>{t('ai.review.reason', { reason: head.reason })}</p>}
+        </div>
+      )}
+      {rows.length > 0 && (
+        <ul style={{ listStyle: 'none', margin: 0, padding: 0, borderTop: '1px solid var(--border-color)' }}>
+          {visible.map((p) => (
+            <Row key={p.id} p={p} color={color} chosen={chosen.has(p.id)} onToggle={() => onToggle(p.id)} onApprove={() => onApprove([p.id])} onReject={() => onReject([p.id])} />
+          ))}
+        </ul>
+      )}
+      {rows.length > ROWS_SHOWN && (
+        <button type="button" onClick={() => setShowAll((v) => !v)} aria-expanded={showAll} style={{ display: 'block', width: '100%', textAlign: 'start', padding: '6px 12px', border: 'none', borderTop: '1px solid var(--border-color)', background: 'none', color: 'var(--accent)', fontSize: 12, cursor: 'pointer' }}>
+          {showAll ? t('ai.review.fewer') : t('ai.review.more', { count: rows.length - ROWS_SHOWN })}
+        </button>
+      )}
+    </section>
+  )
+}
+
+function Chip({ children }: { children: React.ReactNode }) {
+  return <span style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--text-secondary)', background: 'var(--bg-tertiary)', borderRadius: 4, padding: '1px 6px' }}>{children}</span>
+}
+
+/** Approved / Rejected / Not made: the colour in the icon, the word in
+ *  plain text (coloured small text doesn't contrast enough everywhere). */
+function Status({ p }: { p: AiProposal }) {
+  const { t } = useTranslation()
+  const colour = p.status === 'approved' ? 'var(--success)' : p.status === 'failed' ? 'var(--danger)' : 'var(--text-muted)'
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>
+      <Icon icon={p.status === 'approved' ? faCheck : faXmark} style={{ color: colour, width: 13, height: 13 }} />
+      {t(`ai.review.status.${p.status}`)}
+    </span>
+  )
+}
+
+/** One change to a code: a line that opens to show it in context. */
+function Row({ p, color, chosen, onToggle, onApprove, onReject }: { p: AiProposal; color?: string; chosen: boolean; onToggle: () => void; onApprove: () => void; onReject: () => void }) {
+  const { t } = useTranslation()
+  const { path } = useCodeInfo()
+  const proposals = useAiStore((s) => s.proposals)
+  const sources = useDocumentStore((s) => s.sources)
+  const [open, setOpen] = useState(false)
+  const c = p.change
+  const pending = p.status === 'pending'
+  const docName = (guid: string) => (sources.find((s) => s.guid === guid)?.name ?? t('ai.review.missingDocument')).replace(/\.[a-z0-9]{2,4}$/i, '')
+  const needs = pending ? withRequirements([p.id], proposals).filter((id) => id !== p.id) : []
+
+  let line: React.ReactNode
+  let detail: React.ReactNode = null
+  if (c.type === 'addCoding' || c.type === 'removeCoding') {
+    const sel = c.type === 'removeCoding' ? sources.find((s) => s.guid === c.sourceGuid)?.selections.find((s) => s.guid === c.selectionGuid) : undefined
+    line = (
+      <>
+        {c.type === 'removeCoding' && <Chip>{t('ai.review.kind.removal')}</Chip>}
+        <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{docName(c.sourceGuid)}</span>
+        <span style={{ color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>“{excerpt(c.text)}”</span>
+      </>
+    )
+    detail = c.type === 'addCoding'
+      ? <Context sourceGuid={c.sourceGuid} start={c.start} end={c.end} cell={c.surveyCell} color={color} />
+      : sel ? <Context sourceGuid={c.sourceGuid} start={sel.startPosition} end={sel.endPosition} cell={sel.surveyCell} color={color} /> : null
+  } else if (c.type === 'editCode') {
+    const what = [
+      c.name ? t('ai.review.rename', { name: c.name }) : '',
+      c.description !== undefined ? `${t('ai.review.describe')}: ${c.description || t('ai.review.noDescription')}` : '',
+      c.move ? (c.move.parentGuid || c.move.parentRef ? t('ai.review.moveUnder', { name: path(c.move.parentGuid, c.move.parentRef).join(' / ') }) : t('ai.review.moveTop')) : ''
+    ].filter(Boolean).join(' · ')
+    line = <span style={{ color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{what}</span>
+  }
+  const at = c.type === 'addCoding' ? c : null
+
+  return (
+    <li data-proposal={p.id} style={{ borderTop: '1px solid var(--border-color)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', fontSize: 12.5 }}>
+        {pending && <input type="checkbox" checked={chosen} onChange={onToggle} aria-label={t('ai.review.choose')} />}
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, padding: 0, border: 'none', background: 'none', textAlign: 'start', cursor: 'pointer', color: 'var(--text-primary)', fontSize: 12.5 }}
+        >
+          <Icon icon={open ? faChevronDown : faChevronRight} style={{ width: 12, height: 12, flexShrink: 0, color: 'var(--text-muted)' }} />
+          {line}
+        </button>
+        {pending ? (
+          <>
+            <button type="button" aria-label={t('ai.review.deny')} title={t('ai.review.deny')} onClick={onReject} style={iconButton}>
+              <Icon icon={faXmark} style={{ width: 13, height: 13, color: 'var(--text-secondary)' }} />
+            </button>
+            <button type="button" aria-label={t('ai.review.approve')} title={t('ai.review.approve')} onClick={onApprove} style={{ ...iconButton, background: 'var(--accent)', borderColor: 'var(--accent)' }}>
+              <Icon icon={faCheck} style={{ width: 13, height: 13, color: '#fff' }} />
+            </button>
+          </>
+        ) : (
+          <Status p={p} />
+        )}
+      </div>
+      {open && (
+        <div style={{ padding: '0 12px 10px 42px' }}>
+          {detail}
+          {p.reason && <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{t('ai.review.reason', { reason: p.reason })}</p>}
+          {needs.length > 0 && <p style={{ margin: '4px 0 0', fontSize: 11.5, color: 'var(--text-muted)' }}>{t('ai.review.alsoApproves', { count: needs.length })}</p>}
+          {p.status === 'failed' && (
+            <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)' }}>
+              <Icon icon={faXmark} style={{ color: 'var(--danger)', width: 13, height: 13, flexShrink: 0 }} />
+              {t('ai.review.failed', { why: p.failure ?? '' })}
+            </p>
+          )}
+          <div style={{ display: 'flex', gap: 10, marginTop: 6, fontSize: 11, color: 'var(--text-muted)' }}>
+            <span>{p.model}</span>
+            {at && <button type="button" onClick={() => useDocumentStore.getState().viewDocumentAt(at.sourceGuid, at.start, at.end)} style={{ padding: 0, border: 'none', background: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: 11 }}>{t('ai.review.showInDocument')}</button>}
+          </div>
+        </div>
+      )}
     </li>
   )
 }

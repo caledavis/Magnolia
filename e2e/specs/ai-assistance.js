@@ -77,8 +77,14 @@ async function spec(t) {
   ask('propose_code_change', { code: cRef ?? 'C1', name: 'Renamed by AI', reason: 'Clearer.' })
   t.check('nothing has changed yet', !codes.getState().flatCodes().some((c) => c.name === 'Test AI code') && codes.getState().findCode(firstCode.guid).name === firstCode.name)
 
-  const cards = () => [...review.querySelectorAll('section > ul > li')]
-  t.check('the Viewer lists each change as it comes, with its passage in context', !!(await t.until(() => cards().length === 3, 3000)) && cards().some((c) => c.querySelector('mark')?.textContent === quote), cards().map((c) => c.textContent.slice(0, 60)).join(' | '))
+  // Each change has a line (a new code its block's heading); a block per code.
+  const items = () => [...review.querySelectorAll('[data-proposal]')]
+  const blocks = () => [...review.querySelectorAll('section[aria-label]')]
+  const codingRow = () => items().find((e) => e.tagName === 'LI' && e.textContent.includes(quote.slice(0, 20)))
+  t.check('the Viewer lists each change as it comes, grouped by code', !!(await t.until(() => items().length === 3, 3000)) && blocks().length === 2, items().map((c) => c.textContent.slice(0, 60)).join(' | '))
+  codingRow()?.querySelector('button[aria-expanded]')?.click()
+  await t.sleep(100)
+  t.check('a coding opens to show its passage in context', codingRow()?.querySelector('mark')?.textContent === quote, codingRow()?.textContent.slice(0, 120))
   // axe, in each theme.
   const axeThemes = async (el) => {
     const before = document.documentElement.getAttribute('data-theme')
@@ -93,14 +99,14 @@ async function spec(t) {
     if (before) document.documentElement.setAttribute('data-theme', before); else document.documentElement.removeAttribute('data-theme')
     return found
   }
-  const pips = cards().filter((c) => c.querySelector('span[aria-hidden][style*="border-radius: 50%"]'))
-  t.check('the new code and its coding show the code\'s colour', pips.length >= 2, String(pips.length))
+  const pips = blocks().filter((c) => c.querySelector('span[aria-hidden][style*="border-radius: 50%"]'))
+  t.check('each code shows its colour, a proposed one too', pips.length === 2, String(pips.length))
   const v1 = await axeThemes(review)
   t.check('the Viewer passes axe in every theme, with changes to review', v1.length === 0, v1.join(' || ').slice(0, 1200))
 
   // A new code under another reads as Parent/New code; rejected.
   ask('propose_new_code', { name: 'Child test', parent: cRef ?? 'C1', reason: 'Narrower.' })
-  const child = await t.until(() => cards().find((c) => /Child test/.test(c.textContent)), 3000)
+  const child = await t.until(() => blocks().find((c) => /Child test/.test(c.textContent)), 3000)
   t.check('a new code shows where it goes, as Parent/New code', !!child && child.textContent.includes(`${firstCode.name}/Child test`), child?.textContent.slice(0, 80))
   ;[...(child?.querySelectorAll('button') ?? [])].find((b) => b.textContent === 'Reject')?.click()
   await t.sleep(100)
@@ -108,15 +114,14 @@ async function spec(t) {
   // Reject the renaming.
   await t.sleep(700)
   undo.getState().clearHistory()
-  const renameCard = cards().find((c) => /Renamed by AI/.test(c.textContent))
-  ;[...renameCard.querySelectorAll('button')].find((b) => b.textContent === 'Reject')?.click()
+  const renameRow = items().find((c) => /Renamed by AI/.test(c.textContent))
+  renameRow?.querySelector('button[aria-label="Reject"]')?.click()
   await t.sleep(100)
   t.check('a denied change isn\'t made', codes.getState().findCode(firstCode.guid).name === firstCode.name && ai.getState().proposals.some((p) => p.change.type === 'editCode' && p.status === 'denied'))
 
   // Approve the coding: its new code comes with it.
-  const codingCard = cards().find((c) => c.querySelector('mark'))
-  t.check('the coding says it needs the new code', /also approves the new code/.test(codingCard.textContent))
-  ;[...codingCard.querySelectorAll('button')].find((b) => b.textContent === 'Approve')?.click()
+  t.check('the coding says it needs the new code', /also approves the new code/.test(codingRow()?.textContent ?? ''))
+  codingRow()?.querySelector('button[aria-label="Approve"]')?.click()
   await t.sleep(100)
   const made = codes.getState().flatCodes().find((c) => c.name === 'Test AI code')
   t.check('approving the coding makes the code too', !!made && made.description === 'When a participant says so.')

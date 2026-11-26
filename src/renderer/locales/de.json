@@ -2152,11 +2152,8 @@
       "appliedSome": "{{count}} vorgenommen; {{failed}} nicht möglich (siehe Abgelehnt).",
       "denied_one": "{{count}} Änderung abgelehnt.",
       "denied_other": "{{count}} Änderungen abgelehnt.",
-      "deletedChat": "Ein gelöschter Chat",
       "kind": {
         "newCode": "Neuer Code",
-        "editCode": "Änderung am Code",
-        "coding": "Codierung",
         "removal": "Codierung entfernen"
       },
       "rename": "Umbenennen in „{{name}}“",
@@ -2177,8 +2174,10 @@
         "failed": "Nicht vorgenommen",
         "pending": "Zu prüfen"
       },
-      "session": "{{app}}, {{time}}",
-      "appsOff": "KI-Apps auf diesem Computer können Magnolia noch nicht verwenden: Erlauben Sie es in den Einstellungen. Danach erscheinen hier die Codes und Codierungen, die Claude Desktop (oder eine andere KI-App) vorschlägt, damit Sie sie annehmen oder ablehnen."
+      "appsOff": "KI-Apps auf diesem Computer können Magnolia noch nicht verwenden: Erlauben Sie es in den Einstellungen. Danach erscheinen hier die Codes und Codierungen, die Claude Desktop (oder eine andere KI-App) vorschlägt, damit Sie sie annehmen oder ablehnen.",
+      "more_one": "{{count}} weitere",
+      "more_other": "{{count}} weitere",
+      "fewer": "Weniger anzeigen"
     },
     "apps": {
       "intro": "Mit einem Claude-Abo können Sie Claude Desktop mit Magnolia nutzen, ohne API-Schlüssel: Es liest das geöffnete Projekt und schlägt Änderungen vor, die Sie in Magnolia annehmen oder ablehnen. Andere Apps, die das Model Context Protocol (MCP) unterstützen, funktionieren ebenfalls.",

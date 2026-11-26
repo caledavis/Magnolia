@@ -2242,11 +2242,8 @@
       "denied_one": "S’ha rebutjat {{count}} canvi.",
       "denied_many": "S’han rebutjat {{count}} canvis.",
       "denied_other": "S’han rebutjat {{count}} canvis.",
-      "deletedChat": "Un xat suprimit",
       "kind": {
         "newCode": "Codi nou",
-        "editCode": "Canvi en un codi",
-        "coding": "Codificació",
         "removal": "Treure la codificació"
       },
       "rename": "Canvia el nom a «{{name}}»",
@@ -2268,8 +2265,11 @@
         "failed": "No s’ha pogut fer",
         "pending": "Per revisar"
       },
-      "session": "{{app}}, {{time}}",
-      "appsOff": "Les aplicacions d’IA d’aquest ordinador encara no poden utilitzar el Magnolia: permeteu-les a les preferències. Després, els codis i les codificacions que suggereixi el Claude Desktop (o una altra aplicació d’IA) apareixeran aquí perquè els aproveu o rebutgeu."
+      "appsOff": "Les aplicacions d’IA d’aquest ordinador encara no poden utilitzar el Magnolia: permeteu-les a les preferències. Després, els codis i les codificacions que suggereixi el Claude Desktop (o una altra aplicació d’IA) apareixeran aquí perquè els aproveu o rebutgeu.",
+      "more_one": "{{count}} més",
+      "more_many": "{{count}} més",
+      "more_other": "{{count}} més",
+      "fewer": "Mostra’n menys"
     },
     "apps": {
       "intro": "Amb una subscripció a Claude, podeu fer servir Claude Desktop amb el Magnolia, sense clau d’API: llegeix el projecte obert i suggereix canvis, que vós aproveu o rebutgeu al Magnolia. També funcionen altres aplicacions compatibles amb el Model Context Protocol (MCP).",

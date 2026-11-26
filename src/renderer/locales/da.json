@@ -2152,11 +2152,8 @@
       "appliedSome": "{{count}} foretaget; {{failed}} kunne ikke foretages (se Afviste).",
       "denied_one": "{{count}} ændring afvist.",
       "denied_other": "{{count}} ændringer afvist.",
-      "deletedChat": "En slettet chat",
       "kind": {
         "newCode": "Ny kode",
-        "editCode": "Ændring af kode",
-        "coding": "Kodning",
         "removal": "Fjern kodning"
       },
       "rename": "Omdøb til »{{name}}«",
@@ -2177,8 +2174,10 @@
         "failed": "Ikke foretaget",
         "pending": "Til gennemgang"
       },
-      "session": "{{app}}, {{time}}",
-      "appsOff": "AI-apps på denne computer kan endnu ikke bruge Magnolia: tillad dem i Indstillinger. Derefter vises de koder og kodninger, som Claude Desktop (eller en anden AI-app) foreslår, her, så du kan godkende eller afvise dem."
+      "appsOff": "AI-apps på denne computer kan endnu ikke bruge Magnolia: tillad dem i Indstillinger. Derefter vises de koder og kodninger, som Claude Desktop (eller en anden AI-app) foreslår, her, så du kan godkende eller afvise dem.",
+      "more_one": "{{count}} mere",
+      "more_other": "{{count}} mere",
+      "fewer": "Vis færre"
     },
     "apps": {
       "intro": "Med et Claude-abonnement kan du bruge Claude Desktop med Magnolia uden en API-nøgle: den læser det åbne projekt og foreslår ændringer, som du godkender eller afviser i Magnolia. Andre apps, der understøtter Model Context Protocol (MCP), virker også.",

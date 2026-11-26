@@ -2152,11 +2152,8 @@
       "appliedSome": "{{count}} gjorda; {{failed}} gick inte att göra (se Avvisade).",
       "denied_one": "{{count}} ändring avvisad.",
       "denied_other": "{{count}} ändringar avvisade.",
-      "deletedChat": "En raderad chatt",
       "kind": {
         "newCode": "Ny kod",
-        "editCode": "Ändring av kod",
-        "coding": "Kodning",
         "removal": "Ta bort kodning"
       },
       "rename": "Byt namn till ”{{name}}”",
@@ -2177,8 +2174,10 @@
         "failed": "Inte gjord",
         "pending": "Att granska"
       },
-      "session": "{{app}}, {{time}}",
-      "appsOff": "AI-appar på den här datorn kan inte använda Magnolia än: tillåt dem i Inställningar. Sedan visas de koder och kodningar som Claude Desktop (eller en annan AI-app) föreslår här, så att du kan godkänna eller avvisa dem."
+      "appsOff": "AI-appar på den här datorn kan inte använda Magnolia än: tillåt dem i Inställningar. Sedan visas de koder och kodningar som Claude Desktop (eller en annan AI-app) föreslår här, så att du kan godkänna eller avvisa dem.",
+      "more_one": "{{count}} till",
+      "more_other": "{{count}} till",
+      "fewer": "Visa färre"
     },
     "apps": {
       "intro": "Med ett Claude-abonnemang kan du använda Claude Desktop med Magnolia, utan API-nyckel: den läser det öppna projektet och föreslår ändringar, som du godkänner eller avvisar i Magnolia. Andra appar som stöder Model Context Protocol (MCP) fungerar också.",

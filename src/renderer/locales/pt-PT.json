@@ -2242,11 +2242,8 @@
       "denied_one": "{{count}} alteração recusada.",
       "denied_many": "{{count}} alterações recusadas.",
       "denied_other": "{{count}} alterações recusadas.",
-      "deletedChat": "Um chat eliminado",
       "kind": {
         "newCode": "Código novo",
-        "editCode": "Alteração de código",
-        "coding": "Codificação",
         "removal": "Remover codificação"
       },
       "rename": "Renomear para «{{name}}»",
@@ -2268,8 +2265,11 @@
         "failed": "Não feita",
         "pending": "Por rever"
       },
-      "session": "{{app}}, {{time}}",
-      "appsOff": "As aplicações de IA deste computador ainda não podem usar o Magnolia: permita-as nas Preferências. Depois, os códigos e codificações que o Claude Desktop (ou outra aplicação de IA) sugerir aparecem aqui, para aprovar ou recusar."
+      "appsOff": "As aplicações de IA deste computador ainda não podem usar o Magnolia: permita-as nas Preferências. Depois, os códigos e codificações que o Claude Desktop (ou outra aplicação de IA) sugerir aparecem aqui, para aprovar ou recusar.",
+      "more_one": "Mais {{count}}",
+      "more_many": "Mais {{count}}",
+      "more_other": "Mais {{count}}",
+      "fewer": "Mostrar menos"
     },
     "apps": {
       "intro": "Com uma subscrição do Claude, pode usar o Claude Desktop com o Magnolia, sem chave de API: este lê o projeto aberto e sugere alterações, que aprova ou recusa no Magnolia. Outras aplicações compatíveis com o Model Context Protocol (MCP) também funcionam.",

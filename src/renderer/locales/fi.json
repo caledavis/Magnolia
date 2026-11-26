@@ -2152,11 +2152,8 @@
       "appliedSome": "{{count}} tehty; {{failed}} ei voitu tehdä (katso Hylätyt).",
       "denied_one": "{{count}} muutos hylätty.",
       "denied_other": "{{count}} muutosta hylätty.",
-      "deletedChat": "Poistettu keskustelu",
       "kind": {
         "newCode": "Uusi koodi",
-        "editCode": "Koodin muutos",
-        "coding": "Koodaus",
         "removal": "Koodauksen poisto"
       },
       "rename": "Nimeä uudelleen: ”{{name}}”",
@@ -2177,8 +2174,10 @@
         "failed": "Ei tehty",
         "pending": "Tarkistettava"
       },
-      "session": "{{app}}, {{time}}",
-      "appsOff": "Tämän tietokoneen tekoälysovellukset eivät vielä voi käyttää Magnoliaa: salli ne asetuksissa. Sen jälkeen Claude Desktopin (tai muun tekoälysovelluksen) ehdottamat koodit ja koodaukset näkyvät tässä hyväksyttäviksi tai hylättäviksi."
+      "appsOff": "Tämän tietokoneen tekoälysovellukset eivät vielä voi käyttää Magnoliaa: salli ne asetuksissa. Sen jälkeen Claude Desktopin (tai muun tekoälysovelluksen) ehdottamat koodit ja koodaukset näkyvät tässä hyväksyttäviksi tai hylättäviksi.",
+      "more_one": "{{count}} lisää",
+      "more_other": "{{count}} lisää",
+      "fewer": "Näytä vähemmän"
     },
     "apps": {
       "intro": "Claude-tilauksella voit käyttää Claude Desktopia Magnolian kanssa ilman API-avainta: se lukee avoimen projektin ja ehdottaa muutoksia, jotka hyväksyt tai hylkäät Magnoliassa. Myös muut sovellukset, jotka tukevat Model Context Protocol (MCP) -protokollaa, toimivat.",

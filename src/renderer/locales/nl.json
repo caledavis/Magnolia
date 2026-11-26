@@ -2152,11 +2152,8 @@
       "appliedSome": "{{count}} aangebracht; {{failed}} lukte niet (zie Afgewezen).",
       "denied_one": "{{count}} wijziging afgewezen.",
       "denied_other": "{{count}} wijzigingen afgewezen.",
-      "deletedChat": "Een verwijderde chat",
       "kind": {
         "newCode": "Nieuwe code",
-        "editCode": "Wijziging van code",
-        "coding": "Codering",
         "removal": "Codering verwijderen"
       },
       "rename": "Naam wijzigen in \"{{name}}\"",
@@ -2177,8 +2174,10 @@
         "failed": "Niet aangebracht",
         "pending": "Te beoordelen"
       },
-      "session": "{{app}}, {{time}}",
-      "appsOff": "AI-apps op deze computer kunnen Magnolia nog niet gebruiken: sta ze toe in Voorkeuren. Daarna verschijnen hier de codes en coderingen die Claude Desktop (of een andere AI-app) voorstelt, zodat je ze kunt goedkeuren of afwijzen."
+      "appsOff": "AI-apps op deze computer kunnen Magnolia nog niet gebruiken: sta ze toe in Voorkeuren. Daarna verschijnen hier de codes en coderingen die Claude Desktop (of een andere AI-app) voorstelt, zodat je ze kunt goedkeuren of afwijzen.",
+      "more_one": "Nog {{count}}",
+      "more_other": "Nog {{count}}",
+      "fewer": "Minder tonen"
     },
     "apps": {
       "intro": "Met een Claude-abonnement kun je Claude Desktop met Magnolia gebruiken, zonder API-sleutel: het leest het geopende project en stelt wijzigingen voor, die je in Magnolia goedkeurt of afwijst. Andere apps die het Model Context Protocol (MCP) ondersteunen, werken ook.",

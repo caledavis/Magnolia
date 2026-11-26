@@ -2332,11 +2332,8 @@
       "denied_few": "Zamítnuty {{count}} změny.",
       "denied_many": "Zamítnuto {{count}} změn.",
       "denied_other": "Zamítnuto {{count}} změn.",
-      "deletedChat": "Smazaný chat",
       "kind": {
         "newCode": "Nový kód",
-        "editCode": "Změna kódu",
-        "coding": "Kódování",
         "removal": "Odebrání kódování"
       },
       "rename": "Přejmenovat na „{{name}}“",
@@ -2359,8 +2356,12 @@
         "failed": "Neprovedeno",
         "pending": "Ke kontrole"
       },
-      "session": "{{app}}, {{time}}",
-      "appsOff": "Aplikace AI v tomto počítači zatím nemohou aplikaci Magnolia používat: povolte je v Předvolbách. Kódy a kódování, které navrhne Claude Desktop (nebo jiná aplikace AI), se pak zobrazí zde ke schválení nebo zamítnutí."
+      "appsOff": "Aplikace AI v tomto počítači zatím nemohou aplikaci Magnolia používat: povolte je v Předvolbách. Kódy a kódování, které navrhne Claude Desktop (nebo jiná aplikace AI), se pak zobrazí zde ke schválení nebo zamítnutí.",
+      "more_one": "Další {{count}}",
+      "more_few": "Další {{count}}",
+      "more_many": "Další {{count}}",
+      "more_other": "Další {{count}}",
+      "fewer": "Zobrazit méně"
     },
     "apps": {
       "intro": "S předplatným Claude můžete používat Claude Desktop s aplikací Magnolia bez klíče API: přečte otevřený projekt a navrhne změny, které v aplikaci Magnolia schválíte, nebo zamítnete. Fungují i další aplikace, které podporují Model Context Protocol (MCP).",

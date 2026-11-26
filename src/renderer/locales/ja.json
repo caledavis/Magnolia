@@ -2062,11 +2062,8 @@
       "applied_other": "{{count}} 件の変更を行いました。取り消すと元に戻せます。",
       "appliedSome": "{{count}} 件を変更しました。{{failed}} 件は変更できませんでした（「却下」を参照）。",
       "denied_other": "{{count}} 件の変更を却下しました。",
-      "deletedChat": "削除されたチャット",
       "kind": {
         "newCode": "新しいコード",
-        "editCode": "コードの変更",
-        "coding": "コーディング",
         "removal": "コーディングの解除"
       },
       "rename": "名前を「{{name}}」に変更",
@@ -2086,8 +2083,9 @@
         "failed": "未変更",
         "pending": "確認待ち"
       },
-      "session": "{{app}}、{{time}}",
-      "appsOff": "このコンピュータの AI アプリはまだ Magnolia を使用できません。環境設定で許可してください。許可すると、Claude Desktop（またはほかの AI アプリ）が提案するコードとコーディングがここに表示され、承認または却下できます。"
+      "appsOff": "このコンピュータの AI アプリはまだ Magnolia を使用できません。環境設定で許可してください。許可すると、Claude Desktop（またはほかの AI アプリ）が提案するコードとコーディングがここに表示され、承認または却下できます。",
+      "more_other": "ほか {{count}} 件",
+      "fewer": "表示を減らす"
     },
     "apps": {
       "intro": "Claude のサブスクリプションがあれば、API キーなしで Claude Desktop を Magnolia と一緒に使えます。Claude Desktop が開いているプロジェクトを読んで変更を提案し、その変更を Magnolia で承認または却下します。Model Context Protocol（MCP）に対応したほかのアプリも使えます。",

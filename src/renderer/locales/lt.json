@@ -2332,11 +2332,8 @@
       "denied_few": "Atmesti {{count}} pakeitimai.",
       "denied_many": "Atmesta {{count}} pakeitimo.",
       "denied_other": "Atmesta {{count}} pakeitimų.",
-      "deletedChat": "Ištrintas pokalbis",
       "kind": {
         "newCode": "Naujas kodas",
-        "editCode": "Kodo pakeitimas",
-        "coding": "Kodavimas",
         "removal": "Kodavimo šalinimas"
       },
       "rename": "Pervardyti į „{{name}}“",
@@ -2359,8 +2356,12 @@
         "failed": "Neatlikta",
         "pending": "Laukia peržiūros"
       },
-      "session": "{{app}}, {{time}}",
-      "appsOff": "Šio kompiuterio DI programos dar negali naudoti Magnolia: leiskite jas nuostatose. Tada čia bus rodomi Claude Desktop (ar kitos DI programos) siūlomi kodai ir kodavimai, kuriuos galėsite patvirtinti arba atmesti."
+      "appsOff": "Šio kompiuterio DI programos dar negali naudoti Magnolia: leiskite jas nuostatose. Tada čia bus rodomi Claude Desktop (ar kitos DI programos) siūlomi kodai ir kodavimai, kuriuos galėsite patvirtinti arba atmesti.",
+      "more_one": "Dar {{count}}",
+      "more_few": "Dar {{count}}",
+      "more_many": "Dar {{count}}",
+      "more_other": "Dar {{count}}",
+      "fewer": "Rodyti mažiau"
     },
     "apps": {
       "intro": "Turėdami Claude prenumeratą, galite naudoti Claude Desktop su Magnolia be API rakto: jis perskaito atvirą projektą ir siūlo pakeitimus, kuriuos patvirtinate arba atmetate programoje Magnolia. Veikia ir kitos programos, palaikančios Model Context Protocol (MCP).",
