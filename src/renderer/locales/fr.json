@@ -2204,7 +2204,7 @@
     },
     "pane": {
       "openSettings": "Ouvrir les préférences",
-      "consentReview": "Ce volet indique tout ce que l’application lit. Elle ne peut pas modifier le projet : vous approuvez ou refusez chaque modification qu’elle suggère.",
+      "consentReview": "Elle ne peut pas modifier le projet : vous approuvez ou refusez chaque modification qu’elle suggère.",
       "appAsks": "{{name}} souhaite utiliser ce projet.",
       "appsTitle": "Autoriser les applications d’IA de cet ordinateur à utiliser ce projet ?",
       "appsConsent": "Une application d’IA comme Claude Desktop lira les parties de ce projet dont elle a besoin et les enverra à son service d’IA (pour Claude Desktop, Anthropic). Vérifiez que c’est permis pour vos données, par exemple par votre avis éthique.",
@@ -2248,11 +2248,9 @@
       "kind": {
         "newCode": "Nouveau code",
         "editCode": "Modification du code",
-        "addCoding": "Coder avec {{code}}",
-        "removeCoding": "Retirer {{code}}"
+        "coding": "Codage",
+        "removal": "Retrait du codage"
       },
-      "under": "sous {{name}}",
-      "newCodeName": "{{name}} (nouveau)",
       "rename": "Renommer en « {{name}} »",
       "describe": "Nouvelle description",
       "noDescription": "aucune",

@@ -2290,7 +2290,7 @@
     },
     "pane": {
       "openSettings": "Otevřít Předvolby",
-      "consentReview": "Tento panel uvádí vše, co aplikace čte. Projekt měnit nemůže: každou navrženou změnu schválíte, nebo zamítnete.",
+      "consentReview": "Projekt měnit nemůže: každou navrženou změnu schválíte, nebo zamítnete.",
       "appAsks": "{{name}} chce používat tento projekt.",
       "appsTitle": "Povolit aplikacím AI na tomto počítači používat tento projekt?",
       "appsConsent": "Aplikace AI, například Claude Desktop, si přečte ty části projektu, které potřebuje, a odešle je své službě AI (u Claude Desktop společnosti Anthropic). Ověřte si, že je to u vašich dat povoleno, například vaším etickým schválením.",
@@ -2338,11 +2338,9 @@
       "kind": {
         "newCode": "Nový kód",
         "editCode": "Změna kódu",
-        "addCoding": "Kódovat kódem {{code}}",
-        "removeCoding": "Odebrat {{code}}"
+        "coding": "Kódování",
+        "removal": "Odebrání kódování"
       },
-      "under": "pod {{name}}",
-      "newCodeName": "{{name}} (nový)",
       "rename": "Přejmenovat na „{{name}}“",
       "describe": "Nový popis",
       "noDescription": "žádný",

@@ -2118,7 +2118,7 @@
     },
     "pane": {
       "openSettings": "Åbn Indstillinger",
-      "consentReview": "Dette panel viser alt, hvad appen læser. Den kan ikke ændre projektet: du godkender eller afviser hver ændring, den foreslår.",
+      "consentReview": "Den kan ikke ændre projektet: du godkender eller afviser hver ændring, den foreslår.",
       "appAsks": "{{name}} vil gerne bruge dette projekt.",
       "appsTitle": "Lad AI-apps på denne computer bruge dette projekt?",
       "appsConsent": "En AI-app som Claude Desktop læser de dele af projektet, den har brug for, og sender dem til sin AI-tjeneste (for Claude Desktop er det Anthropic). Kontrollér, at det er tilladt for dine data, for eksempel i din etiske godkendelse.",
@@ -2158,11 +2158,9 @@
       "kind": {
         "newCode": "Ny kode",
         "editCode": "Ændring af kode",
-        "addCoding": "Kod med {{code}}",
-        "removeCoding": "Fjern {{code}}"
+        "coding": "Kodning",
+        "removal": "Fjern kodning"
       },
-      "under": "under {{name}}",
-      "newCodeName": "{{name}} (ny)",
       "rename": "Omdøb til »{{name}}«",
       "describe": "Ny beskrivelse",
       "noDescription": "ingen",

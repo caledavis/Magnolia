@@ -2118,7 +2118,7 @@
     },
     "pane": {
       "openSettings": "Ayarları aç",
-      "consentReview": "Bu bölmede uygulamanın okuduğu her şey listelenir. Uygulama projeyi değiştiremez: önerdiği her değişikliği siz onaylar ya da reddedersiniz.",
+      "consentReview": "Uygulama projeyi değiştiremez: önerdiği her değişikliği siz onaylar ya da reddedersiniz.",
       "appAsks": "{{name}} bu projeyi kullanmak istiyor.",
       "appsTitle": "Bu bilgisayardaki yapay zekâ uygulamaları bu projeyi kullanabilsin mi?",
       "appsConsent": "Claude Desktop gibi bir yapay zekâ uygulaması bu projenin gereken kısımlarını okuyup kendi yapay zekâ hizmetine (Claude Desktop için Anthropic) gönderir. Bunun verileriniz için izinli olduğundan emin olun (örneğin etik kurul onayınızla).",
@@ -2158,11 +2158,9 @@
       "kind": {
         "newCode": "Yeni kod",
         "editCode": "Kod değişikliği",
-        "addCoding": "{{code}} koduyla kodla",
-        "removeCoding": "{{code}} kodunu kaldır"
+        "coding": "Kodlama",
+        "removal": "Kodlamayı kaldırma"
       },
-      "under": "üst kod: {{name}}",
-      "newCodeName": "{{name}} (yeni)",
       "rename": "Yeni ad: “{{name}}”",
       "describe": "Yeni açıklama",
       "noDescription": "yok",

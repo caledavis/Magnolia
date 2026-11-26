@@ -2032,7 +2032,7 @@
     },
     "pane": {
       "openSettings": "環境設定を開く",
-      "consentReview": "アプリが読んだものはすべてこのパネルに表示されます。アプリがプロジェクトを変更することはできません。提案された変更は、一つずつ承認または却下します。",
+      "consentReview": "アプリがプロジェクトを変更することはできません。提案された変更は、一つずつ承認または却下します。",
       "appAsks": "{{name}} がこのプロジェクトの使用を求めています。",
       "appsTitle": "このコンピュータ上の AI アプリにこのプロジェクトの使用を許可しますか？",
       "appsConsent": "Claude Desktop などの AI アプリは、このプロジェクトの必要な部分を読み、そのアプリの AI サービス（Claude Desktop の場合は Anthropic）に送信します。お使いのデータでこれが認められているか、倫理審査の承認などで確認してください。",
@@ -2068,11 +2068,9 @@
       "kind": {
         "newCode": "新しいコード",
         "editCode": "コードの変更",
-        "addCoding": "{{code}} でコーディング",
-        "removeCoding": "{{code}} を外す"
+        "coding": "コーディング",
+        "removal": "コーディングの解除"
       },
-      "under": "{{name}} の下",
-      "newCodeName": "{{name}}（新規）",
       "rename": "名前を「{{name}}」に変更",
       "describe": "新しい説明",
       "noDescription": "なし",

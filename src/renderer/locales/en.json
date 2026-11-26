@@ -320,7 +320,7 @@
     "close": "Close",
     "groupTeam": "Team",
     "groupAi": "AI",
-    "aiReviewTitle": "The changes AI apps have proposed, for you to approve or deny"
+    "aiReviewTitle": "The changes AI apps have proposed, for you to approve or reject"
   },
   "project": {
     "lockedTitle": "{{name}} is working on this file — take over or create a copy to edit",
@@ -2118,7 +2118,7 @@
     },
     "pane": {
       "openSettings": "Open Preferences",
-      "consentReview": "This pane lists everything the app reads. It can't change the project: you approve or deny each change it suggests.",
+      "consentReview": "It can't change the project: you approve or reject each change it suggests, here.",
       "appAsks": "{{name}} wants to use this project.",
       "appsTitle": "Let AI apps on this computer use this project?",
       "appsConsent": "An AI app such as Claude Desktop will read the parts of this project it needs, and send them to its AI service (for Claude Desktop, Anthropic). Check that this is allowed for your data, for example by your ethics approval.",
@@ -2128,41 +2128,39 @@
     },
     "review": {
       "title": "AI Assistance",
-      "subtitle": "The changes the AI has proposed. Nothing changes in the project until you approve it.",
+      "subtitle": "The changes AI apps have proposed. Nothing changes in the project until you approve it.",
       "show": "Show",
       "filter": {
         "pending": "To Review ({{count}})",
         "approved": "Approved ({{count}})",
-        "denied": "Denied ({{count}})"
+        "denied": "Rejected ({{count}})"
       },
       "empty": {
         "pending": "Nothing to review. Ask Claude Desktop (or another AI app) for suggested codes or codings.",
         "approved": "No changes approved yet.",
-        "denied": "No changes denied."
+        "denied": "No changes rejected."
       },
       "approve": "Approve",
-      "deny": "Deny",
+      "deny": "Reject",
       "approveAll": "Approve All",
-      "denyAll": "Deny All",
+      "denyAll": "Reject All",
       "approveChosen_one": "Approve {{count}}",
       "approveChosen_other": "Approve {{count}}",
-      "denyChosen_one": "Deny {{count}}",
-      "denyChosen_other": "Deny {{count}}",
+      "denyChosen_one": "Reject {{count}}",
+      "denyChosen_other": "Reject {{count}}",
       "choose": "Choose",
       "applied_one": "{{count}} change made. Undo takes it back.",
       "applied_other": "{{count}} changes made. Undo takes them back.",
-      "appliedSome": "{{count}} made; {{failed}} couldn't be (see Denied).",
-      "denied_one": "{{count}} change denied.",
-      "denied_other": "{{count}} changes denied.",
+      "appliedSome": "{{count}} made; {{failed}} couldn't be (see Rejected).",
+      "denied_one": "{{count}} change rejected.",
+      "denied_other": "{{count}} changes rejected.",
       "deletedChat": "A deleted chat",
       "kind": {
         "newCode": "New code",
         "editCode": "Change to code",
-        "addCoding": "Code with {{code}}",
-        "removeCoding": "Remove {{code}}"
+        "coding": "Coding",
+        "removal": "Remove coding"
       },
-      "under": "under {{name}}",
-      "newCodeName": "{{name}} (new)",
       "rename": "Rename to “{{name}}”",
       "describe": "New description",
       "noDescription": "none",
@@ -2177,12 +2175,12 @@
       "showInDocument": "Show in document",
       "status": {
         "approved": "Approved",
-        "denied": "Denied",
+        "denied": "Rejected",
         "failed": "Not made",
         "pending": "To review"
       },
       "session": "{{app}}, {{time}}",
-      "appsOff": "AI apps on this computer can't use Magnolia yet: allow them in Preferences. Then the codes and codings that Claude Desktop (or another AI app) suggests appear here, for you to approve or deny."
+      "appsOff": "AI apps on this computer can't use Magnolia yet: allow them in Preferences. Then the codes and codings that Claude Desktop (or another AI app) suggests appear here, for you to approve or reject."
     },
     "apps": {
       "intro": "With a Claude subscription, you can use Claude Desktop with Magnolia, with no API key: it reads the open project and suggests changes, which you approve or deny in Magnolia. Other apps that support the Model Context Protocol (MCP) work too.",

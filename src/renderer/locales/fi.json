@@ -2118,7 +2118,7 @@
     },
     "pane": {
       "openSettings": "Avaa asetukset",
-      "consentReview": "Tässä paneelissa näkyy kaikki, mitä sovellus lukee. Se ei voi muuttaa projektia: sinä hyväksyt tai hylkäät jokaisen sen ehdottaman muutoksen.",
+      "consentReview": "Se ei voi muuttaa projektia: sinä hyväksyt tai hylkäät jokaisen sen ehdottaman muutoksen.",
       "appAsks": "Sovellus {{name}} haluaa käyttää tätä projektia.",
       "appsTitle": "Sallitko tämän tietokoneen tekoälysovellusten käyttää tätä projektia?",
       "appsConsent": "Tekoälysovellus, kuten Claude Desktop, lukee ne projektin osat, joita se tarvitsee, ja lähettää ne tekoälypalveluunsa (Claude Desktopin kohdalla Anthropicille). Tarkista, että tämä on sallittua aineistosi kohdalla, esimerkiksi eettisen lupasi mukaan.",
@@ -2158,11 +2158,9 @@
       "kind": {
         "newCode": "Uusi koodi",
         "editCode": "Koodin muutos",
-        "addCoding": "Koodaa koodilla {{code}}",
-        "removeCoding": "Poista {{code}}"
+        "coding": "Koodaus",
+        "removal": "Koodauksen poisto"
       },
-      "under": "koodin {{name}} alla",
-      "newCodeName": "{{name}} (uusi)",
       "rename": "Nimeä uudelleen: ”{{name}}”",
       "describe": "Uusi kuvaus",
       "noDescription": "ei mitään",

@@ -2032,7 +2032,7 @@
     },
     "pane": {
       "openSettings": "打开偏好设置",
-      "consentReview": "此窗格会列出应用读取的所有内容。它无法更改项目：它建议的每项更改都由您批准或拒绝。",
+      "consentReview": "它无法更改项目：它建议的每项更改都由您批准或拒绝。",
       "appAsks": "{{name}} 想要使用此项目。",
       "appsTitle": "允许这台电脑上的 AI 应用使用此项目？",
       "appsConsent": "Claude Desktop 等 AI 应用会读取此项目中它所需的部分，并将其发送到它的 AI 服务（对 Claude Desktop 而言是 Anthropic）。请确认您的数据允许这样做，例如是否符合伦理审查批准。",
@@ -2068,11 +2068,9 @@
       "kind": {
         "newCode": "新代码",
         "editCode": "更改代码",
-        "addCoding": "用 {{code}} 编码",
-        "removeCoding": "移除 {{code}}"
+        "coding": "编码",
+        "removal": "移除编码"
       },
-      "under": "位于 {{name}} 下",
-      "newCodeName": "{{name}}（新）",
       "rename": "重命名为“{{name}}”",
       "describe": "新描述",
       "noDescription": "无",

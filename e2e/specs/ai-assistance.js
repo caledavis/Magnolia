@@ -73,11 +73,18 @@ async function spec(t) {
   const r = await window.axe.run(review, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, resultTypes: ['violations'] })
   t.check('the Viewer passes axe', r.violations.length === 0, r.violations.map((v) => v.id + ': ' + v.nodes.slice(0, 2).map((n) => n.html.slice(0, 100)).join(' / ')).join(' || '))
 
-  // Deny the renaming.
+  // A new code under another reads as Parent/New code; rejected.
+  ask('propose_new_code', { name: 'Child test', parent: cRef ?? 'C1', reason: 'Narrower.' })
+  const child = await t.until(() => cards().find((c) => /Child test/.test(c.textContent)), 3000)
+  t.check('a new code shows where it goes, as Parent/New code', !!child && child.textContent.includes(`${firstCode.name}/Child test`), child?.textContent.slice(0, 80))
+  ;[...(child?.querySelectorAll('button') ?? [])].find((b) => b.textContent === 'Reject')?.click()
+  await t.sleep(100)
+
+  // Reject the renaming.
   await t.sleep(700)
   undo.getState().clearHistory()
   const renameCard = cards().find((c) => /Renamed by AI/.test(c.textContent))
-  ;[...renameCard.querySelectorAll('button')].find((b) => b.textContent === 'Deny')?.click()
+  ;[...renameCard.querySelectorAll('button')].find((b) => b.textContent === 'Reject')?.click()
   await t.sleep(100)
   t.check('a denied change isn\'t made', codes.getState().findCode(firstCode.guid).name === firstCode.name && ai.getState().proposals.some((p) => p.change.type === 'editCode' && p.status === 'denied'))
 

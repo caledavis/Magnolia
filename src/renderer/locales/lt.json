@@ -2290,7 +2290,7 @@
     },
     "pane": {
       "openSettings": "Atverti nuostatas",
-      "consentReview": "Šiame polangyje rodoma viskas, ką programa perskaito. Ji negali keisti projekto: jūs patvirtinate arba atmetate kiekvieną jos siūlomą pakeitimą.",
+      "consentReview": "Ji negali keisti projekto: jūs patvirtinate arba atmetate kiekvieną jos siūlomą pakeitimą.",
       "appAsks": "{{name}} nori naudoti šį projektą.",
       "appsTitle": "Leisti šio kompiuterio DI programoms naudoti šį projektą?",
       "appsConsent": "DI programa, pavyzdžiui, Claude Desktop, perskaitys jai reikalingas šio projekto dalis ir išsiųs jas savo DI paslaugai (Claude Desktop atveju – Anthropic). Patikrinkite, ar tai leidžiama jūsų duomenims, pavyzdžiui, pagal jūsų etikos leidimą.",
@@ -2338,11 +2338,9 @@
       "kind": {
         "newCode": "Naujas kodas",
         "editCode": "Kodo pakeitimas",
-        "addCoding": "Koduoti kodu {{code}}",
-        "removeCoding": "Pašalinti {{code}}"
+        "coding": "Kodavimas",
+        "removal": "Kodavimo šalinimas"
       },
-      "under": "po {{name}}",
-      "newCodeName": "{{name}} (naujas)",
       "rename": "Pervardyti į „{{name}}“",
       "describe": "Naujas aprašas",
       "noDescription": "nėra",
