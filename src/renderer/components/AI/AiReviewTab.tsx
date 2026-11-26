@@ -182,7 +182,7 @@ function Banner({ children, strong }: { children: React.ReactNode; strong?: bool
 }
 
 /** A passage with the text around it. */
-function Context({ sourceGuid, start, end, cell }: { sourceGuid: string; start: number; end: number; cell?: { respondentId: string; questionId: string } }) {
+function Context({ sourceGuid, start, end, cell, color }: { sourceGuid: string; start: number; end: number; cell?: { respondentId: string; questionId: string }; color?: string }) {
   const source = useDocumentStore((s) => s.sources.find((x) => x.guid === sourceGuid))
   const content = useDocumentStore((s) => s.sourceContents[sourceGuid])
   const text = useMemo(() => {
@@ -198,9 +198,15 @@ function Context({ sourceGuid, start, end, cell }: { sourceGuid: string; start: 
   const passage = chars.slice(start, end).join('')
   const after = chars.slice(end, end + 120).join('')
   return (
-    <blockquote style={{ margin: '8px 0 0', padding: '8px 12px', borderRadius: 6, background: 'var(--bg-secondary)', fontSize: 12.5, lineHeight: 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+    <blockquote style={{ margin: '8px 0 0', padding: '8px 12px', borderRadius: 6, border: '1px solid var(--border-color)', fontSize: 12.5, lineHeight: 1.7, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
       <span style={{ color: 'var(--text-secondary)' }}>{start > 120 ? '…' : ''}{before}</span>
-      <mark style={{ background: 'var(--selection-bg)', color: 'var(--text-primary)', fontWeight: 500 }}>{passage}</mark>
+      {/* The passage: tinted and underlined in its code's colour, so it
+          stands out from the text around it. */}
+      <mark style={{
+        background: `color-mix(in srgb, ${color ?? 'var(--accent)'} 22%, transparent)`,
+        boxShadow: `inset 0 -2px 0 ${color ?? 'var(--accent)'}`,
+        color: 'var(--text-primary)', fontWeight: 500, borderRadius: 2, padding: '1px 0'
+      }}>{passage}</mark>
       <span style={{ color: 'var(--text-secondary)' }}>{after}{end + 120 < chars.length ? '…' : ''}</span>
     </blockquote>
   )
@@ -262,8 +268,10 @@ function ProposalCard({ p, chosen, onToggle, onApprove, onReject }: { p: AiPropo
     const existing = g ? pathOf(codes, g)?.at(-1)?.color : undefined
     if (existing || !ref) return existing
     const proposal = proposals.find((x) => x.chatId === p.chatId && x.change.type === 'newCode' && x.change.ref === ref)
-    return proposal?.change.type === 'newCode' ? proposal.change.color : undefined
+    return proposal?.change.type === 'newCode' ? newCodeColour(proposal) : undefined
   }
+  const newCodeColour = (q: AiProposal): string | undefined =>
+    q.change.type === 'newCode' ? q.change.color : undefined
   const needs = p.status === 'pending' ? withRequirements([p.id], proposals).filter((id) => id !== p.id) : []
   const open = (sourceGuid: string, start: number, end: number) => useDocumentStore.getState().viewDocumentAt(sourceGuid, start, end)
   const pending = p.status === 'pending'
@@ -274,7 +282,7 @@ function ProposalCard({ p, chosen, onToggle, onApprove, onReject }: { p: AiPropo
   let accent = KIND_COLOUR[c.type]
   if (c.type === 'newCode') {
     kind = t('ai.review.kind.newCode')
-    title = <CodePath parts={[...path(c.parentGuid, c.parentRef), c.name]} color={c.color ?? colourOf(c.parentGuid, c.parentRef)} />
+    title = <CodePath parts={[...path(c.parentGuid, c.parentRef), c.name]} color={newCodeColour(p)} />
     if (c.description) body = <p style={{ margin: '6px 0 0', fontSize: 12.5, color: 'var(--text-secondary)' }}>{c.description}</p>
   } else if (c.type === 'editCode') {
     kind = t('ai.review.kind.editCode')
@@ -291,12 +299,12 @@ function ProposalCard({ p, chosen, onToggle, onApprove, onReject }: { p: AiPropo
     const colour = colourOf(c.codeGuid, c.codeRef)
     if (colour) accent = colour
     title = <><CodePath parts={path(c.codeGuid, c.codeRef)} color={colour} /> <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>· {docName(c.sourceGuid)}</span></>
-    body = <Context sourceGuid={c.sourceGuid} start={c.start} end={c.end} cell={c.surveyCell} />
+    body = <Context sourceGuid={c.sourceGuid} start={c.start} end={c.end} cell={c.surveyCell} color={colour} />
   } else {
     kind = t('ai.review.kind.removal')
     title = <><CodePath parts={path(c.codeGuid)} color={colourOf(c.codeGuid)} /> <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>· {docName(c.sourceGuid)}</span></>
     const sel = sources.find((s) => s.guid === c.sourceGuid)?.selections.find((s) => s.guid === c.selectionGuid)
-    body = sel ? <Context sourceGuid={c.sourceGuid} start={sel.startPosition} end={sel.endPosition} cell={sel.surveyCell} /> : <p style={{ fontSize: 12.5 }}>“{c.text}”</p>
+    body = sel ? <Context sourceGuid={c.sourceGuid} start={sel.startPosition} end={sel.endPosition} cell={sel.surveyCell} color={colourOf(c.codeGuid)} /> : <p style={{ fontSize: 12.5 }}>“{c.text}”</p>
   }
   const at = c.type === 'addCoding' ? { g: c.sourceGuid, s: c.start, e: c.end } : null
   // The colour is in the icon; the word is in the text colour (coloured

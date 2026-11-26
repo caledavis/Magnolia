@@ -34,6 +34,7 @@ async function spec(t) {
   }
 
   prefs.setState({ aiAppsEnabled: true })
+  t.check('Claude Desktop is named so, in agent mode too', apps.appName('claude-ai') === 'Claude Desktop' && apps.appName('local-agent-mode-magnolia') === 'Claude Desktop')
 
   // Not allowed yet: the app is refused, and the Viewer opens to ask.
   const refused = ask('list_documents')

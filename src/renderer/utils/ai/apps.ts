@@ -25,7 +25,9 @@ interface AppCall {
 
 /** An app's name for people: Claude Desktop calls itself "claude-ai". */
 export function appName(client: string): string {
-  if (/^claude(-ai)?$/i.test(client)) return 'Claude Desktop'
+  // Claude Desktop calls itself "claude-ai", or (in agent mode)
+  // "local-agent-mode-…".
+  if (/^claude(-ai)?$/i.test(client) || /^local-agent-mode/i.test(client)) return 'Claude Desktop'
   return client || 'An AI app'
 }
 
