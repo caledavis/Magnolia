@@ -145,7 +145,8 @@ export function WelcomeScreen() {
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
                   <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {proj.path.split('/').pop()?.replace(/\.qdpx$/i, '') || proj.name}
+                    {/* The file's name: after the last / or \ (Windows). */}
+                    {proj.path.split(/[\\/]/).pop()?.replace(/\.qdpx$/i, '') || proj.name}
                   </div>
                   <div style={{ fontSize: 10, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>
                     {proj.path}
