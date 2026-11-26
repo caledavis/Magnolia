@@ -1729,7 +1729,11 @@
     "comingSoon": "{{name}} – tabeller for {{tool}} kommer snart.",
     "couldNotRegenerate": "Analysen kunne ikke genskabes.",
     "respondentN": "Respondent {{n}}",
-    "codeOrder": "Rækkefølge af koder"
+    "codeOrder": "Rækkefølge af koder",
+    "preview": "Eksempel",
+    "previewUpdating": "Opdaterer…",
+    "showPreview": "Vis eksempel",
+    "hidePreview": "Skjul eksempel"
   },
   "map": {
     "doubleClickToEdit": "Dobbeltklik for at redigere",

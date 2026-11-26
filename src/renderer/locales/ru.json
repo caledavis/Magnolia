@@ -1859,7 +1859,11 @@
     "comingSoon": "{{name}} — создание таблиц для «{{tool}}» скоро появится.",
     "couldNotRegenerate": "Не удалось заново построить этот анализ.",
     "respondentN": "Респондент {{n}}",
-    "codeOrder": "Порядок кодов"
+    "codeOrder": "Порядок кодов",
+    "preview": "Предпросмотр",
+    "previewUpdating": "Обновление…",
+    "showPreview": "Показать предпросмотр",
+    "hidePreview": "Скрыть предпросмотр"
   },
   "map": {
     "doubleClickToEdit": "Дважды нажмите, чтобы изменить",

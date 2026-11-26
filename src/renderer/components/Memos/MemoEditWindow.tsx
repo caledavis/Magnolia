@@ -115,7 +115,7 @@ export function MemoEditWindow() {
           }}
         />
         <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-          <MarkdownEditor value={content} onChange={handleContentChange} />
+          <MarkdownEditor value={content} onChange={handleContentChange} label={t('memos.memoHeading')} />
         </div>
       </div>
 

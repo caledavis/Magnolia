@@ -126,7 +126,7 @@ export function escHtml(s: string): string {
 const BASE_PDF_CSS = `
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; color: #222; line-height: 1.5; margin: 0; }
   h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
-  .subtitle { font-size: 11px; color: #888; margin-bottom: 20px; }
+  .subtitle { font-size: 11px; color: #666; margin-bottom: 20px; }
   .section-heading { font-size: 12px; font-weight: 600; color: #555; margin: 24px 0 8px 0; }
   table { width: 100%; border-collapse: collapse; font-size: 11px; }
   th { text-align: start; padding: 6px 10px; border-bottom: 1px solid #ccc; font-weight: 600; font-size: 10px; color: #888; }
@@ -136,8 +136,8 @@ const BASE_PDF_CSS = `
   pre { background: #f3f4f6; padding: 6px; border-radius: 3px; overflow-x: auto; margin: 0 0 6px; }
   pre code { background: none; padding: 0; }
   blockquote { border-inline-start: 2px solid #ddd; margin: 0 0 6px; padding: 2px 0 2px 10px; color: #666; }
-  .muted { color: #888; }
-  .empty { color: #aaa; font-style: italic; font-size: 10.5px; }
+  .muted { color: #666; }
+  .empty { color: #767676; font-style: italic; font-size: 10.5px; }
 `
 
 export interface PdfDocumentOptions {

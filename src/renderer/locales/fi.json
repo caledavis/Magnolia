@@ -1729,7 +1729,11 @@
     "comingSoon": "{{name}} – taulukot työkalulle {{tool}} ovat tulossa.",
     "couldNotRegenerate": "Tätä analyysia ei voitu luoda uudelleen.",
     "respondentN": "Vastaaja {{n}}",
-    "codeOrder": "Koodien järjestys"
+    "codeOrder": "Koodien järjestys",
+    "preview": "Esikatselu",
+    "previewUpdating": "Päivitetään…",
+    "showPreview": "Näytä esikatselu",
+    "hidePreview": "Piilota esikatselu"
   },
   "map": {
     "doubleClickToEdit": "Muokkaa kaksoisklikkaamalla",

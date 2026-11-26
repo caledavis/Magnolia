@@ -1729,7 +1729,11 @@
     "comingSoon": "{{name}} – tabeller för {{tool}} kommer snart.",
     "couldNotRegenerate": "Det gick inte att återskapa analysen.",
     "respondentN": "Respondent {{n}}",
-    "codeOrder": "Kodernas ordning"
+    "codeOrder": "Kodernas ordning",
+    "preview": "Förhandsvisning",
+    "previewUpdating": "Uppdaterar…",
+    "showPreview": "Visa förhandsvisning",
+    "hidePreview": "Dölj förhandsvisning"
   },
   "map": {
     "doubleClickToEdit": "Dubbelklicka för att redigera",

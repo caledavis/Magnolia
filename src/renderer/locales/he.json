@@ -1794,7 +1794,11 @@
     "comingSoon": "{{name}} — טבלאות עבור {{tool}} יגיעו בקרוב.",
     "couldNotRegenerate": "לא ניתן ליצור מחדש את הניתוח הזה.",
     "respondentN": "משיב {{n}}",
-    "codeOrder": "סדר הקודים"
+    "codeOrder": "סדר הקודים",
+    "preview": "תצוגה מקדימה",
+    "previewUpdating": "מעדכן…",
+    "showPreview": "הצגת תצוגה מקדימה",
+    "hidePreview": "הסתרת תצוגה מקדימה"
   },
   "map": {
     "doubleClickToEdit": "לחיצה כפולה לעריכה",

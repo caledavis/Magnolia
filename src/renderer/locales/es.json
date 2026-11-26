@@ -1794,7 +1794,11 @@
     "comingSoon": "{{name}} — pronto se podrán generar tablas de {{tool}}.",
     "couldNotRegenerate": "No se pudo regenerar este análisis.",
     "respondentN": "Encuestado {{n}}",
-    "codeOrder": "Orden de los códigos"
+    "codeOrder": "Orden de los códigos",
+    "preview": "Vista previa",
+    "previewUpdating": "Actualizando…",
+    "showPreview": "Mostrar vista previa",
+    "hidePreview": "Ocultar vista previa"
   },
   "map": {
     "doubleClickToEdit": "Haz doble clic para editar",

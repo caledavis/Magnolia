@@ -1729,7 +1729,11 @@
     "comingSoon": "{{name}} — οι πίνακες για το {{tool}} έρχονται σύντομα.",
     "couldNotRegenerate": "Δεν ήταν δυνατή η αναδημιουργία αυτής της ανάλυσης.",
     "respondentN": "Ερωτώμενος {{n}}",
-    "codeOrder": "Σειρά κωδικών"
+    "codeOrder": "Σειρά κωδικών",
+    "preview": "Προεπισκόπηση",
+    "previewUpdating": "Ενημέρωση…",
+    "showPreview": "Εμφάνιση προεπισκόπησης",
+    "hidePreview": "Απόκρυψη προεπισκόπησης"
   },
   "map": {
     "doubleClickToEdit": "Διπλό κλικ για επεξεργασία",

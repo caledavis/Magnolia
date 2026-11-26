@@ -1794,7 +1794,11 @@
     "comingSoon": "{{name}} — la génération de tableaux pour {{tool}} arrive bientôt.",
     "couldNotRegenerate": "Impossible de régénérer cette analyse.",
     "respondentN": "Répondant {{n}}",
-    "codeOrder": "Ordre des codes"
+    "codeOrder": "Ordre des codes",
+    "preview": "Aperçu",
+    "previewUpdating": "Mise à jour…",
+    "showPreview": "Afficher l’aperçu",
+    "hidePreview": "Masquer l’aperçu"
   },
   "map": {
     "doubleClickToEdit": "Double-cliquez pour modifier",

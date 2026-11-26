@@ -1729,7 +1729,11 @@
     "comingSoon": "{{name}} – Tabellen für {{tool}} folgen bald.",
     "couldNotRegenerate": "Diese Analyse konnte nicht neu erstellt werden.",
     "respondentN": "Befragte Person {{n}}",
-    "codeOrder": "Reihenfolge der Codes"
+    "codeOrder": "Reihenfolge der Codes",
+    "preview": "Vorschau",
+    "previewUpdating": "Wird aktualisiert…",
+    "showPreview": "Vorschau einblenden",
+    "hidePreview": "Vorschau ausblenden"
   },
   "map": {
     "doubleClickToEdit": "Zum Bearbeiten doppelklicken",

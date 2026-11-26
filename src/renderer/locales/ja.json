@@ -1664,7 +1664,11 @@
     "comingSoon": "{{name}} — {{tool}} の表は近日対応予定です。",
     "couldNotRegenerate": "この分析を再生成できませんでした。",
     "respondentN": "回答者 {{n}}",
-    "codeOrder": "コードの順序"
+    "codeOrder": "コードの順序",
+    "preview": "プレビュー",
+    "previewUpdating": "更新中…",
+    "showPreview": "プレビューを表示",
+    "hidePreview": "プレビューを隠す"
   },
   "map": {
     "doubleClickToEdit": "ダブルクリックして編集",

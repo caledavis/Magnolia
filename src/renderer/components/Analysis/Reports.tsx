@@ -52,6 +52,8 @@ import {
 } from './report-export'
 import { useTranslation } from 'react-i18next'
 import { keyActivate, dropZone } from '../../utils/key-activate'
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
+import { ReportPreview } from './ReportPreview'
 
 interface Props {
   data: AnalysisInitData
@@ -355,6 +357,16 @@ export function Reports({ savedConfig, inTab }: Props) {
   })
 
   const [exporting, setExporting] = useState(false)
+  // The preview beside the builder: on unless it was last hidden.
+  const [showPreview, setShowPreview] = useState(() => {
+    try { return localStorage.getItem('magnolia-report-preview') !== 'off' } catch { return true }
+  })
+  const togglePreview = useCallback(() => {
+    setShowPreview((on) => {
+      try { localStorage.setItem('magnolia-report-preview', on ? 'off' : 'on') } catch { /* not kept */ }
+      return !on
+    })
+  }, [])
   const handleExport = useCallback(async () => {
     setExporting(true)
     try {
@@ -442,6 +454,9 @@ export function Reports({ savedConfig, inTab }: Props) {
             {t('common.discardChanges')}
           </button>
         )}
+        <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} aria-pressed={showPreview} onClick={togglePreview}>
+          {showPreview ? t('reports.hidePreview') : t('reports.showPreview')}
+        </button>
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} disabled={exporting} onClick={handleExport}>
           {exporting ? t('reports.exporting') : t('common.exportPdf')}
         </button>
@@ -457,8 +472,13 @@ export function Reports({ savedConfig, inTab }: Props) {
         <div style={{ width: 36, flexShrink: 0 }} />
       </div>
 
+      {/* The builder on the left, the report as it will be exported on the
+          right (GitHub #38); the divider between them can be dragged. */}
+      <PanelGroup direction="horizontal" autoSaveId="magnolia-report-split" style={{ flex: 1, minHeight: 0, '--report-bar-height': '34px' } as React.CSSProperties}>
+      <Panel id="builder" order={1} defaultSize={50} minSize={25}>
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       {/* Tool toolbar: draggable Section / Text blocks. */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 20px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-panel)', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 20px', minHeight: 'var(--report-bar-height)', boxSizing: 'border-box', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-panel)', flexShrink: 0 }}>
         <span style={{ fontSize: 11, color: 'var(--text-muted)', marginInlineEnd: 4 }}>{t('reports.dragToAdd')}</span>
         <PaletteChip block="section" icon={faHeading1} label={t('reports.section')} />
         <PaletteChip block="text" icon={faFont} label={t('reports.text')} />
@@ -526,6 +546,17 @@ export function Reports({ savedConfig, inTab }: Props) {
           </div>
         )}
       </div>
+      </div>
+      </Panel>
+      {showPreview && (
+        <>
+          <PanelResizeHandle style={{ width: 1, background: 'var(--border-color)', cursor: 'col-resize' }} />
+          <Panel id="preview" order={2} defaultSize={50} minSize={25}>
+            <ReportPreview title={analysisName} items={items} />
+          </Panel>
+        </>
+      )}
+      </PanelGroup>
 
     </div>
   )
@@ -632,7 +663,7 @@ function ReportRow({
       {/* Text: inline rich-text editor (stored as markdown; no headings). */}
       {item.kind === 'text' && (
         <div style={{ marginTop: 8 }}>
-          <MarkdownEditor value={item.content} onChange={(md) => onUpdate({ content: md })} style={{ minHeight: 90 }} headings={false} />
+          <MarkdownEditor value={item.content} onChange={(md) => onUpdate({ content: md })} style={{ minHeight: 90 }} headings={false} label={t('reports.text')} />
         </div>
       )}
 

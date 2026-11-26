@@ -68,7 +68,7 @@ export const REPORT_TABLE_CSS = `
   table.report-co td.co-seq { text-align: start; white-space: normal; line-height: 1.8; }
   .co-chip { display: inline-block; white-space: nowrap; }
   .co-chip .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-inline-end: 3px; vertical-align: middle; }
-  .co-arrow { color: #aaa; margin: 0 5px; }
+  .co-arrow { color: #767676; margin: 0 5px; }
   /* Grid tables, matching the on-screen Codes-in-Documents / Results-in-
      Documents / Co-Occurrences look: rotated headers, fixed 50x32 cells,
      subtotal / band tints, and (in Visual mode) sized colour boxes. */

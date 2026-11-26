@@ -1729,7 +1729,11 @@
     "comingSoon": "{{name}} — table generation for {{tool}} is coming soon.",
     "couldNotRegenerate": "Could not regenerate this analysis.",
     "respondentN": "Respondent {{n}}",
-    "codeOrder": "Order of codes"
+    "codeOrder": "Order of codes",
+    "preview": "Preview",
+    "previewUpdating": "Updating…",
+    "showPreview": "Show Preview",
+    "hidePreview": "Hide Preview"
   },
   "map": {
     "doubleClickToEdit": "Double-click to edit",

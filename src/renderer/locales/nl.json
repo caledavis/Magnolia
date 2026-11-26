@@ -1729,7 +1729,11 @@
     "comingSoon": "{{name}} — tabellen voor {{tool}} komen binnenkort.",
     "couldNotRegenerate": "Kan deze analyse niet opnieuw maken.",
     "respondentN": "Respondent {{n}}",
-    "codeOrder": "Volgorde van codes"
+    "codeOrder": "Volgorde van codes",
+    "preview": "Voorbeeld",
+    "previewUpdating": "Bijwerken…",
+    "showPreview": "Voorbeeld tonen",
+    "hidePreview": "Voorbeeld verbergen"
   },
   "map": {
     "doubleClickToEdit": "Dubbelklik om te bewerken",

@@ -264,6 +264,7 @@ function EditCodeDialog({
             {t('codes.description')}
           </label>
           <MarkdownEditor
+            label={t('codes.description')}
             value={memo}
             onChange={setMemo}
           />

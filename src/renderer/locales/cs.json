@@ -1859,7 +1859,11 @@
     "comingSoon": "{{name}} – generování tabulek pro {{tool}} brzy přibude.",
     "couldNotRegenerate": "Tuto analýzu se nepodařilo znovu vygenerovat.",
     "respondentN": "Respondent {{n}}",
-    "codeOrder": "Pořadí kódů"
+    "codeOrder": "Pořadí kódů",
+    "preview": "Náhled",
+    "previewUpdating": "Aktualizace…",
+    "showPreview": "Zobrazit náhled",
+    "hidePreview": "Skrýt náhled"
   },
   "map": {
     "doubleClickToEdit": "Poklepáním upravíte",

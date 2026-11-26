@@ -100,6 +100,12 @@ import { errorMessage } from './utils/error-message'
 import type { QueryBuilderTabConfig, PlainTextSelection, ToolConfig } from './models/types'
 import type { RelationshipMapConfig } from './components/Analysis/RelationshipMap/types'
 
+/** A pane that can't be used with the current tab (faded): out of the
+ *  keyboard's and screen readers' reach too, not only the mouse's. */
+function inertIf(on: boolean): React.HTMLAttributes<HTMLDivElement> {
+  return (on ? { inert: '' } : {}) as React.HTMLAttributes<HTMLDivElement>
+}
+
 /** What a save can come back with besides the saved path (see the
  *  saveProject API): a checkout conflict, or the guard refusing it. */
 function isConflict(r: unknown): r is { conflict: true; marker: CheckoutMarker } {
@@ -2561,7 +2567,7 @@ function App() {
                     if (panels.length > 0) panels.push(<PanelResizeHandle key="rh-d" style={rh} />)
                     panels.push(
                       <Panel key="documents" defaultSize={35} minSize={15}>
-                        <div style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : undefined} onMouseDown={() => setActivePanel('documents')}>
+                        <div {...inertIf(mergeActive)} style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : undefined} onMouseDown={() => setActivePanel('documents')}>
                           <DocumentBrowser
                             onSurveyImport={queueSurveyImport}
                             showManageDocTags={showManageDocTags}
@@ -2577,7 +2583,7 @@ function App() {
                     if (panels.length > 0) panels.push(<PanelResizeHandle key="rh-c" style={rh} />)
                     panels.push(
                       <Panel key="codes" defaultSize={35} minSize={15}>
-                        <div style={{ height: '100%', opacity: (reportsToolActive || mergeActive) ? 0.62 : 1, pointerEvents: (reportsToolActive || mergeActive) ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : reportsToolActive ? t('app.noCodesInReport') : undefined} onMouseDown={() => setActivePanel('codes')}>
+                        <div {...inertIf(reportsToolActive || mergeActive)} style={{ height: '100%', opacity: (reportsToolActive || mergeActive) ? 0.62 : 1, pointerEvents: (reportsToolActive || mergeActive) ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : reportsToolActive ? t('app.noCodesInReport') : undefined} onMouseDown={() => setActivePanel('codes')}>
                           <CodeBrowser onNewCode={handleNewCode} onClose={() => closePanel('codes')} />
                         </div>
                       </Panel>
@@ -2620,7 +2626,7 @@ function App() {
                     if (panels.length > 0) panels.push(<PanelResizeHandle key="rh-m" style={rh} />)
                     panels.push(
                       <Panel key="memos" defaultSize={33} minSize={15}>
-                        <div style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : undefined}>
+                        <div {...inertIf(mergeActive)} style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : undefined}>
                           <MemosPane onClose={() => closePanel('memos')} />
                         </div>
                       </Panel>
@@ -2630,7 +2636,7 @@ function App() {
                     if (panels.length > 0) panels.push(<PanelResizeHandle key="rh-qt" style={rh} />)
                     panels.push(
                       <Panel key="quotes" defaultSize={33} minSize={15}>
-                        <div style={{ height: '100%', opacity: (queryBuilderActive || mergeActive) ? 0.62 : 1, pointerEvents: (queryBuilderActive || mergeActive) ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : queryBuilderActive ? t('app.noQuotesInQuery') : undefined}>
+                        <div {...inertIf(queryBuilderActive || mergeActive)} style={{ height: '100%', opacity: (queryBuilderActive || mergeActive) ? 0.62 : 1, pointerEvents: (queryBuilderActive || mergeActive) ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : queryBuilderActive ? t('app.noQuotesInQuery') : undefined}>
                           <QuotesPane onClose={() => closePanel('quotes')} />
                         </div>
                       </Panel>
@@ -2640,7 +2646,7 @@ function App() {
                     if (panels.length > 0) panels.push(<PanelResizeHandle key="rh-a" style={rh} />)
                     panels.push(
                       <Panel key="analyses" defaultSize={34} minSize={15}>
-                        <div style={{ height: '100%', opacity: (queryBuilderActive || mergeActive) ? 0.62 : 1, pointerEvents: (queryBuilderActive || mergeActive) ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : queryBuilderActive ? t('app.noAnalysesInQuery') : undefined}>
+                        <div {...inertIf(queryBuilderActive || mergeActive)} style={{ height: '100%', opacity: (queryBuilderActive || mergeActive) ? 0.62 : 1, pointerEvents: (queryBuilderActive || mergeActive) ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : queryBuilderActive ? t('app.noAnalysesInQuery') : undefined}>
                           <SavedAnalyses
                             onOpen={openSavedAnalysis}
                             onClose={() => closePanel('analyses')}
@@ -2668,7 +2674,7 @@ function App() {
         )}
         {!queryResultsHidden && (
           <Panel defaultSize={30} minSize={10} collapsible>
-          <div style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : undefined}>
+          <div {...inertIf(mergeActive)} style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : undefined}>
           <QueryResultViewer
             sidebar={
               <SavedQueries

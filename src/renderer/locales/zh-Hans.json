@@ -1664,7 +1664,11 @@
     "comingSoon": "{{name}}——{{tool}} 的表格生成即将推出。",
     "couldNotRegenerate": "无法重新生成此分析。",
     "respondentN": "受访者 {{n}}",
-    "codeOrder": "代码顺序"
+    "codeOrder": "代码顺序",
+    "preview": "预览",
+    "previewUpdating": "正在更新…",
+    "showPreview": "显示预览",
+    "hidePreview": "隐藏预览"
   },
   "map": {
     "doubleClickToEdit": "连按两次以编辑",

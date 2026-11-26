@@ -1859,7 +1859,11 @@
     "comingSoon": "{{name}} – {{tool}} lentelės netrukus.",
     "couldNotRegenerate": "Nepavyko iš naujo sugeneruoti šios analizės.",
     "respondentN": "Respondentas {{n}}",
-    "codeOrder": "Kodų tvarka"
+    "codeOrder": "Kodų tvarka",
+    "preview": "Peržiūra",
+    "previewUpdating": "Atnaujinama…",
+    "showPreview": "Rodyti peržiūrą",
+    "hidePreview": "Slėpti peržiūrą"
   },
   "map": {
     "doubleClickToEdit": "Dukart spustelėkite, kad redaguotumėte",

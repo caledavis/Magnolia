@@ -233,12 +233,12 @@ const EXPORT_CSS = `
      sentence case — not the old grey all-caps. */
   .report-item-head { font-size: 12px; font-weight: 600; color: #333; margin: 0 0 7px 0; }
   /* The Contents number echoed on each body heading so the two agree. */
-  .report-item-num { color: #888; font-weight: 600; font-variant-numeric: tabular-nums; margin-inline-end: 3px; }
+  .report-item-num { color: #666; font-weight: 600; font-variant-numeric: tabular-nums; margin-inline-end: 3px; }
   .report-text { font-size: 11px; color: #222; }
   .report-text p { margin: 0 0 6px 0; }
   .report-text u { text-decoration: underline; }
   .report-quote { border-inline-start: 3px solid #ccc; padding: 2px 0 2px 12px; margin: 0; color: #333; }
-  .report-quote .src { display: block; font-style: normal; font-size: 10px; color: #888; margin-top: 4px; }
+  .report-quote .src { display: block; font-style: normal; font-size: 10px; color: #666; margin-top: 4px; }
   .report-memo .memo-content { font-size: 11px; color: #222; }
   /* Every document starts on a fresh page, and — unlike the other blocks,
      which avoid breaking — a document's content (full text, a long
@@ -249,7 +249,7 @@ const EXPORT_CSS = `
      across pages so a long open-ended question isn't trapped on one. */
   .report-survey-inline { break-inside: auto; page-break-inside: auto; }
   .report-document .doc-content { font-size: 11px; color: #222; white-space: pre-wrap; unicode-bidi: plaintext; }
-  .report-survey-sub { font-size: 10px; color: #888; margin: 0 0 8px; }
+  .report-survey-sub { font-size: 10px; color: #666; margin: 0 0 8px; }
   /* Embedded media (image source / video first frame). Width/height caps
      that scale each to fit the page are injected per-export (they depend
      on the chosen paper size). */
@@ -623,12 +623,33 @@ export async function exportReportPdf(
   return exportPdfWithHeader(html, safeName, t('reports.exportDialog'), undefined, undefined, buildExportScript(h, w))
 }
 
+/** The report's page for the live preview, as the PDF has it. Pictures,
+ *  video frames and PDF pages are the slow part, so they're kept in
+ *  `cache` between calls and only those not there yet are resolved. */
+export async function buildReportPreviewHtml(
+  title: string,
+  items: ReportItem[],
+  cache: Map<string, DocAsset>
+): Promise<string> {
+  const missing = items.filter((it) => it.kind === 'document' && !cache.has(it.refGuid))
+  if (missing.length) for (const [k, v] of await resolveDocAssets(missing)) cache.set(k, v)
+  if (items.some((it) => it.kind === 'analysis' && it.toolType === 'code-frequencies')) {
+    await loadAllPageSizes(useDocumentStore.getState().sources)
+  }
+  return buildReportHtml(title, items, formatDateTime(new Date()), cache)
+}
+
+/** The width of a report's page, inside its margins, in CSS pixels. */
+export function reportPageWidth(): number {
+  return pageMetrics().w
+}
+
 // ── Media resolution ───────────────────────────────────────────────
 
 /** Pre-resolved binary media for a document source, baked into the export
  *  HTML as data URLs. Text-based sources (text/markdown/audio transcript/
  *  survey) need no entry. */
-type DocAsset =
+export type DocAsset =
   | { kind: 'image'; dataUrl: string }
   | { kind: 'pdf'; pages: string[] }
   | { kind: 'video'; frame: string | null }

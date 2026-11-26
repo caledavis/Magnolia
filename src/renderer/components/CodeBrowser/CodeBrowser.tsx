@@ -779,6 +779,7 @@ export function CodeEditDialog({
             {isEdit ? t('codes.description') : t('codes.descriptionOptional')}
           </label>
           <MarkdownEditor
+            label={isEdit ? t('codes.description') : t('codes.descriptionOptional')}
             value={description}
             onChange={setDescription}
           />

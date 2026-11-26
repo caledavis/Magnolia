@@ -1729,7 +1729,11 @@
     "comingSoon": "{{name}} – tabeller for {{tool}} kommer snart.",
     "couldNotRegenerate": "Kunne ikke lage denne analysen på nytt.",
     "respondentN": "Respondent {{n}}",
-    "codeOrder": "Rekkefølge av koder"
+    "codeOrder": "Rekkefølge av koder",
+    "preview": "Forhåndsvisning",
+    "previewUpdating": "Oppdaterer…",
+    "showPreview": "Vis forhåndsvisning",
+    "hidePreview": "Skjul forhåndsvisning"
   },
   "map": {
     "doubleClickToEdit": "Dobbeltklikk for å redigere",

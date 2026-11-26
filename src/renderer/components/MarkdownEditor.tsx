@@ -18,6 +18,8 @@ interface Props {
   /** Show the H1 / H2 heading buttons. Default true; pass false where
    *  headings aren't wanted (e.g. report Text blocks). */
   headings?: boolean
+  /** Its name, for a screen reader (the heading shown above it). */
+  label?: string
 }
 
 function ToolbarButton({
@@ -68,7 +70,7 @@ function ToolbarButton({
  * Typing produces rich text immediately; the value prop and onChange
  * callback use plain markdown strings.
  */
-export function MarkdownEditor({ value, onChange, autoFocus, style, onEnterKey, headings = true }: Props) {
+export function MarkdownEditor({ value, onChange, autoFocus, style, onEnterKey, headings = true, label }: Props) {
   const { t } = useTranslation()
   const onEnterKeyRef = useRef(onEnterKey)
   onEnterKeyRef.current = onEnterKey
@@ -102,6 +104,7 @@ export function MarkdownEditor({ value, onChange, autoFocus, style, onEnterKey, 
   const editor = useEditor({
     extensions,
     content: value,
+    editorProps: label ? { attributes: { 'aria-label': label } } : undefined,
     onUpdate: ({ editor }) => {
       onChange((editor.storage as any).markdown.getMarkdown())
     }

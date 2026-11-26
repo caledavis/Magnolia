@@ -93,6 +93,7 @@ function EditEntryDialog({
             {t('logbook.content')}
           </label>
           <MarkdownEditor
+            label={t('logbook.content')}
             value={content}
             onChange={setContent}
           />

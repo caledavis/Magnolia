@@ -1729,7 +1729,11 @@
     "comingSoon": "{{name}} — {{tool}} के लिए तालिका निर्माण जल्द आ रहा है।",
     "couldNotRegenerate": "यह विश्लेषण फिर से नहीं बनाया जा सका।",
     "respondentN": "उत्तरदाता {{n}}",
-    "codeOrder": "कोडों का क्रम"
+    "codeOrder": "कोडों का क्रम",
+    "preview": "पूर्वावलोकन",
+    "previewUpdating": "अपडेट हो रहा है…",
+    "showPreview": "पूर्वावलोकन दिखाएँ",
+    "hidePreview": "पूर्वावलोकन छिपाएँ"
   },
   "map": {
     "doubleClickToEdit": "संपादित करने के लिए डबल-क्लिक करें",

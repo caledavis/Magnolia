@@ -1989,7 +1989,11 @@
     "comingSoon": "{{name}} — إنشاء الجداول لـ {{tool}} قادم قريبًا.",
     "couldNotRegenerate": "تعذّرت إعادة إنشاء هذا التحليل.",
     "respondentN": "المستجيب {{n}}",
-    "codeOrder": "ترتيب الرموز"
+    "codeOrder": "ترتيب الرموز",
+    "preview": "معاينة",
+    "previewUpdating": "جارٍ التحديث…",
+    "showPreview": "إظهار المعاينة",
+    "hidePreview": "إخفاء المعاينة"
   },
   "map": {
     "doubleClickToEdit": "انقر نقرًا مزدوجًا للتحرير",

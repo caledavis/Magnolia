@@ -1729,7 +1729,11 @@
     "comingSoon": "{{name}} — {{tool}} için tablo oluşturma yakında geliyor.",
     "couldNotRegenerate": "Bu analiz yeniden oluşturulamadı.",
     "respondentN": "Katılımcı {{n}}",
-    "codeOrder": "Kodların sırası"
+    "codeOrder": "Kodların sırası",
+    "preview": "Önizleme",
+    "previewUpdating": "Güncelleniyor…",
+    "showPreview": "Önizlemeyi göster",
+    "hidePreview": "Önizlemeyi gizle"
   },
   "map": {
     "doubleClickToEdit": "Düzenlemek için çift tıklayın",

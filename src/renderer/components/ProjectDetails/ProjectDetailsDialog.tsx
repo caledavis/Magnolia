@@ -91,6 +91,7 @@ export function ProjectDetailsDialog({ open, onClose }: Props) {
             dialog width and give it a fixed max height with internal scroll
             so a long description never grows the dialog. */}
         <MarkdownEditor
+            label={t('projectDetails.description')}
           value={draftDescription}
           onChange={setDraftDescription}
           style={{ width: '100%', maxHeight: 200, overflowY: 'auto', marginBottom: 16 }}

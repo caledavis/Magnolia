@@ -1794,7 +1794,11 @@
     "comingSoon": "{{name}} — aviat es podran generar taules per a {{tool}}.",
     "couldNotRegenerate": "No s’ha pogut tornar a generar aquesta anàlisi.",
     "respondentN": "Enquestat {{n}}",
-    "codeOrder": "Ordre dels codis"
+    "codeOrder": "Ordre dels codis",
+    "preview": "Previsualització",
+    "previewUpdating": "S’està actualitzant…",
+    "showPreview": "Mostra la previsualització",
+    "hidePreview": "Amaga la previsualització"
   },
   "map": {
     "doubleClickToEdit": "Feu doble clic per editar",
