@@ -120,8 +120,11 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     menu = menu.item(&file.build()?);
 
     let edit = SubmenuBuilder::new(app, t("menu.edit"))
-        .item(&PredefinedMenuItem::undo(app, Some(&t("menu.undo")))?)
-        .item(&PredefinedMenuItem::redo(app, Some(&t("menu.redo")))?)
+        // Magnolia's own Undo and Redo: the page undoes typing in a text
+        // field, and otherwise the last change to the project (the system's
+        // items undo only typing, so choosing them did nothing to a coding).
+        .item(&item(app, "edit-undo", &t("menu.undo"), Some("CmdOrCtrl+Z"))?)
+        .item(&item(app, "edit-redo", &t("menu.redo"), Some("CmdOrCtrl+Shift+Z"))?)
         .item(&sep()?)
         .item(&PredefinedMenuItem::cut(app, Some(&t("menu.cut")))?)
         .item(&PredefinedMenuItem::copy(app, Some(&t("menu.copy")))?)
@@ -361,6 +364,11 @@ pub fn handle_event(app: &AppHandle, id: &str) {
         "check-updates" => crate::updater::check_manually(app, crate::updater::Source::Menu),
         "acknowledgements" => crate::commands::open_bundled_file(app, "THIRD-PARTY-LICENSES.txt"),
         "diagnostics" => send_action(app, "show-diagnostics"),
+        // To whichever window has the keyboard: undo belongs to its text.
+        "edit-undo" | "edit-redo" => {
+            let target = focused_label(app).unwrap_or_else(|| MAIN.to_string());
+            windows::emit_to(app, &target, "menu-action", id);
+        }
         "preferences" => {
             let target = focused_label(app).unwrap_or_else(|| MAIN.to_string());
             windows::emit_to(app, &target, "menu-action", "open-preferences");

@@ -27,6 +27,7 @@
  */
 import { i18n } from '../i18n'
 import { isMac } from './platform'
+import { installEditUndo } from './edit-undo'
 
 const MENU = '.context-menu'
 const ITEM = '.context-menu-item'
@@ -235,3 +236,5 @@ function install(): void {
 }
 
 install()
+// Edit → Undo / Redo (once the platform API is there).
+queueMicrotask(installEditUndo)

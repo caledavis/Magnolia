@@ -6,6 +6,7 @@ import { isMac } from '../utils/platform'
 import { useDocumentStore } from '../stores/document-store'
 import { useUndoStore } from '../stores/undo-store'
 import { isLetterKey } from '../utils/keys'
+import { projectUndo } from '../utils/edit-undo'
 
 /** Cmd/Ctrl shortcuts that act on the project rather than on text: switch
  *  tabs, select every document or code (in the pane `activePanelRef`
@@ -52,10 +53,10 @@ export function useProjectShortcuts(activePanelRef: { readonly current: string |
         }
       } else if (isLetterKey(e, 'z') && !e.shiftKey && (!isTextInput() || inNoteEditor())) {
         e.preventDefault()
-        useUndoStore.getState().undo()
+        projectUndo(false)
       } else if (isLetterKey(e, 'z') && e.shiftKey && (!isTextInput() || inNoteEditor())) {
         e.preventDefault()
-        useUndoStore.getState().redo()
+        projectUndo(true)
       } else if (isLetterKey(e, 'f')) {
         // Find is the only global Cmd/Ctrl+F behaviour — fires even
         // when a text input is focused (e.g. while the user is
@@ -69,7 +70,16 @@ export function useProjectShortcuts(activePanelRef: { readonly current: string |
         openFind()
       }
     }
+    // Edit → Undo / Redo, and the keys, arrive here (utils/edit-undo.ts).
+    const onProjectUndo = (e: Event) => {
+      if ((e as CustomEvent<{ redo: boolean }>).detail.redo) useUndoStore.getState().redo()
+      else useUndoStore.getState().undo()
+    }
     window.addEventListener('keydown', handleKeydown)
-    return () => window.removeEventListener('keydown', handleKeydown)
+    window.addEventListener('magnolia-project-undo', onProjectUndo)
+    return () => {
+      window.removeEventListener('keydown', handleKeydown)
+      window.removeEventListener('magnolia-project-undo', onProjectUndo)
+    }
   }, [activePanelRef, openFind])
 }
