@@ -2122,6 +2122,9 @@ div:hover > .folder-row-add,
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-tag > :nth-child(2) { stroke: var(--rb-coral); fill: var(--rb-coral); }
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-bookmark > * { stroke: var(--rb-gold); fill: color-mix(in srgb, var(--rb-gold) var(--rb-tint), transparent); }
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-lightbulb > :nth-child(1) { stroke: var(--rb-gold); fill: color-mix(in srgb, var(--rb-gold) var(--rb-tint), transparent); }
+/* AI Assistance: a gold star, its small cross and dot in blue. */
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-sparkles > :nth-child(1) { stroke: var(--rb-gold); fill: color-mix(in srgb, var(--rb-gold) var(--rb-tint), transparent); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-sparkles > :nth-child(n+2) { stroke: var(--rb-blue); }
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-settings > :nth-child(2),
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-file-text > :nth-child(n+3),
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-scale > :nth-child(2n) { stroke: var(--rb-blue); }

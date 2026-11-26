@@ -90,7 +90,7 @@
       "aboutCredits": "Free and open-source qualitative data analysis.",
       "aboutBuiltWith": "Built with Tauri, Rust, React, TipTap and PDF.js. Icons by Lucide.",
       "diagnostics": "Diagnostic Information…",
-      "panelAssistant": "AI Assistance"
+      "aiAssistance": "AI Assistance"
     },
     "dialog": {
       "openProject": "Open QDPX Project",
@@ -261,8 +261,7 @@
     "queries": "Queries",
     "memos": "Saved Memos",
     "quotes": "Saved Quotes",
-    "analyses": "Saved Analyses",
-    "assistant": "AI Assistance"
+    "analyses": "Saved Analyses"
   },
   "toolbar": {
     "label": "Toolbar",
@@ -319,7 +318,9 @@
     "maximise": "Maximise",
     "restore": "Restore",
     "close": "Close",
-    "groupTeam": "Team"
+    "groupTeam": "Team",
+    "groupAi": "AI",
+    "aiReviewTitle": "The changes AI apps have proposed, for you to approve or deny"
   },
   "project": {
     "lockedTitle": "{{name}} is working on this file — take over or create a copy to edit",
@@ -2099,26 +2100,6 @@
     "copyFailed": "Couldn't copy: select the text and copy it instead."
   },
   "ai": {
-    "activity": {
-      "listDocuments_one": "Listed the project's {{count}} document",
-      "listDocuments_other": "Listed the project's {{count}} documents",
-      "listCodes_one": "Listed the project's {{count}} code",
-      "listCodes_other": "Listed the project's {{count}} codes",
-      "read": "Read {{name}} (characters {{from}}–{{to}} of {{total}})",
-      "readSurvey_one": "Read {{count}} answer in {{name}}",
-      "readSurvey_other": "Read {{count}} answers in {{name}}",
-      "search_one": "Searched for “{{text}}” ({{count}} match)",
-      "search_other": "Searched for “{{text}}” ({{count}} matches)",
-      "codedPassages_one": "Read the {{count}} passage coded {{name}}",
-      "codedPassages_other": "Read the {{count}} passages coded {{name}}",
-      "proposedCode": "Proposed a new code, {{name}}",
-      "proposedChange": "Proposed a change to {{name}}",
-      "proposedCoding": "Proposed coding a passage in {{name}} with {{code}}",
-      "proposedRemoval": "Proposed removing {{code}} from a passage in {{name}}",
-      "problem": "Asked for something that wasn't there",
-      "unknownTool": "Asked for a tool Magnolia doesn't have ({{name}})",
-      "failed": "A request failed ({{name}})"
-    },
     "log": {
       "title_one": "AI Assistance: {{count}} change approved",
       "title_other": "AI Assistance: {{count}} changes approved",
@@ -2138,24 +2119,12 @@
     "pane": {
       "openSettings": "Open Preferences",
       "consentReview": "This pane lists everything the app reads. It can't change the project: you approve or deny each change it suggests.",
-      "review_one": "Review {{count}}",
-      "review_other": "Review {{count}}",
-      "reviewTitle_one": "{{count}} change to review",
-      "reviewTitle_other": "{{count}} changes to review",
-      "proposed_one": "{{count}} change proposed: review it",
-      "proposed_other": "{{count}} changes proposed: review them",
       "appAsks": "{{name}} wants to use this project.",
       "appsTitle": "Let AI apps on this computer use this project?",
       "appsConsent": "An AI app such as Claude Desktop will read the parts of this project it needs, and send them to its AI service (for Claude Desktop, Anthropic). Check that this is allowed for your data, for example by your ethics approval.",
       "allowApps": "Allow",
       "notNow": "Not Now",
-      "emptyApps": "Ask Claude Desktop (or another AI app) about this project. What it reads, and the changes it proposes, appear here.",
-      "appsOn": "AI apps can use this project",
-      "stopApps": "Stop AI apps using it",
-      "intro": "AI Assistance lets an AI app on this computer, such as Claude Desktop with your Claude subscription, read this project and suggest codes and codings. You approve or deny each change it suggests. Turn it on in Preferences.",
-      "sessions": "Sessions",
-      "activity": "What the app did",
-      "appSession": "{{name}}, {{time}}: what it read and proposed."
+      "stopApps": "Stop AI apps using it"
     },
     "review": {
       "title": "AI Assistance",
@@ -2212,7 +2181,8 @@
         "failed": "Not made",
         "pending": "To review"
       },
-      "session": "{{app}}, {{time}}"
+      "session": "{{app}}, {{time}}",
+      "appsOff": "AI apps on this computer can't use Magnolia yet: allow them in Preferences. Then the codes and codings that Claude Desktop (or another AI app) suggests appear here, for you to approve or deny."
     },
     "apps": {
       "intro": "With a Claude subscription, you can use Claude Desktop with Magnolia, with no API key: it reads the open project and suggests changes, which you approve or deny in Magnolia. Other apps that support the Model Context Protocol (MCP) work too.",

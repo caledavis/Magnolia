@@ -90,7 +90,7 @@
       "aboutCredits": "Vrije en opensource kwalitatieve data-analyse.",
       "aboutBuiltWith": "Gemaakt met Tauri, Rust, React, TipTap en PDF.js. Pictogrammen van Lucide.",
       "diagnostics": "Diagnostische informatie…",
-      "panelAssistant": "AI-assistentie"
+      "aiAssistance": "AI-assistentie"
     },
     "dialog": {
       "openProject": "Open QDPX-project",
@@ -261,8 +261,7 @@
     "queries": "Query's",
     "memos": "Bewaarde memo's",
     "quotes": "Bewaarde citaten",
-    "analyses": "Bewaarde analyses",
-    "assistant": "AI-assistentie"
+    "analyses": "Bewaarde analyses"
   },
   "toolbar": {
     "label": "Werkbalk",
@@ -319,7 +318,9 @@
     "maximise": "Maximaliseren",
     "restore": "Herstellen",
     "close": "Sluiten",
-    "groupTeam": "Team"
+    "groupTeam": "Team",
+    "groupAi": "AI",
+    "aiReviewTitle": "De wijzigingen die AI-apps hebben voorgesteld, om goed te keuren of af te wijzen"
   },
   "project": {
     "lockedTitle": "{{name}} werkt aan dit bestand: neem het over of maak een kopie om te bewerken",
@@ -2099,26 +2100,6 @@
     "copyFailed": "Kopiëren lukte niet: selecteer de tekst en kopieer die zelf."
   },
   "ai": {
-    "activity": {
-      "listDocuments_one": "Documenten van het project opgevraagd ({{count}})",
-      "listDocuments_other": "Documenten van het project opgevraagd ({{count}})",
-      "listCodes_one": "Codes van het project opgevraagd ({{count}})",
-      "listCodes_other": "Codes van het project opgevraagd ({{count}})",
-      "read": "{{name}} gelezen (tekens {{from}}–{{to}} van {{total}})",
-      "readSurvey_one": "{{count}} antwoord in {{name}} gelezen",
-      "readSurvey_other": "{{count}} antwoorden in {{name}} gelezen",
-      "search_one": "Gezocht naar \"{{text}}\" ({{count}} overeenkomst)",
-      "search_other": "Gezocht naar \"{{text}}\" ({{count}} overeenkomsten)",
-      "codedPassages_one": "De passage gecodeerd met {{name}} gelezen ({{count}})",
-      "codedPassages_other": "De {{count}} passages gecodeerd met {{name}} gelezen",
-      "proposedCode": "Een nieuwe code voorgesteld: {{name}}",
-      "proposedChange": "Een wijziging van {{name}} voorgesteld",
-      "proposedCoding": "Voorgesteld om een passage in {{name}} met {{code}} te coderen",
-      "proposedRemoval": "Voorgesteld om {{code}} te verwijderen bij een passage in {{name}}",
-      "problem": "Om iets gevraagd dat er niet was",
-      "unknownTool": "Om een tool gevraagd die Magnolia niet heeft ({{name}})",
-      "failed": "Een verzoek is mislukt ({{name}})"
-    },
     "log": {
       "title_one": "AI-assistentie: {{count}} wijziging goedgekeurd",
       "title_other": "AI-assistentie: {{count}} wijzigingen goedgekeurd",
@@ -2138,24 +2119,12 @@
     "pane": {
       "openSettings": "Voorkeuren openen",
       "consentReview": "Dit paneel toont alles wat de app leest. De app kan het project niet wijzigen: jij keurt elke voorgestelde wijziging goed of wijst die af.",
-      "review_one": "{{count}} beoordelen",
-      "review_other": "{{count}} beoordelen",
-      "reviewTitle_one": "{{count}} wijziging te beoordelen",
-      "reviewTitle_other": "{{count}} wijzigingen te beoordelen",
-      "proposed_one": "{{count}} wijziging voorgesteld: beoordeel die",
-      "proposed_other": "{{count}} wijzigingen voorgesteld: beoordeel ze",
       "appAsks": "{{name}} wil dit project gebruiken.",
       "appsTitle": "AI-apps op deze computer dit project laten gebruiken?",
       "appsConsent": "Een AI-app zoals Claude Desktop leest de delen van dit project die hij nodig heeft, en stuurt die naar zijn AI-dienst (voor Claude Desktop is dat Anthropic). Controleer of dat voor je gegevens mag, bijvoorbeeld volgens je ethische goedkeuring.",
       "allowApps": "Toestaan",
       "notNow": "Niet nu",
-      "emptyApps": "Stel Claude Desktop (of een andere AI-app) een vraag over dit project. Wat de app leest en de wijzigingen die hij voorstelt, verschijnen hier.",
-      "appsOn": "AI-apps kunnen dit project gebruiken",
-      "stopApps": "Gebruik door AI-apps stoppen",
-      "intro": "Met AI-assistentie kan een AI-app op deze computer, zoals Claude Desktop met je Claude-abonnement, dit project lezen en codes en coderingen voorstellen. Jij keurt elke voorgestelde wijziging goed of wijst die af. Schakel het in via Voorkeuren.",
-      "sessions": "Sessies",
-      "activity": "Wat de app deed",
-      "appSession": "{{name}}, {{time}}: wat hij las en voorstelde."
+      "stopApps": "Gebruik door AI-apps stoppen"
     },
     "review": {
       "title": "AI-assistentie",
@@ -2212,7 +2181,8 @@
         "failed": "Niet aangebracht",
         "pending": "Te beoordelen"
       },
-      "session": "{{app}}, {{time}}"
+      "session": "{{app}}, {{time}}",
+      "appsOff": "AI-apps op deze computer kunnen Magnolia nog niet gebruiken: sta ze toe in Voorkeuren. Daarna verschijnen hier de codes en coderingen die Claude Desktop (of een andere AI-app) voorstelt, zodat je ze kunt goedkeuren of afwijzen."
     },
     "apps": {
       "intro": "Met een Claude-abonnement kun je Claude Desktop met Magnolia gebruiken, zonder API-sleutel: het leest het geopende project en stelt wijzigingen voor, die je in Magnolia goedkeurt of afwijst. Andere apps die het Model Context Protocol (MCP) ondersteunen, werken ook.",

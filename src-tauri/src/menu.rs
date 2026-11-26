@@ -198,7 +198,6 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
         ("memos", "menu.panelMemos"),
         ("quotes", "menu.panelQuotes"),
         ("analyses", "menu.panelAnalyses"),
-        ("assistant", "menu.panelAssistant"),
     ] {
         let check = CheckMenuItemBuilder::with_id(format!("{ACTION}toggle-panel-{key}"), t(label))
             .checked(shown(key))
@@ -206,6 +205,8 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
         view = view.item(&check);
     }
     view = view
+        .item(&sep()?)
+        .item(&action(app, "open-ai-review", &t("menu.aiAssistance"), None)?)
         .item(&sep()?)
         .item(&item(app, "reload", &t("menu.reload"), Some("CmdOrCtrl+R"))?);
     // Release builds have no devtools (tauri's `devtools` feature is off).

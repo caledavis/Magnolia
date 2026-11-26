@@ -48,13 +48,10 @@ export type AiChange =
   | { type: 'addCoding'; sourceGuid: string; start: number; end: number; surveyCell?: { respondentId: string; questionId: string }; codeGuid?: string; codeRef?: string; text: string }
   | { type: 'removeCoding'; sourceGuid: string; selectionGuid: string; codingGuid: string; codeGuid: string; text: string }
 
-/** What a tool did: its answer for the AI, a line for the chat, and any
- *  proposals it made. */
+/** What a tool did: its answer for the AI, and any proposals it made. */
 export interface ToolOutcome {
   content: string
   isError?: boolean
-  /** For the chat: what was read or proposed, in the user's terms. */
-  activity: { key: string; vars?: Record<string, string | number> }
   proposals?: { change: AiChange; reason: string }[]
 }
 
@@ -215,15 +212,15 @@ export function runTool(name: string, input: Input, refs: ChatRefs): ToolOutcome
       case 'propose_code_change': return proposeCodeChange(input, refs)
       case 'propose_coding': return proposeCoding(input, refs)
       case 'propose_remove_coding': return proposeRemoveCoding(input, refs)
-      default: return fail(`There is no tool called ${name}.`, 'ai.activity.unknownTool', { name })
+      default: return fail(`There is no tool called ${name}.`)
     }
   } catch (err) {
-    return fail(`The tool failed: ${err instanceof Error ? err.message : String(err)}`, 'ai.activity.failed', { name })
+    return fail(`The tool failed: ${err instanceof Error ? err.message : String(err)}`)
   }
 }
 
-function fail(content: string, key = 'ai.activity.problem', vars?: Record<string, string | number>): ToolOutcome {
-  return { content, isError: true, activity: { key, vars } }
+function fail(content: string): ToolOutcome {
+  return { content, isError: true }
 }
 
 function listDocuments(refs: ChatRefs): ToolOutcome {
@@ -236,8 +233,7 @@ function listDocuments(refs: ChatRefs): ToolOutcome {
     return `${ref} | ${s.name} | ${kindOf(s)} | ${size}`
   })
   return {
-    content: lines.length ? lines.join('\n') : 'The project has no documents.',
-    activity: { key: 'ai.activity.listDocuments', vars: { count: lines.length } }
+    content: lines.length ? lines.join('\n') : 'The project has no documents.'
   }
 }
 
@@ -251,8 +247,7 @@ function listCodes(refs: ChatRefs): ToolOutcome {
     return `${'  '.repeat(depth)}${ref} ${code.name}${desc} (${counts.get(code.guid) ?? 0} passages)`
   })
   return {
-    content: lines.length ? lines.join('\n') : 'The project has no codes yet.',
-    activity: { key: 'ai.activity.listCodes', vars: { count: lines.length } }
+    content: lines.length ? lines.join('\n') : 'The project has no codes yet.'
   }
 }
 
@@ -275,13 +270,13 @@ function readDocument(input: Input, refs: ChatRefs): ToolOutcome {
         size += line.length
         if (size > READ_CHUNK * 2) {
           out.push(`… more answers: read one respondent or question at a time.`)
-          return { content: out.join('\n'), activity: { key: 'ai.activity.readSurvey', vars: { name: source.name, count: shown } } }
+          return { content: out.join('\n') }
         }
         out.push(line)
         shown++
       }
     }
-    return { content: out.join('\n'), activity: { key: 'ai.activity.readSurvey', vars: { name: source.name, count: shown } } }
+    return { content: out.join('\n') }
   }
   if (!hasText(source)) return fail(`${source.name} has no text to read (a picture, or a recording without a transcript).`)
   const chars = cps(documentText(source.guid))
@@ -289,8 +284,7 @@ function readDocument(input: Input, refs: ChatRefs): ToolOutcome {
   const to = Math.min(chars.length, from + READ_CHUNK)
   const more = to < chars.length ? `\n[Characters ${from}–${to} of ${chars.length}; read on with from=${to}.]` : `\n[Characters ${from}–${to} of ${chars.length}: the end.]`
   return {
-    content: chars.slice(from, to).join('') + more,
-    activity: { key: 'ai.activity.read', vars: { name: source.name, from, to, total: chars.length } }
+    content: chars.slice(from, to).join('') + more
   }
 }
 
@@ -326,8 +320,7 @@ function searchText(input: Input, refs: ChatRefs): ToolOutcome {
   }
   const tail = total > lines.length ? `\n[${total} matches; the first ${lines.length} shown.]` : ''
   return {
-    content: lines.length ? lines.join('\n') + tail : `No matches for "${needle}".`,
-    activity: { key: 'ai.activity.search', vars: { text: needle, count: total } }
+    content: lines.length ? lines.join('\n') + tail : `No matches for "${needle}".`
   }
 }
 
@@ -349,8 +342,7 @@ function codedPassages(input: Input, refs: ChatRefs): ToolOutcome {
   })
   const tail = all.length > lines.length ? `\n[${all.length} passages; the first ${lines.length} shown.]` : ''
   return {
-    content: lines.length ? lines.join('\n') + tail : `${code.name} isn't applied to any passage yet.`,
-    activity: { key: 'ai.activity.codedPassages', vars: { name: code.name, count: all.length } }
+    content: lines.length ? lines.join('\n') + tail : `${code.name} isn't applied to any passage yet.`
   }
 }
 
@@ -377,7 +369,6 @@ function proposeNewCode(input: Input, refs: ChatRefs): ToolOutcome {
   const description = typeof input.description === 'string' && input.description.trim() ? input.description.trim() : undefined
   return {
     content: `Proposed as ${ref} (not created until the user approves it). Use ${ref} as the code of proposed codings.`,
-    activity: { key: 'ai.activity.proposedCode', vars: { name } },
     proposals: [{ change: { type: 'newCode', ref, name, description, ...parent }, reason: String(input.reason ?? '') }]
   }
 }
@@ -397,7 +388,6 @@ function proposeCodeChange(input: Input, refs: ChatRefs): ToolOutcome {
   if (!change.name && change.description === undefined && !change.move) return fail('That changes nothing about the code.')
   return {
     content: 'Proposed; the user will review it.',
-    activity: { key: 'ai.activity.proposedChange', vars: { name: code.name } },
     proposals: [{ change, reason: String(input.reason ?? '') }]
   }
 }
@@ -430,7 +420,6 @@ function proposeCoding(input: Input, refs: ChatRefs): ToolOutcome {
   const note = hits.length > 1 && !input.occurrence ? ` (The quote appears ${hits.length} times; this is the first. Give "occurrence" for another.)` : ''
   return {
     content: `Proposed; the user will review it.${note}`,
-    activity: { key: 'ai.activity.proposedCoding', vars: { code: newCode ? refs.newCodes[codeRef] : code!.name, name: source.name } },
     proposals: [{
       change: { type: 'addCoding', sourceGuid: source.guid, start: hit.start, end: hit.end, surveyCell: cell, ...(newCode ? { codeRef } : { codeGuid: code!.guid }), text: exact },
       reason: String(input.reason ?? '')
@@ -445,10 +434,8 @@ function proposeRemoveCoding(input: Input, refs: ChatRefs): ToolOutcome {
   const selection = source?.selections.find((s) => s.guid === p.selectionGuid)
   if (!source || !selection?.codings.some((c) => c.guid === p.codingGuid)) return fail('That coding isn\'t in the project any more.')
   const text = cps(textForSelection(source, selection, documentText(source.guid))).slice(selection.startPosition, selection.endPosition).join('')
-  const code = useCodeStore.getState().findCode(p.codeGuid)
   return {
     content: 'Proposed; the user will review it.',
-    activity: { key: 'ai.activity.proposedRemoval', vars: { code: code?.name ?? '', name: source.name } },
     proposals: [{ change: { type: 'removeCoding', sourceGuid: source.guid, selectionGuid: selection.guid, codingGuid: p.codingGuid, codeGuid: p.codeGuid, text }, reason: String(input.reason ?? '') }]
   }
 }

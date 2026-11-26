@@ -90,7 +90,7 @@
       "aboutCredits": "Anàlisi qualitativa de dades lliure i de codi obert.",
       "aboutBuiltWith": "Fet amb Tauri, Rust, React, TipTap i PDF.js. Icones de Lucide.",
       "diagnostics": "Informació de diagnòstic…",
-      "panelAssistant": "Assistència d’IA"
+      "aiAssistance": "Assistència d’IA"
     },
     "dialog": {
       "openProject": "Obre un projecte QDPX",
@@ -264,8 +264,7 @@
     "queries": "Consultes",
     "memos": "Memos desats",
     "quotes": "Cites desades",
-    "analyses": "Anàlisis desades",
-    "assistant": "Assistència d’IA"
+    "analyses": "Anàlisis desades"
   },
   "toolbar": {
     "label": "Barra d’eines",
@@ -322,7 +321,9 @@
     "maximise": "Maximitza",
     "restore": "Restaura",
     "close": "Tanca",
-    "groupTeam": "Equip"
+    "groupTeam": "Equip",
+    "groupAi": "IA",
+    "aiReviewTitle": "Els canvis que han proposat les aplicacions d’IA, per aprovar-los o rebutjar-los"
   },
   "project": {
     "lockedTitle": "{{name}} treballa en aquest fitxer — preneu-ne el control o creeu-ne una còpia per editar-lo",
@@ -2184,31 +2185,6 @@
     "copyFailed": "No s’ha pogut copiar: seleccioneu el text i copieu-lo."
   },
   "ai": {
-    "activity": {
-      "listDocuments_one": "Ha llistat {{count}} document del projecte",
-      "listDocuments_many": "Ha llistat els {{count}} documents del projecte",
-      "listDocuments_other": "Ha llistat els {{count}} documents del projecte",
-      "listCodes_one": "Ha llistat {{count}} codi del projecte",
-      "listCodes_many": "Ha llistat els {{count}} codis del projecte",
-      "listCodes_other": "Ha llistat els {{count}} codis del projecte",
-      "read": "Ha llegit {{name}} (caràcters {{from}}–{{to}} de {{total}})",
-      "readSurvey_one": "Ha llegit {{count}} resposta de {{name}}",
-      "readSurvey_many": "Ha llegit {{count}} respostes de {{name}}",
-      "readSurvey_other": "Ha llegit {{count}} respostes de {{name}}",
-      "search_one": "Ha cercat «{{text}}» ({{count}} coincidència)",
-      "search_many": "Ha cercat «{{text}}» ({{count}} coincidències)",
-      "search_other": "Ha cercat «{{text}}» ({{count}} coincidències)",
-      "codedPassages_one": "Ha llegit {{count}} passatge codificat amb {{name}}",
-      "codedPassages_many": "Ha llegit els {{count}} passatges codificats amb {{name}}",
-      "codedPassages_other": "Ha llegit els {{count}} passatges codificats amb {{name}}",
-      "proposedCode": "Ha proposat un codi nou, {{name}}",
-      "proposedChange": "Ha proposat un canvi a {{name}}",
-      "proposedCoding": "Ha proposat codificar un passatge de {{name}} amb {{code}}",
-      "proposedRemoval": "Ha proposat treure {{code}} d’un passatge de {{name}}",
-      "problem": "Ha demanat una cosa que no hi era",
-      "unknownTool": "Ha demanat una eina que el Magnolia no té ({{name}})",
-      "failed": "Ha fallat una sol·licitud ({{name}})"
-    },
     "log": {
       "title_one": "Assistència d’IA: {{count}} canvi aprovat",
       "title_many": "Assistència d’IA: {{count}} canvis aprovats",
@@ -2229,27 +2205,12 @@
     "pane": {
       "openSettings": "Obre les preferències",
       "consentReview": "Aquest plafó mostra tot el que llegeix l’aplicació. No pot canviar el projecte: vós aproveu o rebutgeu cada canvi que suggereix.",
-      "review_one": "Revisa’n {{count}}",
-      "review_many": "Revisa’n {{count}}",
-      "review_other": "Revisa’n {{count}}",
-      "reviewTitle_one": "{{count}} canvi per revisar",
-      "reviewTitle_many": "{{count}} canvis per revisar",
-      "reviewTitle_other": "{{count}} canvis per revisar",
-      "proposed_one": "S’ha proposat {{count}} canvi: reviseu-lo",
-      "proposed_many": "S’han proposat {{count}} canvis: reviseu-los",
-      "proposed_other": "S’han proposat {{count}} canvis: reviseu-los",
       "appAsks": "{{name}} vol fer servir aquest projecte.",
       "appsTitle": "Voleu permetre que les aplicacions d’IA d’aquest ordinador facin servir aquest projecte?",
       "appsConsent": "Una aplicació d’IA com Claude Desktop llegirà les parts d’aquest projecte que necessiti i les enviarà al seu servei d’IA (per a Claude Desktop, Anthropic). Comproveu que això està permès per a les vostres dades, per exemple per la vostra aprovació ètica.",
       "allowApps": "Permet",
       "notNow": "Ara no",
-      "emptyApps": "Pregunteu a Claude Desktop (o a una altra aplicació d’IA) sobre aquest projecte. El que llegeix, i els canvis que proposa, apareixen aquí.",
-      "appsOn": "Les aplicacions d’IA poden fer servir aquest projecte",
-      "stopApps": "Impedeix que les aplicacions d’IA el facin servir",
-      "intro": "L’Assistència d’IA permet que una aplicació d’IA d’aquest ordinador, com Claude Desktop amb la vostra subscripció a Claude, llegeixi aquest projecte i suggereixi codis i codificacions. Vós aproveu o rebutgeu cada canvi que suggereix. Activeu-la a Preferències.",
-      "sessions": "Sessions",
-      "activity": "Què ha fet l’aplicació",
-      "appSession": "{{name}}, {{time}}: què ha llegit i proposat."
+      "stopApps": "Impedeix que les aplicacions d’IA el facin servir"
     },
     "review": {
       "title": "Assistència d’IA",
@@ -2311,7 +2272,8 @@
         "failed": "No s’ha pogut fer",
         "pending": "Per revisar"
       },
-      "session": "{{app}}, {{time}}"
+      "session": "{{app}}, {{time}}",
+      "appsOff": "Les aplicacions d’IA d’aquest ordinador encara no poden utilitzar el Magnolia: permeteu-les a les preferències. Després, els codis i les codificacions que suggereixi el Claude Desktop (o una altra aplicació d’IA) apareixeran aquí perquè els aproveu o rebutgeu."
     },
     "apps": {
       "intro": "Amb una subscripció a Claude, podeu fer servir Claude Desktop amb el Magnolia, sense clau d’API: llegeix el projecte obert i suggereix canvis, que vós aproveu o rebutgeu al Magnolia. També funcionen altres aplicacions compatibles amb el Model Context Protocol (MCP).",

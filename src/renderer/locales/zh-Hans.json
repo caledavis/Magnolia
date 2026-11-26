@@ -90,7 +90,7 @@
       "aboutCredits": "免费开源的质性数据分析软件。",
       "aboutBuiltWith": "使用 Tauri、Rust、React、TipTap 和 PDF.js 构建。图标来自 Lucide。",
       "diagnostics": "诊断信息…",
-      "panelAssistant": "AI 辅助"
+      "aiAssistance": "AI 辅助"
     },
     "dialog": {
       "openProject": "打开 QDPX 项目",
@@ -258,8 +258,7 @@
     "queries": "查询",
     "memos": "已存备忘录",
     "quotes": "已存引文",
-    "analyses": "已存分析",
-    "assistant": "AI 辅助"
+    "analyses": "已存分析"
   },
   "toolbar": {
     "label": "工具栏",
@@ -316,7 +315,9 @@
     "maximise": "最大化",
     "restore": "还原",
     "close": "关闭",
-    "groupTeam": "团队"
+    "groupTeam": "团队",
+    "groupAi": "AI",
+    "aiReviewTitle": "AI 应用提议的更改，供您批准或拒绝"
   },
   "project": {
     "lockedTitle": "{{name}} 正在处理此文件——请接管或创建副本进行编辑",
@@ -2014,21 +2015,6 @@
     "copyFailed": "无法复制：请选中文本后自行复制。"
   },
   "ai": {
-    "activity": {
-      "listDocuments_other": "列出了项目的 {{count}} 个文档",
-      "listCodes_other": "列出了项目的 {{count}} 个代码",
-      "read": "读取了 {{name}}（共 {{total}} 个字符中的第 {{from}}–{{to}} 个）",
-      "readSurvey_other": "读取了 {{name}} 中的 {{count}} 条回答",
-      "search_other": "搜索了“{{text}}”（{{count}} 个匹配）",
-      "codedPassages_other": "读取了用 {{name}} 编码的 {{count}} 个段落",
-      "proposedCode": "建议了新代码 {{name}}",
-      "proposedChange": "建议更改 {{name}}",
-      "proposedCoding": "建议用 {{code}} 编码 {{name}} 中的一个段落",
-      "proposedRemoval": "建议从 {{name}} 的一个段落中移除 {{code}}",
-      "problem": "请求了不存在的内容",
-      "unknownTool": "请求了 Magnolia 没有的工具（{{name}}）",
-      "failed": "一个请求失败了（{{name}}）"
-    },
     "log": {
       "title_other": "AI 辅助：已批准 {{count}} 项更改",
       "newCode": "新代码 **{{name}}**",
@@ -2047,21 +2033,12 @@
     "pane": {
       "openSettings": "打开偏好设置",
       "consentReview": "此窗格会列出应用读取的所有内容。它无法更改项目：它建议的每项更改都由您批准或拒绝。",
-      "review_other": "审核 {{count}} 项",
-      "reviewTitle_other": "{{count}} 项更改待审核",
-      "proposed_other": "已建议 {{count}} 项更改：请审核",
       "appAsks": "{{name}} 想要使用此项目。",
       "appsTitle": "允许这台电脑上的 AI 应用使用此项目？",
       "appsConsent": "Claude Desktop 等 AI 应用会读取此项目中它所需的部分，并将其发送到它的 AI 服务（对 Claude Desktop 而言是 Anthropic）。请确认您的数据允许这样做，例如是否符合伦理审查批准。",
       "allowApps": "允许",
       "notNow": "暂不",
-      "emptyApps": "向 Claude Desktop（或其他 AI 应用）询问此项目。它读取的内容和建议的更改会显示在这里。",
-      "appsOn": "AI 应用可以使用此项目",
-      "stopApps": "停止 AI 应用使用此项目",
-      "intro": "AI 辅助可让这台电脑上的 AI 应用（例如使用您 Claude 订阅的 Claude Desktop）读取此项目，并建议代码和编码。它建议的每项更改都由您批准或拒绝。请在“偏好设置”中开启。",
-      "sessions": "会话",
-      "activity": "应用执行的操作",
-      "appSession": "{{name}}，{{time}}：它读取和建议的内容。"
+      "stopApps": "停止 AI 应用使用此项目"
     },
     "review": {
       "title": "AI 辅助",
@@ -2113,7 +2090,8 @@
         "failed": "未执行",
         "pending": "待审核"
       },
-      "session": "{{app}}，{{time}}"
+      "session": "{{app}}，{{time}}",
+      "appsOff": "此电脑上的 AI 应用还不能使用 Magnolia：请在偏好设置中允许。之后，Claude Desktop（或其他 AI 应用）建议的代码和编码会显示在这里，供您批准或拒绝。"
     },
     "apps": {
       "intro": "有了 Claude 订阅，您无需 API 密钥即可将 Claude Desktop 与 Magnolia 搭配使用：它会读取打开的项目并建议更改，由您在 Magnolia 中批准或拒绝。其他支持 Model Context Protocol（MCP）的应用也可以使用。",

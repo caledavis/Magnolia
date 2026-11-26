@@ -90,7 +90,7 @@
       "aboutCredits": "無料でオープンソースの質的データ分析ソフトウェア。",
       "aboutBuiltWith": "Tauri、Rust、React、TipTap、PDF.js で作られています。アイコンは Lucide。",
       "diagnostics": "診断情報…",
-      "panelAssistant": "AI 支援"
+      "aiAssistance": "AI 支援"
     },
     "dialog": {
       "openProject": "QDPX プロジェクトを開く",
@@ -258,8 +258,7 @@
     "queries": "クエリ",
     "memos": "保存したメモ",
     "quotes": "保存した引用",
-    "analyses": "保存した分析",
-    "assistant": "AI 支援"
+    "analyses": "保存した分析"
   },
   "toolbar": {
     "label": "ツールバー",
@@ -316,7 +315,9 @@
     "maximise": "最大化",
     "restore": "元に戻す",
     "close": "閉じる",
-    "groupTeam": "チーム"
+    "groupTeam": "チーム",
+    "groupAi": "AI",
+    "aiReviewTitle": "AI アプリが提案した変更（承認または却下）"
   },
   "project": {
     "lockedTitle": "{{name}} さんがこのファイルで作業中です — 引き継ぐか、コピーを作成して編集してください",
@@ -2014,21 +2015,6 @@
     "copyFailed": "コピーできませんでした。テキストを選択してコピーしてください。"
   },
   "ai": {
-    "activity": {
-      "listDocuments_other": "プロジェクトの {{count}} 件のドキュメントを一覧しました",
-      "listCodes_other": "プロジェクトの {{count}} 個のコードを一覧しました",
-      "read": "{{name}} を読みました（全 {{total}} 文字中 {{from}}–{{to}} 文字目）",
-      "readSurvey_other": "{{name}} の回答を {{count}} 件読みました",
-      "search_other": "「{{text}}」を検索しました（{{count}} 件一致）",
-      "codedPassages_other": "{{name}} でコード化された {{count}} 箇所を読みました",
-      "proposedCode": "新しいコード {{name}} を提案しました",
-      "proposedChange": "{{name}} の変更を提案しました",
-      "proposedCoding": "{{name}} の箇所を {{code}} でコーディングするよう提案しました",
-      "proposedRemoval": "{{name}} の箇所から {{code}} を外すよう提案しました",
-      "problem": "存在しないものを要求しました",
-      "unknownTool": "Magnolia にないツールを要求しました（{{name}}）",
-      "failed": "リクエストが失敗しました（{{name}}）"
-    },
     "log": {
       "title_other": "AI 支援：{{count}} 件の変更を承認",
       "newCode": "新しいコード **{{name}}**",
@@ -2047,21 +2033,12 @@
     "pane": {
       "openSettings": "環境設定を開く",
       "consentReview": "アプリが読んだものはすべてこのパネルに表示されます。アプリがプロジェクトを変更することはできません。提案された変更は、一つずつ承認または却下します。",
-      "review_other": "{{count}} 件を確認",
-      "reviewTitle_other": "確認待ちの変更：{{count}} 件",
-      "proposed_other": "{{count}} 件の変更が提案されました：確認してください",
       "appAsks": "{{name}} がこのプロジェクトの使用を求めています。",
       "appsTitle": "このコンピュータ上の AI アプリにこのプロジェクトの使用を許可しますか？",
       "appsConsent": "Claude Desktop などの AI アプリは、このプロジェクトの必要な部分を読み、そのアプリの AI サービス（Claude Desktop の場合は Anthropic）に送信します。お使いのデータでこれが認められているか、倫理審査の承認などで確認してください。",
       "allowApps": "許可",
       "notNow": "今はしない",
-      "emptyApps": "このプロジェクトについて Claude Desktop（またはほかの AI アプリ）に質問してください。アプリが読んだものと提案した変更がここに表示されます。",
-      "appsOn": "AI アプリがこのプロジェクトを使用できます",
-      "stopApps": "AI アプリの使用を停止",
-      "intro": "AI 支援を使うと、このコンピュータ上の AI アプリ（Claude のサブスクリプションで使う Claude Desktop など）がこのプロジェクトを読み、コードやコーディングを提案できます。提案された変更は、一つずつ承認または却下します。「環境設定」でオンにしてください。",
-      "sessions": "セッション",
-      "activity": "アプリが行ったこと",
-      "appSession": "{{name}}、{{time}}：読んだものと提案した内容"
+      "stopApps": "AI アプリの使用を停止"
     },
     "review": {
       "title": "AI 支援",
@@ -2113,7 +2090,8 @@
         "failed": "未変更",
         "pending": "確認待ち"
       },
-      "session": "{{app}}、{{time}}"
+      "session": "{{app}}、{{time}}",
+      "appsOff": "このコンピュータの AI アプリはまだ Magnolia を使用できません。環境設定で許可してください。許可すると、Claude Desktop（またはほかの AI アプリ）が提案するコードとコーディングがここに表示され、承認または却下できます。"
     },
     "apps": {
       "intro": "Claude のサブスクリプションがあれば、API キーなしで Claude Desktop を Magnolia と一緒に使えます。Claude Desktop が開いているプロジェクトを読んで変更を提案し、その変更を Magnolia で承認または却下します。Model Context Protocol（MCP）に対応したほかのアプリも使えます。",

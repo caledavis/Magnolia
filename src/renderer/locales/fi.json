@@ -90,7 +90,7 @@
       "aboutCredits": "Ilmainen avoimen lähdekoodin laadullisen aineiston analyysiohjelma.",
       "aboutBuiltWith": "Tehty Taurilla, Rustilla, Reactilla, TipTapilla ja PDF.js:llä. Kuvakkeet: Lucide.",
       "diagnostics": "Diagnostiikkatiedot…",
-      "panelAssistant": "Tekoälyapu"
+      "aiAssistance": "Tekoälyapu"
     },
     "dialog": {
       "openProject": "Avaa QDPX-projekti",
@@ -261,8 +261,7 @@
     "queries": "Haut",
     "memos": "Tallennetut muistiot",
     "quotes": "Tallennetut lainaukset",
-    "analyses": "Tallennetut analyysit",
-    "assistant": "Tekoälyapu"
+    "analyses": "Tallennetut analyysit"
   },
   "toolbar": {
     "label": "Työkalupalkki",
@@ -319,7 +318,9 @@
     "maximise": "Suurenna",
     "restore": "Palauta",
     "close": "Sulje",
-    "groupTeam": "Tiimi"
+    "groupTeam": "Tiimi",
+    "groupAi": "Tekoäly",
+    "aiReviewTitle": "Tekoälysovellusten ehdottamat muutokset hyväksyttäviksi tai hylättäviksi"
   },
   "project": {
     "lockedTitle": "{{name}} työskentelee tämän tiedoston parissa – ota hallinta tai tee kopio muokattavaksi",
@@ -2099,26 +2100,6 @@
     "copyFailed": "Kopiointi epäonnistui: valitse teksti ja kopioi se."
   },
   "ai": {
-    "activity": {
-      "listDocuments_one": "Listasi projektin {{count}} dokumentin",
-      "listDocuments_other": "Listasi projektin {{count}} dokumenttia",
-      "listCodes_one": "Listasi projektin {{count}} koodin",
-      "listCodes_other": "Listasi projektin {{count}} koodia",
-      "read": "Luki: {{name}} (merkit {{from}}–{{to}}, yhteensä {{total}})",
-      "readSurvey_one": "Luki {{count}} vastauksen kyselystä {{name}}",
-      "readSurvey_other": "Luki {{count}} vastausta kyselystä {{name}}",
-      "search_one": "Haki tekstiä ”{{text}}” ({{count}} osuma)",
-      "search_other": "Haki tekstiä ”{{text}}” ({{count}} osumaa)",
-      "codedPassages_one": "Luki {{count}} kohdan, joka on koodattu koodilla {{name}}",
-      "codedPassages_other": "Luki {{count}} kohtaa, jotka on koodattu koodilla {{name}}",
-      "proposedCode": "Ehdotti uutta koodia: {{name}}",
-      "proposedChange": "Ehdotti muutosta: {{name}}",
-      "proposedCoding": "Ehdotti kohdan koodaamista koodilla {{code}} dokumentissa {{name}}",
-      "proposedRemoval": "Ehdotti koodin {{code}} poistamista kohdasta dokumentissa {{name}}",
-      "problem": "Pyysi jotain, mitä ei ollut olemassa",
-      "unknownTool": "Pyysi työkalua, jota Magnoliassa ei ole ({{name}})",
-      "failed": "Pyyntö epäonnistui ({{name}})"
-    },
     "log": {
       "title_one": "Tekoälyapu: {{count}} muutos hyväksytty",
       "title_other": "Tekoälyapu: {{count}} muutosta hyväksytty",
@@ -2138,24 +2119,12 @@
     "pane": {
       "openSettings": "Avaa asetukset",
       "consentReview": "Tässä paneelissa näkyy kaikki, mitä sovellus lukee. Se ei voi muuttaa projektia: sinä hyväksyt tai hylkäät jokaisen sen ehdottaman muutoksen.",
-      "review_one": "Tarkista {{count}}",
-      "review_other": "Tarkista {{count}}",
-      "reviewTitle_one": "{{count}} tarkistettava muutos",
-      "reviewTitle_other": "{{count}} tarkistettavaa muutosta",
-      "proposed_one": "{{count}} muutos ehdotettu: tarkista se",
-      "proposed_other": "{{count}} muutosta ehdotettu: tarkista ne",
       "appAsks": "Sovellus {{name}} haluaa käyttää tätä projektia.",
       "appsTitle": "Sallitko tämän tietokoneen tekoälysovellusten käyttää tätä projektia?",
       "appsConsent": "Tekoälysovellus, kuten Claude Desktop, lukee ne projektin osat, joita se tarvitsee, ja lähettää ne tekoälypalveluunsa (Claude Desktopin kohdalla Anthropicille). Tarkista, että tämä on sallittua aineistosi kohdalla, esimerkiksi eettisen lupasi mukaan.",
       "allowApps": "Salli",
       "notNow": "Ei nyt",
-      "emptyApps": "Kysy Claude Desktopilta (tai muulta tekoälysovellukselta) tästä projektista. Se, mitä sovellus lukee, ja sen ehdottamat muutokset näkyvät tässä.",
-      "appsOn": "Tekoälysovellukset voivat käyttää tätä projektia",
-      "stopApps": "Estä tekoälysovelluksia käyttämästä sitä",
-      "intro": "Tekoälyavun avulla tämän tietokoneen tekoälysovellus, kuten Claude Desktop Claude-tilauksellasi, voi lukea tämän projektin ja ehdottaa koodeja ja koodauksia. Sinä hyväksyt tai hylkäät jokaisen sen ehdottaman muutoksen. Ota se käyttöön kohdassa Asetukset.",
-      "sessions": "Istunnot",
-      "activity": "Mitä sovellus teki",
-      "appSession": "{{name}}, {{time}}: mitä se luki ja ehdotti."
+      "stopApps": "Estä tekoälysovelluksia käyttämästä sitä"
     },
     "review": {
       "title": "Tekoälyapu",
@@ -2212,7 +2181,8 @@
         "failed": "Ei tehty",
         "pending": "Tarkistettava"
       },
-      "session": "{{app}}, {{time}}"
+      "session": "{{app}}, {{time}}",
+      "appsOff": "Tämän tietokoneen tekoälysovellukset eivät vielä voi käyttää Magnoliaa: salli ne asetuksissa. Sen jälkeen Claude Desktopin (tai muun tekoälysovelluksen) ehdottamat koodit ja koodaukset näkyvät tässä hyväksyttäviksi tai hylättäviksi."
     },
     "apps": {
       "intro": "Claude-tilauksella voit käyttää Claude Desktopia Magnolian kanssa ilman API-avainta: se lukee avoimen projektin ja ehdottaa muutoksia, jotka hyväksyt tai hylkäät Magnoliassa. Myös muut sovellukset, jotka tukevat Model Context Protocol (MCP) -protokollaa, toimivat.",

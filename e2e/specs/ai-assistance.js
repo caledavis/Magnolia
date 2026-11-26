@@ -1,10 +1,10 @@
 // AI Assistance, with an AI app on this computer (Claude Desktop, through
 // Magnolia's connector: the connector itself is tested in
-// src-tauri/src/mcp.rs) making its requests: View → AI Assistance opens
-// the pane, which asks before the app can read anything; the pane lists
-// what the app read; its proposals wait in the AI Assistance Viewer,
-// change nothing until approved, and when approved are made by an AI
-// coder, noted in the Logbook, and taken back by one Undo.
+// src-tauri/src/mcp.rs) making its requests: the AI Assistance Viewer
+// opens to ask before the app can read anything, and opens from View → AI
+// Assistance; the app's proposals appear in it as they come, change
+// nothing until approved, and when approved are made by an AI coder,
+// noted in the Logbook, and taken back by one Undo.
 
 async function spec(t) {
   await new Promise((resolve, reject) => { const s = document.createElement('script'); s.src = location.origin + '/@fs__E2E_ROOT__/node_modules/axe-core/axe.min.js'; s.onload = resolve; s.onerror = reject; document.head.appendChild(s) })
@@ -35,22 +35,26 @@ async function spec(t) {
 
   prefs.setState({ aiAppsEnabled: true })
 
-  // View → AI Assistance.
-  const viewTab = [...document.querySelectorAll('[role="tab"]')].find((b) => b.textContent.trim() === 'View')
-  viewTab?.click()
-  const button = await t.until(() => [...document.querySelectorAll('button')].find((b) => t.visible(b) && b.textContent.trim() === 'AI Assistance'), 5000)
-  button?.click()
-  const pane = await t.until(() => [...document.querySelectorAll('[role="region"][aria-label="AI Assistance"]')].find(t.visible), 5000)
-  t.check('View → AI Assistance opens the pane', !!pane)
-
-  // Not allowed yet: the app is refused, and the pane asks.
+  // Not allowed yet: the app is refused, and the Viewer opens to ask.
   const refused = ask('list_documents')
   t.check('an app is refused until the project allows it', refused?.isError && /hasn't yet let AI apps use this project/.test(refused.content), refused?.content)
-  t.check('and the pane asks', !!(await t.until(() => /Claude Desktop wants to use this project/.test(pane.textContent), 3000)), pane.textContent.slice(0, 200))
+  const findReview = () => [...document.querySelectorAll('h2')].find((h) => t.visible(h) && h.textContent === 'AI Assistance')?.closest('div[style*="flex-direction: column"]')
+  let review = await t.until(findReview, 3000)
+  t.check('the AI Assistance Viewer opens to ask', !!review && /Claude Desktop wants to use this project/.test(review.textContent), review?.textContent.slice(0, 200))
   t.check('nothing was read', ai.getState().sessions.length === 0)
-  ;[...pane.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Allow')?.click()
+  ;[...review.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Allow')?.click()
   await t.sleep(50)
   t.check('allowing is kept with the project', ai.getState().projectAi().appsAllowed === true)
+
+  // Closed, it opens again from View → AI Assistance.
+  docs.getState().closeTab((await t.module('utils/tab-ids')).AI_REVIEW_TAB_ID)
+  await t.sleep(100)
+  ;[...document.querySelectorAll('[role="tab"]')].find((b) => b.textContent.trim() === 'View')?.click()
+  const button = await t.until(() => [...document.querySelectorAll('button')].find((b) => t.visible(b) && b.textContent.trim() === 'AI Assistance'), 5000)
+  button?.click()
+  review = await t.until(findReview, 3000)
+  t.check('View → AI Assistance opens the Viewer', !!review)
+  t.check('with nothing to review yet', /Nothing to review/.test(review?.textContent ?? ''))
 
   // The app reads, then proposes a new code, a coding with it, and a renaming.
   const docsList = ask('list_documents').content
@@ -62,22 +66,11 @@ async function spec(t) {
   const coding = ask('propose_coding', { document: dRef, quote, code: 'N1', reason: 'It says so.' })
   t.check('a proposal tells the app it waits for the user', /AI Assistance Viewer/.test(coding.content), coding.content)
   ask('propose_code_change', { code: cRef ?? 'C1', name: 'Renamed by AI', reason: 'Clearer.' })
-
-  await t.sleep(100)
-  t.check('the pane lists what it read', /Listed the project/.test(pane.textContent) && pane.textContent.includes(`Read ${doc.name}`), pane.textContent.slice(0, 400))
   t.check('nothing has changed yet', !codes.getState().flatCodes().some((c) => c.name === 'Test AI code') && codes.getState().findCode(firstCode.guid).name === firstCode.name)
-  t.check('three changes wait for review', ai.getState().proposals.filter((p) => p.status === 'pending').length === 3)
 
-  let r = await window.axe.run(pane, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, resultTypes: ['violations'] })
-  t.check('the pane passes axe', r.violations.length === 0, r.violations.map((v) => v.id + ': ' + v.nodes.slice(0, 2).map((n) => n.html.slice(0, 100)).join(' / ')).join(' || '))
-
-  // Review them.
-  ;[...pane.querySelectorAll('button')].find((b) => /review/.test(b.textContent))?.click()
-  const review = await t.until(() => [...document.querySelectorAll('h2')].find((h) => t.visible(h) && h.textContent === 'AI Assistance')?.closest('div[style*="flex-direction: column"]'), 5000)
-  t.check('the AI Assistance Viewer opens', !!review)
   const cards = () => [...review.querySelectorAll('section > ul > li')]
-  t.check('it shows each change, with its passage in context', cards().length === 3 && cards().some((c) => c.querySelector('mark')?.textContent === quote), cards().map((c) => c.textContent.slice(0, 60)).join(' | '))
-  r = await window.axe.run(review, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, resultTypes: ['violations'] })
+  t.check('the Viewer lists each change as it comes, with its passage in context', !!(await t.until(() => cards().length === 3, 3000)) && cards().some((c) => c.querySelector('mark')?.textContent === quote), cards().map((c) => c.textContent.slice(0, 60)).join(' | '))
+  const r = await window.axe.run(review, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, resultTypes: ['violations'] })
   t.check('the Viewer passes axe', r.violations.length === 0, r.violations.map((v) => v.id + ': ' + v.nodes.slice(0, 2).map((n) => n.html.slice(0, 100)).join(' / ')).join(' || '))
 
   // Deny the renaming.
@@ -118,6 +111,6 @@ async function spec(t) {
   const service = await t.until(() => [...document.querySelectorAll('input[type="checkbox"]')].find((c) => t.visible(c) && /AI apps on this computer/.test(c.parentElement?.textContent ?? '')), 5000)
   t.check('Preferences has an AI Assistance section', !!service)
   const prefsPane = service?.closest('div[style*="max-width"]')
-  r = await window.axe.run(prefsPane ?? document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, resultTypes: ['violations'] })
-  t.check('which passes axe', r.violations.length === 0, r.violations.map((v) => v.id + ': ' + v.nodes.slice(0, 2).map((n) => n.html.slice(0, 100)).join(' / ')).join(' || '))
+  const rp = await window.axe.run(prefsPane ?? document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, resultTypes: ['violations'] })
+  t.check('which passes axe', rp.violations.length === 0, rp.violations.map((v) => v.id + ': ' + v.nodes.slice(0, 2).map((n) => n.html.slice(0, 100)).join(' / ')).join(' || '))
 }

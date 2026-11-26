@@ -79,11 +79,11 @@ since its last change.
     → AI Assistance tick "Let AI apps on this computer use Magnolia" and
     press `Add Magnolia to Claude Desktop`, then quit and reopen Claude
     Desktop: Magnolia is among its connectors. Open a copy of a sample
-    project, View → AI Assistance, and in Claude Desktop ask "Suggest codes
-    for one of the interviews in my Magnolia project": the pane asks to
-    allow it; once allowed, the pane lists what Claude read, the proposals
-    appear in the AI Assistance Viewer, and approving one codes the
-    passage. On Windows, check that no console window opens when Claude
+    project, and in Claude Desktop ask "Suggest codes for one of the
+    interviews in my Magnolia project": the AI Assistance Viewer opens to
+    ask whether Claude may use the project; once allowed, Claude's
+    proposals appear in the Viewer as they come, and approving one codes
+    the passage. On Windows, check that no console window opens when Claude
     Desktop starts the connector.
 
 ## Screen readers

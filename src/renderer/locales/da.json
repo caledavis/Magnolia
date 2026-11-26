@@ -90,7 +90,7 @@
       "aboutCredits": "Fri og open source-software til kvalitativ dataanalyse.",
       "aboutBuiltWith": "Bygget med Tauri, Rust, React, TipTap og PDF.js. Ikoner fra Lucide.",
       "diagnostics": "Diagnostiske oplysninger…",
-      "panelAssistant": "AI-assistance"
+      "aiAssistance": "AI-assistance"
     },
     "dialog": {
       "openProject": "Åbn QDPX-projekt",
@@ -261,8 +261,7 @@
     "queries": "Forespørgsler",
     "memos": "Gemte memoer",
     "quotes": "Gemte citater",
-    "analyses": "Gemte analyser",
-    "assistant": "AI-assistance"
+    "analyses": "Gemte analyser"
   },
   "toolbar": {
     "label": "Værktøjslinje",
@@ -319,7 +318,9 @@
     "maximise": "Maksimer",
     "restore": "Gendan",
     "close": "Luk",
-    "groupTeam": "Team"
+    "groupTeam": "Team",
+    "groupAi": "AI",
+    "aiReviewTitle": "De ændringer, AI-apps har foreslået, til godkendelse eller afvisning"
   },
   "project": {
     "lockedTitle": "{{name}} arbejder i filen – overtag, eller opret en kopi for at redigere",
@@ -2099,26 +2100,6 @@
     "copyFailed": "Kunne ikke kopiere: markér teksten, og kopiér den."
   },
   "ai": {
-    "activity": {
-      "listDocuments_one": "Listede projektets {{count}} dokument",
-      "listDocuments_other": "Listede projektets {{count}} dokumenter",
-      "listCodes_one": "Listede projektets {{count}} kode",
-      "listCodes_other": "Listede projektets {{count}} koder",
-      "read": "Læste {{name}} (tegn {{from}}–{{to}} af {{total}})",
-      "readSurvey_one": "Læste {{count}} svar i {{name}}",
-      "readSurvey_other": "Læste {{count}} svar i {{name}}",
-      "search_one": "Søgte efter »{{text}}« ({{count}} match)",
-      "search_other": "Søgte efter »{{text}}« ({{count}} match)",
-      "codedPassages_one": "Læste den {{count}} passage, der er kodet med {{name}}",
-      "codedPassages_other": "Læste de {{count}} passager, der er kodet med {{name}}",
-      "proposedCode": "Foreslog en ny kode, {{name}}",
-      "proposedChange": "Foreslog en ændring af {{name}}",
-      "proposedCoding": "Foreslog at kode en passage i {{name}} med {{code}}",
-      "proposedRemoval": "Foreslog at fjerne {{code}} fra en passage i {{name}}",
-      "problem": "Bad om noget, der ikke fandtes",
-      "unknownTool": "Bad om et værktøj, som Magnolia ikke har ({{name}})",
-      "failed": "En anmodning mislykkedes ({{name}})"
-    },
     "log": {
       "title_one": "AI-assistance: {{count}} ændring godkendt",
       "title_other": "AI-assistance: {{count}} ændringer godkendt",
@@ -2138,24 +2119,12 @@
     "pane": {
       "openSettings": "Åbn Indstillinger",
       "consentReview": "Dette panel viser alt, hvad appen læser. Den kan ikke ændre projektet: du godkender eller afviser hver ændring, den foreslår.",
-      "review_one": "Gennemgå {{count}}",
-      "review_other": "Gennemgå {{count}}",
-      "reviewTitle_one": "{{count}} ændring til gennemgang",
-      "reviewTitle_other": "{{count}} ændringer til gennemgang",
-      "proposed_one": "{{count}} ændring foreslået: gennemgå den",
-      "proposed_other": "{{count}} ændringer foreslået: gennemgå dem",
       "appAsks": "{{name}} vil gerne bruge dette projekt.",
       "appsTitle": "Lad AI-apps på denne computer bruge dette projekt?",
       "appsConsent": "En AI-app som Claude Desktop læser de dele af projektet, den har brug for, og sender dem til sin AI-tjeneste (for Claude Desktop er det Anthropic). Kontrollér, at det er tilladt for dine data, for eksempel i din etiske godkendelse.",
       "allowApps": "Tillad",
       "notNow": "Ikke nu",
-      "emptyApps": "Spørg Claude Desktop (eller en anden AI-app) om dette projekt. Det, appen læser, og de ændringer, den foreslår, vises her.",
-      "appsOn": "AI-apps kan bruge dette projekt",
-      "stopApps": "Forhindr AI-apps i at bruge det",
-      "intro": "Med AI-assistance kan en AI-app på denne computer, f.eks. Claude Desktop med dit Claude-abonnement, læse dette projekt og foreslå koder og kodninger. Du godkender eller afviser hver ændring, den foreslår. Slå det til i Indstillinger.",
-      "sessions": "Sessioner",
-      "activity": "Hvad appen gjorde",
-      "appSession": "{{name}}, {{time}}: hvad den læste og foreslog."
+      "stopApps": "Forhindr AI-apps i at bruge det"
     },
     "review": {
       "title": "AI-assistance",
@@ -2212,7 +2181,8 @@
         "failed": "Ikke foretaget",
         "pending": "Til gennemgang"
       },
-      "session": "{{app}}, {{time}}"
+      "session": "{{app}}, {{time}}",
+      "appsOff": "AI-apps på denne computer kan endnu ikke bruge Magnolia: tillad dem i Indstillinger. Derefter vises de koder og kodninger, som Claude Desktop (eller en anden AI-app) foreslår, her, så du kan godkende eller afvise dem."
     },
     "apps": {
       "intro": "Med et Claude-abonnement kan du bruge Claude Desktop med Magnolia uden en API-nøgle: den læser det åbne projekt og foreslår ændringer, som du godkender eller afviser i Magnolia. Andre apps, der understøtter Model Context Protocol (MCP), virker også.",

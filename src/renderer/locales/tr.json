@@ -90,7 +90,7 @@
       "aboutCredits": "Özgür ve açık kaynaklı nitel veri analizi.",
       "aboutBuiltWith": "Tauri, Rust, React, TipTap ve PDF.js ile geliştirildi. Simgeler Lucide’dan.",
       "diagnostics": "Tanılama bilgileri…",
-      "panelAssistant": "Yapay zekâ yardımı"
+      "aiAssistance": "Yapay zekâ yardımı"
     },
     "dialog": {
       "openProject": "QDPX projesi aç",
@@ -261,8 +261,7 @@
     "queries": "Sorgular",
     "memos": "Kayıtlı memolar",
     "quotes": "Kayıtlı alıntılar",
-    "analyses": "Kayıtlı analizler",
-    "assistant": "Yapay zekâ yardımı"
+    "analyses": "Kayıtlı analizler"
   },
   "toolbar": {
     "label": "Araç çubuğu",
@@ -319,7 +318,9 @@
     "maximise": "Ekranı kapla",
     "restore": "Geri yükle",
     "close": "Kapat",
-    "groupTeam": "Ekip"
+    "groupTeam": "Ekip",
+    "groupAi": "Yapay zekâ",
+    "aiReviewTitle": "Yapay zekâ uygulamalarının önerdiği, onaylanacak ya da reddedilecek değişiklikler"
   },
   "project": {
     "lockedTitle": "{{name}} bu dosya üzerinde çalışıyor — düzenlemek için devralın ya da bir kopya oluşturun",
@@ -2099,26 +2100,6 @@
     "copyFailed": "Kopyalanamadı: metni seçip kendiniz kopyalayın."
   },
   "ai": {
-    "activity": {
-      "listDocuments_one": "Projenin {{count}} belgesi listelendi",
-      "listDocuments_other": "Projenin {{count}} belgesi listelendi",
-      "listCodes_one": "Projenin {{count}} kodu listelendi",
-      "listCodes_other": "Projenin {{count}} kodu listelendi",
-      "read": "{{name}} okundu (karakter {{from}}–{{to}}, toplam {{total}})",
-      "readSurvey_one": "{{name}} içinde {{count}} yanıt okundu",
-      "readSurvey_other": "{{name}} içinde {{count}} yanıt okundu",
-      "search_one": "“{{text}}” arandı ({{count}} eşleşme)",
-      "search_other": "“{{text}}” arandı ({{count}} eşleşme)",
-      "codedPassages_one": "{{name}} koduyla kodlanmış {{count}} pasaj okundu",
-      "codedPassages_other": "{{name}} koduyla kodlanmış {{count}} pasaj okundu",
-      "proposedCode": "Yeni bir kod önerildi: {{name}}",
-      "proposedChange": "Bir değişiklik önerildi: {{name}}",
-      "proposedCoding": "{{name}} içindeki bir pasajın {{code}} koduyla kodlanması önerildi",
-      "proposedRemoval": "{{name}} içindeki bir pasajdan {{code}} kodunun kaldırılması önerildi",
-      "problem": "Var olmayan bir şey istendi",
-      "unknownTool": "Magnolia’da olmayan bir araç istendi ({{name}})",
-      "failed": "Bir istek başarısız oldu ({{name}})"
-    },
     "log": {
       "title_one": "Yapay zekâ yardımı: {{count}} değişiklik onaylandı",
       "title_other": "Yapay zekâ yardımı: {{count}} değişiklik onaylandı",
@@ -2138,24 +2119,12 @@
     "pane": {
       "openSettings": "Ayarları aç",
       "consentReview": "Bu bölmede uygulamanın okuduğu her şey listelenir. Uygulama projeyi değiştiremez: önerdiği her değişikliği siz onaylar ya da reddedersiniz.",
-      "review_one": "{{count}} öğeyi incele",
-      "review_other": "{{count}} öğeyi incele",
-      "reviewTitle_one": "İncelenecek {{count}} değişiklik",
-      "reviewTitle_other": "İncelenecek {{count}} değişiklik",
-      "proposed_one": "{{count}} değişiklik önerildi: inceleyin",
-      "proposed_other": "{{count}} değişiklik önerildi: inceleyin",
       "appAsks": "{{name}} bu projeyi kullanmak istiyor.",
       "appsTitle": "Bu bilgisayardaki yapay zekâ uygulamaları bu projeyi kullanabilsin mi?",
       "appsConsent": "Claude Desktop gibi bir yapay zekâ uygulaması bu projenin gereken kısımlarını okuyup kendi yapay zekâ hizmetine (Claude Desktop için Anthropic) gönderir. Bunun verileriniz için izinli olduğundan emin olun (örneğin etik kurul onayınızla).",
       "allowApps": "İzin ver",
       "notNow": "Şimdi değil",
-      "emptyApps": "Claude Desktop’a (ya da başka bir yapay zekâ uygulamasına) bu projeyle ilgili soru sorun. Okuduğu şeyler ve önerdiği değişiklikler burada görünür.",
-      "appsOn": "Yapay zekâ uygulamaları bu projeyi kullanabilir",
-      "stopApps": "Yapay zekâ uygulamalarının erişimini durdur",
-      "intro": "Yapay zekâ yardımı, bu bilgisayardaki bir yapay zekâ uygulamasının (örneğin Claude aboneliğinizle Claude Desktop) bu projeyi okumasını ve kod ve kodlama önermesini sağlar. Önerdiği her değişikliği siz onaylar ya da reddedersiniz. Ayarlar’dan açın.",
-      "sessions": "Oturumlar",
-      "activity": "Uygulamanın yaptıkları",
-      "appSession": "{{name}}, {{time}}: okudukları ve önerdikleri."
+      "stopApps": "Yapay zekâ uygulamalarının erişimini durdur"
     },
     "review": {
       "title": "Yapay zekâ yardımı",
@@ -2212,7 +2181,8 @@
         "failed": "Yapılamadı",
         "pending": "İncelenecek"
       },
-      "session": "{{app}}, {{time}}"
+      "session": "{{app}}, {{time}}",
+      "appsOff": "Bu bilgisayardaki yapay zekâ uygulamaları henüz Magnolia’yı kullanamaz: Ayarlar’dan izin verin. Ardından Claude Desktop’ın (veya başka bir yapay zekâ uygulamasının) önerdiği kodlar ve kodlamalar, onaylamanız ya da reddetmeniz için burada görünür."
     },
     "apps": {
       "intro": "Claude aboneliğiniz varsa Claude Desktop’ı Magnolia ile API anahtarı olmadan kullanabilirsiniz: açık projeyi okur ve değişiklikler önerir; bunları Magnolia’da onaylar ya da reddedersiniz. Model Context Protocol (MCP) desteği olan diğer uygulamalar da çalışır.",

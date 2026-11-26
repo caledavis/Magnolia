@@ -90,7 +90,7 @@
       "aboutCredits": "Svobodná a otevřená kvalitativní analýza dat.",
       "aboutBuiltWith": "Vytvořeno pomocí Tauri, Rust, React, TipTap a PDF.js. Ikony od Lucide.",
       "diagnostics": "Diagnostické informace…",
-      "panelAssistant": "Asistence AI"
+      "aiAssistance": "Asistence AI"
     },
     "dialog": {
       "openProject": "Otevřít projekt QDPX",
@@ -267,8 +267,7 @@
     "queries": "Dotazy",
     "memos": "Uložené poznámky",
     "quotes": "Uložené citace",
-    "analyses": "Uložené analýzy",
-    "assistant": "Asistence AI"
+    "analyses": "Uložené analýzy"
   },
   "toolbar": {
     "label": "Panel nástrojů",
@@ -325,7 +324,9 @@
     "maximise": "Maximalizovat",
     "restore": "Obnovit",
     "close": "Zavřít",
-    "groupTeam": "Tým"
+    "groupTeam": "Tým",
+    "groupAi": "AI",
+    "aiReviewTitle": "Změny navržené aplikacemi AI ke schválení nebo zamítnutí"
   },
   "project": {
     "lockedTitle": "{{name}} pracuje s tímto souborem – pro úpravy převezměte kontrolu nebo vytvořte kopii",
@@ -2269,36 +2270,6 @@
     "copyFailed": "Kopírování se nezdařilo: označte text a zkopírujte ho."
   },
   "ai": {
-    "activity": {
-      "listDocuments_one": "Vypsán {{count}} dokument projektu",
-      "listDocuments_few": "Vypsány {{count}} dokumenty projektu",
-      "listDocuments_many": "Vypsáno {{count}} dokumentů projektu",
-      "listDocuments_other": "Vypsáno {{count}} dokumentů projektu",
-      "listCodes_one": "Vypsán {{count}} kód projektu",
-      "listCodes_few": "Vypsány {{count}} kódy projektu",
-      "listCodes_many": "Vypsáno {{count}} kódů projektu",
-      "listCodes_other": "Vypsáno {{count}} kódů projektu",
-      "read": "Přečteno: {{name}} (znaky {{from}}–{{to}} z {{total}})",
-      "readSurvey_one": "Přečtena {{count}} odpověď v průzkumu {{name}}",
-      "readSurvey_few": "Přečteny {{count}} odpovědi v průzkumu {{name}}",
-      "readSurvey_many": "Přečteno {{count}} odpovědí v průzkumu {{name}}",
-      "readSurvey_other": "Přečteno {{count}} odpovědí v průzkumu {{name}}",
-      "search_one": "Hledáno „{{text}}“ ({{count}} shoda)",
-      "search_few": "Hledáno „{{text}}“ ({{count}} shody)",
-      "search_many": "Hledáno „{{text}}“ ({{count}} shod)",
-      "search_other": "Hledáno „{{text}}“ ({{count}} shod)",
-      "codedPassages_one": "Přečten {{count}} úsek kódovaný kódem {{name}}",
-      "codedPassages_few": "Přečteny {{count}} úseky kódované kódem {{name}}",
-      "codedPassages_many": "Přečteno {{count}} úseků kódovaných kódem {{name}}",
-      "codedPassages_other": "Přečteno {{count}} úseků kódovaných kódem {{name}}",
-      "proposedCode": "Navržen nový kód {{name}}",
-      "proposedChange": "Navržena změna: {{name}}",
-      "proposedCoding": "Navrženo okódovat úsek v dokumentu {{name}} kódem {{code}}",
-      "proposedRemoval": "Navrženo odebrat {{code}} z úseku v dokumentu {{name}}",
-      "problem": "Vyžádáno něco, co neexistuje",
-      "unknownTool": "Vyžádán nástroj, který aplikace Magnolia nemá ({{name}})",
-      "failed": "Požadavek selhal ({{name}})"
-    },
     "log": {
       "title_one": "Asistence AI: schválena {{count}} změna",
       "title_few": "Asistence AI: schváleny {{count}} změny",
@@ -2320,30 +2291,12 @@
     "pane": {
       "openSettings": "Otevřít Předvolby",
       "consentReview": "Tento panel uvádí vše, co aplikace čte. Projekt měnit nemůže: každou navrženou změnu schválíte, nebo zamítnete.",
-      "review_one": "Zkontrolovat {{count}}",
-      "review_few": "Zkontrolovat {{count}}",
-      "review_many": "Zkontrolovat {{count}}",
-      "review_other": "Zkontrolovat {{count}}",
-      "reviewTitle_one": "{{count}} změna ke kontrole",
-      "reviewTitle_few": "{{count}} změny ke kontrole",
-      "reviewTitle_many": "{{count}} změn ke kontrole",
-      "reviewTitle_other": "{{count}} změn ke kontrole",
-      "proposed_one": "Navržena {{count}} změna: zkontrolujte ji",
-      "proposed_few": "Navrženy {{count}} změny: zkontrolujte je",
-      "proposed_many": "Navrženo {{count}} změn: zkontrolujte je",
-      "proposed_other": "Navrženo {{count}} změn: zkontrolujte je",
       "appAsks": "{{name}} chce používat tento projekt.",
       "appsTitle": "Povolit aplikacím AI na tomto počítači používat tento projekt?",
       "appsConsent": "Aplikace AI, například Claude Desktop, si přečte ty části projektu, které potřebuje, a odešle je své službě AI (u Claude Desktop společnosti Anthropic). Ověřte si, že je to u vašich dat povoleno, například vaším etickým schválením.",
       "allowApps": "Povolit",
       "notNow": "Teď ne",
-      "emptyApps": "Zeptejte se Claude Desktop (nebo jiné aplikace AI) na tento projekt. Co přečte a jaké změny navrhne, se zobrazí zde.",
-      "appsOn": "Aplikace AI mohou tento projekt používat",
-      "stopApps": "Zakázat aplikacím AI jeho používání",
-      "intro": "Asistence AI umožňuje aplikaci AI na tomto počítači, například Claude Desktop s vaším předplatným Claude, číst tento projekt a navrhovat kódy a kódování. Každou navrženou změnu schválíte, nebo zamítnete. Zapněte ji v Předvolbách.",
-      "sessions": "Relace",
-      "activity": "Co aplikace udělala",
-      "appSession": "{{name}}, {{time}}: co přečetla a navrhla."
+      "stopApps": "Zakázat aplikacím AI jeho používání"
     },
     "review": {
       "title": "Asistence AI",
@@ -2410,7 +2363,8 @@
         "failed": "Neprovedeno",
         "pending": "Ke kontrole"
       },
-      "session": "{{app}}, {{time}}"
+      "session": "{{app}}, {{time}}",
+      "appsOff": "Aplikace AI v tomto počítači zatím nemohou aplikaci Magnolia používat: povolte je v Předvolbách. Kódy a kódování, které navrhne Claude Desktop (nebo jiná aplikace AI), se pak zobrazí zde ke schválení nebo zamítnutí."
     },
     "apps": {
       "intro": "S předplatným Claude můžete používat Claude Desktop s aplikací Magnolia bez klíče API: přečte otevřený projekt a navrhne změny, které v aplikaci Magnolia schválíte, nebo zamítnete. Fungují i další aplikace, které podporují Model Context Protocol (MCP).",

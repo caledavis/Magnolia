@@ -90,7 +90,7 @@
       "aboutCredits": "Fri programvare med åpen kildekode for kvalitativ dataanalyse.",
       "aboutBuiltWith": "Laget med Tauri, Rust, React, TipTap og PDF.js. Ikoner fra Lucide.",
       "diagnostics": "Diagnoseinformasjon…",
-      "panelAssistant": "KI-assistanse"
+      "aiAssistance": "KI-assistanse"
     },
     "dialog": {
       "openProject": "Åpne QDPX-prosjekt",
@@ -261,8 +261,7 @@
     "queries": "Spørringer",
     "memos": "Lagrede memoer",
     "quotes": "Lagrede sitater",
-    "analyses": "Lagrede analyser",
-    "assistant": "KI-assistanse"
+    "analyses": "Lagrede analyser"
   },
   "toolbar": {
     "label": "Verktøylinje",
@@ -319,7 +318,9 @@
     "maximise": "Maksimer",
     "restore": "Gjenopprett",
     "close": "Lukk",
-    "groupTeam": "Team"
+    "groupTeam": "Team",
+    "groupAi": "KI",
+    "aiReviewTitle": "Endringene KI-apper har foreslått, til godkjenning eller avvisning"
   },
   "project": {
     "lockedTitle": "{{name}} arbeider med denne filen – ta over eller lag en kopi for å redigere",
@@ -2099,26 +2100,6 @@
     "copyFailed": "Kunne ikke kopiere: merk teksten og kopier den."
   },
   "ai": {
-    "activity": {
-      "listDocuments_one": "Listet opp prosjektets {{count}} dokument",
-      "listDocuments_other": "Listet opp prosjektets {{count}} dokumenter",
-      "listCodes_one": "Listet opp prosjektets {{count}} kode",
-      "listCodes_other": "Listet opp prosjektets {{count}} koder",
-      "read": "Leste {{name}} (tegn {{from}}–{{to}} av {{total}})",
-      "readSurvey_one": "Leste {{count}} svar i {{name}}",
-      "readSurvey_other": "Leste {{count}} svar i {{name}}",
-      "search_one": "Søkte etter «{{text}}» ({{count}} treff)",
-      "search_other": "Søkte etter «{{text}}» ({{count}} treff)",
-      "codedPassages_one": "Leste {{count}} passasje kodet med {{name}}",
-      "codedPassages_other": "Leste {{count}} passasjer kodet med {{name}}",
-      "proposedCode": "Foreslo en ny kode, {{name}}",
-      "proposedChange": "Foreslo en endring av {{name}}",
-      "proposedCoding": "Foreslo å kode en passasje i {{name}} med {{code}}",
-      "proposedRemoval": "Foreslo å fjerne {{code}} fra en passasje i {{name}}",
-      "problem": "Ba om noe som ikke fantes",
-      "unknownTool": "Ba om et verktøy Magnolia ikke har ({{name}})",
-      "failed": "En forespørsel mislyktes ({{name}})"
-    },
     "log": {
       "title_one": "KI-assistanse: {{count}} endring godkjent",
       "title_other": "KI-assistanse: {{count}} endringer godkjent",
@@ -2138,24 +2119,12 @@
     "pane": {
       "openSettings": "Åpne Innstillinger",
       "consentReview": "Dette panelet viser alt appen leser. Den kan ikke endre prosjektet: du godkjenner eller avviser hver endring den foreslår.",
-      "review_one": "Gjennomgå {{count}}",
-      "review_other": "Gjennomgå {{count}}",
-      "reviewTitle_one": "{{count}} endring å gjennomgå",
-      "reviewTitle_other": "{{count}} endringer å gjennomgå",
-      "proposed_one": "{{count}} endring foreslått: gjennomgå den",
-      "proposed_other": "{{count}} endringer foreslått: gjennomgå dem",
       "appAsks": "{{name}} vil bruke dette prosjektet.",
       "appsTitle": "La KI-apper på denne datamaskinen bruke dette prosjektet?",
       "appsConsent": "En KI-app som Claude Desktop leser de delene av prosjektet den trenger, og sender dem til sin KI-tjeneste (for Claude Desktop er det Anthropic). Sjekk at dette er tillatt for dataene dine, for eksempel av den etiske godkjenningen din.",
       "allowApps": "Tillat",
       "notNow": "Ikke nå",
-      "emptyApps": "Spør Claude Desktop (eller en annen KI-app) om dette prosjektet. Det appen leser, og endringene den foreslår, vises her.",
-      "appsOn": "KI-apper kan bruke dette prosjektet",
-      "stopApps": "Hindre KI-apper i å bruke det",
-      "intro": "Med KI-assistanse kan en KI-app på denne datamaskinen, for eksempel Claude Desktop med Claude-abonnementet ditt, lese dette prosjektet og foreslå koder og kodinger. Du godkjenner eller avviser hver endring den foreslår. Slå det på i Innstillinger.",
-      "sessions": "Økter",
-      "activity": "Hva appen gjorde",
-      "appSession": "{{name}}, {{time}}: hva den leste og foreslo."
+      "stopApps": "Hindre KI-apper i å bruke det"
     },
     "review": {
       "title": "KI-assistanse",
@@ -2212,7 +2181,8 @@
         "failed": "Ikke gjort",
         "pending": "Til gjennomgang"
       },
-      "session": "{{app}}, {{time}}"
+      "session": "{{app}}, {{time}}",
+      "appsOff": "KI-apper på denne datamaskinen kan ikke bruke Magnolia ennå: tillat dem i Innstillinger. Deretter vises kodene og kodingene som Claude Desktop (eller en annen KI-app) foreslår, her, slik at du kan godkjenne eller avvise dem."
     },
     "apps": {
       "intro": "Med et Claude-abonnement kan du bruke Claude Desktop med Magnolia, uten API-nøkkel: den leser det åpne prosjektet og foreslår endringer, som du godkjenner eller avviser i Magnolia. Andre apper som støtter Model Context Protocol (MCP), fungerer også.",

@@ -17,7 +17,8 @@ import {
   faGitMerge,
   faGear,
   faChevronsLeft,
-  faChevronsRight
+  faChevronsRight,
+  faSparkles
 } from './components/Icon'
 import { LicenceDialog } from './components/Licence/LicenceDialog'
 import { DiagnosticsDialog } from './components/DiagnosticsDialog'
@@ -54,7 +55,7 @@ import { useQuoteStore } from './stores/quote-store'
 import { flushViewPositions } from './stores/view-position-store'
 import { useRelationshipMapStore } from './stores/relationship-map-store'
 import { useAnalysisTabsStore, isToolKind } from './stores/analysis-tabs-store'
-import { isAnalysisTab, isMapTab, isQueryBuilderTab, isMergeTab, makeAnalysisTabId, makeMapTabId, makeQueryBuilderTabId, parseAnalysisTabId, PREFERENCES_TAB_ID, MERGE_TAB_ID } from './utils/tab-ids'
+import { isAnalysisTab, isMapTab, isQueryBuilderTab, isMergeTab, makeAnalysisTabId, makeMapTabId, makeQueryBuilderTabId, parseAnalysisTabId, PREFERENCES_TAB_ID, MERGE_TAB_ID, AI_REVIEW_TAB_ID } from './utils/tab-ids'
 import { requestPreferencesCategory } from './components/Preferences/PreferencesWindow'
 import type { PersistedTabState, MissingBinary, CheckoutMarker, ImportState, SaveOutcome, OpenedProject } from './models/types'
 import { MissingBinariesBanner } from './components/MissingBinariesBanner'
@@ -80,7 +81,6 @@ import { MemosPane } from './components/Memos/MemosPane'
 import { QuotesPane } from './components/Quotes/QuotesPane'
 import { AnalysisPopover } from './components/Toolbar/AnalysisPopover'
 import { StudioPopover } from './components/Toolbar/StudioPopover'
-import { AiAssistancePane } from './components/AI/AiAssistancePane'
 import { useAiStore } from './stores/ai-store'
 import { installAppListener } from './utils/ai/apps'
 import { HelpPopover, MANUAL_URL, SPONSOR_URL, HELP_ICONS } from './components/Toolbar/HelpPopover'
@@ -329,8 +329,6 @@ function App() {
     memos: true,
     quotes: true,
     analyses: true,
-    // AI Assistance: shown when asked for (View → AI Assistance).
-    assistant: false,
   })
   type PanelId = keyof typeof panelVisibility
   const closePanel = useCallback((id: PanelId) => {
@@ -1696,7 +1694,7 @@ function App() {
         case 'toggle-panel-memos': togglePanel('memos'); break
         case 'toggle-panel-quotes': togglePanel('quotes'); break
         case 'toggle-panel-analyses': togglePanel('analyses'); break
-        case 'toggle-panel-assistant': togglePanel('assistant'); break
+        case 'open-ai-review': useDocumentStore.getState().openToolTab(AI_REVIEW_TAB_ID); break
         case 'toggle-ribbon': toggleRibbonRef.current(); break
         case 'next-tab': useDocumentStore.getState().showAdjacentTab(1); break
         case 'previous-tab': useDocumentStore.getState().showAdjacentTab(-1); break
@@ -2071,8 +2069,19 @@ function App() {
             panelButton('queries', PANE_ICONS.queries, !queryResultsClosed),
             panelButton('memos', PANE_ICONS.memos, panelVisibility.memos),
             panelButton('quotes', PANE_ICONS.quotes, panelVisibility.quotes),
-            panelButton('analyses', PANE_ICONS.analyses, panelVisibility.analyses),
-            panelButton('assistant', PANE_ICONS.assistant, panelVisibility.assistant)
+            panelButton('analyses', PANE_ICONS.analyses, panelVisibility.analyses)
+          ]
+        },
+        {
+          label: t('toolbar.groupAi'),
+          buttons: [
+            {
+              id: 'ai-review',
+              label: t('ai.review.title'),
+              icon: faSparkles,
+              title: t('toolbar.aiReviewTitle'),
+              onClick: () => useDocumentStore.getState().openToolTab(AI_REVIEW_TAB_ID)
+            }
           ]
         }
       ]
@@ -2439,7 +2448,6 @@ function App() {
               { id: 'memos', label: t('panes.memos'), visible: panelVisibility.memos },
               { id: 'quotes', label: t('panes.quotes'), visible: panelVisibility.quotes },
               { id: 'analyses', label: t('panes.analyses'), visible: panelVisibility.analyses },
-              { id: 'assistant', label: t('panes.assistant'), visible: panelVisibility.assistant },
             ]}
             onToggle={(id) => {
               if (id === 'queries') setQueryResultsClosed((prev) => !prev)
@@ -2570,7 +2578,7 @@ function App() {
               renders with different child counts. */}
           <PanelGroup
             direction="horizontal"
-            key={`hg-${leftHasVisiblePanels}-${panelVisibility.assistant}-${rightHasVisiblePanels}`}
+            key={`hg-${leftHasVisiblePanels}-${rightHasVisiblePanels}`}
           >
             {leftHasVisiblePanels && (
               <Panel defaultSize={18} minSize={12} maxSize={35}>
@@ -2617,27 +2625,11 @@ function App() {
                 }}
               />
             )}
-            <Panel defaultSize={panelVisibility.assistant ? 42 : 64} minSize={25}>
+            <Panel defaultSize={64} minSize={25}>
               <div style={{ height: '100%' }} onMouseDown={() => setActivePanel('viewer')}>
                 <DocumentViewer />
               </div>
             </Panel>
-            {panelVisibility.assistant && (
-              <PanelResizeHandle
-                style={{
-                  width: 1,
-                  background: 'var(--border-color)',
-                  cursor: 'col-resize'
-                }}
-              />
-            )}
-            {panelVisibility.assistant && (
-              <Panel defaultSize={22} minSize={15} maxSize={40}>
-                <div {...inertIf(mergeActive)} style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : undefined}>
-                  <AiAssistancePane onClose={() => closePanel('assistant')} />
-                </div>
-              </Panel>
-            )}
             {rightHasVisiblePanels && (
               <PanelResizeHandle
                 style={{

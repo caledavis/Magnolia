@@ -90,7 +90,7 @@
       "aboutCredits": "Analisi di dati qualitativi gratuita e open source.",
       "aboutBuiltWith": "Realizzato con Tauri, Rust, React, TipTap e PDF.js. Icone di Lucide.",
       "diagnostics": "Informazioni diagnostiche…",
-      "panelAssistant": "Assistenza IA"
+      "aiAssistance": "Assistenza IA"
     },
     "dialog": {
       "openProject": "Apri progetto QDPX",
@@ -264,8 +264,7 @@
     "queries": "Query",
     "memos": "Memo salvati",
     "quotes": "Citazioni salvate",
-    "analyses": "Analisi salvate",
-    "assistant": "Assistenza IA"
+    "analyses": "Analisi salvate"
   },
   "toolbar": {
     "label": "Barra degli strumenti",
@@ -322,7 +321,9 @@
     "maximise": "Ingrandisci",
     "restore": "Ripristina",
     "close": "Chiudi",
-    "groupTeam": "Team"
+    "groupTeam": "Team",
+    "groupAi": "IA",
+    "aiReviewTitle": "Le modifiche proposte dalle app di IA, da approvare o rifiutare"
   },
   "project": {
     "lockedTitle": "{{name}} sta lavorando su questo file — subentra o crea una copia da modificare",
@@ -2184,31 +2185,6 @@
     "copyFailed": "Copia non riuscita: seleziona il testo e copialo."
   },
   "ai": {
-    "activity": {
-      "listDocuments_one": "Ha elencato {{count}} documento del progetto",
-      "listDocuments_many": "Ha elencato i {{count}} documenti del progetto",
-      "listDocuments_other": "Ha elencato i {{count}} documenti del progetto",
-      "listCodes_one": "Ha elencato {{count}} codice del progetto",
-      "listCodes_many": "Ha elencato i {{count}} codici del progetto",
-      "listCodes_other": "Ha elencato i {{count}} codici del progetto",
-      "read": "Ha letto {{name}} (caratteri {{from}}–{{to}} di {{total}})",
-      "readSurvey_one": "Ha letto {{count}} risposta in {{name}}",
-      "readSurvey_many": "Ha letto {{count}} risposte in {{name}}",
-      "readSurvey_other": "Ha letto {{count}} risposte in {{name}}",
-      "search_one": "Ha cercato «{{text}}» ({{count}} corrispondenza)",
-      "search_many": "Ha cercato «{{text}}» ({{count}} corrispondenze)",
-      "search_other": "Ha cercato «{{text}}» ({{count}} corrispondenze)",
-      "codedPassages_one": "Ha letto {{count}} passaggio codificato con {{name}}",
-      "codedPassages_many": "Ha letto i {{count}} passaggi codificati con {{name}}",
-      "codedPassages_other": "Ha letto i {{count}} passaggi codificati con {{name}}",
-      "proposedCode": "Ha proposto un nuovo codice, {{name}}",
-      "proposedChange": "Ha proposto una modifica a {{name}}",
-      "proposedCoding": "Ha proposto di codificare un passaggio di {{name}} con {{code}}",
-      "proposedRemoval": "Ha proposto di rimuovere {{code}} da un passaggio di {{name}}",
-      "problem": "Ha chiesto qualcosa che non c’era",
-      "unknownTool": "Ha chiesto uno strumento che Magnolia non ha ({{name}})",
-      "failed": "Una richiesta non è riuscita ({{name}})"
-    },
     "log": {
       "title_one": "Assistenza IA: {{count}} modifica approvata",
       "title_many": "Assistenza IA: {{count}} modifiche approvate",
@@ -2229,27 +2205,12 @@
     "pane": {
       "openSettings": "Apri Impostazioni",
       "consentReview": "Questo riquadro elenca tutto ciò che l’app legge. L’app non può modificare il progetto: sei tu ad approvare o rifiutare ogni modifica che suggerisce.",
-      "review_one": "Rivedi {{count}}",
-      "review_many": "Rivedi {{count}}",
-      "review_other": "Rivedi {{count}}",
-      "reviewTitle_one": "{{count}} modifica da rivedere",
-      "reviewTitle_many": "{{count}} modifiche da rivedere",
-      "reviewTitle_other": "{{count}} modifiche da rivedere",
-      "proposed_one": "{{count}} modifica proposta: rivedila",
-      "proposed_many": "{{count}} modifiche proposte: rivedile",
-      "proposed_other": "{{count}} modifiche proposte: rivedile",
       "appAsks": "{{name}} vuole usare questo progetto.",
       "appsTitle": "Consentire alle app di IA su questo computer di usare questo progetto?",
       "appsConsent": "Un’app di IA come Claude Desktop leggerà le parti di questo progetto che le servono e le invierà al proprio servizio di IA (per Claude Desktop, Anthropic). Verifica che sia consentito per i tuoi dati, per esempio dalla tua approvazione etica.",
       "allowApps": "Consenti",
       "notNow": "Non ora",
-      "emptyApps": "Chiedi a Claude Desktop (o a un’altra app di IA) di questo progetto. Ciò che legge e le modifiche che propone compaiono qui.",
-      "appsOn": "Le app di IA possono usare questo progetto",
-      "stopApps": "Impedisci alle app di IA di usarlo",
-      "intro": "L’Assistenza IA permette a un’app di IA su questo computer, come Claude Desktop con il tuo abbonamento a Claude, di leggere questo progetto e suggerire codici e codifiche. Sei tu ad approvare o rifiutare ogni modifica che suggerisce. Attivala in Impostazioni.",
-      "sessions": "Sessioni",
-      "activity": "Cosa ha fatto l’app",
-      "appSession": "{{name}}, {{time}}: cosa ha letto e proposto."
+      "stopApps": "Impedisci alle app di IA di usarlo"
     },
     "review": {
       "title": "Assistenza IA",
@@ -2311,7 +2272,8 @@
         "failed": "Non applicata",
         "pending": "Da rivedere"
       },
-      "session": "{{app}}, {{time}}"
+      "session": "{{app}}, {{time}}",
+      "appsOff": "Le app di IA di questo computer non possono ancora usare Magnolia: consentile in Impostazioni. Poi i codici e le codifiche suggeriti da Claude Desktop (o da un’altra app di IA) compariranno qui, da approvare o rifiutare."
     },
     "apps": {
       "intro": "Con un abbonamento a Claude puoi usare Claude Desktop con Magnolia, senza chiave API: legge il progetto aperto e suggerisce modifiche, che approvi o rifiuti in Magnolia. Funzionano anche altre app che supportano il Model Context Protocol (MCP).",

@@ -90,7 +90,7 @@
       "aboutCredits": "Laisva atvirojo kodo kokybinių duomenų analizė.",
       "aboutBuiltWith": "Sukurta naudojant Tauri, Rust, React, TipTap ir PDF.js. Piktogramos – Lucide.",
       "diagnostics": "Diagnostinė informacija…",
-      "panelAssistant": "DI pagalba"
+      "aiAssistance": "DI pagalba"
     },
     "dialog": {
       "openProject": "Atverti QDPX projektą",
@@ -267,8 +267,7 @@
     "queries": "Užklausos",
     "memos": "Įrašytos pastabos",
     "quotes": "Įrašytos citatos",
-    "analyses": "Įrašytos analizės",
-    "assistant": "DI pagalba"
+    "analyses": "Įrašytos analizės"
   },
   "toolbar": {
     "label": "Įrankių juosta",
@@ -325,7 +324,9 @@
     "maximise": "Išdidinti",
     "restore": "Atkurti",
     "close": "Užverti",
-    "groupTeam": "Komanda"
+    "groupTeam": "Komanda",
+    "groupAi": "DI",
+    "aiReviewTitle": "DI programų pasiūlyti pakeitimai, kuriuos galite patvirtinti arba atmesti"
   },
   "project": {
     "lockedTitle": "{{name}} dirba su šiuo failu – perimkite valdymą arba sukurkite kopiją redaguoti",
@@ -2269,36 +2270,6 @@
     "copyFailed": "Nepavyko nukopijuoti: pažymėkite tekstą ir nukopijuokite jį."
   },
   "ai": {
-    "activity": {
-      "listDocuments_one": "Išvardytas {{count}} projekto dokumentas",
-      "listDocuments_few": "Išvardyti {{count}} projekto dokumentai",
-      "listDocuments_many": "Išvardyta {{count}} projekto dokumento",
-      "listDocuments_other": "Išvardyta {{count}} projekto dokumentų",
-      "listCodes_one": "Išvardytas {{count}} projekto kodas",
-      "listCodes_few": "Išvardyti {{count}} projekto kodai",
-      "listCodes_many": "Išvardyta {{count}} projekto kodo",
-      "listCodes_other": "Išvardyta {{count}} projekto kodų",
-      "read": "Perskaityta: {{name}} (simboliai {{from}}–{{to}} iš {{total}})",
-      "readSurvey_one": "Perskaitytas {{count}} atsakymas apklausoje {{name}}",
-      "readSurvey_few": "Perskaityti {{count}} atsakymai apklausoje {{name}}",
-      "readSurvey_many": "Perskaityta {{count}} atsakymo apklausoje {{name}}",
-      "readSurvey_other": "Perskaityta {{count}} atsakymų apklausoje {{name}}",
-      "search_one": "Ieškota „{{text}}“ ({{count}} atitikmuo)",
-      "search_few": "Ieškota „{{text}}“ ({{count}} atitikmenys)",
-      "search_many": "Ieškota „{{text}}“ ({{count}} atitikmens)",
-      "search_other": "Ieškota „{{text}}“ ({{count}} atitikmenų)",
-      "codedPassages_one": "Perskaitytas {{count}} fragmentas, užkoduotas kodu {{name}}",
-      "codedPassages_few": "Perskaityti {{count}} fragmentai, užkoduoti kodu {{name}}",
-      "codedPassages_many": "Perskaityta {{count}} fragmento, užkoduoto kodu {{name}}",
-      "codedPassages_other": "Perskaityta {{count}} fragmentų, užkoduotų kodu {{name}}",
-      "proposedCode": "Pasiūlytas naujas kodas {{name}}",
-      "proposedChange": "Pasiūlytas pakeitimas: {{name}}",
-      "proposedCoding": "Pasiūlyta dokumente {{name}} užkoduoti fragmentą kodu {{code}}",
-      "proposedRemoval": "Pasiūlyta pašalinti {{code}} iš fragmento dokumente {{name}}",
-      "problem": "Paprašyta to, ko nėra",
-      "unknownTool": "Paprašyta įrankio, kurio Magnolia neturi ({{name}})",
-      "failed": "Užklausa nepavyko ({{name}})"
-    },
     "log": {
       "title_one": "DI pagalba: patvirtintas {{count}} pakeitimas",
       "title_few": "DI pagalba: patvirtinti {{count}} pakeitimai",
@@ -2320,30 +2291,12 @@
     "pane": {
       "openSettings": "Atverti nuostatas",
       "consentReview": "Šiame polangyje rodoma viskas, ką programa perskaito. Ji negali keisti projekto: jūs patvirtinate arba atmetate kiekvieną jos siūlomą pakeitimą.",
-      "review_one": "Peržiūrėti {{count}}",
-      "review_few": "Peržiūrėti {{count}}",
-      "review_many": "Peržiūrėti {{count}}",
-      "review_other": "Peržiūrėti {{count}}",
-      "reviewTitle_one": "{{count}} pakeitimas laukia peržiūros",
-      "reviewTitle_few": "{{count}} pakeitimai laukia peržiūros",
-      "reviewTitle_many": "{{count}} pakeitimo laukia peržiūros",
-      "reviewTitle_other": "{{count}} pakeitimų laukia peržiūros",
-      "proposed_one": "Pasiūlytas {{count}} pakeitimas: peržiūrėkite jį",
-      "proposed_few": "Pasiūlyti {{count}} pakeitimai: peržiūrėkite juos",
-      "proposed_many": "Pasiūlyta {{count}} pakeitimo: peržiūrėkite juos",
-      "proposed_other": "Pasiūlyta {{count}} pakeitimų: peržiūrėkite juos",
       "appAsks": "{{name}} nori naudoti šį projektą.",
       "appsTitle": "Leisti šio kompiuterio DI programoms naudoti šį projektą?",
       "appsConsent": "DI programa, pavyzdžiui, Claude Desktop, perskaitys jai reikalingas šio projekto dalis ir išsiųs jas savo DI paslaugai (Claude Desktop atveju – Anthropic). Patikrinkite, ar tai leidžiama jūsų duomenims, pavyzdžiui, pagal jūsų etikos leidimą.",
       "allowApps": "Leisti",
       "notNow": "Ne dabar",
-      "emptyApps": "Klauskite Claude Desktop (ar kitos DI programos) apie šį projektą. Čia bus rodoma, ką ji perskaito ir kokius pakeitimus siūlo.",
-      "appsOn": "DI programos gali naudoti šį projektą",
-      "stopApps": "Neleisti DI programoms jo naudoti",
-      "intro": "DI pagalba leidžia šio kompiuterio DI programai, pavyzdžiui, Claude Desktop su jūsų Claude prenumerata, skaityti šį projektą ir siūlyti kodų bei kodavimo. Kiekvieną jos siūlomą pakeitimą patvirtinate arba atmetate. Įjunkite ją skiltyje „Nuostatos“.",
-      "sessions": "Seansai",
-      "activity": "Ką programa atliko",
-      "appSession": "{{name}}, {{time}}: ką ji perskaitė ir pasiūlė."
+      "stopApps": "Neleisti DI programoms jo naudoti"
     },
     "review": {
       "title": "DI pagalba",
@@ -2410,7 +2363,8 @@
         "failed": "Neatlikta",
         "pending": "Laukia peržiūros"
       },
-      "session": "{{app}}, {{time}}"
+      "session": "{{app}}, {{time}}",
+      "appsOff": "Šio kompiuterio DI programos dar negali naudoti Magnolia: leiskite jas nuostatose. Tada čia bus rodomi Claude Desktop (ar kitos DI programos) siūlomi kodai ir kodavimai, kuriuos galėsite patvirtinti arba atmesti."
     },
     "apps": {
       "intro": "Turėdami Claude prenumeratą, galite naudoti Claude Desktop su Magnolia be API rakto: jis perskaito atvirą projektą ir siūlo pakeitimus, kuriuos patvirtinate arba atmetate programoje Magnolia. Veikia ir kitos programos, palaikančios Model Context Protocol (MCP).",

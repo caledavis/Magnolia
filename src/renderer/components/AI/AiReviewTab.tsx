@@ -1,7 +1,9 @@
 /**
- * The AI Assistance Viewer: every change the AI has proposed, for the user
- * to approve or deny. Nothing the AI suggests reaches the project any
- * other way (see utils/ai/apply.ts).
+ * The AI Assistance Viewer: every change an AI app on this computer
+ * (Claude Desktop…) has proposed, for the user to approve or deny, listed
+ * as they arrive. Nothing the AI suggests reaches the project any other
+ * way (see utils/ai/apply.ts). It's also where a project is let be used
+ * by AI apps (it opens to ask when one first does), and stopped.
  *
  * Each proposal shows what it would do, in context (a coding's passage
  * with the text around it, a link to it in its document), and the AI's
@@ -17,6 +19,9 @@ import { approve, deny, withDependents, withRequirements } from '../../utils/ai/
 import { documentText } from '../../utils/ai/tools'
 import { buildCellText } from '../../utils/survey/cell-text'
 import { formatDateTime } from '../../i18n'
+import { usePreferencesStore } from '../../stores/preferences-store'
+import { PREFERENCES_TAB_ID } from '../../utils/tab-ids'
+import { requestPreferencesCategory } from '../Preferences/PreferencesWindow'
 import type { SurveyFormatData } from '../../models/types'
 
 type Filter = 'pending' | 'approved' | 'denied'
@@ -31,6 +36,9 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation()
   const proposals = useAiStore((s) => s.proposals)
   const sessions = useAiStore((s) => s.sessions)
+  const appsAllowed = useAiStore((s) => s.appsAllowed)
+  const appRequest = useAiStore((s) => s.appRequest)
+  const appsEnabled = usePreferencesStore((s) => s.aiAppsEnabled)
   const [filter, setFilter] = useState<Filter>('pending')
   const [chosen, setChosen] = useState<Set<string>>(new Set())
   const [message, setMessage] = useState('')
@@ -71,7 +79,12 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
           <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>{t('ai.review.title')}</h2>
           <p style={{ margin: '2px 0 0', fontSize: 11.5, color: 'var(--text-muted)' }}>{t('ai.review.subtitle')}</p>
         </div>
-        <button className="secondary" onClick={onClose}>{t('common.close')}</button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {appsEnabled && appsAllowed && (
+            <button type="button" className="secondary" onClick={() => useAiStore.getState().allowApps(false)}>{t('ai.pane.stopApps')}</button>
+          )}
+          <button className="secondary" onClick={onClose}>{t('common.close')}</button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 20px', borderBottom: '1px solid var(--border-color)', flexWrap: 'wrap' }}>
@@ -100,6 +113,22 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
           </>
         )}
       </div>
+      {!appsEnabled ? (
+        <Banner>
+          <span style={{ flex: 1 }}>{t('ai.review.appsOff')}</span>
+          <button type="button" onClick={openSettings}>{t('ai.pane.openSettings')}</button>
+        </Banner>
+      ) : !appsAllowed ? (
+        <Banner strong>
+          <div style={{ flex: 1 }}>
+            <strong>{appRequest ? t('ai.pane.appAsks', { name: appRequest }) : t('ai.pane.appsTitle')}</strong>
+            <p style={{ margin: '4px 0 0' }}>{t('ai.pane.appsConsent')}</p>
+            <p style={{ margin: '4px 0 0' }}>{t('ai.pane.consentReview')}</p>
+          </div>
+          {appRequest && <button type="button" className="secondary" onClick={() => useAiStore.getState().setAppRequest(null)}>{t('ai.pane.notNow')}</button>}
+          <button type="button" onClick={() => useAiStore.getState().allowApps(true)}>{t('ai.pane.allowApps')}</button>
+        </Banner>
+      ) : null}
       <div role="status" aria-live="polite" style={{ padding: message ? '6px 20px' : 0, fontSize: 12, color: 'var(--text-secondary)' }}>{message}</div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 20px 20px' }}>
@@ -129,6 +158,20 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
           </section>
         ))}
       </div>
+    </div>
+  )
+}
+
+function openSettings() {
+  requestPreferencesCategory('ai-assistance')
+  useDocumentStore.getState().openToolTab(PREFERENCES_TAB_ID)
+}
+
+/** A notice across the top of the Viewer. */
+function Banner({ children, strong }: { children: React.ReactNode; strong?: boolean }) {
+  return (
+    <div role={strong ? 'alert' : undefined} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 20px', borderBottom: '1px solid var(--border-color)', background: strong ? 'var(--bg-secondary)' : undefined, fontSize: 12.5, lineHeight: 1.5, color: 'var(--text-secondary)' }}>
+      {children}
     </div>
   )
 }
