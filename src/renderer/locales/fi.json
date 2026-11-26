@@ -2118,10 +2118,8 @@
     },
     "pane": {
       "openSettings": "Avaa asetukset",
-      "consentReview": "Se ei voi muuttaa projektia: sinä hyväksyt tai hylkäät jokaisen sen ehdottaman muutoksen.",
       "appAsks": "Sovellus {{name}} haluaa käyttää tätä projektia.",
       "appsTitle": "Sallitko tämän tietokoneen tekoälysovellusten käyttää tätä projektia?",
-      "appsConsent": "Tekoälysovellus, kuten Claude Desktop, lukee ne projektin osat, joita se tarvitsee, ja lähettää ne tekoälypalveluunsa (Claude Desktopin kohdalla Anthropicille). Tarkista, että tämä on sallittua aineistosi kohdalla, esimerkiksi eettisen lupasi mukaan.",
       "allowApps": "Salli",
       "notNow": "Ei nyt",
       "stopApps": "Estä tekoälysovelluksia käyttämästä sitä"

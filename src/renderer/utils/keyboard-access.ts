@@ -82,7 +82,8 @@ function restoreFocus(menu: Element): void {
 let held: { source: HTMLElement; data: DataTransfer; name: string } | null = null
 let liveRegion: HTMLElement | null = null
 
-function announce(message: string): void {
+/** Say something to a screen reader, without showing it. */
+export function announce(message: string): void {
   if (!liveRegion || !liveRegion.isConnected) {
     liveRegion = document.createElement('div')
     liveRegion.setAttribute('aria-live', 'assertive')

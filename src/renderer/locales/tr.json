@@ -2118,10 +2118,8 @@
     },
     "pane": {
       "openSettings": "Ayarları aç",
-      "consentReview": "Uygulama projeyi değiştiremez: önerdiği her değişikliği siz onaylar ya da reddedersiniz.",
       "appAsks": "{{name}} bu projeyi kullanmak istiyor.",
       "appsTitle": "Bu bilgisayardaki yapay zekâ uygulamaları bu projeyi kullanabilsin mi?",
-      "appsConsent": "Claude Desktop gibi bir yapay zekâ uygulaması bu projenin gereken kısımlarını okuyup kendi yapay zekâ hizmetine (Claude Desktop için Anthropic) gönderir. Bunun verileriniz için izinli olduğundan emin olun (örneğin etik kurul onayınızla).",
       "allowApps": "İzin ver",
       "notNow": "Şimdi değil",
       "stopApps": "Yapay zekâ uygulamalarının erişimini durdur"

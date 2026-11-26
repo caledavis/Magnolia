@@ -26,6 +26,7 @@ import type { Code, SurveyFormatData } from '../../models/types'
 import type { AiChange } from '../../utils/ai/tools'
 import { Icon, faSparkles, faCheck, faXmark } from '../Icon'
 import { SegmentedControl } from '../Analysis/SegmentedControl'
+import { announce } from '../../utils/keyboard-access'
 import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
 
 type Filter = 'pending' | 'approved' | 'denied'
@@ -45,7 +46,6 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
   const appsEnabled = usePreferencesStore((s) => s.aiAppsEnabled)
   const [filter, setFilter] = useState<Filter>('pending')
   const [chosen, setChosen] = useState<Set<string>>(new Set())
-  const [message, setMessage] = useState('')
 
   const shown = useMemo(() => {
     const statuses = FILTERS.find((f) => f.id === filter)!.statuses
@@ -65,14 +65,14 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
     if (!ids.length) return
     const { applied, failed } = approve(ids)
     setChosen(new Set())
-    setMessage(failed ? t('ai.review.appliedSome', { count: applied, failed }) : t('ai.review.applied', { count: applied }))
+    announce(failed ? t('ai.review.appliedSome', { count: applied, failed }) : t('ai.review.applied', { count: applied }))
   }
   const doReject = (ids: string[]) => {
     if (!ids.length) return
     const all = withDependents(ids, useAiStore.getState().proposals)
     deny(ids)
     setChosen(new Set())
-    setMessage(t('ai.review.denied', { count: all.length }))
+    announce(t('ai.review.denied', { count: all.length }))
   }
   const toggle = (id: string) => setChosen((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
 
@@ -101,11 +101,7 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
         </Banner>
       ) : !appsAllowed ? (
         <Banner strong>
-          <div style={{ flex: 1 }}>
-            <strong style={{ color: 'var(--text-primary)' }}>{appRequest ? t('ai.pane.appAsks', { name: appRequest }) : t('ai.pane.appsTitle')}</strong>
-            <p style={{ margin: '4px 0 0' }}>{t('ai.pane.appsConsent')}</p>
-            <p style={{ margin: '4px 0 0' }}>{t('ai.pane.consentReview')}</p>
-          </div>
+          <strong style={{ flex: 1, color: 'var(--text-primary)' }}>{appRequest ? t('ai.pane.appAsks', { name: appRequest }) : t('ai.pane.appsTitle')}</strong>
           {appRequest && <button type="button" className="secondary" onClick={() => useAiStore.getState().setAppRequest(null)}>{t('ai.pane.notNow')}</button>}
           <button type="button" onClick={() => useAiStore.getState().allowApps(true)}>{t('ai.pane.allowApps')}</button>
         </Banner>
@@ -132,7 +128,6 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
               </>
             )}
           </div>
-          <div role="status" aria-live="polite" style={{ minHeight: 18, padding: '4px 2px', fontSize: 12, color: 'var(--text-secondary)' }}>{message}</div>
 
           {groups.length === 0 && (
             <div style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)', fontSize: 12.5, lineHeight: 1.6 }}>

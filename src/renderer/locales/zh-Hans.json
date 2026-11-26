@@ -2032,10 +2032,8 @@
     },
     "pane": {
       "openSettings": "打开偏好设置",
-      "consentReview": "它无法更改项目：它建议的每项更改都由您批准或拒绝。",
       "appAsks": "{{name}} 想要使用此项目。",
       "appsTitle": "允许这台电脑上的 AI 应用使用此项目？",
-      "appsConsent": "Claude Desktop 等 AI 应用会读取此项目中它所需的部分，并将其发送到它的 AI 服务（对 Claude Desktop 而言是 Anthropic）。请确认您的数据允许这样做，例如是否符合伦理审查批准。",
       "allowApps": "允许",
       "notNow": "暂不",
       "stopApps": "停止 AI 应用使用此项目"

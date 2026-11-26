@@ -122,7 +122,7 @@ async function spec(t) {
   t.check('and the coding, by an AI coder', !!sel && coder?.name === 'AI (Claude Desktop)', coder?.name)
   t.check('on exactly the quoted passage', !!sel && Array.from(text).slice(sel.startPosition, sel.endPosition).join('') === quote)
   t.check('the Logbook notes it', /AI Assistance: 2 changes approved/.test(logbook.getState().entries[0]?.title ?? '') && /Claude Desktop/.test(logbook.getState().entries[0]?.content ?? ''))
-  t.check('the Viewer says so', /2 changes made/.test(review.textContent))
+  t.check('a screen reader is told, and nothing is added to the Viewer', !!(await t.until(() => [...document.querySelectorAll('[aria-live="assertive"]')].some((e) => /2 changes made/.test(e.textContent)), 2000)) && !/2 changes made/.test(review.textContent))
 
   // One Undo takes the code and the coding back.
   await t.sleep(900)

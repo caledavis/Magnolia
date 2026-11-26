@@ -2118,10 +2118,8 @@
     },
     "pane": {
       "openSettings": "Open Preferences",
-      "consentReview": "It can't change the project: you approve or reject each change it suggests, here.",
       "appAsks": "{{name}} wants to use this project.",
       "appsTitle": "Let AI apps on this computer use this project?",
-      "appsConsent": "An AI app such as Claude Desktop will read the parts of this project it needs, and send them to its AI service (for Claude Desktop, Anthropic). Check that this is allowed for your data, for example by your ethics approval.",
       "allowApps": "Allow",
       "notNow": "Not Now",
       "stopApps": "Stop AI apps using it"

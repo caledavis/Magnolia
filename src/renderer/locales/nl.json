@@ -2118,10 +2118,8 @@
     },
     "pane": {
       "openSettings": "Voorkeuren openen",
-      "consentReview": "De app kan het project niet wijzigen: jij keurt elke voorgestelde wijziging goed of wijst die af.",
       "appAsks": "{{name}} wil dit project gebruiken.",
       "appsTitle": "AI-apps op deze computer dit project laten gebruiken?",
-      "appsConsent": "Een AI-app zoals Claude Desktop leest de delen van dit project die hij nodig heeft, en stuurt die naar zijn AI-dienst (voor Claude Desktop is dat Anthropic). Controleer of dat voor je gegevens mag, bijvoorbeeld volgens je ethische goedkeuring.",
       "allowApps": "Toestaan",
       "notNow": "Niet nu",
       "stopApps": "Gebruik door AI-apps stoppen"

@@ -2290,10 +2290,8 @@
     },
     "pane": {
       "openSettings": "Atverti nuostatas",
-      "consentReview": "Ji negali keisti projekto: jūs patvirtinate arba atmetate kiekvieną jos siūlomą pakeitimą.",
       "appAsks": "{{name}} nori naudoti šį projektą.",
       "appsTitle": "Leisti šio kompiuterio DI programoms naudoti šį projektą?",
-      "appsConsent": "DI programa, pavyzdžiui, Claude Desktop, perskaitys jai reikalingas šio projekto dalis ir išsiųs jas savo DI paslaugai (Claude Desktop atveju – Anthropic). Patikrinkite, ar tai leidžiama jūsų duomenims, pavyzdžiui, pagal jūsų etikos leidimą.",
       "allowApps": "Leisti",
       "notNow": "Ne dabar",
       "stopApps": "Neleisti DI programoms jo naudoti"

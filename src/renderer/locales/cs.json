@@ -2290,10 +2290,8 @@
     },
     "pane": {
       "openSettings": "Otevřít Předvolby",
-      "consentReview": "Projekt měnit nemůže: každou navrženou změnu schválíte, nebo zamítnete.",
       "appAsks": "{{name}} chce používat tento projekt.",
       "appsTitle": "Povolit aplikacím AI na tomto počítači používat tento projekt?",
-      "appsConsent": "Aplikace AI, například Claude Desktop, si přečte ty části projektu, které potřebuje, a odešle je své službě AI (u Claude Desktop společnosti Anthropic). Ověřte si, že je to u vašich dat povoleno, například vaším etickým schválením.",
       "allowApps": "Povolit",
       "notNow": "Teď ne",
       "stopApps": "Zakázat aplikacím AI jeho používání"

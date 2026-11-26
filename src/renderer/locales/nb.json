@@ -2118,10 +2118,8 @@
     },
     "pane": {
       "openSettings": "Åpne Innstillinger",
-      "consentReview": "Den kan ikke endre prosjektet: du godkjenner eller avviser hver endring den foreslår.",
       "appAsks": "{{name}} vil bruke dette prosjektet.",
       "appsTitle": "La KI-apper på denne datamaskinen bruke dette prosjektet?",
-      "appsConsent": "En KI-app som Claude Desktop leser de delene av prosjektet den trenger, og sender dem til sin KI-tjeneste (for Claude Desktop er det Anthropic). Sjekk at dette er tillatt for dataene dine, for eksempel av den etiske godkjenningen din.",
       "allowApps": "Tillat",
       "notNow": "Ikke nå",
       "stopApps": "Hindre KI-apper i å bruke det"

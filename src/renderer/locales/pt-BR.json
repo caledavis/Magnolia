@@ -2204,10 +2204,8 @@
     },
     "pane": {
       "openSettings": "Abrir Preferências",
-      "consentReview": "Ele não pode alterar o projeto: você aprova ou recusa cada alteração que ele sugerir.",
       "appAsks": "{{name}} quer usar este projeto.",
       "appsTitle": "Permitir que aplicativos de IA neste computador usem este projeto?",
-      "appsConsent": "Um aplicativo de IA como o Claude Desktop vai ler as partes deste projeto de que precisar e enviá-las para o serviço de IA dele (no caso do Claude Desktop, a Anthropic). Verifique se isso é permitido para os seus dados, por exemplo pela sua aprovação ética.",
       "allowApps": "Permitir",
       "notNow": "Agora não",
       "stopApps": "Impedir que aplicativos de IA o usem"
