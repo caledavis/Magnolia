@@ -1,6 +1,7 @@
 //! Magnolia desktop app: a Tauri shell around the React renderer, with all
 //! project I/O, conversion and system integration in Rust.
 
+mod ai;
 mod access;
 mod automation;
 mod commands;
@@ -111,6 +112,11 @@ pub fn run() {
         })
         .on_menu_event(|app, event| menu::handle_event(app, event.id().as_ref()))
         .invoke_handler(tauri::generate_handler![
+            ai::ai_key_set,
+            ai::ai_key_saved,
+            ai::ai_models,
+            ai::ai_chat,
+            ai::ai_cancel,
             commands::open_external,
             commands::diagnostics_info,
             commands::open_project,

@@ -71,6 +71,8 @@ export interface Project {
   tagCategories?: TagCategory[]
   savedQueries?: SavedQuery[]
   logbookEntries?: LogbookEntry[]
+  /** AI Assistance: whether it's on, its chats and proposals (magnolia-ai.json). */
+  ai?: import('../stores/ai-store').ProjectAi
   memos?: Memo[]
   quotes?: Quote[]
   savedAnalyses?: SavedAnalysis[]
@@ -903,7 +905,54 @@ export interface MagnoliaAPI {
   savePreferences: (prefs: SavedPreferences) => Promise<void>
   sendPreferencesUpdate: (prefs: SavedPreferences) => void
   onPreferencesUpdate: (callback: (prefs: SavedPreferences) => void) => () => void
+  // AI Assistance (src-tauri/src/ai.rs). Keys stay in the keychain: the
+  // page can save one, or ask whether one is saved, never read it.
+  aiKeySet: (baseUrl: string, key: string) => Promise<void>
+  aiKeySaved: (baseUrl: string) => Promise<boolean>
+  aiModels: (provider: AiProviderCall) => Promise<string[]>
+  /** One turn; the reply comes as onAiEvent events with this requestId. */
+  aiChat: (requestId: string, provider: AiProviderCall, system: string, messages: AiMessage[], tools: AiToolSpec[]) => Promise<void>
+  aiCancel: (requestId: string) => Promise<void>
+  onAiEvent: (callback: (event: AiEvent) => void) => () => void
 }
+
+export interface AiProviderCall {
+  kind: 'anthropic' | 'openai'
+  baseUrl: string
+  model: string
+}
+
+export interface AiToolCall {
+  id: string
+  name: string
+  input: Record<string, unknown>
+  /** The arguments as sent, when they weren't valid JSON (cut off). */
+  malformed?: string
+}
+
+/** A conversation's messages, in the neutral form ai.rs translates. */
+export type AiMessage =
+  | { role: 'user'; text: string }
+  | { role: 'assistant'; text: string; toolCalls?: AiToolCall[] }
+  | { role: 'tool'; results: { id: string; content: string; isError?: boolean }[] }
+
+export interface AiToolSpec {
+  name: string
+  description: string
+  schema: Record<string, unknown>
+}
+
+export interface AiError {
+  /** noKey, auth, notFound, rateLimit, overloaded, unreachable,
+   *  badAddress, keychain, provider, cancelled. */
+  code: string
+  detail: string
+}
+
+export type AiEvent =
+  | { type: 'text'; requestId: string; text: string }
+  | { type: 'done'; requestId: string; message: { text: string; toolCalls: AiToolCall[]; stopReason: string } }
+  | { type: 'error'; requestId: string; error: AiError }
 
 export interface CodebookInitData {
   codes: Code[]

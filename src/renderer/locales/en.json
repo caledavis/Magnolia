@@ -89,7 +89,8 @@
       "sponsor": "Sponsor Magnolia…",
       "aboutCredits": "Free and open-source qualitative data analysis.",
       "aboutBuiltWith": "Built with Tauri, Rust, React, TipTap and PDF.js. Icons by Lucide.",
-      "diagnostics": "Diagnostic Information…"
+      "diagnostics": "Diagnostic Information…",
+      "panelAssistant": "AI Assistance"
     },
     "dialog": {
       "openProject": "Open QDPX Project",
@@ -260,7 +261,8 @@
     "queries": "Queries",
     "memos": "Saved Memos",
     "quotes": "Saved Quotes",
-    "analyses": "Saved Analyses"
+    "analyses": "Saved Analyses",
+    "assistant": "AI Assistance"
   },
   "toolbar": {
     "label": "Toolbar",
@@ -1322,7 +1324,8 @@
       "mediaPlayback": "Media Playback",
       "paperSize": "Paper Size",
       "updates": "Updates",
-      "support": "Support Magnolia"
+      "support": "Support Magnolia",
+      "aiAssistance": "AI Assistance"
     },
     "toolbarStyle": {
       "ribbon": "Ribbon",
@@ -1401,7 +1404,8 @@
       "logbook": "Logbook",
       "memos": "Memos",
       "quotes": "Quotes",
-      "tabs": "Tabs"
+      "tabs": "Tabs",
+      "ai": "AI Assistance"
     },
     "mergeBlocks": "Finish or cancel the merge to use other panels",
     "noCodesInReport": "Codes can’t be added to a report",
@@ -2093,5 +2097,166 @@
     "copy": "Copy",
     "copied": "Copied. Paste it into your report.",
     "copyFailed": "Couldn't copy: select the text and copy it instead."
+  },
+  "ai": {
+    "prefs": {
+      "intro": "AI Assistance uses your own AI service: a key from Anthropic, OpenAI or another provider (charged by them for what you use, separately from a Claude or ChatGPT subscription), or a model running on this computer.",
+      "privacy": "Nothing from a project is sent until you turn AI Assistance on for that project. Then the AI reads only what it asks for, and the chat shows each thing it reads. Check that your ethics approval allows your data to be sent to the service you choose; a model on this computer keeps everything on it.",
+      "service": "Service",
+      "none": "None (AI Assistance off)",
+      "custom": "Another service…",
+      "onThisComputer": "{{name}} (on this computer)",
+      "kind": "Kind of API",
+      "kindOpenai": "OpenAI-compatible",
+      "kindAnthropic": "Anthropic",
+      "address": "Address",
+      "localNote": "This service runs on this computer: what the AI reads stays here. Start it before using AI Assistance.",
+      "key": "API key",
+      "keyOptional": "API key (if the service needs one)",
+      "keySaved": "A key is saved for this address.",
+      "removeKey": "Remove Key",
+      "saveKey": "Save Key",
+      "getKey": "Get a key from {{name}}.",
+      "keyCost": "The service charges for what you use.",
+      "keyKept": "Your key is kept in your computer's keychain, and only ever sent to this address.",
+      "model": "Model",
+      "check": "Check Connection",
+      "checking": "Checking…",
+      "connected_one": "Connected. The service offers {{count}} model.",
+      "connected_other": "Connected. The service offers {{count}} models."
+    },
+    "error": {
+      "noKey": "There's no key for this service. Add one in Preferences → AI Assistance.",
+      "auth": "The service didn't accept the key.",
+      "notFound": "The service didn't recognise the address or the model.",
+      "rateLimit": "The service says too many requests have been sent. Wait a minute and try again.",
+      "overloaded": "The service is busy. Try again shortly.",
+      "unreachable": "Magnolia couldn't reach the service. Check the address and your connection (and, for a model on this computer, that it's running).",
+      "badAddress": "That isn't a web address Magnolia can use.",
+      "keychain": "Magnolia couldn't use your computer's keychain.",
+      "provider": "The service reported a problem.",
+      "cancelled": "Stopped.",
+      "tooManySteps": "The AI was still working after many steps, so Magnolia stopped it. Ask it to carry on, or narrow the question."
+    },
+    "activity": {
+      "listDocuments_one": "Listed the project's {{count}} document",
+      "listDocuments_other": "Listed the project's {{count}} documents",
+      "listCodes_one": "Listed the project's {{count}} code",
+      "listCodes_other": "Listed the project's {{count}} codes",
+      "read": "Read {{name}} (characters {{from}}–{{to}} of {{total}})",
+      "readSurvey_one": "Read {{count}} answer in {{name}}",
+      "readSurvey_other": "Read {{count}} answers in {{name}}",
+      "search_one": "Searched for “{{text}}” ({{count}} match)",
+      "search_other": "Searched for “{{text}}” ({{count}} matches)",
+      "codedPassages_one": "Read the {{count}} passage coded {{name}}",
+      "codedPassages_other": "Read the {{count}} passages coded {{name}}",
+      "proposedCode": "Proposed a new code, {{name}}",
+      "proposedChange": "Proposed a change to {{name}}",
+      "proposedCoding": "Proposed coding a passage in {{name}} with {{code}}",
+      "proposedRemoval": "Proposed removing {{code}} from a passage in {{name}}",
+      "problem": "Asked for something that wasn't there",
+      "unknownTool": "Asked for a tool Magnolia doesn't have ({{name}})",
+      "failed": "A request failed ({{name}})",
+      "cutOff": "A request was cut off"
+    },
+    "log": {
+      "title_one": "AI Assistance: {{count}} change approved",
+      "title_other": "AI Assistance: {{count}} changes approved",
+      "intro": "Proposed by {{model}}, when asked:",
+      "newCode": "New code **{{name}}**",
+      "editCode": "Changed the code **{{name}}**",
+      "addCoding": "Coded “{{quote}}” in {{document}} with **{{code}}**",
+      "removeCoding": "Removed **{{code}}** from “{{quote}}” in {{document}}"
+    },
+    "fail": {
+      "noParent": "The code it was to go under isn't in the project any more.",
+      "noCode": "The code isn't in the project any more.",
+      "noDocument": "The document isn't in the project any more.",
+      "textChanged": "The document's text has changed there since it was proposed.",
+      "codingGone": "That coding isn't in the project any more."
+    },
+    "pane": {
+      "noService": "AI Assistance uses your own AI service. Choose one, and its model, in Preferences.",
+      "openSettings": "Open Preferences",
+      "consentTitle": "Turn on AI Assistance for this project?",
+      "consentChanged": "The AI service has changed. Turn on AI Assistance for this project with the new one?",
+      "consentRemote": "The AI will read the parts of this project it needs to answer you, and they'll be sent to {{name}} ({{address}}). Check that this is allowed for your data, for example by your ethics approval.",
+      "consentLocal": "The AI will read the parts of this project it needs to answer you. {{name}} runs on this computer, so nothing leaves it.",
+      "consentReview": "The chat lists everything the AI reads. It can't change the project: you approve or deny each change it suggests.",
+      "turnOn": "Turn On",
+      "newChat": "New chat",
+      "newChatOption": "New chat",
+      "chats": "Chats",
+      "conversation": "Conversation",
+      "empty": "Ask about your data, or for suggested codes and codings. For example: “What do participants say about cost?” or “Suggest codes for Interview 3.”",
+      "working": "Working…",
+      "message": "Message",
+      "placeholder": "Ask about your data…",
+      "send": "Send",
+      "stop": "Stop",
+      "using": "{{name}} · {{model}}",
+      "review_one": "Review {{count}}",
+      "review_other": "Review {{count}}",
+      "reviewTitle_one": "{{count}} change to review",
+      "reviewTitle_other": "{{count}} changes to review",
+      "proposed_one": "{{count}} change proposed: review it",
+      "proposed_other": "{{count}} changes proposed: review them"
+    },
+    "review": {
+      "title": "AI Assistance",
+      "subtitle": "The changes the AI has proposed. Nothing changes in the project until you approve it.",
+      "show": "Show",
+      "filter": {
+        "pending": "To Review ({{count}})",
+        "approved": "Approved ({{count}})",
+        "denied": "Denied ({{count}})"
+      },
+      "empty": {
+        "pending": "Nothing to review. Ask the AI in the AI Assistance pane for suggested codes or codings.",
+        "approved": "No changes approved yet.",
+        "denied": "No changes denied."
+      },
+      "approve": "Approve",
+      "deny": "Deny",
+      "approveAll": "Approve All",
+      "denyAll": "Deny All",
+      "approveChosen_one": "Approve {{count}}",
+      "approveChosen_other": "Approve {{count}}",
+      "denyChosen_one": "Deny {{count}}",
+      "denyChosen_other": "Deny {{count}}",
+      "choose": "Choose",
+      "applied_one": "{{count}} change made. Undo takes it back.",
+      "applied_other": "{{count}} changes made. Undo takes them back.",
+      "appliedSome": "{{count}} made; {{failed}} couldn't be (see Denied).",
+      "denied_one": "{{count}} change denied.",
+      "denied_other": "{{count}} changes denied.",
+      "deletedChat": "A deleted chat",
+      "kind": {
+        "newCode": "New code",
+        "editCode": "Change to code",
+        "addCoding": "Code with {{code}}",
+        "removeCoding": "Remove {{code}}"
+      },
+      "under": "under {{name}}",
+      "newCodeName": "{{name}} (new)",
+      "rename": "Rename to “{{name}}”",
+      "describe": "New description",
+      "noDescription": "none",
+      "moveUnder": "Move under {{name}}",
+      "moveTop": "Move to the top level",
+      "missingCode": "(a code no longer in the project)",
+      "missingDocument": "(a document no longer in the project)",
+      "reason": "The AI's reason: {{reason}}",
+      "alsoApproves_one": "Approving this also approves the new code it needs.",
+      "alsoApproves_other": "Approving this also approves the {{count}} new codes it needs.",
+      "failed": "Couldn't be made: {{why}}",
+      "showInDocument": "Show in document",
+      "status": {
+        "approved": "Approved",
+        "denied": "Denied",
+        "failed": "Not made",
+        "pending": "To review"
+      }
+    }
   }
 }

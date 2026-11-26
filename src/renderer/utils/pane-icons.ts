@@ -1,4 +1,4 @@
-import { faFolder, faTag, faMagnifyingGlass, faBookmark, faQuoteLeft, faLightbulb, type IconComponent } from '../components/Icon'
+import { faFolder, faTag, faMagnifyingGlass, faBookmark, faQuoteLeft, faLightbulb, faSparkles, type IconComponent } from '../components/Icon'
 
 /** The icon for each pane the user can show or hide, shared by the
  *  ribbon's View tab and the Icons toolbar's panes pop-up so the two
@@ -9,7 +9,8 @@ export const PANE_ICONS = {
   queries: faMagnifyingGlass,
   memos: faBookmark,
   quotes: faQuoteLeft,
-  analyses: faLightbulb
+  analyses: faLightbulb,
+  assistant: faSparkles
 } satisfies Record<string, IconComponent>
 
 export type PaneIconId = keyof typeof PANE_ICONS

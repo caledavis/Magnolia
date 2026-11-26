@@ -14,7 +14,7 @@ import { NotebookOverview } from './NotebookOverview'
 import { NoteHeader } from './NoteHeader'
 import { DocumentToolbarContext, DocumentExportButton } from './DocumentToolbar'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
-import { isAnalysisTab, isMapTab, isPreferencesTab, isMergeTab, isQueryBuilderTab, isToolTab, mapGuidFromTabId, isNotebookTab, notebookGuidFromTabId } from '../../utils/tab-ids'
+import { isAnalysisTab, isMapTab, isPreferencesTab, isMergeTab, isAiReviewTab, isQueryBuilderTab, isToolTab, mapGuidFromTabId, isNotebookTab, notebookGuidFromTabId } from '../../utils/tab-ids'
 import { InlineAnalysisTab } from '../Analysis/InlineAnalysisTab'
 import { PreferencesWindow } from '../Preferences/PreferencesWindow'
 import { MergeReviewWindow } from '../Merge/MergeReviewWindow'
@@ -49,6 +49,9 @@ function renderToolTab(tabId: string): React.ReactNode {
       />
     )
   }
+  if (isAiReviewTab(tabId)) {
+    return <AiReviewTab key={tabId} onClose={() => useDocumentStore.getState().closeTab(tabId)} />
+  }
   if (isMergeTab(tabId)) {
     return (
       <MergeReviewWindow
@@ -60,6 +63,7 @@ function renderToolTab(tabId: string): React.ReactNode {
   return null
 }
 import { InlineRelationshipMap } from '../Analysis/RelationshipMap/InlineRelationshipMap'
+import { AiReviewTab } from '../AI/AiReviewTab'
 import { MemoFab } from '../Memos/MemoFab'
 import { Icon, faSquareSplitVertical } from '../Icon'
 import { useTranslation } from 'react-i18next'

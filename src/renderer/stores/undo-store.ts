@@ -73,6 +73,15 @@ function restoreSnapshot(snapshot: Snapshot): void {
   // The query's results, for the project as it now is.
   if (snapshot.query.isActive) useQueryStore.getState().runQuery()
   else useQueryStore.setState({ results: [], isLoading: false })
+  for (const fn of restoreListeners) fn()
+}
+
+const restoreListeners = new Set<() => void>()
+/** Called after each Undo and Redo (e.g. AI Assistance re-checks which of
+ *  its approved changes are in the project). */
+export function onUndoRestore(fn: () => void): () => void {
+  restoreListeners.add(fn)
+  return () => { restoreListeners.delete(fn) }
 }
 
 export const useUndoStore = create<UndoState>((set, get) => ({

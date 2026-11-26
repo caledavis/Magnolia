@@ -1,0 +1,230 @@
+/**
+ * The AI Assistance Viewer: every change the AI has proposed, for the user
+ * to approve or deny. Nothing the AI suggests reaches the project any
+ * other way (see utils/ai/apply.ts).
+ *
+ * Each proposal shows what it would do, in context (a coding's passage
+ * with the text around it, a link to it in its document), and the AI's
+ * reason. Proposals can be decided one by one, or chosen and decided
+ * together; approved ones are made at once, so one Undo takes them back.
+ */
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useAiStore, type AiProposal, type ProposalStatus } from '../../stores/ai-store'
+import { useCodeStore } from '../../stores/code-store'
+import { useDocumentStore } from '../../stores/document-store'
+import { approve, deny, withDependents, withRequirements } from '../../utils/ai/apply'
+import { documentText } from '../../utils/ai/tools'
+import { buildCellText } from '../../utils/survey/cell-text'
+import type { SurveyFormatData } from '../../models/types'
+
+type Filter = 'pending' | 'approved' | 'denied'
+
+const FILTERS: { id: Filter; statuses: ProposalStatus[] }[] = [
+  { id: 'pending', statuses: ['pending'] },
+  { id: 'approved', statuses: ['approved'] },
+  { id: 'denied', statuses: ['denied', 'failed'] }
+]
+
+export function AiReviewTab({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation()
+  const proposals = useAiStore((s) => s.proposals)
+  const chats = useAiStore((s) => s.chats)
+  const [filter, setFilter] = useState<Filter>('pending')
+  const [chosen, setChosen] = useState<Set<string>>(new Set())
+  const [message, setMessage] = useState('')
+
+  const shown = useMemo(() => {
+    const statuses = FILTERS.find((f) => f.id === filter)!.statuses
+    return proposals.filter((p) => statuses.includes(p.status))
+  }, [proposals, filter])
+  // By chat, newest first; within a chat, in the order proposed.
+  const groups = useMemo(() => {
+    const byChat = new Map<string, AiProposal[]>()
+    for (const p of shown) byChat.set(p.chatId, [...(byChat.get(p.chatId) ?? []), p])
+    return [...byChat.entries()].sort((a, b) => b[1][0].createdAt.localeCompare(a[1][0].createdAt))
+  }, [shown])
+  const count = (f: Filter) => proposals.filter((p) => FILTERS.find((x) => x.id === f)!.statuses.includes(p.status)).length
+  const pendingShown = shown.filter((p) => p.status === 'pending')
+  const chosenPending = pendingShown.filter((p) => chosen.has(p.id)).map((p) => p.id)
+
+  const doApprove = (ids: string[]) => {
+    if (!ids.length) return
+    const { applied, failed } = approve(ids)
+    setChosen(new Set())
+    setMessage(failed ? t('ai.review.appliedSome', { count: applied, failed }) : t('ai.review.applied', { count: applied }))
+  }
+  const doDeny = (ids: string[]) => {
+    if (!ids.length) return
+    const all = withDependents(ids, useAiStore.getState().proposals)
+    deny(ids)
+    setChosen(new Set())
+    setMessage(t('ai.review.denied', { count: all.length }))
+  }
+  const toggle = (id: string) => setChosen((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid var(--border-color)', gap: 12 }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>{t('ai.review.title')}</h2>
+          <p style={{ margin: '2px 0 0', fontSize: 11.5, color: 'var(--text-muted)' }}>{t('ai.review.subtitle')}</p>
+        </div>
+        <button className="secondary" onClick={onClose}>{t('common.close')}</button>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 20px', borderBottom: '1px solid var(--border-color)', flexWrap: 'wrap' }}>
+        <div role="tablist" aria-label={t('ai.review.show')} style={{ display: 'flex', gap: 4 }}>
+          {FILTERS.map((f) => (
+            <button
+              key={f.id}
+              role="tab"
+              aria-selected={filter === f.id}
+              className={filter === f.id ? undefined : 'secondary'}
+              onClick={() => { setFilter(f.id); setChosen(new Set()) }}
+            >
+              {t(`ai.review.filter.${f.id}`, { count: count(f.id) })}
+            </button>
+          ))}
+        </div>
+        <span style={{ flex: 1 }} />
+        {filter === 'pending' && pendingShown.length > 0 && (
+          <>
+            <button className="secondary" onClick={() => doDeny(chosenPending.length ? chosenPending : pendingShown.map((p) => p.id))}>
+              {chosenPending.length ? t('ai.review.denyChosen', { count: chosenPending.length }) : t('ai.review.denyAll')}
+            </button>
+            <button onClick={() => doApprove(chosenPending.length ? chosenPending : pendingShown.map((p) => p.id))}>
+              {chosenPending.length ? t('ai.review.approveChosen', { count: chosenPending.length }) : t('ai.review.approveAll')}
+            </button>
+          </>
+        )}
+      </div>
+      <div role="status" aria-live="polite" style={{ padding: message ? '6px 20px' : 0, fontSize: 12, color: 'var(--text-secondary)' }}>{message}</div>
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 20px 20px' }}>
+        {groups.length === 0 && (
+          <p style={{ color: 'var(--text-muted)', fontSize: 12.5, marginTop: 16 }}>{t(`ai.review.empty.${filter}`)}</p>
+        )}
+        {groups.map(([chatId, items]) => (
+          <section key={chatId} style={{ marginTop: 12 }}>
+            <h3 style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', margin: '0 0 6px' }}>
+              {chats.find((c) => c.id === chatId)?.title ?? t('ai.review.deletedChat')}
+            </h3>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {items.map((p) => (
+                <ProposalCard
+                  key={p.id}
+                  p={p}
+                  chosen={chosen.has(p.id)}
+                  onToggle={() => toggle(p.id)}
+                  onApprove={() => doApprove([p.id])}
+                  onDeny={() => doDeny([p.id])}
+                />
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** A passage with the text around it. */
+function Context({ sourceGuid, start, end, cell }: { sourceGuid: string; start: number; end: number; cell?: { respondentId: string; questionId: string } }) {
+  const source = useDocumentStore((s) => s.sources.find((x) => x.guid === sourceGuid))
+  const content = useDocumentStore((s) => s.sourceContents[sourceGuid])
+  const text = useMemo(() => {
+    if (!source) return ''
+    if (cell) {
+      const r = (source.formatData as SurveyFormatData | undefined)?.survey.respondents.find((x) => x.id === cell.respondentId)
+      return r ? buildCellText(r.answers[cell.questionId]) : ''
+    }
+    return content ?? documentText(sourceGuid)
+  }, [source, content, cell, sourceGuid])
+  const chars = useMemo(() => Array.from(text), [text])
+  const before = chars.slice(Math.max(0, start - 120), start).join('')
+  const passage = chars.slice(start, end).join('')
+  const after = chars.slice(end, end + 120).join('')
+  return (
+    <blockquote style={{ margin: '6px 0', padding: '6px 10px', borderInlineStart: '3px solid var(--border-color)', background: 'var(--bg-secondary)', fontSize: 12.5, lineHeight: 1.55, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+      <span style={{ color: 'var(--text-muted)' }}>{start > 120 ? '…' : ''}{before}</span>
+      <mark style={{ background: 'var(--selection-bg)', color: 'inherit' }}>{passage}</mark>
+      <span style={{ color: 'var(--text-muted)' }}>{after}{end + 120 < chars.length ? '…' : ''}</span>
+    </blockquote>
+  )
+}
+
+function ProposalCard({ p, chosen, onToggle, onApprove, onDeny }: { p: AiProposal; chosen: boolean; onToggle: () => void; onApprove: () => void; onDeny: () => void }) {
+  const { t } = useTranslation()
+  const proposals = useAiStore((s) => s.proposals)
+  const created = useAiStore((s) => s.createdCodes)
+  const findCode = useCodeStore((s) => s.findCode)
+  useCodeStore((s) => s.codes) // names follow renames
+  const sources = useDocumentStore((s) => s.sources)
+  const c = p.change
+  const docName = (guid: string) => sources.find((s) => s.guid === guid)?.name ?? t('ai.review.missingDocument')
+  /** A code by guid, or a proposed one by its reference. */
+  const codeLabel = (guid?: string, ref?: string) => {
+    if (guid) return findCode(guid)?.name ?? t('ai.review.missingCode')
+    if (!ref) return ''
+    const made = created[`${p.chatId}:${ref}`]
+    if (made) return findCode(made)?.name ?? ''
+    const proposal = proposals.find((x) => x.chatId === p.chatId && x.change.type === 'newCode' && x.change.ref === ref)
+    return proposal && proposal.change.type === 'newCode' ? t('ai.review.newCodeName', { name: proposal.change.name }) : ref
+  }
+  const needs = p.status === 'pending' ? withRequirements([p.id], proposals).filter((id) => id !== p.id) : []
+  const open = (sourceGuid: string, start: number, end: number) => useDocumentStore.getState().viewDocumentAt(sourceGuid, start, end)
+  const pending = p.status === 'pending'
+
+  let title: React.ReactNode
+  let body: React.ReactNode = null
+  if (c.type === 'newCode') {
+    const parent = codeLabel(c.parentGuid, c.parentRef)
+    title = <>{t('ai.review.kind.newCode')}: <strong>{c.name}</strong>{parent ? <span style={{ color: 'var(--text-muted)' }}> {t('ai.review.under', { name: parent })}</span> : null}</>
+    if (c.description) body = <p style={{ margin: '4px 0', fontSize: 12.5 }}>{c.description}</p>
+  } else if (c.type === 'editCode') {
+    const code = findCode(c.codeGuid)
+    title = <>{t('ai.review.kind.editCode')}: <strong>{code?.name ?? t('ai.review.missingCode')}</strong></>
+    body = (
+      <ul style={{ margin: '4px 0', paddingInlineStart: 18, fontSize: 12.5 }}>
+        {c.name && <li>{t('ai.review.rename', { name: c.name })}</li>}
+        {c.description !== undefined && <li>{t('ai.review.describe')}: <em>{c.description || t('ai.review.noDescription')}</em></li>}
+        {c.move && <li>{c.move.parentGuid || c.move.parentRef ? t('ai.review.moveUnder', { name: codeLabel(c.move.parentGuid, c.move.parentRef) }) : t('ai.review.moveTop')}</li>}
+      </ul>
+    )
+  } else if (c.type === 'addCoding') {
+    title = <>{t('ai.review.kind.addCoding', { code: codeLabel(c.codeGuid, c.codeRef) })} <span style={{ color: 'var(--text-muted)' }}>· {docName(c.sourceGuid)}</span></>
+    body = <Context sourceGuid={c.sourceGuid} start={c.start} end={c.end} cell={c.surveyCell} />
+  } else {
+    title = <>{t('ai.review.kind.removeCoding', { code: codeLabel(c.codeGuid) })} <span style={{ color: 'var(--text-muted)' }}>· {docName(c.sourceGuid)}</span></>
+    const sel = sources.find((s) => s.guid === c.sourceGuid)?.selections.find((s) => s.guid === c.selectionGuid)
+    body = sel ? <Context sourceGuid={c.sourceGuid} start={sel.startPosition} end={sel.endPosition} cell={sel.surveyCell} /> : <p style={{ fontSize: 12.5 }}>“{c.text}”</p>
+  }
+  const at = c.type === 'addCoding' ? { g: c.sourceGuid, s: c.start, e: c.end } : null
+
+  return (
+    <li style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '10px 12px', background: 'var(--bg-panel)', display: 'flex', gap: 10 }}>
+      {pending && <input type="checkbox" checked={chosen} onChange={onToggle} aria-label={t('ai.review.choose')} style={{ marginTop: 3 }} />}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13 }}>{title}</div>
+        {body}
+        {p.reason && <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)' }}>{t('ai.review.reason', { reason: p.reason })}</p>}
+        {needs.length > 0 && <p style={{ margin: '4px 0 0', fontSize: 11.5, color: 'var(--text-muted)' }}>{t('ai.review.alsoApproves', { count: needs.length })}</p>}
+        {p.status === 'failed' && <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--danger)' }}>{t('ai.review.failed', { why: p.failure ?? '' })}</p>}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, fontSize: 11, color: 'var(--text-muted)' }}>
+          <span>{p.model}</span>
+          {at && <button type="button" onClick={() => open(at.g, at.s, at.e)} style={{ padding: 0, border: 'none', background: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: 11 }}>{t('ai.review.showInDocument')}</button>}
+          <span style={{ flex: 1 }} />
+          {pending ? (
+            <>
+              <button className="secondary" onClick={onDeny}>{t('ai.review.deny')}</button>
+              <button onClick={onApprove}>{t('ai.review.approve')}</button>
+            </>
+          ) : (
+            <span style={{ color: p.status === 'approved' ? 'var(--success)' : 'var(--text-muted)' }}>{t(`ai.review.status.${p.status}`)}</span>
+          )}
+        </div>
+      </div>
+    </li>
+  )
+}

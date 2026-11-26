@@ -584,7 +584,13 @@ const api: MagnoliaAPI = {
   loadPreferences: () => invoke('load_preferences'),
   savePreferences: (prefs) => invoke('save_preferences', { prefs }),
   sendPreferencesUpdate: (prefs) => void invoke('preferences_update', { prefs }),
-  onPreferencesUpdate: (callback) => on('preferences-update', callback)
+  onPreferencesUpdate: (callback) => on('preferences-update', callback),
+  aiKeySet: (baseUrl, key) => invoke('ai_key_set', { baseUrl, key }),
+  aiKeySaved: (baseUrl) => invoke('ai_key_saved', { baseUrl }),
+  aiModels: (provider) => invoke('ai_models', { provider }),
+  aiChat: (requestId, provider, system, messages, tools) => invoke('ai_chat', { requestId, provider, system, messages, tools }),
+  aiCancel: (requestId) => invoke('ai_cancel', { requestId }),
+  onAiEvent: (callback) => on('ai-event', callback)
 }
 
 // Synchronous at startup so CSS / components can branch on it.

@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import type { TextSource } from '../../models/types'
-import { Icon, faXmark, faFile, faHeadphones, faVideo, faImage, faGear, faGitMerge, faNotebookPen, SURVEY_ICON, type IconComponent } from '../Icon'
-import { isAnalysisTab, isMapTab, isPreferencesTab, isMergeTab, isQueryBuilderTab, isNotebookTab, mapGuidFromTabId, notebookGuidFromTabId } from '../../utils/tab-ids'
+import { Icon, faXmark, faFile, faHeadphones, faVideo, faImage, faGear, faGitMerge, faNotebookPen, faSparkles, SURVEY_ICON, type IconComponent } from '../Icon'
+import { isAnalysisTab, isMapTab, isPreferencesTab, isMergeTab, isAiReviewTab, isQueryBuilderTab, isNotebookTab, mapGuidFromTabId, notebookGuidFromTabId } from '../../utils/tab-ids'
 import { useDocumentStore } from '../../stores/document-store'
 import { useRelationshipMapStore } from '../../stores/relationship-map-store'
 import { useAnalysisTabsStore } from '../../stores/analysis-tabs-store'
@@ -94,6 +94,7 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
     }
     if (isPreferencesTab(tabId)) return t('tabs.preferences')
     if (isMergeTab(tabId)) return t('tabs.mergeProjects')
+    if (isAiReviewTab(tabId)) return t('ai.review.title')
     if (isNotebookTab(tabId)) {
       const guid = notebookGuidFromTabId(tabId)
       return folders.find((f) => f.guid === guid)?.name || t('documents.notebook')
@@ -115,6 +116,7 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
     }
     if (isPreferencesTab(tabId)) return faGear
     if (isMergeTab(tabId)) return faGitMerge
+    if (isAiReviewTab(tabId)) return faSparkles
     if (isNotebookTab(tabId)) return faNotebookPen
     const source = sourceMap.get(tabId)
     if (!source) return null
@@ -145,7 +147,7 @@ export function TabBar({ openTabs, activeTab, sources, onSelectTab, onCloseTab, 
   const tint = useIconTint()
   const tintFor = (tabId: string): React.CSSProperties => {
     if (isMapTab(tabId) || isQueryBuilderTab(tabId) || isAnalysisTab(tabId)) return {}
-    if (isPreferencesTab(tabId) || isMergeTab(tabId)) return {}
+    if (isPreferencesTab(tabId) || isMergeTab(tabId) || isAiReviewTab(tabId)) return {}
     if (isNotebookTab(tabId)) return tint('folder')
     const source = sourceMap.get(tabId)
     if (!source) return {}

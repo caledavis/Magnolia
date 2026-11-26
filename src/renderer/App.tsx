@@ -80,6 +80,8 @@ import { MemosPane } from './components/Memos/MemosPane'
 import { QuotesPane } from './components/Quotes/QuotesPane'
 import { AnalysisPopover } from './components/Toolbar/AnalysisPopover'
 import { StudioPopover } from './components/Toolbar/StudioPopover'
+import { AiAssistancePane } from './components/AI/AiAssistancePane'
+import { useAiStore } from './stores/ai-store'
 import { HelpPopover, MANUAL_URL, SPONSOR_URL, HELP_ICONS } from './components/Toolbar/HelpPopover'
 import { PANE_ICONS } from './utils/pane-icons'
 import { RibbonTabs, RibbonBody, useRibbon, scrollRoom, type RibbonButtonDef, type RibbonTabDef } from './components/Toolbar/Ribbon'
@@ -322,6 +324,8 @@ function App() {
     memos: true,
     quotes: true,
     analyses: true,
+    // AI Assistance: shown when asked for (View → AI Assistance).
+    assistant: false,
   })
   type PanelId = keyof typeof panelVisibility
   const closePanel = useCallback((id: PanelId) => {
@@ -680,6 +684,7 @@ function App() {
     useQuoteStore.getState().clearAll()
     useRelationshipMapStore.getState().clearAll()
     useAnalysisTabsStore.getState().clearAll()
+    useAiStore.getState().clearAll()
     const userGuid = generateGuid()
     projectStore.loadProject({
       name: projectName,
@@ -775,6 +780,7 @@ function App() {
           }
         },
         { label: t('app.step.logbook'), run: () => logbookStore.setEntries(project.logbookEntries ?? []) },
+        { label: t('app.step.ai'), run: () => useAiStore.getState().setProjectAi(project.ai) },
         { label: t('app.step.memos'), run: () => memoStore.setMemos(project.memos ?? []) },
         { label: t('app.step.quotes'), run: () => useQuoteStore.getState().setQuotes(project.quotes ?? []) },
         // Tabs runs LAST so it can validate ids against every store
@@ -1685,6 +1691,7 @@ function App() {
         case 'toggle-panel-memos': togglePanel('memos'); break
         case 'toggle-panel-quotes': togglePanel('quotes'); break
         case 'toggle-panel-analyses': togglePanel('analyses'); break
+        case 'toggle-panel-assistant': togglePanel('assistant'); break
         case 'toggle-ribbon': toggleRibbonRef.current(); break
         case 'next-tab': useDocumentStore.getState().showAdjacentTab(1); break
         case 'previous-tab': useDocumentStore.getState().showAdjacentTab(-1); break
@@ -1790,6 +1797,7 @@ function App() {
             }
           },
           { label: t('app.step.logbook'), run: () => useLogbookStore.getState().setEntries(project.logbookEntries ?? []) },
+          { label: t('app.step.ai'), run: () => useAiStore.getState().setProjectAi(project.ai) },
           { label: t('app.step.memos'), run: () => useMemoStore.getState().setMemos(project.memos ?? []) },
           { label: t('app.step.quotes'), run: () => useQuoteStore.getState().setQuotes(project.quotes ?? []) },
           { label: t('app.step.tabs'), run: () => restoreTabState(project.tabState) }
@@ -2058,7 +2066,8 @@ function App() {
             panelButton('queries', PANE_ICONS.queries, !queryResultsClosed),
             panelButton('memos', PANE_ICONS.memos, panelVisibility.memos),
             panelButton('quotes', PANE_ICONS.quotes, panelVisibility.quotes),
-            panelButton('analyses', PANE_ICONS.analyses, panelVisibility.analyses)
+            panelButton('analyses', PANE_ICONS.analyses, panelVisibility.analyses),
+            panelButton('assistant', PANE_ICONS.assistant, panelVisibility.assistant)
           ]
         }
       ]
@@ -2425,6 +2434,7 @@ function App() {
               { id: 'memos', label: t('panes.memos'), visible: panelVisibility.memos },
               { id: 'quotes', label: t('panes.quotes'), visible: panelVisibility.quotes },
               { id: 'analyses', label: t('panes.analyses'), visible: panelVisibility.analyses },
+              { id: 'assistant', label: t('panes.assistant'), visible: panelVisibility.assistant },
             ]}
             onToggle={(id) => {
               if (id === 'queries') setQueryResultsClosed((prev) => !prev)
@@ -2555,7 +2565,7 @@ function App() {
               renders with different child counts. */}
           <PanelGroup
             direction="horizontal"
-            key={`hg-${leftHasVisiblePanels}-${rightHasVisiblePanels}`}
+            key={`hg-${leftHasVisiblePanels}-${panelVisibility.assistant}-${rightHasVisiblePanels}`}
           >
             {leftHasVisiblePanels && (
               <Panel defaultSize={18} minSize={12} maxSize={35}>
@@ -2602,11 +2612,27 @@ function App() {
                 }}
               />
             )}
-            <Panel defaultSize={64} minSize={25}>
+            <Panel defaultSize={panelVisibility.assistant ? 42 : 64} minSize={25}>
               <div style={{ height: '100%' }} onMouseDown={() => setActivePanel('viewer')}>
                 <DocumentViewer />
               </div>
             </Panel>
+            {panelVisibility.assistant && (
+              <PanelResizeHandle
+                style={{
+                  width: 1,
+                  background: 'var(--border-color)',
+                  cursor: 'col-resize'
+                }}
+              />
+            )}
+            {panelVisibility.assistant && (
+              <Panel defaultSize={22} minSize={15} maxSize={40}>
+                <div {...inertIf(mergeActive)} style={{ height: '100%', opacity: mergeActive ? 0.62 : 1, pointerEvents: mergeActive ? 'none' : undefined, transition: 'opacity 0.15s' }} title={mergeActive ? t('app.mergeBlocks') : undefined}>
+                  <AiAssistancePane onClose={() => closePanel('assistant')} />
+                </div>
+              </Panel>
+            )}
             {rightHasVisiblePanels && (
               <PanelResizeHandle
                 style={{

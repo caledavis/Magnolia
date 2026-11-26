@@ -114,12 +114,16 @@ interface DocumentState {
     pdfRegion?: PdfRegionSelection,
     /** When set, the selection is scoped to a single survey cell.
      *  startPosition / endPosition become cell-relative offsets. */
-    surveyCell?: { respondentId: string; questionId: string }
+    surveyCell?: { respondentId: string; questionId: string },
+    /** Who made it (a user's guid); else the project's current user. */
+    creatingUser?: string
   ) => string // returns selection guid
   addCodingToSelection: (
     sourceGuid: string,
     selectionGuid: string,
-    codeGuid: string
+    codeGuid: string,
+    /** Who made it (a user's guid); else the project's current user. */
+    creatingUser?: string
   ) => void
   removeCoding: (
     sourceGuid: string,
@@ -458,10 +462,10 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
 
   getDocumentContent: (guid) => get().sourceContents[guid],
 
-  addSelection: (sourceGuid, startPosition, endPosition, name, pdfRegion?, surveyCell?) => {
+  addSelection: (sourceGuid, startPosition, endPosition, name, pdfRegion?, surveyCell?, creatingUser?) => {
     const selGuid = generateGuid()
     const now = new Date().toISOString()
-    const userGuid = useProjectStore.getState().creatingUserGUID
+    const userGuid = creatingUser ?? useProjectStore.getState().creatingUserGUID
     const selection: PlainTextSelection = {
       guid: selGuid,
       name,
@@ -499,14 +503,14 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     return selGuid
   },
 
-  addCodingToSelection: (sourceGuid, selectionGuid, codeGuid) => {
+  addCodingToSelection: (sourceGuid, selectionGuid, codeGuid, creatingUser?) => {
     // A passage has a code once: applying it again does nothing (it would
     // count the passage twice everywhere).
     const existing = get().sources.find((s) => s.guid === sourceGuid)?.selections.find((sel) => sel.guid === selectionGuid)
     if (existing?.codings.some((c) => c.codeGuid === codeGuid)) return
     const codingGuid = generateGuid()
     const now = new Date().toISOString()
-    const userGuid = useProjectStore.getState().creatingUserGUID
+    const userGuid = creatingUser ?? useProjectStore.getState().creatingUserGUID
     const coding: Coding = {
       guid: codingGuid,
       codeGuid,

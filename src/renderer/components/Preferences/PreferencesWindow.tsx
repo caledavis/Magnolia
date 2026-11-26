@@ -17,6 +17,8 @@ import { useTranslation } from 'react-i18next'
 import { LANGUAGE_IDS, normaliseLanguagePreference, resolveLanguage, setLanguagePreference, setDigitsPreference, digitChoices, digitsSample, type LanguagePreference, type DigitsPreference } from '../../i18n'
 import { keyCombo } from '../../utils/keys'
 import { keyActivate } from '../../utils/key-activate'
+import type { AiProviderSetting } from '../../stores/preferences-store'
+import { AiAssistanceSettings } from './AiAssistanceSettings'
 
 interface FootPedalMappings {
   playPause: string
@@ -52,6 +54,8 @@ interface Preferences {
   /** The digits numbers are written in, for languages with a choice:
    *  "system" (the computer's region decides) or a CLDR numbering system. */
   digits: DigitsPreference
+  /** AI Assistance's provider (its key is in the keychain, not here). */
+  aiProvider: AiProviderSetting | null
 }
 
 const DEFAULT_PREFS: Preferences = {
@@ -75,7 +79,8 @@ const DEFAULT_PREFS: Preferences = {
   toolbarStyle: 'ribbon',
   colourfulInterface: COLOURFUL_INTERFACE_ENABLED,
   language: 'system',
-  digits: 'system'
+  digits: 'system',
+  aiProvider: null
 }
 
 const TOOLBAR_STYLE_OPTIONS: { id: ToolbarStyle; labelKey: string }[] = [
@@ -102,7 +107,7 @@ const THEME_OPTIONS: ThemeOption[] = [
   { id: 'high-contrast', labelKey: 'prefs.theme.highContrast', swatch: { bg: '#000000', surface: '#ffffff', accent: '#ffff00' } }
 ]
 
-type CategoryId = 'appearance' | 'general' | 'media-playback' | 'paper-size' | 'updates' | 'support'
+type CategoryId = 'appearance' | 'general' | 'media-playback' | 'paper-size' | 'ai-assistance' | 'updates' | 'support'
 
 interface Category {
   id: CategoryId
@@ -114,6 +119,7 @@ const CATEGORIES: Category[] = [
   { id: 'appearance',     labelKey: 'prefs.cat.appearance' },
   { id: 'media-playback', labelKey: 'prefs.cat.mediaPlayback' },
   { id: 'paper-size',     labelKey: 'prefs.cat.paperSize' },
+  { id: 'ai-assistance',  labelKey: 'prefs.cat.aiAssistance' },
   { id: 'updates',        labelKey: 'prefs.cat.updates' },
   { id: 'support',        labelKey: 'prefs.cat.support' }
 ]
@@ -883,6 +889,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
           {selected.id === 'paper-size' && (
             <PaperSizeSettings prefs={prefs} save={save} />
           )}
+          {selected.id === 'ai-assistance' && <AiAssistanceSettings prefs={prefs} save={save} />}
           {selected.id === 'updates' && <UpdatesSettings />}
           {selected.id === 'support' && <SupportSettings />}
         </div>

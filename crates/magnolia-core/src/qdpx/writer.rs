@@ -287,6 +287,12 @@ pub fn write_qdpx(
             &project["logbookEntries"],
         )?;
     }
+    // AI Assistance: whether it's on for this project, its chats and the
+    // changes it proposed (Magnolia's own; the standard has no place for it).
+    let ai = &project["ai"];
+    if ai.get("enabledFor").is_some_and(Value::is_string) || !get_arr(ai, "chats").is_empty() || !get_arr(ai, "proposals").is_empty() {
+        json_entry(&mut zip, "magnolia-ai.json", ai)?;
+    }
     let memos = get_arr(project, "memos");
     if !memos.is_empty() {
         json_entry(&mut zip, "magnolia-memos.json", &project["memos"])?;

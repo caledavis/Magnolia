@@ -994,3 +994,33 @@ fn a_project_from_a_newer_format_opens_but_isnt_saved_over_or_copied() {
     assert!(matches!(write_qdpx(&copy, &mut project, &contents, &o), Err(WriteError::Guard(_))));
     assert!(!copy.exists());
 }
+
+// ── AI Assistance ──
+
+#[test]
+fn ai_assistance_is_kept_with_the_project() {
+    let dir = temp();
+    let path = p(&dir, "ai.qdpx");
+    let ai = json!({
+        "enabledFor": "http://localhost:11434",
+        "chats": [{ "id": "c1", "title": "Codes for cost", "items": [{ "kind": "user", "id": "i1", "text": "Suggest codes" }], "refs": { "documents": {}, "codes": {}, "passages": {}, "newCodes": {} } }],
+        "proposals": [{ "id": "p1", "chatId": "c1", "status": "pending", "change": { "type": "newCode", "ref": "N1", "name": "Cost" } }],
+        "createdCodes": {}
+    });
+    let mut project = empty_project();
+    project["ai"] = ai.clone();
+    write_qdpx(&path, &mut project, &Map::new(), &opts(None, "")).unwrap();
+    assert_eq!(json_entry(&path, "magnolia-ai.json"), Some(ai.clone()));
+    assert_eq!(read_qdpx(&path, None).unwrap()["ai"], ai);
+}
+
+#[test]
+fn a_project_without_ai_assistance_has_no_ai_file() {
+    let dir = temp();
+    let path = p(&dir, "plain.qdpx");
+    let mut project = empty_project();
+    project["ai"] = json!({ "chats": [], "proposals": [], "createdCodes": {} });
+    write_qdpx(&path, &mut project, &Map::new(), &opts(None, "")).unwrap();
+    assert_eq!(read_entry(&path, "magnolia-ai.json"), None);
+    assert!(read_qdpx(&path, None).unwrap().get("ai").is_none());
+}

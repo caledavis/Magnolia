@@ -98,6 +98,9 @@ import {
   ClockArrowLeft,
   Heart,
   WholeWord,
+  Sparkles,
+  ArrowUp,
+  Square,
   createLucideIcon
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -250,6 +253,10 @@ export const faGear = Settings
 export const faMessageSquare = MessageSquare
 export const faClipboardPen = ClipboardPen
 export const faCheck = Check
+/** AI Assistance. */
+export const faSparkles = Sparkles
+export const faArrowUp = ArrowUp
+export const faStop = Square
 export const faUser = User
 export const faUsers = Users
 export const faQuestion = MessageCircleQuestionMark

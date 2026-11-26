@@ -25,6 +25,8 @@ export const PREFERENCES_TAB_ID = 'preferences'
 /** Singleton id for the merge-review tab — only one comparison can be
  *  in progress at a time. */
 export const MERGE_TAB_ID = 'merge'
+/** AI Assistance's review of proposed changes (one per project). */
+export const AI_REVIEW_TAB_ID = 'ai-review'
 
 export function makeMapTabId(guid: string): string {
   return `${MAP_TAB_PREFIX}${guid}`
@@ -93,8 +95,12 @@ export function isMergeTab(id: string | null | undefined): boolean {
   return id === MERGE_TAB_ID
 }
 
+export function isAiReviewTab(id: string | null | undefined): boolean {
+  return id === AI_REVIEW_TAB_ID
+}
+
 /** True for any non-document tab id (map, analysis, query-builder,
  *  notebook, preferences, merge). */
 export function isToolTab(id: string | null | undefined): boolean {
-  return isMapTab(id) || isAnalysisTab(id) || isQueryBuilderTab(id) || isNotebookTab(id) || isPreferencesTab(id) || isMergeTab(id)
+  return isMapTab(id) || isAnalysisTab(id) || isQueryBuilderTab(id) || isNotebookTab(id) || isPreferencesTab(id) || isMergeTab(id) || isAiReviewTab(id)
 }

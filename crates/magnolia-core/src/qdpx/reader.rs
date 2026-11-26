@@ -665,6 +665,9 @@ fn restore_side_tables(
     if let Some(v) = json_entry(zip, "magnolia-logbook.json") {
         project["logbookEntries"] = v;
     }
+    if let Some(v) = json_entry(zip, "magnolia-ai.json").filter(Value::is_object) {
+        project["ai"] = v;
+    }
     if let Some(ext) = json_entry(zip, "magnolia-tags.json") {
         if let Some(c) = ext.get("categories").filter(|v| truthy(v)) {
             project["tagCategories"] = c.clone();

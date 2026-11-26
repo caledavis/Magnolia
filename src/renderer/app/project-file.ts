@@ -7,6 +7,7 @@ import { useCodeStore } from '../stores/code-store'
 import { tagsWithMembersIn, useTagStore } from '../stores/tag-store'
 import { useQueryStore } from '../stores/query-store'
 import { useLogbookStore } from '../stores/logbook-store'
+import { useAiStore } from '../stores/ai-store'
 import { useMemoStore } from '../stores/memo-store'
 import { useQuoteStore } from '../stores/quote-store'
 import { useAnalysisTabsStore } from '../stores/analysis-tabs-store'
@@ -77,6 +78,7 @@ export function collectProject(): Project {
     tagCategories: tagStore.categories,
     savedQueries: useQueryStore.getState().savedQueries,
     logbookEntries: useLogbookStore.getState().entries,
+    ai: useAiStore.getState().projectAi(),
     memos: useMemoStore.getState().memos,
     quotes: useQuoteStore.getState().quotes,
     savedAnalyses: projectStore.savedAnalyses,
