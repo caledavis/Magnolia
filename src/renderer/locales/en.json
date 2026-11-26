@@ -2099,45 +2099,6 @@
     "copyFailed": "Couldn't copy: select the text and copy it instead."
   },
   "ai": {
-    "prefs": {
-      "intro": "AI Assistance uses your own AI service: a key from Anthropic, OpenAI or another provider (charged by them for what you use, separately from a Claude or ChatGPT subscription), or a model running on this computer.",
-      "privacy": "Nothing from a project is sent until you turn AI Assistance on for that project. Then the AI reads only what it asks for, and the chat shows each thing it reads. Check that your ethics approval allows your data to be sent to the service you choose; a model on this computer keeps everything on it.",
-      "service": "Service",
-      "none": "None (AI Assistance off)",
-      "custom": "Another service…",
-      "onThisComputer": "{{name}} (on this computer)",
-      "kind": "Kind of API",
-      "kindOpenai": "OpenAI-compatible",
-      "kindAnthropic": "Anthropic",
-      "address": "Address",
-      "localNote": "This service runs on this computer: what the AI reads stays here. Start it before using AI Assistance.",
-      "key": "API key",
-      "keyOptional": "API key (if the service needs one)",
-      "keySaved": "A key is saved for this address.",
-      "removeKey": "Remove Key",
-      "saveKey": "Save Key",
-      "getKey": "Get a key from {{name}}.",
-      "keyCost": "The service charges for what you use.",
-      "keyKept": "Your key is kept in your computer's keychain, and only ever sent to this address.",
-      "model": "Model",
-      "check": "Check Connection",
-      "checking": "Checking…",
-      "connected_one": "Connected. The service offers {{count}} model.",
-      "connected_other": "Connected. The service offers {{count}} models."
-    },
-    "error": {
-      "noKey": "There's no key for this service. Add one in Preferences → AI Assistance.",
-      "auth": "The service didn't accept the key.",
-      "notFound": "The service didn't recognise the address or the model.",
-      "rateLimit": "The service says too many requests have been sent. Wait a minute and try again.",
-      "overloaded": "The service is busy. Try again shortly.",
-      "unreachable": "Magnolia couldn't reach the service. Check the address and your connection (and, for a model on this computer, that it's running).",
-      "badAddress": "That isn't a web address Magnolia can use.",
-      "keychain": "Magnolia couldn't use your computer's keychain.",
-      "provider": "The service reported a problem.",
-      "cancelled": "Stopped.",
-      "tooManySteps": "The AI was still working after many steps, so Magnolia stopped it. Ask it to carry on, or narrow the question."
-    },
     "activity": {
       "listDocuments_one": "Listed the project's {{count}} document",
       "listDocuments_other": "Listed the project's {{count}} documents",
@@ -2156,17 +2117,16 @@
       "proposedRemoval": "Proposed removing {{code}} from a passage in {{name}}",
       "problem": "Asked for something that wasn't there",
       "unknownTool": "Asked for a tool Magnolia doesn't have ({{name}})",
-      "failed": "A request failed ({{name}})",
-      "cutOff": "A request was cut off"
+      "failed": "A request failed ({{name}})"
     },
     "log": {
       "title_one": "AI Assistance: {{count}} change approved",
       "title_other": "AI Assistance: {{count}} changes approved",
-      "intro": "Proposed by {{model}}, when asked:",
       "newCode": "New code **{{name}}**",
       "editCode": "Changed the code **{{name}}**",
       "addCoding": "Coded “{{quote}}” in {{document}} with **{{code}}**",
-      "removeCoding": "Removed **{{code}}** from “{{quote}}” in {{document}}"
+      "removeCoding": "Removed **{{code}}** from “{{quote}}” in {{document}}",
+      "proposedBy": "Proposed by {{model}}."
     },
     "fail": {
       "noParent": "The code it was to go under isn't in the project any more.",
@@ -2176,31 +2136,26 @@
       "codingGone": "That coding isn't in the project any more."
     },
     "pane": {
-      "noService": "AI Assistance uses your own AI service. Choose one, and its model, in Preferences.",
       "openSettings": "Open Preferences",
-      "consentTitle": "Turn on AI Assistance for this project?",
-      "consentChanged": "The AI service has changed. Turn on AI Assistance for this project with the new one?",
-      "consentRemote": "The AI will read the parts of this project it needs to answer you, and they'll be sent to {{name}} ({{address}}). Check that this is allowed for your data, for example by your ethics approval.",
-      "consentLocal": "The AI will read the parts of this project it needs to answer you. {{name}} runs on this computer, so nothing leaves it.",
-      "consentReview": "The chat lists everything the AI reads. It can't change the project: you approve or deny each change it suggests.",
-      "turnOn": "Turn On",
-      "newChat": "New chat",
-      "newChatOption": "New chat",
-      "chats": "Chats",
-      "conversation": "Conversation",
-      "empty": "Ask about your data, or for suggested codes and codings. For example: “What do participants say about cost?” or “Suggest codes for Interview 3.”",
-      "working": "Working…",
-      "message": "Message",
-      "placeholder": "Ask about your data…",
-      "send": "Send",
-      "stop": "Stop",
-      "using": "{{name}} · {{model}}",
+      "consentReview": "This pane lists everything the app reads. It can't change the project: you approve or deny each change it suggests.",
       "review_one": "Review {{count}}",
       "review_other": "Review {{count}}",
       "reviewTitle_one": "{{count}} change to review",
       "reviewTitle_other": "{{count}} changes to review",
       "proposed_one": "{{count}} change proposed: review it",
-      "proposed_other": "{{count}} changes proposed: review them"
+      "proposed_other": "{{count}} changes proposed: review them",
+      "appAsks": "{{name}} wants to use this project.",
+      "appsTitle": "Let AI apps on this computer use this project?",
+      "appsConsent": "An AI app such as Claude Desktop will read the parts of this project it needs, and send them to its AI service (for Claude Desktop, Anthropic). Check that this is allowed for your data, for example by your ethics approval.",
+      "allowApps": "Allow",
+      "notNow": "Not Now",
+      "emptyApps": "Ask Claude Desktop (or another AI app) about this project. What it reads, and the changes it proposes, appear here.",
+      "appsOn": "AI apps can use this project",
+      "stopApps": "Stop AI apps using it",
+      "intro": "AI Assistance lets an AI app on this computer, such as Claude Desktop with your Claude subscription, read this project and suggest codes and codings. You approve or deny each change it suggests. Turn it on in Preferences.",
+      "sessions": "Sessions",
+      "activity": "What the app did",
+      "appSession": "{{name}}, {{time}}: what it read and proposed."
     },
     "review": {
       "title": "AI Assistance",
@@ -2212,7 +2167,7 @@
         "denied": "Denied ({{count}})"
       },
       "empty": {
-        "pending": "Nothing to review. Ask the AI in the AI Assistance pane for suggested codes or codings.",
+        "pending": "Nothing to review. Ask Claude Desktop (or another AI app) for suggested codes or codings.",
         "approved": "No changes approved yet.",
         "denied": "No changes denied."
       },
@@ -2256,7 +2211,20 @@
         "denied": "Denied",
         "failed": "Not made",
         "pending": "To review"
-      }
+      },
+      "session": "{{app}}, {{time}}"
+    },
+    "apps": {
+      "intro": "With a Claude subscription, you can use Claude Desktop with Magnolia, with no API key: it reads the open project and suggests changes, which you approve or deny in Magnolia. Other apps that support the Model Context Protocol (MCP) work too.",
+      "allow": "Let AI apps on this computer use Magnolia",
+      "howProjects": "Each project is still asked first, in its AI Assistance pane. What an app reads is listed there, and the changes it proposes wait in the AI Assistance Viewer. The app sends what it reads to its own AI service.",
+      "addToClaude": "Add Magnolia to Claude Desktop",
+      "added": "Added. Quit and reopen Claude Desktop, and Magnolia appears among its connectors.",
+      "noClaude": "Claude Desktop isn't installed on this computer.",
+      "badSettings": "Magnolia couldn't read Claude Desktop's settings file, so it left it as it was. Add Magnolia by hand (see Other apps).",
+      "addFailed": "Magnolia couldn't change Claude Desktop's settings ({{detail}}).",
+      "otherApps": "Other apps",
+      "otherAppsText": "In another app's settings for MCP servers, add this:"
     }
   }
 }

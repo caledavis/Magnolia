@@ -2184,46 +2184,6 @@
     "copyFailed": "No s’ha pogut copiar: seleccioneu el text i copieu-lo."
   },
   "ai": {
-    "prefs": {
-      "intro": "L’Assistència d’IA fa servir el vostre propi servei d’IA: una clau d’Anthropic, d’OpenAI o d’un altre proveïdor (que us cobra pel que feu servir, a banda de qualsevol subscripció a Claude o ChatGPT), o un model que s’executa en aquest ordinador.",
-      "privacy": "No s’envia res d’un projecte fins que no activeu l’Assistència d’IA per a aquest projecte. Llavors la IA només llegeix el que demana, i el xat mostra cada cosa que llegeix. Comproveu que la vostra aprovació ètica permet enviar les dades al servei que trieu; un model en aquest ordinador ho manté tot aquí.",
-      "service": "Servei",
-      "none": "Cap (Assistència d’IA desactivada)",
-      "custom": "Un altre servei…",
-      "onThisComputer": "{{name}} (en aquest ordinador)",
-      "kind": "Tipus d’API",
-      "kindOpenai": "Compatible amb OpenAI",
-      "kindAnthropic": "Anthropic",
-      "address": "Adreça",
-      "localNote": "Aquest servei s’executa en aquest ordinador: el que llegeix la IA es queda aquí. Inicieu-lo abans de fer servir l’Assistència d’IA.",
-      "key": "Clau d’API",
-      "keyOptional": "Clau d’API (si el servei en necessita una)",
-      "keySaved": "Hi ha una clau desada per a aquesta adreça.",
-      "removeKey": "Treu la clau",
-      "saveKey": "Desa la clau",
-      "getKey": "Obteniu una clau de {{name}}.",
-      "keyCost": "El servei cobra pel que feu servir.",
-      "keyKept": "La clau es guarda al clauer de l’ordinador i només s’envia a aquesta adreça.",
-      "model": "Model",
-      "check": "Comprova la connexió",
-      "checking": "S’està comprovant…",
-      "connected_one": "Connectat. El servei ofereix {{count}} model.",
-      "connected_many": "Connectat. El servei ofereix {{count}} models.",
-      "connected_other": "Connectat. El servei ofereix {{count}} models."
-    },
-    "error": {
-      "noKey": "No hi ha cap clau per a aquest servei. Afegiu-ne una a Preferències → Assistència d’IA.",
-      "auth": "El servei no ha acceptat la clau.",
-      "notFound": "El servei no ha reconegut l’adreça o el model.",
-      "rateLimit": "El servei diu que s’han enviat massa sol·licituds. Espereu un minut i torneu-ho a provar.",
-      "overloaded": "El servei està ocupat. Torneu-ho a provar d’aquí a una estona.",
-      "unreachable": "El Magnolia no ha pogut accedir al servei. Comproveu l’adreça i la connexió (i, si és un model en aquest ordinador, que s’estigui executant).",
-      "badAddress": "Aquesta no és una adreça web que el Magnolia pugui fer servir.",
-      "keychain": "El Magnolia no ha pogut fer servir el clauer de l’ordinador.",
-      "provider": "El servei ha informat d’un problema.",
-      "cancelled": "S’ha aturat.",
-      "tooManySteps": "La IA encara treballava després de molts passos, així que el Magnolia l’ha aturada. Demaneu-li que continuï o concreteu més la pregunta."
-    },
     "activity": {
       "listDocuments_one": "Ha llistat {{count}} document del projecte",
       "listDocuments_many": "Ha llistat els {{count}} documents del projecte",
@@ -2247,18 +2207,17 @@
       "proposedRemoval": "Ha proposat treure {{code}} d’un passatge de {{name}}",
       "problem": "Ha demanat una cosa que no hi era",
       "unknownTool": "Ha demanat una eina que el Magnolia no té ({{name}})",
-      "failed": "Ha fallat una sol·licitud ({{name}})",
-      "cutOff": "S’ha tallat una sol·licitud"
+      "failed": "Ha fallat una sol·licitud ({{name}})"
     },
     "log": {
       "title_one": "Assistència d’IA: {{count}} canvi aprovat",
       "title_many": "Assistència d’IA: {{count}} canvis aprovats",
       "title_other": "Assistència d’IA: {{count}} canvis aprovats",
-      "intro": "Ho va proposar {{model}} quan se li va demanar:",
       "newCode": "Codi nou **{{name}}**",
       "editCode": "S’ha canviat el codi **{{name}}**",
       "addCoding": "S’ha codificat «{{quote}}» a {{document}} amb **{{code}}**",
-      "removeCoding": "S’ha tret **{{code}}** de «{{quote}}» a {{document}}"
+      "removeCoding": "S’ha tret **{{code}}** de «{{quote}}» a {{document}}",
+      "proposedBy": "Proposat per {{model}}."
     },
     "fail": {
       "noParent": "El codi sota el qual havia d’anar ja no és al projecte.",
@@ -2268,25 +2227,8 @@
       "codingGone": "Aquesta codificació ja no és al projecte."
     },
     "pane": {
-      "noService": "L’Assistència d’IA fa servir el vostre propi servei d’IA. Trieu-ne un, i el seu model, a Preferències.",
       "openSettings": "Obre les preferències",
-      "consentTitle": "Voleu activar l’Assistència d’IA per a aquest projecte?",
-      "consentChanged": "El servei d’IA ha canviat. Voleu activar l’Assistència d’IA per a aquest projecte amb el servei nou?",
-      "consentRemote": "La IA llegirà les parts d’aquest projecte que necessiti per respondre-us, i s’enviaran a {{name}} ({{address}}). Comproveu que això està permès per a les vostres dades, per exemple per la vostra aprovació ètica.",
-      "consentLocal": "La IA llegirà les parts d’aquest projecte que necessiti per respondre-us. {{name}} s’executa en aquest ordinador, així que no en surt res.",
-      "consentReview": "El xat mostra tot el que llegeix la IA. No pot canviar el projecte: vós aproveu o rebutgeu cada canvi que suggereix.",
-      "turnOn": "Activa",
-      "newChat": "Xat nou",
-      "newChatOption": "Xat nou",
-      "chats": "Xats",
-      "conversation": "Conversa",
-      "empty": "Pregunteu sobre les vostres dades o demaneu suggeriments de codis i codificacions. Per exemple: «Què diuen els participants sobre el cost?» o «Suggereix codis per a l’Entrevista 3».",
-      "working": "S’està treballant…",
-      "message": "Missatge",
-      "placeholder": "Pregunteu sobre les vostres dades…",
-      "send": "Envia",
-      "stop": "Atura",
-      "using": "{{name}} · {{model}}",
+      "consentReview": "Aquest plafó mostra tot el que llegeix l’aplicació. No pot canviar el projecte: vós aproveu o rebutgeu cada canvi que suggereix.",
       "review_one": "Revisa’n {{count}}",
       "review_many": "Revisa’n {{count}}",
       "review_other": "Revisa’n {{count}}",
@@ -2295,7 +2237,19 @@
       "reviewTitle_other": "{{count}} canvis per revisar",
       "proposed_one": "S’ha proposat {{count}} canvi: reviseu-lo",
       "proposed_many": "S’han proposat {{count}} canvis: reviseu-los",
-      "proposed_other": "S’han proposat {{count}} canvis: reviseu-los"
+      "proposed_other": "S’han proposat {{count}} canvis: reviseu-los",
+      "appAsks": "{{name}} vol fer servir aquest projecte.",
+      "appsTitle": "Voleu permetre que les aplicacions d’IA d’aquest ordinador facin servir aquest projecte?",
+      "appsConsent": "Una aplicació d’IA com Claude Desktop llegirà les parts d’aquest projecte que necessiti i les enviarà al seu servei d’IA (per a Claude Desktop, Anthropic). Comproveu que això està permès per a les vostres dades, per exemple per la vostra aprovació ètica.",
+      "allowApps": "Permet",
+      "notNow": "Ara no",
+      "emptyApps": "Pregunteu a Claude Desktop (o a una altra aplicació d’IA) sobre aquest projecte. El que llegeix, i els canvis que proposa, apareixen aquí.",
+      "appsOn": "Les aplicacions d’IA poden fer servir aquest projecte",
+      "stopApps": "Impedeix que les aplicacions d’IA el facin servir",
+      "intro": "L’Assistència d’IA permet que una aplicació d’IA d’aquest ordinador, com Claude Desktop amb la vostra subscripció a Claude, llegeixi aquest projecte i suggereixi codis i codificacions. Vós aproveu o rebutgeu cada canvi que suggereix. Activeu-la a Preferències.",
+      "sessions": "Sessions",
+      "activity": "Què ha fet l’aplicació",
+      "appSession": "{{name}}, {{time}}: què ha llegit i proposat."
     },
     "review": {
       "title": "Assistència d’IA",
@@ -2307,7 +2261,7 @@
         "denied": "Rebutjats ({{count}})"
       },
       "empty": {
-        "pending": "No hi ha res per revisar. Demaneu a la IA, al plafó Assistència d’IA, suggeriments de codis o codificacions.",
+        "pending": "No hi ha res per revisar. Demaneu a Claude Desktop (o a una altra aplicació d’IA) suggeriments de codis o codificacions.",
         "approved": "Encara no s’ha aprovat cap canvi.",
         "denied": "No s’ha rebutjat cap canvi."
       },
@@ -2356,7 +2310,20 @@
         "denied": "Rebutjat",
         "failed": "No s’ha pogut fer",
         "pending": "Per revisar"
-      }
+      },
+      "session": "{{app}}, {{time}}"
+    },
+    "apps": {
+      "intro": "Amb una subscripció a Claude, podeu fer servir Claude Desktop amb el Magnolia, sense clau d’API: llegeix el projecte obert i suggereix canvis, que vós aproveu o rebutgeu al Magnolia. També funcionen altres aplicacions compatibles amb el Model Context Protocol (MCP).",
+      "allow": "Permet que les aplicacions d’IA d’aquest ordinador facin servir el Magnolia",
+      "howProjects": "Per a cada projecte, encara se us demana permís primer, al seu plafó Assistència d’IA. Allà es mostra el que llegeix una aplicació, i els canvis que proposa esperen al visualitzador d’Assistència d’IA. L’aplicació envia el que llegeix al seu propi servei d’IA.",
+      "addToClaude": "Afegeix el Magnolia a Claude Desktop",
+      "added": "Afegit. Tanqueu i torneu a obrir Claude Desktop, i el Magnolia apareixerà entre els seus connectors.",
+      "noClaude": "Claude Desktop no està instal·lat en aquest ordinador.",
+      "badSettings": "El Magnolia no ha pogut llegir el fitxer de configuració de Claude Desktop, així que l’ha deixat com estava. Afegiu el Magnolia a mà (vegeu Altres aplicacions).",
+      "addFailed": "El Magnolia no ha pogut canviar la configuració de Claude Desktop ({{detail}}).",
+      "otherApps": "Altres aplicacions",
+      "otherAppsText": "A la configuració de servidors MCP d’una altra aplicació, afegiu això:"
     }
   }
 }

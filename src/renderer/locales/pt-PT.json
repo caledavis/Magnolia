@@ -2184,46 +2184,6 @@
     "copyFailed": "Não foi possível copiar: selecione o texto e copie-o."
   },
   "ai": {
-    "prefs": {
-      "intro": "A Assistência de IA usa o seu próprio serviço de IA: uma chave da Anthropic, da OpenAI ou de outro fornecedor (que cobra pelo que usar, à parte de uma subscrição do Claude ou do ChatGPT) ou um modelo a funcionar neste computador.",
-      "privacy": "Nada de um projeto é enviado até ativar a Assistência de IA para esse projeto. A partir daí, a IA lê apenas o que pede, e o chat mostra cada coisa que lê. Confirme que a sua aprovação ética permite enviar os seus dados para o serviço escolhido; um modelo neste computador mantém tudo nele.",
-      "service": "Serviço",
-      "none": "Nenhum (Assistência de IA desativada)",
-      "custom": "Outro serviço…",
-      "onThisComputer": "{{name}} (neste computador)",
-      "kind": "Tipo de API",
-      "kindOpenai": "Compatível com OpenAI",
-      "kindAnthropic": "Anthropic",
-      "address": "Endereço",
-      "localNote": "Este serviço funciona neste computador: o que a IA lê fica aqui. Inicie-o antes de usar a Assistência de IA.",
-      "key": "Chave de API",
-      "keyOptional": "Chave de API (se o serviço precisar de uma)",
-      "keySaved": "Há uma chave guardada para este endereço.",
-      "removeKey": "Remover chave",
-      "saveKey": "Guardar chave",
-      "getKey": "Obtenha uma chave junto de {{name}}.",
-      "keyCost": "O serviço cobra pelo que usar.",
-      "keyKept": "A sua chave fica guardada no porta-chaves do computador e só é enviada para este endereço.",
-      "model": "Modelo",
-      "check": "Verificar ligação",
-      "checking": "A verificar…",
-      "connected_one": "Ligado. O serviço oferece {{count}} modelo.",
-      "connected_many": "Ligado. O serviço oferece {{count}} modelos.",
-      "connected_other": "Ligado. O serviço oferece {{count}} modelos."
-    },
-    "error": {
-      "noKey": "Não há chave para este serviço. Adicione uma em Preferências → Assistência de IA.",
-      "auth": "O serviço não aceitou a chave.",
-      "notFound": "O serviço não reconheceu o endereço ou o modelo.",
-      "rateLimit": "O serviço indica que foram enviados pedidos a mais. Aguarde um minuto e tente novamente.",
-      "overloaded": "O serviço está ocupado. Tente novamente dentro de momentos.",
-      "unreachable": "O Magnolia não conseguiu contactar o serviço. Verifique o endereço e a sua ligação (e, no caso de um modelo neste computador, se está a funcionar).",
-      "badAddress": "Esse não é um endereço web que o Magnolia possa usar.",
-      "keychain": "O Magnolia não conseguiu usar o porta-chaves do computador.",
-      "provider": "O serviço informou um problema.",
-      "cancelled": "Interrompido.",
-      "tooManySteps": "A IA ainda estava a trabalhar após muitos passos, por isso o Magnolia interrompeu-a. Peça-lhe que continue ou restrinja a pergunta."
-    },
     "activity": {
       "listDocuments_one": "Listou {{count}} documento do projeto",
       "listDocuments_many": "Listou os {{count}} documentos do projeto",
@@ -2247,18 +2207,17 @@
       "proposedRemoval": "Propôs remover {{code}} de um trecho de {{name}}",
       "problem": "Pediu algo que não existia",
       "unknownTool": "Pediu uma ferramenta que o Magnolia não tem ({{name}})",
-      "failed": "Um pedido falhou ({{name}})",
-      "cutOff": "Um pedido foi interrompido"
+      "failed": "Um pedido falhou ({{name}})"
     },
     "log": {
       "title_one": "Assistência de IA: {{count}} alteração aprovada",
       "title_many": "Assistência de IA: {{count}} alterações aprovadas",
       "title_other": "Assistência de IA: {{count}} alterações aprovadas",
-      "intro": "Proposto por {{model}}, a partir do pedido:",
       "newCode": "Código novo **{{name}}**",
       "editCode": "Código **{{name}}** alterado",
       "addCoding": "«{{quote}}» em {{document}} codificado com **{{code}}**",
-      "removeCoding": "**{{code}}** removido de «{{quote}}» em {{document}}"
+      "removeCoding": "**{{code}}** removido de «{{quote}}» em {{document}}",
+      "proposedBy": "Proposto por {{model}}."
     },
     "fail": {
       "noParent": "O código sob o qual ficaria já não está no projeto.",
@@ -2268,25 +2227,8 @@
       "codingGone": "Essa codificação já não está no projeto."
     },
     "pane": {
-      "noService": "A Assistência de IA usa o seu próprio serviço de IA. Escolha um, e o respetivo modelo, em Preferências.",
       "openSettings": "Abrir Preferências",
-      "consentTitle": "Ativar a Assistência de IA para este projeto?",
-      "consentChanged": "O serviço de IA mudou. Ativar a Assistência de IA para este projeto com o novo serviço?",
-      "consentRemote": "A IA vai ler as partes deste projeto de que precisar para responder, e estas serão enviadas para {{name}} ({{address}}). Confirme que isto é permitido para os seus dados, por exemplo pela sua aprovação ética.",
-      "consentLocal": "A IA vai ler as partes deste projeto de que precisar para responder. {{name}} funciona neste computador, por isso nada sai dele.",
-      "consentReview": "O chat lista tudo o que a IA lê. A IA não pode alterar o projeto: é o utilizador que aprova ou recusa cada alteração que ela sugere.",
-      "turnOn": "Ativar",
-      "newChat": "Novo chat",
-      "newChatOption": "Novo chat",
-      "chats": "Chats",
-      "conversation": "Conversa",
-      "empty": "Pergunte sobre os seus dados ou peça sugestões de códigos e codificações. Por exemplo: «O que dizem os participantes sobre o custo?» ou «Sugere códigos para a Entrevista 3.»",
-      "working": "A trabalhar…",
-      "message": "Mensagem",
-      "placeholder": "Pergunte sobre os seus dados…",
-      "send": "Enviar",
-      "stop": "Parar",
-      "using": "{{name}} · {{model}}",
+      "consentReview": "Este painel lista tudo o que a aplicação lê. A aplicação não pode alterar o projeto: é o utilizador que aprova ou recusa cada alteração que ela sugere.",
       "review_one": "Rever {{count}}",
       "review_many": "Rever {{count}}",
       "review_other": "Rever {{count}}",
@@ -2295,7 +2237,19 @@
       "reviewTitle_other": "{{count}} alterações por rever",
       "proposed_one": "{{count}} alteração proposta: reveja-a",
       "proposed_many": "{{count}} alterações propostas: reveja-as",
-      "proposed_other": "{{count}} alterações propostas: reveja-as"
+      "proposed_other": "{{count}} alterações propostas: reveja-as",
+      "appAsks": "{{name}} quer usar este projeto.",
+      "appsTitle": "Permitir que as aplicações de IA neste computador usem este projeto?",
+      "appsConsent": "Uma aplicação de IA como o Claude Desktop vai ler as partes deste projeto de que precisar e enviá-las para o seu serviço de IA (no caso do Claude Desktop, a Anthropic). Confirme que isto é permitido para os seus dados, por exemplo pela sua aprovação ética.",
+      "allowApps": "Permitir",
+      "notNow": "Agora não",
+      "emptyApps": "Pergunte ao Claude Desktop (ou a outra aplicação de IA) sobre este projeto. O que lê, e as alterações que propõe, aparecem aqui.",
+      "appsOn": "As aplicações de IA podem usar este projeto",
+      "stopApps": "Impedir que as aplicações de IA o usem",
+      "intro": "A Assistência de IA permite que uma aplicação de IA neste computador, como o Claude Desktop com a sua subscrição do Claude, leia este projeto e sugira códigos e codificações. É o utilizador que aprova ou recusa cada alteração sugerida. Ative-a em Preferências.",
+      "sessions": "Sessões",
+      "activity": "O que a aplicação fez",
+      "appSession": "{{name}}, {{time}}: o que leu e propôs."
     },
     "review": {
       "title": "Assistência de IA",
@@ -2307,7 +2261,7 @@
         "denied": "Recusadas ({{count}})"
       },
       "empty": {
-        "pending": "Nada para rever. Peça à IA, no painel Assistência de IA, sugestões de códigos ou codificações.",
+        "pending": "Nada para rever. Peça ao Claude Desktop (ou a outra aplicação de IA) sugestões de códigos ou codificações.",
         "approved": "Nenhuma alteração aprovada ainda.",
         "denied": "Nenhuma alteração recusada."
       },
@@ -2356,7 +2310,20 @@
         "denied": "Recusada",
         "failed": "Não feita",
         "pending": "Por rever"
-      }
+      },
+      "session": "{{app}}, {{time}}"
+    },
+    "apps": {
+      "intro": "Com uma subscrição do Claude, pode usar o Claude Desktop com o Magnolia, sem chave de API: este lê o projeto aberto e sugere alterações, que aprova ou recusa no Magnolia. Outras aplicações compatíveis com o Model Context Protocol (MCP) também funcionam.",
+      "allow": "Permitir que as aplicações de IA neste computador usem o Magnolia",
+      "howProjects": "A autorização continua a ser pedida primeiro para cada projeto, no respetivo painel Assistência de IA. O que uma aplicação lê fica listado aí, e as alterações que propõe aguardam no visualizador da Assistência de IA. A aplicação envia o que lê para o seu próprio serviço de IA.",
+      "addToClaude": "Adicionar o Magnolia ao Claude Desktop",
+      "added": "Adicionado. Feche e volte a abrir o Claude Desktop, e o Magnolia aparece entre os respetivos conectores.",
+      "noClaude": "O Claude Desktop não está instalado neste computador.",
+      "badSettings": "O Magnolia não conseguiu ler o ficheiro de definições do Claude Desktop, por isso deixou-o como estava. Adicione o Magnolia manualmente (ver Outras aplicações).",
+      "addFailed": "O Magnolia não conseguiu alterar as definições do Claude Desktop ({{detail}}).",
+      "otherApps": "Outras aplicações",
+      "otherAppsText": "Nas definições de servidores MCP de outra aplicação, adicione isto:"
     }
   }
 }

@@ -36,12 +36,11 @@ icu_decimal = "2.4"
 icu_locale_core = "2.4"
 fixed_decimal = "0.7.3"
 tauri-plugin-window-state = "2"
-# AI Assistance: the provider's API, streamed (rustls, as the updater
-# already uses); API keys in the system's keychain.
-reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider", "stream", "json", "http2"] }
-rustls = { version = "0.23", default-features = false, features = ["ring"] }
-futures-util = "0.3"
-keyring = { version = "3.6", features = ["apple-native", "windows-native", "async-secret-service", "tokio", "crypto-rust"] }
+# AI apps on this computer (mcp.rs): the listener, and the connector's
+# random token.
+dirs = "6"
+uuid = { version = "1", features = ["v4"] }
+tokio = { version = "1", features = ["net", "io-util", "time", "sync"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"

@@ -2099,45 +2099,6 @@
     "copyFailed": "Kunne ikke kopiere: merk teksten og kopier den."
   },
   "ai": {
-    "prefs": {
-      "intro": "KI-assistanse bruker din egen KI-tjeneste: en nøkkel fra Anthropic, OpenAI eller en annen leverandør (de tar betalt for det du bruker, atskilt fra et Claude- eller ChatGPT-abonnement), eller en modell som kjører på denne datamaskinen.",
-      "privacy": "Ingenting fra et prosjekt sendes før du slår på KI-assistanse for det prosjektet. Deretter leser KI-en bare det den ber om, og chatten viser alt den leser. Sjekk at den etiske godkjenningen din tillater at dataene sendes til tjenesten du velger; en modell på denne datamaskinen holder alt her.",
-      "service": "Tjeneste",
-      "none": "Ingen (KI-assistanse av)",
-      "custom": "En annen tjeneste …",
-      "onThisComputer": "{{name}} (på denne datamaskinen)",
-      "kind": "API-type",
-      "kindOpenai": "OpenAI-kompatibel",
-      "kindAnthropic": "Anthropic",
-      "address": "Adresse",
-      "localNote": "Denne tjenesten kjører på denne datamaskinen: det KI-en leser, blir her. Start den før du bruker KI-assistanse.",
-      "key": "API-nøkkel",
-      "keyOptional": "API-nøkkel (hvis tjenesten trenger en)",
-      "keySaved": "En nøkkel er lagret for denne adressen.",
-      "removeKey": "Fjern nøkkel",
-      "saveKey": "Lagre nøkkel",
-      "getKey": "Få en nøkkel fra {{name}}.",
-      "keyCost": "Tjenesten tar betalt for det du bruker.",
-      "keyKept": "Nøkkelen din oppbevares i nøkkelringen på datamaskinen, og sendes aldri til noe annet enn denne adressen.",
-      "model": "Modell",
-      "check": "Sjekk tilkoblingen",
-      "checking": "Sjekker …",
-      "connected_one": "Tilkoblet. Tjenesten tilbyr {{count}} modell.",
-      "connected_other": "Tilkoblet. Tjenesten tilbyr {{count}} modeller."
-    },
-    "error": {
-      "noKey": "Det finnes ingen nøkkel for denne tjenesten. Legg til en i Innstillinger → KI-assistanse.",
-      "auth": "Tjenesten godtok ikke nøkkelen.",
-      "notFound": "Tjenesten kjente ikke igjen adressen eller modellen.",
-      "rateLimit": "Tjenesten sier at det er sendt for mange forespørsler. Vent et minutt og prøv igjen.",
-      "overloaded": "Tjenesten er opptatt. Prøv igjen om litt.",
-      "unreachable": "Magnolia fikk ikke kontakt med tjenesten. Sjekk adressen og tilkoblingen din (og, for en modell på denne datamaskinen, at den kjører).",
-      "badAddress": "Det er ikke en nettadresse Magnolia kan bruke.",
-      "keychain": "Magnolia fikk ikke brukt nøkkelringen på datamaskinen.",
-      "provider": "Tjenesten meldte om et problem.",
-      "cancelled": "Stoppet.",
-      "tooManySteps": "KI-en arbeidet fortsatt etter mange steg, så Magnolia stoppet den. Be den fortsette, eller avgrens spørsmålet."
-    },
     "activity": {
       "listDocuments_one": "Listet opp prosjektets {{count}} dokument",
       "listDocuments_other": "Listet opp prosjektets {{count}} dokumenter",
@@ -2156,17 +2117,16 @@
       "proposedRemoval": "Foreslo å fjerne {{code}} fra en passasje i {{name}}",
       "problem": "Ba om noe som ikke fantes",
       "unknownTool": "Ba om et verktøy Magnolia ikke har ({{name}})",
-      "failed": "En forespørsel mislyktes ({{name}})",
-      "cutOff": "En forespørsel ble avbrutt"
+      "failed": "En forespørsel mislyktes ({{name}})"
     },
     "log": {
       "title_one": "KI-assistanse: {{count}} endring godkjent",
       "title_other": "KI-assistanse: {{count}} endringer godkjent",
-      "intro": "Foreslått av {{model}}, på spørsmålet:",
       "newCode": "Ny kode **{{name}}**",
       "editCode": "Endret koden **{{name}}**",
       "addCoding": "Kodet «{{quote}}» i {{document}} med **{{code}}**",
-      "removeCoding": "Fjernet **{{code}}** fra «{{quote}}» i {{document}}"
+      "removeCoding": "Fjernet **{{code}}** fra «{{quote}}» i {{document}}",
+      "proposedBy": "Foreslått av {{model}}."
     },
     "fail": {
       "noParent": "Koden den skulle ligge under, finnes ikke lenger i prosjektet.",
@@ -2176,31 +2136,26 @@
       "codingGone": "Den kodingen finnes ikke lenger i prosjektet."
     },
     "pane": {
-      "noService": "KI-assistanse bruker din egen KI-tjeneste. Velg en, og modellen, i Innstillinger.",
       "openSettings": "Åpne Innstillinger",
-      "consentTitle": "Slå på KI-assistanse for dette prosjektet?",
-      "consentChanged": "KI-tjenesten er endret. Slå på KI-assistanse for dette prosjektet med den nye?",
-      "consentRemote": "KI-en leser de delene av prosjektet den trenger for å svare deg, og de sendes til {{name}} ({{address}}). Sjekk at dette er tillatt for dataene dine, for eksempel av den etiske godkjenningen din.",
-      "consentLocal": "KI-en leser de delene av prosjektet den trenger for å svare deg. {{name}} kjører på denne datamaskinen, så ingenting forlater den.",
-      "consentReview": "Chatten viser alt KI-en leser. Den kan ikke endre prosjektet: du godkjenner eller avviser hver endring den foreslår.",
-      "turnOn": "Slå på",
-      "newChat": "Ny chat",
-      "newChatOption": "Ny chat",
-      "chats": "Chatter",
-      "conversation": "Samtale",
-      "empty": "Spør om dataene dine, eller be om forslag til koder og kodinger. For eksempel: «Hva sier deltakerne om kostnader?» eller «Foreslå koder for intervju 3.»",
-      "working": "Arbeider …",
-      "message": "Melding",
-      "placeholder": "Spør om dataene dine …",
-      "send": "Send",
-      "stop": "Stopp",
-      "using": "{{name}} · {{model}}",
+      "consentReview": "Dette panelet viser alt appen leser. Den kan ikke endre prosjektet: du godkjenner eller avviser hver endring den foreslår.",
       "review_one": "Gjennomgå {{count}}",
       "review_other": "Gjennomgå {{count}}",
       "reviewTitle_one": "{{count}} endring å gjennomgå",
       "reviewTitle_other": "{{count}} endringer å gjennomgå",
       "proposed_one": "{{count}} endring foreslått: gjennomgå den",
-      "proposed_other": "{{count}} endringer foreslått: gjennomgå dem"
+      "proposed_other": "{{count}} endringer foreslått: gjennomgå dem",
+      "appAsks": "{{name}} vil bruke dette prosjektet.",
+      "appsTitle": "La KI-apper på denne datamaskinen bruke dette prosjektet?",
+      "appsConsent": "En KI-app som Claude Desktop leser de delene av prosjektet den trenger, og sender dem til sin KI-tjeneste (for Claude Desktop er det Anthropic). Sjekk at dette er tillatt for dataene dine, for eksempel av den etiske godkjenningen din.",
+      "allowApps": "Tillat",
+      "notNow": "Ikke nå",
+      "emptyApps": "Spør Claude Desktop (eller en annen KI-app) om dette prosjektet. Det appen leser, og endringene den foreslår, vises her.",
+      "appsOn": "KI-apper kan bruke dette prosjektet",
+      "stopApps": "Hindre KI-apper i å bruke det",
+      "intro": "Med KI-assistanse kan en KI-app på denne datamaskinen, for eksempel Claude Desktop med Claude-abonnementet ditt, lese dette prosjektet og foreslå koder og kodinger. Du godkjenner eller avviser hver endring den foreslår. Slå det på i Innstillinger.",
+      "sessions": "Økter",
+      "activity": "Hva appen gjorde",
+      "appSession": "{{name}}, {{time}}: hva den leste og foreslo."
     },
     "review": {
       "title": "KI-assistanse",
@@ -2212,7 +2167,7 @@
         "denied": "Avvist ({{count}})"
       },
       "empty": {
-        "pending": "Ingenting å gjennomgå. Be KI-en i KI-assistanse-panelet om forslag til koder eller kodinger.",
+        "pending": "Ingenting å gjennomgå. Be Claude Desktop (eller en annen KI-app) om forslag til koder eller kodinger.",
         "approved": "Ingen endringer godkjent ennå.",
         "denied": "Ingen endringer avvist."
       },
@@ -2256,7 +2211,20 @@
         "denied": "Avvist",
         "failed": "Ikke gjort",
         "pending": "Til gjennomgang"
-      }
+      },
+      "session": "{{app}}, {{time}}"
+    },
+    "apps": {
+      "intro": "Med et Claude-abonnement kan du bruke Claude Desktop med Magnolia, uten API-nøkkel: den leser det åpne prosjektet og foreslår endringer, som du godkjenner eller avviser i Magnolia. Andre apper som støtter Model Context Protocol (MCP), fungerer også.",
+      "allow": "La KI-apper på denne datamaskinen bruke Magnolia",
+      "howProjects": "Du blir fortsatt spurt først for hvert prosjekt, i prosjektets KI-assistanse-panel. Der står det hva en app leser, og endringene den foreslår, venter i fremviseren for KI-assistanse. Appen sender det den leser, til sin egen KI-tjeneste.",
+      "addToClaude": "Legg til Magnolia i Claude Desktop",
+      "added": "Lagt til. Avslutt og åpne Claude Desktop igjen, så vises Magnolia under Connectors.",
+      "noClaude": "Claude Desktop er ikke installert på denne datamaskinen.",
+      "badSettings": "Magnolia kunne ikke lese innstillingsfilen til Claude Desktop og lot den derfor være som den var. Legg til Magnolia manuelt (se Andre apper).",
+      "addFailed": "Magnolia kunne ikke endre innstillingene til Claude Desktop ({{detail}}).",
+      "otherApps": "Andre apper",
+      "otherAppsText": "Legg til dette i en annen apps innstillinger for MCP-servere:"
     }
   }
 }

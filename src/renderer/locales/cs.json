@@ -2269,47 +2269,6 @@
     "copyFailed": "Kopírování se nezdařilo: označte text a zkopírujte ho."
   },
   "ai": {
-    "prefs": {
-      "intro": "Asistence AI využívá vaši vlastní službu AI: klíč od společnosti Anthropic, OpenAI nebo jiného poskytovatele (ten vám účtuje, co využijete, odděleně od předplatného Claude či ChatGPT), nebo model spuštěný na tomto počítači.",
-      "privacy": "Z projektu se nic neodešle, dokud pro něj nezapnete Asistenci AI. Pak AI čte jen to, o co sama požádá, a chat ukazuje vše, co přečte. Ověřte si, že vaše etické schválení dovoluje odesílat data do služby, kterou zvolíte; model na tomto počítači nechává vše na něm.",
-      "service": "Služba",
-      "none": "Žádná (Asistence AI vypnuta)",
-      "custom": "Jiná služba…",
-      "onThisComputer": "{{name}} (na tomto počítači)",
-      "kind": "Typ API",
-      "kindOpenai": "Kompatibilní s OpenAI",
-      "kindAnthropic": "Anthropic",
-      "address": "Adresa",
-      "localNote": "Tato služba běží na tomto počítači: co AI přečte, zůstává zde. Před použitím Asistence AI ji spusťte.",
-      "key": "Klíč API",
-      "keyOptional": "Klíč API (pokud ho služba vyžaduje)",
-      "keySaved": "Pro tuto adresu je uložen klíč.",
-      "removeKey": "Odebrat klíč",
-      "saveKey": "Uložit klíč",
-      "getKey": "Získejte klíč u služby {{name}}.",
-      "keyCost": "Služba účtuje, co využijete.",
-      "keyKept": "Váš klíč je uložen v klíčence vašeho počítače a odesílá se jen na tuto adresu.",
-      "model": "Model",
-      "check": "Ověřit připojení",
-      "checking": "Ověřování…",
-      "connected_one": "Připojeno. Služba nabízí {{count}} model.",
-      "connected_few": "Připojeno. Služba nabízí {{count}} modely.",
-      "connected_many": "Připojeno. Služba nabízí {{count}} modelů.",
-      "connected_other": "Připojeno. Služba nabízí {{count}} modelů."
-    },
-    "error": {
-      "noKey": "Pro tuto službu není žádný klíč. Přidejte ho v části Předvolby → Asistence AI.",
-      "auth": "Služba klíč nepřijala.",
-      "notFound": "Služba nerozpoznala adresu ani model.",
-      "rateLimit": "Služba hlásí, že bylo odesláno příliš mnoho požadavků. Počkejte minutu a zkuste to znovu.",
-      "overloaded": "Služba je zaneprázdněná. Zkuste to za chvíli znovu.",
-      "unreachable": "Aplikace Magnolia se nemohla spojit se službou. Zkontrolujte adresu a připojení (a u modelu na tomto počítači také, zda běží).",
-      "badAddress": "Toto není webová adresa, kterou může aplikace Magnolia použít.",
-      "keychain": "Aplikace Magnolia nemohla použít klíčenku vašeho počítače.",
-      "provider": "Služba nahlásila problém.",
-      "cancelled": "Zastaveno.",
-      "tooManySteps": "AI pracovala i po mnoha krocích, a tak ji aplikace Magnolia zastavila. Požádejte ji, ať pokračuje, nebo otázku zužte."
-    },
     "activity": {
       "listDocuments_one": "Vypsán {{count}} dokument projektu",
       "listDocuments_few": "Vypsány {{count}} dokumenty projektu",
@@ -2338,19 +2297,18 @@
       "proposedRemoval": "Navrženo odebrat {{code}} z úseku v dokumentu {{name}}",
       "problem": "Vyžádáno něco, co neexistuje",
       "unknownTool": "Vyžádán nástroj, který aplikace Magnolia nemá ({{name}})",
-      "failed": "Požadavek selhal ({{name}})",
-      "cutOff": "Požadavek byl přerušen"
+      "failed": "Požadavek selhal ({{name}})"
     },
     "log": {
       "title_one": "Asistence AI: schválena {{count}} změna",
       "title_few": "Asistence AI: schváleny {{count}} změny",
       "title_many": "Asistence AI: schváleno {{count}} změn",
       "title_other": "Asistence AI: schváleno {{count}} změn",
-      "intro": "Navrženo modelem {{model}} na dotaz:",
       "newCode": "Nový kód **{{name}}**",
       "editCode": "Změněn kód **{{name}}**",
       "addCoding": "„{{quote}}“ v dokumentu {{document}} okódováno kódem **{{code}}**",
-      "removeCoding": "Kód **{{code}}** odebrán z „{{quote}}“ v dokumentu {{document}}"
+      "removeCoding": "Kód **{{code}}** odebrán z „{{quote}}“ v dokumentu {{document}}",
+      "proposedBy": "Navrženo: {{model}}."
     },
     "fail": {
       "noParent": "Kód, pod který měl patřit, už v projektu není.",
@@ -2360,25 +2318,8 @@
       "codingGone": "Toto kódování už v projektu není."
     },
     "pane": {
-      "noService": "Asistence AI využívá vaši vlastní službu AI. Vyberte ji a její model v Předvolbách.",
       "openSettings": "Otevřít Předvolby",
-      "consentTitle": "Zapnout Asistenci AI pro tento projekt?",
-      "consentChanged": "Služba AI se změnila. Zapnout Asistenci AI pro tento projekt s novou službou?",
-      "consentRemote": "AI si přečte ty části projektu, které potřebuje, aby vám odpověděla, a ty se odešlou službě {{name}} ({{address}}). Ověřte si, že je to u vašich dat povoleno, například vaším etickým schválením.",
-      "consentLocal": "AI si přečte ty části projektu, které potřebuje, aby vám odpověděla. {{name}} běží na tomto počítači, takže nic z něj neodchází.",
-      "consentReview": "Chat ukazuje vše, co AI přečte. Projekt měnit nemůže: každou navrženou změnu schválíte, nebo zamítnete.",
-      "turnOn": "Zapnout",
-      "newChat": "Nový chat",
-      "newChatOption": "Nový chat",
-      "chats": "Chaty",
-      "conversation": "Konverzace",
-      "empty": "Ptejte se na svá data nebo si řekněte o návrhy kódů a kódování. Například: „Co účastníci říkají o nákladech?“ nebo „Navrhni kódy pro rozhovor 3.“",
-      "working": "Pracuje se…",
-      "message": "Zpráva",
-      "placeholder": "Zeptejte se na svá data…",
-      "send": "Odeslat",
-      "stop": "Zastavit",
-      "using": "{{name}} · {{model}}",
+      "consentReview": "Tento panel uvádí vše, co aplikace čte. Projekt měnit nemůže: každou navrženou změnu schválíte, nebo zamítnete.",
       "review_one": "Zkontrolovat {{count}}",
       "review_few": "Zkontrolovat {{count}}",
       "review_many": "Zkontrolovat {{count}}",
@@ -2390,7 +2331,19 @@
       "proposed_one": "Navržena {{count}} změna: zkontrolujte ji",
       "proposed_few": "Navrženy {{count}} změny: zkontrolujte je",
       "proposed_many": "Navrženo {{count}} změn: zkontrolujte je",
-      "proposed_other": "Navrženo {{count}} změn: zkontrolujte je"
+      "proposed_other": "Navrženo {{count}} změn: zkontrolujte je",
+      "appAsks": "{{name}} chce používat tento projekt.",
+      "appsTitle": "Povolit aplikacím AI na tomto počítači používat tento projekt?",
+      "appsConsent": "Aplikace AI, například Claude Desktop, si přečte ty části projektu, které potřebuje, a odešle je své službě AI (u Claude Desktop společnosti Anthropic). Ověřte si, že je to u vašich dat povoleno, například vaším etickým schválením.",
+      "allowApps": "Povolit",
+      "notNow": "Teď ne",
+      "emptyApps": "Zeptejte se Claude Desktop (nebo jiné aplikace AI) na tento projekt. Co přečte a jaké změny navrhne, se zobrazí zde.",
+      "appsOn": "Aplikace AI mohou tento projekt používat",
+      "stopApps": "Zakázat aplikacím AI jeho používání",
+      "intro": "Asistence AI umožňuje aplikaci AI na tomto počítači, například Claude Desktop s vaším předplatným Claude, číst tento projekt a navrhovat kódy a kódování. Každou navrženou změnu schválíte, nebo zamítnete. Zapněte ji v Předvolbách.",
+      "sessions": "Relace",
+      "activity": "Co aplikace udělala",
+      "appSession": "{{name}}, {{time}}: co přečetla a navrhla."
     },
     "review": {
       "title": "Asistence AI",
@@ -2402,7 +2355,7 @@
         "denied": "Zamítnuté ({{count}})"
       },
       "empty": {
-        "pending": "Není co kontrolovat. Požádejte AI v panelu Asistence AI o návrhy kódů nebo kódování.",
+        "pending": "Není co kontrolovat. Požádejte Claude Desktop (nebo jinou aplikaci AI) o návrhy kódů nebo kódování.",
         "approved": "Zatím nebyly schváleny žádné změny.",
         "denied": "Žádné změny nebyly zamítnuty."
       },
@@ -2456,7 +2409,20 @@
         "denied": "Zamítnuto",
         "failed": "Neprovedeno",
         "pending": "Ke kontrole"
-      }
+      },
+      "session": "{{app}}, {{time}}"
+    },
+    "apps": {
+      "intro": "S předplatným Claude můžete používat Claude Desktop s aplikací Magnolia bez klíče API: přečte otevřený projekt a navrhne změny, které v aplikaci Magnolia schválíte, nebo zamítnete. Fungují i další aplikace, které podporují Model Context Protocol (MCP).",
+      "allow": "Povolit aplikacím AI na tomto počítači používat aplikaci Magnolia",
+      "howProjects": "Svolení se přesto žádá u každého projektu zvlášť, v jeho panelu Asistence AI. Tam je uvedeno, co aplikace čte, a změny, které navrhne, čekají v prohlížeči Asistence AI. Aplikace odesílá to, co přečte, své vlastní službě AI.",
+      "addToClaude": "Přidat aplikaci Magnolia do Claude Desktop",
+      "added": "Přidáno. Ukončete a znovu otevřete Claude Desktop a Magnolia se objeví mezi jeho konektory.",
+      "noClaude": "Claude Desktop není na tomto počítači nainstalován.",
+      "badSettings": "Aplikace Magnolia nemohla přečíst soubor nastavení Claude Desktop, a proto ho nechala beze změny. Přidejte aplikaci Magnolia ručně (viz Další aplikace).",
+      "addFailed": "Aplikace Magnolia nemohla změnit nastavení Claude Desktop ({{detail}}).",
+      "otherApps": "Další aplikace",
+      "otherAppsText": "V nastavení serverů MCP jiné aplikace přidejte toto:"
     }
   }
 }

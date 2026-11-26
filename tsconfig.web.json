@@ -19,6 +19,7 @@
   },
   "include": [
     "src/renderer/**/*",
-    "src/renderer/locales/*.json"
+    "src/renderer/locales/*.json",
+    "src/renderer/utils/ai/*.json"
   ]
 }

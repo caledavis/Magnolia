@@ -72,6 +72,20 @@ since its last change.
     says why (it used to fail without a word). The build machine checks
     this on Ubuntu in Spanish, but not with KDE's own save dialog.
 
+## AI Assistance
+
+13. 🪟 **Claude Desktop uses Magnolia** (Windows: Claude Desktop isn't made
+    for Linux; on Linux, try another app that supports MCP). In Preferences
+    → AI Assistance tick "Let AI apps on this computer use Magnolia" and
+    press `Add Magnolia to Claude Desktop`, then quit and reopen Claude
+    Desktop: Magnolia is among its connectors. Open a copy of a sample
+    project, View → AI Assistance, and in Claude Desktop ask "Suggest codes
+    for one of the interviews in my Magnolia project": the pane asks to
+    allow it; once allowed, the pane lists what Claude read, the proposals
+    appear in the AI Assistance Viewer, and approving one codes the
+    passage. On Windows, check that no console window opens when Claude
+    Desktop starts the connector.
+
 ## Screen readers
 
 11. 🪟 **NVDA**, 🐧 **Orca**: with the screen reader on, move through the

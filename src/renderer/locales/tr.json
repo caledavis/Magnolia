@@ -2099,45 +2099,6 @@
     "copyFailed": "Kopyalanamadı: metni seçip kendiniz kopyalayın."
   },
   "ai": {
-    "prefs": {
-      "intro": "Yapay zekâ yardımı kendi yapay zekâ hizmetinizi kullanır: Anthropic, OpenAI ya da başka bir sağlayıcıdan alınan bir anahtar (kullandığınız kadar, Claude veya ChatGPT aboneliğinden ayrı olarak sağlayıcı tarafından ücretlendirilir) ya da bu bilgisayarda çalışan bir model.",
-      "privacy": "Bir proje için yapay zekâ yardımını açana kadar o projeden hiçbir şey gönderilmez. Sonrasında yapay zekâ yalnızca istediği şeyleri okur ve sohbette okuduğu her şey gösterilir. Etik kurul onayınızın verilerinizin seçtiğiniz hizmete gönderilmesine izin verdiğinden emin olun; bu bilgisayardaki bir model her şeyi bilgisayarda tutar.",
-      "service": "Hizmet",
-      "none": "Yok (yapay zekâ yardımı kapalı)",
-      "custom": "Başka bir hizmet…",
-      "onThisComputer": "{{name}} (bu bilgisayarda)",
-      "kind": "API türü",
-      "kindOpenai": "OpenAI uyumlu",
-      "kindAnthropic": "Anthropic",
-      "address": "Adres",
-      "localNote": "Bu hizmet bu bilgisayarda çalışır: yapay zekânın okuduğu her şey burada kalır. Yapay zekâ yardımını kullanmadan önce hizmeti başlatın.",
-      "key": "API anahtarı",
-      "keyOptional": "API anahtarı (hizmet gerektiriyorsa)",
-      "keySaved": "Bu adres için kayıtlı bir anahtar var.",
-      "removeKey": "Anahtarı kaldır",
-      "saveKey": "Anahtarı kaydet",
-      "getKey": "Anahtar alın: {{name}}.",
-      "keyCost": "Hizmet, kullandığınız kadar ücret alır.",
-      "keyKept": "Anahtarınız bilgisayarınızın anahtar zincirinde saklanır ve yalnızca bu adrese gönderilir.",
-      "model": "Model",
-      "check": "Bağlantıyı denetle",
-      "checking": "Denetleniyor…",
-      "connected_one": "Bağlandı. Hizmet {{count}} model sunuyor.",
-      "connected_other": "Bağlandı. Hizmet {{count}} model sunuyor."
-    },
-    "error": {
-      "noKey": "Bu hizmet için anahtar yok. Ayarlar → Yapay zekâ yardımı bölümünden bir anahtar ekleyin.",
-      "auth": "Hizmet anahtarı kabul etmedi.",
-      "notFound": "Hizmet adresi ya da modeli tanımadı.",
-      "rateLimit": "Hizmet çok fazla istek gönderildiğini bildiriyor. Bir dakika bekleyip yeniden deneyin.",
-      "overloaded": "Hizmet meşgul. Biraz sonra yeniden deneyin.",
-      "unreachable": "Magnolia hizmete ulaşamadı. Adresi ve bağlantınızı denetleyin (bu bilgisayardaki bir model için de modelin çalıştığını).",
-      "badAddress": "Bu, Magnolia’nın kullanabileceği bir web adresi değil.",
-      "keychain": "Magnolia bilgisayarınızın anahtar zincirini kullanamadı.",
-      "provider": "Hizmet bir sorun bildirdi.",
-      "cancelled": "Durduruldu.",
-      "tooManySteps": "Yapay zekâ birçok adımdan sonra hâlâ çalışıyordu, bu yüzden Magnolia onu durdurdu. Devam etmesini isteyin ya da soruyu daraltın."
-    },
     "activity": {
       "listDocuments_one": "Projenin {{count}} belgesi listelendi",
       "listDocuments_other": "Projenin {{count}} belgesi listelendi",
@@ -2156,17 +2117,16 @@
       "proposedRemoval": "{{name}} içindeki bir pasajdan {{code}} kodunun kaldırılması önerildi",
       "problem": "Var olmayan bir şey istendi",
       "unknownTool": "Magnolia’da olmayan bir araç istendi ({{name}})",
-      "failed": "Bir istek başarısız oldu ({{name}})",
-      "cutOff": "Bir istek yarıda kesildi"
+      "failed": "Bir istek başarısız oldu ({{name}})"
     },
     "log": {
       "title_one": "Yapay zekâ yardımı: {{count}} değişiklik onaylandı",
       "title_other": "Yapay zekâ yardımı: {{count}} değişiklik onaylandı",
-      "intro": "Öneren model: {{model}}. Sorulan:",
       "newCode": "Yeni kod **{{name}}**",
       "editCode": "Kod değiştirildi: **{{name}}**",
       "addCoding": "{{document}} içinde “{{quote}}”, **{{code}}** koduyla kodlandı",
-      "removeCoding": "{{document}} içinde “{{quote}}” alıntısından **{{code}}** kaldırıldı"
+      "removeCoding": "{{document}} içinde “{{quote}}” alıntısından **{{code}}** kaldırıldı",
+      "proposedBy": "Öneren: {{model}}."
     },
     "fail": {
       "noParent": "Altına girmesi gereken kod artık projede yok.",
@@ -2176,31 +2136,26 @@
       "codingGone": "Bu kodlama artık projede yok."
     },
     "pane": {
-      "noService": "Yapay zekâ yardımı kendi yapay zekâ hizmetinizi kullanır. Ayarlar’dan bir hizmet ve modelini seçin.",
       "openSettings": "Ayarları aç",
-      "consentTitle": "Bu proje için yapay zekâ yardımı açılsın mı?",
-      "consentChanged": "Yapay zekâ hizmeti değişti. Bu proje için yapay zekâ yardımı yeni hizmetle açılsın mı?",
-      "consentRemote": "Yapay zekâ, size yanıt vermek için bu projenin gereken kısımlarını okuyacak ve bunlar şu hizmete gönderilecek: {{name}} ({{address}}). Bunun verileriniz için izinli olduğundan emin olun (örneğin etik kurul onayınızla).",
-      "consentLocal": "Yapay zekâ, size yanıt vermek için bu projenin gereken kısımlarını okuyacak. {{name}} bu bilgisayarda çalıştığı için hiçbir şey bilgisayardan çıkmaz.",
-      "consentReview": "Sohbette yapay zekânın okuduğu her şey listelenir. Yapay zekâ projeyi değiştiremez: önerdiği her değişikliği siz onaylar ya da reddedersiniz.",
-      "turnOn": "Aç",
-      "newChat": "Yeni sohbet",
-      "newChatOption": "Yeni sohbet",
-      "chats": "Sohbetler",
-      "conversation": "Sohbet",
-      "empty": "Verileriniz hakkında soru sorun ya da kod ve kodlama önerileri isteyin. Örneğin: “Katılımcılar maliyet hakkında ne diyor?” veya “Görüşme 3 için kod öner.”",
-      "working": "Çalışıyor…",
-      "message": "Mesaj",
-      "placeholder": "Verileriniz hakkında sorun…",
-      "send": "Gönder",
-      "stop": "Durdur",
-      "using": "{{name}} · {{model}}",
+      "consentReview": "Bu bölmede uygulamanın okuduğu her şey listelenir. Uygulama projeyi değiştiremez: önerdiği her değişikliği siz onaylar ya da reddedersiniz.",
       "review_one": "{{count}} öğeyi incele",
       "review_other": "{{count}} öğeyi incele",
       "reviewTitle_one": "İncelenecek {{count}} değişiklik",
       "reviewTitle_other": "İncelenecek {{count}} değişiklik",
       "proposed_one": "{{count}} değişiklik önerildi: inceleyin",
-      "proposed_other": "{{count}} değişiklik önerildi: inceleyin"
+      "proposed_other": "{{count}} değişiklik önerildi: inceleyin",
+      "appAsks": "{{name}} bu projeyi kullanmak istiyor.",
+      "appsTitle": "Bu bilgisayardaki yapay zekâ uygulamaları bu projeyi kullanabilsin mi?",
+      "appsConsent": "Claude Desktop gibi bir yapay zekâ uygulaması bu projenin gereken kısımlarını okuyup kendi yapay zekâ hizmetine (Claude Desktop için Anthropic) gönderir. Bunun verileriniz için izinli olduğundan emin olun (örneğin etik kurul onayınızla).",
+      "allowApps": "İzin ver",
+      "notNow": "Şimdi değil",
+      "emptyApps": "Claude Desktop’a (ya da başka bir yapay zekâ uygulamasına) bu projeyle ilgili soru sorun. Okuduğu şeyler ve önerdiği değişiklikler burada görünür.",
+      "appsOn": "Yapay zekâ uygulamaları bu projeyi kullanabilir",
+      "stopApps": "Yapay zekâ uygulamalarının erişimini durdur",
+      "intro": "Yapay zekâ yardımı, bu bilgisayardaki bir yapay zekâ uygulamasının (örneğin Claude aboneliğinizle Claude Desktop) bu projeyi okumasını ve kod ve kodlama önermesini sağlar. Önerdiği her değişikliği siz onaylar ya da reddedersiniz. Ayarlar’dan açın.",
+      "sessions": "Oturumlar",
+      "activity": "Uygulamanın yaptıkları",
+      "appSession": "{{name}}, {{time}}: okudukları ve önerdikleri."
     },
     "review": {
       "title": "Yapay zekâ yardımı",
@@ -2212,7 +2167,7 @@
         "denied": "Reddedilen ({{count}})"
       },
       "empty": {
-        "pending": "İncelenecek bir şey yok. Yapay zekâ yardımı bölmesinde yapay zekâdan kod ya da kodlama önerisi isteyin.",
+        "pending": "İncelenecek bir şey yok. Claude Desktop’tan (ya da başka bir yapay zekâ uygulamasından) kod ya da kodlama önerisi isteyin.",
         "approved": "Henüz onaylanan değişiklik yok.",
         "denied": "Reddedilen değişiklik yok."
       },
@@ -2256,7 +2211,20 @@
         "denied": "Reddedildi",
         "failed": "Yapılamadı",
         "pending": "İncelenecek"
-      }
+      },
+      "session": "{{app}}, {{time}}"
+    },
+    "apps": {
+      "intro": "Claude aboneliğiniz varsa Claude Desktop’ı Magnolia ile API anahtarı olmadan kullanabilirsiniz: açık projeyi okur ve değişiklikler önerir; bunları Magnolia’da onaylar ya da reddedersiniz. Model Context Protocol (MCP) desteği olan diğer uygulamalar da çalışır.",
+      "allow": "Bu bilgisayardaki yapay zekâ uygulamalarının Magnolia’yı kullanmasına izin ver",
+      "howProjects": "Yine de her proje için önce o projenin Yapay zekâ yardımı bölmesinde izin istenir. Bir uygulamanın okuduğu her şey orada listelenir; önerdiği değişiklikler ise Yapay zekâ yardımı görüntüleyicisinde bekler. Uygulama, okuduklarını kendi yapay zekâ hizmetine gönderir.",
+      "addToClaude": "Magnolia’yı Claude Desktop’a ekle",
+      "added": "Eklendi. Claude Desktop’tan çıkıp yeniden açın; Magnolia bağlayıcıları arasında görünür.",
+      "noClaude": "Claude Desktop bu bilgisayarda yüklü değil.",
+      "badSettings": "Magnolia, Claude Desktop’ın ayar dosyasını okuyamadığı için dosyayı olduğu gibi bıraktı. Magnolia’yı elle ekleyin (bkz. Diğer uygulamalar).",
+      "addFailed": "Magnolia, Claude Desktop’ın ayarlarını değiştiremedi ({{detail}}).",
+      "otherApps": "Diğer uygulamalar",
+      "otherAppsText": "Başka bir uygulamanın MCP sunucusu ayarlarına şunu ekleyin:"
     }
   }
 }

@@ -2099,45 +2099,6 @@
     "copyFailed": "Kopieren fehlgeschlagen: Markieren Sie den Text und kopieren Sie ihn."
   },
   "ai": {
-    "prefs": {
-      "intro": "Die KI-Assistenz nutzt Ihren eigenen KI-Dienst: einen Schlüssel von Anthropic, OpenAI oder einem anderen Anbieter (der Ihnen die Nutzung berechnet, getrennt von einem Claude- oder ChatGPT-Abo) oder ein Modell, das auf diesem Computer läuft.",
-      "privacy": "Aus einem Projekt wird nichts gesendet, bis Sie die KI-Assistenz für dieses Projekt einschalten. Dann liest die KI nur, was sie anfragt, und der Chat zeigt alles, was sie liest. Prüfen Sie, ob Ihr Ethikvotum erlaubt, Ihre Daten an den gewählten Dienst zu senden; ein Modell auf diesem Computer behält alles auf ihm.",
-      "service": "Dienst",
-      "none": "Keiner (KI-Assistenz aus)",
-      "custom": "Anderer Dienst …",
-      "onThisComputer": "{{name}} (auf diesem Computer)",
-      "kind": "API-Typ",
-      "kindOpenai": "OpenAI-kompatibel",
-      "kindAnthropic": "Anthropic",
-      "address": "Adresse",
-      "localNote": "Dieser Dienst läuft auf diesem Computer: Was die KI liest, bleibt hier. Starten Sie ihn, bevor Sie die KI-Assistenz nutzen.",
-      "key": "API-Schlüssel",
-      "keyOptional": "API-Schlüssel (falls der Dienst einen braucht)",
-      "keySaved": "Für diese Adresse ist ein Schlüssel gespeichert.",
-      "removeKey": "Schlüssel entfernen",
-      "saveKey": "Schlüssel speichern",
-      "getKey": "Einen Schlüssel von {{name}} holen.",
-      "keyCost": "Der Dienst berechnet Ihnen die Nutzung.",
-      "keyKept": "Ihr Schlüssel wird im Schlüsselbund Ihres Computers aufbewahrt und nur an diese Adresse gesendet.",
-      "model": "Modell",
-      "check": "Verbindung prüfen",
-      "checking": "Wird geprüft …",
-      "connected_one": "Verbunden. Der Dienst bietet {{count}} Modell an.",
-      "connected_other": "Verbunden. Der Dienst bietet {{count}} Modelle an."
-    },
-    "error": {
-      "noKey": "Für diesen Dienst gibt es keinen Schlüssel. Fügen Sie unter Einstellungen → KI-Assistenz einen hinzu.",
-      "auth": "Der Dienst hat den Schlüssel nicht angenommen.",
-      "notFound": "Der Dienst hat die Adresse oder das Modell nicht erkannt.",
-      "rateLimit": "Laut dem Dienst wurden zu viele Anfragen gesendet. Warten Sie eine Minute und versuchen Sie es erneut.",
-      "overloaded": "Der Dienst ist ausgelastet. Versuchen Sie es gleich noch einmal.",
-      "unreachable": "Magnolia konnte den Dienst nicht erreichen. Prüfen Sie die Adresse und Ihre Verbindung (und bei einem Modell auf diesem Computer, ob es läuft).",
-      "badAddress": "Das ist keine Webadresse, die Magnolia verwenden kann.",
-      "keychain": "Magnolia konnte den Schlüsselbund Ihres Computers nicht verwenden.",
-      "provider": "Der Dienst hat ein Problem gemeldet.",
-      "cancelled": "Gestoppt.",
-      "tooManySteps": "Die KI arbeitete nach vielen Schritten noch immer, daher hat Magnolia sie gestoppt. Bitten Sie sie, weiterzumachen, oder stellen Sie die Frage enger."
-    },
     "activity": {
       "listDocuments_one": "Dokumente des Projekts aufgelistet ({{count}})",
       "listDocuments_other": "Dokumente des Projekts aufgelistet ({{count}})",
@@ -2156,17 +2117,16 @@
       "proposedRemoval": "Vorgeschlagen, {{code}} von einer Passage in {{name}} zu entfernen",
       "problem": "Etwas angefragt, das es nicht gab",
       "unknownTool": "Ein Werkzeug angefragt, das Magnolia nicht hat ({{name}})",
-      "failed": "Eine Anfrage ist fehlgeschlagen ({{name}})",
-      "cutOff": "Eine Anfrage wurde abgebrochen"
+      "failed": "Eine Anfrage ist fehlgeschlagen ({{name}})"
     },
     "log": {
       "title_one": "KI-Assistenz: {{count}} Änderung angenommen",
       "title_other": "KI-Assistenz: {{count}} Änderungen angenommen",
-      "intro": "Vorgeschlagen von {{model}} auf die Frage:",
       "newCode": "Neuer Code **{{name}}**",
       "editCode": "Code **{{name}}** geändert",
       "addCoding": "„{{quote}}“ in {{document}} mit **{{code}}** codiert",
-      "removeCoding": "**{{code}}** von „{{quote}}“ in {{document}} entfernt"
+      "removeCoding": "**{{code}}** von „{{quote}}“ in {{document}} entfernt",
+      "proposedBy": "Vorgeschlagen von {{model}}."
     },
     "fail": {
       "noParent": "Der Code, unter den er kommen sollte, ist nicht mehr im Projekt.",
@@ -2176,31 +2136,26 @@
       "codingGone": "Diese Codierung ist nicht mehr im Projekt."
     },
     "pane": {
-      "noService": "Die KI-Assistenz nutzt Ihren eigenen KI-Dienst. Wählen Sie in den Einstellungen einen Dienst und sein Modell.",
       "openSettings": "Einstellungen öffnen",
-      "consentTitle": "KI-Assistenz für dieses Projekt einschalten?",
-      "consentChanged": "Der KI-Dienst hat sich geändert. KI-Assistenz für dieses Projekt mit dem neuen Dienst einschalten?",
-      "consentRemote": "Die KI liest die Teile dieses Projekts, die sie für ihre Antwort braucht, und diese werden an {{name}} ({{address}}) gesendet. Prüfen Sie, ob das für Ihre Daten erlaubt ist, zum Beispiel laut Ihrem Ethikvotum.",
-      "consentLocal": "Die KI liest die Teile dieses Projekts, die sie für ihre Antwort braucht. {{name}} läuft auf diesem Computer, also verlässt nichts den Computer.",
-      "consentReview": "Der Chat listet alles auf, was die KI liest. Sie kann das Projekt nicht ändern: Sie nehmen jede vorgeschlagene Änderung an oder lehnen sie ab.",
-      "turnOn": "Einschalten",
-      "newChat": "Neuer Chat",
-      "newChatOption": "Neuer Chat",
-      "chats": "Chats",
-      "conversation": "Unterhaltung",
-      "empty": "Fragen Sie nach Ihren Daten oder nach Vorschlägen für Codes und Codierungen. Zum Beispiel: „Was sagen die Teilnehmenden über die Kosten?“ oder „Schlage Codes für Interview 3 vor.“",
-      "working": "Wird bearbeitet …",
-      "message": "Nachricht",
-      "placeholder": "Fragen Sie nach Ihren Daten …",
-      "send": "Senden",
-      "stop": "Stoppen",
-      "using": "{{name}} · {{model}}",
+      "consentReview": "Dieser Bereich listet alles auf, was die App liest. Die App kann das Projekt nicht ändern: Sie nehmen jede vorgeschlagene Änderung an oder lehnen sie ab.",
       "review_one": "{{count}} prüfen",
       "review_other": "{{count}} prüfen",
       "reviewTitle_one": "{{count}} Änderung zu prüfen",
       "reviewTitle_other": "{{count}} Änderungen zu prüfen",
       "proposed_one": "{{count}} Änderung vorgeschlagen: Prüfen Sie sie",
-      "proposed_other": "{{count}} Änderungen vorgeschlagen: Prüfen Sie sie"
+      "proposed_other": "{{count}} Änderungen vorgeschlagen: Prüfen Sie sie",
+      "appAsks": "{{name}} möchte dieses Projekt nutzen.",
+      "appsTitle": "KI-Apps auf diesem Computer erlauben, dieses Projekt zu nutzen?",
+      "appsConsent": "Eine KI-App wie Claude Desktop liest die Teile dieses Projekts, die sie braucht, und sendet sie an ihren KI-Dienst (bei Claude Desktop an Anthropic). Prüfen Sie, ob das für Ihre Daten erlaubt ist, zum Beispiel laut Ihrem Ethikvotum.",
+      "allowApps": "Erlauben",
+      "notNow": "Nicht jetzt",
+      "emptyApps": "Fragen Sie Claude Desktop (oder eine andere KI-App) zu diesem Projekt. Was die App liest und welche Änderungen sie vorschlägt, erscheint hier.",
+      "appsOn": "KI-Apps können dieses Projekt nutzen",
+      "stopApps": "Nutzung durch KI-Apps beenden",
+      "intro": "Mit der KI-Assistenz kann eine KI-App auf diesem Computer, etwa Claude Desktop mit Ihrem Claude-Abo, dieses Projekt lesen und Codes und Codierungen vorschlagen. Sie nehmen jede vorgeschlagene Änderung an oder lehnen sie ab. Schalten Sie sie in den Einstellungen ein.",
+      "sessions": "Sitzungen",
+      "activity": "Was die App getan hat",
+      "appSession": "{{name}}, {{time}}: was gelesen und vorgeschlagen wurde."
     },
     "review": {
       "title": "KI-Assistenz",
@@ -2212,7 +2167,7 @@
         "denied": "Abgelehnt ({{count}})"
       },
       "empty": {
-        "pending": "Nichts zu prüfen. Bitten Sie die KI im Bereich KI-Assistenz um Vorschläge für Codes oder Codierungen.",
+        "pending": "Nichts zu prüfen. Bitten Sie Claude Desktop (oder eine andere KI-App) um Vorschläge für Codes oder Codierungen.",
         "approved": "Noch keine Änderungen angenommen.",
         "denied": "Keine Änderungen abgelehnt."
       },
@@ -2256,7 +2211,20 @@
         "denied": "Abgelehnt",
         "failed": "Nicht vorgenommen",
         "pending": "Zu prüfen"
-      }
+      },
+      "session": "{{app}}, {{time}}"
+    },
+    "apps": {
+      "intro": "Mit einem Claude-Abo können Sie Claude Desktop mit Magnolia nutzen, ohne API-Schlüssel: Es liest das geöffnete Projekt und schlägt Änderungen vor, die Sie in Magnolia annehmen oder ablehnen. Andere Apps, die das Model Context Protocol (MCP) unterstützen, funktionieren ebenfalls.",
+      "allow": "KI-Apps auf diesem Computer erlauben, Magnolia zu nutzen",
+      "howProjects": "Für jedes Projekt wird trotzdem zuerst um Erlaubnis gefragt, in seinem Bereich KI-Assistenz. Dort ist aufgelistet, was eine App liest, und die Änderungen, die sie vorschlägt, warten im Viewer der KI-Assistenz. Die App sendet, was sie liest, an ihren eigenen KI-Dienst.",
+      "addToClaude": "Magnolia zu Claude Desktop hinzufügen",
+      "added": "Hinzugefügt. Beenden Sie Claude Desktop und öffnen Sie es erneut; dann erscheint Magnolia unter seinen Konnektoren.",
+      "noClaude": "Claude Desktop ist auf diesem Computer nicht installiert.",
+      "badSettings": "Magnolia konnte die Einstellungsdatei von Claude Desktop nicht lesen und hat sie deshalb unverändert gelassen. Fügen Sie Magnolia von Hand hinzu (siehe Andere Apps).",
+      "addFailed": "Magnolia konnte die Einstellungen von Claude Desktop nicht ändern ({{detail}}).",
+      "otherApps": "Andere Apps",
+      "otherAppsText": "Fügen Sie in den Einstellungen einer anderen App für MCP-Server Folgendes hinzu:"
     }
   }
 }

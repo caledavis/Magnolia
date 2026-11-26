@@ -585,12 +585,12 @@ const api: MagnoliaAPI = {
   savePreferences: (prefs) => invoke('save_preferences', { prefs }),
   sendPreferencesUpdate: (prefs) => void invoke('preferences_update', { prefs }),
   onPreferencesUpdate: (callback) => on('preferences-update', callback),
-  aiKeySet: (baseUrl, key) => invoke('ai_key_set', { baseUrl, key }),
-  aiKeySaved: (baseUrl) => invoke('ai_key_saved', { baseUrl }),
-  aiModels: (provider) => invoke('ai_models', { provider }),
-  aiChat: (requestId, provider, system, messages, tools) => invoke('ai_chat', { requestId, provider, system, messages, tools }),
-  aiCancel: (requestId) => invoke('ai_cancel', { requestId }),
-  onAiEvent: (callback) => on('ai-event', callback)
+  mcpSetEnabled: (enabled) => invoke('mcp_set_enabled', { enabled }),
+  mcpReply: (callId, content, isError) => invoke('mcp_reply', { callId, content, isError }),
+  onMcpCall: (callback) => on('mcp-call', callback),
+  mcpConnectorSettings: () => invoke('mcp_connector_settings'),
+  mcpAddToClaudeDesktop: () => invoke('mcp_add_to_claude_desktop'),
+  mcpClaudeDesktopFound: () => invoke('mcp_claude_desktop_found')
 }
 
 // Synchronous at startup so CSS / components can branch on it.

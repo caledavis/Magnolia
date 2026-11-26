@@ -1002,8 +1002,8 @@ fn ai_assistance_is_kept_with_the_project() {
     let dir = temp();
     let path = p(&dir, "ai.qdpx");
     let ai = json!({
-        "enabledFor": "http://localhost:11434",
-        "chats": [{ "id": "c1", "title": "Codes for cost", "items": [{ "kind": "user", "id": "i1", "text": "Suggest codes" }], "refs": { "documents": {}, "codes": {}, "passages": {}, "newCodes": {} } }],
+        "appsAllowed": true,
+        "sessions": [{ "id": "app:1", "app": "Claude Desktop", "items": [{ "id": "i1", "content": "D1 | Interview", "activity": { "key": "ai.activity.listDocuments" } }], "refs": { "documents": {}, "codes": {}, "passages": {}, "newCodes": {} } }],
         "proposals": [{ "id": "p1", "chatId": "c1", "status": "pending", "change": { "type": "newCode", "ref": "N1", "name": "Cost" } }],
         "createdCodes": {}
     });
@@ -1019,7 +1019,7 @@ fn a_project_without_ai_assistance_has_no_ai_file() {
     let dir = temp();
     let path = p(&dir, "plain.qdpx");
     let mut project = empty_project();
-    project["ai"] = json!({ "chats": [], "proposals": [], "createdCodes": {} });
+    project["ai"] = json!({ "sessions": [], "proposals": [], "createdCodes": {} });
     write_qdpx(&path, &mut project, &Map::new(), &opts(None, "")).unwrap();
     assert_eq!(read_entry(&path, "magnolia-ai.json"), None);
     assert!(read_qdpx(&path, None).unwrap().get("ai").is_none());

@@ -17,6 +17,7 @@ import { useCodeStore } from '../../stores/code-store'
 import { flattenCodesWithDepth } from '../code-tree'
 import { buildCellText } from '../survey/cell-text'
 import { textForSelection } from '../query-engine'
+import toolSpecs from './tool-specs.json'
 
 /** A passage a chat has shown the AI (cited as [P12]). */
 export interface PassageRef {
@@ -63,104 +64,9 @@ const MAX_MATCHES = 40
 const MAX_PASSAGES = 60
 const PASSAGE_CHARS = 600
 
-const str = { type: 'string' } as const
-const int = { type: 'integer' } as const
-
-export const TOOL_SPECS: AiToolSpec[] = [
-  {
-    name: 'list_documents',
-    description: 'List the project\'s documents: each one\'s reference (D1…), name, kind and length in characters. Pictures and recordings without a transcript have no text to read.',
-    schema: { type: 'object', properties: {} }
-  },
-  {
-    name: 'list_codes',
-    description: 'List the project\'s codes as a tree: each one\'s reference (C1…), name, description and how many passages it codes.',
-    schema: { type: 'object', properties: {} }
-  },
-  {
-    name: 'read_document',
-    description: `Read a document's text, ${READ_CHUNK} characters at a time (use "from" to read on). For a survey, read its answers instead: all of them, or one respondent's, or one question's.`,
-    schema: {
-      type: 'object',
-      properties: {
-        document: { ...str, description: 'Its reference, e.g. D3.' },
-        from: { ...int, description: 'Character offset to start at (default 0).' },
-        respondent: { ...str, description: 'Survey only: a respondent id.' },
-        question: { ...str, description: 'Survey only: a question id.' }
-      },
-      required: ['document']
-    }
-  },
-  {
-    name: 'search_text',
-    description: 'Find words or a phrase in the documents (not case-sensitive). Each match is a passage reference (P1…) with its context, which you can cite.',
-    schema: {
-      type: 'object',
-      properties: {
-        text: str,
-        document: { ...str, description: 'Only this document (a reference); default all.' },
-        whole_word: { type: 'boolean' }
-      },
-      required: ['text']
-    }
-  },
-  {
-    name: 'coded_passages',
-    description: 'The passages a code is applied to, each as a passage reference (P1…) with its document and text.',
-    schema: { type: 'object', properties: { code: { ...str, description: 'A code reference, e.g. C2.' } }, required: ['code'] }
-  },
-  {
-    name: 'propose_new_code',
-    description: 'Propose a new code. It is NOT created: the user reviews it. Returns a reference (N1…) you can use as the code of proposed codings, or as the parent of other proposed codes.',
-    schema: {
-      type: 'object',
-      properties: {
-        name: str,
-        description: { ...str, description: 'What the code means and when to apply it.' },
-        parent: { ...str, description: 'A code (C…) or proposed code (N…) to put it under; omit for the top level.' },
-        reason: { ...str, description: 'Why, in a sentence, for the user.' }
-      },
-      required: ['name', 'reason']
-    }
-  },
-  {
-    name: 'propose_code_change',
-    description: 'Propose renaming an existing code, changing its description, or moving it under another code (parent "none" for the top level). The user reviews it.',
-    schema: {
-      type: 'object',
-      properties: {
-        code: { ...str, description: 'A code reference (C…).' },
-        name: str,
-        description: str,
-        parent: { ...str, description: 'C…, N…, or "none".' },
-        reason: str
-      },
-      required: ['code', 'reason']
-    }
-  },
-  {
-    name: 'propose_coding',
-    description: 'Propose applying a code to a passage. Quote the passage exactly as it is in the document (copy it from what you read); the user reviews it.',
-    schema: {
-      type: 'object',
-      properties: {
-        document: { ...str, description: 'A document reference (D…).' },
-        quote: { ...str, description: 'The passage, exactly as in the document.' },
-        code: { ...str, description: 'A code (C…) or proposed code (N…).' },
-        occurrence: { ...int, description: 'If the quote appears more than once, which one (1 = first).' },
-        respondent: { ...str, description: 'Survey only: the respondent id.' },
-        question: { ...str, description: 'Survey only: the question id.' },
-        reason: str
-      },
-      required: ['document', 'quote', 'code', 'reason']
-    }
-  },
-  {
-    name: 'propose_remove_coding',
-    description: 'Propose removing a code from a passage, given as a passage reference from coded_passages. The user reviews it.',
-    schema: { type: 'object', properties: { passage: { ...str, description: 'A passage reference (P…) from coded_passages.' }, reason: str }, required: ['passage', 'reason'] }
-  }
-]
+/** The tools, as offered to the AI: shared with the connector for AI apps
+ *  on this computer (src-tauri/src/mcp.rs), so both offer the same. */
+export const TOOL_SPECS: AiToolSpec[] = toolSpecs
 
 // ─── The project, as the AI sees it ──────────────────────────────────
 

@@ -82,6 +82,7 @@ import { AnalysisPopover } from './components/Toolbar/AnalysisPopover'
 import { StudioPopover } from './components/Toolbar/StudioPopover'
 import { AiAssistancePane } from './components/AI/AiAssistancePane'
 import { useAiStore } from './stores/ai-store'
+import { installAppListener } from './utils/ai/apps'
 import { HelpPopover, MANUAL_URL, SPONSOR_URL, HELP_ICONS } from './components/Toolbar/HelpPopover'
 import { PANE_ICONS } from './utils/pane-icons'
 import { RibbonTabs, RibbonBody, useRibbon, scrollRoom, type RibbonButtonDef, type RibbonTabDef } from './components/Toolbar/Ribbon'
@@ -101,6 +102,10 @@ import { useLatest } from './utils/use-latest'
 import { errorMessage } from './utils/error-message'
 import type { QueryBuilderTabConfig, PlainTextSelection, ToolConfig } from './models/types'
 import type { RelationshipMapConfig } from './components/Analysis/RelationshipMap/types'
+
+// AI apps on this computer (Claude Desktop…) reach the open project
+// through this window.
+queueMicrotask(installAppListener)
 
 /** A pane that can't be used with the current tab (faded): out of the
  *  keyboard's and screen readers' reach too, not only the mouse's. */

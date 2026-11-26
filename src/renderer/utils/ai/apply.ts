@@ -209,10 +209,9 @@ export function approve(ids: string[]): { applied: number; failed: number } {
   if (applied.length) {
     const lines = applied.map((p) => `- ${describe(p, codeName)}${p.reason ? ` — ${p.reason}` : ''}`)
     const models = [...new Set(applied.map((p) => p.model))].join(', ')
-    const requests = [...new Set(applied.map((p) => p.request))].map((r) => `> ${r.replace(/\n/g, ' ')}`).join('\n')
     useLogbookStore.getState().addEntry(
       t('ai.log.title', { count: applied.length }),
-      `${t('ai.log.intro', { model: models })}\n\n${requests}\n\n${lines.join('\n')}`
+      `${t('ai.log.proposedBy', { model: models })}\n\n${lines.join('\n')}`
     )
   }
   useProjectStore.getState().markDirty()

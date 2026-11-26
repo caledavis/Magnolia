@@ -43,25 +43,8 @@ export interface Preferences {
   /** The interface language, or "system" to follow the computer's (see
    *  i18n/index.ts). */
   language: LanguagePreference
-  /** AI Assistance's provider (its key is in the system's keychain, never
-   *  here), or null before one is chosen. */
-  aiProvider: AiProviderSetting | null
-}
-
-/** Which AI service AI Assistance uses: see utils/ai/providers.ts. */
-export interface AiProviderSetting {
-  /** The preset it came from ('anthropic', 'openai', 'ollama', …, 'custom'). */
-  preset: string
-  kind: 'anthropic' | 'openai'
-  baseUrl: string
-  model: string
-}
-
-function aiProviderFromSaved(v: unknown): AiProviderSetting | null {
-  if (!v || typeof v !== 'object') return null
-  const o = v as Record<string, unknown>
-  if ((o.kind !== 'anthropic' && o.kind !== 'openai') || typeof o.baseUrl !== 'string') return null
-  return { preset: typeof o.preset === 'string' ? o.preset : 'custom', kind: o.kind, baseUrl: o.baseUrl, model: typeof o.model === 'string' ? o.model : '' }
+  /** Whether AI apps on this computer (Claude Desktop…) may use Magnolia. */
+  aiAppsEnabled: boolean
 }
 
 const DEFAULT_PREFERENCES: Preferences = {
@@ -80,7 +63,7 @@ const DEFAULT_PREFERENCES: Preferences = {
   toolbarStyle: 'ribbon',
   colourfulInterface: COLOURFUL_INTERFACE_ENABLED,
   language: 'system',
-  aiProvider: null
+  aiAppsEnabled: false
 }
 
 interface PreferencesState extends Preferences {
@@ -114,7 +97,7 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
           toolbarStyle: (prefs.toolbarStyle === 'icons' || prefs.toolbarStyle === 'ribbon') ? prefs.toolbarStyle : DEFAULT_PREFERENCES.toolbarStyle,
           colourfulInterface: colourfulInterfaceFromSaved(prefs.colourfulInterface),
           language: normaliseLanguagePreference(prefs.language),
-          aiProvider: aiProviderFromSaved(prefs.aiProvider),
+          aiAppsEnabled: prefs.aiAppsEnabled === true,
           loaded: true
         })
       } else {
@@ -126,9 +109,9 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   },
 
   save: async () => {
-    const { footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle, colourfulInterface, language, aiProvider } = get()
+    const { footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle, colourfulInterface, language, aiAppsEnabled } = get()
     try {
-      await window.api.savePreferences({ footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle, colourfulInterface, language, aiProvider })
+      await window.api.savePreferences({ footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle, colourfulInterface, language, aiAppsEnabled })
     } catch { /* ignore */ }
   },
 
@@ -197,7 +180,7 @@ if (typeof window !== 'undefined' && window.api?.onPreferencesUpdate) {
       toolbarStyle: (prefs.toolbarStyle === 'icons' || prefs.toolbarStyle === 'ribbon') ? prefs.toolbarStyle : DEFAULT_PREFERENCES.toolbarStyle,
       colourfulInterface: colourfulInterfaceFromSaved(prefs.colourfulInterface),
       language: normaliseLanguagePreference(prefs.language),
-      aiProvider: aiProviderFromSaved(prefs.aiProvider),
+      aiAppsEnabled: prefs.aiAppsEnabled === true,
       loaded: true
     })
   })

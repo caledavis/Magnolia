@@ -2014,44 +2014,6 @@
     "copyFailed": "无法复制：请选中文本后自行复制。"
   },
   "ai": {
-    "prefs": {
-      "intro": "AI 辅助使用您自己的 AI 服务：来自 Anthropic、OpenAI 或其他提供商的密钥（按用量由提供商收费，与 Claude 或 ChatGPT 订阅分开计费），或在这台电脑上运行的模型。",
-      "privacy": "在您为某个项目开启 AI 辅助之前，不会发送该项目的任何内容。开启后，AI 只读取它请求的内容，且聊天中会显示它读取的每一项。请确认您的伦理审查批准允许将数据发送到所选服务；使用这台电脑上的模型时，所有内容都留在本机。",
-      "service": "服务",
-      "none": "无（AI 辅助已关闭）",
-      "custom": "其他服务…",
-      "onThisComputer": "{{name}}（在这台电脑上）",
-      "kind": "API 类型",
-      "kindOpenai": "兼容 OpenAI",
-      "kindAnthropic": "Anthropic",
-      "address": "地址",
-      "localNote": "此服务在这台电脑上运行：AI 读取的内容都留在本机。使用 AI 辅助前请先启动它。",
-      "key": "API 密钥",
-      "keyOptional": "API 密钥（如果服务需要）",
-      "keySaved": "已为此地址保存密钥。",
-      "removeKey": "移除密钥",
-      "saveKey": "保存密钥",
-      "getKey": "从 {{name}} 获取密钥。",
-      "keyCost": "服务按用量收费。",
-      "keyKept": "您的密钥保存在电脑的钥匙串中，只会发送到此地址。",
-      "model": "模型",
-      "check": "检查连接",
-      "checking": "正在检查…",
-      "connected_other": "已连接。该服务提供 {{count}} 个模型。"
-    },
-    "error": {
-      "noKey": "此服务没有密钥。请在“偏好设置”→“AI 辅助”中添加。",
-      "auth": "服务未接受该密钥。",
-      "notFound": "服务无法识别该地址或模型。",
-      "rateLimit": "服务提示请求过多。请稍等一分钟后重试。",
-      "overloaded": "服务繁忙。请稍后重试。",
-      "unreachable": "Magnolia 无法连接该服务。请检查地址和网络连接（如果是这台电脑上的模型，请确认它正在运行）。",
-      "badAddress": "这不是 Magnolia 可以使用的网址。",
-      "keychain": "Magnolia 无法使用电脑的钥匙串。",
-      "provider": "服务报告了一个问题。",
-      "cancelled": "已停止。",
-      "tooManySteps": "AI 经过许多步骤后仍在工作，因此 Magnolia 停止了它。请让它继续，或缩小问题范围。"
-    },
     "activity": {
       "listDocuments_other": "列出了项目的 {{count}} 个文档",
       "listCodes_other": "列出了项目的 {{count}} 个代码",
@@ -2065,16 +2027,15 @@
       "proposedRemoval": "建议从 {{name}} 的一个段落中移除 {{code}}",
       "problem": "请求了不存在的内容",
       "unknownTool": "请求了 Magnolia 没有的工具（{{name}}）",
-      "failed": "一个请求失败了（{{name}}）",
-      "cutOff": "一个请求被中断了"
+      "failed": "一个请求失败了（{{name}}）"
     },
     "log": {
       "title_other": "AI 辅助：已批准 {{count}} 项更改",
-      "intro": "由 {{model}} 建议，所提的请求为：",
       "newCode": "新代码 **{{name}}**",
       "editCode": "更改了代码 **{{name}}**",
       "addCoding": "用 **{{code}}** 编码了 {{document}} 中的“{{quote}}”",
-      "removeCoding": "从 {{document}} 中的“{{quote}}”移除了 **{{code}}**"
+      "removeCoding": "从 {{document}} 中的“{{quote}}”移除了 **{{code}}**",
+      "proposedBy": "由 {{model}} 建议。"
     },
     "fail": {
       "noParent": "它要放入的上级代码已不在项目中。",
@@ -2084,28 +2045,23 @@
       "codingGone": "该编码已不在项目中。"
     },
     "pane": {
-      "noService": "AI 辅助使用您自己的 AI 服务。请在“偏好设置”中选择服务及其模型。",
       "openSettings": "打开偏好设置",
-      "consentTitle": "为此项目开启 AI 辅助？",
-      "consentChanged": "AI 服务已更改。要使用新服务为此项目开启 AI 辅助吗？",
-      "consentRemote": "AI 会读取此项目中回答您所需的部分，这些内容将发送到 {{name}}（{{address}}）。请确认您的数据允许这样做，例如是否符合伦理审查批准。",
-      "consentLocal": "AI 会读取此项目中回答您所需的部分。{{name}} 在这台电脑上运行，因此不会有任何内容离开本机。",
-      "consentReview": "聊天会列出 AI 读取的所有内容。它无法更改项目：它建议的每项更改都由您批准或拒绝。",
-      "turnOn": "开启",
-      "newChat": "新建聊天",
-      "newChatOption": "新建聊天",
-      "chats": "聊天",
-      "conversation": "对话",
-      "empty": "询问有关数据的问题，或请它建议代码和编码。例如：“参与者对费用有什么看法？”或“为访谈 3 建议代码。”",
-      "working": "正在处理…",
-      "message": "消息",
-      "placeholder": "询问有关数据的问题…",
-      "send": "发送",
-      "stop": "停止",
-      "using": "{{name}} · {{model}}",
+      "consentReview": "此窗格会列出应用读取的所有内容。它无法更改项目：它建议的每项更改都由您批准或拒绝。",
       "review_other": "审核 {{count}} 项",
       "reviewTitle_other": "{{count}} 项更改待审核",
-      "proposed_other": "已建议 {{count}} 项更改：请审核"
+      "proposed_other": "已建议 {{count}} 项更改：请审核",
+      "appAsks": "{{name}} 想要使用此项目。",
+      "appsTitle": "允许这台电脑上的 AI 应用使用此项目？",
+      "appsConsent": "Claude Desktop 等 AI 应用会读取此项目中它所需的部分，并将其发送到它的 AI 服务（对 Claude Desktop 而言是 Anthropic）。请确认您的数据允许这样做，例如是否符合伦理审查批准。",
+      "allowApps": "允许",
+      "notNow": "暂不",
+      "emptyApps": "向 Claude Desktop（或其他 AI 应用）询问此项目。它读取的内容和建议的更改会显示在这里。",
+      "appsOn": "AI 应用可以使用此项目",
+      "stopApps": "停止 AI 应用使用此项目",
+      "intro": "AI 辅助可让这台电脑上的 AI 应用（例如使用您 Claude 订阅的 Claude Desktop）读取此项目，并建议代码和编码。它建议的每项更改都由您批准或拒绝。请在“偏好设置”中开启。",
+      "sessions": "会话",
+      "activity": "应用执行的操作",
+      "appSession": "{{name}}，{{time}}：它读取和建议的内容。"
     },
     "review": {
       "title": "AI 辅助",
@@ -2117,7 +2073,7 @@
         "denied": "已拒绝（{{count}}）"
       },
       "empty": {
-        "pending": "没有待审核的内容。请在“AI 辅助”窗格中让 AI 建议代码或编码。",
+        "pending": "没有待审核的内容。请让 Claude Desktop（或其他 AI 应用）建议代码或编码。",
         "approved": "尚未批准任何更改。",
         "denied": "没有被拒绝的更改。"
       },
@@ -2156,7 +2112,20 @@
         "denied": "已拒绝",
         "failed": "未执行",
         "pending": "待审核"
-      }
+      },
+      "session": "{{app}}，{{time}}"
+    },
+    "apps": {
+      "intro": "有了 Claude 订阅，您无需 API 密钥即可将 Claude Desktop 与 Magnolia 搭配使用：它会读取打开的项目并建议更改，由您在 Magnolia 中批准或拒绝。其他支持 Model Context Protocol（MCP）的应用也可以使用。",
+      "allow": "允许这台电脑上的 AI 应用使用 Magnolia",
+      "howProjects": "每个项目仍会先在其“AI 辅助”窗格中征求您的同意。应用读取的内容会列在那里，它建议的更改则在“AI 辅助”查看器中等待审核。应用会将读取的内容发送到它自己的 AI 服务。",
+      "addToClaude": "将 Magnolia 添加到 Claude Desktop",
+      "added": "已添加。退出并重新打开 Claude Desktop 后，Magnolia 会出现在其连接器中。",
+      "noClaude": "这台电脑上没有安装 Claude Desktop。",
+      "badSettings": "Magnolia 无法读取 Claude Desktop 的设置文件，因此未做任何更改。请手动添加 Magnolia（见“其他应用”）。",
+      "addFailed": "Magnolia 无法更改 Claude Desktop 的设置（{{detail}}）。",
+      "otherApps": "其他应用",
+      "otherAppsText": "在其他应用的 MCP 服务器设置中，添加以下内容："
     }
   }
 }

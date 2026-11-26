@@ -2099,45 +2099,6 @@
     "copyFailed": "Kopiëren lukte niet: selecteer de tekst en kopieer die zelf."
   },
   "ai": {
-    "prefs": {
-      "intro": "AI-assistentie gebruikt je eigen AI-dienst: een sleutel van Anthropic, OpenAI of een andere aanbieder (die je laat betalen voor wat je gebruikt, los van een abonnement op Claude of ChatGPT), of een model dat op deze computer draait.",
-      "privacy": "Er wordt niets uit een project verstuurd totdat je AI-assistentie voor dat project inschakelt. Daarna leest de AI alleen wat hij opvraagt, en de chat toont alles wat hij leest. Controleer of je ethische goedkeuring toestaat dat je gegevens naar de gekozen dienst worden gestuurd; een model op deze computer houdt alles op deze computer.",
-      "service": "Dienst",
-      "none": "Geen (AI-assistentie uit)",
-      "custom": "Andere dienst…",
-      "onThisComputer": "{{name}} (op deze computer)",
-      "kind": "Soort API",
-      "kindOpenai": "OpenAI-compatibel",
-      "kindAnthropic": "Anthropic",
-      "address": "Adres",
-      "localNote": "Deze dienst draait op deze computer: wat de AI leest, blijft hier. Start de dienst voordat je AI-assistentie gebruikt.",
-      "key": "API-sleutel",
-      "keyOptional": "API-sleutel (als de dienst er een nodig heeft)",
-      "keySaved": "Er is een sleutel bewaard voor dit adres.",
-      "removeKey": "Sleutel verwijderen",
-      "saveKey": "Sleutel bewaren",
-      "getKey": "Vraag een sleutel aan bij {{name}}.",
-      "keyCost": "De dienst rekent af naar gebruik.",
-      "keyKept": "Je sleutel wordt bewaard in de sleutelhanger van je computer en alleen naar dit adres gestuurd.",
-      "model": "Model",
-      "check": "Verbinding controleren",
-      "checking": "Controleren…",
-      "connected_one": "Verbonden. De dienst biedt {{count}} model.",
-      "connected_other": "Verbonden. De dienst biedt {{count}} modellen."
-    },
-    "error": {
-      "noKey": "Er is geen sleutel voor deze dienst. Voeg er een toe in Voorkeuren → AI-assistentie.",
-      "auth": "De dienst heeft de sleutel niet geaccepteerd.",
-      "notFound": "De dienst herkende het adres of het model niet.",
-      "rateLimit": "De dienst meldt dat er te veel verzoeken zijn gestuurd. Wacht een minuut en probeer het opnieuw.",
-      "overloaded": "De dienst is bezet. Probeer het zo opnieuw.",
-      "unreachable": "Magnolia kon de dienst niet bereiken. Controleer het adres en je verbinding (en, bij een model op deze computer, of het draait).",
-      "badAddress": "Dat is geen webadres dat Magnolia kan gebruiken.",
-      "keychain": "Magnolia kon de sleutelhanger van je computer niet gebruiken.",
-      "provider": "De dienst meldde een probleem.",
-      "cancelled": "Gestopt.",
-      "tooManySteps": "De AI was na veel stappen nog bezig, dus heeft Magnolia hem gestopt. Vraag hem door te gaan, of maak de vraag specifieker."
-    },
     "activity": {
       "listDocuments_one": "Documenten van het project opgevraagd ({{count}})",
       "listDocuments_other": "Documenten van het project opgevraagd ({{count}})",
@@ -2156,17 +2117,16 @@
       "proposedRemoval": "Voorgesteld om {{code}} te verwijderen bij een passage in {{name}}",
       "problem": "Om iets gevraagd dat er niet was",
       "unknownTool": "Om een tool gevraagd die Magnolia niet heeft ({{name}})",
-      "failed": "Een verzoek is mislukt ({{name}})",
-      "cutOff": "Een verzoek werd afgebroken"
+      "failed": "Een verzoek is mislukt ({{name}})"
     },
     "log": {
       "title_one": "AI-assistentie: {{count}} wijziging goedgekeurd",
       "title_other": "AI-assistentie: {{count}} wijzigingen goedgekeurd",
-      "intro": "Voorgesteld door {{model}}, op de vraag:",
       "newCode": "Nieuwe code **{{name}}**",
       "editCode": "Code **{{name}}** gewijzigd",
       "addCoding": "\"{{quote}}\" in {{document}} gecodeerd met **{{code}}**",
-      "removeCoding": "**{{code}}** verwijderd bij \"{{quote}}\" in {{document}}"
+      "removeCoding": "**{{code}}** verwijderd bij \"{{quote}}\" in {{document}}",
+      "proposedBy": "Voorgesteld door {{model}}."
     },
     "fail": {
       "noParent": "De code waaronder hij moest komen, staat niet meer in het project.",
@@ -2176,31 +2136,26 @@
       "codingGone": "Die codering staat niet meer in het project."
     },
     "pane": {
-      "noService": "AI-assistentie gebruikt je eigen AI-dienst. Kies een dienst en het model ervan in Voorkeuren.",
       "openSettings": "Voorkeuren openen",
-      "consentTitle": "AI-assistentie inschakelen voor dit project?",
-      "consentChanged": "De AI-dienst is veranderd. AI-assistentie voor dit project inschakelen met de nieuwe dienst?",
-      "consentRemote": "De AI leest de delen van dit project die hij nodig heeft om je te antwoorden, en die worden naar {{name}} ({{address}}) gestuurd. Controleer of dat voor je gegevens mag, bijvoorbeeld volgens je ethische goedkeuring.",
-      "consentLocal": "De AI leest de delen van dit project die hij nodig heeft om je te antwoorden. {{name}} draait op deze computer, dus er verlaat niets deze computer.",
-      "consentReview": "De chat toont alles wat de AI leest. Hij kan het project niet wijzigen: jij keurt elke voorgestelde wijziging goed of wijst die af.",
-      "turnOn": "Inschakelen",
-      "newChat": "Nieuwe chat",
-      "newChatOption": "Nieuwe chat",
-      "chats": "Chats",
-      "conversation": "Gesprek",
-      "empty": "Stel een vraag over je gegevens, of vraag om voorgestelde codes en coderingen. Bijvoorbeeld: \"Wat zeggen deelnemers over de kosten?\" of \"Stel codes voor voor interview 3.\"",
-      "working": "Bezig…",
-      "message": "Bericht",
-      "placeholder": "Stel een vraag over je gegevens…",
-      "send": "Versturen",
-      "stop": "Stoppen",
-      "using": "{{name}} · {{model}}",
+      "consentReview": "Dit paneel toont alles wat de app leest. De app kan het project niet wijzigen: jij keurt elke voorgestelde wijziging goed of wijst die af.",
       "review_one": "{{count}} beoordelen",
       "review_other": "{{count}} beoordelen",
       "reviewTitle_one": "{{count}} wijziging te beoordelen",
       "reviewTitle_other": "{{count}} wijzigingen te beoordelen",
       "proposed_one": "{{count}} wijziging voorgesteld: beoordeel die",
-      "proposed_other": "{{count}} wijzigingen voorgesteld: beoordeel ze"
+      "proposed_other": "{{count}} wijzigingen voorgesteld: beoordeel ze",
+      "appAsks": "{{name}} wil dit project gebruiken.",
+      "appsTitle": "AI-apps op deze computer dit project laten gebruiken?",
+      "appsConsent": "Een AI-app zoals Claude Desktop leest de delen van dit project die hij nodig heeft, en stuurt die naar zijn AI-dienst (voor Claude Desktop is dat Anthropic). Controleer of dat voor je gegevens mag, bijvoorbeeld volgens je ethische goedkeuring.",
+      "allowApps": "Toestaan",
+      "notNow": "Niet nu",
+      "emptyApps": "Stel Claude Desktop (of een andere AI-app) een vraag over dit project. Wat de app leest en de wijzigingen die hij voorstelt, verschijnen hier.",
+      "appsOn": "AI-apps kunnen dit project gebruiken",
+      "stopApps": "Gebruik door AI-apps stoppen",
+      "intro": "Met AI-assistentie kan een AI-app op deze computer, zoals Claude Desktop met je Claude-abonnement, dit project lezen en codes en coderingen voorstellen. Jij keurt elke voorgestelde wijziging goed of wijst die af. Schakel het in via Voorkeuren.",
+      "sessions": "Sessies",
+      "activity": "Wat de app deed",
+      "appSession": "{{name}}, {{time}}: wat hij las en voorstelde."
     },
     "review": {
       "title": "AI-assistentie",
@@ -2212,7 +2167,7 @@
         "denied": "Afgewezen ({{count}})"
       },
       "empty": {
-        "pending": "Niets te beoordelen. Vraag de AI in het paneel AI-assistentie om voorgestelde codes of coderingen.",
+        "pending": "Niets te beoordelen. Vraag Claude Desktop (of een andere AI-app) om voorgestelde codes of coderingen.",
         "approved": "Nog geen wijzigingen goedgekeurd.",
         "denied": "Geen wijzigingen afgewezen."
       },
@@ -2256,7 +2211,20 @@
         "denied": "Afgewezen",
         "failed": "Niet aangebracht",
         "pending": "Te beoordelen"
-      }
+      },
+      "session": "{{app}}, {{time}}"
+    },
+    "apps": {
+      "intro": "Met een Claude-abonnement kun je Claude Desktop met Magnolia gebruiken, zonder API-sleutel: het leest het geopende project en stelt wijzigingen voor, die je in Magnolia goedkeurt of afwijst. Andere apps die het Model Context Protocol (MCP) ondersteunen, werken ook.",
+      "allow": "AI-apps op deze computer Magnolia laten gebruiken",
+      "howProjects": "Per project wordt nog steeds eerst om toestemming gevraagd, in het paneel AI-assistentie van dat project. Daar staat wat een app leest, en de wijzigingen die hij voorstelt wachten in de viewer van AI-assistentie. De app stuurt wat hij leest naar zijn eigen AI-dienst.",
+      "addToClaude": "Magnolia toevoegen aan Claude Desktop",
+      "added": "Toegevoegd. Sluit Claude Desktop af en open het opnieuw; Magnolia staat dan tussen de connectors.",
+      "noClaude": "Claude Desktop is niet geïnstalleerd op deze computer.",
+      "badSettings": "Magnolia kon het instellingenbestand van Claude Desktop niet lezen en heeft het daarom ongewijzigd gelaten. Voeg Magnolia handmatig toe (zie Andere apps).",
+      "addFailed": "Magnolia kon de instellingen van Claude Desktop niet wijzigen ({{detail}}).",
+      "otherApps": "Andere apps",
+      "otherAppsText": "Voeg dit toe in de instellingen voor MCP-servers van een andere app:"
     }
   }
 }

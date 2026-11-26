@@ -1,7 +1,7 @@
 //! Magnolia desktop app: a Tauri shell around the React renderer, with all
 //! project I/O, conversion and system integration in Rust.
 
-mod ai;
+pub mod mcp;
 mod access;
 mod automation;
 mod commands;
@@ -112,11 +112,11 @@ pub fn run() {
         })
         .on_menu_event(|app, event| menu::handle_event(app, event.id().as_ref()))
         .invoke_handler(tauri::generate_handler![
-            ai::ai_key_set,
-            ai::ai_key_saved,
-            ai::ai_models,
-            ai::ai_chat,
-            ai::ai_cancel,
+            mcp::mcp_reply,
+            mcp::mcp_set_enabled,
+            mcp::mcp_connector_settings,
+            mcp::mcp_add_to_claude_desktop,
+            mcp::mcp_claude_desktop_found,
             commands::open_external,
             commands::diagnostics_info,
             commands::open_project,
@@ -209,6 +209,11 @@ pub fn run() {
             }
             storage::init(app.handle());
             i18n::init_from_preferences(&storage::load_preferences());
+            // AI apps on this computer may use Magnolia (Preferences → AI
+            // Assistance): listen for them.
+            if storage::load_preferences().get("aiAppsEnabled") == Some(&serde_json::Value::Bool(true)) {
+                mcp::set_enabled(app.handle(), true);
+            }
             i18n::install_core_translator();
             updater::preview_at_launch(app.handle());
             menu::rebuild(app.handle());

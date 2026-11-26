@@ -16,6 +16,7 @@ import { useDocumentStore } from '../../stores/document-store'
 import { approve, deny, withDependents, withRequirements } from '../../utils/ai/apply'
 import { documentText } from '../../utils/ai/tools'
 import { buildCellText } from '../../utils/survey/cell-text'
+import { formatDateTime } from '../../i18n'
 import type { SurveyFormatData } from '../../models/types'
 
 type Filter = 'pending' | 'approved' | 'denied'
@@ -29,7 +30,7 @@ const FILTERS: { id: Filter; statuses: ProposalStatus[] }[] = [
 export function AiReviewTab({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation()
   const proposals = useAiStore((s) => s.proposals)
-  const chats = useAiStore((s) => s.chats)
+  const sessions = useAiStore((s) => s.sessions)
   const [filter, setFilter] = useState<Filter>('pending')
   const [chosen, setChosen] = useState<Set<string>>(new Set())
   const [message, setMessage] = useState('')
@@ -108,7 +109,10 @@ export function AiReviewTab({ onClose }: { onClose: () => void }) {
         {groups.map(([chatId, items]) => (
           <section key={chatId} style={{ marginTop: 12 }}>
             <h3 style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', margin: '0 0 6px' }}>
-              {chats.find((c) => c.id === chatId)?.title ?? t('ai.review.deletedChat')}
+              {(() => {
+                const s = sessions.find((x) => x.id === chatId)
+                return s ? t('ai.review.session', { app: s.app, time: formatDateTime(s.createdAt) }) : t('ai.review.deletedChat')
+              })()}
             </h3>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {items.map((p) => (

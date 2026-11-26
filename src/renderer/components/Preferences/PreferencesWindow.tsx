@@ -17,7 +17,6 @@ import { useTranslation } from 'react-i18next'
 import { LANGUAGE_IDS, normaliseLanguagePreference, resolveLanguage, setLanguagePreference, setDigitsPreference, digitChoices, digitsSample, type LanguagePreference, type DigitsPreference } from '../../i18n'
 import { keyCombo } from '../../utils/keys'
 import { keyActivate } from '../../utils/key-activate'
-import type { AiProviderSetting } from '../../stores/preferences-store'
 import { AiAssistanceSettings } from './AiAssistanceSettings'
 
 interface FootPedalMappings {
@@ -54,8 +53,8 @@ interface Preferences {
   /** The digits numbers are written in, for languages with a choice:
    *  "system" (the computer's region decides) or a CLDR numbering system. */
   digits: DigitsPreference
-  /** AI Assistance's provider (its key is in the keychain, not here). */
-  aiProvider: AiProviderSetting | null
+  /** AI apps on this computer may use Magnolia (see src-tauri/src/mcp.rs). */
+  aiAppsEnabled: boolean
 }
 
 const DEFAULT_PREFS: Preferences = {
@@ -80,7 +79,7 @@ const DEFAULT_PREFS: Preferences = {
   colourfulInterface: COLOURFUL_INTERFACE_ENABLED,
   language: 'system',
   digits: 'system',
-  aiProvider: null
+  aiAppsEnabled: false
 }
 
 const TOOLBAR_STYLE_OPTIONS: { id: ToolbarStyle; labelKey: string }[] = [

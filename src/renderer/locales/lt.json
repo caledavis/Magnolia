@@ -2269,47 +2269,6 @@
     "copyFailed": "Nepavyko nukopijuoti: pažymėkite tekstą ir nukopijuokite jį."
   },
   "ai": {
-    "prefs": {
-      "intro": "DI pagalba naudoja jūsų pačių DI paslaugą: raktą iš Anthropic, OpenAI ar kito teikėjo (jie ima mokestį už tai, ką naudojate, atskirai nuo Claude ar ChatGPT prenumeratos) arba šiame kompiuteryje veikiantį modelį.",
-      "privacy": "Iš projekto niekas nesiunčiama, kol tam projektui neįjungsite DI pagalbos. Tada DI skaito tik tai, ko paprašo, o pokalbyje rodoma viskas, ką jis perskaito. Patikrinkite, ar jūsų etikos leidimas leidžia siųsti duomenis jūsų pasirinktai paslaugai; šiame kompiuteryje veikiantis modelis viską laiko čia.",
-      "service": "Paslauga",
-      "none": "Nėra (DI pagalba išjungta)",
-      "custom": "Kita paslauga…",
-      "onThisComputer": "{{name}} (šiame kompiuteryje)",
-      "kind": "API tipas",
-      "kindOpenai": "Suderinama su OpenAI",
-      "kindAnthropic": "Anthropic",
-      "address": "Adresas",
-      "localNote": "Ši paslauga veikia šiame kompiuteryje: tai, ką perskaito DI, lieka čia. Paleiskite ją prieš naudodami DI pagalbą.",
-      "key": "API raktas",
-      "keyOptional": "API raktas (jei paslaugai jo reikia)",
-      "keySaved": "Šiam adresui įrašytas raktas.",
-      "removeKey": "Pašalinti raktą",
-      "saveKey": "Įrašyti raktą",
-      "getKey": "Gauti raktą iš {{name}}.",
-      "keyCost": "Paslauga ima mokestį už tai, ką naudojate.",
-      "keyKept": "Jūsų raktas laikomas kompiuterio raktinėje ir siunčiamas tik šiuo adresu.",
-      "model": "Modelis",
-      "check": "Tikrinti ryšį",
-      "checking": "Tikrinama…",
-      "connected_one": "Prisijungta. Paslauga siūlo {{count}} modelį.",
-      "connected_few": "Prisijungta. Paslauga siūlo {{count}} modelius.",
-      "connected_many": "Prisijungta. Paslauga siūlo {{count}} modelio.",
-      "connected_other": "Prisijungta. Paslauga siūlo {{count}} modelių."
-    },
-    "error": {
-      "noKey": "Šiai paslaugai nėra rakto. Pridėkite jį skiltyje „Nuostatos“ → „DI pagalba“.",
-      "auth": "Paslauga nepriėmė rakto.",
-      "notFound": "Paslauga neatpažino adreso arba modelio.",
-      "rateLimit": "Paslauga praneša, kad išsiųsta per daug užklausų. Palaukite minutę ir bandykite dar kartą.",
-      "overloaded": "Paslauga užimta. Netrukus bandykite dar kartą.",
-      "unreachable": "Magnolia negalėjo pasiekti paslaugos. Patikrinkite adresą ir ryšį (o jei modelis veikia šiame kompiuteryje, – ar jis paleistas).",
-      "badAddress": "Tai nėra žiniatinklio adresas, kurį Magnolia gali naudoti.",
-      "keychain": "Magnolia negalėjo naudoti jūsų kompiuterio raktinės.",
-      "provider": "Paslauga pranešė apie problemą.",
-      "cancelled": "Sustabdyta.",
-      "tooManySteps": "DI vis dar dirbo po daugybės žingsnių, todėl Magnolia jį sustabdė. Paprašykite jo tęsti arba susiaurinkite klausimą."
-    },
     "activity": {
       "listDocuments_one": "Išvardytas {{count}} projekto dokumentas",
       "listDocuments_few": "Išvardyti {{count}} projekto dokumentai",
@@ -2338,19 +2297,18 @@
       "proposedRemoval": "Pasiūlyta pašalinti {{code}} iš fragmento dokumente {{name}}",
       "problem": "Paprašyta to, ko nėra",
       "unknownTool": "Paprašyta įrankio, kurio Magnolia neturi ({{name}})",
-      "failed": "Užklausa nepavyko ({{name}})",
-      "cutOff": "Užklausa nutraukta"
+      "failed": "Užklausa nepavyko ({{name}})"
     },
     "log": {
       "title_one": "DI pagalba: patvirtintas {{count}} pakeitimas",
       "title_few": "DI pagalba: patvirtinti {{count}} pakeitimai",
       "title_many": "DI pagalba: patvirtinta {{count}} pakeitimo",
       "title_other": "DI pagalba: patvirtinta {{count}} pakeitimų",
-      "intro": "Pasiūlė {{model}}, paklaustas:",
       "newCode": "Naujas kodas **{{name}}**",
       "editCode": "Pakeistas kodas **{{name}}**",
       "addCoding": "„{{quote}}“ dokumente {{document}} užkoduota kodu **{{code}}**",
-      "removeCoding": "**{{code}}** pašalintas iš „{{quote}}“ dokumente {{document}}"
+      "removeCoding": "**{{code}}** pašalintas iš „{{quote}}“ dokumente {{document}}",
+      "proposedBy": "Pasiūlė {{model}}."
     },
     "fail": {
       "noParent": "Kodo, po kuriuo jis turėjo būti, projekte nebėra.",
@@ -2360,25 +2318,8 @@
       "codingGone": "To kodavimo projekte nebėra."
     },
     "pane": {
-      "noService": "DI pagalba naudoja jūsų pačių DI paslaugą. Pasirinkite ją ir jos modelį skiltyje „Nuostatos“.",
       "openSettings": "Atverti nuostatas",
-      "consentTitle": "Įjungti DI pagalbą šiam projektui?",
-      "consentChanged": "DI paslauga pasikeitė. Įjungti DI pagalbą šiam projektui su nauja paslauga?",
-      "consentRemote": "DI perskaitys tas projekto dalis, kurių jam reikia, kad jums atsakytų, ir jos bus išsiųstos paslaugai {{name}} ({{address}}). Patikrinkite, ar tai leidžiama jūsų duomenims, pavyzdžiui, pagal jūsų etikos leidimą.",
-      "consentLocal": "DI perskaitys tas projekto dalis, kurių jam reikia, kad jums atsakytų. {{name}} veikia šiame kompiuteryje, todėl niekas iš jo neišeina.",
-      "consentReview": "Pokalbyje rodoma viskas, ką DI perskaito. Jis negali keisti projekto: jūs patvirtinate arba atmetate kiekvieną jo siūlomą pakeitimą.",
-      "turnOn": "Įjungti",
-      "newChat": "Naujas pokalbis",
-      "newChatOption": "Naujas pokalbis",
-      "chats": "Pokalbiai",
-      "conversation": "Pokalbis",
-      "empty": "Klauskite apie savo duomenis arba paprašykite pasiūlyti kodų ir kodavimo. Pavyzdžiui: „Ką dalyviai sako apie kainą?“ arba „Pasiūlyk kodų 3 interviu.“",
-      "working": "Dirbama…",
-      "message": "Žinutė",
-      "placeholder": "Klauskite apie savo duomenis…",
-      "send": "Siųsti",
-      "stop": "Sustabdyti",
-      "using": "{{name}} · {{model}}",
+      "consentReview": "Šiame polangyje rodoma viskas, ką programa perskaito. Ji negali keisti projekto: jūs patvirtinate arba atmetate kiekvieną jos siūlomą pakeitimą.",
       "review_one": "Peržiūrėti {{count}}",
       "review_few": "Peržiūrėti {{count}}",
       "review_many": "Peržiūrėti {{count}}",
@@ -2390,7 +2331,19 @@
       "proposed_one": "Pasiūlytas {{count}} pakeitimas: peržiūrėkite jį",
       "proposed_few": "Pasiūlyti {{count}} pakeitimai: peržiūrėkite juos",
       "proposed_many": "Pasiūlyta {{count}} pakeitimo: peržiūrėkite juos",
-      "proposed_other": "Pasiūlyta {{count}} pakeitimų: peržiūrėkite juos"
+      "proposed_other": "Pasiūlyta {{count}} pakeitimų: peržiūrėkite juos",
+      "appAsks": "{{name}} nori naudoti šį projektą.",
+      "appsTitle": "Leisti šio kompiuterio DI programoms naudoti šį projektą?",
+      "appsConsent": "DI programa, pavyzdžiui, Claude Desktop, perskaitys jai reikalingas šio projekto dalis ir išsiųs jas savo DI paslaugai (Claude Desktop atveju – Anthropic). Patikrinkite, ar tai leidžiama jūsų duomenims, pavyzdžiui, pagal jūsų etikos leidimą.",
+      "allowApps": "Leisti",
+      "notNow": "Ne dabar",
+      "emptyApps": "Klauskite Claude Desktop (ar kitos DI programos) apie šį projektą. Čia bus rodoma, ką ji perskaito ir kokius pakeitimus siūlo.",
+      "appsOn": "DI programos gali naudoti šį projektą",
+      "stopApps": "Neleisti DI programoms jo naudoti",
+      "intro": "DI pagalba leidžia šio kompiuterio DI programai, pavyzdžiui, Claude Desktop su jūsų Claude prenumerata, skaityti šį projektą ir siūlyti kodų bei kodavimo. Kiekvieną jos siūlomą pakeitimą patvirtinate arba atmetate. Įjunkite ją skiltyje „Nuostatos“.",
+      "sessions": "Seansai",
+      "activity": "Ką programa atliko",
+      "appSession": "{{name}}, {{time}}: ką ji perskaitė ir pasiūlė."
     },
     "review": {
       "title": "DI pagalba",
@@ -2402,7 +2355,7 @@
         "denied": "Atmesta ({{count}})"
       },
       "empty": {
-        "pending": "Nėra ką peržiūrėti. Polangyje „DI pagalba“ paprašykite DI pasiūlyti kodų ar kodavimo.",
+        "pending": "Nėra ką peržiūrėti. Paprašykite Claude Desktop (ar kitos DI programos) pasiūlyti kodų ar kodavimo.",
         "approved": "Dar nepatvirtinta jokių pakeitimų.",
         "denied": "Jokių pakeitimų neatmesta."
       },
@@ -2456,7 +2409,20 @@
         "denied": "Atmesta",
         "failed": "Neatlikta",
         "pending": "Laukia peržiūros"
-      }
+      },
+      "session": "{{app}}, {{time}}"
+    },
+    "apps": {
+      "intro": "Turėdami Claude prenumeratą, galite naudoti Claude Desktop su Magnolia be API rakto: jis perskaito atvirą projektą ir siūlo pakeitimus, kuriuos patvirtinate arba atmetate programoje Magnolia. Veikia ir kitos programos, palaikančios Model Context Protocol (MCP).",
+      "allow": "Leisti šio kompiuterio DI programoms naudoti Magnolia",
+      "howProjects": "Kiekvieno projekto vis tiek pirmiausia klausiama jo polangyje „DI pagalba“. Ten išvardijama, ką programa perskaito, o jos siūlomi pakeitimai laukia „DI pagalbos“ peržiūroje. Ką perskaito, programa siunčia savo DI paslaugai.",
+      "addToClaude": "Pridėti Magnolia prie Claude Desktop",
+      "added": "Pridėta. Išeikite iš Claude Desktop ir vėl jį atverkite – Magnolia atsiras tarp jo jungčių.",
+      "noClaude": "Claude Desktop šiame kompiuteryje neįdiegtas.",
+      "badSettings": "Magnolia nepavyko perskaityti Claude Desktop nuostatų failo, todėl jis paliktas nepakeistas. Pridėkite Magnolia rankiniu būdu (žr. „Kitos programos“).",
+      "addFailed": "Magnolia nepavyko pakeisti Claude Desktop nuostatų ({{detail}}).",
+      "otherApps": "Kitos programos",
+      "otherAppsText": "Kitos programos MCP serverių nuostatose pridėkite tai:"
     }
   }
 }

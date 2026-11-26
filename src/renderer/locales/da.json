@@ -2099,45 +2099,6 @@
     "copyFailed": "Kunne ikke kopiere: markér teksten, og kopiér den."
   },
   "ai": {
-    "prefs": {
-      "intro": "AI-assistance bruger din egen AI-tjeneste: en nøgle fra Anthropic, OpenAI eller en anden udbyder (som opkræver betaling for det, du bruger, uafhængigt af et Claude- eller ChatGPT-abonnement) eller en model, der kører på denne computer.",
-      "privacy": "Intet fra et projekt sendes, før du slår AI-assistance til for det projekt. Derefter læser AI’en kun det, den beder om, og chatten viser alt, hvad den læser. Kontrollér, at din etiske godkendelse tillader, at dine data sendes til den tjeneste, du vælger; en model på denne computer holder alt på computeren.",
-      "service": "Tjeneste",
-      "none": "Ingen (AI-assistance slået fra)",
-      "custom": "En anden tjeneste…",
-      "onThisComputer": "{{name}} (på denne computer)",
-      "kind": "API-type",
-      "kindOpenai": "OpenAI-kompatibel",
-      "kindAnthropic": "Anthropic",
-      "address": "Adresse",
-      "localNote": "Denne tjeneste kører på denne computer: det, AI’en læser, bliver her. Start den, før du bruger AI-assistance.",
-      "key": "API-nøgle",
-      "keyOptional": "API-nøgle (hvis tjenesten kræver en)",
-      "keySaved": "Der er gemt en nøgle til denne adresse.",
-      "removeKey": "Fjern nøgle",
-      "saveKey": "Gem nøgle",
-      "getKey": "Få en nøgle fra {{name}}.",
-      "keyCost": "Tjenesten tager betaling for det, du bruger.",
-      "keyKept": "Din nøgle opbevares i din computers nøglering og sendes kun til denne adresse.",
-      "model": "Model",
-      "check": "Kontrollér forbindelse",
-      "checking": "Kontrollerer…",
-      "connected_one": "Forbundet. Tjenesten tilbyder {{count}} model.",
-      "connected_other": "Forbundet. Tjenesten tilbyder {{count}} modeller."
-    },
-    "error": {
-      "noKey": "Der er ingen nøgle til denne tjeneste. Tilføj en under Indstillinger → AI-assistance.",
-      "auth": "Tjenesten accepterede ikke nøglen.",
-      "notFound": "Tjenesten genkendte ikke adressen eller modellen.",
-      "rateLimit": "Tjenesten siger, at der er sendt for mange anmodninger. Vent et minut, og prøv igen.",
-      "overloaded": "Tjenesten er optaget. Prøv igen om lidt.",
-      "unreachable": "Magnolia kunne ikke nå tjenesten. Kontrollér adressen og din forbindelse (og, for en model på denne computer, at den kører).",
-      "badAddress": "Det er ikke en webadresse, Magnolia kan bruge.",
-      "keychain": "Magnolia kunne ikke bruge din computers nøglering.",
-      "provider": "Tjenesten meldte om et problem.",
-      "cancelled": "Stoppet.",
-      "tooManySteps": "AI’en arbejdede stadig efter mange trin, så Magnolia stoppede den. Bed den om at fortsætte, eller gør spørgsmålet snævrere."
-    },
     "activity": {
       "listDocuments_one": "Listede projektets {{count}} dokument",
       "listDocuments_other": "Listede projektets {{count}} dokumenter",
@@ -2156,17 +2117,16 @@
       "proposedRemoval": "Foreslog at fjerne {{code}} fra en passage i {{name}}",
       "problem": "Bad om noget, der ikke fandtes",
       "unknownTool": "Bad om et værktøj, som Magnolia ikke har ({{name}})",
-      "failed": "En anmodning mislykkedes ({{name}})",
-      "cutOff": "En anmodning blev afbrudt"
+      "failed": "En anmodning mislykkedes ({{name}})"
     },
     "log": {
       "title_one": "AI-assistance: {{count}} ændring godkendt",
       "title_other": "AI-assistance: {{count}} ændringer godkendt",
-      "intro": "Foreslået af {{model}}, da den blev spurgt:",
       "newCode": "Ny kode **{{name}}**",
       "editCode": "Ændrede koden **{{name}}**",
       "addCoding": "Kodede »{{quote}}« i {{document}} med **{{code}}**",
-      "removeCoding": "Fjernede **{{code}}** fra »{{quote}}« i {{document}}"
+      "removeCoding": "Fjernede **{{code}}** fra »{{quote}}« i {{document}}",
+      "proposedBy": "Foreslået af {{model}}."
     },
     "fail": {
       "noParent": "Koden, den skulle ligge under, er ikke længere i projektet.",
@@ -2176,31 +2136,26 @@
       "codingGone": "Den kodning er ikke længere i projektet."
     },
     "pane": {
-      "noService": "AI-assistance bruger din egen AI-tjeneste. Vælg en, og dens model, i Indstillinger.",
       "openSettings": "Åbn Indstillinger",
-      "consentTitle": "Slå AI-assistance til for dette projekt?",
-      "consentChanged": "AI-tjenesten er ændret. Slå AI-assistance til for dette projekt med den nye?",
-      "consentRemote": "AI’en læser de dele af projektet, den har brug for til at svare dig, og de sendes til {{name}} ({{address}}). Kontrollér, at det er tilladt for dine data, for eksempel i din etiske godkendelse.",
-      "consentLocal": "AI’en læser de dele af projektet, den har brug for til at svare dig. {{name}} kører på denne computer, så intet forlader den.",
-      "consentReview": "Chatten viser alt, hvad AI’en læser. Den kan ikke ændre projektet: du godkender eller afviser hver ændring, den foreslår.",
-      "turnOn": "Slå til",
-      "newChat": "Ny chat",
-      "newChatOption": "Ny chat",
-      "chats": "Chats",
-      "conversation": "Samtale",
-      "empty": "Spørg om dine data, eller bed om forslag til koder og kodninger. For eksempel: »Hvad siger deltagerne om pris?« eller »Foreslå koder til interview 3.«",
-      "working": "Arbejder…",
-      "message": "Besked",
-      "placeholder": "Spørg om dine data…",
-      "send": "Send",
-      "stop": "Stop",
-      "using": "{{name}} · {{model}}",
+      "consentReview": "Dette panel viser alt, hvad appen læser. Den kan ikke ændre projektet: du godkender eller afviser hver ændring, den foreslår.",
       "review_one": "Gennemgå {{count}}",
       "review_other": "Gennemgå {{count}}",
       "reviewTitle_one": "{{count}} ændring til gennemgang",
       "reviewTitle_other": "{{count}} ændringer til gennemgang",
       "proposed_one": "{{count}} ændring foreslået: gennemgå den",
-      "proposed_other": "{{count}} ændringer foreslået: gennemgå dem"
+      "proposed_other": "{{count}} ændringer foreslået: gennemgå dem",
+      "appAsks": "{{name}} vil gerne bruge dette projekt.",
+      "appsTitle": "Lad AI-apps på denne computer bruge dette projekt?",
+      "appsConsent": "En AI-app som Claude Desktop læser de dele af projektet, den har brug for, og sender dem til sin AI-tjeneste (for Claude Desktop er det Anthropic). Kontrollér, at det er tilladt for dine data, for eksempel i din etiske godkendelse.",
+      "allowApps": "Tillad",
+      "notNow": "Ikke nu",
+      "emptyApps": "Spørg Claude Desktop (eller en anden AI-app) om dette projekt. Det, appen læser, og de ændringer, den foreslår, vises her.",
+      "appsOn": "AI-apps kan bruge dette projekt",
+      "stopApps": "Forhindr AI-apps i at bruge det",
+      "intro": "Med AI-assistance kan en AI-app på denne computer, f.eks. Claude Desktop med dit Claude-abonnement, læse dette projekt og foreslå koder og kodninger. Du godkender eller afviser hver ændring, den foreslår. Slå det til i Indstillinger.",
+      "sessions": "Sessioner",
+      "activity": "Hvad appen gjorde",
+      "appSession": "{{name}}, {{time}}: hvad den læste og foreslog."
     },
     "review": {
       "title": "AI-assistance",
@@ -2212,7 +2167,7 @@
         "denied": "Afviste ({{count}})"
       },
       "empty": {
-        "pending": "Intet at gennemgå. Bed AI’en i panelet AI-assistance om forslag til koder eller kodninger.",
+        "pending": "Intet at gennemgå. Bed Claude Desktop (eller en anden AI-app) om forslag til koder eller kodninger.",
         "approved": "Ingen ændringer godkendt endnu.",
         "denied": "Ingen ændringer afvist."
       },
@@ -2256,7 +2211,20 @@
         "denied": "Afvist",
         "failed": "Ikke foretaget",
         "pending": "Til gennemgang"
-      }
+      },
+      "session": "{{app}}, {{time}}"
+    },
+    "apps": {
+      "intro": "Med et Claude-abonnement kan du bruge Claude Desktop med Magnolia uden en API-nøgle: den læser det åbne projekt og foreslår ændringer, som du godkender eller afviser i Magnolia. Andre apps, der understøtter Model Context Protocol (MCP), virker også.",
+      "allow": "Lad AI-apps på denne computer bruge Magnolia",
+      "howProjects": "Du bliver stadig spurgt først for hvert projekt, i projektets panel AI-assistance. Dér vises det, en app læser, og de ændringer, den foreslår, venter i fremviseren for AI-assistance. Appen sender det, den læser, til sin egen AI-tjeneste.",
+      "addToClaude": "Føj Magnolia til Claude Desktop",
+      "added": "Tilføjet. Afslut og genåbn Claude Desktop, så vises Magnolia under Connectors.",
+      "noClaude": "Claude Desktop er ikke installeret på denne computer.",
+      "badSettings": "Magnolia kunne ikke læse Claude Desktops indstillingsfil og lod den derfor være, som den var. Tilføj Magnolia manuelt (se Andre apps).",
+      "addFailed": "Magnolia kunne ikke ændre Claude Desktops indstillinger ({{detail}}).",
+      "otherApps": "Andre apps",
+      "otherAppsText": "Tilføj dette i en anden apps indstillinger for MCP-servere:"
     }
   }
 }
