@@ -2327,7 +2327,7 @@
         "newCode": "Новый код",
         "removal": "Удаление кодирования",
         "editCode": "Изменение кода",
-        "coding": "Кодирование"
+        "coding": "Новое кодирование"
       },
       "rename": "Переименовать в «{{name}}»",
       "describe": "Новое описание",
@@ -2354,9 +2354,10 @@
       "listLabel": "Предложенные изменения",
       "viewFocused": "По одному",
       "viewList": "Список",
-      "keyApprove": "W",
-      "keyReject": "Q",
-      "keysMove": "↑ ↓ — перемещение"
+      "keyApprove": "R",
+      "keyReject": "E",
+      "keysMove": "↑ ↓ — перемещение",
+      "keysList": "↑ ↓ — перемещение · Пробел — открыть или закрыть · {{approve}} или Enter — одобрить · {{reject}} или Delete — отклонить"
     },
     "apps": {
       "intro": "С подпиской Claude можно работать в Claude Desktop вместе с Magnolia без ключа API: он читает открытый проект и предлагает изменения, которые вы одобряете или отклоняете в Magnolia. Подойдут и другие приложения с поддержкой Model Context Protocol (MCP).",

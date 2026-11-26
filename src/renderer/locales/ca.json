@@ -2239,7 +2239,7 @@
         "newCode": "Codi nou",
         "removal": "Treure la codificació",
         "editCode": "Canvi en un codi",
-        "coding": "Codificació"
+        "coding": "Nova codificació"
       },
       "rename": "Canvia el nom a «{{name}}»",
       "describe": "Descripció nova",
@@ -2265,9 +2265,10 @@
       "listLabel": "Canvis proposats",
       "viewFocused": "Enfocada",
       "viewList": "Llista",
-      "keyApprove": "W",
-      "keyReject": "Q",
-      "keysMove": "↑ ↓ per moure-us"
+      "keyApprove": "R",
+      "keyReject": "E",
+      "keysMove": "↑ ↓ per moure-us",
+      "keysList": "↑ ↓ per moure-us · Espai per obrir o tancar · {{approve}} o Retorn per aprovar · {{reject}} o Supr per rebutjar"
     },
     "apps": {
       "intro": "Amb una subscripció a Claude, podeu fer servir Claude Desktop amb el Magnolia, sense clau d’API: llegeix el projecte obert i suggereix canvis, que vós aproveu o rebutgeu al Magnolia. També funcionen altres aplicacions compatibles amb el Model Context Protocol (MCP).",

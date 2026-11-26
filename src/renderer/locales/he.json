@@ -2239,7 +2239,7 @@
         "newCode": "קוד חדש",
         "removal": "הסרת קידוד",
         "editCode": "שינוי בקוד",
-        "coding": "קידוד"
+        "coding": "קידוד חדש"
       },
       "rename": "שינוי השם ל-\"{{name}}\"",
       "describe": "תיאור חדש",
@@ -2265,9 +2265,10 @@
       "listLabel": "שינויים מוצעים",
       "viewFocused": "ממוקד",
       "viewList": "רשימה",
-      "keyApprove": "W",
-      "keyReject": "Q",
-      "keysMove": "↑ ↓ למעבר"
+      "keyApprove": "R",
+      "keyReject": "E",
+      "keysMove": "↑ ↓ למעבר",
+      "keysList": "↑ ↓ למעבר · רווח לפתיחה או לסגירה · {{approve}} או Enter לאישור · {{reject}} או Delete לדחייה"
     },
     "apps": {
       "intro": "עם מינוי ל-Claude אפשר להשתמש ב-Claude Desktop עם Magnolia, בלי מפתח API: הוא קורא את הפרויקט הפתוח ומציע שינויים, ואותם מאשרים או דוחים ב-Magnolia. גם אפליקציות אחרות שתומכות ב-Model Context Protocol (MCP) עובדות.",

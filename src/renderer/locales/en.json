@@ -2151,7 +2151,7 @@
         "newCode": "New code",
         "removal": "Remove coding",
         "editCode": "Change to code",
-        "coding": "Coding"
+        "coding": "New coding"
       },
       "rename": "Rename to “{{name}}”",
       "describe": "New description",
@@ -2176,9 +2176,10 @@
       "listLabel": "Proposed changes",
       "viewFocused": "Focused",
       "viewList": "List",
-      "keyApprove": "W",
-      "keyReject": "Q",
-      "keysMove": "↑ ↓ to move"
+      "keyApprove": "R",
+      "keyReject": "E",
+      "keysMove": "↑ ↓ to move",
+      "keysList": "↑ ↓ to move · Space to open or close · {{approve}} or Enter to approve · {{reject}} or Delete to reject"
     },
     "apps": {
       "intro": "With a Claude subscription, you can use Claude Desktop with Magnolia, with no API key: it reads the open project and suggests changes, which you approve or deny in Magnolia. Other apps that support the Model Context Protocol (MCP) work too.",

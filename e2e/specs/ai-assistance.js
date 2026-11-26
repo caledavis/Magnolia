@@ -34,6 +34,8 @@ async function spec(t) {
   }
 
   prefs.setState({ aiAppsEnabled: true })
+  // Start in Focused (the choice is remembered, and may be List).
+  localStorage.setItem('magnolia-ai-review-view', 'focused')
   t.check('Claude Desktop is named so, in agent mode too', apps.appName('claude-ai') === 'Claude Desktop' && apps.appName('local-agent-mode-magnolia') === 'Claude Desktop')
 
   // Not allowed yet: the app is refused, and the Viewer opens to ask.
@@ -80,7 +82,7 @@ async function spec(t) {
   // A list to move through: the current change in full, the others as lines.
   const list = () => review.querySelector('[role="listbox"]')
   const focused = () => list()?.querySelector('[aria-selected="true"]')
-  const keyCodes = { q: 'KeyQ', w: 'KeyW' }
+  const keyCodes = { e: 'KeyE', r: 'KeyR' }
   const key = async (k) => { list()?.dispatchEvent(new KeyboardEvent('keydown', { key: k, code: keyCodes[k] ?? k, bubbles: true })); await t.sleep(500) }
   t.check('the Viewer lists each change as it comes', !!(await t.until(() => list()?.querySelectorAll('[data-proposal]').length === 3, 3000)), list()?.textContent.slice(0, 200))
   t.check('the first is shown in full: the new code', /Test AI code/.test(focused()?.textContent ?? '') && /New code/.test(focused()?.textContent ?? ''), focused()?.textContent.slice(0, 100))
@@ -100,7 +102,10 @@ async function spec(t) {
     for (const theme of ['magnolia', 'magnolia-dark', 'high-contrast']) {
       document.documentElement.setAttribute('data-theme', theme)
       await t.sleep(300)
-      const res = await window.axe.run(el, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, resultTypes: ['violations'] })
+      // Not the faint cards either side of the current one in Focused: a
+      // preview, hidden from screen readers, each read in full when it's
+      // current (WCAG's "incidental" text, which has no contrast minimum).
+      const res = await window.axe.run({ include: [el], exclude: [['.ai-barrel [aria-hidden="true"]']] }, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, resultTypes: ['violations'] })
       for (const v of res.violations) found.push(`[${theme}] ${v.id}: ` + v.nodes.slice(0, 2).map((n) => n.html.slice(0, 90) + ' — ' + (n.failureSummary ?? '').replace(/\s+/g, ' ').slice(0, 120)).join(' / '))
     }
     if (before) document.documentElement.setAttribute('data-theme', before); else document.documentElement.removeAttribute('data-theme')
@@ -117,6 +122,14 @@ async function spec(t) {
   await t.sleep(150)
   const lines = [...review.querySelectorAll('li[data-proposal]')]
   t.check('List shows each change as a line, to decide there', lines.length === 3 && lines.every((l) => l.querySelector('button[aria-label="Approve"]') && l.querySelector('button[aria-label="Reject"]')), String(lines.length))
+  // Its keys work after a click (a click doesn't move the keyboard on
+  // macOS): E rejects the clicked row.
+  const listEl = review.querySelector('ul.ai-list')
+  document.body.focus()
+  const third = lines[2]
+  third.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+  await t.sleep(100)
+  t.check('a click gives the list the keyboard, and selects the row', document.activeElement === listEl && third.hasAttribute('data-active'))
   const v1b = await axeThemes(review)
   t.check('and passes axe in every theme', v1b.length === 0, v1b.join(' || ').slice(0, 800))
   radio('Focused')?.click()
@@ -128,21 +141,21 @@ async function spec(t) {
   await t.until(() => list()?.querySelectorAll('[data-proposal]').length === 4, 3000)
   await key('End')
   t.check('a new code shows where it goes, as Parent/New code', (focused()?.textContent ?? '').includes(`${firstCode.name}/Child test`), focused()?.textContent.slice(0, 80))
-  await key('q')
+  await key('e')
 
-  // Reject the renaming (Q), from the keyboard.
+  // Reject the renaming (E), from the keyboard.
   await t.sleep(700)
   undo.getState().clearHistory()
   await key('End')
   t.check('the renaming is reached with End', /Renamed by AI/.test(focused()?.textContent ?? ''), focused()?.textContent.slice(0, 80))
-  await key('q')
+  await key('e')
   t.check('a rejected change isn\'t made', codes.getState().findCode(firstCode.guid).name === firstCode.name && ai.getState().proposals.some((p) => p.change.type === 'editCode' && p.status === 'denied'))
 
-  // Approve the coding (W): its new code comes with it.
+  // Approve the coding (R): its new code comes with it.
   await key('Home')
   await key('ArrowDown')
   t.check('the coding says it needs the new code', /also approves the new code/.test(focused()?.textContent ?? ''), focused()?.textContent.slice(0, 120))
-  await key('w')
+  await key('r')
   await t.sleep(100)
   const made = codes.getState().flatCodes().find((c) => c.name === 'Test AI code')
   t.check('approving the coding makes the code too', !!made && made.description === 'When a participant says so.')

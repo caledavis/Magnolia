@@ -2775,3 +2775,8 @@ textarea {
 @media (prefers-reduced-motion: reduce) {
   .ai-barrel-item, .ai-barrel-details, .ai-barrel-details > div { transition: none; }
 }
+
+/* The List view's highlighted row (moved with ↑ ↓), shown while the list
+ * has the keyboard. */
+.ai-list:focus { outline: none; }
+.ai-list:focus-visible > li[data-active], .ai-list:focus > li[data-active] { box-shadow: 0 0 0 2px var(--accent); }

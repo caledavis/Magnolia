@@ -2151,7 +2151,7 @@
         "newCode": "Ny kode",
         "removal": "Fjern kodning",
         "editCode": "Ændring af kode",
-        "coding": "Kodning"
+        "coding": "Ny kodning"
       },
       "rename": "Omdøb til »{{name}}«",
       "describe": "Ny beskrivelse",
@@ -2176,9 +2176,10 @@
       "listLabel": "Foreslåede ændringer",
       "viewFocused": "Fokuseret",
       "viewList": "Liste",
-      "keyApprove": "W",
-      "keyReject": "Q",
-      "keysMove": "↑ ↓ for at flytte"
+      "keyApprove": "R",
+      "keyReject": "E",
+      "keysMove": "↑ ↓ for at flytte",
+      "keysList": "↑ ↓ for at flytte · Mellemrum for at åbne eller lukke · {{approve}} eller Enter for at godkende · {{reject}} eller Delete for at afvise"
     },
     "apps": {
       "intro": "Med et Claude-abonnement kan du bruge Claude Desktop med Magnolia uden en API-nøgle: den læser det åbne projekt og foreslår ændringer, som du godkender eller afviser i Magnolia. Andre apps, der understøtter Model Context Protocol (MCP), virker også.",

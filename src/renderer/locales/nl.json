@@ -2151,7 +2151,7 @@
         "newCode": "Nieuwe code",
         "removal": "Codering verwijderen",
         "editCode": "Wijziging van code",
-        "coding": "Codering"
+        "coding": "Nieuwe codering"
       },
       "rename": "Naam wijzigen in \"{{name}}\"",
       "describe": "Nieuwe beschrijving",
@@ -2176,9 +2176,10 @@
       "listLabel": "Voorgestelde wijzigingen",
       "viewFocused": "Gericht",
       "viewList": "Lijst",
-      "keyApprove": "W",
-      "keyReject": "Q",
-      "keysMove": "↑ ↓ om te bewegen"
+      "keyApprove": "R",
+      "keyReject": "E",
+      "keysMove": "↑ ↓ om te bewegen",
+      "keysList": "↑ ↓ om te bewegen · Spatie om te openen of te sluiten · {{approve}} of Enter om goed te keuren · {{reject}} of Delete om af te wijzen"
     },
     "apps": {
       "intro": "Met een Claude-abonnement kun je Claude Desktop met Magnolia gebruiken, zonder API-sleutel: het leest het geopende project en stelt wijzigingen voor, die je in Magnolia goedkeurt of afwijst. Andere apps die het Model Context Protocol (MCP) ondersteunen, werken ook.",

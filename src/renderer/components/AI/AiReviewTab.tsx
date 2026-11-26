@@ -10,7 +10,7 @@
  * reason. Proposals can be decided one by one, a code at a time, or all
  * together; approved ones are made at once, so one Undo takes them back.
  */
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAiStore, type AiProposal, type ProposalStatus } from '../../stores/ai-store'
 import { useCodeStore } from '../../stores/code-store'
@@ -195,9 +195,9 @@ function Context({ sourceGuid, start, end, cell, color }: { sourceGuid: string; 
 /** Where a code is in the tree: its parents, then it (the last part bold). */
 function CodePath({ parts, color }: { parts: string[]; color?: string }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0, flexWrap: 'wrap' }}>
+    <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, maxWidth: '100%' }}>
       {color && <span aria-hidden style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />}
-      <span>
+      <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {parts.slice(0, -1).map((name, i) => (
           <span key={i} style={{ color: 'var(--text-secondary)' }}>{name}<span style={{ margin: '0 4px' }}>/</span></span>
         ))}
@@ -206,6 +206,35 @@ function CodePath({ parts, color }: { parts: string[]; color?: string }) {
     </span>
   )
 }
+
+/** A code on two lines, for the List view: its parents above (if it has
+ *  any), and the code itself, with its pip, below. */
+function CodeStack({ parts, color, newCode }: { parts: string[]; color?: string; newCode?: { label: string; note: string } }) {
+  const parents = parts.slice(0, -1)
+  const one: React.CSSProperties = { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
+  return (
+    <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0, lineHeight: 1.35 }}>
+      {parents.length > 0 && <span style={{ ...one, color: 'var(--text-secondary)', fontSize: 11.5 }}>{parents.join(' / ')}</span>}
+      <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+        {color && <span aria-hidden style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />}
+        <strong style={one}>{parts[parts.length - 1]}</strong>
+        {/* A coding with a code that's only proposed: approving it adds
+            the code too (gold, as the code's own row). */}
+        {newCode && (
+          <span title={newCode.note} style={{ flexShrink: 0, display: 'inline-flex' }}>
+            <Chip tone="new">{newCode.label}</Chip>
+            <span style={visuallyHidden}>{newCode.note}</span>
+          </span>
+        )}
+      </span>
+    </span>
+  )
+}
+
+const visuallyHidden: React.CSSProperties = { position: 'absolute', width: 1, height: 1, margin: -1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0 }
+
+/** Up to two lines of a passage or description, then "…". */
+const twoLines: React.CSSProperties = { minWidth: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }
 
 /** A code's names from the top of the tree down to it. */
 function pathOf(codes: Code[], guid: string): Code[] | null {
@@ -249,14 +278,17 @@ function excerpt(text: string, max = 90): string {
   return one.length > max ? one.slice(0, max - 1).trimEnd() + '…' : one
 }
 
-function Chip({ children, tone }: { children: React.ReactNode; tone?: 'new' }) {
+/** A label: gold for a new code, blue for a new coding. */
+function Chip({ children, tone }: { children: React.ReactNode; tone?: 'new' | 'coding' }) {
   return (
     <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase',
+      display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', whiteSpace: 'nowrap',
       color: 'var(--text-primary)', borderRadius: 4, padding: '1px 6px',
-      background: tone === 'new' ? 'color-mix(in srgb, var(--rb-gold) 30%, var(--bg-panel))' : 'var(--bg-tertiary)'
+      background: tone === 'new' ? 'color-mix(in srgb, var(--rb-gold) 30%, var(--bg-panel))'
+        : tone === 'coding' ? 'color-mix(in srgb, var(--rb-blue) 24%, var(--bg-panel))'
+        : 'var(--bg-tertiary)'
     }}>
-      {tone === 'new' && <Icon icon={faPlus} style={{ width: 11, height: 11 }} />}
+      {(tone === 'new' || tone === 'coding') && <Icon icon={faPlus} style={{ width: 11, height: 11 }} />}
       {children}
     </span>
   )
@@ -281,7 +313,7 @@ const AROUND = 3
 /**
  * The proposals to review, one at a time: the current one in the middle,
  * in full, and those either side faint, so that moving reads as scrolling
- * through cards. ↑ ↓ (or the wheel) move; W or Enter approves, Q or Delete
+ * through cards. ↑ ↓ (or the wheel) move; R or Enter approves, E or Delete
  * rejects, and the next one moves up. A listbox whose one option is the
  * current proposal; the buttons are beneath it (not inside an option).
  */
@@ -377,11 +409,11 @@ function Barrel({ items, onApprove, onReject }: { items: AiProposal[]; onApprove
     else if (k === 'End') go(n - 1)
     else if (k === 'PageUp') go(at - AROUND)
     else if (k === 'PageDown') go(at + AROUND)
-    // Approve and reject by the two keys beside each other on the left
-    // (W and Q on QWERTY, by position, so the same keys on any layout),
-    // the other hand on the arrows; or Enter and Delete.
-    else if (k === 'Enter' || e.code === 'KeyW') decide(true)
-    else if (k === 'Delete' || k === 'Backspace' || e.code === 'KeyQ') decide(false)
+    // Approve and reject by two keys beside each other for the left hand
+    // (R and E, by position, so the same keys on any layout), the other
+    // hand on the arrows; or Enter and Delete.
+    else if (k === 'Enter' || e.code === 'KeyR') decide(true)
+    else if (k === 'Delete' || k === 'Backspace' || e.code === 'KeyE') decide(false)
     else return
     e.preventDefault()
   }
@@ -390,7 +422,13 @@ function Barrel({ items, onApprove, onReject }: { items: AiProposal[]; onApprove
   const c = current?.change
 
   return (
-    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 12 }}>
+    <div
+      // A click anywhere here (a card, the space beside it, a button) leaves
+      // the keyboard with the list: on macOS a click doesn't move it, so
+      // E and R would go elsewhere.
+      onMouseDown={() => setTimeout(() => ref.current?.focus({ preventScroll: true }))}
+      style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 12 }}
+    >
       <div
         ref={ref}
         role="listbox"
@@ -401,9 +439,9 @@ function Barrel({ items, onApprove, onReject }: { items: AiProposal[]; onApprove
         onScroll={follow}
         // Scrolls smoothly, and settles on a card (scroll-snap).
         className="ai-barrel"
-        // Room at the sides for the current card's shadow (the list clips
-        // what's outside it).
-        style={{ flex: 1, minHeight: 0, width: '100%', maxWidth: 820, position: 'relative', outline: 'none', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, padding: '0 30px' }}
+        // The width of the Viewer, so it scrolls wherever the pointer is
+        // (the cards are centred in it, with room for their shadow).
+        style={{ flex: 1, minHeight: 0, width: '100%', position: 'relative', outline: 'none', overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '0 30px', boxSizing: 'border-box' }}
       >
         <div aria-hidden style={{ flexShrink: 0, height: pad }} />
         {items.map((p, i) => (
@@ -439,55 +477,140 @@ function Barrel({ items, onApprove, onReject }: { items: AiProposal[]; onApprove
  *  opens to show the passage and the reason. */
 function PendingList({ items, onApprove, onReject }: { items: AiProposal[]; onApprove: (id: string) => void; onReject: (id: string) => void }) {
   const { t } = useTranslation()
+  // The highlighted row, moved by ↑ ↓ (as in Focused): R or Enter approves
+  // it, E or Delete rejects it, Space opens or closes it.
+  const [active, setActive] = useState(0)
+  const [openId, setOpenId] = useState<string | null>(null)
+  const ref = useRef<HTMLUListElement>(null)
+  const n = items.length
+  const at = Math.min(active, n - 1)
+  const show = (i: number) => {
+    const to = Math.max(0, Math.min(n - 1, i))
+    setActive(to)
+    const el = ref.current?.querySelectorAll<HTMLElement>('li[data-proposal]')[to]
+    el?.scrollIntoView({ block: 'nearest' })
+    if (el) announce(el.innerText.replace(/\s+/g, ' ').trim())
+  }
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return
+    // Keys typed on a row's own buttons do what the button does.
+    if ((e.target as HTMLElement).closest('button') && (e.key === 'Enter' || e.key === ' ')) return
+    const p = items[at]
+    const k = e.key
+    if (k === 'ArrowUp') show(at - 1)
+    else if (k === 'ArrowDown') show(at + 1)
+    else if (k === 'Home') show(0)
+    else if (k === 'End') show(n - 1)
+    else if (p && (k === 'Enter' || e.code === 'KeyR')) onApprove(p.id)
+    else if (p && (k === 'Delete' || k === 'Backspace' || e.code === 'KeyE')) onReject(p.id)
+    else if (p && k === ' ') setOpenId((id) => (id === p.id ? null : p.id))
+    else return
+    e.preventDefault()
+  }
+  useEffect(() => { ref.current?.focus() }, [])
+
   return (
-    <ul aria-label={t('ai.review.listLabel')} style={{ listStyle: 'none', margin: '14px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto', minHeight: 0 }}>
-      {items.map((p) => <PendingLine key={p.id} p={p} onApprove={() => onApprove(p.id)} onReject={() => onReject(p.id)} />)}
-    </ul>
+    <>
+      {/* Above the list, so it's seen however long the list is. */}
+      <p style={{ margin: '12px 0 0', fontSize: 11.5, color: 'var(--text-secondary)' }}>
+        {t('ai.review.keysList', { approve: t('ai.review.keyApprove'), reject: t('ai.review.keyReject') })}
+      </p>
+      <ul
+        ref={ref}
+        tabIndex={0}
+        aria-label={t('ai.review.listLabel')}
+        onKeyDown={onKeyDown}
+        // A click on a row or its buttons leaves the keyboard with the list
+        // (on macOS a click doesn't move it), and selects that row.
+        onMouseDown={(e) => {
+          const li = (e.target as HTMLElement).closest<HTMLElement>('li[data-proposal]')
+          const i = li ? [...(ref.current?.querySelectorAll('li[data-proposal]') ?? [])].indexOf(li) : -1
+          if (i >= 0) setActive(i)
+          setTimeout(() => ref.current?.focus({ preventScroll: true }))
+        }}
+        className="ai-list"
+        style={listGrid}
+      >
+        {items.map((p, i) => (
+          <PendingLine
+            key={p.id}
+            p={p}
+            active={i === at}
+            open={openId === p.id}
+            onToggle={() => { setActive(i); setOpenId((id) => (id === p.id ? null : p.id)) }}
+            onApprove={() => onApprove(p.id)}
+            onReject={() => onReject(p.id)}
+          />
+        ))}
+      </ul>
+    </>
   )
 }
+
+/** The lists as one grid, so their columns line up from row to row:
+ *  label, code, passage or change, document, and the buttons or status.
+ *  Each row is a subgrid of it. */
+const listGrid: React.CSSProperties = {
+  // Room on every side for the highlighted row's outline (the list clips
+  // what's outside it).
+  listStyle: 'none', margin: '10px -4px 0', padding: 4, overflowY: 'auto', minHeight: 0,
+  display: 'grid', gridTemplateColumns: 'max-content minmax(0, 1fr) minmax(0, 1.7fr) minmax(0, max-content) max-content',
+  columnGap: 14, rowGap: 6, alignContent: 'start'
+}
+const row: React.CSSProperties = { gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: 'subgrid', alignItems: 'center' }
+const cell: React.CSSProperties = { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
 
 const iconButton: React.CSSProperties = {
   display: 'grid', placeItems: 'center', width: 26, height: 24, padding: 0,
   borderRadius: 6, border: '1px solid var(--border-color)', background: 'var(--bg-panel)', cursor: 'pointer'
 }
 
-function PendingLine({ p, onApprove, onReject }: { p: AiProposal; onApprove: () => void; onReject: () => void }) {
+/** A proposal's label, by kind: gold for a new code, blue for a new
+ *  coding, grey for a change or a removal. */
+function KindLabel({ p, s }: { p: AiProposal; s: { kind: string; isNew: boolean } }) {
+  return <Chip tone={s.isNew ? 'new' : p.change.type === 'addCoding' ? 'coding' : undefined}>{s.kind}</Chip>
+}
+
+function PendingLine({ p, active, open, onToggle, onApprove, onReject }: { p: AiProposal; active: boolean; open: boolean; onToggle: () => void; onApprove: () => void; onReject: () => void }) {
   const { t } = useTranslation()
   const proposals = useAiStore((s) => s.proposals)
   const sources = useDocumentStore((s) => s.sources)
-  const [open, setOpen] = useState(false)
   const s = useSummary(p)
   const c = p.change
   const needs = withRequirements([p.id], proposals).filter((id) => id !== p.id)
   const sel = c.type === 'removeCoding' ? sources.find((x) => x.guid === c.sourceGuid)?.selections.find((x) => x.guid === c.selectionGuid) : undefined
   return (
-    <li data-proposal={p.id} style={{ borderRadius: 8, border: `1px solid ${s.isNew ? 'color-mix(in srgb, var(--rb-gold) 60%, var(--border-color))' : 'var(--border-color)'}`, background: 'var(--bg-panel)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px 8px 16px', fontSize: 12.5 }}>
-        <button
-          type="button"
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-          style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10, padding: 0, border: 'none', background: 'none', textAlign: 'start', cursor: 'pointer', color: 'var(--text-primary)', fontSize: 12.5 }}
-        >
-          {s.isNew && <Chip tone="new">{s.kind}</Chip>}
-          <span style={{ flexShrink: 0, maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><CodePath parts={s.parts} color={s.color} /></span>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{excerpt(s.text, 120)}</span>
-          {s.doc && <span style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap', fontSize: 12 }}>{s.doc}</span>}
-        </button>
+    <li data-proposal={p.id} data-active={active ? '' : undefined} style={{ ...row, borderRadius: 8, padding: '8px 12px 8px 16px', border: `1px solid ${s.isNew ? 'color-mix(in srgb, var(--rb-gold) 60%, var(--border-color))' : 'var(--border-color)'}`, background: 'var(--bg-panel)', fontSize: 12.5 }}>
+      <button
+        type="button"
+        aria-expanded={open}
+        tabIndex={-1}
+        onClick={onToggle}
+        style={{ gridColumn: '1 / 5', display: 'grid', gridTemplateColumns: 'subgrid', alignItems: 'center', minWidth: 0, padding: 0, border: 'none', background: 'none', textAlign: 'start', cursor: 'pointer', color: 'var(--text-primary)', fontSize: 12.5 }}
+      >
+        <span><KindLabel p={p} s={s} /></span>
+        <CodeStack
+          parts={s.parts}
+          color={s.color}
+          newCode={needs.length > 0 ? { label: t('ai.review.kind.newCode'), note: t('ai.review.alsoApproves', { count: needs.length }) } : undefined}
+        />
+        <span style={twoLines}>{excerpt(s.text, 320)}</span>
+        <span style={{ ...cell, color: 'var(--text-secondary)', fontSize: 12 }}>{s.doc}</span>
+      </button>
+      <span style={{ gridColumn: 5, display: 'flex', gap: 6 }}>
         <button type="button" aria-label={t('ai.review.deny')} title={t('ai.review.deny')} onClick={onReject} style={iconButton}>
           <Icon icon={faXmark} style={{ width: 13, height: 13, color: 'var(--text-secondary)' }} />
         </button>
         <button type="button" aria-label={t('ai.review.approve')} title={t('ai.review.approve')} onClick={onApprove} style={{ ...iconButton, background: 'var(--accent)', borderColor: 'var(--accent)' }}>
           <Icon icon={faCheck} style={{ width: 13, height: 13, color: '#fff' }} />
         </button>
-      </div>
-      <div className={open ? 'ai-barrel-details' : 'ai-barrel-details closed'} style={{ display: 'grid', gridTemplateRows: open ? '1fr' : '0fr' }}>
-        <div style={{ overflow: 'hidden', minHeight: 0, padding: open ? '0 16px 12px' : '0 16px' }}>
+      </span>
+      <div className={open ? 'ai-barrel-details' : 'ai-barrel-details closed'} style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateRows: open ? '1fr' : '0fr' }}>
+        <div style={{ overflow: 'hidden', minHeight: 0, paddingBottom: open ? 4 : 0 }}>
           {c.type === 'addCoding' && <Context sourceGuid={c.sourceGuid} start={c.start} end={c.end} cell={c.surveyCell} color={s.color} />}
           {c.type === 'removeCoding' && sel && <Context sourceGuid={c.sourceGuid} start={sel.startPosition} end={sel.endPosition} cell={sel.surveyCell} color={s.color} />}
           {(c.type === 'newCode' || c.type === 'editCode') && s.text && <p style={{ margin: '8px 0 0', fontSize: 12.5, lineHeight: 1.55 }}>{s.text}</p>}
           {p.reason && <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{t('ai.review.reason', { reason: p.reason })}</p>}
-          {needs.length > 0 && <p style={{ margin: '4px 0 0', fontSize: 11.5, color: 'var(--text-secondary)' }}>{t('ai.review.alsoApproves', { count: needs.length })}</p>}
           {c.type === 'addCoding' && (
             <button type="button" onClick={() => useDocumentStore.getState().viewDocumentAt(c.sourceGuid, c.start, c.end)} style={{ marginTop: 6, padding: 0, border: 'none', background: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: 11.5 }}>{t('ai.review.showInDocument')}</button>
           )}
@@ -497,11 +620,11 @@ function PendingLine({ p, onApprove, onReject }: { p: AiProposal; onApprove: () 
   )
 }
 
-/** Approved or rejected changes: a line each. */
+/** Approved or rejected changes: a line each, newest first. */
 function DecidedList({ items }: { items: AiProposal[] }) {
   const { t } = useTranslation()
   return (
-    <ul aria-label={t('ai.review.listLabel')} style={{ listStyle: 'none', margin: '14px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto', minHeight: 0 }}>
+    <ul aria-label={t('ai.review.listLabel')} style={listGrid}>
       {[...items].reverse().map((p) => <DecidedLine key={p.id} p={p} />)}
     </ul>
   )
@@ -510,11 +633,12 @@ function DecidedList({ items }: { items: AiProposal[] }) {
 function DecidedLine({ p }: { p: AiProposal }) {
   const s = useSummary(p)
   return (
-    <li data-proposal={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-panel)', fontSize: 12.5, minWidth: 0 }}>
-      <span style={{ flexShrink: 0, maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><CodePath parts={s.parts} color={s.color} /></span>
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{excerpt(s.text, 120)}</span>
-      {s.doc && <span style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap', fontSize: 12 }}>{s.doc}</span>}
-      <span style={{ marginInlineStart: 'auto', flexShrink: 0 }}><Status p={p} /></span>
+    <li data-proposal={p.id} style={{ ...row, padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-panel)', fontSize: 12.5 }}>
+      <span><KindLabel p={p} s={s} /></span>
+      <CodeStack parts={s.parts} color={s.color} />
+      <span style={twoLines}>{excerpt(s.text, 320)}</span>
+      <span style={{ ...cell, color: 'var(--text-secondary)', fontSize: 12 }}>{s.doc}</span>
+      <span><Status p={p} /></span>
     </li>
   )
 }
@@ -576,7 +700,7 @@ function BarrelItem({ p, current, position, onClick }: { p: AiProposal; current:
       onClick={current ? undefined : onClick}
       className="ai-barrel-item"
       style={{
-        flexShrink: 0, borderRadius: 12, background: 'var(--bg-panel)', cursor: current ? 'default' : 'pointer',
+        flexShrink: 0, width: '100%', maxWidth: 760, boxSizing: 'border-box', borderRadius: 12, background: 'var(--bg-panel)', cursor: current ? 'default' : 'pointer',
         padding: '14px 18px',
         border: `1px solid ${s.isNew ? 'color-mix(in srgb, var(--rb-gold) 60%, var(--border-color))' : 'var(--border-color)'}`,
         boxShadow: current ? '0 6px 24px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08)' : 'none'
@@ -585,7 +709,7 @@ function BarrelItem({ p, current, position, onClick }: { p: AiProposal; current:
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, fontSize: 14, flexWrap: 'wrap' }}>
-        <Chip tone={s.isNew ? 'new' : undefined}>{s.kind}</Chip>
+        <Chip tone={s.isNew ? 'new' : c.type === 'addCoding' ? 'coding' : undefined}>{s.kind}</Chip>
         <CodePath parts={s.parts} color={s.color} />
         {s.doc && <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>· {s.doc}</span>}
         <span style={{ marginInlineStart: 'auto', flexShrink: 0, fontSize: 11.5, color: 'var(--text-secondary)' }}>

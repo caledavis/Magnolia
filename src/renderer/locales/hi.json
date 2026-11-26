@@ -2151,7 +2151,7 @@
         "newCode": "नया कोड",
         "removal": "कोडिंग हटाना",
         "editCode": "कोड में परिवर्तन",
-        "coding": "कोडिंग"
+        "coding": "नई कोडिंग"
       },
       "rename": "नाम बदलकर “{{name}}” करें",
       "describe": "नया विवरण",
@@ -2176,9 +2176,10 @@
       "listLabel": "प्रस्तावित परिवर्तन",
       "viewFocused": "केंद्रित",
       "viewList": "सूची",
-      "keyApprove": "W",
-      "keyReject": "Q",
-      "keysMove": "↑ ↓ से आगे-पीछे जाएँ"
+      "keyApprove": "R",
+      "keyReject": "E",
+      "keysMove": "↑ ↓ से आगे-पीछे जाएँ",
+      "keysList": "↑ ↓ से आगे-पीछे जाएँ · खोलने या बंद करने के लिए Space · स्वीकृत करने के लिए {{approve}} या Enter · अस्वीकार करने के लिए {{reject}} या Delete"
     },
     "apps": {
       "intro": "Claude सदस्यता के साथ, आप API कुंजी के बिना Claude Desktop को Magnolia के साथ उपयोग कर सकते हैं: वह खुली परियोजना पढ़ता है और परिवर्तन सुझाता है, जिन्हें आप Magnolia में स्वीकृत या अस्वीकार करते हैं। Model Context Protocol (MCP) का समर्थन करने वाले अन्य ऐप भी काम करते हैं।",

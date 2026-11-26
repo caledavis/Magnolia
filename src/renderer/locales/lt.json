@@ -2327,7 +2327,7 @@
         "newCode": "Naujas kodas",
         "removal": "Kodavimo šalinimas",
         "editCode": "Kodo pakeitimas",
-        "coding": "Kodavimas"
+        "coding": "Naujas kodavimas"
       },
       "rename": "Pervardyti į „{{name}}“",
       "describe": "Naujas aprašas",
@@ -2354,9 +2354,10 @@
       "listLabel": "Siūlomi pakeitimai",
       "viewFocused": "Sutelktas",
       "viewList": "Sąrašas",
-      "keyApprove": "W",
-      "keyReject": "Q",
-      "keysMove": "↑ ↓ judėti"
+      "keyApprove": "R",
+      "keyReject": "E",
+      "keysMove": "↑ ↓ judėti",
+      "keysList": "↑ ↓ judėti · Tarpas – atverti arba užverti · {{approve}} arba Enter – patvirtinti · {{reject}} arba Delete – atmesti"
     },
     "apps": {
       "intro": "Turėdami Claude prenumeratą, galite naudoti Claude Desktop su Magnolia be API rakto: jis perskaito atvirą projektą ir siūlo pakeitimus, kuriuos patvirtinate arba atmetate programoje Magnolia. Veikia ir kitos programos, palaikančios Model Context Protocol (MCP).",

@@ -2063,7 +2063,7 @@
         "newCode": "新しいコード",
         "removal": "コーディングの解除",
         "editCode": "コードの変更",
-        "coding": "コーディング"
+        "coding": "新しいコーディング"
       },
       "rename": "名前を「{{name}}」に変更",
       "describe": "新しい説明",
@@ -2087,9 +2087,10 @@
       "listLabel": "提案された変更",
       "viewFocused": "集中",
       "viewList": "リスト",
-      "keyApprove": "W",
-      "keyReject": "Q",
-      "keysMove": "↑ ↓ で移動"
+      "keyApprove": "R",
+      "keyReject": "E",
+      "keysMove": "↑ ↓ で移動",
+      "keysList": "↑ ↓ で移動 · Space で開閉 · {{approve}} または Enter で承認 · {{reject}} または Delete で却下"
     },
     "apps": {
       "intro": "Claude のサブスクリプションがあれば、API キーなしで Claude Desktop を Magnolia と一緒に使えます。Claude Desktop が開いているプロジェクトを読んで変更を提案し、その変更を Magnolia で承認または却下します。Model Context Protocol（MCP）に対応したほかのアプリも使えます。",
