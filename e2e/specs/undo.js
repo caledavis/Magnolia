@@ -1,6 +1,9 @@
-// Undo with a query open: coding a passage is one Undo step (the query's
-// results, which follow a moment later, aren't a step of their own), and
-// undoing or redoing it brings the results up to date.
+// Undo starts afresh when a project opens: there's nothing to undo, and
+// Undo can't step back past the opening to an empty project (which the
+// next save would write over the file). And with a query open: coding a
+// passage is one Undo step (the query's results, which follow a moment
+// later, aren't a step of their own), and undoing or redoing it brings the
+// results up to date.
 
 async function spec(t) {
   const docs = (await t.module('stores/document-store')).useDocumentStore
@@ -8,6 +11,13 @@ async function spec(t) {
   const queries = (await t.module('stores/query-store')).useQueryStore
   const undo = (await t.module('stores/undo-store')).useUndoStore
   const settled = () => t.until(() => { const s = queries.getState(); return s.isActive && !s.isLoading }, 30000)
+
+  // Just opened (the harness waits for the project to load and settle).
+  const docCount = docs.getState().sources.length
+  const codeCount = codes.getState().flatCodes().length
+  t.check('opening a project leaves nothing to undo', undo.getState().undoStack.length === 0, String(undo.getState().undoStack.length))
+  for (let i = 0; i < 5; i++) undo.getState().undo()
+  t.check('so Undo can\'t empty it', docs.getState().sources.length === docCount && docCount > 0 && codes.getState().flatCodes().length === codeCount, `${docs.getState().sources.length} documents (was ${docCount})`)
 
   const money = codes.getState().flatCodes().find((c) => c.name === 'Money')
   queries.getState().setComplexQuery({ documentFilter: {}, codeCondition: { type: 'code', codeGuid: money.guid, includeSubcodes: true } })

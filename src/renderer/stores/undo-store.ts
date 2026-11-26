@@ -142,6 +142,20 @@ let debounceTimer: ReturnType<typeof setTimeout> | null = null
 let lastSnapshot: Snapshot | null = null
 let pendingPreviousSnapshot: Snapshot | null = null
 
+/**
+ * A project has been opened or created: Undo starts from it. Without this
+ * the history began before the project loaded, so enough Undos stepped
+ * back past the loading itself, to an empty project (or the one open
+ * before), which the next save wrote over the file.
+ */
+export function startUndoAfresh(): void {
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = null
+  pendingPreviousSnapshot = null
+  lastSnapshot = takeSnapshot()
+  useUndoStore.setState({ undoStack: [], redoStack: [] })
+}
+
 /** The values a snapshot captures, in a fixed order. */
 function snapshotValues(s: Snapshot): unknown[] {
   return [

@@ -82,6 +82,7 @@ import { QuotesPane } from './components/Quotes/QuotesPane'
 import { AnalysisPopover } from './components/Toolbar/AnalysisPopover'
 import { StudioPopover } from './components/Toolbar/StudioPopover'
 import { useAiStore } from './stores/ai-store'
+import { startUndoAfresh } from './stores/undo-store'
 import { installAppListener } from './utils/ai/apps'
 import { HelpPopover, MANUAL_URL, SPONSOR_URL, HELP_ICONS } from './components/Toolbar/HelpPopover'
 import { PANE_ICONS } from './utils/pane-icons'
@@ -700,6 +701,7 @@ function App() {
     })
     // The new file is empty, and so is the project now.
     noteStateMatchesFile()
+    startUndoAfresh()
     window.api.trackRecentProject(projectName, filePath)
   }, [projectStore, documentStore, codeStore, tagStore, queryStore, logbookStore, memoStore, cancelPendingAutoSave])
 
@@ -805,6 +807,7 @@ function App() {
       // edits after this re-dirty it normally.
       useProjectStore.getState().markClean()
       noteStateMatchesFile()
+      startUndoAfresh()
       setMissingBinaries(data.missingBinaries ?? [])
       useProjectStore.getState().setNewerFormat(data.newerFormat?.savedBy ?? null)
       setNotKept(data.notKept ?? null)
@@ -1816,6 +1819,7 @@ function App() {
         // matching note in the file-picker open path above.
         useProjectStore.getState().markClean()
         noteStateMatchesFile()
+        startUndoAfresh()
         setMissingBinaries(data.missingBinaries ?? [])
         useProjectStore.getState().setNewerFormat(data.newerFormat?.savedBy ?? null)
         setNotKept(data.notKept ?? null)
@@ -1942,6 +1946,7 @@ function App() {
         savedAnalyses: []
       })
       noteStateMatchesFile()
+      startUndoAfresh()
       window.api.trackRecentProject(projectName, filePath)
     })
     return unsub
