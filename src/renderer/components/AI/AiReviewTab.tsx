@@ -197,7 +197,7 @@ function CodePath({ parts, color }: { parts: string[]; color?: string }) {
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, maxWidth: '100%' }}>
       {color && <span aria-hidden style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />}
-      <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
         {parts.slice(0, -1).map((name, i) => (
           <span key={i} style={{ color: 'var(--text-secondary)' }}>{name}<span style={{ margin: '0 4px' }}>/</span></span>
         ))}
@@ -209,25 +209,16 @@ function CodePath({ parts, color }: { parts: string[]; color?: string }) {
 
 /** A code on two lines, for the List view: its parents above (if it has
  *  any), and the code itself, with its pip, below. */
-function CodeStack({ parts, color, newCode }: { parts: string[]; color?: string; newCode?: { label: string; note: string } }) {
+function CodeStack({ parts, color }: { parts: string[]; color?: string }) {
   const parents = parts.slice(0, -1)
   const one: React.CSSProperties = { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
   return (
     <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0, lineHeight: 1.35 }}>
       {parents.length > 0 && <span style={{ ...one, color: 'var(--text-secondary)', fontSize: 11.5 }}>{parents.join(' / ')}</span>}
-      <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-        {color && <span aria-hidden style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />}
-        <strong style={one}>{parts[parts.length - 1]}</strong>
-        {/* A coding with a code that's only proposed: approving it adds
-            the code too (gold, as the code's own row). */}
-        <FadeOut show={!!newCode}>
-          {newCode && (
-            <span title={newCode.note} style={{ flexShrink: 0, display: 'inline-flex' }}>
-              <Chip tone="new">{newCode.label}</Chip>
-              <span style={visuallyHidden}>{newCode.note}</span>
-            </span>
-          )}
-        </FadeOut>
+      <span style={{ display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0 }}>
+        {color && <span aria-hidden style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0, alignSelf: 'center' }} />}
+        {/* The code itself, whole (wrapping if it must). */}
+        <strong style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{parts[parts.length - 1]}</strong>
       </span>
     </span>
   )
@@ -320,7 +311,7 @@ function excerpt(text: string, max = 90): string {
 
 /** A label: gold for a new code, blue for a new coding, red for a change
  *  to a code. */
-function Chip({ children, tone }: { children: React.ReactNode; tone?: 'new' | 'coding' | 'change' }) {
+function Chip({ children, tone, plus }: { children: React.ReactNode; tone?: 'new' | 'coding' | 'change'; plus?: boolean }) {
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', whiteSpace: 'nowrap',
@@ -330,7 +321,8 @@ function Chip({ children, tone }: { children: React.ReactNode; tone?: 'new' | 'c
         : tone === 'change' ? 'color-mix(in srgb, var(--rb-coral) 26%, var(--bg-panel))'
         : 'var(--bg-tertiary)'
     }}>
-      {(tone === 'new' || tone === 'coding') && <Icon icon={faPlus} style={{ width: 11, height: 11 }} />}
+      {/* Only where one thing comes with another (a new code with a coding). */}
+      {plus && <Icon icon={faPlus} style={{ width: 11, height: 11 }} />}
       {children}
     </span>
   )
@@ -552,6 +544,16 @@ function PendingList({ items, onApprove, onReject }: { items: AiProposal[]; onAp
     e.preventDefault()
   }
   useEffect(() => { ref.current?.focus() }, [])
+  // The colour behind the list (the theme's), for its pinned key row, so
+  // rows don't show through it as they scroll under.
+  const [behind, setBehind] = useState('transparent')
+  const theme = usePreferencesStore((st) => st.theme)
+  useLayoutEffect(() => {
+    for (let el = ref.current?.parentElement; el; el = el.parentElement) {
+      const bg = getComputedStyle(el).backgroundColor
+      if (bg && bg !== 'transparent' && !/rgba\(.*,\s*0\)$/.test(bg)) { setBehind(bg); return }
+    }
+  }, [theme])
 
   return (
     <>
@@ -575,6 +577,16 @@ function PendingList({ items, onApprove, onReject }: { items: AiProposal[]; onAp
         className="ai-list"
         style={listGrid}
       >
+        {/* The keys, over the buttons they press (as on Focused's). */}
+        <li aria-hidden style={{ ...row, position: 'sticky', top: -4, zIndex: 1, padding: '0 13px 0 17px', background: behind }}>
+          <span style={{ gridColumn: 5, display: 'flex', gap: 6 }}>
+            {[t('ai.review.keyReject'), t('ai.review.keyApprove')].map((k) => (
+              <span key={k} style={{ width: 26, display: 'grid', placeItems: 'center' }}>
+                <kbd style={{ fontFamily: 'inherit', fontSize: 10.5, padding: '0 5px', borderRadius: 4, border: '1px solid currentColor', color: 'var(--text-secondary)' }}>{k}</kbd>
+              </span>
+            ))}
+          </span>
+        </li>
         {rows.map(({ p, leaving }) => {
           const i = items.indexOf(p)
           return (
@@ -605,8 +617,8 @@ const listGrid: React.CSSProperties = {
   // The document's column is capped (titles can be very long: they'd
   // squeeze the code and passage to nothing), and those two never
   // collapse.
-  display: 'grid', gridTemplateColumns: 'max-content minmax(140px, 1fr) minmax(180px, 1.7fr) fit-content(200px) max-content',
-  columnGap: 14, rowGap: 6, alignContent: 'start'
+  display: 'grid', gridTemplateColumns: 'max-content minmax(180px, 1.4fr) minmax(170px, 1.15fr) fit-content(130px) max-content',
+  columnGap: 16, rowGap: 8, alignContent: 'start'
 }
 const row: React.CSSProperties = { gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: 'subgrid', alignItems: 'center' }
 const cell: React.CSSProperties = { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
@@ -650,7 +662,7 @@ function PendingLine({ p, leaving, active, open, onToggle, onApprove, onReject }
       data-active={active ? '' : undefined}
       className={leaving ? 'ai-leaving' : undefined}
       aria-hidden={leaving || undefined}
-      style={{ ...row, borderRadius: 8, padding: '8px 12px 8px 16px', border: `1px solid ${s.isNew ? 'color-mix(in srgb, var(--rb-gold) 60%, var(--border-color))' : 'var(--border-color)'}`, background: 'var(--bg-panel)', fontSize: 12.5 }}>
+      style={{ ...row, minHeight: 64, boxSizing: 'border-box', borderRadius: 8, padding: '12px 12px 12px 16px', border: `1px solid ${s.isNew ? 'color-mix(in srgb, var(--rb-gold) 60%, var(--border-color))' : 'var(--border-color)'}`, background: 'var(--bg-panel)', fontSize: 12.5 }}>
       <button
         type="button"
         aria-expanded={open}
@@ -658,14 +670,20 @@ function PendingLine({ p, leaving, active, open, onToggle, onApprove, onReject }
         onClick={onToggle}
         style={{ gridColumn: '1 / 5', display: 'grid', gridTemplateColumns: 'subgrid', alignItems: 'center', minWidth: 0, padding: 0, border: 'none', background: 'none', textAlign: 'start', cursor: 'pointer', color: 'var(--text-primary)', fontSize: 12.5 }}
       >
-        <span><KindLabel p={p} s={s} /></span>
-        <CodeStack
-          parts={s.parts}
-          color={s.color}
-          newCode={needs.length > 0 ? { label: t('ai.review.kind.newCode'), note: t('ai.review.alsoApproves', { count: needs.length }) } : undefined}
-        />
+        {/* Its label; under it, for a coding whose code is only proposed,
+            the gold New code (approving it adds the code too). */}
+        <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+          <KindLabel p={p} s={s} />
+          <FadeOut show={needs.length > 0}>
+            <span title={t('ai.review.alsoApproves', { count: needs.length || 1 })} style={{ display: 'inline-flex' }}>
+              <Chip tone="new" plus>{t('ai.review.kind.newCode')}</Chip>
+              <span style={visuallyHidden}>{t('ai.review.alsoApproves', { count: needs.length || 1 })}</span>
+            </span>
+          </FadeOut>
+        </span>
+        <CodeStack parts={s.parts} color={s.color} />
         <span style={twoLines}>{excerpt(s.text, 320)}</span>
-        <span style={{ ...cell, color: 'var(--text-secondary)', fontSize: 12 }}>{s.doc}</span>
+        <span title={s.doc || undefined} style={{ ...cell, color: 'var(--text-secondary)', fontSize: 12 }}>{s.doc}</span>
       </button>
       <span style={{ gridColumn: 5, display: 'flex', gap: 6 }}>
         <button type="button" aria-label={t('ai.review.deny')} title={t('ai.review.deny')} onClick={onReject} style={iconButton}>
@@ -703,11 +721,11 @@ function DecidedList({ items }: { items: AiProposal[] }) {
 function DecidedLine({ p }: { p: AiProposal }) {
   const s = useSummary(p)
   return (
-    <li data-proposal={p.id} style={{ ...row, padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-panel)', fontSize: 12.5 }}>
+    <li data-proposal={p.id} style={{ ...row, minHeight: 64, boxSizing: 'border-box', padding: '12px 16px', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-panel)', fontSize: 12.5 }}>
       <span><KindLabel p={p} s={s} /></span>
       <CodeStack parts={s.parts} color={s.color} />
       <span style={twoLines}>{excerpt(s.text, 320)}</span>
-      <span style={{ ...cell, color: 'var(--text-secondary)', fontSize: 12 }}>{s.doc}</span>
+      <span title={s.doc || undefined} style={{ ...cell, color: 'var(--text-secondary)', fontSize: 12 }}>{s.doc}</span>
       <span><Status p={p} /></span>
     </li>
   )
@@ -779,7 +797,17 @@ function BarrelItem({ p, current, position, onClick }: { p: AiProposal; current:
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, fontSize: 14, flexWrap: 'wrap' }}>
-        <Chip tone={toneOf(p, s.isNew)}>{s.kind}</Chip>
+        {/* Its label; under it, for a coding whose code is only proposed,
+            the gold + New code (approving it adds the code too). */}
+        <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+          <Chip tone={toneOf(p, s.isNew)}>{s.kind}</Chip>
+          {needs.length > 0 && (
+            <span title={t('ai.review.alsoApproves', { count: needs.length })} style={{ display: 'inline-flex' }}>
+              <Chip tone="new" plus>{t('ai.review.kind.newCode')}</Chip>
+              <span style={visuallyHidden}>{t('ai.review.alsoApproves', { count: needs.length })}</span>
+            </span>
+          )}
+        </span>
         <CodePath parts={s.parts} color={s.color} />
         {s.doc && <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>· {s.doc}</span>}
         <span style={{ marginInlineStart: 'auto', flexShrink: 0, fontSize: 11.5, color: 'var(--text-secondary)' }}>
@@ -790,7 +818,6 @@ function BarrelItem({ p, current, position, onClick }: { p: AiProposal; current:
       {c.type === 'removeCoding' && sel && <Context sourceGuid={c.sourceGuid} start={sel.startPosition} end={sel.endPosition} cell={sel.surveyCell} color={s.color} />}
       {(c.type === 'newCode' || c.type === 'editCode') && s.text && <p style={{ margin: '10px 0 0', fontSize: 13, lineHeight: 1.55, color: 'var(--text-primary)' }}>{s.text}</p>}
       {p.reason && <p style={{ margin: '10px 0 0', fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{t('ai.review.reason', { reason: p.reason })}</p>}
-      {needs.length > 0 && <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)' }}>{t('ai.review.alsoApproves', { count: needs.length })}</p>}
       {p.status === 'failed' && (
         <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '6px 0 0', fontSize: 12, color: 'var(--text-secondary)' }}>
           <Icon icon={faXmark} style={{ color: 'var(--danger)', width: 13, height: 13, flexShrink: 0 }} />
