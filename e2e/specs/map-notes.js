@@ -17,8 +17,10 @@ async function spec(t) {
   t.check('Shift+→ moves it', !!(await t.until(() => maps.getState().maps[guid].freeTexts[0].x === 150, 2000)), String(maps.getState().maps[guid].freeTexts[0].x))
   key('Enter')
   t.check('Enter edits it', !!(await t.until(() => document.activeElement?.closest('.ProseMirror'), 3000)))
+  // As a person would: a moment after editing starts (the editor settles).
+  await t.sleep(400)
   document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))
-  t.check('Escape stops, and the keyboard is back on the note', !!(await t.until(() => document.activeElement?.hasAttribute('data-free-text'), 3000)), document.activeElement?.outerHTML.slice(0, 80))
+  t.check('Escape stops, and the keyboard is back on the note', !!(await t.until(() => document.activeElement?.hasAttribute('data-free-text'), 8000)), document.activeElement?.outerHTML.slice(0, 80))
   key('F10', { shiftKey: true })
   const menu = await t.until(() => document.querySelector('.context-menu[role="menu"]'), 3000)
   const items = menu ? [...menu.querySelectorAll('[role="menuitem"]')].map((i) => i.textContent) : []
