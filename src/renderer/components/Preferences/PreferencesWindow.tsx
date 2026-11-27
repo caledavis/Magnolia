@@ -164,7 +164,11 @@ function KeyCaptureInput({ value, onChange, label }: { value: string; onChange: 
         onClick={() => setCapturing(true)}
         onBlur={() => setCapturing(false)}
         style={{
-          flex: 1,
+          // Wide enough for a key combination, or "Press a key…" in any
+          // language (French's is the longest), not the whole window.
+          width: 200,
+          maxWidth: '100%',
+          boxSizing: 'border-box',
           padding: '4px 8px',
           fontSize: 12,
           fontFamily: 'var(--font-mono)',
