@@ -90,6 +90,12 @@ async function spec(t) {
   await key('ArrowDown')
   t.check('↓ moves to the coding, its passage in context', focused()?.querySelector('mark')?.textContent === quote, focused()?.textContent.slice(0, 120))
   t.check('it says where it is', /2 of 3/.test(focused()?.textContent ?? ''))
+  // → to its document and ← back: still the same card.
+  await key('ArrowRight')
+  await t.sleep(300)
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }))
+  await t.sleep(600)
+  t.check('coming back from its document keeps the place', /2 of 3/.test(focused()?.textContent ?? '') && document.activeElement === list(), focused()?.textContent.slice(0, 80))
   // axe, in each theme.
   const axeThemes = async (el) => {
     const before = document.documentElement.getAttribute('data-theme')
@@ -130,6 +136,15 @@ async function spec(t) {
   third.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
   await t.sleep(100)
   t.check('a click gives the list the keyboard, and selects the row', document.activeElement === listEl && third.hasAttribute('data-active'))
+  // Space opens the row's details: the row grows, and the next moves down
+  // (they used to spill underneath it).
+  const nextTop = () => lines[3]?.getBoundingClientRect().top ?? 0
+  const before = { h: third.getBoundingClientRect().height, next: nextTop() }
+  listEl.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }))
+  await t.sleep(500)
+  t.check('Space opens a row, which grows to hold it', third.getBoundingClientRect().height > before.h + 20 && (lines.length < 4 || nextTop() > before.next + 20), `${before.h} → ${third.getBoundingClientRect().height}`)
+  listEl.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }))
+  await t.sleep(300)
   // A coding opens in its document, to decide there: the review bar
   // floats over it; Escape goes back to the Viewer, the coding undecided.
   const codingLine = [...review.querySelectorAll('li[data-proposal]')].find((l) => /New coding/i.test(l.textContent))
@@ -138,7 +153,21 @@ async function spec(t) {
   t.check('clicking a coding opens its document, with the review bar', docs.getState().viewedDocumentGuid === doc.guid && !!bar, String(docs.getState().viewedDocumentGuid))
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
   await t.sleep(200)
+  await t.sleep(200)
+  t.check('and the list has the keyboard again (no click needed)', document.activeElement === review.querySelector('ul.ai-list'), document.activeElement?.tagName)
   t.check('Escape goes back to the Viewer, the coding still to review', docs.getState().viewedDocumentGuid === (await t.module('utils/tab-ids')).AI_REVIEW_TAB_ID && ai.getState().proposals.find((p) => p.change.type === 'addCoding')?.status === 'pending')
+  // → from the list opens the highlighted row's coding; ← comes back.
+  const listUl = review.querySelector('ul.ai-list')
+  const rowsNow = [...listUl.querySelectorAll('li[data-proposal]')]
+  const codingIndex = rowsNow.findIndex((l) => /New coding/i.test(l.textContent))
+  rowsNow[codingIndex].dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+  await t.sleep(100)
+  listUl.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
+  await t.sleep(300)
+  t.check('→ opens the coding in its document', docs.getState().viewedDocumentGuid === doc.guid)
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }))
+  await t.sleep(300)
+  t.check('← comes back to the Viewer', docs.getState().viewedDocumentGuid === (await t.module('utils/tab-ids')).AI_REVIEW_TAB_ID)
   const v1b = await axeThemes(review)
   t.check('and passes axe in every theme', v1b.length === 0, v1b.join(' || ').slice(0, 800))
   radio('Focused')?.click()

@@ -2796,3 +2796,8 @@ textarea {
   .ai-fade { transition: none; }
   .ai-leaving { animation: none; display: none; }
 }
+
+/* A List row's details fade in as it opens (AiReviewTab.tsx). */
+.ai-row-details { animation: ai-row-open 0.28s ease; }
+@keyframes ai-row-open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ai-row-details { animation: none; } }

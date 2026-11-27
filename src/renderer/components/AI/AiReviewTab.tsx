@@ -19,7 +19,7 @@ import { approve, deny, withDependents, withRequirements } from '../../utils/ai/
 import { documentText } from '../../utils/ai/tools'
 import { buildCellText } from '../../utils/survey/cell-text'
 import { usePreferencesStore } from '../../stores/preferences-store'
-import { PREFERENCES_TAB_ID } from '../../utils/tab-ids'
+import { AI_REVIEW_TAB_ID, PREFERENCES_TAB_ID } from '../../utils/tab-ids'
 import { requestPreferencesCategory } from '../Preferences/PreferencesWindow'
 import type { Code, SurveyFormatData } from '../../models/types'
 import { Icon, faSparkles, faCheck, faXmark, faPlus } from '../Icon'
@@ -384,7 +384,9 @@ function Barrel({ items, onApprove, onReject }: { items: AiProposal[]; onApprove
     cancelAnimationFrame(frame.current)
     frame.current = requestAnimationFrame(() => {
       const box = ref.current
-      if (!box) return
+      // Hidden (another tab is showing): it has no height, and would take
+      // the first card for the current one.
+      if (!box || box.clientHeight === 0) return
       const mid = box.scrollTop + box.clientHeight / 2
       let nearest = 0
       let best = Infinity
@@ -405,7 +407,11 @@ function Barrel({ items, onApprove, onReject }: { items: AiProposal[]; onApprove
   useLayoutEffect(() => {
     const box = ref.current
     if (!box) return
-    const size = () => { setPad(Math.max(0, box.clientHeight / 2 - 80)); follow() }
+    const size = () => {
+      if (box.clientHeight === 0) return // hidden: keep the place
+      setPad(Math.max(0, box.clientHeight / 2 - 80))
+      follow()
+    }
     size()
     const ro = new ResizeObserver(size)
     ro.observe(box)
@@ -414,6 +420,20 @@ function Barrel({ items, onApprove, onReject }: { items: AiProposal[]; onApprove
     // Once, on showing: follow reads the list as it is each time.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  // Back on this tab (from a document, say): the keyboard is the list's
+  // again, and the current card is in the middle.
+  const shownTab = useDocumentStore((st) => st.viewedDocumentGuid === AI_REVIEW_TAB_ID)
+  useEffect(() => {
+    if (!shownTab) return
+    const timer = setTimeout(() => {
+      bring(Math.min(index, n - 1), false)
+      follow()
+      ref.current?.focus({ preventScroll: true })
+    })
+    return () => clearTimeout(timer)
+    // Only when the tab is shown.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shownTab])
   // After a decision the list is shorter: the next one takes the place.
   useLayoutEffect(() => {
     bring(Math.min(index, n - 1), false)
@@ -440,6 +460,8 @@ function Barrel({ items, onApprove, onReject }: { items: AiProposal[]; onApprove
     const k = e.key
     if (k === 'ArrowUp') go(at - 1)
     else if (k === 'ArrowDown') go(at + 1)
+    // → opens the current coding in its document (← there comes back).
+    else if (k === 'ArrowRight' && current && (current.change.type === 'addCoding' || current.change.type === 'removeCoding')) reviewInDocument(current)
     else if (k === 'Home') go(0)
     else if (k === 'End') go(n - 1)
     else if (k === 'PageUp') go(at - AROUND)
@@ -453,7 +475,7 @@ function Barrel({ items, onApprove, onReject }: { items: AiProposal[]; onApprove
     e.preventDefault()
   }
 
-  const kbd: React.CSSProperties = { fontFamily: 'inherit', fontSize: 10.5, padding: '0 5px', marginInlineStart: 6, borderRadius: 4, border: '1px solid currentColor', opacity: 0.85 }
+  const kbd: React.CSSProperties = { fontFamily: 'inherit', fontSize: 10.5, lineHeight: '15px', padding: '0 5px', marginInlineStart: 2, borderRadius: 4, border: '1px solid currentColor', opacity: 0.85 }
   const c = current?.change
 
   return (
@@ -495,12 +517,12 @@ function Barrel({ items, onApprove, onReject }: { items: AiProposal[]; onApprove
         <span>{t('ai.review.keysMove')}</span>
         <span style={{ flex: 1 }} />
         {c?.type === 'addCoding' && (
-          <button type="button" className="secondary" onClick={() => reviewInDocument(current)}>{t('ai.review.showInDocument')}</button>
+          <button type="button" className="secondary" onClick={() => reviewInDocument(current)} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>{t('ai.review.showInDocument')}<kbd style={kbd}>→</kbd></button>
         )}
         {pending && (
           <>
-            <button type="button" className="secondary" onClick={() => decide(false)}>{t('ai.review.deny')}<kbd style={kbd}>{t('ai.review.keyReject')}</kbd></button>
-            <button type="button" onClick={() => decide(true)}>{t('ai.review.approve')}<kbd style={kbd}>{t('ai.review.keyApprove')}</kbd></button>
+            <button type="button" className="secondary" onClick={() => decide(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>{t('ai.review.deny')}<kbd style={kbd}>{t('ai.review.keyReject')}</kbd></button>
+            <button type="button" onClick={() => decide(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>{t('ai.review.approve')}<kbd style={kbd}>{t('ai.review.keyApprove')}</kbd></button>
           </>
         )}
       </div>
@@ -536,6 +558,8 @@ function PendingList({ items, onApprove, onReject }: { items: AiProposal[]; onAp
     const k = e.key
     if (k === 'ArrowUp') show(at - 1)
     else if (k === 'ArrowDown') show(at + 1)
+    // → opens the row's coding in its document (← there comes back).
+    else if (k === 'ArrowRight' && p && (p.change.type === 'addCoding' || p.change.type === 'removeCoding')) reviewInDocument(p)
     else if (k === 'Home') show(0)
     else if (k === 'End') show(n - 1)
     else if (p && (k === 'Enter' || e.code === 'KeyR')) onApprove(p.id)
@@ -544,7 +568,23 @@ function PendingList({ items, onApprove, onReject }: { items: AiProposal[]; onAp
     else return
     e.preventDefault()
   }
-  useEffect(() => { ref.current?.focus() }, [])
+  // On showing, and back on this tab (from a document, say): the keyboard
+  // is the list's.
+  const shownTab = useDocumentStore((st) => st.viewedDocumentGuid === AI_REVIEW_TAB_ID)
+  const lastScroll = useRef(0)
+  useEffect(() => {
+    if (!shownTab) return
+    const timer = setTimeout(() => {
+      const el = ref.current
+      if (!el) return
+      // Where it was (a hidden list loses its place), and the highlighted
+      // row in view.
+      el.scrollTop = lastScroll.current
+      el.focus({ preventScroll: true })
+      el.querySelector<HTMLElement>('li[data-active]')?.scrollIntoView({ block: 'nearest' })
+    })
+    return () => clearTimeout(timer)
+  }, [shownTab])
   // The colour behind the list (the theme's), for its pinned key row, so
   // rows don't show through it as they scroll under.
   const [behind, setBehind] = useState('transparent')
@@ -567,6 +607,7 @@ function PendingList({ items, onApprove, onReject }: { items: AiProposal[]; onAp
         tabIndex={0}
         aria-label={t('ai.review.listLabel')}
         onKeyDown={onKeyDown}
+        onScroll={(e) => { if (e.currentTarget.clientHeight > 0) lastScroll.current = e.currentTarget.scrollTop }}
         // A click on a row or its buttons leaves the keyboard with the list
         // (on macOS a click doesn't move it), and selects that row.
         onMouseDown={(e) => {
@@ -700,22 +741,19 @@ function PendingLine({ p, leaving, active, open, onToggle, onApprove, onReject }
           <Icon icon={faCheck} style={{ width: 13, height: 13, color: '#fff' }} />
         </button>
       </span>
-      {/* In a plain box: the unfolding (rows 0fr → 1fr) doesn't size
-          inside the row's grid, which left the details spilling under
-          the rows below. */}
-      <div style={{ gridColumn: '1 / -1', minWidth: 0 }}>
-      <div className={open ? 'ai-barrel-details' : 'ai-barrel-details closed'} style={{ display: 'grid', gridTemplateRows: open ? '1fr' : '0fr' }}>
-        <div style={{ overflow: 'hidden', minHeight: 0, paddingBottom: open ? 4 : 0 }}>
+      {/* Its details, when opened: shown in full (the row grows, and those
+          below move down), fading in. */}
+      {open && (
+        <div className="ai-row-details" style={{ gridColumn: '1 / -1', minWidth: 0, paddingBottom: 4 }}>
           {c.type === 'addCoding' && <Context sourceGuid={c.sourceGuid} start={c.start} end={c.end} cell={c.surveyCell} color={s.color} />}
           {c.type === 'removeCoding' && sel && <Context sourceGuid={c.sourceGuid} start={sel.startPosition} end={sel.endPosition} cell={sel.surveyCell} color={s.color} />}
           {(c.type === 'newCode' || c.type === 'editCode') && s.text && <p style={{ margin: '8px 0 0', fontSize: 12.5, lineHeight: 1.55 }}>{s.text}</p>}
           {p.reason && <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{t('ai.review.reason', { reason: p.reason })}</p>}
           {c.type === 'addCoding' && (
-            <button type="button" onClick={() => reviewInDocument(p)} style={{ marginTop: 6, padding: 0, border: 'none', background: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: 11.5 }}>{t('ai.review.showInDocument')}</button>
+            <button type="button" onClick={() => reviewInDocument(p)} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 6, padding: 0, border: 'none', background: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: 11.5 }}>{t('ai.review.showInDocument')}<kbd style={{ fontFamily: 'inherit', fontSize: 10, lineHeight: '14px', padding: '0 4px', borderRadius: 4, border: '1px solid currentColor' }}>→</kbd></button>
           )}
         </div>
-      </div>
-      </div>
+      )}
     </li>
   )
 }

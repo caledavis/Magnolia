@@ -3,7 +3,7 @@
  * Assistance Viewer (a click on a coding), the document shows the passage
  * highlighted (TextDocumentPane keeps it so until it's decided), and this
  * bar floats over it with what's proposed and Reject (E) / Approve (R).
- * Deciding, or Back to review (Escape), returns to the Viewer.
+ * Deciding, or Back to review (← or Escape), returns to the Viewer.
  */
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -13,7 +13,6 @@ import { useDocumentStore } from '../../stores/document-store'
 import { useCodeStore } from '../../stores/code-store'
 import { approve, deny, withRequirements } from '../../utils/ai/apply'
 import { AI_REVIEW_TAB_ID } from '../../utils/tab-ids'
-import { Icon, faCheck, faXmark } from '../Icon'
 
 /** Open a coding proposal in its document, to decide it there. */
 export function reviewInDocument(p: AiProposal): void {
@@ -62,15 +61,15 @@ export function AiReviewBar() {
     backToReview()
   }
 
-  // E rejects, R approves (by position, as in the Viewer); Escape goes
-  // back. Not while typing.
+  // E rejects, R approves (by position, as in the Viewer); ← or Escape
+  // goes back. Not while typing.
   useEffect(() => {
     if (!shown) return
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || typing(e)) return
       if (e.code === 'KeyR') decide(true)
       else if (e.code === 'KeyE') decide(false)
-      else if (e.key === 'Escape') backToReview()
+      else if (e.key === 'Escape' || e.key === 'ArrowLeft') backToReview()
       else return
       e.preventDefault()
       e.stopPropagation()
@@ -89,7 +88,9 @@ export function AiReviewBar() {
   const code = findCode(codeGuid ?? created ?? '')
   const name = code?.name ?? (proposedCode?.type === 'newCode' ? proposedCode.name : '')
   const color = code?.color ?? (proposedCode?.type === 'newCode' ? proposedCode.color : undefined)
-  const kbd: React.CSSProperties = { fontFamily: 'inherit', fontSize: 10.5, padding: '0 5px', marginInlineStart: 6, borderRadius: 4, border: '1px solid currentColor', opacity: 0.85 }
+  const kbd: React.CSSProperties = { fontFamily: 'inherit', fontSize: 10.5, lineHeight: '15px', padding: '0 5px', marginInlineStart: 2, borderRadius: 4, border: '1px solid currentColor', opacity: 0.85 }
+  // Icon, words and key on one centre line.
+  const centred: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 5 }
   const chip = (text: string, bg: string, plus = false) => (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'var(--text-primary)', borderRadius: 4, padding: '1px 6px', background: bg }}>
       {plus && <span aria-hidden>+</span>}
@@ -125,12 +126,12 @@ export function AiReviewBar() {
           <strong style={{ overflowWrap: 'anywhere' }}>{name}</strong>
         </span>
         <span style={{ flex: 1 }} />
-        <button type="button" className="secondary" onClick={backToReview}>{t('ai.review.back')}</button>
-        <button type="button" className="secondary" onClick={() => decide(false)}>
-          <Icon icon={faXmark} style={{ width: 13, height: 13, marginInlineEnd: 4 }} />{t('ai.review.deny')}<kbd style={kbd}>{t('ai.review.keyReject')}</kbd>
+        <button type="button" className="secondary" onClick={backToReview} style={centred}>{t('ai.review.back')}<kbd style={kbd}>←</kbd></button>
+        <button type="button" className="secondary" onClick={() => decide(false)} style={centred}>
+{t('ai.review.deny')}<kbd style={kbd}>{t('ai.review.keyReject')}</kbd>
         </button>
-        <button type="button" onClick={() => decide(true)}>
-          <Icon icon={faCheck} style={{ width: 13, height: 13, marginInlineEnd: 4 }} />{t('ai.review.approve')}<kbd style={kbd}>{t('ai.review.keyApprove')}</kbd>
+        <button type="button" onClick={() => decide(true)} style={centred}>
+{t('ai.review.approve')}<kbd style={kbd}>{t('ai.review.keyApprove')}</kbd>
         </button>
       </div>
     </div>
