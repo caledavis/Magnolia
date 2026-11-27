@@ -2179,7 +2179,8 @@
       "keyApprove": "R",
       "keyReject": "E",
       "keysMove": "↑ ↓ siirtyy",
-      "keysList": "↑ ↓ siirtyy · Välilyönti avaa tai sulkee · {{approve}} tai Enter hyväksyy · {{reject}} tai Delete hylkää"
+      "keysList": "↑ ↓ siirtyy · Välilyönti avaa tai sulkee · {{approve}} tai Enter hyväksyy · {{reject}} tai Delete hylkää",
+      "back": "Takaisin tarkistukseen"
     },
     "apps": {
       "intro": "Claude-tilauksella voit käyttää Claude Desktopia Magnolian kanssa ilman API-avainta: se lukee avoimen projektin ja ehdottaa muutoksia, jotka hyväksyt tai hylkäät Magnoliassa. Myös muut sovellukset, jotka tukevat Model Context Protocol (MCP) -protokollaa, toimivat.",

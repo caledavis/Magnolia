@@ -130,6 +130,15 @@ async function spec(t) {
   third.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
   await t.sleep(100)
   t.check('a click gives the list the keyboard, and selects the row', document.activeElement === listEl && third.hasAttribute('data-active'))
+  // A coding opens in its document, to decide there: the review bar
+  // floats over it; Escape goes back to the Viewer, the coding undecided.
+  const codingLine = [...review.querySelectorAll('li[data-proposal]')].find((l) => /New coding/i.test(l.textContent))
+  codingLine?.querySelector('button[aria-expanded]')?.click()
+  const bar = await t.until(() => [...document.querySelectorAll('[role="region"][aria-label="AI Assistance"]')].find((r) => t.visible(r) && /Approve/.test(r.textContent)), 3000)
+  t.check('clicking a coding opens its document, with the review bar', docs.getState().viewedDocumentGuid === doc.guid && !!bar, String(docs.getState().viewedDocumentGuid))
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+  await t.sleep(200)
+  t.check('Escape goes back to the Viewer, the coding still to review', docs.getState().viewedDocumentGuid === (await t.module('utils/tab-ids')).AI_REVIEW_TAB_ID && ai.getState().proposals.find((p) => p.change.type === 'addCoding')?.status === 'pending')
   const v1b = await axeThemes(review)
   t.check('and passes axe in every theme', v1b.length === 0, v1b.join(' || ').slice(0, 800))
   radio('Focused')?.click()

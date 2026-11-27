@@ -26,6 +26,7 @@ import { useTranslation } from 'react-i18next'
 import { digitKey } from '../../utils/keys'
 import { flattenCodesWithDepth } from '../../utils/code-tree'
 import { draggedCodeGuids } from '../../utils/code-drag'
+import { useAiReviewStore } from '../../stores/ai-review-store'
 
 /** After a long jump, how many frames the target must stay put, and how
  *  long to keep re-centring it at most. */
@@ -87,6 +88,15 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
 
   const [isDragOver, setIsDragOver] = useState(false)
   const [menuHighlight, setMenuHighlight] = useState<{ startCp: number; endCp: number } | null>(null)
+  // An AI Assistance coding being reviewed here: its passage stays
+  // highlighted until it's decided (see AiReviewBar).
+  const reviewing = useAiReviewStore((st) => st.reviewing)
+  const reviewHere = !!reviewing && reviewing.sourceGuid === source.guid && !reviewing.surveyCell
+  const reviewStart = reviewHere ? reviewing!.start : -1
+  const reviewEnd = reviewHere ? reviewing!.end : -1
+  // The same object while the range is the same (a new one each render
+  // would set the highlight again and again).
+  const reviewRange = useMemo(() => (reviewStart >= 0 ? { startCp: reviewStart, endCp: reviewEnd } : null), [reviewStart, reviewEnd])
   const dragCounterRef = useRef(0)
   const scrollTarget = useDocumentStore((s) => s.scrollTarget)
   const clearScrollTarget = useDocumentStore((s) => s.clearScrollTarget)
@@ -433,7 +443,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
             codes={codes}
             contentMemos={contentMemos}
             quotes={quoteRangesForViewer}
-            externalHighlightRange={menuHighlight}
+            externalHighlightRange={reviewRange ?? menuHighlight}
             onTextSelected={handleTextSelected}
             onMemoClick={openMemo}
             onCodingRightClick={handleRightClick}
@@ -452,7 +462,7 @@ export function TextDocumentPane({ source, content, sourceType, pane, active, on
             codes={codes}
             contentMemos={contentMemos}
             quotes={quoteRangesForViewer}
-            externalHighlightRange={menuHighlight}
+            externalHighlightRange={reviewRange ?? menuHighlight}
             onTextSelected={handleTextSelected}
             onMemoClick={openMemo}
             onCodingRightClick={handleRightClick}

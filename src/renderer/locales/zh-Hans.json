@@ -2090,7 +2090,8 @@
       "keyApprove": "R",
       "keyReject": "E",
       "keysMove": "↑ ↓ 移动",
-      "keysList": "↑ ↓ 移动 · 空格键展开或收起 · {{approve}} 或 Enter 批准 · {{reject}} 或 Delete 拒绝"
+      "keysList": "↑ ↓ 移动 · 空格键展开或收起 · {{approve}} 或 Enter 批准 · {{reject}} 或 Delete 拒绝",
+      "back": "返回审核"
     },
     "apps": {
       "intro": "有了 Claude 订阅，您无需 API 密钥即可将 Claude Desktop 与 Magnolia 搭配使用：它会读取打开的项目并建议更改，由您在 Magnolia 中批准或拒绝。其他支持 Model Context Protocol（MCP）的应用也可以使用。",

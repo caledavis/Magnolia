@@ -64,6 +64,7 @@ function renderToolTab(tabId: string): React.ReactNode {
 }
 import { InlineRelationshipMap } from '../Analysis/RelationshipMap/InlineRelationshipMap'
 import { AiReviewTab } from '../AI/AiReviewTab'
+import { AiReviewBar } from '../AI/AiReviewBar'
 import { MemoFab } from '../Memos/MemoFab'
 import { Icon, faSquareSplitVertical } from '../Icon'
 import { useTranslation } from 'react-i18next'
@@ -248,7 +249,9 @@ export function DocumentViewer() {
   const activeIsTool = isToolTab(selectedGuid)
 
   return (
-    <div className="panel">
+    <div className="panel" style={{ position: 'relative' }}>
+      {/* Deciding an AI Assistance coding in its document. */}
+      <AiReviewBar />
       {openTabs.length > 0 ? (
         <TabBar
           openTabs={visibleTabs}

@@ -24,6 +24,7 @@ import { requestPreferencesCategory } from '../Preferences/PreferencesWindow'
 import type { Code, SurveyFormatData } from '../../models/types'
 import { Icon, faSparkles, faCheck, faXmark, faPlus } from '../Icon'
 import { SegmentedControl } from '../Analysis/SegmentedControl'
+import { reviewInDocument } from './AiReviewBar'
 import { announce } from '../../utils/keyboard-access'
 import { PALETTE_ICON_CLASS } from '../../utils/icon-tint'
 
@@ -494,7 +495,7 @@ function Barrel({ items, onApprove, onReject }: { items: AiProposal[]; onApprove
         <span>{t('ai.review.keysMove')}</span>
         <span style={{ flex: 1 }} />
         {c?.type === 'addCoding' && (
-          <button type="button" className="secondary" onClick={() => useDocumentStore.getState().viewDocumentAt(c.sourceGuid, c.start, c.end)}>{t('ai.review.showInDocument')}</button>
+          <button type="button" className="secondary" onClick={() => reviewInDocument(current)}>{t('ai.review.showInDocument')}</button>
         )}
         {pending && (
           <>
@@ -596,7 +597,13 @@ function PendingList({ items, onApprove, onReject }: { items: AiProposal[]; onAp
               leaving={leaving}
               active={!leaving && i === at}
               open={openId === p.id}
-              onToggle={() => { setActive(i); setOpenId((id) => (id === p.id ? null : p.id)) }}
+              // A coding opens in its document, to decide there; a code (no
+              // passage) opens its details here.
+              onToggle={() => {
+                setActive(i)
+                if (p.change.type === 'addCoding' || p.change.type === 'removeCoding') reviewInDocument(p)
+                else setOpenId((id) => (id === p.id ? null : p.id))
+              }}
               onApprove={() => onApprove(p.id)}
               onReject={() => onReject(p.id)}
             />
@@ -693,16 +700,21 @@ function PendingLine({ p, leaving, active, open, onToggle, onApprove, onReject }
           <Icon icon={faCheck} style={{ width: 13, height: 13, color: '#fff' }} />
         </button>
       </span>
-      <div className={open ? 'ai-barrel-details' : 'ai-barrel-details closed'} style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateRows: open ? '1fr' : '0fr' }}>
+      {/* In a plain box: the unfolding (rows 0fr → 1fr) doesn't size
+          inside the row's grid, which left the details spilling under
+          the rows below. */}
+      <div style={{ gridColumn: '1 / -1', minWidth: 0 }}>
+      <div className={open ? 'ai-barrel-details' : 'ai-barrel-details closed'} style={{ display: 'grid', gridTemplateRows: open ? '1fr' : '0fr' }}>
         <div style={{ overflow: 'hidden', minHeight: 0, paddingBottom: open ? 4 : 0 }}>
           {c.type === 'addCoding' && <Context sourceGuid={c.sourceGuid} start={c.start} end={c.end} cell={c.surveyCell} color={s.color} />}
           {c.type === 'removeCoding' && sel && <Context sourceGuid={c.sourceGuid} start={sel.startPosition} end={sel.endPosition} cell={sel.surveyCell} color={s.color} />}
           {(c.type === 'newCode' || c.type === 'editCode') && s.text && <p style={{ margin: '8px 0 0', fontSize: 12.5, lineHeight: 1.55 }}>{s.text}</p>}
           {p.reason && <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{t('ai.review.reason', { reason: p.reason })}</p>}
           {c.type === 'addCoding' && (
-            <button type="button" onClick={() => useDocumentStore.getState().viewDocumentAt(c.sourceGuid, c.start, c.end)} style={{ marginTop: 6, padding: 0, border: 'none', background: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: 11.5 }}>{t('ai.review.showInDocument')}</button>
+            <button type="button" onClick={() => reviewInDocument(p)} style={{ marginTop: 6, padding: 0, border: 'none', background: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: 11.5 }}>{t('ai.review.showInDocument')}</button>
           )}
         </div>
+      </div>
       </div>
     </li>
   )
@@ -785,10 +797,10 @@ function BarrelItem({ p, current, position, onClick }: { p: AiProposal; current:
       aria-hidden={current ? undefined : true}
       data-current={current ? '' : undefined}
       data-proposal={p.id}
-      onClick={current ? undefined : onClick}
+      onClick={current ? (c.type === 'addCoding' || c.type === 'removeCoding' ? () => reviewInDocument(p) : undefined) : onClick}
       className="ai-barrel-item"
       style={{
-        flexShrink: 0, width: '100%', maxWidth: 760, boxSizing: 'border-box', borderRadius: 12, background: 'var(--bg-panel)', cursor: current ? 'default' : 'pointer',
+        flexShrink: 0, width: '100%', maxWidth: 760, boxSizing: 'border-box', borderRadius: 12, background: 'var(--bg-panel)', cursor: current && c.type !== 'addCoding' && c.type !== 'removeCoding' ? 'default' : 'pointer',
         padding: '14px 18px',
         border: `1px solid ${s.isNew ? 'color-mix(in srgb, var(--rb-gold) 60%, var(--border-color))' : 'var(--border-color)'}`,
         boxShadow: current ? '0 6px 24px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08)' : 'none'

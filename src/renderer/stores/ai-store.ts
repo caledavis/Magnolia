@@ -12,6 +12,7 @@
 import { create } from 'zustand'
 import { useProjectStore } from './project-store'
 import { makeHmrSafe } from './hmr-preserve'
+import { useAiReviewStore } from './ai-review-store'
 import { emptyRefs, type AiChange, type ChatRefs } from '../utils/ai/tools'
 
 /** One app's session with the project (a connection from it). */
@@ -111,7 +112,10 @@ export const useAiStore = create<AiState>((set, get) => ({
 
   setCreatedCode: (key, guid) => set((s) => ({ createdCodes: { ...s.createdCodes, [key]: guid } })),
 
-  clearAll: () => set({ ...EMPTY, refs: emptyRefs(), appRequest: null })
+  clearAll: () => {
+    set({ ...EMPTY, refs: emptyRefs(), appRequest: null })
+    useAiReviewStore.getState().setReviewing(null)
+  }
 }))
 
 makeHmrSafe('ai', useAiStore)

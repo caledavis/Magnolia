@@ -2179,7 +2179,8 @@
       "keyApprove": "R",
       "keyReject": "E",
       "keysMove": "↑ ↓ om te bewegen",
-      "keysList": "↑ ↓ om te bewegen · Spatie om te openen of te sluiten · {{approve}} of Enter om goed te keuren · {{reject}} of Delete om af te wijzen"
+      "keysList": "↑ ↓ om te bewegen · Spatie om te openen of te sluiten · {{approve}} of Enter om goed te keuren · {{reject}} of Delete om af te wijzen",
+      "back": "Terug naar beoordelen"
     },
     "apps": {
       "intro": "Met een Claude-abonnement kun je Claude Desktop met Magnolia gebruiken, zonder API-sleutel: het leest het geopende project en stelt wijzigingen voor, die je in Magnolia goedkeurt of afwijst. Andere apps die het Model Context Protocol (MCP) ondersteunen, werken ook.",

@@ -2179,7 +2179,8 @@
       "keyApprove": "R",
       "keyReject": "E",
       "keysMove": "↑ ↓ for å flytte",
-      "keysList": "↑ ↓ for å flytte · Mellomrom for å åpne eller lukke · {{approve}} eller Enter for å godkjenne · {{reject}} eller Delete for å avvise"
+      "keysList": "↑ ↓ for å flytte · Mellomrom for å åpne eller lukke · {{approve}} eller Enter for å godkjenne · {{reject}} eller Delete for å avvise",
+      "back": "Tilbake til gjennomgang"
     },
     "apps": {
       "intro": "Med et Claude-abonnement kan du bruke Claude Desktop med Magnolia, uten API-nøkkel: den leser det åpne prosjektet og foreslår endringer, som du godkjenner eller avviser i Magnolia. Andre apper som støtter Model Context Protocol (MCP), fungerer også.",

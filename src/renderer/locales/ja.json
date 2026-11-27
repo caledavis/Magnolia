@@ -2090,7 +2090,8 @@
       "keyApprove": "R",
       "keyReject": "E",
       "keysMove": "↑ ↓ で移動",
-      "keysList": "↑ ↓ で移動 · Space で開閉 · {{approve}} または Enter で承認 · {{reject}} または Delete で却下"
+      "keysList": "↑ ↓ で移動 · Space で開閉 · {{approve}} または Enter で承認 · {{reject}} または Delete で却下",
+      "back": "確認に戻る"
     },
     "apps": {
       "intro": "Claude のサブスクリプションがあれば、API キーなしで Claude Desktop を Magnolia と一緒に使えます。Claude Desktop が開いているプロジェクトを読んで変更を提案し、その変更を Magnolia で承認または却下します。Model Context Protocol（MCP）に対応したほかのアプリも使えます。",
