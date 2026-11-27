@@ -138,6 +138,11 @@ async function spec(t) {
   t.check('a click gives the list the keyboard, and selects the row', document.activeElement === listEl && third.hasAttribute('data-active'))
   // Space opens the row's details: the row grows, and the next moves down
   // (they used to spill underneath it).
+  // In a list too short for its rows, so it scrolls (where rows were held
+  // at their minimum height).
+  listEl.style.flex = '0 0 auto'
+  listEl.style.height = '140px'
+  await t.sleep(100)
   const nextTop = () => lines[3]?.getBoundingClientRect().top ?? 0
   const before = { h: third.getBoundingClientRect().height, next: nextTop() }
   listEl.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }))
@@ -145,6 +150,8 @@ async function spec(t) {
   t.check('Space opens a row, which grows to hold it', third.getBoundingClientRect().height > before.h + 20 && (lines.length < 4 || nextTop() > before.next + 20), `${before.h} → ${third.getBoundingClientRect().height}`)
   listEl.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }))
   await t.sleep(300)
+  listEl.style.flex = ''
+  listEl.style.height = ''
   // A coding opens in its document, to decide there: the review bar
   // floats over it; Escape goes back to the Viewer, the coding undecided.
   const codingLine = [...review.querySelectorAll('li[data-proposal]')].find((l) => /New coding/i.test(l.textContent))

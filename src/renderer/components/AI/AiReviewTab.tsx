@@ -666,7 +666,11 @@ const listGrid: React.CSSProperties = {
   // squeeze the code and passage to nothing), and those two never
   // collapse.
   display: 'grid', gridTemplateColumns: 'max-content minmax(180px, 1.4fr) minmax(170px, 1.15fr) fit-content(130px) max-content',
-  columnGap: 16, rowGap: 8, alignContent: 'start'
+  columnGap: 16, rowGap: 8, alignContent: 'start',
+  // Each row as tall as what it holds: in a list that scrolls, rows were
+  // otherwise held at their minimum, and an opened row's details spilled
+  // over the rows below.
+  gridAutoRows: 'max-content'
 }
 const row: React.CSSProperties = { gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: 'subgrid', alignItems: 'center' }
 const cell: React.CSSProperties = { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
