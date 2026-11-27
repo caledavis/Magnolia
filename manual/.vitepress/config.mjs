@@ -136,6 +136,7 @@ export default defineConfig({
         text: 'Codes',
         items: [
           page('Coding your data', '/guide/coding'),  // DONE
+          page('AI Assistance', '/guide/aiassistance'),
 //          page('Organising codes', '/guide/organisingcodes'),
 //          page('Codebook', '/guide/codebook'),
         ]

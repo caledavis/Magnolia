@@ -15,7 +15,7 @@ The ribbon groups Magnolia's commands on four tabs. Click a tab to see its butto
 | --- | --- |
 | `Home` | `Project Details`, `Import`, [`Import from Zotero`](/guide/importing#importing-from-zotero), [`Merge`](/guide/merging) and `Preferences`; and the `Codebook`, `Logbook`, `Memos` and `Tags`. |
 | `Analyse` | `Query`, which opens the [Query Builder](/guide/querying#the-query-builder); and every analysis tool, from [Codes in Documents](/guide/codesindocuments) to [Reports](/guide/reports). |
-| `View` | A button for each pane, to show or hide it. |
+| `View` | A button for each pane, to show or hide it; and [`AI Assistance`](/guide/aiassistance). |
 | `Help` | The `Manual`, the `Licence`, and `Donate`. |
 
 When a new version of Magnolia is available, a dot appears on `Preferences`.
@@ -34,10 +34,6 @@ Only the tabs remain, which leaves more room for your work. While the ribbon is 
      <img src="./images/RibbonCollapsed.png" alt="The ribbon folded away to its tabs.">
      <figcaption>The ribbon, folded away.</figcaption>
 </figure>
-
-::: tip
-If you prefer a smaller toolbar, choose `Icons` under `Toolbar Style` in `Preferences` → `Appearance`. The same commands appear as a single row of icons, with the analysis tools, panes and help in pop-up menus.
-:::
 
 ## The panes
 
