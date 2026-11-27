@@ -16,8 +16,6 @@ import {
   faBookOpenText,
   faGitMerge,
   faGear,
-  faChevronsLeft,
-  faChevronsRight,
   faSparkles
 } from './components/Icon'
 import { LicenceDialog } from './components/Licence/LicenceDialog'
@@ -79,14 +77,12 @@ import { ProjectDetailsDialog } from './components/ProjectDetails/ProjectDetails
 import { FindDialog } from './components/Find/FindDialog'
 import { MemosPane } from './components/Memos/MemosPane'
 import { QuotesPane } from './components/Quotes/QuotesPane'
-import { AnalysisPopover } from './components/Toolbar/AnalysisPopover'
-import { StudioPopover } from './components/Toolbar/StudioPopover'
 import { useAiStore } from './stores/ai-store'
 import { startUndoAfresh } from './stores/undo-store'
 import { installAppListener } from './utils/ai/apps'
-import { HelpPopover, MANUAL_URL, SPONSOR_URL, HELP_ICONS } from './components/Toolbar/HelpPopover'
+import { MANUAL_URL, SPONSOR_URL, HELP_ICONS } from './components/Toolbar/help-links'
 import { PANE_ICONS } from './utils/pane-icons'
-import { RibbonTabs, RibbonBody, useRibbon, scrollRoom, type RibbonButtonDef, type RibbonTabDef } from './components/Toolbar/Ribbon'
+import { RibbonTabs, RibbonBody, useRibbon, type RibbonButtonDef, type RibbonTabDef } from './components/Toolbar/Ribbon'
 import { TOOL_REGISTRY } from './utils/tool-registry'
 import { WindowControls } from './components/Toolbar/WindowControls'
 import type { LogbookInitData, AnalysisToolType, Memo, MemoEditInitData } from './models/types'
@@ -123,23 +119,6 @@ function isGuardBlocked(r: unknown): r is { guardBlocked: true; message: string 
   return !!r && typeof r === 'object' && 'guardBlocked' in r
 }
 
-
-/** Toolbar pill layout: groups a set of related buttons in a row. The
- *  rounded chip background/padding itself (macOS Mail-style) is CSS,
- *  scoped to Icons mode via .app-toolbar-pill in global.css (see
- *  Preferences → Appearance → Toolbar Style). */
-const TOOLBAR_PILL_STYLE: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center'
-}
-
-/** Thin divider between two buttons that share a toolbar pill — not
- *  between pills themselves, which are already visually separated by
- *  their own chip background (same convention macOS Mail's toolbar
- *  uses: dividers inside a group, plain gaps between groups). */
-function ToolbarDivider(): JSX.Element {
-  return <div style={{ width: 1, height: 16, background: 'var(--border-color)', margin: '0 4px', flexShrink: 0 }} />
-}
 
 /** How often a failing save is retried. */
 const SAVE_RETRY_MS = 20_000
@@ -299,7 +278,6 @@ function App() {
   // unrelated component to trigger the load first.
   const prefsLoaded = usePreferencesStore((s) => s.loaded)
   const userName = usePreferencesStore((s) => s.userName)
-  const toolbarStyle = usePreferencesStore((s) => s.toolbarStyle)
   const codeColourPresets = useCodeColourPresets()
   useWindowCornerPanels()
   const loadPrefs = usePreferencesStore((s) => s.load)
@@ -348,34 +326,6 @@ function App() {
   const setActivePanel = (panel: 'documents' | 'codes' | 'viewer' | 'queries'): void => {
     activePanelRef.current = panel
   }
-
-  // Tracks whether the scrollable toolbar (GitHub issue #15, see the
-  // .app-toolbar-scroll comment further down) has more content hidden
-  // off the left/right edge, so the chevron hints can fade in/out to
-  // match — no chevron once you've scrolled all the way to that side.
-  const toolbarScrollRef = useRef<HTMLDivElement>(null)
-  const [toolbarCanScrollLeft, setToolbarCanScrollLeft] = useState(false)
-  const [toolbarCanScrollRight, setToolbarCanScrollRight] = useState(false)
-  const updateToolbarScrollFade = useCallback(() => {
-    const el = toolbarScrollRef.current
-    if (!el) return
-    // Start and end: the gutters swap sides in a right-to-left page.
-    const { start, end } = scrollRoom(el)
-    setToolbarCanScrollLeft(start > 1)
-    setToolbarCanScrollRight(end > 1)
-  }, [])
-  useEffect(() => {
-    const el = toolbarScrollRef.current
-    if (!el) return
-    updateToolbarScrollFade()
-    el.addEventListener('scroll', updateToolbarScrollFade, { passive: true })
-    const resizeObserver = new ResizeObserver(updateToolbarScrollFade)
-    resizeObserver.observe(el)
-    return () => {
-      el.removeEventListener('scroll', updateToolbarScrollFade)
-      resizeObserver.disconnect()
-    }
-  }, [updateToolbarScrollFade])
 
   const projectStore = useProjectStore()
   const documentStore = useDocumentStore()
@@ -2108,7 +2058,6 @@ function App() {
     }
   ]
   const ribbon = useRibbon(ribbonTabs)
-  const useRibbonToolbar = toolbarStyle === 'ribbon'
   // The menu handler is registered above useRibbon, so it reaches the
   // ribbon's (stable) toggle through this ref.
   toggleRibbonRef.current = ribbon.toggleCollapsed
@@ -2117,14 +2066,14 @@ function App() {
   // The "Queries" menu item now drives the merged Queries pane (which
   // owns the Saved Queries sidebar + the live results), so its
   // checkmark tracks !queryResultsClosed. "ribbon" drives View → Show
-  // Ribbon, and is left out (greying the item) with the Icons toolbar.
+  // Ribbon.
   useEffect(() => {
     window.api.updatePanelVisibility({
       ...panelVisibility,
       queries: !queryResultsClosed,
-      ...(useRibbonToolbar ? { ribbon: !ribbon.collapsed } : {})
+      ribbon: !ribbon.collapsed
     })
-  }, [panelVisibility, queryResultsClosed, useRibbonToolbar, ribbon.collapsed])
+  }, [panelVisibility, queryResultsClosed, ribbon.collapsed])
 
   return (
     <div
@@ -2149,7 +2098,7 @@ function App() {
       {/* ── Toolbar ── */}
       <div
         className="app-toolbar"
-        data-toolbar-style={toolbarStyle}
+        data-toolbar-style="ribbon"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -2161,7 +2110,7 @@ function App() {
           borderBottom: '1px solid var(--border-color)',
           background: 'var(--bg-secondary)',
           flexShrink: 0,
-          height: useRibbonToolbar ? 40 : 54
+          height: 40
         }}
       >
         {/* Left: the Magnolia icon followed by the open project's file
@@ -2179,32 +2128,8 @@ function App() {
             gap: 8
           }}
         >
-          {/* With the ribbon, the logo is the Project Details button on
-              the Home tab instead. */}
-          {!useRibbonToolbar && <div
-            aria-label="Magnolia"
-            // Masked so the icon is themed to the toolbar's icon hue, like
-            // the old wordmark. viewBox 42×49 (~0.857:1) → 21×24 fills the
-            // box with no padding at the original ~24px height.
-            style={{
-              width: 21,
-              height: 24,
-              flexShrink: 0,
-              background: 'var(--text-secondary)',
-              WebkitMaskImage: `url("${magnoliaIconUrl}")`,
-              maskImage: `url("${magnoliaIconUrl}")`,
-              WebkitMaskRepeat: 'no-repeat',
-              maskRepeat: 'no-repeat',
-              WebkitMaskSize: 'contain',
-              maskSize: 'contain',
-              WebkitMaskPosition: 'center',
-              maskPosition: 'center',
-              pointerEvents: 'none'
-            }}
-          />}
-          {useRibbonToolbar ? (
-            // With the ribbon, the Project Details button opens the
-            // project's details, so the name is plain text.
+          {/* The Project Details button (on the ribbon's Home tab) opens
+              the project's details, so the name is plain text. */}
             <span
               style={{
                 color: 'var(--text-primary)',
@@ -2220,39 +2145,6 @@ function App() {
             >
               {projectStore.name}
             </span>
-          ) : (
-          <button
-            type="button"
-            className="app-toolbar-btn"
-            title={t('app.projectInfo')}
-            onClick={() => setShowProjectDetails(true)}
-            style={{
-              border: 'none',
-              background: 'transparent',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              fontSize: 13,
-              fontWeight: 500,
-              padding: '2px 6px',
-              borderRadius: 'var(--radius-sm)',
-              maxWidth: 240,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              transition: 'background 0.12s, color 0.12s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--bg-tertiary)'
-              e.currentTarget.style.color = 'var(--text-primary)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.color = 'var(--text-secondary)'
-            }}
-          >
-            {projectStore.name}
-          </button>
-          )}
         </div>
 
         {/* Scrollable middle: every other toolbar option, between the
@@ -2260,285 +2152,9 @@ function App() {
             (right). Scrolls horizontally instead of overflowing and
             clipping/overlapping when the window is too narrow to fit
             everything — e.g. tiled or resized small (GitHub issue #15). */}
-        {useRibbonToolbar ? (
           <div style={{ display: 'flex', alignItems: 'stretch', flex: '1 1 auto', minWidth: 0, height: '100%' }}>
             <RibbonTabs ribbon={ribbon} />
           </div>
-        ) : (
-        <div style={{ display: 'flex', alignItems: 'center', flex: '1 1 auto', minWidth: 0, height: '100%' }}>
-          {/* Scroll hint gutters: fixed-width slots flanking the scroll
-              track (siblings, not overlays) so the chevron never sits on
-              top of a button's icon — it fades in/out in its own reserved
-              space instead. Each is a flex sibling of .app-toolbar-scroll,
-              not a child, so it can't be swept along by that div's own
-              horizontal scrolling. */}
-          <div
-            style={{
-              flexShrink: 0,
-              width: 36,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              pointerEvents: 'none',
-              opacity: toolbarCanScrollLeft ? 1 : 0,
-              transition: 'opacity 0.15s ease'
-            }}
-          >
-            <Icon icon={faChevronsLeft} style={{ fontSize: 16 }} className="app-toolbar-scroll-hint" />
-          </div>
-          <div
-            ref={toolbarScrollRef}
-            className="app-toolbar-scroll"
-            style={{
-              display: 'flex',
-              flex: '1 1 auto',
-              minWidth: 0,
-              height: '100%',
-              overflowX: 'auto',
-              overflowY: 'hidden'
-            }}
-          >
-          {/* Inner wrapper: margin: 0 auto centers this group within the
-              scroll track whenever it's narrower than the available
-              space (the common case). If it's wider, auto margins
-              collapse to 0 — the group left-aligns and the outer div's
-              overflow-x takes over, so this never fights the #15 fix
-              above by clipping content out the left edge on narrow
-              windows. */}
-          <div className="app-toolbar-scroll-inner" style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 auto' }}>
-          <div className="app-toolbar-pill" style={TOOLBAR_PILL_STYLE}>
-          {[
-            { id: 'import', icon: faSquareArrowRightEnter, label: t('toolbar.import'), action: () => handleImportDocument(), locks: true },
-            { id: 'codebook', icon: faBook, label: t('toolbar.codebook'), action: () => openCodebook() },
-            { id: 'logbook', icon: faNotebookPen, label: t('toolbar.logbook'), action: () => openLogbook() },
-            { id: 'memos', icon: PANE_ICONS.memos, label: t('toolbar.memos'), action: () => openMemos() },
-            { id: 'tags', icon: faTags, label: t('toolbar.tags'), action: () => setShowManageDocTags(true) }
-          ].map((item, idx) => {
-            const itemLocked = !!(item as { locks?: boolean }).locks && !!checkoutLockedBy
-            return [
-            idx > 0 ? <ToolbarDivider key={`${item.id}-divider`} /> : null,
-            <button
-              key={item.id}
-              className="app-toolbar-btn"
-              title={itemLocked ? checkoutLockedTitle(checkoutLockedBy!) : (item as { title?: string }).title ?? item.label}
-              onClick={item.action}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 3,
-                padding: '4px 12px',
-                border: 'none',
-                borderRadius: 'var(--radius-sm)',
-                background: 'transparent',
-                color: 'var(--text-secondary)',
-                cursor: 'pointer',
-                opacity: itemLocked ? 0.4 : 1,
-                lineHeight: 1,
-                transition: 'background 0.12s, color 0.12s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--bg-tertiary)'
-                e.currentTarget.style.color = 'var(--text-primary)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent'
-                e.currentTarget.style.color = 'var(--text-secondary)'
-              }}
-            >
-              <Icon icon={item.icon} style={{ fontSize: 20, ...(item as { iconStyle?: React.CSSProperties }).iconStyle }} />
-              <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>{item.label}</span>
-            </button>
-            ]
-          })}
-          </div>
-
-          {/* Merge gets its own pill, separate from the document-management
-              group above — it acts on the whole project (reconciling two
-              divergent copies), not a single document, so grouping it with
-              Import/Codebook/Logbook/Tags overstated how related it is to
-              them. */}
-          <div className="app-toolbar-pill" style={TOOLBAR_PILL_STYLE}>
-            <button
-              className="app-toolbar-btn"
-              title={t('toolbar.mergeTitle')}
-              onClick={() => handleMergeProject()}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 3,
-                padding: '4px 12px',
-                border: 'none',
-                borderRadius: 'var(--radius-sm)',
-                background: 'transparent',
-                color: 'var(--text-secondary)',
-                cursor: 'pointer',
-                lineHeight: 1,
-                transition: 'background 0.12s, color 0.12s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--bg-tertiary)'
-                e.currentTarget.style.color = 'var(--text-primary)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent'
-                e.currentTarget.style.color = 'var(--text-secondary)'
-              }}
-            >
-              {/* git-merge flipped both ways (180°) — Magnolia's projects
-                  "merge" toward the currently-open project, the reverse
-                  direction of a git merge arrow, hence the flip. */}
-              <Icon icon={faGitMerge} style={{ fontSize: 20, transform: 'scale(-1, -1)' }} />
-              <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>{t('toolbar.merge')}</span>
-            </button>
-          </div>
-
-          <div className="app-toolbar-pill" style={TOOLBAR_PILL_STYLE}>
-          {/* Query Builder stays as its own top-level button — it's
-              the primary way users move between document inspection
-              and analysis, distinct enough from the seven analysis
-              tools that hiding it inside the popover would feel
-              wrong. */}
-          <button
-            className="app-toolbar-btn"
-            title={t('toolbar.query')}
-            onClick={() => openQueryBuilder()}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 3,
-              padding: '4px 12px',
-              border: 'none',
-              borderRadius: 'var(--radius-sm)',
-              background: 'transparent',
-              cursor: 'pointer',
-              lineHeight: 1,
-              transition: 'background 0.12s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--bg-tertiary)';
-              (e.currentTarget.querySelector('.toolbar-label') as HTMLElement).style.color = 'var(--text-primary)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              (e.currentTarget.querySelector('.toolbar-label') as HTMLElement).style.color = 'var(--text-secondary)'
-            }}
-          >
-            <Icon icon={faMagnifyingGlass} style={{ fontSize: 20 }} />
-            <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400, transition: 'color 0.12s' }}>{t('toolbar.query')}</span>
-          </button>
-
-          <ToolbarDivider />
-
-          {/* Seven analysis tools (Codes in Docs / Results in Docs /
-              Co-Occurrences / Code Frequencies / Code Orders / Word
-              Frequencies / Relationships) collapse behind one
-              "Analysis ▾" button that opens a tile-grid popover.
-              See AnalysisPopover for the popover UI. */}
-          <AnalysisPopover onSelect={(toolType) => openAnalysis(toolType)} />
-          </div>
-
-          <div className="app-toolbar-pill" style={TOOLBAR_PILL_STYLE}>
-          {/* Studio: show/hide the workspace panels. The cross-platform
-              home for the native View menu's panel toggles — on
-              Windows/Linux the frameless window hides the menu bar, so
-              without this a closed panel could never be reopened. */}
-          <StudioPopover
-            panels={[
-              { id: 'documents', label: t('panes.documents'), visible: panelVisibility.documents },
-              { id: 'codes', label: t('panes.codes'), visible: panelVisibility.codes },
-              { id: 'queries', label: t('panes.queries'), visible: !queryResultsClosed },
-              { id: 'memos', label: t('panes.memos'), visible: panelVisibility.memos },
-              { id: 'quotes', label: t('panes.quotes'), visible: panelVisibility.quotes },
-              { id: 'analyses', label: t('panes.analyses'), visible: panelVisibility.analyses },
-            ]}
-            onToggle={(id) => {
-              if (id === 'queries') setQueryResultsClosed((prev) => !prev)
-              else togglePanel(id as PanelId)
-            }}
-          />
-          <ToolbarDivider />
-          {/* Settings: opens the Preferences tab — the entry point the
-              Magnolia wordmark used to provide. Carries the update-available
-              nudge dot (jumps straight to Settings → Updates when set). */}
-          <button
-            className="app-toolbar-btn"
-            title={updateBadgeAvailable ? t('toolbar.updateAvailableTitle') : t('toolbar.preferences')}
-            aria-label={updateBadgeAvailable ? t('toolbar.openPreferencesUpdate') : t('toolbar.openPreferences')}
-            onClick={() => {
-              if (updateBadgeAvailable) requestPreferencesCategory('updates')
-              useDocumentStore.getState().openToolTab(PREFERENCES_TAB_ID)
-            }}
-            style={{
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 3,
-              padding: '4px 12px',
-              border: 'none',
-              borderRadius: 'var(--radius-sm)',
-              background: 'transparent',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              lineHeight: 1,
-              transition: 'background 0.12s, color 0.12s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--bg-tertiary)'
-              e.currentTarget.style.color = 'var(--text-primary)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.color = 'var(--text-secondary)'
-            }}
-          >
-            <Icon icon={faGear} style={{ fontSize: 20 }} />
-            <span className="toolbar-label" style={{ fontSize: 9, whiteSpace: 'nowrap', fontWeight: 400 }}>{t('toolbar.preferences')}</span>
-            {updateBadgeAvailable && (
-              // Update-available nudge dot, anchored to the Settings button.
-              <span
-                aria-hidden
-                style={{
-                  position: 'absolute',
-                  top: 2,
-                  insetInlineEnd: 2,
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: 'var(--accent)',
-                  boxShadow: '0 0 0 2px var(--bg-secondary)',
-                  pointerEvents: 'none'
-                }}
-              />
-            )}
-          </button>
-          <ToolbarDivider />
-          {/* Help: bundles the Licence & Attributions dialog, the online
-              user manual, and a Donate link into one popover — see
-              HelpPopover for the popover UI. */}
-          <HelpPopover onShowLicence={() => setShowLicenceDialog(true)} onShowDiagnostics={() => setShowDiagnostics(true)} />
-          </div>
-          </div>
-          </div>
-          <div
-            style={{
-              flexShrink: 0,
-              width: 36,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              pointerEvents: 'none',
-              opacity: toolbarCanScrollRight ? 1 : 0,
-              transition: 'opacity 0.15s ease'
-            }}
-          >
-            <Icon icon={faChevronsRight} style={{ fontSize: 16 }} className="app-toolbar-scroll-hint" />
-          </div>
-        </div>
-        )}
 
         {/* Far right, pinned: Check Out / Check In, then window controls
             (minimise/maximise/close) on Windows and Linux — native traffic
@@ -2564,11 +2180,9 @@ function App() {
           <WindowControls />
         </div>
       </div>
-      {useRibbonToolbar && (
-        <div className="ribbon-host">
-          <RibbonBody ribbon={ribbon} />
-        </div>
-      )}
+      <div className="ribbon-host">
+        <RibbonBody ribbon={ribbon} />
+      </div>
 
       <PanelGroup direction="vertical" className="app-main-panels" style={{ flex: 1 }}>
         <Panel defaultSize={queryResultsHidden ? 100 : 70} minSize={30}>

@@ -288,8 +288,6 @@
     "mergeTitle": "Merge a project into this one",
     "preferences": "Preferences",
     "updateAvailableTitle": "A new version is available — open Preferences → Updates",
-    "openPreferences": "Open Preferences",
-    "openPreferencesUpdate": "Open Preferences — update available",
     "codebook": "Codebook",
     "logbook": "Logbook",
     "memos": "Memos",
@@ -303,15 +301,8 @@
     "manualDescription": "Open Magnolia's user manual in your browser.",
     "licence": "Licence",
     "licenceAttributions": "Licence & Attributions",
-    "licenceDescription": "Magnolia's licence (EUPL-1.2) and credits for bundled libraries.",
     "donate": "Donate",
     "donateDescription": "Magnolia is free to use, but costs me money to make. If it is useful, please consider donating to cover my costs.",
-    "help": "Help",
-    "analyse": "Analyse",
-    "analysisTools": "Analysis tools",
-    "studio": "Studio",
-    "studioTitle": "Show or hide workspace panels",
-    "panels": "Panels",
     "locked": "Locked",
     "lockedTitle": "{{name}} is working on this file since {{time}} — you don't have control. Click to take over.",
     "minimise": "Minimise",
@@ -1328,10 +1319,6 @@
       "support": "Support Magnolia",
       "aiAssistance": "AI Assistance"
     },
-    "toolbarStyle": {
-      "ribbon": "Ribbon",
-      "icons": "Icons"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia Dark",
@@ -1341,7 +1328,6 @@
     "themeHeading": "Theme",
     "default": "(default)",
     "interfaceScale": "Interface Scale",
-    "toolbarStyleHeading": "Toolbar Style",
     "colour": "Colour",
     "colourful": "Colourful interface",
     "yourName": "Your Name",

@@ -294,8 +294,6 @@
     "mergeTitle": "Sulieti kitą projektą su šiuo",
     "preferences": "Nuostatos",
     "updateAvailableTitle": "Yra nauja versija – atverkite „Nuostatos“ → „Naujinimai“",
-    "openPreferences": "Atverti nuostatas",
-    "openPreferencesUpdate": "Atverti nuostatas – yra naujinimas",
     "codebook": "Kodų knyga",
     "logbook": "Žurnalas",
     "memos": "Pastabos",
@@ -309,15 +307,8 @@
     "manualDescription": "Atverti Magnolia naudotojo vadovą naršyklėje.",
     "licence": "Licencija",
     "licenceAttributions": "Licencija ir autorystė",
-    "licenceDescription": "Magnolia licencija (EUPL-1.2) ir padėkos įtrauktų bibliotekų autoriams.",
     "donate": "Paaukoti",
     "donateDescription": "Magnolia naudotis nemokama, bet jos kūrimas man kainuoja pinigų. Jei ji jums naudinga, apsvarstykite galimybę paaukoti mano išlaidoms padengti.",
-    "help": "Žinynas",
-    "analyse": "Analizė",
-    "analysisTools": "Analizės įrankiai",
-    "studio": "Studija",
-    "studioTitle": "Rodyti arba slėpti darbo srities polangius",
-    "panels": "Polangiai",
     "locked": "Užrakinta",
     "lockedTitle": "{{name}} dirba su šiuo failu nuo {{time}} – valdymas ne jūsų rankose. Spustelėkite, kad perimtumėte.",
     "minimise": "Sumažinti",
@@ -1418,10 +1409,6 @@
       "support": "Remti Magnolia",
       "aiAssistance": "DI pagalba"
     },
-    "toolbarStyle": {
-      "ribbon": "Juostelė",
-      "icons": "Piktogramos"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia tamsi",
@@ -1431,7 +1418,6 @@
     "themeHeading": "Tema",
     "default": "(numatytoji)",
     "interfaceScale": "Sąsajos mastelis",
-    "toolbarStyleHeading": "Įrankių juostos stilius",
     "colour": "Spalva",
     "colourful": "Spalvinga sąsaja",
     "yourName": "Jūsų vardas",

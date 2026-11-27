@@ -288,8 +288,6 @@
     "mergeTitle": "Başka bir projeyi bu projeyle birleştir",
     "preferences": "Ayarlar",
     "updateAvailableTitle": "Yeni bir sürüm var — Ayarlar → Güncellemeler’i açın",
-    "openPreferences": "Ayarları aç",
-    "openPreferencesUpdate": "Ayarları aç — güncelleme var",
     "codebook": "Kod kitabı",
     "logbook": "Günlük",
     "memos": "Memolar",
@@ -303,15 +301,8 @@
     "manualDescription": "Magnolia kullanım kılavuzunu tarayıcınızda açın.",
     "licence": "Lisans",
     "licenceAttributions": "Lisans ve atıflar",
-    "licenceDescription": "Magnolia’nın lisansı (EUPL-1.2) ve paketlenmiş kitaplıkların atıfları.",
     "donate": "Bağış yap",
     "donateDescription": "Magnolia’yı kullanmak ücretsizdir, ancak geliştirmek bana para harcatıyor. İşinize yarıyorsa, masraflarımı karşılamak için bağış yapmayı düşünün.",
-    "help": "Yardım",
-    "analyse": "Analiz",
-    "analysisTools": "Analiz araçları",
-    "studio": "Stüdyo",
-    "studioTitle": "Çalışma alanı panellerini göster ya da gizle",
-    "panels": "Paneller",
     "locked": "Kilitli",
     "lockedTitle": "{{name}}, {{time}} zamanından beri bu dosya üzerinde çalışıyor — denetim sizde değil. Devralmak için tıklayın.",
     "minimise": "Simge durumuna küçült",
@@ -1328,10 +1319,6 @@
       "support": "Magnolia’yı destekleyin",
       "aiAssistance": "Yapay zekâ yardımı"
     },
-    "toolbarStyle": {
-      "ribbon": "Şerit",
-      "icons": "Simgeler"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia Koyu",
@@ -1341,7 +1328,6 @@
     "themeHeading": "Tema",
     "default": "(varsayılan)",
     "interfaceScale": "Arayüz ölçeği",
-    "toolbarStyleHeading": "Araç çubuğu stili",
     "colour": "Renk",
     "colourful": "Renkli arayüz",
     "yourName": "Adınız",

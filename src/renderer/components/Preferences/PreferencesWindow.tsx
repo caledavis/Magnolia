@@ -31,11 +31,6 @@ interface FootPedalMappings {
 /** Paper size for exported PDFs (see src-tauri/src/print). */
 type PaperSize = 'A4' | 'A3' | 'A5' | 'Letter' | 'Legal' | 'Tabloid'
 
-/** Toolbar button display: 'ribbon' (the default) is the tabbed ribbon
- *  (see Toolbar/Ribbon.tsx); 'icons' is the compact macOS Mail-style
- *  icon-only row (grouped in pills). */
-type ToolbarStyle = 'icons' | 'ribbon'
-
 interface Preferences {
   footPedalMappings: FootPedalMappings
   defaultPlaybackSpeed: number
@@ -45,7 +40,6 @@ interface Preferences {
   interfaceScale: number
   /** Shown to teammates when this user checks out a shared project. */
   userName: string
-  toolbarStyle: ToolbarStyle
   /** Dark toolbar plus colour-coded icons. */
   colourfulInterface: boolean
   /** The interface language, or "system" to follow the computer's. */
@@ -75,17 +69,11 @@ const DEFAULT_PREFS: Preferences = {
   paperSize: 'A4',
   interfaceScale: 1,
   userName: '',
-  toolbarStyle: 'ribbon',
   colourfulInterface: COLOURFUL_INTERFACE_ENABLED,
   language: 'system',
   digits: 'system',
   aiAppsEnabled: false
 }
-
-const TOOLBAR_STYLE_OPTIONS: { id: ToolbarStyle; labelKey: string }[] = [
-  { id: 'ribbon', labelKey: 'prefs.toolbarStyle.ribbon' },
-  { id: 'icons', labelKey: 'prefs.toolbarStyle.icons' }
-]
 
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2]
 
@@ -198,8 +186,6 @@ function AppearanceSettings({
   onChange,
   scale,
   onScaleChange,
-  toolbarStyle,
-  onToolbarStyleChange,
   colourful,
   onColourfulChange
 }: {
@@ -207,8 +193,6 @@ function AppearanceSettings({
   onChange: (v: ThemeId) => void
   scale: number
   onScaleChange: (v: number) => void
-  toolbarStyle: ToolbarStyle
-  onToolbarStyleChange: (v: ToolbarStyle) => void
   colourful: boolean
   onColourfulChange: (v: boolean) => void
 }) {
@@ -277,21 +261,6 @@ function AppearanceSettings({
       >
         {INTERFACE_SCALE_OPTIONS.map((s) => (
           <option key={s} value={s}>{Math.round(s * 100)}%</option>
-        ))}
-      </select>
-
-      <h3 style={{ fontSize: 13, fontWeight: 600, marginTop: 24, marginBottom: 10, color: 'var(--text-secondary)' }}>{t('prefs.toolbarStyleHeading')}</h3>
-      <select
-        value={toolbarStyle}
-        onChange={(e) => onToolbarStyleChange(e.target.value as ToolbarStyle)}
-        style={{
-          padding: '4px 8px', fontSize: 12,
-          border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)',
-          background: 'var(--bg-input)', color: 'var(--text-primary)', cursor: 'pointer'
-        }}
-      >
-        {TOOLBAR_STYLE_OPTIONS.map((opt) => (
-          <option key={opt.id} value={opt.id}>{t(opt.labelKey)}</option>
         ))}
       </select>
 
@@ -730,7 +699,6 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
           ...data,
           theme: normaliseThemeId(data.theme),
           interfaceScale: typeof data.interfaceScale === 'number' ? data.interfaceScale : DEFAULT_PREFS.interfaceScale,
-          toolbarStyle: (data.toolbarStyle === 'icons' || data.toolbarStyle === 'ribbon') ? data.toolbarStyle : DEFAULT_PREFS.toolbarStyle,
           colourfulInterface: colourfulInterfaceFromSaved(data.colourfulInterface),
           language: normaliseLanguagePreference(data.language),
           digits: typeof data.digits === 'string' ? data.digits : 'system',
@@ -781,10 +749,6 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
   const setDigits = useCallback((digits: DigitsPreference) => {
     save({ ...prefs, digits })
     setDigitsPreference(digits)
-  }, [prefs, save])
-
-  const setToolbarStyle = useCallback((toolbarStyle: ToolbarStyle) => {
-    save({ ...prefs, toolbarStyle })
   }, [prefs, save])
 
   const setColourfulInterface = useCallback((colourfulInterface: boolean) => {
@@ -876,8 +840,6 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
               onChange={setTheme}
               scale={prefs.interfaceScale}
               onScaleChange={setInterfaceScale}
-              toolbarStyle={prefs.toolbarStyle}
-              onToolbarStyleChange={setToolbarStyle}
               colourful={prefs.colourfulInterface}
               onColourfulChange={setColourfulInterface}
             />

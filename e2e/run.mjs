@@ -97,7 +97,7 @@ function workspace(from, fileName = 'Project.qdpx') {
   if (from) copyFileSync(from, project)
   const data = join(dir, 'userdata')
   mkdirSync(data, { recursive: true })
-  writeFileSync(join(data, 'magnolia-preferences.json'), JSON.stringify({ userName: 'Tester', toolbarStyle: 'ribbon', language: 'en' }))
+  writeFileSync(join(data, 'magnolia-preferences.json'), JSON.stringify({ userName: 'Tester', language: 'en' }))
   return { dir, project, data }
 }
 

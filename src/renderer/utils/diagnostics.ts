@@ -65,7 +65,7 @@ export async function buildDiagnostics(): Promise<string> {
     `Magnolia: ${sys.appVersion ?? 'unknown'}`,
     `System: ${sys.os ?? navigator.platform} ${sys.osVersion ?? ''} (${sys.arch ?? '?'})`.replace(/\s+\(/, ' ('),
     `Web view: ${sys.webview ?? 'unknown'}`,
-    `Language: ${i18n.language} (setting: ${prefs.language}); theme: ${document.documentElement.getAttribute('data-theme') ?? '?'}; toolbar: ${prefs.toolbarStyle}`,
+    `Language: ${i18n.language} (setting: ${prefs.language}); theme: ${document.documentElement.getAttribute('data-theme') ?? '?'}`,
     `Window: ${window.innerWidth} × ${window.innerHeight} at ${window.devicePixelRatio}×`,
     `Project: ${n(docs.sources.length)} documents (${[...kinds].map(([k, c]) => `${k} ${n(c)}`).join(', ') || 'none'}), ` +
       `${n(useCodeStore.getState().flatCodes().length)} codes, ${n(codings)} codings, ${n(useMemoStore.getState().memos.length)} memos, ` +

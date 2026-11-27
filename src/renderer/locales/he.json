@@ -291,8 +291,6 @@
     "mergeTitle": "מיזוג פרויקט אחר לתוך הפרויקט הזה",
     "preferences": "העדפות",
     "updateAvailableTitle": "יש גרסה חדשה — \"העדפות\" ← \"עדכונים\"",
-    "openPreferences": "פתיחת ההעדפות",
-    "openPreferencesUpdate": "פתיחת ההעדפות — יש עדכון",
     "codebook": "ספר קודים",
     "logbook": "יומן",
     "memos": "תזכירים",
@@ -306,15 +304,8 @@
     "manualDescription": "פתיחת מדריך המשתמש של Magnolia בדפדפן.",
     "licence": "רישיון",
     "licenceAttributions": "רישיון וקרדיטים",
-    "licenceDescription": "הרישיון של Magnolia ‏(EUPL-1.2) וקרדיטים לספריות המצורפות.",
     "donate": "תרומה",
     "donateDescription": "השימוש ב-Magnolia חינמי, אבל הפיתוח שלה עולה לי כסף. אם היא מועילה, אפשר לשקול תרומה כדי לכסות את ההוצאות שלי.",
-    "help": "עזרה",
-    "analyse": "ניתוח",
-    "analysisTools": "כלי ניתוח",
-    "studio": "סטודיו",
-    "studioTitle": "הצגה או הסתרה של חלוניות סביבת העבודה",
-    "panels": "חלוניות",
     "locked": "נעול",
     "lockedTitle": "{{name}} עובד/ת על הקובץ הזה מאז {{time}} — השליטה לא בידיך. יש ללחוץ כדי להשתלט.",
     "minimise": "מזעור",
@@ -1373,10 +1364,6 @@
       "support": "תמיכה ב-Magnolia",
       "aiAssistance": "סיוע בינה מלאכותית"
     },
-    "toolbarStyle": {
-      "ribbon": "רצועת כלים",
-      "icons": "סמלים"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia כהה",
@@ -1386,7 +1373,6 @@
     "themeHeading": "ערכת נושא",
     "default": "(ברירת מחדל)",
     "interfaceScale": "קנה מידה של הממשק",
-    "toolbarStyleHeading": "סגנון סרגל הכלים",
     "colour": "צבע",
     "colourful": "ממשק צבעוני",
     "yourName": "השם שלך",

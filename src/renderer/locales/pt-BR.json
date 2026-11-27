@@ -291,8 +291,6 @@
     "mergeTitle": "Mesclar outro projeto com este",
     "preferences": "Preferências",
     "updateAvailableTitle": "Há uma nova versão: abra Preferências → Atualizações",
-    "openPreferences": "Abrir Preferências",
-    "openPreferencesUpdate": "Abrir Preferências: atualização disponível",
     "codebook": "Livro de códigos",
     "logbook": "Diário de bordo",
     "memos": "Memos",
@@ -306,15 +304,8 @@
     "manualDescription": "Abra o manual do usuário do Magnolia no navegador.",
     "licence": "Licença",
     "licenceAttributions": "Licença e atribuições",
-    "licenceDescription": "A licença do Magnolia (EUPL-1.2) e os créditos das bibliotecas incluídas.",
     "donate": "Doar",
     "donateDescription": "O Magnolia é gratuito, mas fazê-lo me custa dinheiro. Se ele for útil para você, considere fazer uma doação para cobrir meus custos.",
-    "help": "Ajuda",
-    "analyse": "Analisar",
-    "analysisTools": "Ferramentas de análise",
-    "studio": "Estúdio",
-    "studioTitle": "Mostrar ou ocultar os painéis da área de trabalho",
-    "panels": "Painéis",
     "locked": "Bloqueado",
     "lockedTitle": "{{name}} está trabalhando neste arquivo desde {{time}}: você não tem o controle. Clique para assumi-lo.",
     "minimise": "Minimizar",
@@ -1373,10 +1364,6 @@
       "support": "Apoie o Magnolia",
       "aiAssistance": "Assistência de IA"
     },
-    "toolbarStyle": {
-      "ribbon": "Faixa de opções",
-      "icons": "Ícones"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia escuro",
@@ -1386,7 +1373,6 @@
     "themeHeading": "Tema",
     "default": "(padrão)",
     "interfaceScale": "Escala da interface",
-    "toolbarStyleHeading": "Estilo da barra de ferramentas",
     "colour": "Cor",
     "colourful": "Interface colorida",
     "yourName": "Seu nome",

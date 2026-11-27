@@ -180,8 +180,8 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
         .item(&item(app, "next-tab", &t("menu.nextTab"), Some("Ctrl+Tab"))?)
         .item(&sep()?);
     // Shows or collapses the ribbon's buttons (the renderer reports
-    // "ribbon": true/false with the panel visibility). Greyed out when the
-    // toolbar style isn't Ribbon, which leaves "ribbon" out.
+    // "ribbon": true/false with the panel visibility). Greyed out until it
+    // has (no window yet).
     let ribbon = visibility.get("ribbon").and_then(Value::as_bool);
     view = view
         .item(

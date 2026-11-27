@@ -21,12 +21,6 @@ export type { ThemeId } from '../utils/theme-id'
 /** Paper size for PDFs Magnolia exports (see src-tauri/src/print). */
 export type PaperSize = 'A4' | 'A3' | 'A5' | 'Letter' | 'Legal' | 'Tabloid'
 
-/** Toolbar button display: 'ribbon' (the default) is the tabbed ribbon
- *  (see Toolbar/Ribbon.tsx); 'icons' is the compact macOS Mail-style
- *  icon-only row (grouped in pills). A saved 'icons-and-text', a style
- *  since removed, falls back to the default. */
-export type ToolbarStyle = 'icons' | 'ribbon'
-
 export interface Preferences {
   footPedalMappings: FootPedalMappings
   defaultPlaybackSpeed: number
@@ -36,7 +30,6 @@ export interface Preferences {
   interfaceScale: number
   /** Shown to teammates when this user checks out a shared project. */
   userName: string
-  toolbarStyle: ToolbarStyle
   /** Dark toolbar plus colour-coded icons (see the
    *  [data-colourful] rules in global.css). */
   colourfulInterface: boolean
@@ -60,7 +53,6 @@ const DEFAULT_PREFERENCES: Preferences = {
   paperSize: 'A4',
   interfaceScale: 1,
   userName: '',
-  toolbarStyle: 'ribbon',
   colourfulInterface: COLOURFUL_INTERFACE_ENABLED,
   language: 'system',
   aiAppsEnabled: false
@@ -75,7 +67,6 @@ interface PreferencesState extends Preferences {
   setTheme: (theme: ThemeId) => void
   setInterfaceScale: (scale: number) => void
   setUserName: (userName: string) => void
-  setToolbarStyle: (toolbarStyle: ToolbarStyle) => void
   setColourfulInterface: (colourfulInterface: boolean) => void
 }
 
@@ -94,7 +85,6 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
           paperSize: (prefs.paperSize ?? DEFAULT_PREFERENCES.paperSize) as PaperSize,
           interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
           userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
-          toolbarStyle: (prefs.toolbarStyle === 'icons' || prefs.toolbarStyle === 'ribbon') ? prefs.toolbarStyle : DEFAULT_PREFERENCES.toolbarStyle,
           colourfulInterface: colourfulInterfaceFromSaved(prefs.colourfulInterface),
           language: normaliseLanguagePreference(prefs.language),
           aiAppsEnabled: prefs.aiAppsEnabled === true,
@@ -109,9 +99,9 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   },
 
   save: async () => {
-    const { footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle, colourfulInterface, language, aiAppsEnabled } = get()
+    const { footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, colourfulInterface, language, aiAppsEnabled } = get()
     try {
-      await window.api.savePreferences({ footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, toolbarStyle, colourfulInterface, language, aiAppsEnabled })
+      await window.api.savePreferences({ footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, colourfulInterface, language, aiAppsEnabled })
     } catch { /* ignore */ }
   },
 
@@ -140,11 +130,6 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
 
   setUserName: (userName) => {
     set({ userName })
-    setTimeout(() => get().save(), 0)
-  },
-
-  setToolbarStyle: (toolbarStyle) => {
-    set({ toolbarStyle })
     setTimeout(() => get().save(), 0)
   },
 
@@ -177,7 +162,6 @@ if (typeof window !== 'undefined' && window.api?.onPreferencesUpdate) {
       paperSize: (prefs.paperSize ?? DEFAULT_PREFERENCES.paperSize) as PaperSize,
       interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
       userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
-      toolbarStyle: (prefs.toolbarStyle === 'icons' || prefs.toolbarStyle === 'ribbon') ? prefs.toolbarStyle : DEFAULT_PREFERENCES.toolbarStyle,
       colourfulInterface: colourfulInterfaceFromSaved(prefs.colourfulInterface),
       language: normaliseLanguagePreference(prefs.language),
       aiAppsEnabled: prefs.aiAppsEnabled === true,

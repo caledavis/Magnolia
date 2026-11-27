@@ -294,8 +294,6 @@
     "mergeTitle": "Злити інший проєкт із цим",
     "preferences": "Параметри",
     "updateAvailableTitle": "Доступна нова версія — відкрийте «Параметри» → «Оновлення»",
-    "openPreferences": "Відкрити параметри",
-    "openPreferencesUpdate": "Відкрити параметри — доступне оновлення",
     "codebook": "Книга кодів",
     "logbook": "Журнал",
     "memos": "Нотатки",
@@ -309,15 +307,8 @@
     "manualDescription": "Відкрити посібник користувача Magnolia у браузері.",
     "licence": "Ліцензія",
     "licenceAttributions": "Ліцензія та подяки",
-    "licenceDescription": "Ліцензія Magnolia (EUPL-1.2) і подяки авторам вбудованих бібліотек.",
     "donate": "Пожертва",
     "donateDescription": "Magnolia безкоштовна, але її створення коштує мені грошей. Якщо вона вам корисна, будь ласка, подумайте про пожертву, щоб покрити мої витрати.",
-    "help": "Довідка",
-    "analyse": "Аналіз",
-    "analysisTools": "Інструменти аналізу",
-    "studio": "Студія",
-    "studioTitle": "Показати або сховати панелі робочого простору",
-    "panels": "Панелі",
     "locked": "Заблоковано",
     "lockedTitle": "{{name}} працює з цим файлом від {{time}} — керування не у вас. Натисніть, щоб перейняти.",
     "minimise": "Згорнути",
@@ -1418,10 +1409,6 @@
       "support": "Підтримати Magnolia",
       "aiAssistance": "Допомога ШІ"
     },
-    "toolbarStyle": {
-      "ribbon": "Стрічка",
-      "icons": "Піктограми"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia темна",
@@ -1431,7 +1418,6 @@
     "themeHeading": "Тема",
     "default": "(типово)",
     "interfaceScale": "Масштаб інтерфейсу",
-    "toolbarStyleHeading": "Стиль панелі інструментів",
     "colour": "Колір",
     "colourful": "Кольоровий інтерфейс",
     "yourName": "Ваше ім’я",

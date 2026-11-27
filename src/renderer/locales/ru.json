@@ -294,8 +294,6 @@
     "mergeTitle": "Слить другой проект с этим",
     "preferences": "Настройки",
     "updateAvailableTitle": "Доступна новая версия — откройте Настройки → Обновления",
-    "openPreferences": "Открыть настройки",
-    "openPreferencesUpdate": "Открыть настройки — доступно обновление",
     "codebook": "Книга кодов",
     "logbook": "Журнал",
     "memos": "Заметки",
@@ -309,15 +307,8 @@
     "manualDescription": "Открыть руководство пользователя Magnolia в браузере.",
     "licence": "Лицензия",
     "licenceAttributions": "Лицензия и атрибуция",
-    "licenceDescription": "Лицензия Magnolia (EUPL-1.2) и сведения о включённых библиотеках.",
     "donate": "Пожертвовать",
     "donateDescription": "Magnolia бесплатна, но её разработка требует от меня затрат. Если она вам полезна, пожалуйста, подумайте о пожертвовании, чтобы покрыть расходы.",
-    "help": "Справка",
-    "analyse": "Анализ",
-    "analysisTools": "Инструменты анализа",
-    "studio": "Студия",
-    "studioTitle": "Показать или скрыть панели рабочего пространства",
-    "panels": "Панели",
     "locked": "Заблокировано",
     "lockedTitle": "{{name}} работает с этим файлом с {{time}} — у вас нет управления. Нажмите, чтобы перехватить.",
     "minimise": "Свернуть",
@@ -1418,10 +1409,6 @@
       "support": "Поддержать Magnolia",
       "aiAssistance": "Помощь ИИ"
     },
-    "toolbarStyle": {
-      "ribbon": "Лента",
-      "icons": "Значки"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia тёмная",
@@ -1431,7 +1418,6 @@
     "themeHeading": "Тема",
     "default": "(по умолчанию)",
     "interfaceScale": "Масштаб интерфейса",
-    "toolbarStyleHeading": "Вид панели инструментов",
     "colour": "Цвет",
     "colourful": "Цветной интерфейс",
     "yourName": "Ваше имя",

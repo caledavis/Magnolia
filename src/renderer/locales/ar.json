@@ -300,8 +300,6 @@
     "mergeTitle": "دمج مشروع آخر في هذا المشروع",
     "preferences": "التفضيلات",
     "updateAvailableTitle": "يتوفر إصدار جديد — افتح التفضيلات ← التحديثات",
-    "openPreferences": "فتح التفضيلات",
-    "openPreferencesUpdate": "فتح التفضيلات — يتوفر تحديث",
     "codebook": "دليل الرموز",
     "logbook": "السجل",
     "memos": "المذكرات",
@@ -315,15 +313,8 @@
     "manualDescription": "فتح دليل استخدام Magnolia في المتصفح.",
     "licence": "الترخيص",
     "licenceAttributions": "الترخيص والإسنادات",
-    "licenceDescription": "ترخيص Magnolia ‏(EUPL-1.2) وإسنادات المكتبات المضمّنة.",
     "donate": "تبرّع",
     "donateDescription": "استخدام Magnolia مجاني، لكن تطويره يكلفني مالًا. إذا وجدته مفيدًا، فيُرجى التفكير في التبرع لتغطية التكاليف.",
-    "help": "مساعدة",
-    "analyse": "تحليل",
-    "analysisTools": "أدوات التحليل",
-    "studio": "الاستوديو",
-    "studioTitle": "إظهار لوحات مساحة العمل أو إخفاؤها",
-    "panels": "اللوحات",
     "locked": "مقفل",
     "lockedTitle": "يعمل {{name}} على هذا الملف منذ {{time}} — لا يمكنك التحكم فيه. انقر لتولي التحكم.",
     "minimise": "تصغير",
@@ -1508,10 +1499,6 @@
       "support": "ادعم Magnolia",
       "aiAssistance": "مساعدة الذكاء الاصطناعي"
     },
-    "toolbarStyle": {
-      "ribbon": "شريط",
-      "icons": "أيقونات"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia الداكن",
@@ -1521,7 +1508,6 @@
     "themeHeading": "السمة",
     "default": "(افتراضي)",
     "interfaceScale": "حجم الواجهة",
-    "toolbarStyleHeading": "نمط شريط الأدوات",
     "colour": "اللون",
     "colourful": "واجهة ملوّنة",
     "yourName": "اسمك",

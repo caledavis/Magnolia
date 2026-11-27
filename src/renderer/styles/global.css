@@ -189,8 +189,8 @@
  * primary action — but every rule is written explicitly here so
  * there's no inheritance trail or shared rule body with Lab.
  * Every selector that interacts with a Magnolia-themed surface
- * lives inside this block, including the analysis-popover hover
- * (so it can't get lost to specificity / cascade questions).
+ * lives inside this block (so it can't get lost to specificity /
+ * cascade questions).
  * ============================================================ */
 :root[data-theme="magnolia"] {
   /* The panel cards' drop shadow, shared with the ribbon. */
@@ -313,11 +313,7 @@
   border-bottom: none !important;
   --text-secondary: var(--text-primary);
 }
-/* Excludes .analysis-popover-tile via :not() — the Analysis-tools
- * popover is rendered inside .analysis-popover-anchor (inside the
- * toolbar), so without the exclusion this rule matches the popover
- * tile buttons too, defeating their own theme-scoped hover styling. */
-:root[data-theme="magnolia"] .app-toolbar button:not(.analysis-popover-tile):not(.studio-popover-row):not(.checkout-btn):hover {
+:root[data-theme="magnolia"] .app-toolbar button:not(.checkout-btn):hover {
   background: rgba(255, 255, 255, 0.22) !important;
 }
 :root[data-theme="magnolia"] .app-toolbar-btn .toolbar-label {
@@ -327,18 +323,6 @@
 :root[data-theme="magnolia"] .app-toolbar-btn .toolbar-label,
 :root[data-theme="magnolia"] .app-toolbar-btn svg {
   opacity: 1;
-}
-
-/* Analysis-tools popover tile hover. Explicit, theme-scoped,
- * literal hex value, !important — every dial cranked so this
- * rule lands no matter what the global cascade is doing. */
-:root[data-theme="magnolia"] .analysis-popover-tile:hover,
-:root[data-theme="magnolia"] .analysis-popover-tile:focus-visible {
-  /* Matches the Welcome-screen recent-projects rollover (which sets
-   * --bg-secondary inline). Single source of truth: change Magnolia's
-   * --bg-secondary token and both surfaces follow. */
-  background: var(--bg-secondary) !important;
-  border-color: var(--border-color) !important;
 }
 
 :root[data-theme="magnolia"] ::selection {
@@ -471,11 +455,8 @@
 }
 
 /* Translucent-white toolbar button hover — a readable lift on the
- * dark canvas. Excludes .analysis-popover-tile so the popover's
- * own theme-scoped hover styling lands instead (otherwise the
- * toolbar rule's higher specificity wins because the popover is
- * rendered inside .app-toolbar via the anchor). */
-:root[data-theme="magnolia-dark"] .app-toolbar button:not(.analysis-popover-tile):not(.studio-popover-row):not(.checkout-btn):hover {
+ * dark canvas. */
+:root[data-theme="magnolia-dark"] .app-toolbar button:not(.checkout-btn):hover {
   background: rgba(255, 255, 255, 0.08) !important;
 }
 
@@ -486,16 +467,6 @@
 :root[data-theme="magnolia-dark"] .app-toolbar-btn .toolbar-label,
 :root[data-theme="magnolia-dark"] .app-toolbar-btn svg {
   opacity: 1;
-}
-
-/* Analysis-tools popover tile hover — explicit, theme-scoped, literal
- * hex, !important. Same approach as light Magnolia. */
-:root[data-theme="magnolia-dark"] .analysis-popover-tile:hover,
-:root[data-theme="magnolia-dark"] .analysis-popover-tile:focus-visible {
-  /* Same single-source-of-truth as light Magnolia — popover hover
-   * tracks --bg-secondary, matching the Welcome rollover. */
-  background: var(--bg-secondary) !important;
-  border-color: var(--border-color) !important;
 }
 
 :root[data-theme="magnolia-dark"] ::selection {
@@ -715,8 +686,7 @@ textarea:focus {
    * a darker --bg-secondary stripe. No bottom border either — the
    * title sits flush with the content beneath. */
   background: var(--bg-panel);
-  /* Section-label small-caps treatment — matches the Analysis Tools
-   * popover title (.analysis-popover-title further down). Bold +
+  /* Section-label small-caps treatment. Bold +
    * uppercase + tracked-out letterspacing + dimmer --text-muted
    * colour reads as a category label rather than running text, so
    * "Documents" / "Codes" / "Memos" feel like sidebar section
@@ -1031,36 +1001,6 @@ div:hover > .folder-row-add,
   app-region: drag;
 }
 
-/* The toolbar's own overflow stays hidden — it's the inner
- * .app-toolbar-scroll section (see App.tsx) that scrolls, so the
- * pinned project name (left) and window controls (right) around it
- * never get scrolled out of view themselves (GitHub issue #15).
- *
- * The actual button track (.app-toolbar-scroll-inner, the centered
- * child holding every button) opts out of the toolbar's drag region
- * entirely, not just on its buttons: .app-toolbar marks its whole area
- * draggable so the frameless window can be moved, but a drag region
- * under the cursor swallows scroll gestures. Without that
- * override, the gaps between buttons stayed draggable and killed
- * horizontal scrolling the moment the cursor drifted off a button. This
- * outer .app-toolbar-scroll element deliberately stays plain — it's the
- * flex item that grows to fill leftover toolbar width, and any empty
- * margin beyond the (centered) button track should stay draggable, the
- * same as the rest of the toolbar. */
-.app-toolbar-scroll {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.app-toolbar-scroll-inner {
-  -webkit-app-region: no-drag;
-  app-region: no-drag;
-}
-.app-toolbar-scroll::-webkit-scrollbar {
-  display: none;
-}
-.app-toolbar-scroll-hint {
-  color: var(--text-secondary);
-}
 /* macOS keeps the traffic lights (titleBarStyle: 'hiddenInset') —
  * indent the toolbar's left edge so the wordmark sits clear of
  * them. The cluster spans ~52 px starting at x=20 (set via
@@ -1183,49 +1123,6 @@ div:hover > .folder-row-add,
  * the default, is styled under "Ribbon" below), keyed off the data
  * attribute App.tsx sets on .app-toolbar. */
 
-/* Icons: macOS Mail-style — the visible label is hidden and the
- * button shrinks to fit just the icon; the tool's name still reaches
- * the user via the button's `title` attribute (native OS tooltip on
- * hover) rather than an on-toolbar caption. Buttons within a group sit
- * in a rounded pill chip (distinct from a button's own hover fill,
- * var(--bg-tertiary), so hovering a button inside still reads as a
- * visible highlight). */
-.app-toolbar[data-toolbar-style="icons"] .app-toolbar-pill {
-  background: var(--bg-secondary);
-  border-radius: 999px;
-  padding: 3px;
-}
-/* Magnolia's canvas is pale enough that the usual pill colour all but
- * matches it, so the pills are white there, and a button inside one
- * hovers in the pale blue instead of the theme's white wash. */
-:root[data-theme="magnolia"] .app-toolbar[data-toolbar-style="icons"] .app-toolbar-pill {
-  background: var(--bg-panel);
-}
-:root[data-theme="magnolia"] .app-toolbar[data-toolbar-style="icons"] .app-toolbar-pill button:not(.analysis-popover-tile):not(.studio-popover-row):not(.checkout-btn):hover {
-  background: var(--bg-secondary) !important;
-}
-.app-toolbar[data-toolbar-style="icons"] .app-toolbar-btn {
-  gap: 0 !important;
-  padding: 6px 10px !important;
-}
-/* Buttons inside a pill hover as capsules, so the hover fill follows the
- * pill's own rounded ends (concentric inside its 3px padding) instead of
- * showing a square-cornered block within them. Overrides the inline
- * --radius-sm each button sets; Check Out and the project name sit
- * outside the pills and keep theirs. */
-.app-toolbar[data-toolbar-style="icons"] .app-toolbar-pill .app-toolbar-btn {
-  border-radius: 999px !important;
-}
-.app-toolbar[data-toolbar-style="icons"] .app-toolbar-btn .toolbar-label {
-  display: none !important;
-}
-/* FontAwesome free-solid icons render heavy at any size; 16 px reads
- * as a confident toolbar glyph now that it's the button's only
- * content (icon-only, no label alongside it to balance against). */
-.app-toolbar[data-toolbar-style="icons"] .app-toolbar-btn svg {
-  font-size: 16px !important;
-}
-
 /* Check Out / Check In toggle (components/Toolbar/CheckOutButton.tsx) —
  * unlike every other toolbar button, this one's background switches to a
  * solid accent/danger fill to show who has the project checked out, so
@@ -1264,9 +1161,7 @@ div:hover > .folder-row-add,
  * hover for the 'mine'/'other' statuses) — give the neutral 'none'
  * status that same translucent-white treatment explicitly, so it
  * reads as hoverable/consistent like every other button when nothing
- * is checked out. Icons mode overrides this again to no highlight at
- * all (further down) — that wins there via a more specific selector
- * regardless of source order. */
+ * is checked out. */
 :root[data-theme="magnolia"] .checkout-btn.checkout-btn--none:hover {
   background: rgba(255, 255, 255, 0.22) !important;
 }
@@ -1274,182 +1169,6 @@ div:hover > .folder-row-add,
   background: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* Icons mode only: move the status background from the button to its
- * wrapping .checkout-pill (see CheckOutButton.tsx), so Check Out reads
- * as one pill turning blue/red — matching every other toolbar group's
- * pill treatment — instead of a small, sharper-cornered colored square
- * sitting inside an otherwise plain pill. The button itself is forced
- * transparent (rest AND hover) so its own background (still set inline,
- * what Check Out shows with the ribbon) doesn't paint over the
- * pill's color. No :hover rule on the pill itself, by design — every
- * other Icons-mode pill's own background is static (only the
- * individual button inside gets a hover highlight), so Check Out's
- * single-button pill stays static on hover too instead of standing out
- * as the one pill whose background shifts under the cursor. */
-.app-toolbar[data-toolbar-style="icons"] .checkout-pill .checkout-btn,
-.app-toolbar[data-toolbar-style="icons"] .checkout-pill .checkout-btn:hover {
-  background: transparent !important;
-}
-.app-toolbar[data-toolbar-style="icons"] .checkout-pill.checkout-pill--mine {
-  background: var(--accent) !important;
-}
-.app-toolbar[data-toolbar-style="icons"] .checkout-pill.checkout-pill--other {
-  background: var(--danger) !important;
-}
-
-/* ============================================================
- * Analysis popover — single "Analysis ▾" toolbar button that
- * opens a tile-grid menu listing every analysis tool. Replaces
- * the old row of seven inline analysis-tool buttons; see
- * components/Toolbar/AnalysisPopover.tsx.
- * ============================================================ */
-.analysis-popover-anchor {
-  position: relative;
-  display: inline-flex;
-}
-.analysis-popover {
-  position: absolute;
-  /* Offset clears the toolbar's bottom edge: trigger button is ~28
-   * px tall, centred in a 54 px toolbar, so the button bottom sits
-   * ~13 px above the toolbar bottom. 22 px puts the popover ~9 px
-   * below the toolbar's border with the arrow tip just touching it
-   * from outside. */
-  top: calc(100% + 22px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--bg-panel);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
-  padding: 14px;
-  width: 540px;
-  z-index: 1000;
-}
-.analysis-popover-arrow {
-  position: absolute;
-  top: -7px;
-  left: 50%;
-  transform: translateX(-50%) rotate(45deg);
-  width: 12px;
-  height: 12px;
-  background: var(--bg-panel);
-  border-top: 1px solid var(--border-color);
-  border-left: 1px solid var(--border-color);
-}
-.analysis-popover-title {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin: 0 0 8px 4px;
-}
-.analysis-popover-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-.analysis-popover-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  padding: 10px 12px;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  cursor: pointer;
-  background: transparent;
-  font: inherit;
-  color: var(--text-primary);
-  text-align: start;
-  transition: background 0.12s, border-color 0.12s;
-}
-.analysis-popover-tile:hover,
-.analysis-popover-tile:focus-visible {
-  background: var(--bg-secondary);
-  border-color: var(--border-color);
-  outline: none;
-}
-.analysis-popover-tile svg {
-  color: var(--text-secondary);
-  transition: color 0.12s;
-}
-.analysis-popover-tile:hover svg,
-.analysis-popover-tile:focus-visible svg {
-  color: var(--text-primary);
-}
-.analysis-popover-tile-name {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-.analysis-popover-tile-desc {
-  font-size: 11px;
-  color: var(--text-muted);
-  line-height: 1.3;
-}
-
-/* Studio popover — reuses the .analysis-popover container chrome but
- * presents a single-column checklist of panel toggles rather than the
- * analysis tile grid, so it's much narrower. */
-.studio-popover {
-  width: 220px;
-}
-.studio-popover-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.studio-popover-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 7px 8px;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  cursor: pointer;
-  background: transparent;
-  font: inherit;
-  color: var(--text-primary);
-  text-align: start;
-  transition: background 0.12s, border-color 0.12s;
-}
-.studio-popover-row:hover,
-.studio-popover-row:focus-visible {
-  background: var(--bg-secondary);
-  border-color: var(--border-color);
-  outline: none;
-}
-/* Fixed-width gutter so labels align whether or not the row is
- * checked — the checkmark only fills it when the panel is visible. */
-.studio-popover-check {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  flex-shrink: 0;
-  color: var(--accent-color, var(--text-primary));
-}
-.studio-popover-row-name {
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.2;
-}
-
-/* Help popover — reuses the .analysis-popover container chrome AND its
- * .analysis-popover-tile cells (icon/name/description), laid out as a
- * 3-column grid exactly like .analysis-popover-grid — just 3 columns
- * instead of 4, since Help only has three actions (Licence &
- * Attributions / Manual / Donate). See components/Toolbar/HelpPopover.tsx. */
-.help-popover {
-  width: 480px;
-}
-.help-popover-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
 
 /* Themed range slider — used by the audio/video volume control. The
  * filled portion of the track is drawn with a CSS gradient driven by
@@ -2122,9 +1841,10 @@ div:hover > .folder-row-add,
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-tag > :nth-child(2) { stroke: var(--rb-coral); fill: var(--rb-coral); }
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-bookmark > * { stroke: var(--rb-gold); fill: color-mix(in srgb, var(--rb-gold) var(--rb-tint), transparent); }
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-lightbulb > :nth-child(1) { stroke: var(--rb-gold); fill: color-mix(in srgb, var(--rb-gold) var(--rb-tint), transparent); }
-/* AI Assistance: a gold star, its small cross and dot in blue. */
+/* AI Assistance: a gold star, its small cross blue, its dot red. */
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-sparkles > :nth-child(1) { stroke: var(--rb-gold); fill: color-mix(in srgb, var(--rb-gold) var(--rb-tint), transparent); }
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-sparkles > :nth-child(n+2) { stroke: var(--rb-blue); }
+:root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-sparkles > :nth-child(4) { stroke: var(--rb-coral); fill: var(--rb-coral); }
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-settings > :nth-child(2),
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-file-text > :nth-child(n+3),
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-scale > :nth-child(2n) { stroke: var(--rb-blue); }
@@ -2191,11 +1911,11 @@ div:hover > .folder-row-add,
 }
 :root .app-toolbar[data-toolbar-style="ribbon"] { background: var(--ribbon-shade-top) !important; }
 :root[data-theme="magnolia"] { --ribbon-hover: var(--bg-secondary); }
-:root[data-theme="magnolia"] .app-toolbar[data-toolbar-style="ribbon"] button:not(.analysis-popover-tile):not(.studio-popover-row):not(.checkout-btn):hover {
+:root[data-theme="magnolia"] .app-toolbar[data-toolbar-style="ribbon"] button:not(.checkout-btn):hover {
   background: var(--ribbon-hover) !important;
 }
 /* The tabs and the chevron have no hover fill, like the ribbon buttons. */
-:root[data-theme="magnolia"] .app-toolbar[data-toolbar-style="ribbon"] .ribbon-tabs button:not(.analysis-popover-tile):not(.studio-popover-row):not(.checkout-btn):hover {
+:root[data-theme="magnolia"] .app-toolbar[data-toolbar-style="ribbon"] .ribbon-tabs button:not(.checkout-btn):hover {
   background: transparent !important;
 }
 .ribbon-tabs {

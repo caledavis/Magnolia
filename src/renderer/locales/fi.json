@@ -288,8 +288,6 @@
     "mergeTitle": "Yhdistä toinen projekti tähän",
     "preferences": "Asetukset",
     "updateAvailableTitle": "Uusi versio on saatavilla – avaa Asetukset → Päivitykset",
-    "openPreferences": "Avaa asetukset",
-    "openPreferencesUpdate": "Avaa asetukset – päivitys saatavilla",
     "codebook": "Koodikirja",
     "logbook": "Lokikirja",
     "memos": "Muistiot",
@@ -303,15 +301,8 @@
     "manualDescription": "Avaa Magnolian käyttöohje selaimessa.",
     "licence": "Lisenssi",
     "licenceAttributions": "Lisenssi ja tekijätiedot",
-    "licenceDescription": "Magnolian lisenssi (EUPL-1.2) ja mukana olevien kirjastojen tekijätiedot.",
     "donate": "Lahjoita",
     "donateDescription": "Magnolia on ilmainen, mutta sen tekeminen maksaa minulle. Jos siitä on sinulle hyötyä, harkitse lahjoitusta kulujeni kattamiseksi.",
-    "help": "Ohje",
-    "analyse": "Analysoi",
-    "analysisTools": "Analyysityökalut",
-    "studio": "Studio",
-    "studioTitle": "Näytä tai kätke työtilan paneeleja",
-    "panels": "Paneelit",
     "locked": "Lukittu",
     "lockedTitle": "{{name}} on työskennellyt tämän tiedoston parissa {{time}} alkaen – sinulla ei ole hallintaa. Ota hallinta klikkaamalla.",
     "minimise": "Pienennä",
@@ -1328,10 +1319,6 @@
       "support": "Tue Magnoliaa",
       "aiAssistance": "Tekoälyapu"
     },
-    "toolbarStyle": {
-      "ribbon": "Valintanauha",
-      "icons": "Kuvakkeet"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia tumma",
@@ -1341,7 +1328,6 @@
     "themeHeading": "Teema",
     "default": "(oletus)",
     "interfaceScale": "Käyttöliittymän koko",
-    "toolbarStyleHeading": "Työkalupalkin tyyli",
     "colour": "Väri",
     "colourful": "Värikäs käyttöliittymä",
     "yourName": "Nimesi",

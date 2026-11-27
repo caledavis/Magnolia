@@ -291,8 +291,6 @@
     "mergeTitle": "Fusiona un projecte amb aquest",
     "preferences": "Preferències",
     "updateAvailableTitle": "Hi ha una versió nova — obriu Preferències → Actualitzacions",
-    "openPreferences": "Obre les preferències",
-    "openPreferencesUpdate": "Obre les preferències — hi ha una actualització",
     "codebook": "Llibre de codis",
     "logbook": "Diari",
     "memos": "Memos",
@@ -306,15 +304,8 @@
     "manualDescription": "Obre el manual d’usuari del Magnolia al navegador.",
     "licence": "Llicència",
     "licenceAttributions": "Llicència i atribucions",
-    "licenceDescription": "La llicència del Magnolia (EUPL-1.2) i els crèdits de les biblioteques incloses.",
     "donate": "Feu un donatiu",
     "donateDescription": "El Magnolia és gratuït, però fer-lo em costa diners. Si us és útil, considereu fer un donatiu per cobrir-ne les despeses.",
-    "help": "Ajuda",
-    "analyse": "Anàlisi",
-    "analysisTools": "Eines d’anàlisi",
-    "studio": "Estudi",
-    "studioTitle": "Mostra o amaga els plafons de l’espai de treball",
-    "panels": "Plafons",
     "locked": "Bloquejat",
     "lockedTitle": "{{name}} treballa en aquest fitxer des de {{time}} — no en teniu el control. Feu clic per prendre’l.",
     "minimise": "Minimitza",
@@ -1373,10 +1364,6 @@
       "support": "Doneu suport al Magnolia",
       "aiAssistance": "Assistència d’IA"
     },
-    "toolbarStyle": {
-      "ribbon": "Cinta",
-      "icons": "Icones"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia fosc",
@@ -1386,7 +1373,6 @@
     "themeHeading": "Tema",
     "default": "(per defecte)",
     "interfaceScale": "Escala de la interfície",
-    "toolbarStyleHeading": "Estil de la barra d’eines",
     "colour": "Color",
     "colourful": "Interfície acolorida",
     "yourName": "El vostre nom",

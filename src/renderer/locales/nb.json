@@ -288,8 +288,6 @@
     "mergeTitle": "Slå sammen et annet prosjekt med dette",
     "preferences": "Innstillinger",
     "updateAvailableTitle": "En ny versjon er tilgjengelig – åpne Innstillinger → Oppdateringer",
-    "openPreferences": "Åpne Innstillinger",
-    "openPreferencesUpdate": "Åpne Innstillinger – oppdatering tilgjengelig",
     "codebook": "Kodebok",
     "logbook": "Loggbok",
     "memos": "Memoer",
@@ -303,15 +301,8 @@
     "manualDescription": "Åpne brukerveiledningen for Magnolia i nettleseren.",
     "licence": "Lisens",
     "licenceAttributions": "Lisens og kreditering",
-    "licenceDescription": "Magnolias lisens (EUPL-1.2) og kreditering for medfølgende biblioteker.",
     "donate": "Doner",
     "donateDescription": "Magnolia er gratis å bruke, men koster meg penger å lage. Hvis du har nytte av det, kan du vurdere å donere for å dekke kostnadene mine.",
-    "help": "Hjelp",
-    "analyse": "Analyser",
-    "analysisTools": "Analyseverktøy",
-    "studio": "Studio",
-    "studioTitle": "Vis eller skjul arbeidsområdets paneler",
-    "panels": "Paneler",
     "locked": "Låst",
     "lockedTitle": "{{name}} har arbeidet med denne filen siden {{time}} – du har ikke kontrollen. Klikk for å ta over.",
     "minimise": "Minimer",
@@ -1328,10 +1319,6 @@
       "support": "Støtt Magnolia",
       "aiAssistance": "KI-assistanse"
     },
-    "toolbarStyle": {
-      "ribbon": "Bånd",
-      "icons": "Ikoner"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia mørk",
@@ -1341,7 +1328,6 @@
     "themeHeading": "Tema",
     "default": "(standard)",
     "interfaceScale": "Grensesnittstørrelse",
-    "toolbarStyleHeading": "Verktøylinjestil",
     "colour": "Farge",
     "colourful": "Fargerikt grensesnitt",
     "yourName": "Navnet ditt",

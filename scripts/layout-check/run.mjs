@@ -95,7 +95,7 @@ async function checkLanguage(lang) {
   fs.mkdirSync(path.join(run, 'userdata'), { recursive: true })
   const copy = path.join(run, path.basename(project))
   fs.copyFileSync(project, copy)
-  fs.writeFileSync(path.join(run, 'userdata/magnolia-preferences.json'), JSON.stringify({ userName: 'Tester', toolbarStyle: 'ribbon', language: lang }))
+  fs.writeFileSync(path.join(run, 'userdata/magnolia-preferences.json'), JSON.stringify({ userName: 'Tester', language: lang }))
   fs.writeFileSync(path.join(run, 'checks.js'),
     `const OUT = ${JSON.stringify(out)};\nconst ONLY = ${JSON.stringify(checks)};\nconst PROJECT = ${JSON.stringify(NAMES)};\n` +
     fs.readFileSync(path.join(import.meta.dirname, 'checks.js'), 'utf8'))

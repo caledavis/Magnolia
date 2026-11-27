@@ -285,8 +285,6 @@
     "mergeTitle": "別のプロジェクトをこのプロジェクトに結合",
     "preferences": "環境設定",
     "updateAvailableTitle": "新しいバージョンがあります — 「環境設定」→「アップデート」を開いてください",
-    "openPreferences": "環境設定を開く",
-    "openPreferencesUpdate": "環境設定を開く — アップデートがあります",
     "codebook": "コードブック",
     "logbook": "ログブック",
     "memos": "メモ",
@@ -300,15 +298,8 @@
     "manualDescription": "Magnolia のユーザマニュアルをブラウザで開きます。",
     "licence": "ライセンス",
     "licenceAttributions": "ライセンスとクレジット",
-    "licenceDescription": "Magnolia のライセンス（EUPL-1.2）と同梱ライブラリのクレジット。",
     "donate": "寄付",
     "donateDescription": "Magnolia は無料で使えますが、開発には費用がかかっています。お役に立っているなら、費用をまかなうための寄付をご検討ください。",
-    "help": "ヘルプ",
-    "analyse": "分析",
-    "analysisTools": "分析ツール",
-    "studio": "スタジオ",
-    "studioTitle": "ワークスペースのパネルを表示または非表示",
-    "panels": "パネル",
     "locked": "ロック中",
     "lockedTitle": "{{name}} さんが {{time}} からこのファイルで作業中です — 操作権はありません。クリックすると引き継ぎます。",
     "minimise": "しまう",
@@ -1283,10 +1274,6 @@
       "support": "Magnolia を支援",
       "aiAssistance": "AI 支援"
     },
-    "toolbarStyle": {
-      "ribbon": "リボン",
-      "icons": "アイコン"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia ダーク",
@@ -1296,7 +1283,6 @@
     "themeHeading": "テーマ",
     "default": "（デフォルト）",
     "interfaceScale": "表示の拡大率",
-    "toolbarStyleHeading": "ツールバーのスタイル",
     "colour": "色",
     "colourful": "カラフルな表示",
     "yourName": "お名前",

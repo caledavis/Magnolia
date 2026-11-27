@@ -288,8 +288,6 @@
     "mergeTitle": "Συγχώνευση ενός έργου σε αυτό",
     "preferences": "Προτιμήσεις",
     "updateAvailableTitle": "Υπάρχει νέα έκδοση — ανοίξτε «Προτιμήσεις» → «Ενημερώσεις»",
-    "openPreferences": "Άνοιγμα προτιμήσεων",
-    "openPreferencesUpdate": "Άνοιγμα προτιμήσεων — διαθέσιμη ενημέρωση",
     "codebook": "Βιβλίο κωδικών",
     "logbook": "Ημερολόγιο",
     "memos": "Υπομνήματα",
@@ -303,15 +301,8 @@
     "manualDescription": "Άνοιγμα του εγχειριδίου χρήσης του Magnolia στο πρόγραμμα περιήγησης.",
     "licence": "Άδεια",
     "licenceAttributions": "Άδεια και αναφορές",
-    "licenceDescription": "Η άδεια του Magnolia (EUPL-1.2) και αναφορές για τις ενσωματωμένες βιβλιοθήκες.",
     "donate": "Δωρεά",
     "donateDescription": "Το Magnolia είναι δωρεάν, αλλά η ανάπτυξή του μου κοστίζει χρήματα. Αν σας είναι χρήσιμο, σκεφτείτε να κάνετε μια δωρεά για να καλύψω τα έξοδά μου.",
-    "help": "Βοήθεια",
-    "analyse": "Ανάλυση",
-    "analysisTools": "Εργαλεία ανάλυσης",
-    "studio": "Στούντιο",
-    "studioTitle": "Εμφάνιση ή απόκρυψη πλαισίων του χώρου εργασίας",
-    "panels": "Πλαίσια",
     "locked": "Κλειδωμένο",
     "lockedTitle": "Ο/Η {{name}} εργάζεται σε αυτό το αρχείο από τις {{time}} — δεν έχετε τον έλεγχο. Κάντε κλικ για να τον αναλάβετε.",
     "minimise": "Ελαχιστοποίηση",
@@ -1328,10 +1319,6 @@
       "support": "Υποστήριξη του Magnolia",
       "aiAssistance": "Βοήθεια ΤΝ"
     },
-    "toolbarStyle": {
-      "ribbon": "Κορδέλα",
-      "icons": "Εικονίδια"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia σκούρο",
@@ -1341,7 +1328,6 @@
     "themeHeading": "Θέμα",
     "default": "(προεπιλογή)",
     "interfaceScale": "Κλίμακα διεπαφής",
-    "toolbarStyleHeading": "Στυλ γραμμής εργαλείων",
     "colour": "Χρώμα",
     "colourful": "Πολύχρωμη διεπαφή",
     "yourName": "Το όνομά σας",

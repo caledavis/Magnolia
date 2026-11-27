@@ -285,8 +285,6 @@
     "mergeTitle": "将其他项目合并到此项目",
     "preferences": "偏好设置",
     "updateAvailableTitle": "有新版本可用——打开“偏好设置”→“更新”",
-    "openPreferences": "打开偏好设置",
-    "openPreferencesUpdate": "打开偏好设置——有可用更新",
     "codebook": "代码本",
     "logbook": "日志",
     "memos": "备忘录",
@@ -300,15 +298,8 @@
     "manualDescription": "在浏览器中打开 Magnolia 用户手册。",
     "licence": "许可证",
     "licenceAttributions": "许可证与致谢",
-    "licenceDescription": "Magnolia 的许可证（EUPL-1.2）及所含库的致谢。",
     "donate": "捐赠",
     "donateDescription": "Magnolia 可免费使用，但开发它需要我花钱。如果它对您有用，请考虑捐赠以支付我的开销。",
-    "help": "帮助",
-    "analyse": "分析",
-    "analysisTools": "分析工具",
-    "studio": "工作室",
-    "studioTitle": "显示或隐藏工作区窗格",
-    "panels": "窗格",
     "locked": "已锁定",
     "lockedTitle": "{{name}} 自 {{time}} 起正在处理此文件——您没有控制权。点按以接管。",
     "minimise": "最小化",
@@ -1283,10 +1274,6 @@
       "support": "支持 Magnolia",
       "aiAssistance": "AI 辅助"
     },
-    "toolbarStyle": {
-      "ribbon": "功能区",
-      "icons": "图标"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia 深色",
@@ -1296,7 +1283,6 @@
     "themeHeading": "主题",
     "default": "（默认）",
     "interfaceScale": "界面缩放",
-    "toolbarStyleHeading": "工具栏样式",
     "colour": "颜色",
     "colourful": "彩色界面",
     "yourName": "您的名字",

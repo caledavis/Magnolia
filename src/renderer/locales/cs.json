@@ -294,8 +294,6 @@
     "mergeTitle": "Sloučit jiný projekt do tohoto",
     "preferences": "Předvolby",
     "updateAvailableTitle": "Je k dispozici nová verze – otevřete Předvolby → Aktualizace",
-    "openPreferences": "Otevřít předvolby",
-    "openPreferencesUpdate": "Otevřít předvolby – je k dispozici aktualizace",
     "codebook": "Kódovací kniha",
     "logbook": "Deník",
     "memos": "Poznámky",
@@ -309,15 +307,8 @@
     "manualDescription": "Otevřít uživatelskou příručku aplikace Magnolia v prohlížeči.",
     "licence": "Licence",
     "licenceAttributions": "Licence a uvedení autorů",
-    "licenceDescription": "Licence aplikace Magnolia (EUPL-1.2) a uvedení autorů přibalených knihoven.",
     "donate": "Přispět",
     "donateDescription": "Magnolia je zdarma, ale její vývoj mě stojí peníze. Pokud je pro vás užitečná, zvažte prosím příspěvek na pokrytí mých nákladů.",
-    "help": "Nápověda",
-    "analyse": "Analýza",
-    "analysisTools": "Analytické nástroje",
-    "studio": "Studio",
-    "studioTitle": "Zobrazit nebo skrýt panely pracovního prostoru",
-    "panels": "Panely",
     "locked": "Zamčeno",
     "lockedTitle": "{{name}} pracuje s tímto souborem od {{time}} – nemáte kontrolu. Klepnutím ji převezmete.",
     "minimise": "Minimalizovat",
@@ -1418,10 +1409,6 @@
       "support": "Podpořte Magnolii",
       "aiAssistance": "Asistence AI"
     },
-    "toolbarStyle": {
-      "ribbon": "Pás karet",
-      "icons": "Ikony"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia tmavá",
@@ -1431,7 +1418,6 @@
     "themeHeading": "Motiv",
     "default": "(výchozí)",
     "interfaceScale": "Měřítko rozhraní",
-    "toolbarStyleHeading": "Styl panelu nástrojů",
     "colour": "Barva",
     "colourful": "Barevné rozhraní",
     "yourName": "Vaše jméno",

@@ -288,8 +288,6 @@
     "mergeTitle": "किसी परियोजना को इसमें मिलाएँ",
     "preferences": "प्राथमिकताएँ",
     "updateAvailableTitle": "नया संस्करण उपलब्ध है — प्राथमिकताएँ → अपडेट खोलें",
-    "openPreferences": "प्राथमिकताएँ खोलें",
-    "openPreferencesUpdate": "प्राथमिकताएँ खोलें — अपडेट उपलब्ध है",
     "codebook": "कोडबुक",
     "logbook": "लॉगबुक",
     "memos": "मेमो",
@@ -303,15 +301,8 @@
     "manualDescription": "Magnolia का उपयोगकर्ता मैनुअल अपने ब्राउज़र में खोलें।",
     "licence": "लाइसेंस",
     "licenceAttributions": "लाइसेंस और श्रेय",
-    "licenceDescription": "Magnolia का लाइसेंस (EUPL-1.2) और शामिल लाइब्रेरियों का श्रेय।",
     "donate": "दान करें",
     "donateDescription": "Magnolia का उपयोग मुफ़्त है, लेकिन इसे बनाने में मेरा पैसा लगता है। यदि यह उपयोगी है, तो कृपया मेरी लागत पूरी करने के लिए दान करने पर विचार करें।",
-    "help": "सहायता",
-    "analyse": "विश्लेषण",
-    "analysisTools": "विश्लेषण टूल",
-    "studio": "स्टूडियो",
-    "studioTitle": "कार्यक्षेत्र पैनल दिखाएँ या छिपाएँ",
-    "panels": "पैनल",
     "locked": "लॉक है",
     "lockedTitle": "{{name}} {{time}} से इस फ़ाइल पर काम कर रहे हैं — नियंत्रण आपके पास नहीं है। नियंत्रण लेने के लिए क्लिक करें।",
     "minimise": "छोटा करें",
@@ -1328,10 +1319,6 @@
       "support": "Magnolia का समर्थन करें",
       "aiAssistance": "AI सहायता"
     },
-    "toolbarStyle": {
-      "ribbon": "रिबन",
-      "icons": "आइकन"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia गहरा",
@@ -1341,7 +1328,6 @@
     "themeHeading": "थीम",
     "default": "(डिफ़ॉल्ट)",
     "interfaceScale": "इंटरफ़ेस का आकार",
-    "toolbarStyleHeading": "टूलबार शैली",
     "colour": "रंग",
     "colourful": "रंगीन इंटरफ़ेस",
     "yourName": "आपका नाम",

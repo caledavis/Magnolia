@@ -288,8 +288,6 @@
     "mergeTitle": "Een ander project met dit project samenvoegen",
     "preferences": "Voorkeuren",
     "updateAvailableTitle": "Er is een nieuwe versie: open Voorkeuren → Updates",
-    "openPreferences": "Voorkeuren openen",
-    "openPreferencesUpdate": "Voorkeuren openen: update beschikbaar",
     "codebook": "Codeboek",
     "logbook": "Logboek",
     "memos": "Memo's",
@@ -303,15 +301,8 @@
     "manualDescription": "Open de gebruikershandleiding van Magnolia in je browser.",
     "licence": "Licentie",
     "licenceAttributions": "Licentie en vermeldingen",
-    "licenceDescription": "De licentie van Magnolia (EUPL-1.2) en de vermeldingen voor meegeleverde bibliotheken.",
     "donate": "Doneren",
     "donateDescription": "Magnolia is gratis, maar het maken ervan kost mij geld. Heb je er iets aan, overweeg dan een donatie om mijn kosten te dekken.",
-    "help": "Help",
-    "analyse": "Analyseren",
-    "analysisTools": "Analysehulpmiddelen",
-    "studio": "Studio",
-    "studioTitle": "Werkruimtepanelen tonen of verbergen",
-    "panels": "Panelen",
     "locked": "Vergrendeld",
     "lockedTitle": "{{name}} werkt sinds {{time}} aan dit bestand: jij hebt geen controle. Klik om het over te nemen.",
     "minimise": "Minimaliseren",
@@ -1328,10 +1319,6 @@
       "support": "Steun Magnolia",
       "aiAssistance": "AI-assistentie"
     },
-    "toolbarStyle": {
-      "ribbon": "Lint",
-      "icons": "Pictogrammen"
-    },
     "theme": {
       "magnolia": "Magnolia",
       "magnoliaDark": "Magnolia donker",
@@ -1341,7 +1328,6 @@
     "themeHeading": "Thema",
     "default": "(standaard)",
     "interfaceScale": "Schaal van de interface",
-    "toolbarStyleHeading": "Stijl van de werkbalk",
     "colour": "Kleur",
     "colourful": "Kleurrijke interface",
     "yourName": "Je naam",
