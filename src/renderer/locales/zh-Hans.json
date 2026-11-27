@@ -2090,13 +2090,11 @@
       "keyApprove": "R",
       "keyReject": "E",
       "keysMove": "↑ ↓ 移动",
-      "keysList": "↑ ↓ 移动 · 空格键展开或收起 · {{approve}} 或 Enter 批准 · {{reject}} 或 Delete 拒绝",
+      "keysList": "↑ ↓ 移动 · → 在文档中打开 · 空格键展开或收起",
       "back": "返回审核"
     },
     "apps": {
-      "intro": "有了 Claude 订阅，您无需 API 密钥即可将 Claude Desktop 与 Magnolia 搭配使用：它会读取打开的项目并建议更改，由您在 Magnolia 中批准或拒绝。其他支持 Model Context Protocol（MCP）的应用也可以使用。",
       "allow": "允许这台电脑上的 AI 应用使用 Magnolia",
-      "howProjects": "每个项目仍会先在其“AI 辅助”窗格中征求您的同意。应用读取的内容会列在那里，它建议的更改则在“AI 辅助”查看器中等待审核。应用会将读取的内容发送到它自己的 AI 服务。",
       "addToClaude": "将 Magnolia 添加到 Claude Desktop",
       "added": "已添加。退出并重新打开 Claude Desktop 后，Magnolia 会出现在其连接器中。",
       "noClaude": "这台电脑上没有安装 Claude Desktop。",

@@ -2090,13 +2090,11 @@
       "keyApprove": "R",
       "keyReject": "E",
       "keysMove": "↑ ↓ で移動",
-      "keysList": "↑ ↓ で移動 · Space で開閉 · {{approve}} または Enter で承認 · {{reject}} または Delete で却下",
+      "keysList": "↑ ↓ で移動 · → で文書を開く · Space で開閉",
       "back": "確認に戻る"
     },
     "apps": {
-      "intro": "Claude のサブスクリプションがあれば、API キーなしで Claude Desktop を Magnolia と一緒に使えます。Claude Desktop が開いているプロジェクトを読んで変更を提案し、その変更を Magnolia で承認または却下します。Model Context Protocol（MCP）に対応したほかのアプリも使えます。",
       "allow": "このコンピュータ上の AI アプリに Magnolia の使用を許可",
-      "howProjects": "それでも、プロジェクトごとに、まずその「AI 支援」パネルで確認を求めます。アプリが読んだものはそこに一覧表示され、提案された変更は「AI 支援」ビューアで確認を待ちます。アプリは読んだ内容を、そのアプリ自身の AI サービスに送信します。",
       "addToClaude": "Magnolia を Claude Desktop に追加",
       "added": "追加しました。Claude Desktop を終了してから開き直すと、Magnolia がコネクタの一覧に表示されます。",
       "noClaude": "このコンピュータには Claude Desktop がインストールされていません。",

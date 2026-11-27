@@ -2357,13 +2357,11 @@
       "keyApprove": "R",
       "keyReject": "E",
       "keysMove": "↑ ↓ pro pohyb",
-      "keysList": "↑ ↓ pro pohyb · Mezerník otevře nebo zavře · {{approve}} nebo Enter schválí · {{reject}} nebo Delete zamítne",
+      "keysList": "↑ ↓ pro pohyb · → otevře v dokumentu · Mezerník otevře nebo zavře",
       "back": "Zpět ke kontrole"
     },
     "apps": {
-      "intro": "S předplatným Claude můžete používat Claude Desktop s aplikací Magnolia bez klíče API: přečte otevřený projekt a navrhne změny, které v aplikaci Magnolia schválíte, nebo zamítnete. Fungují i další aplikace, které podporují Model Context Protocol (MCP).",
       "allow": "Povolit aplikacím AI na tomto počítači používat aplikaci Magnolia",
-      "howProjects": "Svolení se přesto žádá u každého projektu zvlášť, v jeho panelu Asistence AI. Tam je uvedeno, co aplikace čte, a změny, které navrhne, čekají v prohlížeči Asistence AI. Aplikace odesílá to, co přečte, své vlastní službě AI.",
       "addToClaude": "Přidat aplikaci Magnolia do Claude Desktop",
       "added": "Přidáno. Ukončete a znovu otevřete Claude Desktop a Magnolia se objeví mezi jeho konektory.",
       "noClaude": "Claude Desktop není na tomto počítači nainstalován.",

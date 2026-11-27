@@ -3,7 +3,8 @@
  * Desktop, and others that speak the Model Context Protocol) use Magnolia
  * through its connector (src-tauri/src/mcp.rs). Someone with a Claude
  * subscription uses it there, so no API key is needed; each project is
- * still asked first, in its AI Assistance pane.
+ * still asked first, in the AI Assistance Viewer. The only words are those
+ * the Viewer shows when it asks.
  */
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -40,16 +41,15 @@ export function AiAssistanceSettings<P extends Prefs>({ prefs, save }: { prefs: 
   return (
     <div style={{ marginBottom: 24, maxWidth: 560 }}>
       <h3 style={heading}>{t('prefs.cat.aiAssistance')}</h3>
-      <p style={note}>{t('ai.apps.intro')}</p>
+      <p style={note}>{t('ai.pane.responsibility')}</p>
       <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
         <input type="checkbox" checked={prefs.aiAppsEnabled} onChange={(e) => toggle(e.target.checked)} />
         {t('ai.apps.allow')}
       </label>
       {prefs.aiAppsEnabled && (
         <>
-          <p style={{ ...note, marginTop: 8 }}>{t('ai.apps.howProjects')}</p>
           {claudeFound && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, marginBottom: 8 }}>
               <button type="button" onClick={addToClaude}>{t('ai.apps.addToClaude')}</button>
             </div>
           )}

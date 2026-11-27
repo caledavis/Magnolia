@@ -136,6 +136,15 @@ async function spec(t) {
   third.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
   await t.sleep(100)
   t.check('a click gives the list the keyboard, and selects the row', document.activeElement === listEl && third.hasAttribute('data-active'))
+  // The pinned row of keys takes the theme's colour when the theme changes
+  // (it kept the old one: a white bar in High Contrast).
+  const keysRow = listEl.querySelector(':scope > li[aria-hidden]')
+  const themeWas = document.documentElement.getAttribute('data-theme')
+  document.documentElement.setAttribute('data-theme', 'high-contrast')
+  await t.sleep(200)
+  t.check('in High Contrast the row of keys is black, not white', getComputedStyle(keysRow).backgroundColor === 'rgb(0, 0, 0)', getComputedStyle(keysRow).backgroundColor)
+  document.documentElement.setAttribute('data-theme', themeWas)
+  await t.sleep(100)
   // Space opens the row's details: the row grows, and the next moves down
   // (they used to spill underneath it).
   // In a list too short for its rows, so it scrolls (where rows were held

@@ -2268,13 +2268,11 @@
       "keyApprove": "R",
       "keyReject": "E",
       "keysMove": "↑ ↓ per spostarti",
-      "keysList": "↑ ↓ per spostarti · Spazio per aprire o chiudere · {{approve}} o Invio per approvare · {{reject}} o Canc per rifiutare",
+      "keysList": "↑ ↓ per spostarti · → per aprire nel documento · Spazio per aprire o chiudere",
       "back": "Torna alla revisione"
     },
     "apps": {
-      "intro": "Con un abbonamento a Claude puoi usare Claude Desktop con Magnolia, senza chiave API: legge il progetto aperto e suggerisce modifiche, che approvi o rifiuti in Magnolia. Funzionano anche altre app che supportano il Model Context Protocol (MCP).",
       "allow": "Consenti alle app di IA su questo computer di usare Magnolia",
-      "howProjects": "Per ogni progetto ti viene comunque chiesto prima il permesso, nel suo riquadro Assistenza IA. Lì è elencato ciò che un’app legge, e le modifiche che propone attendono nel visualizzatore di Assistenza IA. L’app invia ciò che legge al proprio servizio di IA.",
       "addToClaude": "Aggiungi Magnolia a Claude Desktop",
       "added": "Aggiunto. Chiudi e riapri Claude Desktop, e Magnolia comparirà tra i suoi connettori.",
       "noClaude": "Claude Desktop non è installato su questo computer.",

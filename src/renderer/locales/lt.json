@@ -2357,13 +2357,11 @@
       "keyApprove": "R",
       "keyReject": "E",
       "keysMove": "↑ ↓ judėti",
-      "keysList": "↑ ↓ judėti · Tarpas – atverti arba užverti · {{approve}} arba Enter – patvirtinti · {{reject}} arba Delete – atmesti",
+      "keysList": "↑ ↓ judėti · → – atverti dokumente · Tarpas – atverti arba užverti",
       "back": "Grįžti į peržiūrą"
     },
     "apps": {
-      "intro": "Turėdami Claude prenumeratą, galite naudoti Claude Desktop su Magnolia be API rakto: jis perskaito atvirą projektą ir siūlo pakeitimus, kuriuos patvirtinate arba atmetate programoje Magnolia. Veikia ir kitos programos, palaikančios Model Context Protocol (MCP).",
       "allow": "Leisti šio kompiuterio DI programoms naudoti Magnolia",
-      "howProjects": "Kiekvieno projekto vis tiek pirmiausia klausiama jo polangyje „DI pagalba“. Ten išvardijama, ką programa perskaito, o jos siūlomi pakeitimai laukia „DI pagalbos“ peržiūroje. Ką perskaito, programa siunčia savo DI paslaugai.",
       "addToClaude": "Pridėti Magnolia prie Claude Desktop",
       "added": "Pridėta. Išeikite iš Claude Desktop ir vėl jį atverkite – Magnolia atsiras tarp jo jungčių.",
       "noClaude": "Claude Desktop šiame kompiuteryje neįdiegtas.",

@@ -2268,13 +2268,11 @@
       "keyApprove": "R",
       "keyReject": "E",
       "keysMove": "↑ ↓ per moure-us",
-      "keysList": "↑ ↓ per moure-us · Espai per obrir o tancar · {{approve}} o Retorn per aprovar · {{reject}} o Supr per rebutjar",
+      "keysList": "↑ ↓ per moure-us · → per obrir-lo al document · Espai per obrir o tancar",
       "back": "Torna a la revisió"
     },
     "apps": {
-      "intro": "Amb una subscripció a Claude, podeu fer servir Claude Desktop amb el Magnolia, sense clau d’API: llegeix el projecte obert i suggereix canvis, que vós aproveu o rebutgeu al Magnolia. També funcionen altres aplicacions compatibles amb el Model Context Protocol (MCP).",
       "allow": "Permet que les aplicacions d’IA d’aquest ordinador facin servir el Magnolia",
-      "howProjects": "Per a cada projecte, encara se us demana permís primer, al seu plafó Assistència d’IA. Allà es mostra el que llegeix una aplicació, i els canvis que proposa esperen al visualitzador d’Assistència d’IA. L’aplicació envia el que llegeix al seu propi servei d’IA.",
       "addToClaude": "Afegeix el Magnolia a Claude Desktop",
       "added": "Afegit. Tanqueu i torneu a obrir Claude Desktop, i el Magnolia apareixerà entre els seus connectors.",
       "noClaude": "Claude Desktop no està instal·lat en aquest ordinador.",

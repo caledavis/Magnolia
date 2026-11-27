@@ -2179,13 +2179,11 @@
       "keyApprove": "R",
       "keyReject": "E",
       "keysMove": "↑ ↓ siirtyy",
-      "keysList": "↑ ↓ siirtyy · Välilyönti avaa tai sulkee · {{approve}} tai Enter hyväksyy · {{reject}} tai Delete hylkää",
+      "keysList": "↑ ↓ siirtyy · → avaa dokumentissa · Välilyönti avaa tai sulkee",
       "back": "Takaisin tarkistukseen"
     },
     "apps": {
-      "intro": "Claude-tilauksella voit käyttää Claude Desktopia Magnolian kanssa ilman API-avainta: se lukee avoimen projektin ja ehdottaa muutoksia, jotka hyväksyt tai hylkäät Magnoliassa. Myös muut sovellukset, jotka tukevat Model Context Protocol (MCP) -protokollaa, toimivat.",
       "allow": "Salli tämän tietokoneen tekoälysovellusten käyttää Magnoliaa",
-      "howProjects": "Lupa kysytään silti ensin erikseen jokaista projektia varten, projektin Tekoälyapu-paneelissa. Siinä luetellaan, mitä sovellus lukee, ja sen ehdottamat muutokset odottavat Tekoälyavun katseluohjelmassa. Sovellus lähettää lukemansa omaan tekoälypalveluunsa.",
       "addToClaude": "Lisää Magnolia Claude Desktopiin",
       "added": "Lisätty. Sulje Claude Desktop ja avaa se uudelleen, niin Magnolia näkyy kohdassa Connectors.",
       "noClaude": "Claude Desktop ei ole asennettuna tähän tietokoneeseen.",

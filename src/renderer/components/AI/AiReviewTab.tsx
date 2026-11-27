@@ -568,6 +568,24 @@ function PendingList({ items, onApprove, onReject }: { items: AiProposal[]; onAp
     else return
     e.preventDefault()
   }
+  // A row just opened is brought into view, whole (its top first if it's
+  // taller than the list), as Focused keeps its current card in view.
+  useEffect(() => {
+    if (!openId) return
+    const frame = requestAnimationFrame(() => {
+      const box = ref.current
+      const li = box?.querySelector<HTMLElement>(`li[data-proposal="${CSS.escape(openId)}"]`)
+      if (!box || !li) return
+      const smooth = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+      const top = li.offsetTop - box.offsetTop
+      const bottom = top + li.offsetHeight
+      // Below the pinned row of keys, not under it.
+      const keys = box.querySelector<HTMLElement>(':scope > li[aria-hidden]')?.offsetHeight ?? 0
+      if (li.offsetHeight > box.clientHeight - keys || top - keys < box.scrollTop) box.scrollTo({ top: top - keys - 4, behavior: smooth })
+      else if (bottom > box.scrollTop + box.clientHeight) box.scrollTo({ top: bottom - box.clientHeight + 4, behavior: smooth })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [openId])
   // On showing, and back on this tab (from a document, say): the keyboard
   // is the list's.
   const shownTab = useDocumentStore((st) => st.viewedDocumentGuid === AI_REVIEW_TAB_ID)
@@ -587,20 +605,28 @@ function PendingList({ items, onApprove, onReject }: { items: AiProposal[]; onAp
   }, [shownTab])
   // The colour behind the list (the theme's), for its pinned key row, so
   // rows don't show through it as they scroll under.
+  // Read again whenever the theme changes, which is set on the page
+  // (data-theme), not always through this window's preferences: kept from
+  // the theme before, it was a white bar in High Contrast.
   const [behind, setBehind] = useState('transparent')
-  const theme = usePreferencesStore((st) => st.theme)
   useLayoutEffect(() => {
-    for (let el = ref.current?.parentElement; el; el = el.parentElement) {
-      const bg = getComputedStyle(el).backgroundColor
-      if (bg && bg !== 'transparent' && !/rgba\(.*,\s*0\)$/.test(bg)) { setBehind(bg); return }
+    const read = () => {
+      for (let el = ref.current?.parentElement; el; el = el.parentElement) {
+        const bg = getComputedStyle(el).backgroundColor
+        if (bg && bg !== 'transparent' && !/rgba\(.*,\s*0\)$/.test(bg)) { setBehind(bg); return }
+      }
     }
-  }, [theme])
+    read()
+    const watch = new MutationObserver(read)
+    watch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-colourful'] })
+    return () => watch.disconnect()
+  }, [])
 
   return (
     <>
       {/* Above the list, so it's seen however long the list is. */}
       <p style={{ margin: '12px 0 0', fontSize: 11.5, color: 'var(--text-secondary)' }}>
-        {t('ai.review.keysList', { approve: t('ai.review.keyApprove'), reject: t('ai.review.keyReject') })}
+        {t('ai.review.keysList')}
       </p>
       <ul
         ref={ref}

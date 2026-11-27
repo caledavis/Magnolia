@@ -2179,13 +2179,11 @@
       "keyApprove": "R",
       "keyReject": "E",
       "keysMove": "↑ ↓ for at flytte",
-      "keysList": "↑ ↓ for at flytte · Mellemrum for at åbne eller lukke · {{approve}} eller Enter for at godkende · {{reject}} eller Delete for at afvise",
+      "keysList": "↑ ↓ for at flytte · → for at åbne i dokumentet · Mellemrum for at åbne eller lukke",
       "back": "Tilbage til gennemgang"
     },
     "apps": {
-      "intro": "Med et Claude-abonnement kan du bruge Claude Desktop med Magnolia uden en API-nøgle: den læser det åbne projekt og foreslår ændringer, som du godkender eller afviser i Magnolia. Andre apps, der understøtter Model Context Protocol (MCP), virker også.",
       "allow": "Lad AI-apps på denne computer bruge Magnolia",
-      "howProjects": "Du bliver stadig spurgt først for hvert projekt, i projektets panel AI-assistance. Dér vises det, en app læser, og de ændringer, den foreslår, venter i fremviseren for AI-assistance. Appen sender det, den læser, til sin egen AI-tjeneste.",
       "addToClaude": "Føj Magnolia til Claude Desktop",
       "added": "Tilføjet. Afslut og genåbn Claude Desktop, så vises Magnolia under Connectors.",
       "noClaude": "Claude Desktop er ikke installeret på denne computer.",
