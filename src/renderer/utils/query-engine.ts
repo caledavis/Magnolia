@@ -590,23 +590,69 @@ function nextTextMatch(haystack: string, needle: string, wholeWord: boolean | un
   }
 }
 
+/** Lowercases one character for comparing without case. Final sigma is
+ *  folded to σ, as Unicode case folding does, so "ΔΡΟΜΟΣ" and "δρομος"
+ *  match however the word ends. */
+function foldChar(ch: string): string {
+  const lower = ch.toLowerCase()
+  return lower === 'ς' ? 'σ' : lower
+}
+
+/** `text` without case, and where each of its UTF-16 positions is in
+ *  `text`. Folded a character at a time because a few letters change
+ *  length when lowercased ("İ" becomes "i" and a combining dot), so a
+ *  position in the folded text isn't the same position in the original:
+ *  converting with the original's indices shifted every later match.
+ *  `startAt[k]` is where the character holding folded unit k starts;
+ *  `endAt[k]` is the original position for a match ending at folded k
+ *  (the end of the character, when k falls inside one that grew). */
+function foldCase(text: string): { folded: string; startAt: number[]; endAt: number[] } {
+  let folded = ''
+  const startAt: number[] = []
+  const endAt: number[] = []
+  let i = 0
+  for (const ch of text) {
+    const f = foldChar(ch)
+    folded += f
+    for (let k = 0; k < f.length; k++) {
+      startAt.push(i)
+      endAt.push(k === 0 ? i : i + ch.length)
+    }
+    i += ch.length
+  }
+  endAt.push(i)
+  return { folded, startAt, endAt }
+}
+
 function findTextMatches(
   text: string,
   cond: { searchText: string; caseSensitive?: boolean; wholeWord?: boolean; sentences?: boolean }
 ): TextMatch[] {
   const out: TextMatch[] = []
-  const haystack = cond.caseSensitive ? text : text.toLowerCase()
-  const needle = cond.caseSensitive ? cond.searchText : cond.searchText.toLowerCase()
+  const fold = cond.caseSensitive ? null : foldCase(text)
+  const haystack = fold ? fold.folded : text
+  const needle = fold ? Array.from(cond.searchText, foldChar).join('') : cond.searchText
+  // Codepoints before `counted` (a UTF-16 index in `text`), counted as
+  // matches come in order rather than from the start each time.
+  let counted = 0
+  let cpCounted = 0
+  const cpAt = (index: number): number => {
+    cpCounted += Array.from(text.slice(counted, index)).length
+    counted = index
+    return cpCounted
+  }
   let pos = 0
   while (true) {
     const idx = nextTextMatch(haystack, needle, cond.wholeWord, pos)
     if (idx === -1) break
-    const cpStart = Array.from(text.slice(0, idx)).length
-    const cpEnd = cpStart + Array.from(cond.searchText).length
+    const start = fold ? fold.startAt[idx] : idx
+    const end = fold ? fold.endAt[idx + needle.length] : idx + needle.length
+    const cpStart = cpAt(start)
+    const cpEnd = cpStart + Array.from(text.slice(start, end)).length
     const matched = codepointSlice(text, cpStart, cpEnd)
     const { before, after } = getContext(text, cpStart, cpEnd)
     out.push({ start: cpStart, end: cpEnd, matched, before, after })
-    pos = idx + (cond.searchText.length || 1)
+    pos = idx + (needle.length || 1)
   }
   return cond.sentences ? toSentences(text, out) : out
 }
@@ -830,6 +876,49 @@ function evaluateCondition(
   }
 }
 
+/** The words a words-only operand searches for, lowercased (cached per
+ *  condition: operands are checked inside the spatial loops). */
+const operandWords = new WeakMap<CodeCondition, Set<string> | null>()
+function wordsOfOperand(cond: CodeCondition): Set<string> | null {
+  let words = operandWords.get(cond)
+  if (words === undefined) {
+    words = wordsOnly(cond) ? new Set(collectTextConditions(cond).map((t) => t.searchText.toLowerCase())) : null
+    operandWords.set(cond, words)
+  }
+  return words
+}
+
+/** Words joined by and/or/xor, with no codes (and no Not, which stands
+ *  for whatever doesn't contain the words). */
+function wordsOnly(cond: CodeCondition): boolean {
+  if (cond.type === 'text') return true
+  if (cond.type === 'and' || cond.type === 'or' || cond.type === 'xor') return cond.conditions.every(wordsOnly)
+  return false
+}
+
+/** Whether a selection is an operand of a spatial operator (Overlap,
+ *  Inside, Outside, Before, Followed By). A words-only operand stands for
+ *  the places the words occur: the spans buildSpatialSelections adds, or a
+ *  coded passage that is exactly the word. Otherwise any coded passage
+ *  CONTAINING the word matched too — a whole paragraph coded with another
+ *  code would count as "cattle" overlapping or inside something the word
+ *  itself never reaches (as findSameSentences already guards against). An
+ *  operand that combines words with codes ("B and cattle") keeps meaning
+ *  the coded passages that contain the word. */
+function operandMatches(
+  selection: EvalSelection,
+  condition: CodeCondition,
+  content: string,
+  allSelections?: PlainTextSelection[]
+): boolean {
+  const words = wordsOfOperand(condition)
+  if (words && !selection.guid.startsWith('text-span-')) {
+    const base = selection._text ?? content
+    if (!words.has(codepointSlice(base, selection.startPosition, selection.endPosition).toLowerCase())) return false
+  }
+  return selectionMatchesCondition(selection, condition, content, allSelections)
+}
+
 /** Check if a selection matches a condition (works for code, logical, text, etc.) */
 /**
  * Check if a selection matches a condition. For simple conditions (code, text, and/or/not/xor),
@@ -854,18 +943,18 @@ function selectionMatchesCondition(
       if (!sameSpan(sel, selection)) continue
       // Check if this selection would be returned by the spatial operator
       if (condition.type === 'inside') {
-        if (!selectionMatchesCondition(sel, cond.condition1, content, allSelections)) continue
+        if (!operandMatches(sel, cond.condition1, content, allSelections)) continue
         for (const container of allSelections) {
           if (container === sel) continue // a selection cannot be "inside" itself
-          if (!selectionMatchesCondition(container, cond.condition2, content, allSelections)) continue
+          if (!operandMatches(container, cond.condition2, content, allSelections)) continue
           if (!sameSpatialSpace(sel, container)) continue
           if (spatiallyInside(sel, container)) return true
         }
       } else if (condition.type === 'outside') {
-        if (!selectionMatchesCondition(sel, cond.condition1, content, allSelections)) continue
+        if (!operandMatches(sel, cond.condition1, content, allSelections)) continue
         let hasOverlap = false
         for (const other of allSelections) {
-          if (!selectionMatchesCondition(other, cond.condition2, content, allSelections)) continue
+          if (!operandMatches(other, cond.condition2, content, allSelections)) continue
           if (!sameSpatialSpace(sel, other)) continue
           if (spatiallyOverlaps(sel, other)) {
             hasOverlap = true; break
@@ -873,42 +962,42 @@ function selectionMatchesCondition(
         }
         if (!hasOverlap) return true
       } else if (condition.type === 'overlap') {
-        if (!selectionMatchesCondition(sel, cond.condition1, content, allSelections)) continue
+        if (!operandMatches(sel, cond.condition1, content, allSelections)) continue
         for (const other of allSelections) {
-          if (!selectionMatchesCondition(other, cond.condition2, content, allSelections)) continue
+          if (!operandMatches(other, cond.condition2, content, allSelections)) continue
           if (!sameSpatialSpace(sel, other)) continue
           if (spatiallyOverlaps(sel, other)) return true
         }
       }
       // before/followedBy: simplified — just check position
       if (condition.type === 'before') {
-        if (!selectionMatchesCondition(sel, cond.condition1, content, allSelections)) continue
+        if (!operandMatches(sel, cond.condition1, content, allSelections)) continue
         // Must not overlap any Condition 2
         let overlapsAny = false
         for (const other of allSelections) {
-          if (!selectionMatchesCondition(other, cond.condition2, content, allSelections)) continue
+          if (!operandMatches(other, cond.condition2, content, allSelections)) continue
           if (!sameSpatialSpace(sel, other)) continue
           if (spatiallyOverlaps(sel, other)) { overlapsAny = true; break }
         }
         if (overlapsAny) continue
         for (const other of allSelections) {
-          if (!selectionMatchesCondition(other, cond.condition2, content, allSelections)) continue
+          if (!operandMatches(other, cond.condition2, content, allSelections)) continue
           if (!sameSpatialSpace(sel, other)) continue
           if (spatiallyPrecedes(sel, other)) return true
         }
       }
       if (condition.type === 'followedBy') {
-        if (!selectionMatchesCondition(sel, cond.condition1, content, allSelections)) continue
+        if (!operandMatches(sel, cond.condition1, content, allSelections)) continue
         // Must not overlap any Condition 2
         let overlapsAny = false
         for (const other of allSelections) {
-          if (!selectionMatchesCondition(other, cond.condition2, content, allSelections)) continue
+          if (!operandMatches(other, cond.condition2, content, allSelections)) continue
           if (!sameSpatialSpace(sel, other)) continue
           if (spatiallyOverlaps(sel, other)) { overlapsAny = true; break }
         }
         if (overlapsAny) continue
         for (const other of allSelections) {
-          if (!selectionMatchesCondition(other, cond.condition2, content, allSelections)) continue
+          if (!operandMatches(other, cond.condition2, content, allSelections)) continue
           if (!sameSpatialSpace(sel, other)) continue
           if (spatiallyPrecedes(other, sel)) return true
         }
@@ -962,13 +1051,13 @@ function findOverlapIntersections(
   content: string,
   codeMap: Map<string, Code>
 ): QueryResult[] {
-  if (!selectionMatchesCondition(selection, condition.condition1, content, allSelections)) return []
+  if (!operandMatches(selection, condition.condition1, content, allSelections)) return []
 
   const results: QueryResult[] = []
   const seenRanges = new Set<string>()
 
   for (const other of allSelections) {
-    if (!selectionMatchesCondition(other, condition.condition2, content, allSelections)) continue
+    if (!operandMatches(other, condition.condition2, content, allSelections)) continue
     if (!sameSpatialSpace(selection, other)) continue
     const intersection = spatialIntersection(selection, other)
     if (!intersection) continue
@@ -1033,11 +1122,11 @@ function findInsideSelections(
   content: string,
   codeMap: Map<string, Code>
 ): QueryResult[] {
-  if (!selectionMatchesCondition(selection, condition.condition1, content, allSelections)) return []
+  if (!operandMatches(selection, condition.condition1, content, allSelections)) return []
 
   for (const other of allSelections) {
     if (other === selection) continue // a selection cannot be "inside" itself
-    if (!selectionMatchesCondition(other, condition.condition2, content, allSelections)) continue
+    if (!operandMatches(other, condition.condition2, content, allSelections)) continue
     if (!sameSpatialSpace(selection, other)) continue
     // Check if selection is fully inside other
     if (spatiallyInside(selection, other)) {
@@ -1058,10 +1147,10 @@ function findOutsideSelections(
   content: string,
   codeMap: Map<string, Code>
 ): QueryResult[] {
-  if (!selectionMatchesCondition(selection, condition.condition1, content, allSelections)) return []
+  if (!operandMatches(selection, condition.condition1, content, allSelections)) return []
 
   for (const other of allSelections) {
-    if (!selectionMatchesCondition(other, condition.condition2, content, allSelections)) continue
+    if (!operandMatches(other, condition.condition2, content, allSelections)) continue
     if (!sameSpatialSpace(selection, other)) continue
     if (spatiallyOverlaps(selection, other)) return [] // overlaps, so not "outside"
   }
@@ -1079,18 +1168,18 @@ function findBeforeSelections(
   content: string,
   codeMap: Map<string, Code>
 ): QueryResult[] {
-  if (!selectionMatchesCondition(selection, condition.condition1, content, allSelections)) return []
+  if (!operandMatches(selection, condition.condition1, content, allSelections)) return []
 
   // First check: Condition 1 must not overlap with ANY Condition 2 selection
   for (const other of allSelections) {
-    if (!selectionMatchesCondition(other, condition.condition2, content, allSelections)) continue
+    if (!operandMatches(other, condition.condition2, content, allSelections)) continue
     if (!sameSpatialSpace(selection, other)) continue
     if (spatiallyOverlaps(selection, other)) return [] // overlaps — not "before"
   }
 
   // Second check: there must exist a Condition 2 selection that starts after Condition 1 ends
   for (const other of allSelections) {
-    if (!selectionMatchesCondition(other, condition.condition2, content, allSelections)) continue
+    if (!operandMatches(other, condition.condition2, content, allSelections)) continue
     if (!sameSpatialSpace(selection, other)) continue
     if (spatiallyPrecedes(selection, other)) {
       return [buildResult(source, selection, content, new Set(selection.codings.map((c) => c.codeGuid)), codeMap)]
@@ -1111,18 +1200,18 @@ function findFollowedBySelections(
   content: string,
   codeMap: Map<string, Code>
 ): QueryResult[] {
-  if (!selectionMatchesCondition(selection, condition.condition1, content, allSelections)) return []
+  if (!operandMatches(selection, condition.condition1, content, allSelections)) return []
 
   // First check: Condition 1 must not overlap with ANY Condition 2 selection
   for (const other of allSelections) {
-    if (!selectionMatchesCondition(other, condition.condition2, content, allSelections)) continue
+    if (!operandMatches(other, condition.condition2, content, allSelections)) continue
     if (!sameSpatialSpace(selection, other)) continue
     if (spatiallyOverlaps(selection, other)) return [] // overlaps — not "after"
   }
 
   // Second check: there must exist a Condition 2 selection that ends before Condition 1 starts
   for (const other of allSelections) {
-    if (!selectionMatchesCondition(other, condition.condition2, content, allSelections)) continue
+    if (!operandMatches(other, condition.condition2, content, allSelections)) continue
     if (!sameSpatialSpace(selection, other)) continue
     if (spatiallyPrecedes(other, selection)) {
       return [buildResult(source, selection, content, new Set(selection.codings.map((c) => c.codeGuid)), codeMap)]
