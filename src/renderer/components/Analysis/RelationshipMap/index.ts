@@ -1,1 +1,0 @@
-export { RelationshipMap } from './RelationshipMap'

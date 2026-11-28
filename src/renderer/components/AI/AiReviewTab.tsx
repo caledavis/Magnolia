@@ -603,24 +603,6 @@ function PendingList({ items, onApprove, onReject }: { items: AiProposal[]; onAp
     })
     return () => clearTimeout(timer)
   }, [shownTab])
-  // The colour behind the list (the theme's), for its pinned key row, so
-  // rows don't show through it as they scroll under.
-  // Read again whenever the theme changes, which is set on the page
-  // (data-theme), not always through this window's preferences: kept from
-  // the theme before, it was a white bar in High Contrast.
-  const [behind, setBehind] = useState('transparent')
-  useLayoutEffect(() => {
-    const read = () => {
-      for (let el = ref.current?.parentElement; el; el = el.parentElement) {
-        const bg = getComputedStyle(el).backgroundColor
-        if (bg && bg !== 'transparent' && !/rgba\(.*,\s*0\)$/.test(bg)) { setBehind(bg); return }
-      }
-    }
-    read()
-    const watch = new MutationObserver(read)
-    watch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-colourful'] })
-    return () => watch.disconnect()
-  }, [])
 
   return (
     <>
@@ -646,7 +628,12 @@ function PendingList({ items, onApprove, onReject }: { items: AiProposal[]; onAp
         style={listGrid}
       >
         {/* The keys, over the buttons they press (as on Focused's). */}
-        <li aria-hidden style={{ ...row, position: 'sticky', top: -4, zIndex: 1, padding: '0 13px 0 17px', background: behind }}>
+        {/* The pinned key row is painted the panel's own colour (every theme's
+            .panel is var(--bg-panel)), so rows don't show through it as they
+            scroll under, and it changes with the theme as the panel does.
+            It used to copy the colour from the page in script, which could
+            lag a theme change: a white bar in High Contrast on macOS. */}
+        <li aria-hidden style={{ ...row, position: 'sticky', top: -4, zIndex: 1, padding: '0 13px 0 17px', background: 'var(--bg-panel)' }}>
           <span style={{ gridColumn: 5, display: 'flex', gap: 6 }}>
             {[t('ai.review.keyReject'), t('ai.review.keyApprove')].map((k) => (
               <span key={k} style={{ width: 26, display: 'grid', placeItems: 'center' }}>
