@@ -13,6 +13,10 @@ export default defineConfig({
   },
   test: {
     include: ['test/**/*.test.ts'],
-    environment: 'node'
+    environment: 'node',
+    // Several tests parse every component or build whole projects; on a
+    // busy machine (a build alongside) they passed the default 5 s and
+    // failed though nothing was wrong.
+    testTimeout: 30_000
   }
 })
