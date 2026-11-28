@@ -140,6 +140,15 @@ impl AtomicZip {
                 .finish()
                 .map_err(std::io::Error::other)?;
             let file = writer.into_inner().map_err(|e| e.into_error())?;
+            // The new file takes the old one's permissions, so a project
+            // shared through a group-writable folder stays writable by the
+            // group (the temp file was made with the default ones). Owner
+            // and group can't be carried over without privileges: the file
+            // becomes the saver's, as any program's atomic save makes it.
+            #[cfg(unix)]
+            if let Ok(meta) = std::fs::metadata(&self.target) {
+                file.set_permissions(meta.permissions())?;
+            }
             file.sync_all()?;
             drop(file);
             std::fs::rename(&self.tmp, &self.target)

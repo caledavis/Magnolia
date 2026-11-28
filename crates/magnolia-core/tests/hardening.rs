@@ -274,3 +274,18 @@ fn a_text_missing_from_the_save_is_carried_forward() {
     assert_eq!(read_entry(&path, &format!("sources/{G}.txt")), b"first, edited");
     assert_eq!(read_entry(&path, &format!("sources/{G2}.txt")), b"second");
 }
+
+// ── File permissions ──
+
+#[cfg(unix)]
+#[test]
+fn saving_keeps_the_files_permissions() {
+    use std::os::unix::fs::PermissionsExt;
+    let d = temp();
+    let path = p(&d, "shared.qdpx");
+    let mut project = json!({ "name": "T", "origin": "test", "users": [], "codes": [], "sources": [], "sets": [], "notes": [] });
+    write_qdpx(&path, &mut project, &Map::new(), &opts(None)).unwrap();
+    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o640)).unwrap();
+    write_qdpx(&path, &mut project, &Map::new(), &opts(None)).unwrap();
+    assert_eq!(std::fs::metadata(&path).unwrap().permissions().mode() & 0o777, 0o640);
+}
