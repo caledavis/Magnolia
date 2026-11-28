@@ -752,7 +752,10 @@
     "unmute": "Unmute",
     "volumeDown": "Volume down",
     "volume": "Volume",
-    "volumeUp": "Volume up"
+    "volumeUp": "Volume up",
+    "cantPlay": "This recording can’t be played.",
+    "cantPlayLinux": "Magnolia plays recordings with your system’s GStreamer codecs. Install them (on Debian and Ubuntu: gstreamer1.0-libav and gstreamer1.0-plugins-good), then open the document again.",
+    "cantPlayAppImage": "The AppImage can only play the formats it comes with. Installed from the .deb or .rpm package instead, Magnolia uses your system’s codecs, which you can add to."
   },
   "transcript": {
     "switchToCoding": "Switch to Coding Mode",

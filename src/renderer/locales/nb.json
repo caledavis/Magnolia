@@ -752,7 +752,10 @@
     "unmute": "Slå på lyden",
     "volumeDown": "Volum ned",
     "volume": "Volum",
-    "volumeUp": "Volum opp"
+    "volumeUp": "Volum opp",
+    "cantPlay": "Dette opptaket kan ikke spilles av.",
+    "cantPlayLinux": "Magnolia spiller av opptak med systemets GStreamer-kodeker. Installer dem (i Debian og Ubuntu: gstreamer1.0-libav og gstreamer1.0-plugins-good), og åpne deretter dokumentet på nytt.",
+    "cantPlayAppImage": "AppImage kan bare spille av formatene som følger med. Installert fra .deb- eller .rpm-pakken bruker Magnolia i stedet systemets kodeker, som du kan legge til flere av."
   },
   "transcript": {
     "switchToCoding": "Bytt til kodingsmodus",

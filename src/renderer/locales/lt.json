@@ -798,7 +798,10 @@
     "unmute": "Įjungti garsą",
     "volumeDown": "Tyliau",
     "volume": "Garsumas",
-    "volumeUp": "Garsiau"
+    "volumeUp": "Garsiau",
+    "cantPlay": "Šio įrašo paleisti negalima.",
+    "cantPlayLinux": "Magnolia leidžia įrašus naudodama sistemos GStreamer kodekus. Įdiekite juos („Debian“ ir „Ubuntu“: gstreamer1.0-libav ir gstreamer1.0-plugins-good), tada vėl atverkite dokumentą.",
+    "cantPlayAppImage": "„AppImage“ gali leisti tik kartu su ja pateiktus formatus. Įdiegta iš .deb ar .rpm paketo, Magnolia naudoja jūsų sistemos kodekus, kuriuos galite papildyti."
   },
   "transcript": {
     "switchToCoding": "Perjungti į kodavimo režimą",

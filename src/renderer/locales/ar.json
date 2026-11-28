@@ -844,7 +844,10 @@
     "unmute": "إلغاء كتم الصوت",
     "volumeDown": "خفض الصوت",
     "volume": "مستوى الصوت",
-    "volumeUp": "رفع الصوت"
+    "volumeUp": "رفع الصوت",
+    "cantPlay": "يتعذّر تشغيل هذا التسجيل.",
+    "cantPlayLinux": "يشغّل Magnolia التسجيلات باستخدام برامج ترميز GStreamer في النظام. ثبّتها (على Debian وUbuntu: gstreamer1.0-libav وgstreamer1.0-plugins-good)، ثم افتح المستند مرة أخرى.",
+    "cantPlayAppImage": "لا يشغّل AppImage إلا الصيغ المضمّنة فيه. أما إذا ثُبّت Magnolia من حزمة ‎.deb أو ‎.rpm، فإنه يستخدم برامج الترميز في نظامك، ويمكنك إضافة المزيد منها."
   },
   "transcript": {
     "switchToCoding": "التبديل إلى وضع الترميز",

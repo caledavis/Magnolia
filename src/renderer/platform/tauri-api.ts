@@ -168,13 +168,21 @@ async function readMedia(handle: string): Promise<ArrayBuffer> {
 
 // Audio and video are streamed (src-tauri/src/media.rs): the players load a
 // URL answered in byte ranges, and the waveform reads only what it needs —
-// never the whole recording at once.
+// never the whole recording at once. On Linux the players can't load the
+// magnolia-media: scheme, so the backend serves the same over loopback HTTP
+// and puts its address in every window.
+declare global {
+  interface Window { __MAGNOLIA_MEDIA_BASE__?: string; __MAGNOLIA_APPIMAGE__?: boolean }
+}
+
 function mediaUrl(handle: string, mimeType?: string): string {
   const query = new URLSearchParams()
   if (activeProjectPath) query.set('project', activeProjectPath)
   if (mimeType) query.set('type', mimeType)
   const q = query.toString()
-  return convertFileSrc(handle, 'magnolia-media') + (q ? `?${q}` : '')
+  const base = window.__MAGNOLIA_MEDIA_BASE__
+  const url = base ? `${base}/${encodeURIComponent(handle)}` : convertFileSrc(handle, 'magnolia-media')
+  return url + (q ? `?${q}` : '')
 }
 
 async function openMedia(handle: string): Promise<ByteSource> {

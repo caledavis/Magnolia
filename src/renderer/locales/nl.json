@@ -752,7 +752,10 @@
     "unmute": "Dempen opheffen",
     "volumeDown": "Volume omlaag",
     "volume": "Volume",
-    "volumeUp": "Volume omhoog"
+    "volumeUp": "Volume omhoog",
+    "cantPlay": "Deze opname kan niet worden afgespeeld.",
+    "cantPlayLinux": "Magnolia speelt opnames af met de GStreamer-codecs van je systeem. Installeer ze (op Debian en Ubuntu: gstreamer1.0-libav en gstreamer1.0-plugins-good) en open het document daarna opnieuw.",
+    "cantPlayAppImage": "De AppImage kan alleen de formaten afspelen die erbij zitten. Installeer je Magnolia met het .deb- of .rpm-pakket, dan gebruikt het de codecs van je systeem, die je kunt aanvullen."
   },
   "transcript": {
     "switchToCoding": "Naar codeermodus",

@@ -775,7 +775,10 @@
     "unmute": "Rétablir le son",
     "volumeDown": "Baisser le volume",
     "volume": "Volume",
-    "volumeUp": "Monter le volume"
+    "volumeUp": "Monter le volume",
+    "cantPlay": "Cet enregistrement ne peut pas être lu.",
+    "cantPlayLinux": "Magnolia lit les enregistrements avec les codecs GStreamer de votre système. Installez-les (sous Debian et Ubuntu : gstreamer1.0-libav et gstreamer1.0-plugins-good), puis rouvrez le document.",
+    "cantPlayAppImage": "L’AppImage ne lit que les formats qu’elle contient. Installé depuis le paquet .deb ou .rpm, Magnolia utilise les codecs de votre système, que vous pouvez compléter."
   },
   "transcript": {
     "switchToCoding": "Passer en mode codage",

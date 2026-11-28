@@ -752,7 +752,10 @@
     "unmute": "Ton an",
     "volumeDown": "Leiser",
     "volume": "Lautstärke",
-    "volumeUp": "Lauter"
+    "volumeUp": "Lauter",
+    "cantPlay": "Diese Aufnahme kann nicht abgespielt werden.",
+    "cantPlayLinux": "Magnolia spielt Aufnahmen mit den GStreamer-Codecs Ihres Systems ab. Installieren Sie sie (unter Debian und Ubuntu: gstreamer1.0-libav und gstreamer1.0-plugins-good) und öffnen Sie das Dokument dann erneut.",
+    "cantPlayAppImage": "Das AppImage kann nur die mitgelieferten Formate abspielen. Aus dem .deb- oder .rpm-Paket installiert, verwendet Magnolia die Codecs Ihres Systems, die Sie ergänzen können."
   },
   "transcript": {
     "switchToCoding": "Zum Codiermodus wechseln",

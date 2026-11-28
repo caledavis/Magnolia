@@ -752,7 +752,10 @@
     "unmute": "Sesi aç",
     "volumeDown": "Sesi azalt",
     "volume": "Ses düzeyi",
-    "volumeUp": "Sesi artır"
+    "volumeUp": "Sesi artır",
+    "cantPlay": "Bu kayıt oynatılamıyor.",
+    "cantPlayLinux": "Magnolia kayıtları sisteminizin GStreamer codec’leriyle oynatır. Bunları yükleyin (Debian ve Ubuntu’da: gstreamer1.0-libav ve gstreamer1.0-plugins-good), ardından belgeyi yeniden açın.",
+    "cantPlayAppImage": "AppImage yalnızca kendisiyle gelen biçimleri oynatabilir. Magnolia .deb veya .rpm paketinden yüklendiğinde ise sisteminizin codec’lerini kullanır; bunlara yenilerini ekleyebilirsiniz."
   },
   "transcript": {
     "switchToCoding": "Kodlama moduna geç",

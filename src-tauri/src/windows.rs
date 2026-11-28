@@ -104,6 +104,21 @@ fn base_builder<'a>(
     } else {
         b
     };
+    // Where the players stream recordings from on Linux (media.rs, `http`).
+    #[cfg(target_os = "linux")]
+    let b = match crate::media::http::base_url(app) {
+        Some(base) => b.initialization_script(format!("window.__MAGNOLIA_MEDIA_BASE__ = {};", Value::from(base))),
+        None => b,
+    };
+    // Run from an AppImage, which plays media with the codecs it carries,
+    // not the system's: installing more doesn't help it
+    // (MediaPlayError.tsx).
+    #[cfg(target_os = "linux")]
+    let b = if std::env::var_os("APPIMAGE").is_some() {
+        b.initialization_script("window.__MAGNOLIA_APPIMAGE__ = true;")
+    } else {
+        b
+    };
     b
         .on_page_load(|w, p| {
             if matches!(p.event(), tauri::webview::PageLoadEvent::Finished) {

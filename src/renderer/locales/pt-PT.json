@@ -775,7 +775,10 @@
     "unmute": "Ativar som",
     "volumeDown": "Diminuir volume",
     "volume": "Volume",
-    "volumeUp": "Aumentar volume"
+    "volumeUp": "Aumentar volume",
+    "cantPlay": "Não é possível reproduzir esta gravação.",
+    "cantPlayLinux": "O Magnolia reproduz gravações com os codecs GStreamer do sistema. Instale-os (no Debian e no Ubuntu: gstreamer1.0-libav e gstreamer1.0-plugins-good) e volte a abrir o documento.",
+    "cantPlayAppImage": "O AppImage só reproduz os formatos que traz consigo. Instalado a partir do pacote .deb ou .rpm, o Magnolia usa os codecs do sistema, aos quais pode juntar outros."
   },
   "transcript": {
     "switchToCoding": "Mudar para o modo de codificação",

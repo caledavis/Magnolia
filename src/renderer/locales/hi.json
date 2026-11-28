@@ -752,7 +752,10 @@
     "unmute": "अनम्यूट करें",
     "volumeDown": "आवाज़ कम करें",
     "volume": "आवाज़",
-    "volumeUp": "आवाज़ बढ़ाएँ"
+    "volumeUp": "आवाज़ बढ़ाएँ",
+    "cantPlay": "यह रिकॉर्डिंग चलाई नहीं जा सकती।",
+    "cantPlayLinux": "Magnolia रिकॉर्डिंग आपके सिस्टम के GStreamer कोडेक से चलाता है। उन्हें इंस्टॉल करें (Debian और Ubuntu पर: gstreamer1.0-libav और gstreamer1.0-plugins-good), फिर दस्तावेज़ दोबारा खोलें।",
+    "cantPlayAppImage": "AppImage केवल अपने साथ आए फ़ॉर्मेट चला सकता है। .deb या .rpm पैकेज से इंस्टॉल करने पर Magnolia आपके सिस्टम के कोडेक इस्तेमाल करता है, जिनमें आप और जोड़ सकते हैं।"
   },
   "transcript": {
     "switchToCoding": "कोडिंग मोड पर जाएँ",

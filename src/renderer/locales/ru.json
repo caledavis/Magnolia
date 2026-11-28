@@ -798,7 +798,10 @@
     "unmute": "Включить звук",
     "volumeDown": "Тише",
     "volume": "Громкость",
-    "volumeUp": "Громче"
+    "volumeUp": "Громче",
+    "cantPlay": "Эту запись невозможно воспроизвести.",
+    "cantPlayLinux": "Magnolia воспроизводит записи с помощью кодеков GStreamer вашей системы. Установите их (в Debian и Ubuntu: gstreamer1.0-libav и gstreamer1.0-plugins-good), а затем снова откройте документ.",
+    "cantPlayAppImage": "AppImage воспроизводит только те форматы, которые в него входят. Если установить Magnolia из пакета .deb или .rpm, он будет использовать кодеки вашей системы, которые можно дополнить."
   },
   "transcript": {
     "switchToCoding": "Перейти в режим кодирования",

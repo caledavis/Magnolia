@@ -775,7 +775,10 @@
     "unmute": "ביטול ההשתקה",
     "volumeDown": "הנמכת עוצמת הקול",
     "volume": "עוצמת קול",
-    "volumeUp": "הגברת עוצמת הקול"
+    "volumeUp": "הגברת עוצמת הקול",
+    "cantPlay": "אי אפשר להפעיל את ההקלטה הזו.",
+    "cantPlayLinux": "‏Magnolia מפעילה הקלטות באמצעות רכיבי ה-GStreamer של המערכת. יש להתקין אותם (ב-Debian וב-Ubuntu: gstreamer1.0-libav ו-gstreamer1.0-plugins-good) ולפתוח את המסמך שוב.",
+    "cantPlayAppImage": "‏ה-AppImage יכול להפעיל רק את הפורמטים שמגיעים איתו. כש-Magnolia מותקנת מחבילת ‎.deb או ‎.rpm, היא משתמשת ברכיבי הקידוד של המערכת, ואפשר להוסיף עליהם."
   },
   "transcript": {
     "switchToCoding": "מעבר למצב קידוד",

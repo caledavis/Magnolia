@@ -775,7 +775,10 @@
     "unmute": "Activar sonido",
     "volumeDown": "Bajar volumen",
     "volume": "Volumen",
-    "volumeUp": "Subir volumen"
+    "volumeUp": "Subir volumen",
+    "cantPlay": "Esta grabación no se puede reproducir.",
+    "cantPlayLinux": "Magnolia reproduce las grabaciones con los códecs GStreamer del sistema. Instálalos (en Debian y Ubuntu: gstreamer1.0-libav y gstreamer1.0-plugins-good) y vuelve a abrir el documento.",
+    "cantPlayAppImage": "El AppImage solo puede reproducir los formatos que incluye. Si instalas Magnolia desde el paquete .deb o .rpm, usa los códecs de tu sistema, a los que puedes añadir otros."
   },
   "transcript": {
     "switchToCoding": "Cambiar al modo de codificación",

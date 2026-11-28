@@ -729,7 +729,10 @@
     "unmute": "消音を解除",
     "volumeDown": "音量を下げる",
     "volume": "音量",
-    "volumeUp": "音量を上げる"
+    "volumeUp": "音量を上げる",
+    "cantPlay": "この録音は再生できません。",
+    "cantPlayLinux": "Magnolia はシステムの GStreamer コーデックで録音を再生します。コーデックをインストールしてから（Debian と Ubuntu では gstreamer1.0-libav と gstreamer1.0-plugins-good）、ドキュメントを開き直してください。",
+    "cantPlayAppImage": "AppImage で再生できるのは、同梱されている形式だけです。.deb または .rpm パッケージからインストールした Magnolia は、システムのコーデックを使うため、コーデックを追加して再生できるようになります。"
   },
   "transcript": {
     "switchToCoding": "コーディングモードに切り替え",

@@ -13,6 +13,7 @@
  * map (see TranscriptEditor's videoMode).
  */
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { MediaPlayError, playErrorOf } from './MediaPlayError'
 import { TranscriptEditor } from './TranscriptEditor'
 import { CodeTrack } from './CodeTrack'
 import { WaveformSeekBar } from './WaveformSeekBar'
@@ -120,12 +121,14 @@ export function VideoDocumentViewer({ source, content }: Props) {
   // reads the file a range at a time; until it's decoded (or if that fails
   // — unsupported codec, no audio track) it shows the plain progress bar.
   const [videoUrl, setVideoUrl] = useState('')
+  const [playError, setPlayError] = useState(false)
   const [peaks, setPeaks] = useState<Float32Array | null>(null)
   useEffect(() => {
     if (!hasVideo) return
     const abort = new AbortController()
     const handle = videoData!.videoFilePath!
     setPeaks(null)
+    setPlayError(false)
     setVideoUrl(window.api.mediaUrl(handle, videoData!.mimeType || 'video/mp4'))
     window.api.openMedia(handle)
       .then((media) => decodePeaks(media, { signal: abort.signal, onProgress: setPeaks }))
@@ -416,10 +419,13 @@ export function VideoDocumentViewer({ source, content }: Props) {
           onPlay={handlePlay}
           onPause={handlePause}
           onEnded={handlePause}
+        onError={(e) => setPlayError(!!playErrorOf(e.currentTarget))}
           onClick={togglePlayPause}
           style={{ maxWidth: '100%', maxHeight: '100%', background: '#000' }}
         />
       </div>
+
+      {playError && <MediaPlayError />}
 
       {/* Controls bar — sits on the panel surface so the viewer
           reads as a single continuous surface with the surrounding

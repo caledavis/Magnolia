@@ -729,7 +729,10 @@
     "unmute": "取消静音",
     "volumeDown": "降低音量",
     "volume": "音量",
-    "volumeUp": "提高音量"
+    "volumeUp": "提高音量",
+    "cantPlay": "无法播放此录音。",
+    "cantPlayLinux": "Magnolia 使用系统的 GStreamer 编解码器播放录音。请安装它们（在 Debian 和 Ubuntu 上为 gstreamer1.0-libav 和 gstreamer1.0-plugins-good），然后重新打开文档。",
+    "cantPlayAppImage": "AppImage 只能播放其自带的格式。若改用 .deb 或 .rpm 软件包安装，Magnolia 会使用系统的编解码器，你可以自行添加。"
   },
   "transcript": {
     "switchToCoding": "切换到编码模式",

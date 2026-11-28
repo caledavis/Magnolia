@@ -752,7 +752,10 @@
     "unmute": "Poista mykistys",
     "volumeDown": "Hiljemmälle",
     "volume": "Äänenvoimakkuus",
-    "volumeUp": "Kovemmalle"
+    "volumeUp": "Kovemmalle",
+    "cantPlay": "Tätä tallennetta ei voi toistaa.",
+    "cantPlayLinux": "Magnolia toistaa tallenteet järjestelmän GStreamer-koodekeilla. Asenna ne (Debianissa ja Ubuntussa: gstreamer1.0-libav ja gstreamer1.0-plugins-good) ja avaa dokumentti sitten uudelleen.",
+    "cantPlayAppImage": "AppImage voi toistaa vain mukanaan tulevia muotoja. Kun Magnolia asennetaan .deb- tai .rpm-paketista, se käyttää järjestelmän koodekkeja, joita voit lisätä."
   },
   "transcript": {
     "switchToCoding": "Siirry koodaustilaan",

@@ -34,14 +34,29 @@ pub fn handle(app: &AppHandle, request: Request<Vec<u8>>, responder: UriSchemeRe
     std::thread::spawn(move || responder.respond(serve(&app, &request)));
 }
 
-fn serve(app: &AppHandle, request: &Request<Vec<u8>>) -> Response<Cow<'static, [u8]>> {
-    let empty = |status: StatusCode| {
-        Response::builder()
-            .status(status)
-            .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
-            .body(Cow::Borrowed(&[][..]))
-            .unwrap()
-    };
+fn empty(status: StatusCode) -> Response<Cow<'static, [u8]>> {
+    Response::builder()
+        .status(status)
+        .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+        .body(Cow::Borrowed(&[][..]))
+        .unwrap()
+}
+
+/// How to answer a request: a whole response, or bytes `start..=end` of
+/// `source` (`len` bytes long) as a 206 with `head`'s headers.
+enum Answer {
+    Done(Response<Cow<'static, [u8]>>),
+    Range {
+        head: tauri::http::response::Builder,
+        source: MediaSource,
+        handle: String,
+        start: u64,
+        end: u64,
+        len: u64,
+    },
+}
+
+fn answer(app: &AppHandle, request: &Request<Vec<u8>>) -> Answer {
     let uri = request.uri();
     let handle = urlencoding::decode(uri.path().trim_start_matches('/'))
         .map(|s| s.into_owned())
@@ -55,7 +70,7 @@ fn serve(app: &AppHandle, request: &Request<Vec<u8>>) -> Response<Cow<'static, [
     };
     let project = param("project");
     let Some(source) = locate(app.state::<AppState>().inner(), &handle, project.as_deref()) else {
-        return empty(StatusCode::NOT_FOUND);
+        return Answer::Done(empty(StatusCode::NOT_FOUND));
     };
     let len = source.len();
     let mime = param("type")
@@ -67,10 +82,7 @@ fn serve(app: &AppHandle, request: &Request<Vec<u8>>) -> Response<Cow<'static, [
         .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         .header(header::ACCESS_CONTROL_EXPOSE_HEADERS, "content-range, content-length");
     if request.method() == tauri::http::Method::HEAD {
-        return builder
-            .header(header::CONTENT_LENGTH, len)
-            .body(Cow::Borrowed(&[][..]))
-            .unwrap();
+        return Answer::Done(builder.header(header::CONTENT_LENGTH, len).body(Cow::Borrowed(&[][..])).unwrap());
     }
     let range = request
         .headers()
@@ -80,29 +92,194 @@ fn serve(app: &AppHandle, request: &Request<Vec<u8>>) -> Response<Cow<'static, [
     let (start, end) = match range {
         Some(Some(r)) => r,
         Some(None) => {
-            return Response::builder()
-                .status(StatusCode::RANGE_NOT_SATISFIABLE)
-                .header(header::CONTENT_RANGE, format!("bytes */{len}"))
-                .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
-                .body(Cow::Borrowed(&[][..]))
-                .unwrap();
+            return Answer::Done(
+                Response::builder()
+                    .status(StatusCode::RANGE_NOT_SATISFIABLE)
+                    .header(header::CONTENT_RANGE, format!("bytes */{len}"))
+                    .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+                    .body(Cow::Borrowed(&[][..]))
+                    .unwrap(),
+            );
         }
-        // No Range header: the start of the file, as a partial response,
-        // so nothing ever asks for a whole recording in one go.
+        // No Range header: the whole file, as a partial response.
         None => (0, len.saturating_sub(1)),
     };
-    let end = end.min(start + MAX_RANGE - 1);
-    match source.read(start, end + 1) {
-        Ok(bytes) => builder
-            .status(StatusCode::PARTIAL_CONTENT)
-            .header(header::CONTENT_RANGE, format!("bytes {start}-{end}/{len}"))
-            .header(header::CONTENT_LENGTH, bytes.len())
-            .body(Cow::Owned(bytes))
-            .unwrap(),
-        Err(e) => {
-            log::warn!("could not stream {handle}: {e}");
-            empty(StatusCode::INTERNAL_SERVER_ERROR)
+    Answer::Range { head: builder, source, handle, start, end, len }
+}
+
+/// The `magnolia-media://` answer, all in memory, so at most `MAX_RANGE`
+/// bytes of it: the player asks for the rest.
+fn serve(app: &AppHandle, request: &Request<Vec<u8>>) -> Response<Cow<'static, [u8]>> {
+    match answer(app, request) {
+        Answer::Done(r) => r,
+        Answer::Range { head, source, handle, start, end, len } => {
+            let end = end.min(start + MAX_RANGE - 1);
+            match source.read(start, end + 1) {
+                Ok(bytes) => partial(head, start, end, len).header(header::CONTENT_LENGTH, bytes.len()).body(Cow::Owned(bytes)).unwrap(),
+                Err(e) => {
+                    log::warn!("could not stream {handle}: {e}");
+                    empty(StatusCode::INTERNAL_SERVER_ERROR)
+                }
+            }
         }
+    }
+}
+
+fn partial(head: tauri::http::response::Builder, start: u64, end: u64, len: u64) -> tauri::http::response::Builder {
+    head.status(StatusCode::PARTIAL_CONTENT)
+        .header(header::CONTENT_RANGE, format!("bytes {start}-{end}/{len}"))
+}
+
+/// Linux: the players can't use `magnolia-media://`. WebKitGTK plays media
+/// through GStreamer, whose source reads only http(s) and blob: URLs, so
+/// every recording failed to load ("format not supported") whatever its
+/// codecs. There the same answers are served over HTTP on the loopback
+/// interface, at a random secret path, so no other program can read
+/// through it without that secret. The players get the address from
+/// `window.__MAGNOLIA_MEDIA_BASE__` (set in every window, windows.rs).
+#[cfg(target_os = "linux")]
+pub mod http {
+    use super::{Answer, answer, partial};
+    use std::borrow::Cow;
+    use std::sync::OnceLock;
+    use tauri::AppHandle;
+    use tauri::http::{Request, Response};
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    static BASE: OnceLock<Option<String>> = OnceLock::new();
+
+    /// `http://127.0.0.1:<port>/<secret>`, starting the server the first
+    /// time it's asked for. `None` if it couldn't listen.
+    pub fn base_url(app: &AppHandle) -> Option<&'static str> {
+        BASE.get_or_init(|| start(app)).as_deref()
+    }
+
+    fn start(app: &AppHandle) -> Option<String> {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0")
+            .and_then(|l| l.set_nonblocking(true).map(|_| l))
+            .inspect_err(|e| log::warn!("media: couldn't listen: {e}"))
+            .ok()?;
+        let port = listener.local_addr().ok()?.port();
+        let secret = format!("{}{}", uuid::Uuid::new_v4().simple(), uuid::Uuid::new_v4().simple());
+        let (app, prefix) = (app.clone(), format!("/{secret}/"));
+        tauri::async_runtime::spawn(async move {
+            let Ok(server) = tokio::net::TcpListener::from_std(listener) else { return };
+            loop {
+                let Ok((sock, peer)) = server.accept().await else { continue };
+                if !peer.ip().is_loopback() {
+                    continue;
+                }
+                let (app, prefix) = (app.clone(), prefix.clone());
+                tauri::async_runtime::spawn(async move {
+                    let _ = connection(app, sock, &prefix).await;
+                });
+            }
+        });
+        Some(format!("http://127.0.0.1:{port}/{secret}"))
+    }
+
+    /// Bytes read from the file at a time: what a response holds in memory.
+    const CHUNK: u64 = 1 << 20;
+
+    /// One request, one response, then close: each seek opens its own. A
+    /// range is sent whole, a piece at a time: GStreamer takes a shorter
+    /// answer for the end of the file, so the 4 MB answers the custom
+    /// protocol gives stopped every longer recording a few seconds in.
+    async fn connection(app: AppHandle, mut sock: tokio::net::TcpStream, prefix: &str) -> std::io::Result<()> {
+        let mut head = Vec::new();
+        let mut buf = [0u8; 4096];
+        while !head.windows(4).any(|w| w == b"\r\n\r\n") {
+            let n = tokio::time::timeout(std::time::Duration::from_secs(10), sock.read(&mut buf))
+                .await
+                .map_err(|_| std::io::ErrorKind::TimedOut)??;
+            if n == 0 || head.len() > 16 * 1024 {
+                return Ok(());
+            }
+            head.extend_from_slice(&buf[..n]);
+        }
+        let answer = match parse(&head, prefix) {
+            Some(request) if request.method() == tauri::http::Method::OPTIONS => Answer::Done(preflight()),
+            Some(request) => tauri::async_runtime::spawn_blocking(move || answer(&app, &request))
+                .await
+                .unwrap_or_else(|_| Answer::Done(status_only(500))),
+            None => Answer::Done(status_only(404)),
+        };
+        match answer {
+            Answer::Done(response) => {
+                sock.write_all(&response_head(&response)).await?;
+                sock.write_all(response.body()).await?;
+            }
+            Answer::Range { head, source, handle, start, end, len } => {
+                let response = partial(head, start, end, len)
+                    .header(tauri::http::header::CONTENT_LENGTH, end + 1 - start)
+                    .body(Cow::Borrowed(&[][..]))
+                    .unwrap();
+                sock.write_all(&response_head(&response)).await?;
+                let mut at = start;
+                while at <= end {
+                    let stop = (at + CHUNK).min(end + 1);
+                    let piece = source.clone();
+                    let bytes = tauri::async_runtime::spawn_blocking(move || piece.read(at, stop))
+                        .await
+                        .map_err(std::io::Error::other)?
+                        .inspect_err(|e| log::warn!("could not stream {handle}: {e}"))?;
+                    // The player closes the connection when it seeks: stop.
+                    sock.write_all(&bytes).await?;
+                    at = stop;
+                }
+            }
+        }
+        sock.shutdown().await
+    }
+
+    /// The request, as the media protocol sees it, if it carries the secret.
+    pub(super) fn parse(head: &[u8], prefix: &str) -> Option<Request<Vec<u8>>> {
+        let text = std::str::from_utf8(head).ok()?;
+        let mut lines = text.split("\r\n");
+        let mut first = lines.next()?.split(' ');
+        let (method, target) = (first.next()?, first.next()?);
+        let rest = target.strip_prefix(prefix)?;
+        let mut b = Request::builder()
+            .method(method)
+            .uri(format!("{}://localhost/{rest}", super::SCHEME));
+        for line in lines.take_while(|l| !l.is_empty()) {
+            if let Some((name, value)) = line.split_once(':') {
+                b = b.header(name.trim(), value.trim());
+            }
+        }
+        b.body(Vec::new()).ok()
+    }
+
+    fn preflight() -> Response<Cow<'static, [u8]>> {
+        Response::builder()
+            .status(204)
+            .header("Access-Control-Allow-Origin", "*")
+            .header("Access-Control-Allow-Headers", "range")
+            .body(Cow::Borrowed(&[][..]))
+            .unwrap()
+    }
+
+    fn status_only(status: u16) -> Response<Cow<'static, [u8]>> {
+        Response::builder().status(status).body(Cow::Borrowed(&[][..])).unwrap()
+    }
+
+    pub(super) fn response_head(r: &Response<Cow<'static, [u8]>>) -> Vec<u8> {
+        let status = r.status();
+        let mut out = format!("HTTP/1.1 {} {}\r\n", status.as_u16(), status.canonical_reason().unwrap_or(""));
+        for (name, value) in r.headers() {
+            if name != tauri::http::header::CONTENT_LENGTH {
+                out.push_str(&format!("{name}: {}\r\n", value.to_str().unwrap_or("")));
+            }
+        }
+        // HEAD answers say how long the file is, without the bytes.
+        let length = r
+            .headers()
+            .get(tauri::http::header::CONTENT_LENGTH)
+            .and_then(|v| v.to_str().ok())
+            .map(str::to_string)
+            .unwrap_or_else(|| r.body().len().to_string());
+        out.push_str(&format!("Content-Length: {length}\r\nConnection: close\r\n\r\n"));
+        out.into_bytes()
     }
 }
 
@@ -186,5 +363,17 @@ mod tests {
         assert_eq!(parse_range("bytes=100-", 100), None);
         assert_eq!(parse_range("bytes=5-2", 100), None);
         assert_eq!(parse_range("items=0-1", 100), None);
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn http_requests_need_the_secret() {
+        use super::http::parse;
+        let head = b"GET /s3cret/%2Fa%2Fb.mp4?type=video%2Fmp4 HTTP/1.1\r\nHost: 127.0.0.1\r\nRange: bytes=0-99\r\n\r\n";
+        let request = parse(head, "/s3cret/").unwrap();
+        assert_eq!(request.uri().to_string(), "magnolia-media://localhost/%2Fa%2Fb.mp4?type=video%2Fmp4");
+        assert_eq!(request.headers()["range"], "bytes=0-99");
+        assert!(parse(head, "/other/").is_none());
+        assert!(parse(b"GET /%2Fa%2Fb.mp4 HTTP/1.1\r\n\r\n", "/s3cret/").is_none());
     }
 }

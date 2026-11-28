@@ -4,6 +4,7 @@
  * Transcript supports transcription mode (editable) and coding mode (read-only with full coding).
  */
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { MediaPlayError, playErrorOf } from './MediaPlayError'
 import { TranscriptEditor } from './TranscriptEditor'
 import { WaveformSeekBar } from './WaveformSeekBar'
 import { usePreferencesStore } from '../../stores/preferences-store'
@@ -86,12 +87,14 @@ export function AudioDocumentViewer({ source, content }: Props) {
   // The waveform reads the file a range at a time; until it's decoded (or
   // if that fails) the seek bar shows the plain progress bar.
   const [audioUrl, setAudioUrl] = useState('')
+  const [playError, setPlayError] = useState(false)
   const [peaks, setPeaks] = useState<Float32Array | null>(null)
   useEffect(() => {
     if (!hasAudio) return
     const abort = new AbortController()
     const handle = audioData!.audioFilePath!
     setPeaks(null)
+    setPlayError(false)
     setAudioUrl(window.api.mediaUrl(handle, audioData!.mimeType || 'audio/mpeg'))
     window.api.openMedia(handle)
       .then((media) => decodePeaks(media, { signal: abort.signal, onProgress: setPeaks }))
@@ -238,7 +241,10 @@ export function AudioDocumentViewer({ source, content }: Props) {
         onPlay={handlePlay}
         onPause={handlePause}
         onEnded={handlePause}
+        onError={(e) => setPlayError(!!playErrorOf(e.currentTarget))}
       />
+
+      {playError && <MediaPlayError />}
 
       {/* Audio controls bar — sits on the panel surface so the
           viewer reads as a single continuous surface with the

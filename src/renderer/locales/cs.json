@@ -798,7 +798,10 @@
     "unmute": "Zapnout zvuk",
     "volumeDown": "Snížit hlasitost",
     "volume": "Hlasitost",
-    "volumeUp": "Zvýšit hlasitost"
+    "volumeUp": "Zvýšit hlasitost",
+    "cantPlay": "Tento záznam nelze přehrát.",
+    "cantPlayLinux": "Magnolia přehrává záznamy pomocí kodeků GStreamer vašeho systému. Nainstalujte je (v Debianu a Ubuntu: gstreamer1.0-libav a gstreamer1.0-plugins-good) a poté dokument otevřete znovu.",
+    "cantPlayAppImage": "AppImage umí přehrát jen formáty, které obsahuje. Nainstalovaná z balíčku .deb nebo .rpm používá Magnolia kodeky vašeho systému, které můžete doplnit."
   },
   "transcript": {
     "switchToCoding": "Přepnout do režimu kódování",
