@@ -1,0 +1,10 @@
+The full texts of the licences named by the libraries the Linux AppImage
+bundles, copied (with symbolic links resolved) from Debian's
+/usr/share/common-licenses (package base-files).
+
+linuxdeploy puts each bundled library's Debian/Ubuntu copyright file in the
+AppImage at usr/share/doc/<package>/copyright, but those files only refer to
+/usr/share/common-licenses/<licence> for the text itself, which a user's
+system may not have. tauri.conf.json (bundle.linux.appimage.files) installs
+this folder there inside the AppImage, so every notice's licence comes with
+it. See also the "Linux AppImage" section of THIRD-PARTY-LICENSES.txt.

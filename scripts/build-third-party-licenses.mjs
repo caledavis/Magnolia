@@ -27,6 +27,45 @@ const out = [
   ''
 ]
 
+// ── The Linux AppImage's system libraries ──
+// Taken from the build machine by linuxdeploy, so not listable here: say
+// what they are and where their notices and licence texts are inside the
+// AppImage (src-tauri/linux/licenses/README).
+out.push(
+  '─'.repeat(72),
+  'Linux AppImage: system libraries, including GStreamer and FFmpeg',
+  '',
+  'The Linux AppImage (Magnolia-linux-x86_64.AppImage) also carries the',
+  'system libraries Magnolia needs to run on any distribution, taken from',
+  'Ubuntu 22.04, on which it is built. They include GTK, WebKitGTK and the',
+  'GStreamer media framework with its plugins, which Magnolia uses to play',
+  'audio and video. Each library keeps its own licence: most are under',
+  'the GNU Lesser General Public License, some under the GNU General',
+  'Public License, the Mozilla Public License, the Apache License and',
+  'others. Each one\'s copyright notice and licence, as its Ubuntu package',
+  'states them, is inside the AppImage at usr/share/doc/<package>/copyright,',
+  'and the full text of every licence those notices name is at',
+  'usr/share/common-licenses. To see them, run the AppImage with',
+  '--appimage-extract, which unpacks it into a folder named squashfs-root.',
+  '',
+  'This software uses libraries from the FFmpeg project (https://ffmpeg.org),',
+  'through GStreamer\'s gst-libav plugin, to decode H.264 video and AAC',
+  'audio. Ubuntu builds FFmpeg with its GPL components enabled, so these',
+  'libraries are licensed under the GNU General Public License, version 2',
+  'or later (usr/share/common-licenses/GPL-2 in the AppImage). FFmpeg is a',
+  'trademark of Fabrice Bellard, originator of the FFmpeg project.',
+  '',
+  'The source code of every one of these libraries, in the versions the',
+  'AppImage bundles, is published with each release beside the AppImage,',
+  'as Magnolia-linux-x86_64-AppImage-sources.tar',
+  '(https://github.com/caledavis/Magnolia/releases).',
+  '',
+  'The .deb and .rpm packages bundle none of these: they use the copies',
+  'your distribution installs.',
+  '',
+  ''
+)
+
 for (const [pkgName, info] of Object.entries(packages).sort()) {
   out.push('─'.repeat(72))
   out.push(pkgName)

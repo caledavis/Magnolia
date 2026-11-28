@@ -110,7 +110,11 @@
     },
     "linux": {
       "appimage": {
-        "bundleMediaFramework": true
+        "bundleMediaFramework": true,
+        "files": {
+          "/usr/share/common-licenses": "linux/licenses",
+          "/usr/share/doc": "../target/appimage-gstreamer/notices"
+        }
       },
       "deb": {
         "section": "education",

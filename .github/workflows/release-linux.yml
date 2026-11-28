@@ -47,6 +47,13 @@ jobs:
           # (bundleMediaFramework): without them it borrows the user's,
           # which a newer distro's GStreamer can't load, and nothing plays.
           sudo apt-get install -y gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav
+          # For the bundled libraries' source code (after the build): the
+          # archive's source lines, and Launchpad for versions it has dropped.
+          grep -hE '^deb (\[[^]]*\] )?https?://[^ ]*ubuntu\.com' /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null \
+            | sed 's/^deb /deb-src /' | sudo tee /etc/apt/sources.list.d/magnolia-deb-src.list
+          test -s /etc/apt/sources.list.d/magnolia-deb-src.list || { echo "::error::No Ubuntu archive lines to add deb-src for"; exit 1; }
+          sudo apt-get update
+          sudo apt-get install -y ubuntu-dev-tools
 
       - uses: actions/setup-node@v7
         with:
@@ -71,10 +78,24 @@ jobs:
           GSTREAMER_INCLUDE_BAD_PLUGINS: '1'
         run: node scripts/release.mjs release linux --no-upload
 
+      # The GPL and LGPL ask that the bundled libraries' source be offered
+      # from the same place as the AppImage: it goes on the release beside it.
+      - name: Collect the source code of the AppImage's libraries
+        run: scripts/collect-appimage-sources.sh target/release/bundle/appimage/Magnolia.AppDir release/Magnolia-linux-x86_64-AppImage-sources.tar
+
       - uses: actions/upload-artifact@v7
         with:
           name: magnolia-linux
-          path: release/Magnolia-linux-*
+          path: |
+            release/Magnolia-linux-*
+            !release/Magnolia-linux-x86_64-AppImage-sources.tar
+          if-no-files-found: error
+
+      # Apart, so the smoke tests don't each download a gigabyte of source.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: magnolia-linux-sources
+          path: release/Magnolia-linux-x86_64-AppImage-sources.tar
           if-no-files-found: error
 
   # Start the AppImage on clean systems. There's no display, so the app
@@ -149,6 +170,11 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           name: magnolia-linux
+          path: release
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: magnolia-linux-sources
           path: release
 
       - name: Upload to the draft release

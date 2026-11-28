@@ -395,7 +395,10 @@ function finish(notesFile) {
   rmSync(dir, { recursive: true, force: true }) // a fresh copy of the release's assets
   mkdirSync(dir, { recursive: true })
   console.log(`Downloading the ${tag} assets…`)
-  run('gh', ['release', 'download', tag, '-D', dir, '--clobber', '--repo', REPO])
+  // Just what the manifests are made from: not, say, the gigabyte of the
+  // AppImage's libraries' source code.
+  const payloads = ['*.dmg', '*.zip', '*.app.tar.gz', '*.exe', '*.AppImage', '*.deb', '*.rpm'].flatMap((p) => [p, `${p}.sig`])
+  run('gh', ['release', 'download', tag, '-D', dir, '--clobber', '--repo', REPO, ...payloads.flatMap((p) => ['-p', p])])
   // The notes shown in the update window: the file given, or else the
   // draft's own description on GitHub.
   let notes = notesFile ? resolve(notesFile) : undefined
