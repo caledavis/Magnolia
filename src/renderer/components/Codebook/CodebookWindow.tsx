@@ -4,6 +4,7 @@ import { Markdown, markdownToHtml } from '../Markdown'
 import { MarkdownEditor } from '../MarkdownEditor'
 import { Icon, faChevronDown, faChevronRight } from '../Icon'
 import type { Code, CodebookInitData } from '../../models/types'
+import { noteWindowProject, sendCodebookUpdate } from '../to-main-window'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { modKey, isMac } from '../../utils/platform'
 import { useCodeColourPresets } from '../../utils/code-colours'
@@ -404,6 +405,7 @@ export function CodebookWindow() {
   const allCodes = flattenCodes(codes)
 
   const applyInitData = useCallback((initData: CodebookInitData) => {
+    noteWindowProject(initData)
     if (initData.theme !== undefined) {
       document.documentElement.setAttribute('data-theme', initData.theme)
     }
@@ -441,7 +443,7 @@ export function CodebookWindow() {
 
   const handleSaveCode = useCallback((guid: string, name: string, color: string, description: string, hotkey: number | undefined) => {
     setCodes((prev) => updateCodeInTree(prev, guid, (c) => ({ ...c, name, color, description, hotkey })))
-    window.api.sendCodebookUpdate('save-code', guid, name, color, description, hotkey)
+    sendCodebookUpdate('save-code', guid, name, color, description, hotkey)
     setEditingCodeGuid(null)
   }, [updateCodeInTree])
 
@@ -462,7 +464,7 @@ export function CodebookWindow() {
         const newCodes = imported.filter((c) => !existingGuids.has(c.guid))
         return [...prev, ...newCodes]
       })
-      window.api.sendCodebookUpdate('merge-codes', imported)
+      sendCodebookUpdate('merge-codes', imported)
     }
   }, [])
 
@@ -497,7 +499,7 @@ export function CodebookWindow() {
                     onEditCode={setEditingCodeGuid}
                     onSelectCode={setSelectedCodeGuid}
                     onContextMenu={(guid, x, y) => setContextMenu({ guid, x, y })}
-                    onRename={(guid, name) => window.api.sendCodebookUpdate('rename-code', guid, name)}
+                    onRename={(guid, name) => sendCodebookUpdate('rename-code', guid, name)}
                     onStopRenaming={() => setRenamingGuid(null)}
                   />
                 ))
@@ -531,7 +533,7 @@ export function CodebookWindow() {
         const guid = contextMenu.guid
         const send = (action: CodeMenuAction) => {
           setContextMenu(null)
-          window.api.sendCodebookUpdate(action, guid)
+          sendCodebookUpdate(action, guid)
         }
         return (
           <>
@@ -556,7 +558,7 @@ export function CodebookWindow() {
       {colourGuid && (() => {
         const code = findCode(colourGuid)
         if (!code) return null
-        const recolor = (color: string) => window.api.sendCodebookUpdate('recolor-code', colourGuid, color)
+        const recolor = (color: string) => sendCodebookUpdate('recolor-code', colourGuid, color)
         return (
           <div className="modal-overlay" onClick={() => setColourGuid(null)} style={{ position: 'fixed' }}>
             <div className="modal" onClick={(e) => e.stopPropagation()} style={{ minWidth: 250 }}>

@@ -5,6 +5,7 @@ import { Icon, faPlus } from '../Icon'
 import { Markdown } from '../Markdown'
 import { MarkdownEditor } from '../MarkdownEditor'
 import type { LogbookEntry, LogbookInitData } from '../../models/types'
+import { noteWindowProject, sendLogbookUpdate } from '../to-main-window'
 import { generateGuid } from '../../utils/guid'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
 import { useTranslation } from 'react-i18next'
@@ -157,6 +158,7 @@ export function LogbookWindow() {
   const [entryContextMenu, setEntryContextMenu] = useState<{ x: number; y: number; guid: string } | null>(null)
 
   const applyInitData = useCallback((initData: LogbookInitData) => {
+    noteWindowProject(initData)
     if (initData.theme !== undefined) {
       document.documentElement.setAttribute('data-theme', initData.theme)
     }
@@ -184,7 +186,7 @@ export function LogbookWindow() {
       const newEntry: LogbookEntry = { guid, title, content, createdDateTime: now }
       setEntries((prev) => [newEntry, ...prev])
       setSelectedGuid(guid)
-      window.api.sendLogbookUpdate('add-entry', newEntry)
+      sendLogbookUpdate('add-entry', newEntry)
     } else if (editingEntry) {
       const updated = {
         ...editingEntry,
@@ -193,7 +195,7 @@ export function LogbookWindow() {
         modifiedDateTime: new Date().toISOString()
       }
       setEntries((prev) => prev.map((e) => (e.guid === updated.guid ? updated : e)))
-      window.api.sendLogbookUpdate('update-entry', updated.guid, updated.title, updated.content)
+      sendLogbookUpdate('update-entry', updated.guid, updated.title, updated.content)
     }
     setEditingEntry(null)
   }, [editingEntry])
@@ -201,7 +203,7 @@ export function LogbookWindow() {
   const handleDeleteEntry = useCallback((guid: string) => {
     setEntries((prev) => prev.filter((e) => e.guid !== guid))
     if (selectedGuid === guid) setSelectedGuid(null)
-    window.api.sendLogbookUpdate('remove-entry', guid)
+    sendLogbookUpdate('remove-entry', guid)
     setDeleteConfirm(null)
   }, [selectedGuid])
 

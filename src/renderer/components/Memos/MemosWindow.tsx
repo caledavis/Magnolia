@@ -20,6 +20,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { Icon, faChevronDown, faChevronRight, faPlus, faMagnifyingGlass, faXmark } from '../Icon'
 import { Markdown } from '../Markdown'
 import type { Memo, MemosWindowData } from '../../models/types'
+import { noteWindowProject, sendMemosWindowAction } from '../to-main-window'
 import type { MemosWindowMessages } from '../../models/window-messages'
 import { groupMemos, memoMatches, type MemoPlace } from '../../utils/memo-places'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
@@ -109,6 +110,7 @@ export function MemosWindow() {
   const menuPos = useClampedMenuPosition(menu)
 
   const apply = useCallback((d: MemosWindowData) => {
+    noteWindowProject(d)
     if (d.theme) document.documentElement.setAttribute('data-theme', d.theme)
     setData(d)
     // Drop selections of memos that have gone.
@@ -122,7 +124,7 @@ export function MemosWindow() {
   }, [apply])
 
   const send = useCallback(<A extends keyof MemosWindowMessages>(action: A, ...args: MemosWindowMessages[A]) => {
-    window.api.sendMemosWindowAction(action, ...args)
+    sendMemosWindowAction(action, ...args)
     // Show goes to the main window, and while the project is checked out
     // the prompt to take over appears there.
     if (action === 'show' || data.lockedBy) window.api.focusMainWindow()
