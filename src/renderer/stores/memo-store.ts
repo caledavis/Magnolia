@@ -14,6 +14,9 @@ interface MemoState {
   /** Insert a fully-formed memo (from a draft that was built but not yet persisted) */
   addMemoFromDraft: (memo: Memo) => void
   updateMemo: (memo: Memo) => void
+  /** A memo edit window's Save: its title and text (see the action). The
+   *  memo as it now is, or null when it no longer exists. */
+  saveFromEditWindow: (memo: Memo, isNew: boolean) => Memo | null
   removeMemo: (guid: string) => void
   findMemo: (guid: string) => Memo | undefined
   getMemosForSource: (sourceGuid: string) => Memo[]
@@ -57,6 +60,22 @@ export const useMemoStore = create<MemoState>((set, get) => ({
       )
     }))
     useProjectStore.getState().markDirty()
+  },
+
+  saveFromEditWindow: (memo, isNew) => {
+    const current = get().memos.find((m) => m.guid === memo.guid)
+    if (!current) {
+      if (!isNew) return null
+      get().addMemoFromDraft(memo)
+      return memo
+    }
+    // Only what the window edits. Its memo is a copy from when it opened,
+    // and the memo may have changed here since — re-anchored by an edit to
+    // its transcript, say — which saving the whole copy undid.
+    const saved: Memo = { ...current, title: memo.title, content: memo.content, modifiedDateTime: new Date().toISOString() }
+    set((state) => ({ memos: state.memos.map((m) => (m.guid === memo.guid ? saved : m)) }))
+    useProjectStore.getState().markDirty()
+    return saved
   },
 
   removeMemo: (guid) => {

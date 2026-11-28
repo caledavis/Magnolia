@@ -27,12 +27,17 @@ import { describeQuery, withinQueries } from './query-description'
 import { wordCondition, sentenceCondition } from '../components/Analysis/word-counts'
 import { useSurveyViewStore } from '../stores/survey-view-store'
 import { showMemoLocation } from '../utils/show-memo'
+import { fromOpenProject } from './window-project'
+import type { MemoUpdate, WindowSender } from '../models/window-messages'
+import type { Memo } from '../models/types'
 
 /** Act on what the logbook window does: add, edit and remove entries. */
 export function useLogbookMessages(): void {
   // Listen for logbook updates from the logbook window
   useEffect(() => {
-    const unsub = window.api.onLogbookUpdate(({ action, args }) => {
+    const unsub = window.api.onLogbookUpdate((message, from) => {
+      if (!fromOpenProject(from)) return
+      const { action, args } = message as typeof message & { projectPath?: string }
       const ls = useLogbookStore.getState()
       switch (action) {
         case 'add-entry': {
@@ -66,7 +71,9 @@ export function useCodebookMessages(): void {
   // its right-click menu mirror the Codes pane's; each that changes the
   // codes sends the Codebook its codes again so it shows the change.
   useEffect(() => {
-    const unsub = window.api.onCodebookUpdate(({ action, args }) => {
+    const unsub = window.api.onCodebookUpdate((message, from) => {
+      if (!fromOpenProject(from)) return
+      const { action, args } = message as typeof message & { projectPath?: string }
       const cs = useCodeStore.getState()
       const lockedMutation = ['rename-code', 'recolor-code', 'add-child-code', 'move-code-to-top', 'delete-code'].includes(action)
       if (lockedMutation && checkoutLockedByNow()) {
@@ -139,38 +146,42 @@ export function useCodebookMessages(): void {
   }, [])
 }
 
+/** A memo edit window's Save, in the open project: a new memo is added;
+ *  an existing one takes the window's title and text, and nothing else
+ *  (see saveFromEditWindow). False when there was nothing to save: the
+ *  window is another project's, or its memo has gone. */
+export function saveMemoFromWindow(memo: MemoUpdate, from: WindowSender): boolean {
+  if (!fromOpenProject(from)) return false
+  // Not part of the memo: how the window marks a draft, and (should the
+  // window put it there) the project.
+  const { _isNew, projectPath: _project, ...memoData } = memo as MemoUpdate & { projectPath?: string }
+  const saved: Memo | null = useMemoStore.getState().saveFromEditWindow(memoData, !!_isNew)
+  if (!saved) return false
+  // Propagate the edit to any memo element on relationship-map
+  // tabs in this window.
+  const rmStore = useRelationshipMapStore.getState()
+  for (const m of Object.values(rmStore.maps)) {
+    let changed = false
+    const nextElements = m.elements.map((el) => {
+      if (el.kind === 'memo' && el.entityGuid === saved.guid) {
+        changed = true
+        return { ...el, label: saved.title, snippet: saved.content }
+      }
+      return el
+    })
+    if (changed) rmStore.setElements(m.guid, nextElements)
+  }
+  return true
+}
+
 /** The memo windows: act on memo edits, deletions and the Memos window's
  *  actions, and keep the Memos window showing the project's memos.
  *  `saveProjectRef` saves the project now (memo windows save as they close). */
 export function useMemoWindowMessages(saveProjectRef: MutableRefObject<() => unknown>): void {
   // Listen for memo updates from the memo edit window
   useEffect(() => {
-    const unsub = window.api.onMemoUpdate((memo) => {
-      const store = useMemoStore.getState()
-      let payload: { guid: string; title: string; content: string }
-      if (memo._isNew) {
-        // First save of a draft memo — create it in the store
-        const { _isNew, ...memoData } = memo
-        store.addMemoFromDraft(memoData)
-        payload = memoData
-      } else {
-        store.updateMemo(memo)
-        payload = memo
-      }
-      // Propagate the edit to any memo element on relationship-map
-      // tabs in this window.
-      const rmStore = useRelationshipMapStore.getState()
-      for (const m of Object.values(rmStore.maps)) {
-        let changed = false
-        const nextElements = m.elements.map((el) => {
-          if (el.kind === 'memo' && el.entityGuid === payload.guid) {
-            changed = true
-            return { ...el, label: payload.title, snippet: payload.content }
-          }
-          return el
-        })
-        if (changed) rmStore.setElements(m.guid, nextElements)
-      }
+    const unsub = window.api.onMemoUpdate((memo, from) => {
+      if (!saveMemoFromWindow(memo, from)) return
       // Memo edits come from an explicit "Save & Close" click, so flush
       // the project to disk immediately instead of waiting for the
       // 2-second auto-save debounce. Otherwise users who close the memo
@@ -185,7 +196,8 @@ export function useMemoWindowMessages(saveProjectRef: MutableRefObject<() => unk
   // elements from any relationship-map tab, then flush the project
   // so the deletion sticks.
   useEffect(() => {
-    const unsub = window.api.onMemoDelete((guid: string) => {
+    const unsub = window.api.onMemoDelete((guid, from) => {
+      if (!fromOpenProject(from)) return
       deleteMemoEverywhere(guid)
       setTimeout(() => { saveProjectRef.current() }, 0)
     })
@@ -195,7 +207,9 @@ export function useMemoWindowMessages(saveProjectRef: MutableRefObject<() => unk
   // The Memos window's actions. Edits are refused with the checkout
   // prompt while someone else has the project, as in the Saved Memos pane.
   useEffect(() => {
-    const unsub = window.api.onMemosWindowAction(({ action, args }) => {
+    const unsub = window.api.onMemosWindowAction((message, from) => {
+      if (!fromOpenProject(from)) return
+      const { action, args } = message as typeof message & { projectPath?: string }
       const memo = (guid: string) => useMemoStore.getState().findMemo(guid)
       if (action === 'show') {
         const m = memo(args[0])

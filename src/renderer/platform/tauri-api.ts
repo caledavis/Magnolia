@@ -15,6 +15,7 @@ import { emit, emitTo } from '@tauri-apps/api/event'
 import { getCurrentWebview } from '@tauri-apps/api/webview'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import type { ByteSource, ImportedFile, ImportItem, ImportState, MagnoliaAPI, Project, Query, QueryGraphLayout, TextSource } from '../models/types'
+import type { WindowSender } from '../models/window-messages'
 import { base64ToBytes, extractPdfText } from './pdf-text'
 import { t } from '../i18n'
 import { withDocumentLanguage } from '../utils/document-language'
@@ -227,6 +228,7 @@ async function readImports(filePaths: string[]): Promise<ImportedFile[]> {
       const file = droppedFiles.get(p)
       if (file) {
         droppedFiles.delete(p)
+        droppedAt.delete(p)
         doc = await readDroppedFile(file)
       } else {
         doc = (await invoke<RawImport[]>('read_text_files', { filePaths: [p] }))[0]
@@ -258,6 +260,19 @@ async function readImports(filePaths: string[]): Promise<ImportedFile[]> {
 
 const DROP_PREFIX = 'magnolia-drop://'
 const droppedFiles = new Map<string, File>()
+/** When each token was made: a drop's files are read straight away (and
+ *  forgotten as they are), so one still here long after was dropped on
+ *  something that never imported it — forgotten then, rather than held
+ *  (a dropped video can be gigabytes) until the window closes. */
+const droppedAt = new Map<string, number>()
+const DROP_KEPT_MS = 10 * 60_000
+function forgetStaleDrops(now: number): void {
+  for (const [token, at] of droppedAt) {
+    if (now - at < DROP_KEPT_MS) continue
+    droppedAt.delete(token)
+    droppedFiles.delete(token)
+  }
+}
 let nextDropId = 1
 
 async function readDroppedFile(file: File): Promise<RawImport> {
@@ -371,6 +386,38 @@ const toMain = (event: string, payload?: unknown): void => {
   void emitTo(MAIN, event, payload)
 }
 
+// ── Which project a window is for ─────────────────────────────────────
+// The Codebook, Logbook, Memos and memo edit windows stay open when the
+// main window opens another project, and what they then sent landed in
+// that one (a memo from the old project added to the new). So the main
+// window stamps the data it sends them with its project's file, each of
+// these windows sends it back at the top level of every message (the
+// windows themselves do, in components/to-main-window.ts; the senders
+// below do the same), and the main window refuses a message for another
+// project (app/window-project.ts). A message without it is taken to be
+// for the open project.
+
+/** The data's project, from the main window (left as it is elsewhere, and
+ *  while the project has no file yet). */
+function stampProject<T extends object>(data: T): T & { projectPath?: string } {
+  return current.label === MAIN && activeProjectPath ? { ...data, projectPath: activeProjectPath } : data
+}
+
+/** In one of those windows: the project of the data it last got. */
+let windowProjectPath: string | undefined
+function noteData<T>(data: T): T {
+  if (data && typeof data === 'object') windowProjectPath = (data as { projectPath?: string }).projectPath
+  return data
+}
+
+/** A message from one of those windows to the main window, with its project. */
+const toMainFrom = (event: string, body: object): void => toMain(event, { ...body, projectPath: windowProjectPath })
+
+/** Such a message, received in the main window: the message, and its project. */
+function onFrom<T extends object>(event: string, callback: (body: T, from: WindowSender) => void): () => void {
+  return on<T & { projectPath?: string }>(event, (p) => callback(p, { projectPath: p.projectPath }))
+}
+
 const api: MagnoliaAPI = {
   platform,
   getFileSize: (filePath) => invoke('get_file_size', { filePath }),
@@ -431,7 +478,9 @@ const api: MagnoliaAPI = {
   },
   getPathForFile: (file) => {
     const token = `${DROP_PREFIX}${nextDropId++}/${file.name}`
+    forgetStaleDrops(Date.now())
     droppedFiles.set(token, file)
+    droppedAt.set(token, Date.now())
     return token
   },
   reimportDocument: async (sourceType) => {
@@ -496,11 +545,11 @@ const api: MagnoliaAPI = {
   systemLocale: () => invoke('system_locale'),
 
   // Codebook window
-  openCodebookWindow: (data) => void invoke('open_child_window', { kind: 'codebook', data }),
-  getCodebookData: () => invoke('get_window_data'),
-  onCodebookData: (callback) => on('codebook-init-data', callback),
-  sendCodebookUpdate: (action, ...args) => toMain('codebook-update', { action, args }),
-  onCodebookUpdate: (callback) => on('codebook-update', callback),
+  openCodebookWindow: (data) => void invoke('open_child_window', { kind: 'codebook', data: stampProject(data) }),
+  getCodebookData: async () => noteData(await invoke('get_window_data')),
+  onCodebookData: (callback) => on<Parameters<typeof callback>[0]>('codebook-init-data', (data) => callback(noteData(data))),
+  sendCodebookUpdate: (action, ...args) => toMainFrom('codebook-update', { action, args }),
+  onCodebookUpdate: (callback) => onFrom('codebook-update', callback),
 
   // Welcome window
   sendWelcomeAction: (action) => void invoke('welcome_action', { action }),
@@ -515,29 +564,32 @@ const api: MagnoliaAPI = {
   onRecentProjectsChanged: (callback) => on('recent-projects-changed', () => callback()),
 
   // Memo edit windows
-  openMemoEditWindow: (data) => void invoke('open_child_window', { kind: 'memo-edit', data }),
-  getMemoEditData: () => invoke('get_window_data'),
-  onMemoEditData: (callback) => on('memo-edit-init-data', callback),
-  sendMemoUpdate: (memo) => toMain('memo-update', memo),
-  onMemoUpdate: (callback) => on('memo-update', callback),
-  sendMemoDelete: (guid) => toMain('memo-delete', guid),
-  onMemoDelete: (callback) => on('memo-delete', callback),
+  openMemoEditWindow: (data) => void invoke('open_child_window', { kind: 'memo-edit', data: stampProject(data) }),
+  getMemoEditData: async () => noteData(await invoke('get_window_data')),
+  onMemoEditData: (callback) => on<Parameters<typeof callback>[0]>('memo-edit-init-data', (data) => callback(noteData(data))),
+  sendMemoUpdate: (memo) => toMainFrom('memo-update', memo),
+  onMemoUpdate: (callback) => onFrom('memo-update', callback),
+  sendMemoDelete: (guid) => toMainFrom('memo-delete', { guid }),
+  // { guid, projectPath }; a bare guid from before.
+  onMemoDelete: (callback) =>
+    on<string | { guid: string; projectPath?: string }>('memo-delete', (p) =>
+      typeof p === 'string' ? callback(p, {}) : callback(p.guid, { projectPath: p.projectPath })),
 
   // Logbook window
-  openLogbookWindow: (data) => void invoke('open_child_window', { kind: 'logbook', data }),
-  getLogbookData: () => invoke('get_window_data'),
-  onLogbookData: (callback) => on('logbook-init-data', callback),
-  sendLogbookUpdate: (action, ...args) => toMain('logbook-update', { action, args }),
-  onLogbookUpdate: (callback) => on('logbook-update', callback),
+  openLogbookWindow: (data) => void invoke('open_child_window', { kind: 'logbook', data: stampProject(data) }),
+  getLogbookData: async () => noteData(await invoke('get_window_data')),
+  onLogbookData: (callback) => on<Parameters<typeof callback>[0]>('logbook-init-data', (data) => callback(noteData(data))),
+  sendLogbookUpdate: (action, ...args) => toMainFrom('logbook-update', { action, args }),
+  onLogbookUpdate: (callback) => onFrom('logbook-update', callback),
 
   // Memos window (every memo in the project)
-  openMemosWindow: (data) => void invoke('open_child_window', { kind: 'memos', data }),
-  updateMemosWindow: (data) => void invoke('update_memos_window', { data }),
-  getMemosWindowData: () => invoke('get_window_data'),
-  onMemosWindowData: (callback) => on('memos-init-data', callback),
-  sendMemosWindowAction: (action, ...args) => toMain('memos-window-action', { action, args }),
+  openMemosWindow: (data) => void invoke('open_child_window', { kind: 'memos', data: stampProject(data) }),
+  updateMemosWindow: (data) => void invoke('update_memos_window', { data: stampProject(data) }),
+  getMemosWindowData: async () => noteData(await invoke('get_window_data')),
+  onMemosWindowData: (callback) => on<Parameters<typeof callback>[0]>('memos-init-data', (data) => callback(noteData(data))),
+  sendMemosWindowAction: (action, ...args) => toMainFrom('memos-window-action', { action, args }),
   focusMainWindow: () => void invoke('focus_main_window'),
-  onMemosWindowAction: (callback) => on('memos-window-action', callback),
+  onMemosWindowAction: (callback) => onFrom('memos-window-action', callback),
 
   // Analysis actions (main → main)
   sendAnalysisAction: (action, ...args) => toMain('analysis-action', { action, args }),

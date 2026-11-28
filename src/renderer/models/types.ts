@@ -10,6 +10,7 @@ import type {
   MemosWindowMessages,
   MemoUpdate,
   PayloadMessage,
+  WindowSender,
   QueryResultsMessages
 } from './window-messages'
 /** Magnolia-specific document folder. The REFI-QDA standard has no
@@ -765,7 +766,7 @@ export interface MagnoliaAPI {
   getCodebookData: () => Promise<CodebookInitData>
   onCodebookData: (callback: (data: CodebookInitData) => void) => () => void
   sendCodebookUpdate: <A extends keyof CodebookMessages>(action: A, ...args: CodebookMessages[A]) => void
-  onCodebookUpdate: (callback: (message: ArgsMessage<CodebookMessages>) => void) => () => void
+  onCodebookUpdate: (callback: (message: ArgsMessage<CodebookMessages>, from: WindowSender) => void) => () => void
   // Welcome window
   sendWelcomeAction: (action: string) => void
   getRecentProjects: () => Promise<{ name: string; path: string }[]>
@@ -783,15 +784,15 @@ export interface MagnoliaAPI {
   getMemoEditData: () => Promise<MemoEditInitData>
   onMemoEditData: (callback: (data: MemoEditInitData) => void) => () => void
   sendMemoUpdate: (memo: MemoUpdate) => void
-  onMemoUpdate: (callback: (memo: MemoUpdate) => void) => () => void
+  onMemoUpdate: (callback: (memo: MemoUpdate, from: WindowSender) => void) => () => void
   sendMemoDelete: (guid: string) => void
-  onMemoDelete: (callback: (guid: string) => void) => () => void
+  onMemoDelete: (callback: (guid: string, from: WindowSender) => void) => () => void
   // Logbook window
   openLogbookWindow: (data: LogbookInitData) => void
   getLogbookData: () => Promise<LogbookInitData>
   onLogbookData: (callback: (data: LogbookInitData) => void) => () => void
   sendLogbookUpdate: <A extends keyof LogbookMessages>(action: A, ...args: LogbookMessages[A]) => void
-  onLogbookUpdate: (callback: (message: ArgsMessage<LogbookMessages>) => void) => () => void
+  onLogbookUpdate: (callback: (message: ArgsMessage<LogbookMessages>, from: WindowSender) => void) => () => void
   // Memos window
   openMemosWindow: (data: MemosWindowData) => void
   /** Refreshes the Memos window if it is open. */
@@ -801,7 +802,7 @@ export interface MagnoliaAPI {
   /** 'edit' (guid), 'show' (guid), 'new' or 'delete' (guids): the main
    *  window acts on them, prompting first while the project is checked out. */
   sendMemosWindowAction: <A extends keyof MemosWindowMessages>(action: A, ...args: MemosWindowMessages[A]) => void
-  onMemosWindowAction: (callback: (message: ArgsMessage<MemosWindowMessages>) => void) => () => void
+  onMemosWindowAction: (callback: (message: ArgsMessage<MemosWindowMessages>, from: WindowSender) => void) => () => void
   /** Brings the main project window to the front. */
   focusMainWindow: () => void
   // Analysis actions — round-trip through main so inline analysis
@@ -923,6 +924,11 @@ export interface CodebookInitData {
   /** A code for the Codebook to start renaming (one just added). */
   renameGuid?: string
   theme: string
+  /** The file of the project open in the main window when it sent this
+   *  (absent while it has none): the window sends it back with what it
+   *  sends, and the main window refuses a message for a project that's no
+   *  longer open (see WindowSender). */
+  projectPath?: string
 }
 
 export type MemoType =
@@ -1006,6 +1012,11 @@ export interface MemoEditInitData {
   theme: string
   /** When true, the memo hasn't been persisted yet — save creates it */
   isNew?: boolean
+  /** The file of the project open in the main window when it sent this
+   *  (absent while it has none): the window sends it back with what it
+   *  sends, and the main window refuses a message for a project that's no
+   *  longer open (see WindowSender). */
+  projectPath?: string
 }
 
 export interface MemosWindowData {
@@ -1016,6 +1027,11 @@ export interface MemosWindowData {
    *  then refused with a prompt in the main window. */
   lockedBy: string | null
   theme: string
+  /** The file of the project open in the main window when it sent this
+   *  (absent while it has none): the window sends it back with what it
+   *  sends, and the main window refuses a message for a project that's no
+   *  longer open (see WindowSender). */
+  projectPath?: string
 }
 
 export interface LogbookEntry {
@@ -1029,6 +1045,11 @@ export interface LogbookEntry {
 export interface LogbookInitData {
   entries: LogbookEntry[]
   theme: string
+  /** The file of the project open in the main window when it sent this
+   *  (absent while it has none): the window sends it back with what it
+   *  sends, and the main window refuses a message for a project that's no
+   *  longer open (see WindowSender). */
+  projectPath?: string
 }
 
 export interface QueryResultsInitData {

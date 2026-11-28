@@ -29,6 +29,19 @@ export type PayloadMessage<M extends MessageMap<M>> = {
   [A in keyof M]: { action: A; payload: M[A] extends [infer P] ? P : undefined }
 }[keyof M]
 
+/** Which project a window's message is about, as that window knows it:
+ *  the `projectPath` the main window put in its data, which the Codebook,
+ *  Logbook, Memos and memo edit windows send back at the top level of
+ *  every message. The main window refuses a message from a window left
+ *  open from a project that's since been closed — it would otherwise land
+ *  in whichever project is open now. */
+export interface WindowSender {
+  /** Absent when the window's data had none (a project not yet saved to a
+   *  file, or a window opened from another window): taken as the open
+   *  project. */
+  projectPath?: string
+}
+
 /** A memo edit window (or a relationship map) → the main window: the memo
  *  as saved. `_isNew` marks a draft's first save, which creates the memo. */
 export type MemoUpdate = Memo & { _isNew?: boolean }
