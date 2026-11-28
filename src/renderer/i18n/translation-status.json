@@ -55,6 +55,7 @@
     "native.menu.copy": "Copy",
     "native.menu.paste": "Paste",
     "native.menu.selectAll": "Select All",
+    "native.menu.fullScreen": "Full Screen",
     "native.menu.codes": "Codes",
     "native.menu.newCode": "New Code",
     "native.menu.codebook": "Codebook",

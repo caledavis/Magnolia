@@ -185,6 +185,14 @@ pub async fn mcp_set_enabled(app: AppHandle, enabled: bool) {
 
 /// The command an AI app runs to start the connector.
 fn connector_command() -> Result<String, String> {
+    // Run from an AppImage, this executable lives in a temporary mount
+    // (/tmp/.mount_…) that goes when Magnolia quits, so an AI app given
+    // that path couldn't start the connector after a restart. The AppImage
+    // itself stays put, and runs the same executable with `--mcp`.
+    #[cfg(target_os = "linux")]
+    if let Some(appimage) = std::env::var_os("APPIMAGE").filter(|p| std::path::Path::new(p).is_file()) {
+        return Ok(appimage.to_string_lossy().into_owned());
+    }
     std::env::current_exe().map(|p| p.to_string_lossy().into_owned()).map_err(|e| e.to_string())
 }
 

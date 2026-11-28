@@ -261,8 +261,8 @@ const droppedFiles = new Map<string, File>()
 let nextDropId = 1
 
 async function readDroppedFile(file: File): Promise<RawImport> {
-  // Read it from disk where the backend can find it (macOS): far quicker
-  // than reading a large video into the page and sending it over IPC.
+  // Read it from disk where the backend can find it (macOS and Linux): far
+  // quicker than reading a large video into the page and sending it over IPC.
   const path = await invoke<string | null>('dropped_file_path', { name: file.name, size: file.size })
     .catch(() => null)
   if (path) return (await invoke<RawImport[]>('read_text_files', { filePaths: [path] }))[0]

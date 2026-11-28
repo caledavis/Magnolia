@@ -6,6 +6,8 @@ mod access;
 mod automation;
 mod commands;
 mod i18n;
+#[cfg(target_os = "linux")]
+mod linux;
 mod media;
 mod menu;
 mod print;
@@ -115,6 +117,14 @@ pub fn run() {
             media::handle(ctx.app_handle(), request, responder)
         })
         .on_menu_event(|app, event| menu::handle_event(app, event.id().as_ref()))
+        .on_page_load(|webview, payload| {
+            #[cfg(target_os = "linux")]
+            if matches!(payload.event(), tauri::webview::PageLoadEvent::Started) {
+                linux::setup_webview(webview);
+            }
+            #[cfg(not(target_os = "linux"))]
+            let _ = (webview, payload);
+        })
         .invoke_handler(tauri::generate_handler![
             mcp::mcp_reply,
             mcp::mcp_set_enabled,

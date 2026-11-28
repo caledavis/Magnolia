@@ -44,13 +44,47 @@ fn dialog(
     d
 }
 
+/// Dialog filters that match an extension in any case.
+trait Filter {
+    fn filter(self, name: impl Into<String>, extensions: &[&str]) -> Self;
+}
+
+impl Filter for FileDialogBuilder<tauri::Wry> {
+    fn filter(self, name: impl Into<String>, extensions: &[&str]) -> Self {
+        let patterns = dialog_patterns(extensions);
+        let patterns: Vec<&str> = patterns.iter().map(String::as_str).collect();
+        self.add_filter(name, &patterns)
+    }
+}
+
+/// GTK matches a filter's `*.jpg` case-sensitively, so on Linux a camera's
+/// IMG_0001.JPG (or a phone's CLIP.MP4) didn't show in Import or Open at
+/// all. There each letter becomes a bracket of both cases (`*.[jJ][pP][gG]`),
+/// which GTK's patterns understand. macOS and Windows ignore case already.
+fn dialog_patterns(extensions: &[&str]) -> Vec<String> {
+    if !cfg!(target_os = "linux") {
+        return extensions.iter().map(|e| e.to_string()).collect();
+    }
+    extensions
+        .iter()
+        .map(|e| {
+            e.chars()
+                .map(|c| {
+                    let (lo, up) = (c.to_ascii_lowercase(), c.to_ascii_uppercase());
+                    if lo == up { c.to_string() } else { format!("[{lo}{up}]") }
+                })
+                .collect()
+        })
+        .collect()
+}
+
 fn to_path(p: tauri_plugin_dialog::FilePath) -> Option<PathBuf> {
     p.into_path().ok()
 }
 
 pub fn pick_qdpx(app: &AppHandle, parent: Option<&WebviewWindow>) -> Option<String> {
     let path = dialog(app, parent, &t("dialog.openProject"))
-        .add_filter(t("dialog.qdpxProjects"), &["qdpx"])
+        .filter(t("dialog.qdpxProjects"), &["qdpx"])
         .blocking_pick_file()
         .and_then(to_path)?;
     access::grant(&path);
@@ -66,7 +100,7 @@ fn save_dialog(
 ) -> Option<PathBuf> {
     let mut path = dialog(app, Some(parent), title)
         .set_file_name(default_name)
-        .add_filter(filter.0, filter.1)
+        .filter(filter.0, filter.1)
         .blocking_save_file()
         .and_then(to_path)?;
     // GTK doesn't append the filter's extension.
@@ -130,7 +164,7 @@ pub async fn pick_project_file(app: AppHandle, window: WebviewWindow) -> CmdResu
 #[tauri::command]
 pub async fn pick_project_files(app: AppHandle, window: WebviewWindow) -> CmdResult<Vec<String>> {
     Ok(dialog(&app, Some(&window), &t("dialog.openProject"))
-        .add_filter(t("dialog.qdpxProjects"), &["qdpx"])
+        .filter(t("dialog.qdpxProjects"), &["qdpx"])
         .blocking_pick_files()
         .unwrap_or_default()
         .into_iter()
@@ -776,7 +810,7 @@ pub async fn pick_import_files(
 ) -> CmdResult<Value> {
     let project = state.store.active_project_path();
     let mut d =
-        dialog(&app, Some(&window), &t("dialog.importDocument")).add_filter(t("dialog.supportedDocuments"), SUPPORTED);
+        dialog(&app, Some(&window), &t("dialog.importDocument")).filter(t("dialog.supportedDocuments"), SUPPORTED);
     if let Some(dir) = storage::last_import_dir(project.as_deref()) {
         d = d.set_directory(dir);
     }
@@ -822,12 +856,17 @@ pub async fn read_text_files(
 /// the page read it into memory and send it over IPC — for a long video
 /// that copied a gigabyte or more several times over and stalled the app.
 /// The webview hides dropped files' paths, but on macOS the drag pasteboard
-/// still holds them; the one with this name and size is the file.
+/// still holds them, and on Linux the drag's data did (linux.rs); the one
+/// with this name and size is the file.
 #[tauri::command]
 pub fn dropped_file_path(name: String, size: u64) -> Option<String> {
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
     {
-        drag_pasteboard_paths().into_iter().find_map(|p| {
+        #[cfg(target_os = "macos")]
+        let dragged = drag_pasteboard_paths();
+        #[cfg(target_os = "linux")]
+        let dragged = crate::linux::dragged_paths();
+        dragged.into_iter().find_map(|p| {
             let same = p.file_name().is_some_and(|n| n.to_string_lossy() == name)
                 && std::fs::metadata(&p).is_ok_and(|m| m.is_file() && m.len() == size);
             // The user dragged it here: theirs to import.
@@ -837,7 +876,7 @@ pub fn dropped_file_path(name: String, size: u64) -> Option<String> {
             })
         })
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
     {
         let _ = (name, size);
         None
@@ -925,7 +964,7 @@ pub async fn reimport_document(
     };
     let project = state.store.active_project_path();
     let mut d =
-        dialog(&app, Some(&window), &t("dialog.reimportDocument")).add_filter(t("dialog.supportedDocuments"), &exts);
+        dialog(&app, Some(&window), &t("dialog.reimportDocument")).filter(t("dialog.supportedDocuments"), &exts);
     if let Some(dir) = storage::last_import_dir(project.as_deref()) {
         d = d.set_directory(dir);
     }
@@ -962,7 +1001,7 @@ pub async fn import_transcript(
     state: State<'_, AppState>,
 ) -> CmdResult<Value> {
     let project = state.store.active_project_path();
-    let mut d = dialog(&app, Some(&window), &t("dialog.importTranscript")).add_filter(
+    let mut d = dialog(&app, Some(&window), &t("dialog.importTranscript")).filter(
         t("dialog.textFiles"),
         &["txt", "md", "markdown", "srt", "vtt", "html", "htm"],
     );
@@ -1085,7 +1124,7 @@ pub async fn import_codebook(
     window: WebviewWindow,
 ) -> CmdResult<Option<Vec<Value>>> {
     let Some(path) = dialog(&app, Some(&window), &t("dialog.importCodebook"))
-        .add_filter(t("dialog.qdcCodebook"), &["qdc"])
+        .filter(t("dialog.qdcCodebook"), &["qdc"])
         .blocking_pick_file()
         .and_then(to_path)
     else {
@@ -1359,6 +1398,15 @@ mod csv_tests {
     fn csv_starts_with_one_bom() {
         assert_eq!(super::with_bom("a,b"), "\u{FEFF}a,b");
         assert_eq!(super::with_bom("\u{FEFF}a,b"), "\u{FEFF}a,b");
+    }
+}
+
+#[cfg(test)]
+mod dialog_tests {
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn linux_filters_match_any_case() {
+        assert_eq!(super::dialog_patterns(&["jpg", "mp4"]), ["[jJ][pP][gG]", "[mM][pP]4"]);
     }
 }
 

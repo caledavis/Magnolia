@@ -125,12 +125,24 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
         // items undo only typing, so choosing them did nothing to a coding).
         .item(&item(app, "edit-undo", &t("menu.undo"), Some("CmdOrCtrl+Z"))?)
         .item(&item(app, "edit-redo", &t("menu.redo"), Some("CmdOrCtrl+Shift+Z"))?)
-        .item(&sep()?)
-        .item(&PredefinedMenuItem::cut(app, Some(&t("menu.cut")))?)
-        .item(&PredefinedMenuItem::copy(app, Some(&t("menu.copy")))?)
-        .item(&PredefinedMenuItem::paste(app, Some(&t("menu.paste")))?)
-        .item(&PredefinedMenuItem::select_all(app, Some(&t("menu.selectAll")))?)
-        .build()?;
+        .item(&sep()?);
+    let edit = if cfg!(target_os = "linux") {
+        // The system's items type the shortcut through X11 (libxdo), so on
+        // Wayland choosing them did nothing; these run WebKit's own editing
+        // commands instead. No accelerators: the page handles the keys
+        // itself (copying codes or query nodes), and a menu accelerator
+        // would take them from it.
+        edit.item(&item(app, "edit-cut", &t("menu.cut"), None)?)
+            .item(&item(app, "edit-copy", &t("menu.copy"), None)?)
+            .item(&item(app, "edit-paste", &t("menu.paste"), None)?)
+            .item(&item(app, "edit-select-all", &t("menu.selectAll"), None)?)
+    } else {
+        edit.item(&PredefinedMenuItem::cut(app, Some(&t("menu.cut")))?)
+            .item(&PredefinedMenuItem::copy(app, Some(&t("menu.copy")))?)
+            .item(&PredefinedMenuItem::paste(app, Some(&t("menu.paste")))?)
+            .item(&PredefinedMenuItem::select_all(app, Some(&t("menu.selectAll")))?)
+    }
+    .build()?;
     menu = menu.item(&edit);
 
     let codes = SubmenuBuilder::new(app, t("menu.codes"))
@@ -219,9 +231,14 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
             Some(if mac { "Alt+Cmd+I" } else { "Ctrl+Shift+I" }),
         )?);
     }
-    view = view
-        .item(&sep()?)
-        .item(&PredefinedMenuItem::fullscreen(app, None)?);
+    view = view.item(&sep()?);
+    // The system's Full Screen item exists only on macOS; elsewhere it was
+    // greyed out.
+    view = if mac {
+        view.item(&PredefinedMenuItem::fullscreen(app, None)?)
+    } else {
+        view.item(&item(app, "toggle-fullscreen", &t("menu.fullScreen"), Some("F11"))?)
+    };
     let open_windows = window_list(app);
     if app.get_webview_window(MAIN).is_some() && !open_windows.is_empty() {
         view = view.item(&sep()?);
@@ -371,6 +388,18 @@ pub fn handle_event(app: &AppHandle, id: &str) {
             let target = focused_label(app).unwrap_or_else(|| MAIN.to_string());
             windows::emit_to(app, &target, "menu-action", id);
         }
+        "edit-cut" | "edit-copy" | "edit-paste" | "edit-select-all" => {
+            let target = focused_label(app).unwrap_or_else(|| MAIN.to_string());
+            if let Some(w) = app.get_webview_window(&target) {
+                editing_command(&w, id);
+            }
+        }
+        "toggle-fullscreen" => {
+            let target = focused_label(app).unwrap_or_else(|| MAIN.to_string());
+            if let Some(w) = app.get_webview_window(&target) {
+                let _ = w.set_fullscreen(!w.is_fullscreen().unwrap_or(false));
+            }
+        }
         "preferences" => {
             let target = focused_label(app).unwrap_or_else(|| MAIN.to_string());
             windows::emit_to(app, &target, "menu-action", "open-preferences");
@@ -424,6 +453,24 @@ pub fn handle_event(app: &AppHandle, id: &str) {
         }
         _ => {}
     }
+}
+
+/// Cut, Copy, Paste or Select All in the window's page, as WebKit does
+/// them for its own shortcuts (Linux's Edit menu: see `build`).
+fn editing_command(w: &tauri::WebviewWindow, id: &str) {
+    #[cfg(target_os = "linux")]
+    {
+        use webkit2gtk::WebViewExt;
+        let command = match id {
+            "edit-cut" => "Cut",
+            "edit-copy" => "Copy",
+            "edit-paste" => "Paste",
+            _ => "SelectAll",
+        };
+        let _ = w.with_webview(move |pv| pv.inner().execute_editing_command(command));
+    }
+    #[cfg(not(target_os = "linux"))]
+    let _ = (w, id);
 }
 
 fn focused_label(app: &AppHandle) -> Option<String> {

@@ -69,7 +69,9 @@ pub fn print(
     out: &Path,
     opts: &PdfOptions,
 ) -> Result<(), String> {
-    let uri = format!("file://{}", out.to_string_lossy());
+    // A URI, so a temporary folder with a space or an accent in its path
+    // (TMPDIR) is escaped rather than misread.
+    let uri = gtk::glib::filename_to_uri(out, None).map_err(|e| e.to_string())?.to_string();
     let opts = opts.clone();
     let (tx, rx) = mpsc::channel::<Result<(), String>>();
     window
