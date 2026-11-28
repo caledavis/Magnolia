@@ -36,12 +36,30 @@ fn create() -> Option<SpillDir> {
     Some(SpillDir { dir, _lock: lock })
 }
 
+/// How long a folder is left alone after it last changed. A run makes its
+/// folder and then its lock, so for a moment a live run's folder looks like
+/// an ended one's; another Magnolia starting in that moment mustn't take
+/// it away. An ended run's folder is cleared by a later run instead.
+const GRACE: std::time::Duration = std::time::Duration::from_secs(60);
+
 /// Remove the folders of runs that have ended: their lock can be taken.
 fn sweep(base: &Path) {
+    sweep_older_than(base, GRACE);
+}
+
+fn sweep_older_than(base: &Path, grace: std::time::Duration) {
     let Ok(entries) = std::fs::read_dir(base) else { return };
     for entry in entries.flatten() {
         let path = entry.path();
         if !path.is_dir() {
+            continue;
+        }
+        // Unknown age (or a clock set back) counts as new.
+        let recent = std::fs::metadata(&path)
+            .and_then(|m| m.modified())
+            .map(|t| t.elapsed().map_or(true, |age| age < grace))
+            .unwrap_or(true);
+        if recent {
             continue;
         }
         let stale = match File::open(path.join(LOCK)) {
@@ -114,9 +132,22 @@ mod tests {
         std::fs::create_dir_all(&running).unwrap();
         let held = File::create(running.join(LOCK)).unwrap();
         held.lock().unwrap();
-        sweep(base.path());
+        sweep_older_than(base.path(), std::time::Duration::ZERO);
         assert!(!ended.exists());
         assert!(running.exists());
+    }
+
+    #[test]
+    fn leaves_a_folder_just_made_by_a_run_still_starting() {
+        let base = tempfile::tempdir().unwrap();
+        // Made, but its lock not yet made (or not yet taken).
+        let starting = base.path().join("starting");
+        std::fs::create_dir_all(&starting).unwrap();
+        sweep(base.path());
+        assert!(starting.exists());
+        File::create(starting.join(LOCK)).unwrap();
+        sweep(base.path());
+        assert!(starting.exists());
     }
 
     #[test]
