@@ -28,21 +28,24 @@ async function spec(t) {
   const press = (scope, text) => `{ const b = [...${scope}.querySelectorAll('button')].find((x) => x.textContent.trim() === ${JSON.stringify(text)}); if (!b) return 'no button ${text}'; b.click(); }`
   const typeTitle = (v) => `{ const i = document.querySelector('input'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(i, ${JSON.stringify(v)}); i.dispatchEvent(new Event('input', { bubbles: true })); }`
 
+  // Windows open slowly on a virtual display (CI): wait for each step
+  // rather than for a fixed time.
+  const ready = (title) => t.until(async () => (await inMemo(`return document.querySelector('input')?.value`)) === title, 30000, 500)
+  const gone = () => t.until(async () => (await inMemo(`return 'here'`))?.gone !== undefined, 15000, 500)
+  const dialogShown = (shown) => t.until(async () => (await inMemo(`return !!document.querySelector('[role="alertdialog"]')`)) === shown, 10000, 250)
+
   window.api.openMemoEditWindow({ memo: memo(), isNew: false, theme })
-  await t.sleep(4000)
-  t.check('the memo window opens', (await inMemo(`return document.querySelector('input')?.value`)) === 'Close test')
+  t.check('the memo window opens', await ready('Close test'))
 
   // 1. Unsaved edit, then close: it asks.
   await inMemo(`${typeTitle('Edited title')} return true`)
   await t.sleep(300)
   await inMemo(`${press('document', 'Cancel')} return true`)
-  await t.sleep(1000)
-  const asked = await inMemo(`return !!document.querySelector('[role="alertdialog"]')`)
-  t.check('closing with an unsaved edit asks first', asked === true, JSON.stringify(asked))
+  t.check('closing with an unsaved edit asks first', await dialogShown(true))
 
   // 2. Cancel in the question: the window stays, edit intact.
   await inMemo(`${press('document.querySelector(\'[role="alertdialog"]\')', 'Cancel')} return true`)
-  await t.sleep(800)
+  await dialogShown(false)
   const after = await inMemo(`return { dialog: !!document.querySelector('[role="alertdialog"]'), title: document.querySelector('input')?.value }`)
   t.check('Cancel keeps the window open, with the edit', after && after.dialog === false && after.title === 'Edited title', JSON.stringify(after))
 
@@ -50,15 +53,11 @@ async function spec(t) {
   await inMemo(`${press('document', 'Save & Close')} return true`)
   await t.until(() => memo()?.title === 'Edited title', 8000)
   t.check('Save & Close saves the edit', memo()?.title === 'Edited title', memo()?.title)
-  await t.sleep(1500)
-  const gone = await inMemo(`return 'still here'`)
-  t.check('…and closes the window', gone && gone.gone !== undefined, JSON.stringify(gone))
+  t.check('…and closes the window', await gone())
 
   // 4. No edits: closing doesn't ask.
   window.api.openMemoEditWindow({ memo: memo(), isNew: false, theme })
-  await t.sleep(4000)
+  await ready('Edited title')
   await inMemo(`${press('document', 'Cancel')} return true`)
-  await t.sleep(1500)
-  const closed = await inMemo(`return { dialog: !!document.querySelector('[role="alertdialog"]') }`)
-  t.check('closing with nothing unsaved closes at once', closed && closed.gone !== undefined, JSON.stringify(closed))
+  t.check('closing with nothing unsaved closes at once', await gone())
 }
