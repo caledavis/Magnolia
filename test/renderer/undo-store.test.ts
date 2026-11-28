@@ -50,3 +50,19 @@ describe('undo capture', () => {
     expect(useCodeStore.getState().codes[0].name).toBe('Start')
   })
 })
+
+describe('undo straight after an edit', () => {
+  it('undoes only that edit, and keeps it for Redo', async () => {
+    useCodeStore.setState({ codes: [code('One')] })
+    await wait(DEBOUNCE)
+    // Within the debounce: this edit isn't a step yet.
+    useCodeStore.setState({ codes: [code('Two')] })
+    useUndoStore.getState().undo()
+    expect(useCodeStore.getState().codes[0].name).toBe('One')
+    // The timer mustn't later push a stale step or empty Redo.
+    await wait(DEBOUNCE)
+    expect(useUndoStore.getState().redoStack).toHaveLength(1)
+    useUndoStore.getState().redo()
+    expect(useCodeStore.getState().codes[0].name).toBe('Two')
+  })
+})

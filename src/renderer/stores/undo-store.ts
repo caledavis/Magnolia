@@ -127,6 +127,7 @@ export const useUndoStore = create<UndoState>((set, get) => ({
   _restoring: false,
 
   undo: () => {
+    flushPendingStep()
     const { undoStack } = get()
     if (undoStack.length === 0) return
     const current = takeSnapshot()
@@ -143,6 +144,7 @@ export const useUndoStore = create<UndoState>((set, get) => ({
   },
 
   redo: () => {
+    flushPendingStep()
     const { redoStack } = get()
     if (redoStack.length === 0) return
     const current = takeSnapshot()
@@ -177,6 +179,22 @@ export const useUndoStore = create<UndoState>((set, get) => ({
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 let lastSnapshot: Snapshot | null = null
 let pendingPreviousSnapshot: Snapshot | null = null
+
+/** Pushes the step still waiting out its debounce, now. Undo and Redo do
+ *  this first: otherwise Undo straight after an edit stepped back past it
+ *  to the edit before (the edit wasn't a step yet), and when the timer
+ *  fired it pushed a stale step and emptied Redo. */
+function flushPendingStep(): void {
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = null
+  if (!pendingPreviousSnapshot) return
+  const s = useUndoStore.getState()
+  useUndoStore.setState({
+    undoStack: [...s.undoStack.slice(-(s.maxHistory - 1)), pendingPreviousSnapshot],
+    redoStack: []
+  })
+  pendingPreviousSnapshot = null
+}
 
 /**
  * A project has been opened or created: Undo starts from it. Without this
@@ -234,16 +252,7 @@ function onStoreChange() {
   lastSnapshot = currentSnap
 
   if (debounceTimer) clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => {
-    if (pendingPreviousSnapshot) {
-      const s = useUndoStore.getState()
-      useUndoStore.setState({
-        undoStack: [...s.undoStack.slice(-(s.maxHistory - 1)), pendingPreviousSnapshot],
-        redoStack: []
-      })
-      pendingPreviousSnapshot = null
-    }
-  }, 500)
+  debounceTimer = setTimeout(flushPendingStep, 500)
 }
 
 useDocumentStore.subscribe(onStoreChange)
