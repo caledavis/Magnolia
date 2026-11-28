@@ -21,6 +21,7 @@ import { useProjectStore } from '../../stores/project-store'
 import { usePreferencesStore } from '../../stores/preferences-store'
 import { codeColourPresetsFor } from '../code-colours'
 import { generateGuid } from '../guid'
+import { codepointSlice } from '../unicode'
 import type { SurveyFormatData, TextSource } from '../../models/types'
 import { buildCellText } from '../survey/cell-text'
 import { documentText } from './tools'
@@ -184,7 +185,9 @@ export function approve(ids: string[]): { applied: number; failed: number } {
         s.startPosition === c.start && s.endPosition === c.end && !s.pdfRegion &&
         (s.surveyCell?.respondentId ?? '') === (c.surveyCell?.respondentId ?? '') &&
         (s.surveyCell?.questionId ?? '') === (c.surveyCell?.questionId ?? ''))
-      const selectionGuid = same?.guid ?? docs.addSelection(c.sourceGuid, c.start, c.end, c.text.slice(0, 80), undefined, c.surveyCell, coder)
+      // Named by its first 80 characters, counted whole: cutting by UTF-16
+      // unit could split an emoji in two.
+      const selectionGuid = same?.guid ?? docs.addSelection(c.sourceGuid, c.start, c.end, codepointSlice(c.text, 0, 80), undefined, c.surveyCell, coder)
       useDocumentStore.getState().addCodingToSelection(c.sourceGuid, selectionGuid, codeGuid, coder)
       ok()
     } else {

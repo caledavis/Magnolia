@@ -123,6 +123,17 @@ describe('notebooks in the document store', () => {
     const moved = useDocumentStore.getState().sources.find((s) => s.guid === guid)!.selections.find((s) => s.guid === sel)!
     expect([moved.startPosition, moved.endPosition]).toEqual([12, 17])
   })
+
+  it('leaves the documents as they were when typing moves no coding', () => {
+    const nb = useDocumentStore.getState().addFolder('NB', null, 'notebook')
+    const guid = useDocumentStore.getState().addNote(nb)
+    useDocumentStore.getState().applyTranscriptEdit(guid, 'The queue was long.')
+    useDocumentStore.getState().addSelection(guid, 4, 9, 'queue')
+    const before = useDocumentStore.getState().sources
+    useDocumentStore.getState().applyTranscriptEdit(guid, 'The queue was long. Then')
+    expect(useDocumentStore.getState().sources).toBe(before)
+    expect(useDocumentStore.getState().sourceContents[guid]).toBe('The queue was long. Then')
+  })
 })
 
 describe('note formatting', () => {

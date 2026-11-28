@@ -941,9 +941,9 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
       return
     }
 
-    set((state) => ({
-      sourceContents: { ...state.sourceContents, [guid]: content },
-      sources: state.sources.map((s) => {
+    set((state) => {
+      let moved = false
+      const sources = state.sources.map((s) => {
         if (s.guid !== guid) return s
         const selections = s.selections.flatMap((sel) => {
           // Every transcript coding — audio AND video — is rendered
@@ -957,13 +957,19 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
           if (sel.pdfRegion || sel.surveyCell) return [sel]
           const next = adjustRange(sel.startPosition, sel.endPosition, edit)
           // Range wholly deleted — drop the now-empty coding.
-          if (!next) return []
+          if (!next) { moved = true; return [] }
           if (next.start === sel.startPosition && next.end === sel.endPosition) return [sel]
+          moved = true
           return [{ ...sel, startPosition: next.start, endPosition: next.end }]
         })
-        return { ...s, selections }
+        return moved ? { ...s, selections } : s
       })
-    }))
+      // Typing past every coding moves none of them: keep the same sources,
+      // so everything that shows them doesn't redraw at each keystroke.
+      return moved
+        ? { sourceContents: { ...state.sourceContents, [guid]: content }, sources }
+        : { sourceContents: { ...state.sourceContents, [guid]: content } }
+    })
 
     // Quotes and content memos anchor to the same codepoint offsets — shift
     // them too so they don't drift out from under the edit.
