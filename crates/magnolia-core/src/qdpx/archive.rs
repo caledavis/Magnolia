@@ -9,6 +9,19 @@ use std::io::{BufReader, Read};
 use std::path::Path;
 use zip::ZipArchive;
 
+/// The most of one entry read whole into memory. A zip says how big each
+/// entry is, but a damaged or crafted one can claim (or inflate to) far
+/// more than it holds — a few kilobytes can unpack to gigabytes — so reads
+/// stop here rather than exhaust memory. Media is never read whole (it's
+/// streamed, see `binary_store`), so these only bound documents, images
+/// and PDFs, and the project's own XML, text and JSON.
+pub const MAX_READ: u64 = 2 << 30;
+/// The same for text (the project's XML, documents' text, side tables),
+/// which is parsed after it's read, taking several times its size again.
+pub const MAX_TEXT_READ: u64 = 512 << 20;
+/// The same for Magnolia's small marker entries (lock, project id, format).
+pub const MAX_MARKER_READ: u64 = 1 << 20;
+
 pub struct Archive {
     zip: ZipArchive<BufReader<File>>,
     /// File (non-directory) entry names, in archive order.
@@ -39,13 +52,20 @@ impl Archive {
     }
 
     pub fn read(&mut self, name: &str) -> Option<Vec<u8>> {
+        self.read_limited(name, MAX_READ)
+    }
+
+    /// An entry's bytes, or `None` if it's missing, unreadable, or more
+    /// than `limit` bytes once unpacked.
+    pub fn read_limited(&mut self, name: &str, limit: u64) -> Option<Vec<u8>> {
         if !self.has(name) {
             return None;
         }
-        let mut f = self.zip.by_name(name).ok()?;
-        let mut buf = Vec::with_capacity(f.size() as usize);
-        f.read_to_end(&mut buf).ok()?;
-        Some(buf)
+        let f = self.zip.by_name(name).ok()?;
+        if f.size() > limit {
+            return None;
+        }
+        read_capped(f, limit).ok()
     }
 
     /// Where an uncompressed entry's bytes sit in the archive file (offset,
@@ -60,12 +80,13 @@ impl Archive {
 
     /// Read a text entry, tolerating Windows-1252 transcripts from other tools.
     pub fn read_text(&mut self, name: &str) -> Option<String> {
-        self.read(name).map(|b| decode_maybe_windows1252(&b))
+        self.read_limited(name, MAX_TEXT_READ)
+            .map(|b| decode_maybe_windows1252(&b))
     }
 
     /// Strict UTF-8 read (lossy on invalid bytes), as JSZip's `'string'` did.
     pub fn read_utf8(&mut self, name: &str) -> Option<String> {
-        self.read(name)
+        self.read_limited(name, MAX_TEXT_READ)
             .map(|b| String::from_utf8_lossy(strip_bom(&b)).into_owned())
     }
 
@@ -92,6 +113,20 @@ impl Archive {
     }
 }
 
+/// Everything `r` yields, or an error once it passes `limit` bytes — for a
+/// zip entry, whose unpacked size can be far beyond what it claims.
+pub fn read_capped(r: impl Read, limit: u64) -> std::io::Result<Vec<u8>> {
+    let mut buf = Vec::new();
+    r.take(limit + 1).read_to_end(&mut buf)?;
+    if buf.len() as u64 > limit {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            "the file unpacks to more than Magnolia can read",
+        ));
+    }
+    Ok(buf)
+}
+
 fn strip_bom(b: &[u8]) -> &[u8] {
     b.strip_prefix(&[0xEF, 0xBB, 0xBF]).unwrap_or(b)
 }
@@ -110,12 +145,15 @@ pub fn detect_sources_dir(names: &[String]) -> String {
 
 /// Decode as UTF-8 when valid, else as Windows-1252 (Atlas.ti writes
 /// transcripts that way; a strict UTF-8 read turns curly quotes into U+FFFD).
+/// A UTF-8 byte-order mark is dropped either way: decoded as Windows-1252
+/// it would become three characters (`ï»¿`) and shift every position in
+/// the text by three.
 pub fn decode_maybe_windows1252(buf: &[u8]) -> String {
     let b = strip_bom(buf);
     match std::str::from_utf8(b) {
         Ok(s) => s.to_string(),
         Err(_) => encoding_rs::WINDOWS_1252
-            .decode_without_bom_handling(buf)
+            .decode_without_bom_handling(b)
             .0
             .into_owned(),
     }

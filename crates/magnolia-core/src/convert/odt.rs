@@ -7,9 +7,10 @@
 //! background colour, lists and tables; anything else degrades to its text.
 
 use super::html::{data_uri, escape, escape_attr, image_mime};
+use crate::qdpx::archive::{MAX_READ, MAX_TEXT_READ, read_capped};
 use roxmltree::Node;
 use std::collections::HashMap;
-use std::io::{Cursor, Read};
+use std::io::Cursor;
 
 const NS: &[(&str, &str)] = &[
     ("urn:oasis:names:tc:opendocument:xmlns:office:1.0", "office"),
@@ -269,10 +270,7 @@ pub fn odt_to_html(bytes: &[u8]) -> Result<String, String> {
         )
     })?;
     let mut read = |name: &str| -> Option<Vec<u8>> {
-        let mut f = zip.by_name(name).ok()?;
-        let mut b = Vec::new();
-        f.read_to_end(&mut b).ok()?;
-        Some(b)
+        read_capped(zip.by_name(name).ok()?, MAX_TEXT_READ).ok()
     };
     let content = read("content.xml")
         .ok_or_else(|| crate::message::tr("odtNoContent", "This file is damaged or isn’t really an OpenDocument text file. Try opening it in LibreOffice or Word and saving it again as .odt.", &[]))?;
@@ -290,9 +288,8 @@ pub fn odt_to_html(bytes: &[u8]) -> Result<String, String> {
         .iter()
         .filter(|n| n.starts_with("Pictures/") && !n.ends_with('/'))
     {
-        let mut f = zip.by_name(name).map_err(|e| e.to_string())?;
-        let mut b = Vec::new();
-        f.read_to_end(&mut b).map_err(|e| e.to_string())?;
+        let f = zip.by_name(name).map_err(|e| e.to_string())?;
+        let b = read_capped(f, MAX_READ).map_err(|e| e.to_string())?;
         let ext = crate::util::ext_of(name);
         let mime = if ext == "svg" {
             "image/svg+xml"

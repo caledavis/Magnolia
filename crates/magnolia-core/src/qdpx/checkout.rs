@@ -161,7 +161,7 @@ pub fn write_checkout_marker(
 ) -> std::io::Result<CheckoutWriteResult> {
     let mut src = Archive::open(path)?;
 
-    let existing_id = src.read(PROJECT_ID_ENTRY).and_then(|b| parse_project_id(&b));
+    let existing_id = src.read_limited(PROJECT_ID_ENTRY, super::archive::MAX_MARKER_READ).and_then(|b| parse_project_id(&b));
     let has_id = existing_id.is_some();
     let project_id = existing_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
 
@@ -173,7 +173,7 @@ pub fn write_checkout_marker(
     };
 
     if !bypass {
-        let current = src.read(LOCK_ENTRY).and_then(|b| parse_lock_entry(&b));
+        let current = src.read_limited(LOCK_ENTRY, super::archive::MAX_MARKER_READ).and_then(|b| parse_lock_entry(&b));
         if let Some(other) = held_by_other(current) {
             return Ok(CheckoutWriteResult {
                 ok: false,

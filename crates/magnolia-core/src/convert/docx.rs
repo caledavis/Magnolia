@@ -8,9 +8,10 @@
 //! changes are skipped, as mammoth did.
 
 use super::html::{data_uri, escape, escape_attr, image_mime};
+use crate::qdpx::archive::{MAX_READ, MAX_TEXT_READ, read_capped};
 use roxmltree::{Document, Node};
 use std::collections::HashMap;
-use std::io::{Cursor, Read};
+use std::io::Cursor;
 
 const W: &str = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 const R: &str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
@@ -45,9 +46,8 @@ struct Ctx<'a, 'i> {
 }
 
 fn read_entry(zip: &mut zip::ZipArchive<Cursor<&[u8]>>, name: &str) -> Option<String> {
-    let mut f = zip.by_name(name).ok()?;
-    let mut b = Vec::new();
-    f.read_to_end(&mut b).ok()?;
+    let f = zip.by_name(name).ok()?;
+    let b = read_capped(f, MAX_TEXT_READ).ok()?;
     Some(String::from_utf8_lossy(&b).into_owned())
 }
 
@@ -69,7 +69,7 @@ pub fn docx_to_html(bytes: &[u8]) -> Result<String, String> {
     let endnotes_xml = read_entry(&mut zip, "word/endnotes.xml").unwrap_or_default();
 
     let mut rels = HashMap::new();
-    if let Ok(d) = Document::parse(&rels_xml) {
+    if let Ok(d) = crate::xml_read::parse(&rels_xml) {
         for r in d
             .descendants()
             .filter(|n| n.tag_name().name() == "Relationship")
@@ -86,16 +86,15 @@ pub fn docx_to_html(bytes: &[u8]) -> Result<String, String> {
         } else {
             format!("word/{target}")
         };
-        if let Ok(mut f) = zip.by_name(&path) {
-            let mut b = Vec::new();
-            if f.read_to_end(&mut b).is_ok() {
-                media.insert(target.clone(), b);
-            }
+        if let Ok(f) = zip.by_name(&path)
+            && let Ok(b) = read_capped(f, MAX_READ)
+        {
+            media.insert(target.clone(), b);
         }
     }
 
     let mut style_names = HashMap::new();
-    if let Ok(d) = Document::parse(&styles_xml) {
+    if let Ok(d) = crate::xml_read::parse(&styles_xml) {
         for s in d.descendants().filter(|n| is(*n, "style")) {
             if let (Some(id), Some(name)) = (
                 w_attr(s, "styleId"),
@@ -107,7 +106,7 @@ pub fn docx_to_html(bytes: &[u8]) -> Result<String, String> {
     }
 
     let mut numbering = HashMap::new();
-    if let Ok(d) = Document::parse(&numbering_xml) {
+    if let Ok(d) = crate::xml_read::parse(&numbering_xml) {
         let mut abstracts: HashMap<String, HashMap<String, bool>> = HashMap::new();
         for a in d.descendants().filter(|n| is(*n, "abstractNum")) {
             let levels = a
@@ -131,15 +130,15 @@ pub fn docx_to_html(bytes: &[u8]) -> Result<String, String> {
         }
     }
 
-    let doc = Document::parse(&document).map_err(|e| {
+    let doc = crate::xml_read::parse(&document).map_err(|e| {
         crate::message::tr(
             "invalidDocxDocument",
             "This file is damaged or isn’t really a Word document. Try opening it in Word and saving it again as .docx.",
             &[("detail", &e.to_string())],
         )
     })?;
-    let fdoc = Document::parse(&footnotes_xml).ok();
-    let edoc = Document::parse(&endnotes_xml).ok();
+    let fdoc = crate::xml_read::parse(&footnotes_xml).ok();
+    let edoc = crate::xml_read::parse(&endnotes_xml).ok();
 
     let body = doc
         .descendants()

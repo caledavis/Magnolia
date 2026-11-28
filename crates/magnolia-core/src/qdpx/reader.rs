@@ -165,7 +165,8 @@ fn take(o: &mut Value, key: &str) -> Option<Value> {
 }
 
 fn json_entry(a: &mut Archive, name: &str) -> Option<Value> {
-    a.read(name).and_then(|b| serde_json::from_slice(&b).ok())
+    a.read_limited(name, super::archive::MAX_TEXT_READ)
+        .and_then(|b| serde_json::from_slice(&b).ok())
 }
 
 pub fn read_qdpx(path: &Path, progress: Option<Progress>) -> Result<Value, String> {
@@ -669,7 +670,7 @@ fn restore_side_tables(
         project["ai"] = v;
     }
     if let Some(ext) = json_entry(zip, "magnolia-tags.json") {
-        if let Some(c) = ext.get("categories").filter(|v| truthy(v)) {
+        if let Some(c) = ext.get("categories").filter(|v| v.is_array()) {
             project["tagCategories"] = c.clone();
         }
         if let (Some(meta), Some(sets)) = (
@@ -677,10 +678,16 @@ fn restore_side_tables(
             project.get_mut("sets").and_then(Value::as_array_mut),
         ) {
             for m in meta {
-                let Some(set) = sets.iter_mut().find(|s| s.get("guid") == m.get("guid")) else {
+                let Some(guid) = get_str(m, "guid") else {
                     continue;
                 };
-                let so = set.as_object_mut().unwrap();
+                let Some(so) = sets
+                    .iter_mut()
+                    .find(|s| get_str(s, "guid") == Some(guid))
+                    .and_then(Value::as_object_mut)
+                else {
+                    continue;
+                };
                 for k in ["categoryGuid", "value"] {
                     match m.get(k) {
                         Some(v) => so.insert(k.into(), v.clone()),
@@ -1028,16 +1035,23 @@ fn apply_source_meta(
         }
     }
     if let Some(cells) = meta.get("surveyCellSelections").and_then(Value::as_array) {
+        // Only selections (objects): anything else is from a fault or a
+        // crafted file, and would crash whatever reads them as selections.
         source["selections"]
             .as_array_mut()
             .unwrap()
-            .extend(cells.iter().cloned());
+            .extend(cells.iter().filter(|c| c.is_object()).cloned());
     }
     // Video codings' char anchors (legacy files stored whole lines).
     if let Some(anchors) = meta.get("videoSelectionAnchors").and_then(Value::as_array) {
         let line_offsets = line_start_offsets_with_end(text);
         for sel in source["selections"].as_array_mut().unwrap() {
-            let Some(a) = anchors.iter().find(|a| a.get("guid") == sel.get("guid")) else {
+            // Matched by guid, so an anchor and a selection that both lack
+            // one aren't taken for each other.
+            let Some(guid) = get_str(sel, "guid") else {
+                continue;
+            };
+            let Some(a) = anchors.iter().find(|a| get_str(a, "guid") == Some(guid)) else {
                 continue;
             };
             if let Some(sc) = a.get("startChar").filter(|v| !v.is_null()) {

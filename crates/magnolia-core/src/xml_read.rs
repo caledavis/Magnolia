@@ -27,14 +27,64 @@ pub fn repair_if_needed(xml: &str) -> std::borrow::Cow<'_, str> {
     }
 }
 
-pub fn parse(xml: &str) -> Result<roxmltree::Document<'_>, roxmltree::Error> {
-    roxmltree::Document::parse_with_options(
+/// How deeply elements may nest. Reading a file walks its elements
+/// recursively (a code within a code within a code…), so a file nested
+/// deeper than any real one could run out of stack and crash Magnolia;
+/// such a file is refused instead.
+pub const MAX_DEPTH: usize = 256;
+
+#[derive(Debug)]
+pub enum XmlError {
+    Parse(roxmltree::Error),
+    /// The file declares entities (`<!ENTITY …>`), refused: one small file
+    /// can expand them into gigabytes. No QDA program's files use them.
+    Entities,
+    TooDeep,
+}
+
+impl std::fmt::Display for XmlError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            XmlError::Parse(e) => e.fmt(f),
+            XmlError::Entities => f.write_str("entity declarations aren’t supported"),
+            XmlError::TooDeep => write!(f, "elements are nested more than {MAX_DEPTH} deep"),
+        }
+    }
+}
+
+pub fn parse(xml: &str) -> Result<roxmltree::Document<'_>, XmlError> {
+    // A DOCTYPE alone is harmless and still read; entities are what can
+    // blow up. They can only be declared in one, so look no further when
+    // there's none.
+    if xml.contains("<!DOCTYPE") && xml.contains("<!ENTITY") {
+        return Err(XmlError::Entities);
+    }
+    let doc = roxmltree::Document::parse_with_options(
         xml,
         roxmltree::ParsingOptions {
             allow_dtd: true,
             ..Default::default()
         },
     )
+    .map_err(XmlError::Parse)?;
+    // Each node's depth from its parent's: nodes come in document order, so
+    // a parent's is always known first. (No recursion here, of course.)
+    let mut depth: Vec<usize> = Vec::new();
+    for n in doc.root().descendants() {
+        let d = n
+            .parent()
+            .and_then(|p| depth.get(p.id().get_usize()))
+            .map_or(0, |d| d + 1);
+        if d > MAX_DEPTH {
+            return Err(XmlError::TooDeep);
+        }
+        let i = n.id().get_usize();
+        if depth.len() <= i {
+            depth.resize(i + 1, 0);
+        }
+        depth[i] = d;
+    }
+    Ok(doc)
 }
 
 /// The rewrite behind [`repair_if_needed`]; `None` when the text is unchanged.

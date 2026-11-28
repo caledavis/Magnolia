@@ -228,7 +228,9 @@ pub fn restore_from_backup(project: &mut Value) {
     let mut sets: Vec<Value> = get_arr(project, "sets").to_vec();
     for cat in &categories {
         let cat_guid = normalize_guid(get_str(cat, "guid"));
-        for backup in get_arr(cat, BACKUP_FIELD) {
+        // A tag is an object; anything else is from a fault or a crafted
+        // file, and is skipped rather than crash the read.
+        for backup in get_arr(cat, BACKUP_FIELD).iter().filter(|t| t.is_object()) {
             let mut tag = backup.clone();
             tag["memberSourceGuids"] = keep_ids(get_arr(backup, "memberSourceGuids"), &documents).into();
             tag["memberCodeGuids"] = keep_ids(get_arr(backup, "memberCodeGuids"), &codes).into();

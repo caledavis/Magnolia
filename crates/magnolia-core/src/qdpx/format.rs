@@ -53,7 +53,7 @@ pub fn newer_format_at(path: &Path) -> Option<NewerFormat> {
 
 /// An open archive, if it's from a newer format.
 pub fn newer_format_in(archive: &mut Archive) -> Option<NewerFormat> {
-    newer(archive.read(FORMAT_ENTRY))
+    newer(archive.read_limited(FORMAT_ENTRY, super::archive::MAX_MARKER_READ))
 }
 
 #[cfg(test)]
