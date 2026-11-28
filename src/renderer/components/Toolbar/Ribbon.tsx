@@ -1,6 +1,5 @@
 /**
- * Ribbon — an Office-style tabbed toolbar, shown when Preferences →
- * Appearance → Toolbar Style is "Ribbon". Adapted from the ribbon in
+ * Ribbon — Magnolia's toolbar, Office-style and tabbed. Adapted from the ribbon in
  * labiia_quali (https://github.com/cardososampaio/labiia_quali_magnolia,
  * EUPL-1.2), a fork of Magnolia.
  *

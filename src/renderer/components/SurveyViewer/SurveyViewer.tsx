@@ -76,7 +76,7 @@ import { Icon, faCheck } from '../Icon'
 import { MemoFab } from '../Memos/MemoFab'
 import { cleanCellText, buildCellText } from '../../utils/survey/cell-text'
 import { exportPdfWithHeader, buildPdfDocument, escHtml } from '../../utils/pdf-export'
-import { COLOURFUL_CODE_COLOURS } from '../../utils/code-colours'
+import { STANDARD_CODE_COLOURS } from '../../utils/code-colours'
 import { ExportMenuButton, usePdfExportItems } from '../DocumentViewer/DocumentToolbar'
 import { SelectionMenuButton, textSelectionAnchor } from '../DocumentViewer/SelectionMenuButton'
 import { ApplyCodeMenuList } from '../DocumentViewer/ApplyCodeMenuList'
@@ -776,7 +776,7 @@ function OptionListCell({
  *  coral, teal, violet, gold…). Cycles if a question has more options
  *  than colours. Kept fixed rather than derived from --accent so
  *  segments don't all collapse to one hue. */
-const SEGMENT_PALETTE = [COLOURFUL_CODE_COLOURS[1], COLOURFUL_CODE_COLOURS[0], ...COLOURFUL_CODE_COLOURS.slice(2, 10)]
+const SEGMENT_PALETTE = [STANDARD_CODE_COLOURS[1], STANDARD_CODE_COLOURS[0], ...STANDARD_CODE_COLOURS.slice(2, 10)]
 
 function segmentColor(index: number): string {
   return SEGMENT_PALETTE[index % SEGMENT_PALETTE.length]

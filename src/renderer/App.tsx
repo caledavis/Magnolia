@@ -1944,8 +1944,8 @@ function App() {
   useLogbookMessages()
 
 
-  // ── Ribbon (Toolbar Style "Ribbon") ── Every button runs the same
-  // action as its counterpart in the icon toolbar and its popovers.
+  // ── Ribbon, the toolbar (components/Toolbar/Ribbon.tsx) ── What each
+  // of its buttons runs.
   const lockedReason = checkoutLockedBy ? checkoutLockedTitle(checkoutLockedBy) : undefined
   const toolButton = (toolType: AnalysisToolType): RibbonButtonDef => {
     const def = TOOL_REGISTRY[toolType]

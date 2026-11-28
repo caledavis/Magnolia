@@ -4,7 +4,6 @@
  */
 import { create } from 'zustand'
 import { normaliseThemeId, type ThemeId } from '../utils/theme-id'
-import { COLOURFUL_INTERFACE_ENABLED, colourfulInterfaceFromSaved } from '../utils/colourful-interface'
 import { normaliseLanguagePreference, type LanguagePreference } from '../i18n'
 
 export interface FootPedalMappings {
@@ -30,9 +29,6 @@ export interface Preferences {
   interfaceScale: number
   /** Shown to teammates when this user checks out a shared project. */
   userName: string
-  /** Dark toolbar plus colour-coded icons (see the
-   *  [data-colourful] rules in global.css). */
-  colourfulInterface: boolean
   /** The interface language, or "system" to follow the computer's (see
    *  i18n/index.ts). */
   language: LanguagePreference
@@ -53,7 +49,6 @@ const DEFAULT_PREFERENCES: Preferences = {
   paperSize: 'A4',
   interfaceScale: 1,
   userName: '',
-  colourfulInterface: COLOURFUL_INTERFACE_ENABLED,
   language: 'system',
   aiAppsEnabled: false
 }
@@ -67,7 +62,6 @@ interface PreferencesState extends Preferences {
   setTheme: (theme: ThemeId) => void
   setInterfaceScale: (scale: number) => void
   setUserName: (userName: string) => void
-  setColourfulInterface: (colourfulInterface: boolean) => void
 }
 
 export const usePreferencesStore = create<PreferencesState>((set, get) => ({
@@ -85,7 +79,6 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
           paperSize: (prefs.paperSize ?? DEFAULT_PREFERENCES.paperSize) as PaperSize,
           interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
           userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
-          colourfulInterface: colourfulInterfaceFromSaved(prefs.colourfulInterface),
           language: normaliseLanguagePreference(prefs.language),
           aiAppsEnabled: prefs.aiAppsEnabled === true,
           loaded: true
@@ -99,9 +92,9 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   },
 
   save: async () => {
-    const { footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, colourfulInterface, language, aiAppsEnabled } = get()
+    const { footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, language, aiAppsEnabled } = get()
     try {
-      await window.api.savePreferences({ footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, colourfulInterface, language, aiAppsEnabled })
+      await window.api.savePreferences({ footPedalMappings, defaultPlaybackSpeed, theme, paperSize, interfaceScale, userName, language, aiAppsEnabled })
     } catch { /* ignore */ }
   },
 
@@ -131,11 +124,6 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   setUserName: (userName) => {
     set({ userName })
     setTimeout(() => get().save(), 0)
-  },
-
-  setColourfulInterface: (colourfulInterface) => {
-    set({ colourfulInterface })
-    setTimeout(() => get().save(), 0)
   }
 }))
 
@@ -162,7 +150,6 @@ if (typeof window !== 'undefined' && window.api?.onPreferencesUpdate) {
       paperSize: (prefs.paperSize ?? DEFAULT_PREFERENCES.paperSize) as PaperSize,
       interfaceScale: typeof prefs.interfaceScale === 'number' ? prefs.interfaceScale : DEFAULT_PREFERENCES.interfaceScale,
       userName: typeof prefs.userName === 'string' ? prefs.userName : DEFAULT_PREFERENCES.userName,
-      colourfulInterface: colourfulInterfaceFromSaved(prefs.colourfulInterface),
       language: normaliseLanguagePreference(prefs.language),
       aiAppsEnabled: prefs.aiAppsEnabled === true,
       loaded: true

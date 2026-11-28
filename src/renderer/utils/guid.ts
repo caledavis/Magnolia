@@ -13,7 +13,3 @@ import { v4 as uuidv4 } from 'uuid'
 export function generateGuid(): string {
   return uuidv4().toUpperCase()
 }
-
-export function normalizeGuid(guid: string): string {
-  return guid.replace(/[{}]/g, '').toUpperCase()
-}

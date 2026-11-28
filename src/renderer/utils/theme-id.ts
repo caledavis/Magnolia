@@ -7,13 +7,10 @@ export type ThemeId = (typeof THEME_IDS)[number]
 
 export const DEFAULT_THEME: ThemeId = 'magnolia'
 
-/** Themes that have been removed: Clean (''), Clean Dark ('dark'),
- *  Granola and Granola Dark. A saved one opens in the Magnolia theme of
- *  the same lightness. */
-const DARK_REMOVED_THEMES = new Set(['dark', 'granola-dark'])
-
-/** A saved theme id, or the closest theme Magnolia still offers. */
+/** A saved theme id, or the closest theme Magnolia still offers: a theme
+ *  since removed opens in the Magnolia theme of the same lightness, dark
+ *  for one whose id ends in "dark" (as every removed dark theme's did). */
 export function normaliseThemeId(value: unknown): ThemeId {
   if ((THEME_IDS as readonly unknown[]).includes(value)) return value as ThemeId
-  return DARK_REMOVED_THEMES.has(value as string) ? 'magnolia-dark' : DEFAULT_THEME
+  return typeof value === 'string' && /(^|-)dark$/.test(value) ? 'magnolia-dark' : DEFAULT_THEME
 }

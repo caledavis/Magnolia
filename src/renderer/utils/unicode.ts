@@ -16,19 +16,6 @@ export function codepointSlice(text: string, start: number, end: number): string
 }
 
 /**
- * Converts a codepoint position to a JavaScript string character index.
- * Needed because JS string indices count UTF-16 code units.
- */
-export function codepointToCharIndex(text: string, codepointPos: number): number {
-  const codepoints = [...text]
-  let charIndex = 0
-  for (let i = 0; i < codepointPos && i < codepoints.length; i++) {
-    charIndex += codepoints[i].length // .length in JS gives code units
-  }
-  return charIndex
-}
-
-/**
  * Number of codepoints in text.slice(from, to), without copying it —
  * each surrogate pair counts once.
  */
@@ -43,20 +30,6 @@ export function codepointCount(text: string, from: number, to: number): number {
     n++
   }
   return n
-}
-
-/**
- * Converts a JavaScript character index to a codepoint position.
- */
-export function charIndexToCodepoint(text: string, charIndex: number): number {
-  let cpCount = 0
-  let ci = 0
-  for (const cp of text) {
-    if (ci >= charIndex) break
-    ci += cp.length
-    cpCount++
-  }
-  return cpCount
 }
 
 /**

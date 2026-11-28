@@ -11,7 +11,7 @@
  *   - config (the most recent serialised tool config; for ad-hoc tabs this
  *     is what gets persisted into magnolia-tabs.json so the tab rehydrates
  *     on next project open)
- *   - poppedOut (true while the tool is open in its own BrowserWindow; the
+ *   - poppedOut (true while the tool is open in its own window; the
  *     tab is hidden in that case so we don't double-render)
  *
  * `perToolCounters` records the next ad-hoc number per tool ("Code
@@ -56,7 +56,7 @@ export interface AnalysisTabInstance {
   /** Last config the tool reported (or seeded from a SavedAnalysis on open).
    *  Persisted so an ad-hoc tab survives project save → reopen. */
   config: ToolConfig | undefined
-  /** True while the tool is open in its own popped-out BrowserWindow. */
+  /** True while the tool is open in its own popped-out window. */
   poppedOut: boolean
   /** True when the tool has unsaved edits relative to its last save (or
    *  to the empty defaults for never-saved tools). Drives the unsaved-

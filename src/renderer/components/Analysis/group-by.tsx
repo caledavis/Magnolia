@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, type Dispatch, type SetStateAction } fr
 import type { AnalysisInitData } from '../../models/types'
 import { Icon, faXmark, faFolder, faNotebookPen, faTag, faTags, faUser } from '../Icon'
 import { useTranslation } from 'react-i18next'
-import { t } from '../../i18n'
 import { keyActivate } from '../../utils/key-activate'
 
 /** Drag MIME emitted by the Document Browser's survey "Respondents"
@@ -30,13 +29,6 @@ export type GroupByEntry =
   // surveyGuid — saved before entries were per survey — covers every
   // survey. Non-survey documents are unaffected.
   | { kind: 'respondents'; surveyGuid?: string; name?: string }
-
-export interface GroupedSlot {
-  id: string
-  label: string
-  sourceGuids: string[]
-  isSubtotal?: boolean
-}
 
 export interface GroupedHeader {
   id: string
@@ -183,94 +175,6 @@ export function descendantFolderGuids(folders: AnalysisInitData['folders'], root
 export function migrateLegacyGroupBy(legacyTags: string[] | undefined): GroupByEntry[] {
   if (!legacyTags || legacyTags.length === 0) return []
   return legacyTags.map((tagGuid) => ({ kind: 'tag' as const, tagGuid }))
-}
-
-export interface BuildSlotsOptions {
-  /** Eligible source guids (what the analysis is currently viewing). */
-  candidateSourceGuids: string[]
-  /** Map of source guid -> display name; used for folder leaves. */
-  sourceMap: Map<string, string>
-  /** Whether to include category/folder subtotal slots. Tools that show
-   *  averages/percentages may set this false because a "sum" is
-   *  semantically ambiguous for those values. */
-  includeSubtotals?: boolean
-  /** Whether to append a trailing "Other" slot for candidate sources
-   *  that fell into none of the explicit groups. */
-  includeOther?: boolean
-}
-
-/** Walk a GroupByEntry list and produce a flat slot list (which the
- *  analysis renders as either columns or rows) plus a parallel
- *  `headerGroups` describing category/folder bands and their spans. */
-export function buildGroupedSlots(
-  groupBy: GroupByEntry[],
-  data: Pick<AnalysisInitData, 'tags' | 'categories' | 'folders' | 'tagMembers' | 'sourceFolder'>,
-  opts: BuildSlotsOptions
-): { slots: GroupedSlot[]; headerGroups: GroupedHeader[]; hasGroupedHeader: boolean } {
-  const includeSubtotals = opts.includeSubtotals !== false
-  const includeOther = opts.includeOther !== false
-  const slots: GroupedSlot[] = []
-  const groups: GroupedHeader[] = []
-  for (const entry of groupBy) {
-    if (entry.kind === 'tag') {
-      const tag = data.tags.find((t) => t.guid === entry.tagGuid)
-      if (!tag) continue
-      const members = (data.tagMembers[entry.tagGuid] || []).filter((g) => opts.candidateSourceGuids.includes(g))
-      slots.push({ id: `tag:${entry.tagGuid}`, label: tag.value || tag.name || t('common.tag'), sourceGuids: members })
-      groups.push({ id: `tag:${entry.tagGuid}`, label: null, span: 1 })
-    } else if (entry.kind === 'category') {
-      const cat = data.categories.find((c) => c.guid === entry.categoryGuid)
-      if (!cat) continue
-      const childTags = data.tags.filter((t) => t.categoryGuid === entry.categoryGuid)
-      if (childTags.length === 0) continue
-      const before = slots.length
-      for (const tag of childTags) {
-        const members = (data.tagMembers[tag.guid] || []).filter((g) => opts.candidateSourceGuids.includes(g))
-        slots.push({ id: `cat:${entry.categoryGuid}:tag:${tag.guid}`, label: tag.value || tag.name || t('common.tag'), sourceGuids: members })
-      }
-      if (includeSubtotals) {
-        // Union of every child-tag's members so a doc tagged with
-        // multiple of the category's tags is counted once.
-        const subtotalSet = new Set<string>()
-        for (const tag of childTags) {
-          for (const g of (data.tagMembers[tag.guid] || [])) {
-            if (opts.candidateSourceGuids.includes(g)) subtotalSet.add(g)
-          }
-        }
-        slots.push({ id: `cat:${entry.categoryGuid}:subtotal`, label: t('analysis.subtotal'), sourceGuids: Array.from(subtotalSet), isSubtotal: true })
-      }
-      groups.push({ id: `cat:${entry.categoryGuid}`, label: cat.name, span: slots.length - before })
-    } else if (entry.kind === 'folder') {
-      const folder = (data.folders || []).find((f) => f.guid === entry.folderGuid)
-      if (!folder) continue
-      const folderSet = descendantFolderGuids(data.folders || [], entry.folderGuid)
-      const folderDocs = opts.candidateSourceGuids.filter((g) => {
-        const fg = data.sourceFolder?.[g]
-        return fg ? folderSet.has(fg) : false
-      })
-      if (folderDocs.length === 0) continue
-      const before = slots.length
-      for (const docGuid of folderDocs) {
-        slots.push({ id: `folder:${entry.folderGuid}:doc:${docGuid}`, label: opts.sourceMap.get(docGuid) || t('common.document'), sourceGuids: [docGuid] })
-      }
-      if (includeSubtotals) {
-        slots.push({ id: `folder:${entry.folderGuid}:subtotal`, label: t('analysis.subtotal'), sourceGuids: [...folderDocs], isSubtotal: true })
-      }
-      groups.push({ id: `folder:${entry.folderGuid}`, label: folder.name, span: slots.length - before })
-    }
-  }
-  if (includeOther) {
-    // Ignore subtotal slots when computing the catch-all — a doc that
-    // landed in a subtotal is already in one of the category's tag slots.
-    const taggedGuids = new Set(slots.filter((s) => !s.isSubtotal).flatMap((s) => s.sourceGuids))
-    const otherGuids = opts.candidateSourceGuids.filter((g) => !taggedGuids.has(g))
-    if (otherGuids.length > 0) {
-      slots.push({ id: '__other', label: t('analysis.other'), sourceGuids: otherGuids })
-      groups.push({ id: '__other', label: null, span: 1 })
-    }
-  }
-  const hasGroupedHeader = groups.some((g) => g.label !== null)
-  return { slots, headerGroups: groups, hasGroupedHeader }
 }
 
 /** Inline chip cluster for the "Group by" drop zone. Renders one chip

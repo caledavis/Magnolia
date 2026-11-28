@@ -34,9 +34,7 @@ export interface ToolDef {
   icon: IconComponent
   label: string
   color: string
-  /** One-line summary shown in the toolbar Analysis popover's tile
-   *  grid. Optional so existing call sites that only need icon/label/
-   *  color don't have to provide one. */
+  /** One-line summary: the tool's ribbon button's tooltip. */
   description?: string
 }
 
@@ -67,5 +65,3 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = {
 export const toolColors: Record<string, string> = Object.fromEntries(
   Object.entries(TOOL_REGISTRY).map(([key, def]) => [key, def.color])
 )
-
-export type ToolColorKey = keyof typeof TOOL_REGISTRY

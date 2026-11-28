@@ -93,8 +93,6 @@ export interface RelationshipMapConfig {
   pan: { x: number; y: number }
 }
 
-export type AnyNode = MapElement | FreeTextElement
-
 /** Default element dimensions per kind.
  *  Simple entities (document, code, query, tag, tag-category, analysis)
  *  render as chips — short pill-shaped rows. Content-bearing kinds (memo,

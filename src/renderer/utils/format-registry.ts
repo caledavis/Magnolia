@@ -51,14 +51,6 @@ export function getFormat(sourceType?: string): FormatDef {
   return FORMAT_MAP.get(sourceType || 'text') || plainTextFormat
 }
 
-export function allImportExtensions(): string[] {
-  return [...ALL_FORMATS.flatMap((f) => f.extensions), 'docx', 'rtf', 'odt', 'doc']
-}
-
-export function importFilterLabel(): string {
-  return ALL_FORMATS.filter((f) => f.extensions.length > 0).map((f) => f.label).join(' & ') + ' & Word / RTF / ODT Documents'
-}
-
 // Extensions that are converted to PDF on import (treated as PDF in the
 // viewer). Legacy .doc is also listed — the main-process reader catches
 // it and returns a readable "save as .docx first" error, instead of

@@ -240,7 +240,7 @@ export function ImageDocumentViewer({ source }: Props) {
     setZoom(fitZoomRef.current)
   }, [computeFitZoom])
 
-  // Cmd/Ctrl + wheel zoom — same multiplicative-step UX as RelationshipMap.
+  // Cmd/Ctrl + wheel zoom — same multiplicative-step UX as the relationship map (MapCanvas).
   // Native addEventListener with passive:false so preventDefault works.
   useEffect(() => {
     const el = scrollContainerRef.current

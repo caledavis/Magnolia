@@ -11,14 +11,12 @@
  * These only apply when no theme has been saved yet; any saved value
  * wins.
  */
-import { colourfulInterfaceFromSaved } from './colourful-interface'
 import { normaliseThemeId } from './theme-id'
 
 export async function applyStoredAppearance(): Promise<void> {
   let theme = 'magnolia'
   let hadSavedTheme = false
   let interfaceScale = 1
-  let colourful = colourfulInterfaceFromSaved(undefined)
   try {
     const prefs = await window.api.loadPreferences()
     if (prefs && typeof prefs === 'object') {
@@ -29,7 +27,6 @@ export async function applyStoredAppearance(): Promise<void> {
       if ('interfaceScale' in prefs && typeof (prefs as { interfaceScale: unknown }).interfaceScale === 'number') {
         interfaceScale = (prefs as { interfaceScale: number }).interfaceScale
       }
-      colourful = colourfulInterfaceFromSaved((prefs as { colourfulInterface?: unknown }).colourfulInterface)
     }
   } catch {
     /* fall through to defaults */
@@ -55,11 +52,7 @@ export async function applyStoredAppearance(): Promise<void> {
   }
 
   document.documentElement.setAttribute('data-theme', theme)
-  document.documentElement.toggleAttribute('data-colourful', colourful)
 }
-
-/** Backwards-compatible alias for callers that only know about themes. */
-export const applyStoredTheme = applyStoredAppearance
 
 /** Install live listeners so theme broadcasts from any other window
  *  (e.g. Preferences) update this window without a reload. Also

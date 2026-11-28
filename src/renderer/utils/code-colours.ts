@@ -13,9 +13,8 @@ export const CLASSIC_CODE_COLOURS: readonly string[] = [
 /** The standard presets, built around the icon palette (global.css,
  *  "Icon palette"): its coral (red) and blue lead, and its gold joins
  *  colours of the same weight, so coded text sits comfortably next to
- *  the icons. Lower-case, since nextCodeColour compares lower-case.
- *  (Originally made for the Colourful interface, hence the name.) */
-export const COLOURFUL_CODE_COLOURS: readonly string[] = [
+ *  the icons. Lower-case, since nextCodeColour compares lower-case. */
+export const STANDARD_CODE_COLOURS: readonly string[] = [
   '#e5674b', // coral, the palette's red (icon palette)
   '#3a78d8', // blue (icon palette)
   '#2a9d8f', // teal
@@ -33,13 +32,12 @@ export const COLOURFUL_CODE_COLOURS: readonly string[] = [
   '#7aa35a'  // sage
 ]
 
-export function codeColourPresets(colourful: boolean): readonly string[] {
-  return colourful ? COLOURFUL_CODE_COLOURS : CLASSIC_CODE_COLOURS
+export function codeColourPresets(takesColour: boolean): readonly string[] {
+  return takesColour ? STANDARD_CODE_COLOURS : CLASSIC_CODE_COLOURS
 }
 
-/** Code colour presets for the given preferences: the Colourful set, or
- *  classic on the theme that doesn't take colour (High Contrast).
- *  Independent of the Colourful interface preference. */
+/** Code colour presets for the given preferences: the standard set, or
+ *  classic on the theme that doesn't take colour (High Contrast). */
 export function codeColourPresetsFor(prefs: { theme: string }): readonly string[] {
   return codeColourPresets(themeTakesColour(prefs.theme))
 }
@@ -72,7 +70,7 @@ export function visualBoxColour(ratio: number): string {
 /** visualBoxColour as a plain hex colour, for exported reports, mixed
  *  with their empty box's grey (#e9eef5). */
 export function visualBoxHex(ratio: number): string {
-  const from = [0xe5, 0x67, 0x4b] // coral, COLOURFUL_CODE_COLOURS[0]
+  const from = [0xe5, 0x67, 0x4b] // coral, STANDARD_CODE_COLOURS[0]
   const to = [0xe9, 0xee, 0xf5]
   const t = visualStrength(ratio) / 100
   return '#' + from.map((c, i) => Math.round(c * t + to[i] * (1 - t)).toString(16).padStart(2, '0')).join('')

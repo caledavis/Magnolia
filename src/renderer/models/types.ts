@@ -916,12 +916,6 @@ export interface MagnoliaAPI {
   mcpClaudeDesktopFound: () => Promise<boolean>
 }
 
-export interface AiToolSpec {
-  name: string
-  description: string
-  schema: Record<string, unknown>
-}
-
 export interface CodebookInitData {
   codes: Code[]
   /** Coded segments per code guid, for the counts in the code list. */
@@ -1013,8 +1007,6 @@ export interface MemoEditInitData {
   /** When true, the memo hasn't been persisted yet — save creates it */
   isNew?: boolean
 }
-
-export type MemosWindowAction = keyof MemosWindowMessages
 
 export interface MemosWindowData {
   memos: Memo[]

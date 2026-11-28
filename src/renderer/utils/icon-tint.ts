@@ -34,9 +34,8 @@ export function iconTintKindForSourceType(sourceType: string): IconTintKind {
   return 'text'
 }
 
-/** True when the current theme takes coloured icons. They're always on,
- *  independent of the Colourful interface preference (which now governs
- *  only the toolbar) — except on High Contrast. */
+/** True when the current theme takes coloured icons: every theme but
+ *  High Contrast. */
 export function useIconColourActive(): boolean {
   return usePreferencesStore((s) => themeTakesColour(s.theme))
 }
@@ -53,11 +52,11 @@ export function themeTakesColour(theme: string): boolean {
  * High Contrast it returns {}, so the muted default stands.
  */
 export function useIconTint(): (kind: IconTintKind) => CSSProperties {
-  const colourful = useIconColourActive()
+  const takesColour = useIconColourActive()
   return useCallback(
-    (kind: IconTintKind) => (colourful
+    (kind: IconTintKind) => (takesColour
       ? { opacity: 1, '--mg-kind': `var(--icon-${kind})` } as CSSProperties
       : {}),
-    [colourful]
+    [takesColour]
   )
 }

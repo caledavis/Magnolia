@@ -701,10 +701,13 @@ textarea:focus {
   color: var(--text-muted);
   user-select: none;
   gap: 8px;
-  /* Acts as a query container for .compact-add-btn so its label can hide
-     when the header is squeezed past the point where the full button text
-     would fit. inline-size containment is layout-safe here because the
-     header's width comes from its flex parent, never its own contents. */
+  /* Inline-size containment: the header's width never depends on its
+     contents, so a long title or a row of buttons can't widen the pane.
+     It also makes the header the containing block for fixed-position
+     children (see MemosPane's menu). Its one container query has gone,
+     but removing it coincided with the analysis-tools e2e spec stalling
+     (which may instead be that spec running near its time limit), so it
+     stays until that's understood. */
   container-type: inline-size;
   container-name: panel-header;
 }
@@ -742,22 +745,6 @@ textarea:focus {
   letter-spacing: 0.6px;
   text-transform: uppercase;
   color: var(--text-muted);
-}
-
-/* "+" buttons in panel headers (e.g. "+ Memo", "+ Code", "+ Folder").
-   When the header is wide enough they show "+ Label"; when the user
-   resizes the panel narrow, the trailing label is hidden so the button
-   collapses to just "+" instead of wrapping its text onto a new line. */
-.compact-add-btn {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: clip;
-  flex-shrink: 0;
-}
-@container panel-header (max-width: 180px) {
-  .compact-add-btn-label {
-    display: none;
-  }
 }
 
 .panel-header-close,
@@ -1122,10 +1109,6 @@ div:hover > .folder-row-add,
   color: var(--text-secondary) !important;
 }
 
-/* Preferences → Appearance → "Toolbar Style" 'icons' (the ribbon,
- * the default, is styled under "Ribbon" below), keyed off the data
- * attribute App.tsx sets on .app-toolbar. */
-
 /* Check Out / Check In toggle (components/Toolbar/CheckOutButton.tsx) —
  * unlike every other toolbar button, this one's background switches to a
  * solid accent/danger fill to show who has the project checked out, so
@@ -1134,42 +1117,15 @@ div:hover > .folder-row-add,
 .checkout-btn svg {
   color: inherit !important;
 }
-/* Rest-state background comes from an inline style (per-status, computed
- * in CheckOutButton.tsx). Hover uses real CSS :hover rather than JS-driven
- * onMouseEnter/onMouseLeave (unlike the Preferences button elsewhere in
- * App.tsx) because this button's inline background is itself dynamic
- * (status-dependent) — a real :hover rule is immune to a React re-render
- * discarding a JS-mutated inline style, which a plain generic
- * button:hover can't be, hence !important, scoped per status. */
-.checkout-btn.checkout-btn--none:hover {
-  background: var(--bg-tertiary) !important;
-  color: var(--text-primary) !important;
-}
-.checkout-btn.checkout-btn--mine:hover {
-  background: var(--accent-hover) !important;
-}
+/* The button shows only while someone else has the project checked out
+ * (CheckOutButton.tsx), its background an inline style. Its hover is a
+ * real CSS :hover (with !important, over that inline style) rather than
+ * JS onMouseEnter/onMouseLeave, which a React re-render could undo. */
 .checkout-btn.checkout-btn--other:hover {
   background: var(--danger) !important;
 }
 .checkout-btn:disabled:hover {
   background: transparent !important;
-}
-/* The var(--bg-tertiary) hover above is invisible in the Magnolia
- * themes specifically: that theme sets the WHOLE toolbar's own
- * background to var(--bg-tertiary) too (see :root[data-theme="magnolia"]
- * .app-toolbar, elsewhere in this file), so hovering a neutral-status
- * Check Out visually does nothing there — every other toolbar button
- * avoids this because .checkout-btn is deliberately excluded from
- * their translucent-white hover rule (it needs its own accent/danger
- * hover for the 'mine'/'other' statuses) — give the neutral 'none'
- * status that same translucent-white treatment explicitly, so it
- * reads as hoverable/consistent like every other button when nothing
- * is checked out. */
-:root[data-theme="magnolia"] .checkout-btn.checkout-btn--none:hover {
-  background: rgba(255, 255, 255, 0.22) !important;
-}
-:root[data-theme="magnolia-dark"] .checkout-btn.checkout-btn--none:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
 }
 
 
@@ -1744,7 +1700,7 @@ div:hover > .folder-row-add,
  * utils/icon-tint.ts); analysis header icons are always in. Documents,
  * folders and their tabs also set --mg-kind (via useIconTint) to their
  * type's colour (the --icon-* tokens), which the file, folder and media
- * glyphs use. The Icons toolbar doesn't opt in.
+ * glyphs use.
  *
  * High Contrast is never coloured: these rules skip it, and the ribbon
  * draws its icons in the text colour there. */
@@ -1853,55 +1809,7 @@ div:hover > .folder-row-add,
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-scale > :nth-child(2n) { stroke: var(--rb-blue); }
 :root:not([data-theme="high-contrast"]) :is(svg.mg-icon, svg.analysis-header-icon).lucide-heart > * { stroke: var(--rb-coral); fill: color-mix(in srgb, var(--rb-coral) var(--rb-tint), transparent); }
 
-/* ── Colourful interface ──────────────────────────────────────────────
- * Colourful interface (Preferences → Appearance → Colour; apply-theme.ts
- * / Preferences set [data-colourful] on <html>): on the light themes, a
- * dark slate toolbar that frames the window, with each tool's icon in
- * its own colour. The dark themes already have a dark toolbar and just
- * get the coloured icons. High Contrast is left alone. */
-
-/* Dark toolbar on the light themes. Rebinding the text / surface tokens
- * inside .app-toolbar recolours everything that reads them — project
- * name, Magnolia mark, labels, pills, dividers, hover fills, Check Out,
- * window controls. The popovers are portalled to <body>, so they keep
- * the theme's own light tokens. */
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme$="dark"]) .app-toolbar {
-  background: #2b3343 !important;
-  border-bottom: none !important;
-  --text-primary: #ffffff;
-  --text-secondary: #dfe4ee;
-  --text-muted: #a3acbe;
-  --bg-secondary: rgba(255, 255, 255, 0.08);
-  --bg-tertiary: rgba(255, 255, 255, 0.14);
-  --border-color: rgba(255, 255, 255, 0.2);
-}
-/* The main window's chrome (the gaps around the panel cards) takes the
- * toolbar's slate too, so the dark band and the light chrome don't meet
- * in a hard edge — the white panels float on one continuous dark frame.
- * Scoped to .app-shell (the main window's root) rather than rebinding
- * --bg-primary, which also feeds canvases, inputs and popped-out windows. */
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme$="dark"]) .app-shell {
-  background: #2b3343;
-}
-:root[data-colourful]:not([data-theme="high-contrast"]):not([data-theme$="dark"]) .app-toolbar button:not(.checkout-btn):hover {
-  background: rgba(255, 255, 255, 0.14) !important;
-}
-
-/* One colour per toolbar tool. Bright values, since the toolbar is dark
- * on every theme this applies to. Query takes the Query Builder's
- * registry colour family (tool-registry.ts) so its tab matches. */
-:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-square-arrow-right-enter { color: #4fd17f !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-book { color: #ff9f4a !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-notebook-pen { color: #c792ff !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-tags { color: #3fd6c6 !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-git-merge { color: #ff7eb6 !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-search { color: #ff8a4c !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-lightbulb { color: #ffd23f !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-app-window { color: #5cc4ff !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-settings { color: #a9b6ff !important; }
-:root[data-colourful]:not([data-theme="high-contrast"]) .app-toolbar .app-toolbar-btn svg.lucide-circle-question-mark { color: #7fb2ff !important; }
-
-/* ── Ribbon (Toolbar Style "Ribbon"; see components/Toolbar/Ribbon.tsx) ──
+/* ── Ribbon, the toolbar (components/Toolbar/Ribbon.tsx) ──
  * Adapted from labiia_quali's ribbon. The tab strip sits in the toolbar
  * row; the active tab's buttons sit in .ribbon-body below it. */
 :root {
@@ -2481,10 +2389,6 @@ textarea {
 [data-selector-node]:focus { outline: none; }
 [data-selector-node]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* AI Assistance Viewer (components/AI/AiReviewTab.tsx): a light line
- * between a code's changes. */
-.ai-row + .ai-row { border-top: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent); }
-
 /* The AI Assistance Viewer's list (AiReviewTab.tsx): it scrolls smoothly
  * and settles with a card in the middle; the cards fade by their distance
  * from it as it scrolls. */
@@ -2492,11 +2396,8 @@ textarea {
 .ai-barrel::-webkit-scrollbar { display: none; }
 .ai-barrel > .ai-barrel-item { scroll-snap-align: center; }
 .ai-barrel-item { transition: box-shadow 0.3s ease; }
-.ai-barrel-details { transition: grid-template-rows 0.45s cubic-bezier(0.32, 0.72, 0, 1); }
-.ai-barrel-details > div { transition: opacity 0.3s ease 0.12s; }
-.ai-barrel-details.closed > div { opacity: 0; transition: opacity 0.18s ease; }
 @media (prefers-reduced-motion: reduce) {
-  .ai-barrel-item, .ai-barrel-details, .ai-barrel-details > div { transition: none; }
+  .ai-barrel-item { transition: none; }
 }
 
 /* The List view's highlighted row (moved with ↑ ↓), shown while the list

@@ -11,13 +11,12 @@
  *
  * Offsets are code points, as everywhere in Magnolia.
  */
-import type { AiToolSpec, Code, PlainTextSelection, SurveyFormatData, TextSource } from '../../models/types'
+import type { Code, PlainTextSelection, SurveyFormatData, TextSource } from '../../models/types'
 import { useDocumentStore } from '../../stores/document-store'
 import { useCodeStore } from '../../stores/code-store'
 import { flattenCodesWithDepth } from '../code-tree'
 import { buildCellText } from '../survey/cell-text'
 import { textForSelection } from '../query-engine'
-import toolSpecs from './tool-specs.json'
 import { codeColourPresetsFor } from '../code-colours'
 import { usePreferencesStore } from '../../stores/preferences-store'
 
@@ -64,10 +63,6 @@ export const READ_CHUNK = 12000
 const MAX_MATCHES = 40
 const MAX_PASSAGES = 60
 const PASSAGE_CHARS = 600
-
-/** The tools, as offered to the AI: shared with the connector for AI apps
- *  on this computer (src-tauri/src/mcp.rs), so both offer the same. */
-export const TOOL_SPECS: AiToolSpec[] = toolSpecs
 
 // ─── The project, as the AI sees it ──────────────────────────────────
 

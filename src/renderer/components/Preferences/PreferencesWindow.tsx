@@ -12,7 +12,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { normaliseThemeId, type ThemeId } from '../../utils/theme-id'
 import { Icon, faGear } from '../Icon'
-import { COLOURFUL_INTERFACE_ENABLED, colourfulInterfaceFromSaved } from '../../utils/colourful-interface'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGE_IDS, normaliseLanguagePreference, resolveLanguage, setLanguagePreference, setDigitsPreference, digitChoices, digitsSample, type LanguagePreference, type DigitsPreference } from '../../i18n'
 import { keyCombo } from '../../utils/keys'
@@ -41,8 +40,6 @@ interface Preferences {
   interfaceScale: number
   /** Shown to teammates when this user checks out a shared project. */
   userName: string
-  /** Dark toolbar plus colour-coded icons. */
-  colourfulInterface: boolean
   /** The interface language, or "system" to follow the computer's. */
   language: LanguagePreference
   /** The digits numbers are written in, for languages with a choice:
@@ -70,7 +67,6 @@ const DEFAULT_PREFS: Preferences = {
   paperSize: 'A4',
   interfaceScale: 1,
   userName: '',
-  colourfulInterface: COLOURFUL_INTERFACE_ENABLED,
   language: 'system',
   digits: 'system',
   aiAppsEnabled: false
@@ -190,16 +186,12 @@ function AppearanceSettings({
   value,
   onChange,
   scale,
-  onScaleChange,
-  colourful,
-  onColourfulChange
+  onScaleChange
 }: {
   value: ThemeId
   onChange: (v: ThemeId) => void
   scale: number
   onScaleChange: (v: number) => void
-  colourful: boolean
-  onColourfulChange: (v: boolean) => void
 }) {
   const { t } = useTranslation()
   return (
@@ -269,17 +261,6 @@ function AppearanceSettings({
         ))}
       </select>
 
-      {/* Hidden while the Colourful interface is switched off — see
-          COLOURFUL_INTERFACE_ENABLED in utils/colourful-interface.ts. */}
-      {COLOURFUL_INTERFACE_ENABLED && (
-        <>
-          <h3 style={{ fontSize: 13, fontWeight: 600, marginTop: 24, marginBottom: 10, color: 'var(--text-secondary)' }}>{t('prefs.colour')}</h3>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-primary)', cursor: 'pointer' }}>
-            <input type="checkbox" checked={colourful} onChange={(e) => onColourfulChange(e.target.checked)} />
-            {t('prefs.colourful')}
-          </label>
-        </>
-      )}
     </div>
   )
 }
@@ -699,12 +680,15 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
       const data = await window.api.loadPreferences()
       if (cancelled) return
       if (data) {
+        // The retired Colourful interface's setting, which earlier versions
+        // saved: dropped, so it isn't saved again.
+        const saved = { ...data }
+        delete (saved as Record<string, unknown>).colourfulInterface
         setPrefs({
           ...DEFAULT_PREFS,
-          ...data,
+          ...saved,
           theme: normaliseThemeId(data.theme),
           interfaceScale: typeof data.interfaceScale === 'number' ? data.interfaceScale : DEFAULT_PREFS.interfaceScale,
-          colourfulInterface: colourfulInterfaceFromSaved(data.colourfulInterface),
           language: normaliseLanguagePreference(data.language),
           digits: typeof data.digits === 'string' ? data.digits : 'system',
           footPedalMappings: { ...DEFAULT_PREFS.footPedalMappings, ...(data.footPedalMappings || {}) }
@@ -754,13 +738,6 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
   const setDigits = useCallback((digits: DigitsPreference) => {
     save({ ...prefs, digits })
     setDigitsPreference(digits)
-  }, [prefs, save])
-
-  const setColourfulInterface = useCallback((colourfulInterface: boolean) => {
-    save({ ...prefs, colourfulInterface })
-    // Preferences is a main-window tab, so this applies it to the main
-    // window at once; popped-out windows pick it up when next opened.
-    document.documentElement.toggleAttribute('data-colourful', colourfulInterface)
   }, [prefs, save])
 
   if (!loaded) return <div style={{ padding: 20, color: 'var(--text-muted)' }}>{t('common.loading')}</div>
@@ -845,8 +822,6 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
               onChange={setTheme}
               scale={prefs.interfaceScale}
               onScaleChange={setInterfaceScale}
-              colourful={prefs.colourfulInterface}
-              onColourfulChange={setColourfulInterface}
             />
           )}
           {selected.id === 'media-playback' && (

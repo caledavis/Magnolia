@@ -756,7 +756,7 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
 
   // Cmd/Ctrl + wheel zoom. Native addEventListener with passive:false so
   // preventDefault() actually stops the page-level scroll. Mirrors
-  // RelationshipMap's wheel-zoom UX.
+  // the relationship map's wheel-zoom UX (MapCanvas).
   useEffect(() => {
     const el = scrollContainerRef.current
     if (!el) return

@@ -16,26 +16,6 @@ export function formatTimestamp(seconds: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
-/** Parse a timestamp string to seconds. Returns null if not a valid timestamp. */
-export function parseTimestamp(text: string): number | null {
-  // HH:MM:SS or HH:MM:SS.mmm (with or without brackets, with or without escapes)
-  let m = text.match(/^(?:\\?\[)?(\d{1,2}):(\d{2}):(\d{2})(?:\.(\d+))?(?:\\?\])?$/)
-  if (m) return parseInt(m[1]) * 3600 + parseInt(m[2]) * 60 + parseInt(m[3]) + (m[4] ? parseInt(m[4]) / Math.pow(10, m[4].length) : 0)
-
-  // MM:SS
-  m = text.match(/^(?:\\?\[)?(\d{1,2}):(\d{2})(?:\\?\])?$/)
-  if (m) return parseInt(m[1]) * 60 + parseInt(m[2])
-
-  // (HH:MM:SS) or (MM:SS) parenthesized
-  m = text.match(/^\((\d{1,2}):(\d{2}):(\d{2})\)$/)
-  if (m) return parseInt(m[1]) * 3600 + parseInt(m[2]) * 60 + parseInt(m[3])
-
-  m = text.match(/^\((\d{1,2}):(\d{2})\)$/)
-  if (m) return parseInt(m[1]) * 60 + parseInt(m[2])
-
-  return null
-}
-
 /** Extract all timestamps from full transcript text with their codepoint positions. */
 export function extractTimestamps(text: string): { seconds: number; cpStart: number; cpEnd: number }[] {
   const results: { seconds: number; cpStart: number; cpEnd: number }[] = []
@@ -76,48 +56,6 @@ export function extractTimestampsPerLine(text: string): { lineIndex: number; sec
     }
   }
   return results
-}
-
-/**
- * Find which timestamp is active at a given playback time.
- * Returns the line index of the active timestamp.
- */
-export function findActiveTimestampLine(text: string, currentTime: number): number | null {
-  const timestamps = extractTimestampsPerLine(text)
-  if (timestamps.length === 0) return null
-  let activeIdx = -1
-  for (let i = 0; i < timestamps.length; i++) {
-    if (timestamps[i].seconds <= currentTime) activeIdx = i
-    else break
-  }
-  return activeIdx >= 0 ? timestamps[activeIdx].lineIndex : null
-}
-
-/**
- * Find the timestamp segment active at a given playback time.
- * Returns the codepoint range of the text between this timestamp and the next.
- */
-export function findActiveSegment(
-  text: string,
-  currentTime: number
-): { cpStart: number; cpEnd: number } | null {
-  const timestamps = extractTimestamps(text)
-  if (timestamps.length === 0) return null
-
-  let activeIdx = -1
-  for (let i = 0; i < timestamps.length; i++) {
-    if (timestamps[i].seconds <= currentTime) activeIdx = i
-    else break
-  }
-
-  if (activeIdx === -1) return null
-
-  const start = timestamps[activeIdx].cpStart
-  const end = activeIdx + 1 < timestamps.length
-    ? timestamps[activeIdx + 1].cpStart
-    : [...text].length
-
-  return { cpStart: start, cpEnd: end }
 }
 
 /**
