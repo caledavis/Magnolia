@@ -1,26 +1,52 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import { MarkdownEditor } from '../MarkdownEditor'
+import { AlertDialog } from '../AlertDialog'
 import type { Memo, MemoEditInitData } from '../../models/types'
 import { useTranslation } from 'react-i18next'
+import { isLetterKey } from '../../utils/keys'
+import { noteWindowProject, sendMemoCloseCancelled, sendMemoDelete, sendMemoUpdate } from '../to-main-window'
 
 export function MemoEditWindow() {
   const { t } = useTranslation()
   const [memo, setMemo] = useState<Memo | null>(null)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [dirty, setDirty] = useState(false)
+  const [dirty, setDirtyState] = useState(false)
   const [isNew, setIsNew] = useState(false)
+  // The editor takes its content when it's made, so showing a memo sent
+  // again with a different body means making it afresh.
+  const [editorKey, setEditorKey] = useState(0)
+  // Read by the close guard and by init data arriving, which don't re-run
+  // when they change; set at once, not on the next render.
+  const dirtyRef = useRef(false)
+  const setDirty = useCallback((d: boolean) => {
+    dirtyRef.current = d
+    setDirtyState(d)
+  }, [])
+  const contentRef = useRef(content)
+  contentRef.current = content
+  // "Close with unsaved changes?" is showing.
+  const [closePrompt, setClosePrompt] = useState(false)
 
   const applyInitData = useCallback((initData: MemoEditInitData) => {
     if (initData.theme !== undefined) {
       document.documentElement.setAttribute('data-theme', initData.theme)
     }
+    noteWindowProject(initData)
+    // Opening a memo that's already open sends its data again. While the
+    // user has unsaved edits, keep them: they're what the editor shows, and
+    // Save must write them, not the body last saved.
+    if (dirtyRef.current) return
     setMemo(initData.memo)
     setTitle(initData.memo.title)
-    setContent(initData.memo.content)
+    if (initData.memo.content !== contentRef.current) {
+      setContent(initData.memo.content)
+      setEditorKey((k) => k + 1)
+    }
     setIsNew(initData.isNew ?? false)
     setDirty(false)
-  }, [])
+  }, [setDirty])
 
   useEffect(() => {
     window.api.getMemoEditData().then((initData) => {
@@ -36,16 +62,18 @@ export function MemoEditWindow() {
   const handleTitleChange = useCallback((val: string) => {
     setTitle(val)
     setDirty(true)
-  }, [])
+  }, [setDirty])
 
   const handleContentChange = useCallback((val: string) => {
     setContent(val)
     setDirty(true)
-  }, [])
+  }, [setDirty])
 
-  // Save: build the updated memo and send it via IPC
-  const handleSave = useCallback(() => {
-    if (!memo) return
+  // Save: build the updated memo and send it to the main window. Resolves
+  // once it's sent (true) so a close can follow without losing it, or
+  // couldn't be (false; the edits stay unsaved).
+  const handleSave = useCallback((): Promise<boolean> => {
+    if (!memo) return Promise.resolve(true)
     const updated: Memo = {
       ...memo,
       title,
@@ -53,16 +81,27 @@ export function MemoEditWindow() {
       modifiedDateTime: new Date().toISOString()
     }
     // Send with isNew flag so the main window knows whether to create or update
-    window.api.sendMemoUpdate({ ...updated, _isNew: isNew })
+    const sent = sendMemoUpdate({ ...updated, _isNew: isNew }).then(
+      () => true,
+      (err) => {
+        console.error(err)
+        setIsNew(isNew)
+        setDirty(true)
+        return false
+      }
+    )
     setMemo(updated)
     setIsNew(false) // After first save, subsequent saves are updates
     setDirty(false)
-  }, [memo, title, content, isNew])
+    return sent
+  }, [memo, title, content, isNew, setDirty])
+
+  // Close without asking: destroy() skips the close guard below.
+  const closeNow = useCallback(() => { void getCurrentWindow().destroy() }, [])
 
   const handleSaveAndClose = useCallback(() => {
-    handleSave()
-    setTimeout(() => window.close(), 200)
-  }, [handleSave])
+    void handleSave().then((sent) => { if (sent) closeNow() })
+  }, [handleSave, closeNow])
 
   const handleDelete = useCallback(async () => {
     if (!memo) return
@@ -70,9 +109,56 @@ export function MemoEditWindow() {
     // For an unsaved draft (isNew), there's nothing to remove from the
     // store yet — just close. Otherwise tell the main window to drop
     // it and propagate to anything that references the memo.
-    if (!isNew) window.api.sendMemoDelete(memo.guid)
-    window.close()
-  }, [memo, t, isNew])
+    if (!isNew) await sendMemoDelete(memo.guid).catch(() => {})
+    closeNow()
+  }, [memo, t, isNew, closeNow])
+
+  // Every close (the window's close button, Cmd/Ctrl+W, the Cancel button,
+  // or the main window closing it for a project switch or quit) comes
+  // here. With unsaved changes it asks first.
+  useEffect(() => {
+    let unlisten: (() => void) | undefined
+    let disposed = false
+    void getCurrentWindow().onCloseRequested((event) => {
+      if (!dirtyRef.current) return
+      event.preventDefault()
+      setClosePrompt(true)
+    }).then((u) => {
+      if (disposed) u()
+      else unlisten = u
+    })
+    return () => {
+      disposed = true
+      unlisten?.()
+    }
+  }, [])
+
+  // Ctrl+W off macOS (on macOS the File menu's Cmd+W closes the window).
+  useEffect(() => {
+    if (window.api.platform === 'darwin') return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey && !e.altKey && !e.shiftKey && !e.metaKey && isLetterKey(e, 'w')) {
+        e.preventDefault()
+        window.close()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  const promptSave = useCallback(() => {
+    setClosePrompt(false)
+    handleSaveAndClose()
+  }, [handleSaveAndClose])
+  const promptDiscard = useCallback(() => {
+    setClosePrompt(false)
+    closeNow()
+  }, [closeNow])
+  const promptCancel = useCallback(() => {
+    setClosePrompt(false)
+    // Whatever was closing the window (a project switch, quitting) stops.
+    if (memo) void sendMemoCloseCancelled(memo.guid).catch(() => {})
+  }, [memo])
 
   if (!memo) {
     return (
@@ -115,7 +201,7 @@ export function MemoEditWindow() {
           }}
         />
         <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-          <MarkdownEditor value={content} onChange={handleContentChange} label={t('memos.memoHeading')} />
+          <MarkdownEditor key={editorKey} value={content} onChange={handleContentChange} label={t('memos.memoHeading')} />
         </div>
       </div>
 
@@ -137,7 +223,7 @@ export function MemoEditWindow() {
         <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={() => window.close()}>
           {t('common.cancel')}
         </button>
-        <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={handleSave} disabled={!dirty}>
+        <button className="secondary" style={{ fontSize: 11, padding: '4px 14px' }} onClick={() => void handleSave()} disabled={!dirty}>
           {t('common.save')}
         </button>
         {/* A transparent border, so it's the size of the bordered buttons beside it. */}
@@ -145,6 +231,23 @@ export function MemoEditWindow() {
           {t('memoEdit.saveAndClose')}
         </button>
       </div>
+
+      {closePrompt && (
+        <AlertDialog
+          title={t('tabs.unsavedChanges')}
+          onClose={promptCancel}
+          width={380}
+          actions={
+            <>
+              <button className="secondary" onClick={promptCancel}>{t('common.cancel')}</button>
+              <button className="secondary" onClick={promptDiscard}>{t('common.discard')}</button>
+              <button onClick={promptSave}>{t('common.save')}</button>
+            </>
+          }
+        >
+          <p style={{ margin: 0 }}>{t('tabs.unsavedQuestion', { name: title || t('common.untitled') })}</p>
+        </AlertDialog>
+      )}
     </div>
   )
 }
