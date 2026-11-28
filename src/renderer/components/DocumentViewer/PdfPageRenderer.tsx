@@ -170,6 +170,12 @@ export function PdfPageRenderer({
   useEffect(() => {
     if (!pdfDocument || !canvasRef.current || !textLayerRef.current) return
     let cancelled = false
+    // The pass's pdf.js work, kept so cleanup can stop it. A zoom starts a
+    // new pass on the same canvas, and pdf.js refuses to draw on a canvas
+    // another render is still using: the new pass would fail and the page
+    // would never get its text layer (so no selecting or coding on it).
+    let renderTask: { promise: Promise<void>; cancel: () => void } | null = null
+    let textLayer: { render: () => Promise<void>; cancel: () => void } | null = null
 
     // Mark the page as not-yet-rendered for the duration of this pass.
     // Without this, a scale change leaves `rendered` at true, and the
@@ -198,7 +204,8 @@ export function PdfPageRenderer({
       setPageSize({ width: viewport.width, height: viewport.height })
 
       // Render canvas
-      await page.render({ canvasContext: ctx, viewport }).promise
+      renderTask = page.render({ canvasContext: ctx, viewport })
+      await renderTask!.promise
       if (cancelled) return
 
       // Build text layer using pdfjs-dist's official TextLayer API, from
@@ -219,13 +226,14 @@ export function PdfPageRenderer({
       textLayerEl.style.setProperty('--total-scale-factor', String(scale))
 
       const pdfjsLib = await import('pdfjs-dist')
-      const textLayer = new pdfjsLib.TextLayer({
+      if (cancelled) return
+      textLayer = new pdfjsLib.TextLayer({
         textContentSource: textContent,
         container: textLayerEl,
         viewport,
       })
 
-      await textLayer.render()
+      await textLayer!.render()
       if (cancelled) return
 
       // Assign data-cpoffset to each rendered span: pdf.js renders one
@@ -247,8 +255,19 @@ export function PdfPageRenderer({
       onRendered?.()
     }
 
-    renderPage()
-    return () => { cancelled = true }
+    renderPage().catch((err) => {
+      // Cancelling a pass rejects its render (RenderingCancelledException)
+      // or text layer (AbortException); that's expected, as is a document
+      // destroyed while the pass waited on it.
+      if (cancelled || err?.name === 'RenderingCancelledException' || err?.name === 'AbortException') return
+      console.error(err)
+    })
+    return () => {
+      cancelled = true
+      // Cancelling frees the canvas at once, so the next pass can draw.
+      renderTask?.cancel()
+      textLayer?.cancel()
+    }
   }, [pdfDocument, pageNumber, pageTextOffset, scale]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Render coding highlight overlays + memo/quote wave underlines.

@@ -345,6 +345,11 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
   useEffect(() => {
     if (!pdfFilePath && !pdfBase64) return
     let cancelled = false
+    // pdf.js keeps each document (its bytes, fonts and page caches) in its
+    // worker until the document is destroyed, so this run destroys what it
+    // loaded when the viewer closes or the PDF changes; otherwise memory
+    // grows with every PDF viewed.
+    let loadingTask: { promise: Promise<any>; destroy: () => Promise<void> } | null = null
 
     const loadPdf = async () => {
       const pdfjsLib = await loadPdfjs()
@@ -359,16 +364,29 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
       }
       if (cancelled) return
 
-      const doc = await pdfjsLib.getDocument(pdfParams(bytes)).promise
-      if (!cancelled) {
-        pagesRenderedCount.current = 0
-        setAllPagesRendered(false)
-        setPdfDocument(doc)
-      }
+      const task = pdfjsLib.getDocument(pdfParams(bytes))
+      loadingTask = task
+      const doc = await task.promise
+      // If the viewer went away while this loaded, cleanup has already
+      // destroyed the task, and with it this document.
+      if (cancelled) return
+      pagesRenderedCount.current = 0
+      setAllPagesRendered(false)
+      setPdfDocument(doc)
     }
 
-    loadPdf().catch(console.error)
-    return () => { cancelled = true }
+    loadPdf().catch((err) => {
+      // Destroying a task mid-load rejects its promise; that's expected.
+      if (!cancelled) console.error(err)
+    })
+    return () => {
+      cancelled = true
+      // The pages stop drawing from this document before it goes.
+      // Destroying the loading task destroys its document too, loaded yet
+      // or not.
+      setPdfDocument(null)
+      if (loadingTask) void loadingTask.destroy()
+    }
   }, [pdfBase64, pdfFilePath])
 
   const applyCodingToRange = useCallback(
