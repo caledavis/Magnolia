@@ -218,12 +218,16 @@ fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     }
     view = view
         .item(&sep()?)
-        .item(&action(app, "open-ai-review", &t("menu.aiAssistance"), None)?)
-        .item(&sep()?)
-        .item(&item(app, "reload", &t("menu.reload"), Some("CmdOrCtrl+R"))?);
-    // Release builds have no devtools (tauri's `devtools` feature is off).
+        .item(&action(app, "open-ai-review", &t("menu.aiAssistance"), None)?);
+    // Release builds have no devtools (tauri's `devtools` feature is off),
+    // and no Reload: reloading the main window threw away whatever hadn't
+    // been saved yet, as it skips the save that closing makes. It's only
+    // for developers, reloading after a change to the page.
     #[cfg(debug_assertions)]
     {
+        view = view
+            .item(&sep()?)
+            .item(&item(app, "reload", &t("menu.reload"), Some("CmdOrCtrl+R"))?);
         view = view.item(&item(
             app,
             "devtools",
