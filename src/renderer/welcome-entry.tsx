@@ -12,7 +12,7 @@ import './utils/keyboard-access'
 // Pick up the user's saved appearance (theme + text size) so the welcome
 // screen matches the look they last selected, rather than always
 // rendering in the default palette.
-applyStoredAppearance()
+void applyStoredAppearance()
 installAppearanceListeners()
 
 // The first frame is already in the user's language (see i18n/index.ts).

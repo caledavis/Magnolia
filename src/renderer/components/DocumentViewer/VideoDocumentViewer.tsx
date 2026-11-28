@@ -195,7 +195,8 @@ export function VideoDocumentViewer({ source, content }: Props) {
 
   const togglePlayPause = useCallback(() => {
     const v = getVideo(); if (!v) return
-    if (v.paused) v.play(); else v.pause()
+    // A media file that can't play shows its own error (onError).
+    if (v.paused) void v.play(); else v.pause()
   }, [])
 
   const seekTo = useCallback((seconds: number) => {
@@ -340,7 +341,7 @@ export function VideoDocumentViewer({ source, content }: Props) {
   const footPedalMappings = usePreferencesStore((s) => s.footPedalMappings)
   const prefsLoaded = usePreferencesStore((s) => s.loaded)
   const loadPrefs = usePreferencesStore((s) => s.load)
-  useEffect(() => { if (!prefsLoaded) loadPrefs() }, [prefsLoaded, loadPrefs])
+  useEffect(() => { if (!prefsLoaded) void loadPrefs() }, [prefsLoaded, loadPrefs])
   useEffect(() => {
     // See AudioDocumentViewer for the rationale — same listener,
     // same reason: foot pedals trigger playback shortcuts while the

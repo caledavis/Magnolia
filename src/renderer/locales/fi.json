@@ -393,7 +393,8 @@
     "saving": "Tallennetaan…",
     "clear": "Tyhjennä",
     "discardChanges": "Hylkää muutokset",
-    "createdOn": "Luotu {{date}}"
+    "createdOn": "Luotu {{date}}",
+    "exportFailed": "Tiedostoa ei voitu viedä.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Palauta",

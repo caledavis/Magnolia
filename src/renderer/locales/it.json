@@ -396,7 +396,8 @@
     "saving": "Salvataggio…",
     "clear": "Cancella",
     "discardChanges": "Scarta modifiche",
-    "createdOn": "Creato il {{date}}"
+    "createdOn": "Creato il {{date}}",
+    "exportFailed": "Impossibile esportare il file.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Reinserisci",

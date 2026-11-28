@@ -2782,7 +2782,8 @@ export function DocumentBrowser({ onSurveyImport, showManageDocTags, onCloseMana
           if (e.dataTransfer.files.length > 0) {
             const paths = Array.from(e.dataTransfer.files).map((f) => window.api.getPathForFile(f)).filter(Boolean)
             if (paths.length > 0) {
-              handleFileDrop(paths)
+              // Files that can't be read are listed in the import dialog.
+              void handleFileDrop(paths)
               return
             }
           }

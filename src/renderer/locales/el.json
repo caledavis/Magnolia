@@ -393,7 +393,8 @@
     "saving": "Αποθήκευση…",
     "clear": "Εκκαθάριση",
     "discardChanges": "Απόρριψη αλλαγών",
-    "createdOn": "Δημιουργήθηκε {{date}}"
+    "createdOn": "Δημιουργήθηκε {{date}}",
+    "exportFailed": "Δεν ήταν δυνατή η εξαγωγή του αρχείου.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Επιστροφή",

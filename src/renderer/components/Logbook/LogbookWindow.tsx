@@ -166,7 +166,7 @@ export function LogbookWindow() {
   }, [])
 
   useEffect(() => {
-    window.api.getLogbookData().then((initData) => {
+    void window.api.getLogbookData().then((initData) => {
       if (initData) applyInitData(initData)
     })
     const unsub = window.api.onLogbookData((initData) => {

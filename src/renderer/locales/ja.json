@@ -390,7 +390,8 @@
     "saving": "保存しています…",
     "clear": "クリア",
     "discardChanges": "変更を破棄",
-    "createdOn": "{{date}} に作成"
+    "createdOn": "{{date}} に作成",
+    "exportFailed": "ファイルを書き出せませんでした。\n\n{{detail}}"
   },
   "panel": {
     "popIn": "元に戻す",

@@ -98,6 +98,7 @@ import { queueSave, savesSettled } from './app/save-queue'
 import { codeAllResults } from './app/code-results'
 import { useLatest } from './utils/use-latest'
 import { errorMessage } from './utils/error-message'
+import { reportExportFailure } from './utils/report-export-failure'
 import type { QueryBuilderTabConfig, PlainTextSelection, ToolConfig } from './models/types'
 import type { RelationshipMapConfig } from './components/Analysis/RelationshipMap/types'
 
@@ -313,7 +314,7 @@ function App() {
   useWindowCornerPanels()
   const loadPrefs = usePreferencesStore((s) => s.load)
   useEffect(() => {
-    if (!prefsLoaded) loadPrefs()
+    if (!prefsLoaded) void loadPrefs()
   }, [prefsLoaded, loadPrefs])
 
   // "Newer version available" nudge badge on the toolbar wordmark. State is
@@ -322,7 +323,8 @@ function App() {
   // initial value.
   const [updateBadgeAvailable, setUpdateBadgeAvailable] = useState(false)
   useEffect(() => {
-    window.api.getUpdateBadge().then((s) => setUpdateBadgeAvailable(!!s?.available))
+    // A badge that can't be read stays hidden until the next push.
+    void window.api.getUpdateBadge().then((s) => setUpdateBadgeAvailable(!!s?.available))
     return window.api.onUpdateBadge((s) => setUpdateBadgeAvailable(!!s?.available))
   }, [])
 
@@ -1260,7 +1262,8 @@ function App() {
         const ps = useProjectStore.getState()
         const myName = usePreferencesStore.getState().userName.trim()
         if (ps.checkoutMarker && ps.checkoutMarker.userName !== myName) return
-        handleSaveProject()
+        // A failed save reports itself (the save-failure banner).
+        void handleSaveProject()
       }, 2000)
     }
     armAutoSaveRef.current = arm
@@ -1327,7 +1330,7 @@ function App() {
   // any media temp file the OS reaps mid-session straight from the archive
   // — the viewers never go blank just because temp was cleaned.
   useEffect(() => {
-    window.api.setActiveProjectPath(projectStore.filePath ?? null)
+    void window.api.setActiveProjectPath(projectStore.filePath ?? null)
   }, [projectStore.filePath])
 
   // Hold the latest handleSaveProject in a ref so callbacks registered
@@ -1693,20 +1696,23 @@ function App() {
   useEffect(() => {
     menuActionRef.current = (action) => {
       switch (action) {
+        // New, Open, Save and Import report their own failures (an error
+        // box, the open-failed message, the save-failure banner, the
+        // import dialog's list).
         case 'new-project':
-          handleNewProject()
+          void handleNewProject()
           break
         case 'open-project':
-          handleOpenProject()
+          void handleOpenProject()
           break
         case 'save-project':
-          handleSaveProject()
+          void handleSaveProject()
           break
         case 'save-project-as':
-          handleSaveProjectAs()
+          handleSaveProjectAs().catch((err: unknown) => setSaveFailure(errorMessage(err)))
           break
         case 'import-document':
-          handleImportDocument()
+          void handleImportDocument()
           break
         case 'show-diagnostics':
           setShowDiagnostics(true)
@@ -1739,13 +1745,16 @@ function App() {
           openLogbook()
           break
         case 'export-codebook':
-          window.api.exportCodebook(codeStore.codes)
+          window.api.exportCodebook(codeStore.codes).catch(reportExportFailure)
           break
         case 'import-codebook':
           window.api.importCodebook().then((imported) => {
             if (imported && imported.length > 0) {
               codeStore.mergeCodes(imported)
             }
+          }).catch((err: unknown) => {
+            console.error('[import-codebook] failed:', err)
+            void window.api.showMessage(t('merge.readFailed', { error: errorMessage(err) }), 'warning')
           })
           break
         case 'analysis-code-cooccurrences':
@@ -2126,7 +2135,8 @@ function App() {
         if (e.dataTransfer.files.length === 0) return
         e.preventDefault()
         const paths = Array.from(e.dataTransfer.files).map((f) => window.api.getPathForFile(f)).filter(Boolean)
-        if (paths.length > 0) handleOSFileDrop(paths)
+        // Files that can't be read are listed in the import dialog.
+        if (paths.length > 0) void handleOSFileDrop(paths)
       }}
     >
       {/* ── Toolbar ── */}

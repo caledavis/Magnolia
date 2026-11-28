@@ -396,7 +396,8 @@
     "saving": "שומר…",
     "clear": "ניקוי",
     "discardChanges": "השלכת השינויים",
-    "createdOn": "נוצר {{date}}"
+    "createdOn": "נוצר {{date}}",
+    "exportFailed": "לא ניתן לייצא את הקובץ.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "החזרה פנימה",

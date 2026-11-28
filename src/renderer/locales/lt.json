@@ -399,7 +399,8 @@
     "saving": "Įrašoma…",
     "clear": "Išvalyti",
     "discardChanges": "Atmesti pakeitimus",
-    "createdOn": "Sukurta {{date}}"
+    "createdOn": "Sukurta {{date}}",
+    "exportFailed": "Nepavyko eksportuoti failo.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Grąžinti atgal",

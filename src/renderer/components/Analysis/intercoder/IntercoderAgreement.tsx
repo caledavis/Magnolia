@@ -81,6 +81,7 @@ import {
   type IntercoderSnapshot
 } from './intercoder-tables'
 import { keyActivate, dropZone } from '../../../utils/key-activate'
+import { reportExportFailure } from '../../../utils/report-export-failure'
 
 export interface IntercoderConfig {
   /** Coders' project files in order; OPEN_PROJECT_ID for the open one. */
@@ -420,7 +421,7 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
   const handleExportCsv = useCallback(() => {
     if (!snapshot) return
     const rows = exportRows(snapshot, view)
-    window.api.exportCsv(toCsv(rows), 'intercoder-agreement.csv')
+    window.api.exportCsv(toCsv(rows), 'intercoder-agreement.csv').catch(reportExportFailure)
   }, [snapshot, view])
 
   // ── Results, here or in their own window ──────────────────────────

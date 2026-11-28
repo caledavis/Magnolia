@@ -418,7 +418,7 @@ export function CodebookWindow() {
   }, [])
 
   useEffect(() => {
-    window.api.getCodebookData().then((initData) => {
+    void window.api.getCodebookData().then((initData) => {
       if (initData) applyInitData(initData)
     })
     const unsub = window.api.onCodebookData((initData) => {

@@ -135,7 +135,8 @@ export function AudioDocumentViewer({ source, content }: Props) {
 
   const togglePlayPause = useCallback(() => {
     const a = getAudio(); if (!a) return
-    if (a.paused) a.play(); else a.pause()
+    // A media file that can't play shows its own error (onError).
+    if (a.paused) void a.play(); else a.pause()
   }, [])
 
   const seekTo = useCallback((seconds: number) => {
@@ -213,7 +214,7 @@ export function AudioDocumentViewer({ source, content }: Props) {
   const footPedalMappings = usePreferencesStore((s) => s.footPedalMappings)
   const prefsLoaded = usePreferencesStore((s) => s.loaded)
   const loadPrefs = usePreferencesStore((s) => s.load)
-  useEffect(() => { if (!prefsLoaded) loadPrefs() }, [prefsLoaded, loadPrefs])
+  useEffect(() => { if (!prefsLoaded) void loadPrefs() }, [prefsLoaded, loadPrefs])
 
   useEffect(() => {
     // Foot-pedal shortcuts have to fire even when the transcription

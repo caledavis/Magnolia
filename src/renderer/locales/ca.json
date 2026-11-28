@@ -396,7 +396,8 @@
     "saving": "S’està desant…",
     "clear": "Esborra",
     "discardChanges": "Descarta els canvis",
-    "createdOn": "Creat el {{date}}"
+    "createdOn": "Creat el {{date}}",
+    "exportFailed": "No s’ha pogut exportar el fitxer.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Torna a encastar",

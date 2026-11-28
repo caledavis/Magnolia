@@ -15,10 +15,10 @@ document.addEventListener('dragover', (e) => e.preventDefault())
 document.addEventListener('drop', (e) => e.preventDefault())
 
 // Apply the stored theme on first paint, then listen for live changes.
-applyStoredAppearance()
+void applyStoredAppearance()
 installAppearanceListeners()
 // Load preferences so the code colour presets follow the theme.
-usePreferencesStore.getState().load()
+void usePreferencesStore.getState().load()
 
 // The first frame is already in the user's language (see i18n/index.ts).
 await initLanguage()

@@ -33,6 +33,7 @@ import { formatPercent } from '../../i18n'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
 import type { CellScope } from '../../utils/narrow-query'
 import { keyActivate, dropZone } from '../../utils/key-activate'
+import { reportExportFailure } from '../../utils/report-export-failure'
 
 interface Props {
   data: AnalysisInitData
@@ -479,7 +480,7 @@ export function CodeOrders({ data: propData, savedConfig, inTab }: Props) {
     setDrawAllRows(false)
     const combined = `<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${totalH}" viewBox="0 0 ${svgW} ${totalH}"><rect width="${svgW}" height="${totalH}" fill="#ffffff"/>${legendParts.join('')}<g transform="translate(0, ${legendH})">${chartHtml}</g></svg>`
 
-    window.api.exportSvg(combined, 'code-orders.svg')
+    window.api.exportSvg(combined, 'code-orders.svg').catch(reportExportFailure)
   }, [codeGuids, codeMap, themeColors, svgW, svgH])
 
   return (

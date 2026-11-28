@@ -393,7 +393,8 @@
     "saving": "सहेजा जा रहा है…",
     "clear": "साफ़ करें",
     "discardChanges": "परिवर्तन छोड़ें",
-    "createdOn": "{{date}} को बनाया गया"
+    "createdOn": "{{date}} को बनाया गया",
+    "exportFailed": "फ़ाइल निर्यात नहीं की जा सकी।\n\n{{detail}}"
   },
   "panel": {
     "popIn": "वापस लाएँ",

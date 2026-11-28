@@ -24,7 +24,7 @@ export function UpdateWindow(): JSX.Element | null {
 
   useEffect(() => {
     const off = window.api.onUpdateView(setView)
-    window.api.getUpdateView().then((v) => v && setView((cur) => cur ?? v))
+    void window.api.getUpdateView().then((v) => v && setView((cur) => cur ?? v))
     return off
   }, [])
 

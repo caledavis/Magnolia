@@ -43,6 +43,7 @@ import { buildExportSvgFromDom } from './dom-svg-export'
 import { EditableTitleSuffix } from '../../EditableTitleSuffix'
 import { useTranslation } from 'react-i18next'
 import type { RelationshipMapConfig } from './types'
+import { reportExportFailure } from '../../../utils/report-export-failure'
 
 function ToolbarBtn({ active, disabled, onClick, title, children }: {
   active?: boolean; disabled?: boolean; onClick: () => void; title?: string; children: React.ReactNode
@@ -643,7 +644,7 @@ export function InlineRelationshipMap({ mapGuid }: Props) {
               const svg = panWrapperRef.current
                 ? buildExportSvgFromDom(panWrapperRef.current, current.elements, current.freeTexts)
                 : buildExportSvg(current.elements, current.connections, current.freeTexts)
-              window.api.exportSvg(svg, `${current.name?.trim() || t('map.fileName')}.svg`)
+              window.api.exportSvg(svg, `${current.name?.trim() || t('map.fileName')}.svg`).catch(reportExportFailure)
             }}
             title={t('map.exportSvg')}
           >

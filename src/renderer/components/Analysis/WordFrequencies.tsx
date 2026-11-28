@@ -46,6 +46,7 @@ import { formatNumber, currentLanguage } from '../../i18n'
 import type { CellScope } from '../../utils/narrow-query'
 import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
 import { dropZone } from '../../utils/key-activate'
+import { reportExportFailure } from '../../utils/report-export-failure'
 
 interface Props {
   data: AnalysisInitData
@@ -371,12 +372,12 @@ export function WordFrequencies({ data: propData, savedConfig, inTab }: Props) {
     for (const [word, count] of wordFreqs) {
       rows.push([word, String(count)])
     }
-    window.api.exportCsv(toCsv(rows), 'word-frequencies.csv')
+    window.api.exportCsv(toCsv(rows), 'word-frequencies.csv').catch(reportExportFailure)
   }, [t, wordFreqs])
 
   const handleExportChart = useCallback(() => {
     if (!chartRef.current) return
-    window.api.exportSvg(chartRef.current.outerHTML, `word-frequencies-${vizMode}.svg`)
+    window.api.exportSvg(chartRef.current.outerHTML, `word-frequencies-${vizMode}.svg`).catch(reportExportFailure)
   }, [vizMode])
 
   // Search for a word: in a series' documents and passages when given,

@@ -393,7 +393,8 @@
     "saving": "Gemmer…",
     "clear": "Ryd",
     "discardChanges": "Kassér ændringer",
-    "createdOn": "Oprettet {{date}}"
+    "createdOn": "Oprettet {{date}}",
+    "exportFailed": "Filen kunne ikke eksporteres.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Fastgør igen",

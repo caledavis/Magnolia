@@ -57,6 +57,7 @@ import { useTranslation } from 'react-i18next'
 import { formatPercent, formatFixed, formatNumber, currentLanguage } from '../../i18n'
 import type { CellScope } from '../../utils/narrow-query'
 import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
+import { reportExportFailure } from '../../utils/report-export-failure'
 
 export type CombinationsView = 'phrases' | 'associations' | 'tree'
 /** How Phrases are shown. */
@@ -387,30 +388,30 @@ export function WordCombinations({ data: propData, savedConfig, inTab }: Props) 
   const handleExportCsv = useCallback(() => {
     if (view === 'phrases') {
       const rows = [[t('combos.phrase'), t('words.count')], ...phrases.map((p) => [p.phrase, String(p.count)])]
-      window.api.exportCsv(toCsv(rows), 'word-combinations-phrases.csv')
+      window.api.exportCsv(toCsv(rows), 'word-combinations-phrases.csv').catch(reportExportFailure)
     } else if (view === 'tree') {
       if (!tree) return
       const rows = [
         [t('combos.side'), t('combos.branch'), t('words.count')],
         ...flattenWordTree(tree).map(({ side, branch }) => [side === 'before' ? t('combos.before') : t('combos.after'), branch.phrase, String(branch.count)])
       ]
-      window.api.exportCsv(toCsv(rows), `word-tree-${focus}.csv`)
+      window.api.exportCsv(toCsv(rows), `word-tree-${focus}.csv`).catch(reportExportFailure)
     } else if (associations) {
       const rows = [
         [t('words.word'), t('combos.sentencesWith', { word: focus }), t('combos.pctSentences', { word: focus }), 'G2'],
         ...associations.rows.map((r) => [r.word, String(r.together), (r.share * 100).toFixed(1), r.g2.toFixed(2)])
       ]
-      window.api.exportCsv(toCsv(rows), `word-combinations-${focus}.csv`)
+      window.api.exportCsv(toCsv(rows), `word-combinations-${focus}.csv`).catch(reportExportFailure)
     }
   }, [view, associations, t, phrases, tree, focus])
 
   const handleExportSvg = useCallback(() => {
     if (networkShown) {
-      if (networkRef.current) window.api.exportSvg(networkRef.current.outerHTML, `phrase-network-${phraseLength}-words.svg`)
+      if (networkRef.current) window.api.exportSvg(networkRef.current.outerHTML, `phrase-network-${phraseLength}-words.svg`).catch(reportExportFailure)
       return
     }
     if (!treeRef.current) return
-    window.api.exportSvg(treeRef.current.outerHTML, `word-tree-${focus}.svg`)
+    window.api.exportSvg(treeRef.current.outerHTML, `word-tree-${focus}.svg`).catch(reportExportFailure)
   }, [focus, networkShown, phraseLength])
 
   const handleRename = useCallback((newName: string) => {

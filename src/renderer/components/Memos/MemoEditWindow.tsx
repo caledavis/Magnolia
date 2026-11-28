@@ -49,7 +49,7 @@ export function MemoEditWindow() {
   }, [setDirty])
 
   useEffect(() => {
-    window.api.getMemoEditData().then((initData) => {
+    void window.api.getMemoEditData().then((initData) => {
       if (initData) applyInitData(initData)
     })
     const unsub = window.api.onMemoEditData((initData) => {

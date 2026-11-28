@@ -15,7 +15,7 @@ export function WelcomeScreen() {
 
   useEffect(() => {
     const refresh = () => {
-      window.api.getRecentProjects().then((projects) => {
+      void window.api.getRecentProjects().then((projects) => {
         setRecentProjects(projects ?? [])
       })
     }

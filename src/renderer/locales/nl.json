@@ -393,7 +393,8 @@
     "saving": "Bewaren…",
     "clear": "Wissen",
     "discardChanges": "Wijzigingen verwerpen",
-    "createdOn": "Gemaakt op {{date}}"
+    "createdOn": "Gemaakt op {{date}}",
+    "exportFailed": "Het bestand kon niet worden geëxporteerd.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Terugzetten",

@@ -405,7 +405,8 @@
     "saving": "جارٍ الحفظ…",
     "clear": "مسح",
     "discardChanges": "تجاهل التغييرات",
-    "createdOn": "أُنشئ في {{date}}"
+    "createdOn": "أُنشئ في {{date}}",
+    "exportFailed": "تعذّر تصدير الملف.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "إعادة إلى النافذة",

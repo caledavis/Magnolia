@@ -393,7 +393,8 @@
     "saving": "Kaydediliyor…",
     "clear": "Temizle",
     "discardChanges": "Değişikliklerden vazgeç",
-    "createdOn": "Oluşturulma: {{date}}"
+    "createdOn": "Oluşturulma: {{date}}",
+    "exportFailed": "Dosya dışa aktarılamadı.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Geri yerleştir",

@@ -22,6 +22,7 @@ import type { CellScope } from '../../utils/narrow-query'
 import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
 import { keyActivate, dropZone } from '../../utils/key-activate'
 import { ZERO_CELL } from './zero-cell'
+import { reportExportFailure } from '../../utils/report-export-failure'
 
 interface Props {
   data: AnalysisInitData
@@ -237,7 +238,7 @@ export function CodeCoOccurrences({ data: propData, savedConfig, inTab }: Props)
       rows.push([rowNames[i], ...showMatrix[i].map(String), String(showRowTotals[i]), csvPctOfTotal(showRowTotals[i], showGrandTotal)])
     }
     rows.push([t('analysis.total'), ...showColTotals.map(String), String(showGrandTotal), csvPctOfTotal(showGrandTotal, showGrandTotal)])
-    window.api.exportCsv(toCsv(rows), 'code-cooccurrences.csv')
+    window.api.exportCsv(toCsv(rows), 'code-cooccurrences.csv').catch(reportExportFailure)
   }, [colCodeGuids, rowCodeGuids, t, showColTotals, showGrandTotal, codeMap, showMatrix, showRowTotals])
 
   const handleRename = useCallback((newName: string) => {

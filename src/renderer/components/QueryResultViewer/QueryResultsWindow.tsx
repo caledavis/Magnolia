@@ -26,7 +26,7 @@ export function QueryResultsWindow() {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    window.api.getQueryResultsData().then((initData) => {
+    void window.api.getQueryResultsData().then((initData) => {
       if (initData) {
         setData(initData)
         const theme = (initData as any).theme

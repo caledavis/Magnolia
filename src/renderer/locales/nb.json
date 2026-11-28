@@ -393,7 +393,8 @@
     "saving": "Lagrer …",
     "clear": "Tøm",
     "discardChanges": "Forkast endringer",
-    "createdOn": "Opprettet {{date}}"
+    "createdOn": "Opprettet {{date}}",
+    "exportFailed": "Filen kunne ikke eksporteres.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Fest igjen",

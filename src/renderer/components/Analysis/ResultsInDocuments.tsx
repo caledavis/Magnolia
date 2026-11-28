@@ -29,6 +29,7 @@ import { cellOfColumns } from '../../utils/narrow-query'
 import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
 import { keyActivate, dropZone } from '../../utils/key-activate'
 import { ZERO_CELL } from './zero-cell'
+import { reportExportFailure } from '../../utils/report-export-failure'
 
 /** Each "Group by" entry is one of:
  *   - a single tag → one row in the grid;
@@ -412,7 +413,7 @@ export function ResultsInDocuments({ data: propData, savedConfig, inTab }: Props
     if (hasGroupedHeader) totalRow.push('')
     totalRow.push(t('resultsInDocs.totalWithDocs', { docs: resultDocLabel }), ...showRowTotals.map(String), String(showGrandTotal), csvPctOfTotal(showGrandTotal, showGrandTotal))
     rows.push(totalRow)
-    window.api.exportCsv(toCsv(rows), 'results-in-documents.csv')
+    window.api.exportCsv(toCsv(rows), 'results-in-documents.csv').catch(reportExportFailure)
   }, [queryGuids, hasGroupedHeader, t, resultDocLabel, showRowTotals, showGrandTotal, queryMap, columns, rowLayout, showColTotals, showGrid])
 
   const handleTagDrop = useCallback((e: React.DragEvent) => {

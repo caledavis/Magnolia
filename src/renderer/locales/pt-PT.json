@@ -396,7 +396,8 @@
     "saving": "A guardar…",
     "clear": "Limpar",
     "discardChanges": "Descartar alterações",
-    "createdOn": "Criado em {{date}}"
+    "createdOn": "Criado em {{date}}",
+    "exportFailed": "Não foi possível exportar o ficheiro.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Encaixar de volta",

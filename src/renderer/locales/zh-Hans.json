@@ -390,7 +390,8 @@
     "saving": "正在保存…",
     "clear": "清除",
     "discardChanges": "放弃更改",
-    "createdOn": "创建于 {{date}}"
+    "createdOn": "创建于 {{date}}",
+    "exportFailed": "无法导出文件。\n\n{{detail}}"
   },
   "panel": {
     "popIn": "放回",

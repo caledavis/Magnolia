@@ -399,7 +399,8 @@
     "saving": "Сохранение…",
     "clear": "Очистить",
     "discardChanges": "Отбросить изменения",
-    "createdOn": "Создано {{date}}"
+    "createdOn": "Создано {{date}}",
+    "exportFailed": "Не удалось экспортировать файл.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Вернуть",

@@ -393,7 +393,8 @@
     "saving": "Sparar…",
     "clear": "Rensa",
     "discardChanges": "Släng ändringar",
-    "createdOn": "Skapad {{date}}"
+    "createdOn": "Skapad {{date}}",
+    "exportFailed": "Filen kunde inte exporteras.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Fäst igen",

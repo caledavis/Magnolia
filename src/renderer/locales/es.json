@@ -396,7 +396,8 @@
     "saving": "Guardando…",
     "clear": "Borrar",
     "discardChanges": "Descartar cambios",
-    "createdOn": "Creado el {{date}}"
+    "createdOn": "Creado el {{date}}",
+    "exportFailed": "No se pudo exportar el archivo.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Volver a acoplar",

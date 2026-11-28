@@ -68,6 +68,7 @@ import { formatNumber } from '../../i18n'
 import { isCodeDrag, draggedCodeGuids } from '../../utils/code-drag'
 import { keyActivate, dropZone } from '../../utils/key-activate'
 import { ZERO_CELL } from './zero-cell'
+import { reportExportFailure } from '../../utils/report-export-failure'
 
 interface Props {
   data: AnalysisInitData
@@ -493,7 +494,7 @@ export function FrameworkMatrix({ data: propData, savedConfig, inTab }: Props) {
         ...codeGuids.map((cg) => summaries[summaryKey(r.key, cg)] ?? '')
       ])
     }
-    window.api.exportCsv(toCsv(out), 'framework-matrix.csv')
+    window.api.exportCsv(toCsv(out), 'framework-matrix.csv').catch(reportExportFailure)
   }, [data, rows, codeGuids, summaries, collapsed, t, codeMap])
 
   // ── Render ────────────────────────────────────────────────────────

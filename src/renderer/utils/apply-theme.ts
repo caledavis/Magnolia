@@ -68,7 +68,8 @@ export function installAppearanceListeners(): void {
   })
   // Lazy-imported to avoid pulling DOM-observer code into entries that
   // never paint a context menu. Once any entry runs the listeners
-  // setup, the observer is live for the rest of the session.
-  import('./install-context-menu-clamp').then((m) => m.installContextMenuClamp())
-  import('./install-drag-selection-keeper').then((m) => m.installDragSelectionKeeper())
+  // setup, the observer is live for the rest of the session. Neither is
+  // essential, so a chunk that fails to load is left at that.
+  void import('./install-context-menu-clamp').then((m) => m.installContextMenuClamp())
+  void import('./install-drag-selection-keeper').then((m) => m.installDragSelectionKeeper())
 }

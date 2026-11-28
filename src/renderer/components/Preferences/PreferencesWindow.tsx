@@ -489,11 +489,11 @@ function UpdatesSettings() {
 
   useEffect(() => {
     let cancelled = false
-    window.api.getAppVersion().then((v) => {
+    void window.api.getAppVersion().then((v) => {
       if (!cancelled) setVersion(v)
     })
     // Initial nudge-badge state + live updates (same source as the toolbar dot).
-    window.api.getUpdateBadge().then((s) => {
+    void window.api.getUpdateBadge().then((s) => {
       if (!cancelled) setBadge({ available: !!s?.available, latestVersion: s?.latestVersion ?? null })
     })
     const offBadge = window.api.onUpdateBadge((s) =>
@@ -676,7 +676,8 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
     // Preferences live in the main-window tab now (toolbar wordmark →
     // openToolTab). Read once from disk on mount; the previous
     // popped-out window's staged-init / on-refocus paths are gone.
-    ;(async () => {
+    // (Reading them can't fail: the backend falls back to none.)
+    void (async () => {
       const data = await window.api.loadPreferences()
       if (cancelled) return
       if (data) {
@@ -704,7 +705,7 @@ export function PreferencesWindow({ onClose }: PreferencesWindowProps = {}) {
 
   const save = useCallback((updated: Preferences) => {
     setPrefs(updated)
-    window.api.savePreferences(updated)
+    void window.api.savePreferences(updated)
     window.api.sendPreferencesUpdate(updated)
   }, [])
 

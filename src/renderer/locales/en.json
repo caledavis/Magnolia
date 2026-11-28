@@ -393,7 +393,8 @@
     "saving": "Saving…",
     "clear": "Clear",
     "discardChanges": "Discard Changes",
-    "createdOn": "Created {{date}}"
+    "createdOn": "Created {{date}}",
+    "exportFailed": "The file couldn't be exported.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Pop back in",

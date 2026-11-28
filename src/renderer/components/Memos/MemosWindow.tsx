@@ -119,7 +119,7 @@ export function MemosWindow() {
   }, [])
 
   useEffect(() => {
-    window.api.getMemosWindowData().then((d) => { if (d) apply(d) })
+    void window.api.getMemosWindowData().then((d) => { if (d) apply(d) })
     return window.api.onMemosWindowData((d) => { if (d) apply(d) })
   }, [apply])
 

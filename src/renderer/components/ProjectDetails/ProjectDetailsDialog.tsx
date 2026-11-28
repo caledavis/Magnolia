@@ -47,7 +47,8 @@ export function ProjectDetailsDialog({ open, onClose }: Props) {
       setFileSize(null)
       return
     }
-    window.api.getFileSize(filePath).then(setFileSize)
+    // Without it the size just isn't shown.
+    void window.api.getFileSize(filePath).then(setFileSize)
   }, [open, filePath])
 
   if (!open) return null

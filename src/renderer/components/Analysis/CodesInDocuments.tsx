@@ -38,6 +38,7 @@ import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
 import { keyActivate, dropZone } from '../../utils/key-activate'
 import { useColumnWindow } from '../../utils/use-column-window'
 import { ZERO_CELL } from './zero-cell'
+import { reportExportFailure } from '../../utils/report-export-failure'
 
 interface Props {
   data: AnalysisInitData
@@ -352,7 +353,7 @@ export function CodesInDocuments({ data: propData, savedConfig, inTab }: Props) 
     })
     totalRow.push(String(showGrandTotal), csvPctOfTotal(showGrandTotal, showGrandTotal))
     rows.push(totalRow)
-    window.api.exportCsv(toCsv(rows), 'codes-in-documents.csv')
+    window.api.exportCsv(toCsv(rows), 'codes-in-documents.csv').catch(reportExportFailure)
   }, [t, columns, showGrandTotal, codeGuids, codeMap, showRowTotals, showGrid, binaryMode, showColTotals])
 
   // Sankey view: codes flow into document columns. Subtotal columns are

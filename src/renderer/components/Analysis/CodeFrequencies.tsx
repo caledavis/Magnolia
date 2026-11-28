@@ -38,6 +38,7 @@ import { gridCell, useGridKeyboard } from '../../utils/use-grid-keyboard'
 import { ZERO_CELL } from './zero-cell'
 import { useColumnWindow, useScrollView } from '../../utils/use-column-window'
 import { flushSync } from 'react-dom'
+import { reportExportFailure } from '../../utils/report-export-failure'
 
 interface Props {
   data: AnalysisInitData
@@ -259,7 +260,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
     for (let i = 0; i < codeGuids.length; i++) {
       rows.push([codeMap.get(codeGuids[i])?.name || '', ...grid[i].map((v) => v.toFixed(1) + '%')])
     }
-    window.api.exportCsv(toCsv(rows), 'code-frequencies.csv')
+    window.api.exportCsv(toCsv(rows), 'code-frequencies.csv').catch(reportExportFailure)
   }, [columns, t, codeGuids, codeMap, grid])
 
   const handleTagDrop = useCallback((e: React.DragEvent) => {
@@ -412,7 +413,7 @@ export function CodeFrequencies({ data: propData, savedConfig, inTab }: Props) {
     setDrawAllBars(false)
     const combined = `<svg xmlns="http://www.w3.org/2000/svg" width="${chartW}" height="${totalH}" viewBox="0 0 ${chartW} ${totalH}"><rect width="${chartW}" height="${totalH}" fill="#ffffff"/>${legendParts.join('')}<g transform="translate(0, ${legendH})">${chartHtml}</g></svg>`
 
-    window.api.exportSvg(combined, 'code-frequencies-chart.svg')
+    window.api.exportSvg(combined, 'code-frequencies-chart.svg').catch(reportExportFailure)
   }, [columns, themeColors, chartW, chartH])
 
   return (

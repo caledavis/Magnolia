@@ -24,7 +24,7 @@ document.addEventListener('drop', (e) => e.preventDefault())
 // pushed from other windows (e.g. Preferences) so the main window keeps
 // up too — historically the main window was the only initiator of theme
 // changes, so it never had to listen.
-applyStoredAppearance()
+void applyStoredAppearance()
 installAppearanceListeners()
 
 // data-platform on <html> (the toolbar's traffic-light indent hangs off

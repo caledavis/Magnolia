@@ -393,7 +393,8 @@
     "saving": "Wird gespeichert …",
     "clear": "Löschen",
     "discardChanges": "Änderungen verwerfen",
-    "createdOn": "Erstellt am {{date}}"
+    "createdOn": "Erstellt am {{date}}",
+    "exportFailed": "Die Datei konnte nicht exportiert werden.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Andocken",

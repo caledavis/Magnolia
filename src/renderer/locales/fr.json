@@ -396,7 +396,8 @@
     "saving": "Enregistrement…",
     "clear": "Effacer",
     "discardChanges": "Abandonner les modifications",
-    "createdOn": "Créé le {{date}}"
+    "createdOn": "Créé le {{date}}",
+    "exportFailed": "Impossible d’exporter le fichier.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Réintégrer",

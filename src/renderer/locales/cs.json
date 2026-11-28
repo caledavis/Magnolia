@@ -399,7 +399,8 @@
     "saving": "Ukládání…",
     "clear": "Vymazat",
     "discardChanges": "Zahodit změny",
-    "createdOn": "Vytvořeno {{date}}"
+    "createdOn": "Vytvořeno {{date}}",
+    "exportFailed": "Soubor se nepodařilo exportovat.\n\n{{detail}}"
   },
   "panel": {
     "popIn": "Vrátit zpět",

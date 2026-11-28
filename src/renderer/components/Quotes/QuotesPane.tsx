@@ -344,7 +344,7 @@ export function QuotesPane({ onClose, onPopOut, isPoppedOut }: Props) {
           <div
             className="context-menu-item"
             onClick={() => {
-              handleCopyQuote(contextMenu.guid)
+              void handleCopyQuote(contextMenu.guid)
               setContextMenu(null)
             }}
           >

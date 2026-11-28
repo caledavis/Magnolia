@@ -328,6 +328,7 @@
     "common.clear": "Clear",
     "common.discardChanges": "Discard Changes",
     "common.createdOn": "Created {{date}}",
+    "common.exportFailed": "The file couldn't be exported.\n\n{{detail}}",
     "panel.popIn": "Pop back in",
     "panel.popOut": "Pop out",
     "panel.popInLabel": "Pop pane back into main window",

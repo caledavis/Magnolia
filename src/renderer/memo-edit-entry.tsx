@@ -12,7 +12,7 @@ import { applyStoredAppearance, installAppearanceListeners } from './utils/apply
 document.addEventListener('dragover', (e) => e.preventDefault())
 document.addEventListener('drop', (e) => e.preventDefault())
 
-applyStoredAppearance()
+void applyStoredAppearance()
 installAppearanceListeners()
 
 // The first frame is already in the user's language (see i18n/index.ts).
