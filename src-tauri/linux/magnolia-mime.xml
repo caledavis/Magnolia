@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Magnolia's file types, for shared-mime-info. Without this, Linux sees a
+  .qdpx project as an ordinary zip (and a .qdc codebook as plain XML), so
+  the desktop file's MimeType never matches and double-clicking a project
+  opens it in an archive manager instead of Magnolia. Installed to
+  /usr/share/mime/packages by the .deb and .rpm, whose shared-mime-info
+  triggers rebuild the database.
+-->
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-qdpx">
+    <comment>REFI-QDA project</comment>
+    <sub-class-of type="application/zip"/>
+    <glob pattern="*.qdpx" weight="60"/>
+  </mime-type>
+  <mime-type type="application/x-qdc">
+    <comment>REFI-QDA codebook</comment>
+    <sub-class-of type="application/xml"/>
+    <glob pattern="*.qdc" weight="60"/>
+  </mime-type>
+</mime-info>

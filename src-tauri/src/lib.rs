@@ -18,13 +18,17 @@ mod zotero;
 use state::AppState;
 use tauri::{AppHandle, Manager, RunEvent};
 
-/// A .qdpx path from the command line (Windows/Linux file association, or a
-/// dev launch with a path appended).
-fn qdpx_from_args(args: &[String]) -> Option<String> {
+/// A .qdpx path from the command line (Windows/Linux file association, or
+/// `magnolia project.qdpx` in a terminal), made absolute against `cwd`, the
+/// folder it was started in: a second launch hands its arguments to the
+/// running Magnolia, whose own folder is somewhere else.
+fn qdpx_from_args(args: &[String], cwd: &std::path::Path) -> Option<String> {
     args.iter()
         .skip(1)
-        .find(|a| a.to_lowercase().ends_with(".qdpx") && std::path::Path::new(a).exists())
-        .cloned()
+        .filter(|a| a.to_lowercase().ends_with(".qdpx"))
+        .map(|a| cwd.join(a))
+        .find(|p| p.is_file())
+        .map(|p| p.to_string_lossy().into_owned())
 }
 
 fn open_path(app: &AppHandle, path: String) {
@@ -65,10 +69,10 @@ pub fn run() {
     let builder = if automation::active() {
         builder
     } else {
-        builder.plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+        builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
             // A second launch (e.g. double-clicking another .qdpx on
             // Windows/Linux) hands its arguments to this instance.
-            match qdpx_from_args(&args) {
+            match qdpx_from_args(&args, std::path::Path::new(&cwd)) {
                 Some(path) => open_path(app, path),
                 None => {
                     if let Some(w) = app
@@ -221,7 +225,8 @@ pub fn run() {
             // skip the welcome screen.
             let args: Vec<String> = std::env::args().collect();
             let early = EARLY_OPENS.lock().unwrap().take().unwrap_or_default();
-            match qdpx_from_args(&args).or_else(|| early.last().cloned()) {
+            let cwd = std::env::current_dir().unwrap_or_default();
+            match qdpx_from_args(&args, &cwd).or_else(|| early.last().cloned()) {
                 Some(path) => open_path(app.handle(), path),
                 None => {
                     // macOS delivers Finder opens as RunEvent::Opened right
@@ -286,4 +291,18 @@ pub fn run() {
         }
         _ => {}
     });
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn a_project_argument_is_found_from_the_folder_it_was_given_in() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("Study.QDPX"), b"").unwrap();
+        let args = ["magnolia".to_string(), "--flag".to_string(), "Study.QDPX".to_string()];
+        let found = super::qdpx_from_args(&args, dir.path()).unwrap();
+        assert_eq!(std::path::Path::new(&found), dir.path().join("Study.QDPX"));
+        // Not there (relative to some other folder): nothing to open.
+        assert!(super::qdpx_from_args(&args, std::path::Path::new("/nonexistent")).is_none());
+    }
 }

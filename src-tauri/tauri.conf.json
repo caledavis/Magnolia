@@ -7,6 +7,7 @@
     "beforeDevCommand": "npm run dev:web",
     "devUrl": "http://localhost:5173",
     "beforeBuildCommand": "npm run build:web",
+    "beforeBundleCommand": "node scripts/stage-appimage-gstreamer.mjs",
     "frontendDist": "../out/renderer"
   },
   "app": {
@@ -108,11 +109,30 @@
       }
     },
     "linux": {
+      "appimage": {
+        "bundleMediaFramework": true
+      },
       "deb": {
         "section": "education",
+        "desktopTemplate": "linux/magnolia.desktop",
+        "files": {
+          "/usr/share/mime/packages/magnolia.xml": "linux/magnolia-mime.xml"
+        },
+        "recommends": [
+          "gstreamer1.0-plugins-good",
+          "gstreamer1.0-libav"
+        ],
         "postInstallScript": "linux/postinst.sh"
       },
       "rpm": {
+        "desktopTemplate": "linux/magnolia.desktop",
+        "files": {
+          "/usr/share/mime/packages/magnolia.xml": "linux/magnolia-mime.xml"
+        },
+        "recommends": [
+          "gstreamer1-plugins-good",
+          "gstreamer1-plugin-libav"
+        ],
         "postInstallScript": "linux/postinst.sh"
       }
     }

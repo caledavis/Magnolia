@@ -43,6 +43,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev libayatana-appindicator3-dev patchelf libxml2-utils file
+          # The AppImage bundles GStreamer's plugins from here
+          # (bundleMediaFramework): without them it borrows the user's,
+          # which a newer distro's GStreamer can't load, and nothing plays.
+          sudo apt-get install -y gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav
 
       - uses: actions/setup-node@v7
         with:
@@ -59,6 +63,12 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # The AppImage bundles just the GStreamer plugins its players use,
+          # which scripts/stage-appimage-gstreamer.mjs links here as Tauri is
+          # about to bundle (all of the system's more than doubled its size),
+          # -bad's among them (the H.264 parser, WebKit's stand-in sinks).
+          GSTREAMER_PLUGINS_DIR: ${{ github.workspace }}/target/appimage-gstreamer/plugins
+          GSTREAMER_INCLUDE_BAD_PLUGINS: '1'
         run: node scripts/release.mjs release linux --no-upload
 
       - uses: actions/upload-artifact@v7
@@ -108,6 +118,26 @@ jobs:
             echo "::error::The AppImage failed to load its libraries on ${{ matrix.image }}"
             exit 1
           fi
+
+      - uses: actions/checkout@v7
+        with:
+          path: source
+          sparse-checkout: scripts/check-appimage-media.py
+          sparse-checkout-cone-mode: false
+
+      # Media plays through the AppImage's own GStreamer plugins. Releases
+      # up to 2.2.0 had none, so nothing played on any distro newer than
+      # the one they were built on.
+      - name: Check the AppImage can play audio and video
+        run: |
+          apt-get install -y --no-install-recommends python3
+          ./Magnolia-linux-x86_64.AppImage --appimage-extract > /dev/null
+          export APPDIR="$PWD/squashfs-root"
+          . squashfs-root/apprun-hooks/linuxdeploy-plugin-gstreamer.sh
+          LD_LIBRARY_PATH="$PWD/squashfs-root/usr/lib" python3 -I source/scripts/check-appimage-media.py squashfs-root || {
+            echo "::error::The AppImage can't play audio or video on ${{ matrix.image }}"
+            exit 1
+          }
 
   upload:
     needs: smoke
