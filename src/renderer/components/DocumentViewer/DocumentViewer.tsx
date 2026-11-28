@@ -16,6 +16,7 @@ import { DocumentToolbarContext, DocumentExportButton } from './DocumentToolbar'
 import { sourceTypeFromFilename } from '../../utils/format-registry'
 import { isAnalysisTab, isMapTab, isPreferencesTab, isMergeTab, isAiReviewTab, isQueryBuilderTab, isToolTab, mapGuidFromTabId, isNotebookTab, notebookGuidFromTabId } from '../../utils/tab-ids'
 import { InlineAnalysisTab } from '../Analysis/InlineAnalysisTab'
+import { ToolTabShowingContext } from '../Analysis/use-live-analysis-data'
 import { PreferencesWindow } from '../Preferences/PreferencesWindow'
 import { MergeReviewWindow } from '../Merge/MergeReviewWindow'
 import { useAnalysisTabsStore } from '../../stores/analysis-tabs-store'
@@ -293,7 +294,11 @@ export function DocumentViewer() {
             overflow: 'hidden'
           }}
         >
-          {renderToolTab(id)}
+          {/* Hidden analysis tools hold their data rather than follow
+              every edit (see use-live-analysis-data.ts). */}
+          <ToolTabShowingContext.Provider value={activeIsTool && id === selectedGuid}>
+            {renderToolTab(id)}
+          </ToolTabShowingContext.Provider>
         </div>
       ))}
       {!activeIsTool && (<>

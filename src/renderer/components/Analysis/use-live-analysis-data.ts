@@ -18,8 +18,14 @@
  * opened immediately flows into the Document Selector and the results.
  * Each is memoised on the store reference so the reshape only re-runs
  * when documents actually change.
+ *
+ * Open tool tabs stay mounted while another tab is showing (DocumentViewer
+ * hides them, so they keep their state). A hidden tool holds the data it
+ * last showed instead of following the stores: otherwise, say, Word
+ * Frequencies would re-read every document on each keystroke in a note.
+ * It catches up the moment it's shown again.
  */
-import { useMemo } from 'react'
+import { createContext, useContext, useMemo, useRef } from 'react'
 import type {
   AnalysisInitData,
   Code,
@@ -52,14 +58,36 @@ export type LiveAnalysisData = Pick<
   | 'surveyCodableCells' | 'surveyEntityLabels'
 >
 
+interface StoreInputs {
+  codesTree: ReturnType<typeof useCodeStore.getState>['codes']
+  tags: ReturnType<typeof useTagStore.getState>['tags']
+  categories: ReturnType<typeof useTagStore.getState>['categories']
+  docSources: ReturnType<typeof useDocumentStore.getState>['sources']
+  docFolders: ReturnType<typeof useDocumentStore.getState>['folders']
+  sourceFolder: ReturnType<typeof useDocumentStore.getState>['sourceFolder']
+  sourceContents: ReturnType<typeof useDocumentStore.getState>['sourceContents']
+}
+
+/** Whether the tool tab around a component is the one showing. Tools not
+ *  in a tab (the default) are always showing. */
+export const ToolTabShowingContext = createContext(true)
+
 export function useLiveAnalysisData(): LiveAnalysisData {
-  const codesTree = useCodeStore((s) => s.codes)
-  const tags = useTagStore((s) => s.tags)
-  const categories = useTagStore((s) => s.categories)
-  const docSources = useDocumentStore((s) => s.sources)
-  const docFolders = useDocumentStore((s) => s.folders)
-  const sourceFolder = useDocumentStore((s) => s.sourceFolder)
-  const sourceContents = useDocumentStore((s) => s.sourceContents)
+  const showing = useContext(ToolTabShowingContext)
+  // The store values this tool last used. While hidden, each selector
+  // returns its held value, so a store change doesn't even re-render the
+  // tool; once showing again, the selectors return the live values.
+  const held = useRef<StoreInputs | null>(null)
+  const hold = <T>(live: T, pick: (h: StoreInputs) => T): T =>
+    showing || !held.current ? live : pick(held.current)
+  const codesTree = useCodeStore((s) => hold(s.codes, (h) => h.codesTree))
+  const tags = useTagStore((s) => hold(s.tags, (h) => h.tags))
+  const categories = useTagStore((s) => hold(s.categories, (h) => h.categories))
+  const docSources = useDocumentStore((s) => hold(s.sources, (h) => h.docSources))
+  const docFolders = useDocumentStore((s) => hold(s.folders, (h) => h.docFolders))
+  const sourceFolder = useDocumentStore((s) => hold(s.sourceFolder, (h) => h.sourceFolder))
+  const sourceContents = useDocumentStore((s) => hold(s.sourceContents, (h) => h.sourceContents))
+  held.current = { codesTree, tags, categories, docSources, docFolders, sourceFolder, sourceContents }
 
   const codes = useMemo(() => flattenCodesWithParent(codesTree), [codesTree])
   const folders = useMemo(

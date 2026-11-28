@@ -6,6 +6,10 @@
 import { useState, useCallback, useMemo, useRef, useEffect, useLayoutEffect, useId } from 'react'
 import { useDocumentStore } from '../../stores/document-store'
 import { useCodeStore } from '../../stores/code-store'
+// A source's memos and quotes are filtered out of the stores' lists, a new
+// array each time; comparing them item by item keeps the coded view from
+// redrawing (and re-measuring) on every hover and caret move.
+import { useShallow } from 'zustand/react/shallow'
 import { useMemoStore } from '../../stores/memo-store'
 import { useQuoteStore } from '../../stores/quote-store'
 import { PdfPageRenderer } from './PdfPageRenderer'
@@ -120,8 +124,8 @@ export function PdfDocumentViewer({ source, content, pane = 'primary', active = 
   const findCode = useCodeStore((s) => s.findCode)
   const addMemo = useMemoStore((s) => s.addMemo)
   const removeMemo = useMemoStore((s) => s.removeMemo)
-  const contentMemos = useMemoStore((s) => s.getContentMemosForSource(source.guid))
-  const sourceQuotes = useQuoteStore((s) => s.getQuotesForSource(source.guid))
+  const contentMemos = useMemoStore(useShallow((s) => s.getContentMemosForSource(source.guid)))
+  const sourceQuotes = useQuoteStore(useShallow((s) => s.getQuotesForSource(source.guid)))
   // The PDF's text (`content`, where its passages are) and the text pdf.js
   // draws can differ (utils/pdf-text-map.ts): this viewer works in drawn
   // positions, and converts to and from the PDF's text at its edges.

@@ -14,6 +14,10 @@
 import { useState, useCallback, useMemo, useRef, useEffect, useId } from 'react'
 import { useDocumentStore } from '../../stores/document-store'
 import { useCodeStore } from '../../stores/code-store'
+// A source's memos and quotes are filtered out of the stores' lists, a new
+// array each time; comparing them item by item keeps the coded view from
+// redrawing (and re-measuring) on every hover and caret move.
+import { useShallow } from 'zustand/react/shallow'
 import { useMemoStore } from '../../stores/memo-store'
 import { useQuoteStore } from '../../stores/quote-store'
 import { ImagePageRenderer } from './ImagePageRenderer'
@@ -68,8 +72,8 @@ export function ImageDocumentViewer({ source }: Props) {
   const findCode = useCodeStore((s) => s.findCode)
   const addMemo = useMemoStore((s) => s.addMemo)
   const removeMemo = useMemoStore((s) => s.removeMemo)
-  const contentMemos = useMemoStore((s) => s.getContentMemosForSource(source.guid))
-  const sourceQuotes = useQuoteStore((s) => s.getQuotesForSource(source.guid))
+  const contentMemos = useMemoStore(useShallow((s) => s.getContentMemosForSource(source.guid)))
+  const sourceQuotes = useQuoteStore(useShallow((s) => s.getQuotesForSource(source.guid)))
   const quoteRanges = useMemo(() =>
     sourceQuotes.map((q) => ({ guid: q.guid, startCp: q.startPosition, endCp: q.endPosition, pdfRegion: q.pdfRegion })),
     [sourceQuotes]
