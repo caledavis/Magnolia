@@ -1760,7 +1760,7 @@
   },
   "platform": {
     "altClickMac": "⌥-クリック",
-    "altClick": "Alt-クリック"
+    "shiftClick": "Shift キーを押しながらクリック"
   },
   "codedPdf": {
     "fileName": "{{name}}（コード付き）",

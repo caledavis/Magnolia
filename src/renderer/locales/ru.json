@@ -1958,7 +1958,7 @@
   },
   "platform": {
     "altClickMac": "⌥-нажатие",
-    "altClick": "Alt-нажатие"
+    "shiftClick": "Shift-щелчок"
   },
   "codedPdf": {
     "fileName": "{{name}} (закодировано)",

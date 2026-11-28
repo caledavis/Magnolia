@@ -1826,7 +1826,7 @@
   },
   "platform": {
     "altClickMac": "⌥-κλικ",
-    "altClick": "Alt-κλικ"
+    "shiftClick": "Κλικ με Shift"
   },
   "codedPdf": {
     "fileName": "{{name}} (κωδικοποιημένο)",

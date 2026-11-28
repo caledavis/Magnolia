@@ -16,6 +16,7 @@ import { COLOURFUL_INTERFACE_ENABLED, colourfulInterfaceFromSaved } from '../../
 import { useTranslation } from 'react-i18next'
 import { LANGUAGE_IDS, normaliseLanguagePreference, resolveLanguage, setLanguagePreference, setDigitsPreference, digitChoices, digitsSample, type LanguagePreference, type DigitsPreference } from '../../i18n'
 import { keyCombo } from '../../utils/keys'
+import { keyComboLabel } from '../../utils/platform'
 import { keyActivate } from '../../utils/key-activate'
 import { AiAssistanceSettings } from './AiAssistanceSettings'
 
@@ -160,7 +161,7 @@ function KeyCaptureInput({ value, onChange, label }: { value: string; onChange: 
       <input
         ref={inputRef}
         readOnly
-        value={capturing ? t('prefs.pressKey') : value}
+        value={capturing ? t('prefs.pressKey') : keyComboLabel(value)}
         onClick={() => setCapturing(true)}
         onBlur={() => setCapturing(false)}
         style={{

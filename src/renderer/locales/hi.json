@@ -1826,7 +1826,7 @@
   },
   "platform": {
     "altClickMac": "⌥-क्लिक",
-    "altClick": "Alt-क्लिक"
+    "shiftClick": "Shift-क्लिक"
   },
   "codedPdf": {
     "fileName": "{{name}} (कोड किया गया)",

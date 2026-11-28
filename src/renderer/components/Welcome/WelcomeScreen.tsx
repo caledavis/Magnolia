@@ -25,7 +25,9 @@ export function WelcomeScreen() {
   }, [])
 
   return (
-    <div style={{
+    // The window has no title bar on Windows and Linux: drag it by any part
+    // that isn't a control (platform/tauri-api.ts).
+    <div data-drag-region style={{
       position: 'relative',
       height: '100vh',
       width: '100vw',
@@ -113,7 +115,7 @@ export function WelcomeScreen() {
               </button>
             )}
           </div>
-          <div style={{
+          <div data-no-drag style={{
             maxHeight: 200,
             overflowY: 'auto',
             borderRadius: 'var(--radius-md)',
@@ -186,6 +188,7 @@ export function WelcomeScreen() {
             the default browser (the welcome window has no setWindowOpenHandler). */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <span
+            data-no-drag
             role="button"
             tabIndex={0}
             onClick={() => window.api.sendWelcomeAction('sponsor')}

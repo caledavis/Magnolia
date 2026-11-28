@@ -33,7 +33,7 @@ export function measureTextWidth(text: string, font: string): number {
 
 /** Pre-built font string matching the bracket label CSS. */
 export const BRACKET_LABEL_FONT =
-  '600 10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif'
+  '600 10px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif'
 
 /** Convenience: measure a bracket-label's rendered width. */
 export function measureLabelWidth(codeName: string): number {

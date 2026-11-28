@@ -1578,7 +1578,7 @@
     "queryValidate.sameSentence": "Same sentence must connect straight to Result: the sentences it finds can't be used as an input to another box or negated with NOT.",
     "queryValidate.textOnlyOr": "Text-only inputs can only be combined with the OR operator. AND, EITHER/OR, and BUT NOT are not valid for multiple text inputs.",
     "platform.altClickMac": "⌥-click",
-    "platform.altClick": "Alt-click",
+    "platform.shiftClick": "Shift-click",
     "codedPdf.fileName": "{{name}} (coded)",
     "codedPdf.dialogTitle": "Export Coded Document as PDF",
     "codedPdf.subtitle_one": "{{count}} coded segment — exported {{date}}",

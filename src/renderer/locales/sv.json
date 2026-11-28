@@ -1826,7 +1826,7 @@
   },
   "platform": {
     "altClickMac": "⌥-klick",
-    "altClick": "Alt-klick"
+    "shiftClick": "Skift-klick"
   },
   "codedPdf": {
     "fileName": "{{name}} (kodad)",

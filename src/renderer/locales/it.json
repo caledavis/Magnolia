@@ -1892,7 +1892,7 @@
   },
   "platform": {
     "altClickMac": "⌥-clic",
-    "altClick": "Alt-clic"
+    "shiftClick": "Maiusc-clic"
   },
   "codedPdf": {
     "fileName": "{{name}} (codificato)",

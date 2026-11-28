@@ -2090,7 +2090,7 @@
   },
   "platform": {
     "altClickMac": "⌥-نقر",
-    "altClick": "Alt-نقر"
+    "shiftClick": "النقر مع Shift"
   },
   "codedPdf": {
     "fileName": "{{name}} (مرمّز)",

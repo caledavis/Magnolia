@@ -14,6 +14,22 @@ export function modKey(key: string | number): string {
   return isMac ? `⌘${key}` : `Ctrl+${key}`
 }
 
-/** OS-appropriate label for an Option/Alt click-modifier hint. */
-/** How to Alt-click on this platform, in the interface language. */
-export const altClickHint = (): string => t(isMac ? 'platform.altClickMac' : 'platform.altClick')
+/** Whether a click or marquee adds to the selection rather than replacing
+ *  it: Option or Command on a Mac, as in the Finder; Shift elsewhere too,
+ *  because Xfce, Cinnamon and MATE keep Alt-drag for moving windows. */
+export function addsToSelection(e: { altKey: boolean; metaKey: boolean; shiftKey: boolean }): boolean {
+  return e.altKey || e.metaKey || (!isMac && e.shiftKey)
+}
+
+/** How to click to select several, in the interface language. */
+export const multiSelectClickHint = (): string => t(isMac ? 'platform.altClickMac' : 'platform.shiftClick')
+
+/** A recorded key combination (utils/keys.ts keyCombo) as this platform
+ *  names its keys. The combination itself always calls the Command /
+ *  Windows / Super key "Cmd", so a saved mapping keeps working; only
+ *  the label changes: the key is "Super" on Linux and "Win" on Windows. */
+export function keyComboLabel(combo: string): string {
+  if (isMac) return combo
+  const meta = window.api?.platform === 'win32' ? 'Win' : 'Super'
+  return combo.split('+').map((part, i, all) => (part === 'Cmd' && i < all.length - 1 ? meta : part)).join('+')
+}

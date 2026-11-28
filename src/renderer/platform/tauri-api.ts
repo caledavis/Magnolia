@@ -300,11 +300,20 @@ window.addEventListener('mousedown', (e) => {
   if (e.button !== 0) return
   const inRegion = inDragRegion(e.target)
   if (e.detail <= 1) firstClickInDragRegion = inRegion
+  // On Linux and Windows the first click's drag hands the mouse to the
+  // window manager, which keeps the release, so the page never sees a
+  // dblclick: toggle on the second press instead, as Tauri's own drag
+  // regions do.
+  if (e.detail === 2 && platform !== 'darwin' && firstClickInDragRegion && inRegion) {
+    e.preventDefault()
+    void current.toggleMaximize()
+    return
+  }
   if (e.detail > 1 || !inRegion) return
   void current.startDragging()
 })
 window.addEventListener('dblclick', (e) => {
-  if (firstClickInDragRegion && inDragRegion(e.target)) void current.toggleMaximize()
+  if (platform === 'darwin' && firstClickInDragRegion && inDragRegion(e.target)) void current.toggleMaximize()
 })
 
 // Keep the window's own background the colour of the page's, so a
@@ -316,6 +325,13 @@ function syncWindowBackground(): void {
     if (!m || m.length < 3) return
     const [r, g, b] = m.map(Number)
     void current.setBackgroundColor([r, g, b, 255]).catch(() => { /* not supported here */ })
+    // GTK draws the menu bar and the file dialogs in the system's light or
+    // dark style; match them to Magnolia's theme instead, so Magnolia Dark
+    // on a light desktop doesn't get a white menu bar above it.
+    if (platform === 'linux') {
+      const dark = 0.2126 * r + 0.7152 * g + 0.0722 * b < 128
+      void current.setTheme(dark ? 'dark' : 'light').catch(() => { /* not supported here */ })
+    }
   })
 }
 if (document.body) syncWindowBackground()

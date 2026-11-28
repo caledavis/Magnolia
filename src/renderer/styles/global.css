@@ -1,7 +1,10 @@
 :root {
   --panel-header-height: 28px;
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, sans-serif;
+  /* system-ui is the desktop's own interface font on Linux (Adwaita Sans
+   * on GNOME 48, Noto Sans on KDE); after Segoe UI, so macOS and Windows
+   * keep theirs. */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, Roboto,
+    Oxygen, Ubuntu, Cantarell, sans-serif;
   /* Optional display face — kept as a hook so future themes can set
    * --font-display to a distinct family for headings / modal titles
    * without rewiring callsites. All currently shipped themes let this

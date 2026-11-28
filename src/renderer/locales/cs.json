@@ -1958,7 +1958,7 @@
   },
   "platform": {
     "altClickMac": "⌥-klepnutí",
-    "altClick": "Alt-klepnutí"
+    "shiftClick": "Shift-kliknutí"
   },
   "codedPdf": {
     "fileName": "{{name}} (kódováno)",

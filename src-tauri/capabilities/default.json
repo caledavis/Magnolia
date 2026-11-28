@@ -19,6 +19,7 @@
     "core:window:allow-start-dragging",
     "core:window:allow-set-title",
     "core:window:allow-set-background-color",
+    "core:window:allow-set-theme",
     "core:webview:allow-set-webview-zoom",
     "notification:allow-is-permission-granted"
   ]

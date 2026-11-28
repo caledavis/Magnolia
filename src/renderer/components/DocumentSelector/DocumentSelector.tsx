@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { Icon, faXmark } from '../Icon'
 import { PaletteGroup, PaletteDivider, PaletteButton } from '../NodePalette'
-import { modKey } from '../../utils/platform'
+import { addsToSelection, modKey } from '../../utils/platform'
 import {
   resolveDocGraph,
   type DocGraphData,
@@ -798,7 +798,7 @@ export function DocumentSelector({
         for (const n of nodesRef.current) {
           if (n.x < x2 && n.x + nodeW(n) > x1 && n.y < y2 && n.y + nodeH(n) > y1) hit.add(n.id)
         }
-        if (e.altKey || e.metaKey) {
+        if (addsToSelection(e)) {
           setSelNodes((prev) => { const next = new Set(prev); for (const id of hit) next.add(id); return next })
         } else {
           setSelNodes(hit)
@@ -839,7 +839,7 @@ export function DocumentSelector({
     if (!n) return
     setSelConn(null)
 
-    if (e.altKey || e.metaKey) {
+    if (addsToSelection(e)) {
       setSelNodes((prev) => {
         const next = new Set(prev)
         if (next.has(nodeId)) next.delete(nodeId); else next.add(nodeId)

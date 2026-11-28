@@ -1826,7 +1826,7 @@
   },
   "platform": {
     "altClickMac": "⌥-klikkaus",
-    "altClick": "Alt-klikkaus"
+    "shiftClick": "Vaihto-osoitus"
   },
   "codedPdf": {
     "fileName": "{{name}} (koodattu)",

@@ -3,7 +3,7 @@ import type { CodeCondition, QueryGraphConn, QueryGraphLayout, QueryGraphLogical
 import { validateCondition } from '../../utils/query-validate'
 import { Icon, faExclamationTriangle, faCircle, faXmark } from '../Icon'
 import { PaletteGroup, PaletteDivider, PaletteButton } from '../NodePalette'
-import { modKey, altClickHint } from '../../utils/platform'
+import { addsToSelection, modKey, multiSelectClickHint } from '../../utils/platform'
 import { useTranslation } from 'react-i18next'
 import { t } from '../../i18n'
 import { isLetterKey } from '../../utils/keys'
@@ -902,7 +902,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
             hit.add(n.id)
           }
         }
-        if (e.altKey || e.metaKey) {
+        if (addsToSelection(e)) {
           // Additive selection
           setSelNodes((prev) => {
             const next = new Set(prev)
@@ -964,7 +964,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
       setSelConn(null)
 
       // Option/Alt-click: toggle in multi-selection
-      if (e.altKey || e.metaKey) {
+      if (addsToSelection(e)) {
         setSelNodes((prev) => {
           const next = new Set(prev)
           if (next.has(nodeId)) next.delete(nodeId)
@@ -1977,7 +1977,7 @@ export function QueryNodeEditor({ onChange, onGraphChange, initialCondition, ini
         <span>
           {selNodes.size > 1
             ? t('queryBuilder.statusSelected', { count: selNodes.size, copy: modKey('C'), paste: modKey('V') })
-            : t('queryBuilder.statusHint', { altClick: altClickHint() })}
+            : t('queryBuilder.statusHint', { altClick: multiSelectClickHint() })}
         </span>
         <span
           style={{

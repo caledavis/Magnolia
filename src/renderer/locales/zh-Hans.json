@@ -1760,7 +1760,7 @@
   },
   "platform": {
     "altClickMac": "⌥-点按",
-    "altClick": "Alt-点按"
+    "shiftClick": "按住 Shift 点按"
   },
   "codedPdf": {
     "fileName": "{{name}}（已编码）",

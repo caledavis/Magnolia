@@ -8,6 +8,7 @@ import { FreeTextNode } from './FreeTextNode'
 import { Icon, MEMO_RANGED_ICON } from '../../Icon'
 import { useTranslation } from 'react-i18next'
 import { isLetterKey } from '../../../utils/keys'
+import { addsToSelection } from '../../../utils/platform'
 import { dropZone } from '../../../utils/key-activate'
 
 /** A free text's name: its first line, without markdown. */
@@ -388,7 +389,7 @@ export function MapCanvas({
               hitFts.add(ft.id)
             }
           }
-          onSelectElements(hitEls, e.altKey || e.metaKey)
+          onSelectElements(hitEls, addsToSelection(e))
           onSelectFreeTexts(hitFts)
         }
         setMarqueeRect(null)

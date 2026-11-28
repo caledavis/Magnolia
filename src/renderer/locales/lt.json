@@ -1958,7 +1958,7 @@
   },
   "platform": {
     "altClickMac": "⌥ ir spustelėjimas",
-    "altClick": "Alt ir spustelėjimas"
+    "shiftClick": "Spustelėjimas su Shift"
   },
   "codedPdf": {
     "fileName": "{{name}} (užkoduota)",

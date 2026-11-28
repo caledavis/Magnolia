@@ -1892,7 +1892,7 @@
   },
   "platform": {
     "altClickMac": "⌥-לחיצה",
-    "altClick": "Alt-לחיצה"
+    "shiftClick": "לחיצה עם Shift"
   },
   "codedPdf": {
     "fileName": "{{name}} (מקודד)",
