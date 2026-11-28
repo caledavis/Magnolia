@@ -1401,7 +1401,11 @@
     "noAnalysesInQuery": "Analysen können nicht zu einer Abfrage hinzugefügt werden",
     "progressOf": "{{current}} / {{total}}",
     "dropToImport": "Zum Importieren loslassen",
-    "dropToImportHint": "Auf einem Ordner unter „Dokumente“ loslassen, um in diesen Ordner zu importieren"
+    "dropToImportHint": "Auf einem Ordner unter „Dokumente“ loslassen, um in diesen Ordner zu importieren",
+    "otherProjectWindow": "Dieses Fenster gehört zu einem Projekt, das nicht mehr geöffnet ist. Was Sie darin getan haben, wurde hier deshalb nicht übernommen. Schließen Sie es und öffnen Sie es aus diesem Projekt erneut.",
+    "openFailed": "Magnolia konnte „{{name}}“ nicht öffnen: {{error}}",
+    "saveUntitledFirst": "„{{name}}“ wurde noch nicht gespeichert.\n\nVor dem Fortfahren speichern?",
+    "untitledNotSaved": "es wurde noch nicht als Datei gespeichert"
   },
   "analysis": {
     "save": "Analyse speichern",

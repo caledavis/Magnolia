@@ -1356,7 +1356,11 @@
     "noAnalysesInQuery": "分析はクエリに追加できません",
     "progressOf": "{{current}} / {{total}}",
     "dropToImport": "ドロップして読み込む",
-    "dropToImportHint": "「ドキュメント」のフォルダにドロップすると、そのフォルダに読み込みます"
+    "dropToImportHint": "「ドキュメント」のフォルダにドロップすると、そのフォルダに読み込みます",
+    "otherProjectWindow": "このウィンドウは、もう開いていないプロジェクトのものです。そのため、そこでの操作はここには反映されていません。ウィンドウを閉じて、このプロジェクトから開き直してください。",
+    "openFailed": "Magnolia は「{{name}}」を開けませんでした：{{error}}",
+    "saveUntitledFirst": "「{{name}}」はまだ保存されていません。\n\n続ける前に保存しますか？",
+    "untitledNotSaved": "まだファイルとして保存されていません"
   },
   "analysis": {
     "save": "分析を保存",

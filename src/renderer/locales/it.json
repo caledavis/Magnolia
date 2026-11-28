@@ -1446,7 +1446,11 @@
     "noAnalysesInQuery": "Le analisi non possono essere aggiunte a una query",
     "progressOf": "{{current}} / {{total}}",
     "dropToImport": "Rilascia per importare",
-    "dropToImportHint": "Rilascia su una cartella in Documenti per importare in quella cartella"
+    "dropToImportHint": "Rilascia su una cartella in Documenti per importare in quella cartella",
+    "otherProjectWindow": "Quella finestra appartiene a un progetto che non è più aperto, quindi ciò che hai fatto lì non è stato applicato qui. Chiudila e riaprila da questo progetto.",
+    "openFailed": "Magnolia non è riuscito ad aprire «{{name}}»: {{error}}",
+    "saveUntitledFirst": "«{{name}}» non è ancora stato salvato.\n\nVuoi salvarlo prima di continuare?",
+    "untitledNotSaved": "non è ancora stato salvato in un file"
   },
   "analysis": {
     "save": "Salva analisi",

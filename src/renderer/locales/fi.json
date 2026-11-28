@@ -1401,7 +1401,11 @@
     "noAnalysesInQuery": "Analyyseja ei voi lisätä hakuun",
     "progressOf": "{{current}} / {{total}}",
     "dropToImport": "Pudota tuodaksesi",
-    "dropToImportHint": "Pudota Dokumentit-paneelin kansioon tuodaksesi siihen kansioon"
+    "dropToImportHint": "Pudota Dokumentit-paneelin kansioon tuodaksesi siihen kansioon",
+    "otherProjectWindow": "Se ikkuna kuuluu projektiin, joka ei ole enää auki, joten siinä tekemiäsi muutoksia ei tehty tähän. Sulje se ja avaa se uudelleen tästä projektista.",
+    "openFailed": "Magnolia ei voinut avata projektia ”{{name}}”: {{error}}",
+    "saveUntitledFirst": "Projektia ”{{name}}” ei ole vielä tallennettu.\n\nTallennetaanko se ennen jatkamista?",
+    "untitledNotSaved": "sitä ei ole vielä tallennettu tiedostoksi"
   },
   "analysis": {
     "save": "Tallenna analyysi",

@@ -60,7 +60,13 @@ interface ProjectState {
   }) => void
   setFilePath: (path: string) => void
   markDirty: () => void
+  /** The project now matches its file (just opened, or created). After a
+   *  save, use markSavedAt instead. */
   markClean: () => void
+  /** A save of the project as it was at `generation` (editGeneration(),
+   *  read before the project was collected) succeeded: clean, unless it
+   *  was edited while saving. Returns whether it's clean now. */
+  markSavedAt: (generation: number) => boolean
   setName: (name: string) => void
   setDescription: (description: string) => void
   setSavedAnalyses: (analyses: SavedAnalysis[]) => void
@@ -88,6 +94,33 @@ export function isUntitledName(name: string): boolean {
   return name === 'Untitled Project' || name === t('project.untitled')
 }
 
+/** Every file the open project has been saved as since it was opened or
+ *  created (Save As, Create a Copy and a first save give it another).
+ *  Windows left open from another project are told apart by these (see
+ *  app/window-project.ts). */
+let openProjectPaths = new Set<string | null>([null])
+function projectOpened(filePath: string | null): void {
+  openProjectPaths = new Set([filePath])
+}
+
+/** Whether this file is (or was, before a Save As) the open project's. */
+export function isOpenProjectPath(path: string | null): boolean {
+  return openProjectPaths.has(path)
+}
+
+/** Counts edits: every markDirty (and setter that dirties) adds one. A
+ *  save reads it before collecting the project and is only clean if it is
+ *  unchanged once the write finishes: an edit made while the file was
+ *  being written isn't in it. Marking clean regardless lost those edits —
+ *  isDirty was already true, so the edit didn't change it, and the
+ *  autosave (which runs when it changes) never ran again. */
+let edits = 0
+
+/** The edit count, read before a save collects the project (markSavedAt). */
+export function editGeneration(): number {
+  return edits
+}
+
 /** When the read-only alert was last closed (see markDirty). */
 let newerFormatDismissedAt = 0
 
@@ -108,6 +141,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   createNewProject: () => {
     const userGuid = generateGuid()
+    projectOpened(null)
     set({
       name: 'Untitled Project',
       origin: `Magnolia ${__APP_VERSION__}`,
@@ -127,7 +161,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     })
   },
 
-  loadProject: (data) =>
+  loadProject: (data) => {
+    projectOpened(data.filePath ?? null)
     set({
       name: data.name && data.name.trim() ? data.name : (data.filePath ? deriveNameFromPath(data.filePath) : t('project.untitled')),
       origin: data.origin,
@@ -143,13 +178,16 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       // An opened project's is set once it's loaded (setNewerFormat).
       newerFormat: null,
       newerFormatNotice: false
-    }),
+    })
+  },
 
-  setFilePath: (path) =>
+  setFilePath: (path) => {
+    openProjectPaths.add(path)
     set((state) => ({
       filePath: path,
       name: !state.name || isUntitledName(state.name) ? deriveNameFromPath(path) : state.name
-    })),
+    }))
+  },
   // Enforced lock: while someone else's checkoutMarker is on the project,
   // refuse to flip dirty at all — every store's mutation methods call this
   // right after mutating their own state, so this is the one funnel point
@@ -193,12 +231,18 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         return
       }
     }
+    edits++
     set({ isDirty: true })
   },
   markClean: () => set({ isDirty: false }),
-  setName: (name) => set({ name, isDirty: true }),
-  setDescription: (description) => set({ description, isDirty: true }),
-  setSavedAnalyses: (analyses) => set({ savedAnalyses: analyses, isDirty: true }),
+  markSavedAt: (generation) => {
+    if (generation !== edits) return false
+    set({ isDirty: false })
+    return true
+  },
+  setName: (name) => { edits++; set({ name, isDirty: true }) },
+  setDescription: (description) => { edits++; set({ description, isDirty: true }) },
+  setSavedAnalyses: (analyses) => { edits++; set({ savedAnalyses: analyses, isDirty: true }) },
   setCheckoutMarker: (marker) => set({ checkoutMarker: marker }),
   promptCheckoutConflict: (marker) =>
     set((state) => {

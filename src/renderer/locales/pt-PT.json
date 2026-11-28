@@ -1446,7 +1446,11 @@
     "noAnalysesInQuery": "Não é possível adicionar análises a uma consulta",
     "progressOf": "{{current}} / {{total}}",
     "dropToImport": "Largue para importar",
-    "dropToImportHint": "Largue numa pasta em Documentos para importar para essa pasta"
+    "dropToImportHint": "Largue numa pasta em Documentos para importar para essa pasta",
+    "otherProjectWindow": "Essa janela pertence a um projeto que já não está aberto, por isso o que fez nela não foi aplicado aqui. Feche-a e volte a abri-la a partir deste projeto.",
+    "openFailed": "O Magnolia não conseguiu abrir «{{name}}»: {{error}}",
+    "saveUntitledFirst": "«{{name}}» ainda não foi guardado.\n\nGuardar antes de continuar?",
+    "untitledNotSaved": "ainda não foi guardado num ficheiro"
   },
   "analysis": {
     "save": "Guardar análise",

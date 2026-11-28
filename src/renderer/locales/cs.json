@@ -1491,7 +1491,11 @@
     "noAnalysesInQuery": "Analýzy nelze přidat do dotazu",
     "progressOf": "{{current}} / {{total}}",
     "dropToImport": "Pusťte pro import",
-    "dropToImportHint": "Pusťte na složku v Dokumentech, chcete-li importovat do ní"
+    "dropToImportHint": "Pusťte na složku v Dokumentech, chcete-li importovat do ní",
+    "otherProjectWindow": "Toto okno patří k projektu, který už není otevřený, takže to, co jste v něm udělali, se tu neprovedlo. Zavřete ho a otevřete znovu z tohoto projektu.",
+    "openFailed": "Magnolia nemohla otevřít „{{name}}“: {{error}}",
+    "saveUntitledFirst": "„{{name}}“ ještě nebyl uložen.\n\nUložit ho, než budete pokračovat?",
+    "untitledNotSaved": "ještě nebyl uložen do souboru"
   },
   "analysis": {
     "save": "Uložit analýzu",

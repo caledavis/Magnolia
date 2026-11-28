@@ -1446,7 +1446,11 @@
     "noAnalysesInQuery": "Les anàlisis no es poden afegir a una consulta",
     "progressOf": "{{current}} / {{total}}",
     "dropToImport": "Deixeu anar per importar",
-    "dropToImportHint": "Deixeu anar sobre una carpeta de Documents per importar-hi"
+    "dropToImportHint": "Deixeu anar sobre una carpeta de Documents per importar-hi",
+    "otherProjectWindow": "Aquella finestra és d’un projecte que ja no està obert, així que el que hi heu fet no s’ha aplicat aquí. Tanqueu-la i torneu-la a obrir des d’aquest projecte.",
+    "openFailed": "Magnolia no ha pogut obrir «{{name}}»: {{error}}",
+    "saveUntitledFirst": "«{{name}}» encara no s’ha desat.\n\nVoleu desar-lo abans de continuar?",
+    "untitledNotSaved": "encara no s’ha desat com a fitxer"
   },
   "analysis": {
     "save": "Desa l’anàlisi",

@@ -38,7 +38,7 @@ function analysisToolTitle(toolType: string): string | undefined {
   return toolType === 'relationship-map' ? undefined : TOOL_REGISTRY[toolType]?.label
 }
 
-import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle, isUntitledName } from './stores/project-store'
+import { useProjectStore, useCheckoutLockedBy, checkoutLockedTitle, isUntitledName, editGeneration } from './stores/project-store'
 import { usePreferencesStore } from './stores/preferences-store'
 import { useCodeColourPresets, nextCodeColour } from './utils/code-colours'
 import { useWindowCornerPanels } from './utils/window-corner-panels'
@@ -93,7 +93,8 @@ import { memosWindowData, sendCodebookData } from './app/other-windows'
 import { describeQuery } from './app/query-description'
 import { useCodebookMessages, useLogbookMessages, useMemoWindowMessages, useQueryBuilderMessages, useQueryResultsWindowMessages, useQueryResultsWindowUpdates, useAnalysisMessages } from './app/window-messages'
 import { useProjectShortcuts } from './app/keyboard-shortcuts'
-import { collectProject } from './app/project-file'
+import { collectProject, projectHasContent } from './app/project-file'
+import { queueSave, savesSettled } from './app/save-queue'
 import { codeAllResults } from './app/code-results'
 import { useLatest } from './utils/use-latest'
 import { errorMessage } from './utils/error-message'
@@ -119,6 +120,36 @@ function isGuardBlocked(r: unknown): r is { guardBlocked: true; message: string 
   return !!r && typeof r === 'object' && 'guardBlocked' in r
 }
 
+
+/** Writes the project to `filePath` as the window closes: what went
+ *  wrong, or null once it's saved. Written again when edited while it
+ *  was writing (a few times at most: the window is closing). */
+async function flushProject(filePath: string): Promise<{ error?: string; lockedBy?: string } | null> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const generation = editGeneration()
+    try {
+      const result = await window.api.saveProject({
+        project: collectProject(),
+        sourceContents: useDocumentStore.getState().sourceContents,
+        filePath,
+        userName: usePreferencesStore.getState().userName.trim() || undefined,
+        allowEmpty: emptySaveAllowed()
+      })
+      // Someone else now holds the lock — same staleness check as
+      // the normal save path. There's no room for a Merge
+      // reconciliation in the middle of closing the window, and
+      // overwriting the other person's already-saved changes would
+      // be far worse, so this is a save that failed: ask.
+      if (isConflict(result)) return { lockedBy: result.marker?.userName || '?' }
+      if (isGuardBlocked(result)) return { error: String(result.message) }
+    } catch (err) {
+      console.error('Pre-close flush failed:', err)
+      return { error: errorMessage(err) }
+    }
+    if (useProjectStore.getState().markSavedAt(generation)) return null
+  }
+  return null
+}
 
 /** How often a failing save is retried. */
 const SAVE_RETRY_MS = 20_000
@@ -534,6 +565,10 @@ function App() {
   // and try to save a half-populated payload. The autosave effect itself
   // owns scheduling; we only own cancellation here.
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  /** Schedules the autosave for the project as it is now (set by the
+   *  autosave effect below): for a save that finished with edits made
+   *  while it was writing, which isDirty, already true, doesn't re-run. */
+  const armAutoSaveRef = useRef<() => void>(() => {})
   const cancelPendingAutoSave = useCallback(() => {
     if (autoSaveTimer.current) {
       clearTimeout(autoSaveTimer.current)
@@ -667,24 +702,29 @@ function App() {
     if (marker && marker.userName !== myName) setCheckoutConflict(marker)
   }, [setCheckoutConflict])
 
-  const handleOpenProject = useCallback(async () => {
-    // Show the native file picker FIRST, before flipping any loading
-    // state, so the picker appears immediately on click. Previously
-    // setLoadProgress fired before the picker IPC, so the loading
-    // overlay rendered first and the picker came up behind / on top —
-    // making it feel like Magnolia stalled before the picker even
-    // opened.
-    const filePath = await window.api.pickProjectFile()
-    if (!filePath) return
-    if (!(await saveBeforeSwitchingRef.current())) return
+  /** Opens the project at `filePath` in place of the one open now (which
+   *  the caller has saved, or the person chose to leave). 'failed' when
+   *  it couldn't be read, or failed part-way; the stores are then emptied
+   *  rather than left half one project and half the other. */
+  const loadProjectFrom = useCallback(async (filePath: string): Promise<'opened' | 'failed'> => {
+    const t = latestT.current
+    // Whether the project open now may be saved empty, should nothing be
+    // opened in its place after all.
+    const emptySaveWasAllowed = emptySaveAllowed()
     loadInProgressRef.current = true
     noteBulkReset()
     cancelPendingAutoSave()
     setLoadProgress({ stage: t('app.opening'), current: 0, total: 0 })
+    let storesChanged = false
     try {
       setMissingBinaries([])
       const data = await window.api.openProjectPath(filePath)
-      if (!data) return
+      if (!data) {
+        // Nothing was opened, and nothing changed: the guard is as it was.
+        if (emptySaveWasAllowed) noteStateMatchesFile()
+        return 'failed'
+      }
+      storesChanged = true
       // Drop any in-memory state from the previous project that wouldn't
       // otherwise get cleared by the per-store setX steps below. We do
       // NOT clearAll on documentStore here: that would leave sources=[]
@@ -692,8 +732,8 @@ function App() {
       // and any pending 2-second autosave timer would then write a
       // partial-empty payload to disk. Clearing only the leftover map
       // tabs is enough to fix the cross-project map-tab leak.
-      documentStore.closeAllToolTabs()
-      documentStore.closeAllToolTabs()
+      useDocumentStore.getState().closeAllToolTabs()
+      useDocumentStore.getState().closeAllToolTabs()
       useRelationshipMapStore.getState().clearAll()
       useAnalysisTabsStore.getState().clearAll()
       const { sourceContents, ...project } = data
@@ -701,7 +741,7 @@ function App() {
         {
           label: t('app.step.projectMetadata'),
           run: () =>
-            projectStore.loadProject({
+            useProjectStore.getState().loadProject({
               name: project.name,
               origin: project.origin,
               description: project.description,
@@ -714,29 +754,29 @@ function App() {
               savedAnalyses: project.savedAnalyses
             })
         },
-        { label: t('app.step.documents'), run: () => documentStore.setSources(project.sources, sourceContents) },
-        { label: t('app.step.folders'), run: () => documentStore.setFolders(project.folders ?? [], project.sourceFolder ?? {}) },
-        { label: t('app.step.codes'), run: () => codeStore.setCodes(project.codes) },
+        { label: t('app.step.documents'), run: () => useDocumentStore.getState().setSources(project.sources, sourceContents) },
+        { label: t('app.step.folders'), run: () => useDocumentStore.getState().setFolders(project.folders ?? [], project.sourceFolder ?? {}) },
+        { label: t('app.step.codes'), run: () => useCodeStore.getState().setCodes(project.codes) },
         {
           label: t('app.step.tags'),
           run: () => {
             // A file from before documents were taken off their tags when
             // removed may still list them.
             const sourceGuids = new Set(project.sources.map((s) => s.guid))
-            tagStore.setTags(tagsWithMembersIn(project.sets, (guid) => sourceGuids.has(guid)))
-            tagStore.setCategories(project.tagCategories ?? [])
+            useTagStore.getState().setTags(tagsWithMembersIn(project.sets, (guid) => sourceGuids.has(guid)))
+            useTagStore.getState().setCategories(project.tagCategories ?? [])
           }
         },
         {
           label: t('app.step.queries'),
           run: () => {
-            queryStore.clearQuery()
-            queryStore.setSavedQueries(project.savedQueries ?? [])
+            useQueryStore.getState().clearQuery()
+            useQueryStore.getState().setSavedQueries(project.savedQueries ?? [])
           }
         },
-        { label: t('app.step.logbook'), run: () => logbookStore.setEntries(project.logbookEntries ?? []) },
+        { label: t('app.step.logbook'), run: () => useLogbookStore.getState().setEntries(project.logbookEntries ?? []) },
         { label: t('app.step.ai'), run: () => useAiStore.getState().setProjectAi(project.ai) },
-        { label: t('app.step.memos'), run: () => memoStore.setMemos(project.memos ?? []) },
+        { label: t('app.step.memos'), run: () => useMemoStore.getState().setMemos(project.memos ?? []) },
         { label: t('app.step.quotes'), run: () => useQuoteStore.getState().setQuotes(project.quotes ?? []) },
         // Tabs runs LAST so it can validate ids against every store
         // populated above (sources, savedAnalyses, etc.).
@@ -763,14 +803,67 @@ function App() {
       setNotKept(data.notKept ?? null)
       setNotKeptOpen(notKeptKinds(data.notKept ?? null).length > 0)
       applyCheckoutInfo(data)
-      if (data.filePath) {
-        window.api.trackRecentProject(project.name, data.filePath)
+      window.api.trackRecentProject(project.name, data.filePath ?? filePath)
+      return 'opened'
+    } catch (err) {
+      console.error('Failed to open project:', err)
+      if (storesChanged) {
+        // Failed part-way: the stores hold some of each project, and the
+        // project store may already name the new file, marked edited. Left
+        // so, the autosave would write that mixture over it. Empty them
+        // instead, as a new project with no file (nothing is saved).
+        useDocumentStore.getState().clearAll()
+        useCodeStore.getState().clearAll()
+        useTagStore.getState().clearAll()
+        useQueryStore.getState().clearAll()
+        useLogbookStore.getState().clearAll()
+        useMemoStore.getState().clearAll()
+        useQuoteStore.getState().clearAll()
+        useRelationshipMapStore.getState().clearAll()
+        useAnalysisTabsStore.getState().clearAll()
+        useAiStore.getState().clearAll()
+        useProjectStore.getState().createNewProject()
+        noteStateMatchesFile()
+        startUndoAfresh()
+        setNotKept(null)
+        setMissingBinaries([])
+      } else if (emptySaveWasAllowed) {
+        noteStateMatchesFile()
       }
+      const name = filePath.split(/[/\\]/).pop()?.replace(/\.qdpx$/i, '') || filePath
+      void window.api.showMessage(t('app.openFailed', { name, error: errorMessage(err) }), 'warning')
+      return 'failed'
     } finally {
       setLoadProgress(null)
       liftLoadSuppression()
     }
-  }, [cancelPendingAutoSave, t, documentStore, applyCheckoutInfo, projectStore, codeStore, tagStore, queryStore, logbookStore, memoStore, restoreTabState, liftLoadSuppression])
+  }, [cancelPendingAutoSave, latestT, applyCheckoutInfo, restoreTabState, liftLoadSuppression])
+
+  /** Opens another project: the one open now is saved first (or the person
+   *  chooses to leave it). Should the new one fail part-way, the one that
+   *  was open is opened again. */
+  const switchToProject = useCallback(async (filePath: string): Promise<void> => {
+    if (!(await saveBeforeSwitchingRef.current())) return
+    const previous = useProjectStore.getState().filePath
+    const outcome = await loadProjectFrom(filePath)
+    if (outcome === 'failed' && previous && previous !== filePath && !useProjectStore.getState().filePath) {
+      await loadProjectFrom(previous)
+    }
+  }, [loadProjectFrom])
+  // For the open-recent-project listener, registered once.
+  const switchToProjectRef = useLatest(switchToProject)
+
+  const handleOpenProject = useCallback(async () => {
+    // Show the native file picker FIRST, before flipping any loading
+    // state, so the picker appears immediately on click. Previously
+    // setLoadProgress fired before the picker IPC, so the loading
+    // overlay rendered first and the picker came up behind / on top —
+    // making it feel like Magnolia stalled before the picker even
+    // opened.
+    const filePath = await window.api.pickProjectFile()
+    if (!filePath) return
+    await switchToProject(filePath)
+  }, [switchToProject])
 
   // Set by the auto-checkout-on-first-edit effect (further down) for the
   // duration of its own checkOutProject call, cleared when it resolves.
@@ -779,7 +872,12 @@ function App() {
   // that sets it) so it's in scope above handleSaveProject's definition.
   const pendingAutoCheckOutRef = useRef<Promise<void> | null>(null)
 
-  const handleSaveProject = useCallback(async (opts: { quiet?: boolean } = {}): Promise<SaveOutcome> => {
+  const handleSaveProject = useCallback((opts: { quiet?: boolean } = {}): Promise<SaveOutcome> => queueSave(async (): Promise<SaveOutcome> => {
+    // One save at a time (see save-queue.ts), each collecting the project
+    // when its turn comes. And read the store afresh rather than from this
+    // render: a save queued behind another may run after the first save of
+    // a new project has given it its file.
+    const projectStore = useProjectStore.getState()
     // A save can fire from multiple independent triggers for the exact
     // same edit — the debounced autosave timer, or a manual Cmd+S the
     // user happens to hit right after editing — and neither one waits on
@@ -824,6 +922,8 @@ function App() {
     // whoever edits it next (even a different user) to claim silently,
     // with no conflict prompt to either side.
     const hadFilePath = !!projectStore.filePath
+    // Edits from here on aren't in what's written (see markSavedAt).
+    const generation = editGeneration()
     const project = collectProject()
     // Renderer-side safety guard: refuse to overwrite an existing file on
     // disk with an all-empty payload when we've previously seen data in
@@ -832,7 +932,7 @@ function App() {
     try {
       result = await window.api.saveProject({
         project,
-        sourceContents: documentStore.sourceContents,
+        sourceContents: useDocumentStore.getState().sourceContents,
         filePath: projectStore.filePath ?? undefined,
         userName: usePreferencesStore.getState().userName.trim() || undefined,
         allowEmpty: emptySaveAllowed()
@@ -872,12 +972,13 @@ function App() {
       setSaveFailure(null)
       noteStateMatchesFile()
       projectStore.setFilePath(result)
-      projectStore.markClean()
+      // Edited while it was writing: still unsaved, so save again soon.
+      if (!projectStore.markSavedAt(generation)) armAutoSaveRef.current()
       // Freshly-imported binaries are now embedded in the .qdpx: graduate their
       // transient overlay handles to durable archive handles so playback no
       // longer depends on the in-memory import overlay surviving.
-      documentStore.promoteImportedBinariesToArchive()
-      window.api.trackRecentProject(projectStore.name, result)
+      useDocumentStore.getState().promoteImportedBinariesToArchive()
+      window.api.trackRecentProject(useProjectStore.getState().name, result)
       if (!hadFilePath) {
         const myName = usePreferencesStore.getState().userName.trim()
         if (myName) {
@@ -891,7 +992,7 @@ function App() {
       }
     }
     return { ok: true }
-  }, [documentStore, projectStore, t])
+  }), [t])
 
   // Before another project replaces this one: save it, rather than drop
   // whatever the autosave hadn't written yet (an import, a code just
@@ -899,7 +1000,9 @@ function App() {
   const saveBeforeSwitching = useCallback(async (): Promise<boolean> => {
     cancelPendingAutoSave()
     const ps = useProjectStore.getState()
-    if (!ps.isDirty || !ps.filePath) return true
+    if (!ps.isDirty) return true
+    // No file to save it in yet: ask, unless there's nothing in it.
+    if (!ps.filePath) return projectHasContent() ? askAboutUntitledRef.current(false) : true
     let outcome: SaveOutcome
     try {
       outcome = await handleSaveProject({ quiet: true })
@@ -910,6 +1013,8 @@ function App() {
     return window.api.confirmLosingChanges(ps.name, { error: outcome.error, lockedBy: outcome.lockedBy })
   }, [cancelPendingAutoSave, handleSaveProject])
   const saveBeforeSwitchingRef = useRef(saveBeforeSwitching)
+  // Set below, once Save As is defined.
+  const askAboutUntitledRef = useRef<(closing: boolean) => Promise<boolean>>(async () => true)
   useEffect(() => { saveBeforeSwitchingRef.current = saveBeforeSwitching }, [saveBeforeSwitching])
 
   // While saving fails, try again every so often: the autosave only fires
@@ -933,13 +1038,15 @@ function App() {
       await window.api.showMessage(t('newerFormat.cantSave', { savedBy: newerFormat }), 'info')
       return false
     }
-    const project = collectProject()
-    const result = await window.api.saveProjectAs({
-      project,
-      sourceContents: documentStore.sourceContents,
-      currentFilePath: projectStore.filePath ?? undefined,
+    // In turn with the other saves (see save-queue.ts).
+    const projectStore = useProjectStore.getState()
+    const generation = editGeneration()
+    const result = await queueSave(() => window.api.saveProjectAs({
+      project: collectProject(),
+      sourceContents: useDocumentStore.getState().sourceContents,
+      currentFilePath: useProjectStore.getState().filePath ?? undefined,
       allowEmpty: emptySaveAllowed()
-    })
+    }))
     if (isGuardBlocked(result)) {
       // Refused (see the writer's guards): say why, rather than nothing.
       console.warn('[save-project-as guard]', result.message)
@@ -950,9 +1057,9 @@ function App() {
       setSaveFailure(null)
       noteStateMatchesFile()
       projectStore.setFilePath(result)
-      projectStore.markClean()
-      documentStore.promoteImportedBinariesToArchive()
-      window.api.trackRecentProject(projectStore.name, result)
+      if (!projectStore.markSavedAt(generation)) armAutoSaveRef.current()
+      useDocumentStore.getState().promoteImportedBinariesToArchive()
+      window.api.trackRecentProject(useProjectStore.getState().name, result)
       // Save As always targets a fresh destination path, so — same
       // reasoning as handleSaveProject's first-save claim — there's no
       // "clean→dirty while a filePath already existed" moment for
@@ -976,7 +1083,20 @@ function App() {
       return true
     }
     return false
-  }, [documentStore, projectStore, t])
+  }, [t])
+
+  // Leaving a project that has no file yet, with work in it: offer Save
+  // As, and failing that, ask before it's lost (nothing else would keep
+  // it: there's no file for the autosave or the close to write). True to
+  // go on.
+  useEffect(() => {
+    askAboutUntitledRef.current = async (closing) => {
+      const ps = useProjectStore.getState()
+      const name = isUntitledName(ps.name) ? t('project.untitled') : ps.name
+      if (await window.api.askConfirm(t('app.saveUntitledFirst', { name }), t('saveFailed.saveAs'))) return handleSaveProjectAs()
+      return window.api.confirmLosingChanges(name, { error: t('app.untitledNotSaved'), closing })
+    }
+  }, [handleSaveProjectAs, t])
 
   // "Check Out Anyway" from the checkout-conflict dialog shown right after
   // opening a project someone else already holds (see applyCheckoutInfo).
@@ -1033,14 +1153,15 @@ function App() {
   const handleWorkOnCopy = useCallback(async () => {
     const filePath = projectStore.filePath
     if (!filePath) return
-    const project = collectProject()
-    const result = await window.api.createProjectCopy({
-      project,
-      sourceContents: documentStore.sourceContents,
+    // In turn with the other saves (see save-queue.ts).
+    const generation = editGeneration()
+    const result = await queueSave(() => window.api.createProjectCopy({
+      project: collectProject(),
+      sourceContents: useDocumentStore.getState().sourceContents,
       currentFilePath: filePath,
       userName: usePreferencesStore.getState().userName.trim(),
       allowEmpty: emptySaveAllowed()
-    })
+    }))
     if (isGuardBlocked(result)) {
       console.warn('[create-project-copy guard]', result.message)
       dismissCheckoutConflict()
@@ -1055,7 +1176,7 @@ function App() {
       // projectStore still reflects the original file's checkout by
       // someone else, now stale for what's on screen.
       projectStore.setCheckoutMarker(null)
-      projectStore.markClean()
+      if (!projectStore.markSavedAt(generation)) armAutoSaveRef.current()
       documentStore.promoteImportedBinariesToArchive()
       window.api.trackRecentProject(projectStore.name, result)
     }
@@ -1120,9 +1241,10 @@ function App() {
   // effect's cleanup cancels any stale timer and, if now unlocked,
   // schedules a fresh one.
   useEffect(() => {
-    if (loadInProgressRef.current) return
-    if (checkoutLockedBy) return
-    if (projectStore.isDirty && projectStore.filePath) {
+    const arm = () => {
+      if (loadInProgressRef.current) return
+      const ps = useProjectStore.getState()
+      if (!ps.isDirty || !ps.filePath) return
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
       autoSaveTimer.current = setTimeout(() => {
         autoSaveTimer.current = null
@@ -1141,6 +1263,9 @@ function App() {
         handleSaveProject()
       }, 2000)
     }
+    armAutoSaveRef.current = arm
+    if (checkoutLockedBy) return
+    arm()
     return () => {
       if (autoSaveTimer.current) {
         clearTimeout(autoSaveTimer.current)
@@ -1698,93 +1823,9 @@ function App() {
 
   // Listen for open-recent-project from welcome screen
   useEffect(() => {
-    const unsub = window.api.onOpenRecentProject(async (filePath) => {
-      const t = latestT.current
-      if (!(await saveBeforeSwitchingRef.current())) return
-      loadInProgressRef.current = true
-      noteBulkReset()
-      cancelPendingAutoSave()
-      setLoadProgress({ stage: t('app.opening'), current: 0, total: 0 })
-      setMissingBinaries([])
-      try {
-        const data = await window.api.openProjectPath(filePath)
-        if (!data) return
-        // Mirror handleOpenProject: drop only the leftover map tabs, not
-        // the whole document store. See that handler for the autosave-
-        // race rationale.
-        useDocumentStore.getState().closeAllToolTabs()
-        useDocumentStore.getState().closeAllToolTabs()
-        useRelationshipMapStore.getState().clearAll()
-        useAnalysisTabsStore.getState().clearAll()
-        const { sourceContents, ...project } = data
-        const steps: { label: string; run: () => void }[] = [
-          {
-            label: t('app.step.projectMetadata'),
-            run: () =>
-              useProjectStore.getState().loadProject({
-                name: project.name,
-                origin: project.origin,
-                description: project.description,
-                users: project.users,
-                creatingUserGUID: project.creatingUserGUID,
-                creationDateTime: project.creationDateTime,
-                modifyingUserGUID: project.modifyingUserGUID,
-                modifiedDateTime: project.modifiedDateTime,
-                filePath: data.filePath,
-                savedAnalyses: project.savedAnalyses
-              })
-          },
-          { label: t('app.step.documents'), run: () => useDocumentStore.getState().setSources(project.sources, sourceContents) },
-          { label: t('app.step.folders'), run: () => useDocumentStore.getState().setFolders(project.folders ?? [], project.sourceFolder ?? {}) },
-          { label: t('app.step.codes'), run: () => useCodeStore.getState().setCodes(project.codes) },
-          {
-            label: t('app.step.tags'),
-            run: () => {
-              const sourceGuids = new Set(project.sources.map((s) => s.guid))
-              useTagStore.getState().setTags(tagsWithMembersIn(project.sets, (guid) => sourceGuids.has(guid)))
-              useTagStore.getState().setCategories(project.tagCategories ?? [])
-            }
-          },
-          {
-            label: t('app.step.queries'),
-            run: () => {
-              useQueryStore.getState().clearQuery()
-              useQueryStore.getState().setSavedQueries(project.savedQueries ?? [])
-            }
-          },
-          { label: t('app.step.logbook'), run: () => useLogbookStore.getState().setEntries(project.logbookEntries ?? []) },
-          { label: t('app.step.ai'), run: () => useAiStore.getState().setProjectAi(project.ai) },
-          { label: t('app.step.memos'), run: () => useMemoStore.getState().setMemos(project.memos ?? []) },
-          { label: t('app.step.quotes'), run: () => useQuoteStore.getState().setQuotes(project.quotes ?? []) },
-          { label: t('app.step.tabs'), run: () => restoreTabState(project.tabState) }
-        ]
-        for (let i = 0; i < steps.length; i++) {
-          setLoadProgress({ stage: t('app.populating', { what: steps[i].label }), current: i + 1, total: steps.length })
-          await new Promise((r) => setTimeout(r, 0))
-          steps[i].run()
-        }
-        // Freshly loaded == matches disk == not dirty. Clear the dirty flag
-        // the setX steps raised so opening a recent project doesn't trigger
-        // a post-load autosave (a needless full-archive rewrite). See the
-        // matching note in the file-picker open path above.
-        useProjectStore.getState().markClean()
-        noteStateMatchesFile()
-        startUndoAfresh()
-        setMissingBinaries(data.missingBinaries ?? [])
-        useProjectStore.getState().setNewerFormat(data.newerFormat?.savedBy ?? null)
-        setNotKept(data.notKept ?? null)
-        setNotKeptOpen(notKeptKinds(data.notKept ?? null).length > 0)
-        applyCheckoutInfo(data)
-        window.api.trackRecentProject(project.name, filePath)
-      } catch (err) {
-        console.error('Failed to open recent project:', err)
-      } finally {
-        setLoadProgress(null)
-        liftLoadSuppression()
-      }
-    })
+    const unsub = window.api.onOpenRecentProject((filePath) => { void switchToProjectRef.current(filePath) })
     return unsub
-  }, [cancelPendingAutoSave, liftLoadSuppression, applyCheckoutInfo, latestT, restoreTabState])
+  }, [switchToProjectRef])
 
   // Hidden flush-on-close: when the main process intercepts the window
   // close, write the current project to disk before letting the window go.
@@ -1801,47 +1842,40 @@ function App() {
     const unsub = window.api.onFlushAndClose(async () => {
       const t = latestT.current
       flushViewPositions()
-      const ps = useProjectStore.getState()
-      if (ps.isDirty && ps.filePath) {
-        const heartbeat = setInterval(() => window.api.sendFlushHeartbeat(), 1000)
-        // Send one immediately so main's watchdog is reset before the
-        // first interval tick (which is a full second away).
-        window.api.sendFlushHeartbeat()
-        try {
-          let why: { error?: string; lockedBy?: string } | null = null
-          try {
-            const result = await window.api.saveProject({
-              project: collectProject(),
-              sourceContents: useDocumentStore.getState().sourceContents,
-              filePath: ps.filePath,
-              userName: usePreferencesStore.getState().userName.trim() || undefined,
-              allowEmpty: emptySaveAllowed()
-            })
-            // Someone else now holds the lock — same staleness check as
-            // the normal save path. There's no room for a Merge
-            // reconciliation in the middle of closing the window, and
-            // overwriting the other person's already-saved changes would
-            // be far worse, so this is a save that failed: ask below.
-            if (isConflict(result)) {
-              why = { lockedBy: result.marker?.userName || '?' }
-            } else if (isGuardBlocked(result)) {
-              why = { error: String(result.message) }
-            }
-          } catch (err) {
-            console.error('Pre-close flush failed:', err)
-            why = { error: errorMessage(err) }
-          }
-          // The changes would be lost: ask first (heartbeats keep the
-          // watchdog away meanwhile). Cancel keeps the window open.
-          if (why && !(await window.api.confirmLosingChanges(ps.name, { ...why, closing: true }))) {
+      const heartbeat = setInterval(() => window.api.sendFlushHeartbeat(), 1000)
+      // Send one immediately so main's watchdog is reset before the
+      // first interval tick (which is a full second away).
+      window.api.sendFlushHeartbeat()
+      try {
+        // Mid-load, the stores hold part of one project and part of the
+        // other: never written. Nothing is lost by not writing: the project
+        // before was saved as the load began, and nothing in the new one
+        // has been edited yet.
+        if (!loadInProgressRef.current) {
+          // A save under way finishes first, so this one comes after it.
+          await savesSettled()
+          let ps = useProjectStore.getState()
+          // No file to write it to: ask (Save As, or close and lose it).
+          if (ps.isDirty && !ps.filePath && projectHasContent() && !(await askAboutUntitledRef.current(true))) {
             window.api.cancelFlush()
-            setSaveFailure(why.error ?? t('saveFailed.lockedBy', { name: why.lockedBy }))
             return
           }
-        } finally {
-          clearInterval(heartbeat)
+          ps = useProjectStore.getState()
+          if (ps.isDirty && ps.filePath) {
+            const why = await queueSave(() => flushProject(ps.filePath!))
+            // The changes would be lost: ask first (heartbeats keep the
+            // watchdog away meanwhile). Cancel keeps the window open.
+            if (why && !(await window.api.confirmLosingChanges(ps.name, { ...why, closing: true }))) {
+              window.api.cancelFlush()
+              setSaveFailure(why.error ?? t('saveFailed.lockedBy', { name: why.lockedBy }))
+              return
+            }
+          }
         }
+      } finally {
+        clearInterval(heartbeat)
       }
+      const ps = useProjectStore.getState()
       // Auto-check-in if this project is STILL checked out under the
       // current user's own name, so a forgotten checkout doesn't strand
       // collaborators. The local checkoutMarker can be stale — there's no

@@ -1401,7 +1401,11 @@
     "noAnalysesInQuery": "Analyser kan inte läggas till i en sökfråga",
     "progressOf": "{{current}}/{{total}}",
     "dropToImport": "Släpp för att importera",
-    "dropToImportHint": "Släpp på en mapp i Dokument för att importera till den mappen"
+    "dropToImportHint": "Släpp på en mapp i Dokument för att importera till den mappen",
+    "otherProjectWindow": "Det fönstret hör till ett projekt som inte längre är öppet, så det du gjorde i det har inte gjorts här. Stäng det och öppna det igen från det här projektet.",
+    "openFailed": "Magnolia kunde inte öppna ”{{name}}”: {{error}}",
+    "saveUntitledFirst": "”{{name}}” har inte sparats än.\n\nVill du spara det innan du fortsätter?",
+    "untitledNotSaved": "det har inte sparats som en fil än"
   },
   "analysis": {
     "save": "Spara analys",

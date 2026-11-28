@@ -1581,7 +1581,11 @@
     "noAnalysesInQuery": "لا يمكن إضافة التحليلات إلى استعلام",
     "progressOf": "{{current}} / {{total}}",
     "dropToImport": "أفلت للاستيراد",
-    "dropToImportHint": "أفلت على مجلد في «المستندات» للاستيراد إلى ذلك المجلد"
+    "dropToImportHint": "أفلت على مجلد في «المستندات» للاستيراد إلى ذلك المجلد",
+    "otherProjectWindow": "تلك النافذة تخص مشروعًا لم يعد مفتوحًا، لذا لم يُطبَّق هنا ما فعلته فيها. أغلقها ثم افتحها من جديد من هذا المشروع.",
+    "openFailed": "تعذّر على Magnolia فتح “{{name}}”: {{error}}",
+    "saveUntitledFirst": "لم يُحفظ “{{name}}” بعد.\n\nهل تريد حفظه قبل المتابعة؟",
+    "untitledNotSaved": "لم يُحفظ في ملف بعد"
   },
   "analysis": {
     "save": "حفظ التحليل",

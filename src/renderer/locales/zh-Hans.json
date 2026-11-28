@@ -1356,7 +1356,11 @@
     "noAnalysesInQuery": "分析无法添加到查询",
     "progressOf": "{{current}} / {{total}}",
     "dropToImport": "松开以导入",
-    "dropToImportHint": "拖放到“文档”中的文件夹上，即可导入到该文件夹"
+    "dropToImportHint": "拖放到“文档”中的文件夹上，即可导入到该文件夹",
+    "otherProjectWindow": "该窗口属于一个已不再打开的项目，因此你在其中所做的操作没有应用到这里。请关闭它，然后从此项目重新打开。",
+    "openFailed": "Magnolia 无法打开“{{name}}”：{{error}}",
+    "saveUntitledFirst": "“{{name}}”尚未保存。\n\n要在继续之前保存吗？",
+    "untitledNotSaved": "它尚未保存为文件"
   },
   "analysis": {
     "save": "保存分析",

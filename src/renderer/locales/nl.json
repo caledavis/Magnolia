@@ -1401,7 +1401,11 @@
     "noAnalysesInQuery": "Analyses kunnen niet aan een query worden toegevoegd",
     "progressOf": "{{current}} / {{total}}",
     "dropToImport": "Loslaten om te importeren",
-    "dropToImportHint": "Laat los op een map in Documenten om in die map te importeren"
+    "dropToImportHint": "Laat los op een map in Documenten om in die map te importeren",
+    "otherProjectWindow": "Dat venster hoort bij een project dat niet meer open is, dus wat je erin hebt gedaan, is hier niet toegepast. Sluit het en open het opnieuw vanuit dit project.",
+    "openFailed": "Magnolia kon \"{{name}}\" niet openen: {{error}}",
+    "saveUntitledFirst": "\"{{name}}\" is nog niet bewaard.\n\nWil je het bewaren voordat je verdergaat?",
+    "untitledNotSaved": "het is nog niet als bestand bewaard"
   },
   "analysis": {
     "save": "Analyse bewaren",

@@ -1401,7 +1401,11 @@
     "noAnalysesInQuery": "Analyser kan ikke føjes til en forespørgsel",
     "progressOf": "{{current}}/{{total}}",
     "dropToImport": "Slip for at importere",
-    "dropToImportHint": "Slip på en mappe i Dokumenter for at importere til den mappe"
+    "dropToImportHint": "Slip på en mappe i Dokumenter for at importere til den mappe",
+    "otherProjectWindow": "Det vindue hører til et projekt, der ikke længere er åbent, så det, du gjorde i det, er ikke sket her. Luk det, og åbn det igen fra dette projekt.",
+    "openFailed": "Magnolia kunne ikke åbne »{{name}}«: {{error}}",
+    "saveUntitledFirst": "»{{name}}« er ikke gemt endnu.\n\nVil du gemme det, før du fortsætter?",
+    "untitledNotSaved": "det er endnu ikke gemt som en fil"
   },
   "analysis": {
     "save": "Gem analyse",

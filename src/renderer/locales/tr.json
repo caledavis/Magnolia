@@ -1401,7 +1401,11 @@
     "noAnalysesInQuery": "Analizler sorguya eklenemez",
     "progressOf": "{{current}} / {{total}}",
     "dropToImport": "İçe aktarmak için bırakın",
-    "dropToImportHint": "O klasöre aktarmak için Belgeler’deki bir klasörün üzerine bırakın"
+    "dropToImportHint": "O klasöre aktarmak için Belgeler’deki bir klasörün üzerine bırakın",
+    "otherProjectWindow": "Bu pencere artık açık olmayan bir projeye ait, bu yüzden içinde yaptıklarınız burada uygulanmadı. Pencereyi kapatıp bu projeden yeniden açın.",
+    "openFailed": "Magnolia “{{name}}” projesini açamadı: {{error}}",
+    "saveUntitledFirst": "“{{name}}” henüz kaydedilmedi.\n\nDevam etmeden önce kaydedilsin mi?",
+    "untitledNotSaved": "henüz bir dosya olarak kaydedilmedi"
   },
   "analysis": {
     "save": "Analizi kaydet",

@@ -1491,7 +1491,11 @@
     "noAnalysesInQuery": "Analizių negalima pridėti prie užklausos",
     "progressOf": "{{current}} / {{total}}",
     "dropToImport": "Paleiskite, kad importuotumėte",
-    "dropToImportHint": "Paleiskite ant aplanko „Dokumentuose“, kad importuotumėte į tą aplanką"
+    "dropToImportHint": "Paleiskite ant aplanko „Dokumentuose“, kad importuotumėte į tą aplanką",
+    "otherProjectWindow": "Tas langas priklauso projektui, kuris nebeatvertas, todėl tai, ką jame padarėte, čia neatlikta. Užverkite jį ir vėl atverkite iš šio projekto.",
+    "openFailed": "Magnolia nepavyko atverti „{{name}}“: {{error}}",
+    "saveUntitledFirst": "„{{name}}“ dar neįrašytas.\n\nĮrašyti prieš tęsiant?",
+    "untitledNotSaved": "jis dar neįrašytas kaip failas"
   },
   "analysis": {
     "save": "Įrašyti analizę",

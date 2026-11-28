@@ -1401,7 +1401,11 @@
     "noAnalysesInQuery": "Analyser kan ikke legges til i en spørring",
     "progressOf": "{{current}} / {{total}}",
     "dropToImport": "Slipp for å importere",
-    "dropToImportHint": "Slipp på en mappe i Dokumenter for å importere til den mappen"
+    "dropToImportHint": "Slipp på en mappe i Dokumenter for å importere til den mappen",
+    "otherProjectWindow": "Det vinduet hører til et prosjekt som ikke lenger er åpent, så det du gjorde i det, ble ikke gjort her. Lukk det, og åpne det igjen fra dette prosjektet.",
+    "openFailed": "Magnolia kunne ikke åpne «{{name}}»: {{error}}",
+    "saveUntitledFirst": "«{{name}}» er ikke lagret ennå.\n\nVil du lagre det før du fortsetter?",
+    "untitledNotSaved": "det er ikke lagret som en fil ennå"
   },
   "analysis": {
     "save": "Lagre analyse",

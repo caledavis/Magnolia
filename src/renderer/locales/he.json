@@ -1446,7 +1446,11 @@
     "noAnalysesInQuery": "אי אפשר להוסיף ניתוחים לשאילתה",
     "progressOf": "{{current}} / {{total}}",
     "dropToImport": "שחרור לייבוא",
-    "dropToImportHint": "שחרור על תיקייה ב\"מסמכים\" ייבא לתוך התיקייה הזו"
+    "dropToImportHint": "שחרור על תיקייה ב\"מסמכים\" ייבא לתוך התיקייה הזו",
+    "otherProjectWindow": "החלון הזה שייך לפרויקט שכבר אינו פתוח, ולכן מה שעשית בו לא בוצע כאן. סגור/י אותו ופתח/י אותו שוב מתוך הפרויקט הזה.",
+    "openFailed": "Magnolia לא הצליח לפתוח את \"{{name}}\": {{error}}",
+    "saveUntitledFirst": "\"{{name}}\" עדיין לא נשמר.\n\nלשמור אותו לפני שממשיכים?",
+    "untitledNotSaved": "הוא עדיין לא נשמר כקובץ"
   },
   "analysis": {
     "save": "שמירת הניתוח",

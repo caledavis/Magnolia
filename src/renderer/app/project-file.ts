@@ -87,3 +87,16 @@ export function collectProject(): Project {
     tabState
   }
 }
+
+/** Whether the project holds anything someone made: an untitled project
+ *  (no file yet) with nothing in it can be left without asking. */
+export function projectHasContent(): boolean {
+  return useDocumentStore.getState().sources.length > 0
+    || useCodeStore.getState().codes.length > 0
+    || useMemoStore.getState().memos.length > 0
+    || useLogbookStore.getState().entries.length > 0
+    || useTagStore.getState().tags.length > 0
+    || useQueryStore.getState().savedQueries.length > 0
+    || useQuoteStore.getState().quotes.length > 0
+    || (useProjectStore.getState().savedAnalyses ?? []).length > 0
+}
