@@ -66,12 +66,19 @@ export function AudioDocumentViewer({ source, content }: Props) {
   const [externalHighlight, setExternalHighlight] = useState<{ startCp: number; endCp: number } | null>(null)
   const scrollTarget = useDocumentStore((s) => (s as any).scrollTarget)
   const clearScrollTarget = useDocumentStore((s) => (s as any).clearScrollTarget)
+  // The timer that ends the highlight lives in a ref: clearScrollTarget()
+  // re-runs the effect at once, and its cleanup would otherwise cancel the
+  // timer and leave the highlight on for good.
+  const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => {
+    if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current)
+  }, [])
   useEffect(() => {
     if (!scrollTarget) return
     setExternalHighlight({ startCp: scrollTarget.startCp, endCp: scrollTarget.endCp })
     clearScrollTarget?.()
-    const timer = setTimeout(() => setExternalHighlight(null), 1800)
-    return () => clearTimeout(timer)
+    if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current)
+    highlightTimerRef.current = setTimeout(() => setExternalHighlight(null), 1800)
   }, [scrollTarget, clearScrollTarget])
 
   const audioData = source.formatData as {
@@ -181,10 +188,21 @@ export function AudioDocumentViewer({ source, content }: Props) {
     if (isFinite(dur)) a.currentTime = ratio * dur
   }, [])
 
+  // Ends the drag in progress; also run if the viewer closes mid-drag (as
+  // is a held rewind/forward), so the document isn't left listening for a
+  // drag that can't finish.
+  const endSeekDragRef = useRef<(() => void) | null>(null)
+  useEffect(() => () => { endSeekDragRef.current?.(); stopHold() }, [stopHold])
   const handleSeekBarMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    endSeekDragRef.current?.()
     seekFromEvent(e)
     const onMove = (ev: MouseEvent) => seekFromEvent(ev)
-    const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp) }
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+      endSeekDragRef.current = null
+    }
+    endSeekDragRef.current = onUp
     document.addEventListener('mousemove', onMove)
     document.addEventListener('mouseup', onUp)
   }, [seekFromEvent])

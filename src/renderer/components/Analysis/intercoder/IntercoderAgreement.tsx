@@ -256,6 +256,9 @@ export function IntercoderAgreement({ savedConfig, inTab }: Props) {
   const removePath = useCallback((p: string) => {
     setPaths((prev) => prev.filter((x) => x !== p))
     setLoadErrors((prev) => { const n = { ...prev }; delete n[p]; return n })
+    // Forget the copy read earlier too, so adding the file again reads it
+    // afresh (its coder may have gone on coding in the meantime).
+    setFileCoders((prev) => { const n = { ...prev }; delete n[p]; return n })
   }, [])
 
   // ── Matching and selection ────────────────────────────────────────

@@ -90,17 +90,38 @@ export function VideoDocumentViewer({ source, content }: Props) {
   const [externalHighlight, setExternalHighlight] = useState<{ startCp: number; endCp: number; timeRange?: { startTime: number; endTime: number } } | null>(null)
   const scrollTarget = useDocumentStore((s) => (s as any).scrollTarget)
   const clearScrollTarget = useDocumentStore((s) => (s as any).clearScrollTarget)
+  // The seek waiting for the video to load, and the timer that ends the
+  // highlight, live in refs: clearScrollTarget() below re-runs the effect
+  // at once, and its cleanup mustn't cancel them. They're cancelled when a
+  // newer target replaces them, and the pending seek when the video
+  // changes or the viewer closes, so it can't later move another video to
+  // this one's time.
+  const pendingSeekRef = useRef<{ video: HTMLVideoElement; onReady: () => void } | null>(null)
+  const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cancelPendingSeek = useCallback(() => {
+    const pending = pendingSeekRef.current
+    if (!pending) return
+    pending.video.removeEventListener('loadedmetadata', pending.onReady)
+    pendingSeekRef.current = null
+  }, [])
+  useEffect(() => cancelPendingSeek, [source.guid, cancelPendingSeek])
+  useEffect(() => () => {
+    if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current)
+  }, [])
   useEffect(() => {
     if (!scrollTarget) return
+    if (scrollTarget.timeRange && videoRef.current) cancelPendingSeek()
     if (scrollTarget.timeRange && videoRef.current && videoRef.current.readyState >= 1) {
       videoRef.current.currentTime = scrollTarget.timeRange.startTime
     } else if (scrollTarget.timeRange && videoRef.current) {
       // Video not yet loaded — seek once metadata arrives.
       const v = videoRef.current
+      const startTime = scrollTarget.timeRange.startTime
       const onReady = () => {
-        v.currentTime = scrollTarget.timeRange!.startTime
-        v.removeEventListener('loadedmetadata', onReady)
+        v.currentTime = startTime
+        cancelPendingSeek()
       }
+      pendingSeekRef.current = { video: v, onReady }
       v.addEventListener('loadedmetadata', onReady)
     }
     setExternalHighlight({
@@ -109,9 +130,9 @@ export function VideoDocumentViewer({ source, content }: Props) {
       timeRange: scrollTarget.timeRange
     })
     clearScrollTarget?.()
-    const timer = setTimeout(() => setExternalHighlight(null), 1800)
-    return () => clearTimeout(timer)
-  }, [scrollTarget, clearScrollTarget])
+    if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current)
+    highlightTimerRef.current = setTimeout(() => setExternalHighlight(null), 1800)
+  }, [scrollTarget, clearScrollTarget, cancelPendingSeek])
 
   const videoData = source.formatData as VideoFormatData | undefined
   const hasVideo = !!videoData?.videoFilePath
@@ -224,10 +245,21 @@ export function VideoDocumentViewer({ source, content }: Props) {
     const dur = v.duration
     if (isFinite(dur)) v.currentTime = ratio * dur
   }, [])
+  // Ends the drag in progress; also run if the viewer closes mid-drag (as
+  // is a held rewind/forward), so the document isn't left listening for a
+  // drag that can't finish.
+  const endSeekDragRef = useRef<(() => void) | null>(null)
+  useEffect(() => () => { endSeekDragRef.current?.(); stopHold() }, [stopHold])
   const handleSeekBarMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    endSeekDragRef.current?.()
     seekFromEvent(e)
     const onMove = (ev: MouseEvent) => seekFromEvent(ev)
-    const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp) }
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+      endSeekDragRef.current = null
+    }
+    endSeekDragRef.current = onUp
     document.addEventListener('mousemove', onMove)
     document.addEventListener('mouseup', onUp)
   }, [seekFromEvent])
