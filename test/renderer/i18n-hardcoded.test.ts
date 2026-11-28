@@ -80,10 +80,12 @@ describe('interface text', () => {
     expect(files.length).toBeGreaterThan(50)
   })
 
+  // It parses every component, which takes a few seconds and more on a
+  // busy machine: the default 5 s made it fail whenever builds ran beside it.
   it('goes through t() in every component', () => {
     const found = files.flatMap((f) => untranslated(readFileSync(f, 'utf-8'), f).map((s) => `${f}:${s}`))
     expect(found, 'text to put in src/renderer/locales/en.json and show with t()').toEqual([])
-  })
+  }, 60_000)
 
   it('is found when written straight into a component', () => {
     const sample = (tsx: string): string[] => untranslated(tsx)
