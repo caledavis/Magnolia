@@ -133,7 +133,7 @@ describe('keys the app uses', () => {
     const used = new Set<string>()
     for (const file of filesUnder('src-tauri/src', ['.rs'])) {
       for (const m of readFileSync(file, 'utf-8').matchAll(/"((?:menu|dialog|import|window|update|print)\.[A-Za-z]+)"/g)) {
-        if (!/\.(html|json|js)$/.test(m[1])) used.add(m[1]) // not file names such as "update.html"
+        if (!/\.(html|json|js|pdf)$/.test(m[1])) used.add(m[1]) // not file names such as "update.html" or "print.pdf"
       }
     }
     expect(used.size).toBeGreaterThan(0)
