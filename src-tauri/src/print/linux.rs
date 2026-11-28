@@ -16,7 +16,23 @@ const MM_PER_INCH: f64 = 25.4;
 /// another language, and no PDF was made (GitHub issue #38). It's found by
 /// what it is instead: the virtual printer that takes PDF (the English
 /// name first, should there be more than one).
+///
+/// Listing the printers with `wait` set runs a main loop of GTK's own
+/// until every print backend has answered, on the UI thread, where other
+/// events (a window closing, say) are handled inside this call. Waiting
+/// asynchronously instead would mean starting the print from GTK's
+/// callback, a larger change to an otherwise reliable path; so the name
+/// found is kept, and the list is made only once a run.
 fn file_printer() -> Option<String> {
+    static FOUND: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    if let Some(name) = FOUND.get() {
+        return Some(name.clone());
+    }
+    let name = list_file_printers()?;
+    Some(FOUND.get_or_init(|| name).clone())
+}
+
+fn list_file_printers() -> Option<String> {
     let mut names: Vec<String> = Vec::new();
     // SAFETY: `names` outlives the call (`wait` is true, so every printer
     // has been listed when it returns), and is only reached through the

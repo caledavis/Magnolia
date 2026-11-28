@@ -11,7 +11,7 @@
 use crate::state::AppState;
 use magnolia_core::binary_store::MediaSource;
 use std::borrow::Cow;
-use tauri::http::{Request, Response, StatusCode, header};
+use tauri::http::{HeaderValue, Request, Response, StatusCode, header};
 use tauri::ipc::Response as IpcResponse;
 use tauri::{AppHandle, Manager, State, UriSchemeResponder};
 
@@ -35,11 +35,34 @@ pub fn handle(app: &AppHandle, request: Request<Vec<u8>>, responder: UriSchemeRe
 }
 
 fn empty(status: StatusCode) -> Response<Cow<'static, [u8]>> {
-    Response::builder()
+    secured(Response::builder())
         .status(status)
         .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         .body(Cow::Borrowed(&[][..]))
         .unwrap()
+}
+
+/// Headers every media answer carries. The bytes come from a project
+/// someone may have shared: the browser mustn't guess they're a page
+/// (nosniff), and if one is ever opened as a page anyway, it runs and
+/// loads nothing (sandbox, default-src 'none').
+fn secured(b: tauri::http::response::Builder) -> tauri::http::response::Builder {
+    b.header(header::X_CONTENT_TYPE_OPTIONS, "nosniff")
+        .header(header::CONTENT_SECURITY_POLICY, "sandbox; default-src 'none'")
+}
+
+/// The Content-Type to answer with: the player's `type=`, if it's audio or
+/// video and a valid header, else one from the file's extension. Anything
+/// else (text/html, say) could have the bytes treated as a page, and a
+/// value that isn't a valid header made building the answer panic.
+fn content_type(requested: Option<&str>, handle: &str) -> HeaderValue {
+    requested
+        .filter(|t| {
+            let t = t.to_ascii_lowercase();
+            t.starts_with("audio/") || t.starts_with("video/")
+        })
+        .and_then(|t| HeaderValue::from_str(t).ok())
+        .unwrap_or_else(|| HeaderValue::from_static(mime_for(handle)))
 }
 
 /// How to answer a request: a whole response, or bytes `start..=end` of
@@ -73,11 +96,9 @@ fn answer(app: &AppHandle, request: &Request<Vec<u8>>) -> Answer {
         return Answer::Done(empty(StatusCode::NOT_FOUND));
     };
     let len = source.len();
-    let mime = param("type")
-        .filter(|t| !t.is_empty() && !t.contains(['\r', '\n']))
-        .unwrap_or_else(|| mime_for(&handle).to_string());
-    let builder = Response::builder()
-        .header(header::CONTENT_TYPE, mime.as_str())
+    let mime = content_type(param("type").as_deref(), &handle);
+    let builder = secured(Response::builder())
+        .header(header::CONTENT_TYPE, mime)
         .header(header::ACCEPT_RANGES, "bytes")
         .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         .header(header::ACCESS_CONTROL_EXPOSE_HEADERS, "content-range, content-length");
@@ -93,7 +114,7 @@ fn answer(app: &AppHandle, request: &Request<Vec<u8>>) -> Answer {
         Some(Some(r)) => r,
         Some(None) => {
             return Answer::Done(
-                Response::builder()
+                secured(Response::builder())
                     .status(StatusCode::RANGE_NOT_SATISFIABLE)
                     .header(header::CONTENT_RANGE, format!("bytes */{len}"))
                     .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
@@ -139,7 +160,7 @@ fn partial(head: tauri::http::response::Builder, start: u64, end: u64, len: u64)
 /// `window.__MAGNOLIA_MEDIA_BASE__` (set in every window, windows.rs).
 #[cfg(target_os = "linux")]
 pub mod http {
-    use super::{Answer, answer, partial};
+    use super::{Answer, answer, partial, secured};
     use std::borrow::Cow;
     use std::sync::OnceLock;
     use tauri::AppHandle;
@@ -251,7 +272,7 @@ pub mod http {
     }
 
     fn preflight() -> Response<Cow<'static, [u8]>> {
-        Response::builder()
+        secured(Response::builder())
             .status(204)
             .header("Access-Control-Allow-Origin", "*")
             .header("Access-Control-Allow-Headers", "range")
@@ -260,7 +281,7 @@ pub mod http {
     }
 
     fn status_only(status: u16) -> Response<Cow<'static, [u8]>> {
-        Response::builder().status(status).body(Cow::Borrowed(&[][..])).unwrap()
+        secured(Response::builder()).status(status).body(Cow::Borrowed(&[][..])).unwrap()
     }
 
     pub(super) fn response_head(r: &Response<Cow<'static, [u8]>>) -> Vec<u8> {
@@ -351,7 +372,21 @@ pub async fn read_media_range(
 
 #[cfg(test)]
 mod tests {
-    use super::parse_range;
+    use super::{content_type, parse_range};
+
+    #[test]
+    fn only_audio_or_video_types_are_answered() {
+        assert_eq!(content_type(Some("video/mp4"), "x.mov"), "video/mp4");
+        assert_eq!(content_type(Some("Audio/MPEG"), "x.wav"), "Audio/MPEG");
+        // Not media: from the extension instead.
+        assert_eq!(content_type(Some("text/html"), "x.mov"), "video/quicktime");
+        assert_eq!(content_type(Some("image/svg+xml"), "x.bin"), "application/octet-stream");
+        assert_eq!(content_type(None, "a/b.m4a"), "audio/mp4");
+        assert_eq!(content_type(Some(""), "a/b.m4a"), "audio/mp4");
+        // Not a valid header value: no panic, the extension's type.
+        assert_eq!(content_type(Some("video/mp4\r\nSet-Cookie: x"), "x.mp4"), "video/mp4");
+        assert_eq!(content_type(Some("video/\u{7f}"), "x.mp3"), "audio/mpeg");
+    }
 
     #[test]
     fn ranges() {

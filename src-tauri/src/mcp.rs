@@ -34,6 +34,17 @@ const ENDPOINT_FILE: &str = "mcp.json";
 /// How long a call may take (a long document read, or a busy window).
 const CALL_TIMEOUT: Duration = Duration::from_secs(120);
 
+/// The most a call may send. Any program on this computer can connect,
+/// token or not, so what's read before the token is checked is capped:
+/// a call is a tool's name and its inputs, a few kilobytes at most.
+const MAX_REQUEST: u64 = 1 << 20;
+
+/// Connections served at once; more wait to be accepted. An AI app makes
+/// one call at a time per conversation, so this is plenty, and a program
+/// opening thousands of connections can't take Magnolia's memory or
+/// threads with it.
+const MAX_CONNECTIONS: usize = 16;
+
 const INSTRUCTIONS: &str = "Magnolia is a program for qualitative data analysis; these tools work on the project open in it. \
 Read with list_documents and list_codes first, then read_document, search_text and coded_passages, reading only what a question needs. \
 References (D1 for a document, C1 a code, P1 a passage, N1 a proposed code) belong to the project and mean the same thing in every call. \
@@ -97,17 +108,35 @@ pub fn set_enabled(app: &AppHandle, on: bool) {
     let tok = token;
     let task = tauri::async_runtime::spawn(async move {
         let Ok(server) = tokio::net::TcpListener::from_std(std_listener) else { return };
+        let slots = std::sync::Arc::new(tokio::sync::Semaphore::new(MAX_CONNECTIONS));
         loop {
+            // Wait for a free slot before taking the next connection.
+            let Ok(slot) = slots.clone().acquire_owned().await else { return };
             let Ok((sock, peer)) = server.accept().await else { continue };
             if !peer.ip().is_loopback() {
                 continue;
             }
             let app = app.clone();
             let tok = tok.clone();
-            tauri::async_runtime::spawn(async move { serve(app, sock, &tok).await });
+            tauri::async_runtime::spawn(async move {
+                serve(app, sock, &tok).await;
+                drop(slot);
+            });
         }
     });
     *l = Some(Listener { task });
+}
+
+/// Magnolia is quitting: stop listening, and remove `mcp.json` — but only
+/// if this Magnolia wrote it (it was listening), so a second copy, such as
+/// an automated run, doesn't take away the address of the one the user
+/// has open.
+pub fn stop_listening() {
+    let mut l = listener().lock().unwrap();
+    if let Some(old) = l.take() {
+        old.task.abort();
+        let _ = std::fs::remove_file(endpoint_path());
+    }
 }
 
 fn write_endpoint(port: u16, token: &str) -> std::io::Result<()> {
@@ -131,13 +160,20 @@ fn write_endpoint(port: u16, token: &str) -> std::io::Result<()> {
 /// One connection: one call, one answer (each a line of JSON).
 async fn serve(app: AppHandle, sock: tokio::net::TcpStream, token: &str) {
     let (read, mut write) = sock.into_split();
-    let mut lines = tokio::io::BufReader::new(read).lines();
-    let Ok(Ok(Some(line))) = tokio::time::timeout(Duration::from_secs(10), lines.next_line()).await else { return };
+    let Some(line) = read_request(read).await else { return };
     let reply = match serde_json::from_str::<Value>(&line) {
         Ok(req) if same(req["token"].as_str().unwrap_or(""), token) => call_window(&app, req).await,
         _ => json!({ "content": "Refused.", "isError": true }),
     };
     let _ = write.write_all(format!("{reply}\n").as_bytes()).await;
+}
+
+/// The call: one line, of at most `MAX_REQUEST` bytes, within 10 seconds.
+/// A longer one is cut off there, so doesn't parse and is refused.
+async fn read_request(read: impl tokio::io::AsyncRead + Unpin) -> Option<String> {
+    use tokio::io::AsyncReadExt;
+    let mut lines = tokio::io::BufReader::new(read.take(MAX_REQUEST)).lines();
+    tokio::time::timeout(Duration::from_secs(10), lines.next_line()).await.ok()?.ok()?
 }
 
 /// Comparing the token, in time that doesn't depend on where it differs.
@@ -330,16 +366,22 @@ fn forward(session: &str, client: &str, name: &str, input: &Value) -> Value {
         return not_running;
     };
     let Some(port) = endpoint["port"].as_u64() else { return not_running };
-    let Ok(mut sock) = std::net::TcpStream::connect_timeout(&([127, 0, 0, 1], port as u16).into(), Duration::from_secs(3)) else {
+    // A port that can't be one, or nothing listening there: an mcp.json
+    // left by a Magnolia that didn't quit cleanly.
+    let Ok(port) = u16::try_from(port) else { return not_running };
+    let Ok(mut sock) = std::net::TcpStream::connect_timeout(&([127, 0, 0, 1], port).into(), Duration::from_secs(3)) else {
         return not_running;
     };
     let _ = sock.set_read_timeout(Some(CALL_TIMEOUT + Duration::from_secs(5)));
+    let _ = sock.set_write_timeout(Some(Duration::from_secs(10)));
     let req = json!({ "token": endpoint["token"], "session": session, "client": client, "name": name, "input": input });
     if writeln!(sock, "{req}").is_err() {
         return not_running;
     }
+    // From a stale file, some other program may have the port now: read no
+    // more than an answer could be.
     let mut line = String::new();
-    if BufReader::new(sock).read_line(&mut line).is_err() || line.trim().is_empty() {
+    if BufReader::new(std::io::Read::take(sock, 64 << 20)).read_line(&mut line).is_err() || line.trim().is_empty() {
         return json!({ "content": "Magnolia didn't answer.", "isError": true });
     }
     serde_json::from_str(&line).unwrap_or_else(|_| json!({ "content": "Magnolia's answer couldn't be read.", "isError": true }))
@@ -397,6 +439,19 @@ mod tests {
         assert_eq!(reply["result"]["isError"], true);
         assert!(reply["result"]["content"][0]["text"].as_str().unwrap().contains("Preferences"));
         let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn a_call_is_read_only_up_to_the_cap() {
+        let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
+        rt.block_on(async {
+            let call = b"{\"token\":\"t\"}\nmore".to_vec();
+            assert_eq!(read_request(&call[..]).await.as_deref(), Some("{\"token\":\"t\"}"));
+            // A line longer than the cap is cut off at it, so never parses.
+            let flood = vec![b'x'; MAX_REQUEST as usize + 10];
+            let line = read_request(&flood[..]).await.unwrap();
+            assert_eq!(line.len() as u64, MAX_REQUEST);
+        });
     }
 
     #[test]

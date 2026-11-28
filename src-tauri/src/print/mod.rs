@@ -131,10 +131,16 @@ pub fn html_to_pdf(
         .unwrap()
         .get_or_insert_with(HashMap::new)
         .insert(id.clone(), print_page(html, script));
-    let out = std::env::temp_dir().join(format!("magnolia-print-{}-{n}.pdf", std::process::id()));
-    let result = render(app, &id, &out, opts);
+    // In a folder of its own that only this user can open (0700), with a
+    // random name, rather than at a name anyone could guess in the shared
+    // temporary folder: the PDF holds project content. Removed with
+    // everything in it when `dir` drops, whatever happens.
+    let dir = tempfile::Builder::new()
+        .prefix("magnolia-print-")
+        .tempdir()
+        .map_err(|e| crate::i18n::t_with("print.noPdf", &[("detail", &e.to_string())]));
+    let result = dir.and_then(|dir| render(app, &id, &dir.path().join("print.pdf"), opts));
     PAGES.lock().unwrap().as_mut().map(|m| m.remove(&id));
-    let _ = std::fs::remove_file(&out);
     let pdf = result?;
     if opts.header_logo_svg.is_some() || opts.page_numbers {
         return stamp::stamp(&pdf, opts).or(Ok(pdf));
@@ -151,8 +157,12 @@ fn render(
     let label = format!("{LABEL_PREFIX}{id}");
     let (loaded_tx, loaded_rx) = mpsc::channel::<()>();
     let loaded_tx = Mutex::new(Some(loaded_tx));
+    let page = format!("/{id}");
     let window = WebviewWindowBuilder::new(app, &label, WebviewUrl::CustomProtocol(page_url(id)))
         .visible(false)
+        // The page is made from project content: it stays on itself. A
+        // link or redirect in it goes nowhere (and opens nothing).
+        .on_navigation(move |url| is_print_page(url, &page))
         .inner_size(opts.page_width * 96.0, opts.page_height * 96.0)
         .on_page_load(move |_, p| {
             if matches!(p.event(), tauri::webview::PageLoadEvent::Finished)
@@ -176,6 +186,12 @@ fn render(
     result
 }
 
+/// `url` is the print page at `path`, in either of its forms (see `page_url`).
+fn is_print_page(url: &tauri::Url, path: &str) -> bool {
+    let ours = url.scheme() == SCHEME || url.host_str() == Some(&format!("{SCHEME}.localhost"));
+    ours && url.path() == path
+}
+
 fn print_to_file(
     app: &AppHandle,
     window: &tauri::WebviewWindow,
@@ -192,7 +208,18 @@ fn print_to_file(
 
 #[cfg(test)]
 mod tests {
-    use super::print_page;
+    use super::{is_print_page, page_url, print_page};
+
+    #[test]
+    fn the_print_window_stays_on_its_page() {
+        assert!(is_print_page(&page_url("7"), "/7"));
+        let parse = |s: &str| tauri::Url::parse(s).unwrap();
+        assert!(is_print_page(&parse("magnolia-print://localhost/7"), "/7"));
+        assert!(is_print_page(&parse("http://magnolia-print.localhost/7"), "/7"));
+        assert!(!is_print_page(&parse("magnolia-print://localhost/8"), "/7"));
+        assert!(!is_print_page(&parse("https://example.com/7"), "/7"));
+        assert!(!is_print_page(&parse("tauri://localhost/7"), "/7"));
+    }
 
     #[test]
     fn pages_without_a_script_run_none() {
