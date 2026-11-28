@@ -21,6 +21,9 @@ pub struct UiState {
     /// freshly-created main window can't miss "open this project".
     pub queued_events: HashMap<(String, String), Vec<Value>>,
     pub panel_visibility: Option<Value>,
+    /// The main window's close is waiting for its memo windows to close
+    /// (each may ask to save first); the flush starts once they've gone.
+    pub awaiting_memos: bool,
     /// The main window's close is in its flush-on-close handshake.
     pub flush_pending: bool,
     /// Bumped by every renderer heartbeat; a watchdog only fires if it

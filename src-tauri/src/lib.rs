@@ -229,6 +229,7 @@ pub fn run() {
                 mcp::set_enabled(app.handle(), true);
             }
             i18n::install_core_translator();
+            windows::listen_for_memo_cancel(app.handle());
             updater::preview_at_launch(app.handle());
             menu::rebuild(app.handle());
             // Launched by double-clicking a project (or with a path argument):
@@ -291,14 +292,19 @@ pub fn run() {
         RunEvent::ExitRequested { api, code, .. } => {
             let ui = app.state::<AppState>();
             let quitting = ui.ui.lock().unwrap().is_quitting;
-            if code.is_none() && !quitting {
+            if code.is_none() && (!quitting || updater::installing()) {
                 // The last window closed during main → welcome churn, or on
                 // macOS where apps outlive their windows: stay alive. Real
                 // quits go through windows::quit, which flushes first and
-                // exits with an explicit code.
+                // exits with an explicit code — after installing a
+                // downloaded update, which runs on a thread of its own
+                // once the windows have gone.
                 api.prevent_exit();
             }
         }
+        // Quitting: AI apps can't reach this Magnolia any more, so don't
+        // leave them its address.
+        RunEvent::Exit => mcp::stop_listening(),
         _ => {}
     });
 }

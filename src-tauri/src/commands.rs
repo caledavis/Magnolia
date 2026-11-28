@@ -4,6 +4,9 @@
 //! Every command is `async`, so Tauri runs it off the main thread: project
 //! reads and writes can take a while on large projects, and native dialogs
 //! opened with the plugin's blocking API must not block the event loop.
+//! Those that wait (a dialog, a project read or write, a PDF render) go on
+//! to the blocking pool (`blocking`), so they don't hold up the async
+//! workers that stream media, answer AI apps and run the other commands.
 
 use crate::access;
 use crate::print;
@@ -26,6 +29,14 @@ type CmdResult<T> = Result<T, String>;
 
 fn app_version(app: &AppHandle) -> String {
     app.package_info().version.to_string()
+}
+
+/// Run `f` on the blocking pool and wait for it there. An async command's
+/// own thread is one of a few shared workers: a dialog left open, or a
+/// six-minute PDF render, on one of them starved media streaming, the AI
+/// apps' listener and saves.
+async fn blocking<T: Send + 'static>(f: impl FnOnce() -> T + Send + 'static) -> CmdResult<T> {
+    tauri::async_runtime::spawn_blocking(f).await.map_err(|e| e.to_string())
 }
 
 // ── Dialog helpers ──
@@ -87,7 +98,8 @@ pub fn pick_qdpx(app: &AppHandle, parent: Option<&WebviewWindow>) -> Option<Stri
         .filter(t("dialog.qdpxProjects"), &["qdpx"])
         .blocking_pick_file()
         .and_then(to_path)?;
-    access::grant(&path);
+    // Chosen in an Open dialog: the user's project, theirs to save.
+    access::grant_project(&path);
     Some(path.to_string_lossy().into_owned())
 }
 
@@ -98,19 +110,34 @@ fn save_dialog(
     default_name: &str,
     filter: (&str, &[&str]),
 ) -> Option<PathBuf> {
-    let mut path = dialog(app, Some(parent), title)
+    let path = dialog(app, Some(parent), title)
         .set_file_name(default_name)
         .filter(filter.0, filter.1)
         .blocking_save_file()
         .and_then(to_path)?;
-    // GTK doesn't append the filter's extension.
-    if path.extension().is_none()
-        && let Some(ext) = filter.1.first()
-    {
-        path.set_extension(ext);
-    }
-    access::grant(&path);
+    let path = with_extension(path, filter.1);
+    // Chosen in a Save dialog: a project saved here is the user's to save
+    // over again.
+    access::grant_project(&path);
     Some(path)
+}
+
+/// GTK doesn't append the filter's extension, so "Study" was saved as
+/// just that, and "Study v1.2" kept its ".2" as the extension. Add the
+/// first of `extensions` unless the name already ends in one of them.
+fn with_extension(path: PathBuf, extensions: &[&str]) -> PathBuf {
+    let has = path
+        .extension()
+        .is_some_and(|e| extensions.iter().any(|x| e.eq_ignore_ascii_case(x)));
+    match extensions.first() {
+        Some(ext) if !has => {
+            let mut name = path.into_os_string();
+            name.push(".");
+            name.push(ext);
+            PathBuf::from(name)
+        }
+        _ => path,
+    }
 }
 
 fn path_str(p: &Path) -> String {
@@ -120,9 +147,10 @@ fn path_str(p: &Path) -> String {
 // ── Project open / read ──
 
 fn load_project(window: &WebviewWindow, state: &AppState, path: &str) -> CmdResult<Value> {
-    access::check_project(path)?;
-    // Opened, so it's the user's project: theirs to save, too.
-    access::grant(path);
+    // Only a project the user chose to open (or created, or saved): one a
+    // page names, such as another coder's in an Inter-coder analysis, is
+    // read for comparing, never opened here to be saved over.
+    access::check_writable_project(path)?;
     let label = window.label().to_string();
     let app = window.app_handle().clone();
     let progress = move |stage: &str, current: usize, total: usize| {
@@ -144,43 +172,46 @@ fn load_project(window: &WebviewWindow, state: &AppState, path: &str) -> CmdResu
 }
 
 #[tauri::command]
-pub async fn open_project(
-    app: AppHandle,
-    window: WebviewWindow,
-    state: State<'_, AppState>,
-) -> CmdResult<Value> {
-    let Some(path) = pick_qdpx(&app, Some(&window)) else {
-        return Ok(Value::Null);
-    };
-    load_project(&window, &state, &path)
+pub async fn open_project(app: AppHandle, window: WebviewWindow) -> CmdResult<Value> {
+    blocking(move || {
+        let Some(path) = pick_qdpx(&app, Some(&window)) else {
+            return Ok(Value::Null);
+        };
+        load_project(&window, app.state::<AppState>().inner(), &path)
+    })
+    .await?
 }
 
 #[tauri::command]
 pub async fn pick_project_file(app: AppHandle, window: WebviewWindow) -> CmdResult<Option<String>> {
-    Ok(pick_qdpx(&app, Some(&window)))
+    blocking(move || pick_qdpx(&app, Some(&window))).await
 }
 
-/// Several project files at once, for comparing coders' projects.
+/// Several project files at once, for comparing coders' projects: for
+/// reading only, so never opened as the project or saved over.
 #[tauri::command]
 pub async fn pick_project_files(app: AppHandle, window: WebviewWindow) -> CmdResult<Vec<String>> {
-    Ok(dialog(&app, Some(&window), &t("dialog.openProject"))
-        .filter(t("dialog.qdpxProjects"), &["qdpx"])
-        .blocking_pick_files()
-        .unwrap_or_default()
-        .into_iter()
-        .filter_map(to_path)
-        .inspect(|p| access::grant(p))
-        .map(|p| p.to_string_lossy().into_owned())
-        .collect())
+    blocking(move || {
+        dialog(&app, Some(&window), &t("dialog.openProject"))
+            .filter(t("dialog.qdpxProjects"), &["qdpx"])
+            .blocking_pick_files()
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(to_path)
+            .inspect(|p| access::grant(p))
+            .map(|p| p.to_string_lossy().into_owned())
+            .collect()
+    })
+    .await
 }
 
 #[tauri::command]
 pub async fn open_project_path(
+    app: AppHandle,
     window: WebviewWindow,
-    state: State<'_, AppState>,
     file_path: String,
 ) -> CmdResult<Value> {
-    load_project(&window, &state, &file_path)
+    blocking(move || load_project(&window, app.state::<AppState>().inner(), &file_path)).await?
 }
 
 #[tauri::command]
@@ -258,12 +289,15 @@ pub async fn check_out_project(
     user_name: String,
     steal: Option<bool>,
 ) -> CmdResult<checkout::CheckoutWriteResult> {
-    access::check_granted(&file_path)?;
+    access::check_writable_project(&file_path)?;
     let action = checkout::CheckoutAction::CheckOut {
         steal: steal.unwrap_or(false),
     };
-    checkout::write_checkout_marker(Path::new(&file_path), &user_name, action)
-        .map_err(|e| e.to_string())
+    blocking(move || {
+        checkout::write_checkout_marker(Path::new(&file_path), &user_name, action)
+            .map_err(|e| e.to_string())
+    })
+    .await?
 }
 
 #[tauri::command]
@@ -271,40 +305,54 @@ pub async fn check_in_project(
     file_path: String,
     user_name: String,
 ) -> CmdResult<checkout::CheckoutWriteResult> {
-    access::check_granted(&file_path)?;
-    checkout::write_checkout_marker(
-        Path::new(&file_path),
-        &user_name,
-        checkout::CheckoutAction::CheckIn,
-    )
-    .map_err(|e| e.to_string())
+    access::check_writable_project(&file_path)?;
+    blocking(move || {
+        checkout::write_checkout_marker(
+            Path::new(&file_path),
+            &user_name,
+            checkout::CheckoutAction::CheckIn,
+        )
+        .map_err(|e| e.to_string())
+    })
+    .await?
 }
 
 // ── Merge ──
 
-/// The given files that no longer exist (moved, renamed or deleted), so
-/// a saved Inter-coder analysis can warn that a coder's project is missing.
+/// The given project files that no longer exist (moved, renamed or
+/// deleted), so a saved Inter-coder analysis can warn that a coder's
+/// project is missing.
 #[tauri::command]
 pub async fn missing_files(paths: Vec<String>) -> CmdResult<Vec<String>> {
-    Ok(paths.into_iter().filter(|p| !Path::new(p).is_file()).collect())
+    Ok(paths.into_iter().filter(|p| is_missing_project(p)).collect())
+}
+
+/// Only project files are looked for (they're all a comparison can open),
+/// so a page can't use this to find out whether any other file exists.
+/// Anything else counts as missing.
+fn is_missing_project(path: &str) -> bool {
+    access::check_project(path).is_err() || !Path::new(path).is_file()
 }
 
 /// Load a second .qdpx for comparison without touching the active project.
 #[tauri::command]
 pub async fn read_qdpx_for_compare(file_path: String) -> CmdResult<Value> {
     access::check_project(&file_path)?;
-    let mut data = reader::read_qdpx(Path::new(&file_path), None)?;
-    data["filePath"] = file_path.clone().into();
-    data["editorInfo"] =
-        serde_json::to_value(checkout::read_editor_info(Path::new(&file_path))).unwrap();
-    Ok(data)
+    blocking(move || {
+        let mut data = reader::read_qdpx(Path::new(&file_path), None)?;
+        data["filePath"] = file_path.clone().into();
+        data["editorInfo"] =
+            serde_json::to_value(checkout::read_editor_info(Path::new(&file_path))).unwrap();
+        Ok(data)
+    })
+    .await?
 }
 
 /// Pull one binary out of the comparison file into the ACTIVE project's
 /// import overlay; returns its new handle.
 #[tauri::command]
 pub async fn import_merge_binary(
-    state: State<'_, AppState>,
+    app: AppHandle,
     comparison_file_path: String,
     handle: String,
 ) -> CmdResult<Option<String>> {
@@ -312,11 +360,12 @@ pub async fn import_merge_binary(
     let Some(name) = archive_file_name_from_handle(&handle) else {
         return Ok(None);
     };
-    let Some(bytes) = archive::read_archive_file(&comparison_file_path, &name) else {
-        return Ok(None);
-    };
-    let ext = name.rsplit_once('.').map(|(_, e)| e).unwrap_or("");
-    Ok(Some(state.store.put_overlay(bytes, ext)))
+    blocking(move || {
+        let bytes = archive::read_archive_file(&comparison_file_path, &name)?;
+        let ext = name.rsplit_once('.').map(|(_, e)| e).unwrap_or("");
+        Some(app.state::<AppState>().store.put_overlay(bytes, ext))
+    })
+    .await
 }
 
 /// Empty bytes stand for "not available" (the bridge maps them to null).
@@ -326,8 +375,11 @@ pub async fn read_compare_binary(
     handle: String,
 ) -> CmdResult<Response> {
     access::check_project(&comparison_file_path)?;
-    let bytes = archive_file_name_from_handle(&handle)
-        .and_then(|name| archive::read_archive_file(&comparison_file_path, &name));
+    let bytes = blocking(move || {
+        archive_file_name_from_handle(&handle)
+            .and_then(|name| archive::read_archive_file(&comparison_file_path, &name))
+    })
+    .await?;
     Ok(Response::new(bytes.unwrap_or_default()))
 }
 
@@ -377,15 +429,17 @@ fn write(
 }
 
 #[tauri::command]
-pub async fn save_project(
-    app: AppHandle,
-    window: WebviewWindow,
-    state: State<'_, AppState>,
-    data: SaveData,
-) -> CmdResult<Value> {
+pub async fn save_project(app: AppHandle, window: WebviewWindow, data: SaveData) -> CmdResult<Value> {
+    blocking(move || save_project_now(&app, &window, data)).await?
+}
+
+fn save_project_now(app: &AppHandle, window: &WebviewWindow, data: SaveData) -> CmdResult<Value> {
+    let state = app.state::<AppState>();
     let path = match data.file_path.as_deref().filter(|p| !p.is_empty()) {
         Some(p) => {
-            access::check_granted(p)?;
+            // Only over a project the user opened or saved: never over an
+            // imported document or another coder's project.
+            access::check_writable_project(p)?;
             PathBuf::from(p)
         }
         None => {
@@ -398,8 +452,8 @@ pub async fn save_project(
                     .unwrap_or_else(|| t("dialog.untitled"))
             );
             match save_dialog(
-                &app,
-                &window,
+                app,
+                window,
                 &t("dialog.saveProject"),
                 &name,
                 (&t("dialog.qdpxProjects"), &["qdpx"]),
@@ -417,7 +471,7 @@ pub async fn save_project(
     {
         return Ok(json!({ "conflict": true, "marker": marker }));
     }
-    if let Some(blocked) = write(&app, &state, &path, data, None, false)? {
+    if let Some(blocked) = write(app, &state, &path, data, None, false)? {
         return Ok(blocked);
     }
     // Note (not set): keep the overlay token → guid mappings just recorded.
@@ -426,12 +480,12 @@ pub async fn save_project(
 }
 
 #[tauri::command]
-pub async fn save_project_as(
-    app: AppHandle,
-    window: WebviewWindow,
-    state: State<'_, AppState>,
-    data: SaveData,
-) -> CmdResult<Value> {
+pub async fn save_project_as(app: AppHandle, window: WebviewWindow, data: SaveData) -> CmdResult<Value> {
+    blocking(move || save_project_as_now(&app, &window, data)).await?
+}
+
+fn save_project_as_now(app: &AppHandle, window: &WebviewWindow, data: SaveData) -> CmdResult<Value> {
+    let state = app.state::<AppState>();
     let name = format!(
         "{}.qdpx",
         data.project
@@ -441,8 +495,8 @@ pub async fn save_project_as(
             .unwrap_or_else(|| t("dialog.untitled"))
     );
     let Some(path) = save_dialog(
-        &app,
-        &window,
+        app,
+        window,
         &t("dialog.saveProjectAs"),
         &name,
         (&t("dialog.qdpxProjects"), &["qdpx"]),
@@ -453,7 +507,7 @@ pub async fn save_project_as(
     if let Some(c) = &carry {
         access::check_project(c)?;
     }
-    if let Some(blocked) = write(&app, &state, &path, data, carry.as_deref(), false)? {
+    if let Some(blocked) = write(app, &state, &path, data, carry.as_deref(), false)? {
         return Ok(blocked);
     }
     state.store.note_active_project_path(Some(&path_str(&path)));
@@ -463,13 +517,15 @@ pub async fn save_project_as(
 /// "Create a Copy" from the checkout-conflict dialog: an unattended,
 /// unlocked duplicate named "YYMMDD<name> <original>.qdpx".
 #[tauri::command]
-pub async fn create_project_copy(
-    app: AppHandle,
-    state: State<'_, AppState>,
-    data: SaveData,
-) -> CmdResult<Value> {
+pub async fn create_project_copy(app: AppHandle, data: SaveData) -> CmdResult<Value> {
+    blocking(move || create_project_copy_now(&app, data)).await?
+}
+
+fn create_project_copy_now(app: &AppHandle, data: SaveData) -> CmdResult<Value> {
+    let state = app.state::<AppState>();
     let current = PathBuf::from(data.current_file_path.clone().unwrap_or_default());
-    access::check_granted(&current)?;
+    // The open project, which the copy is made beside.
+    access::check_writable_project(&current)?;
     let dir = current.parent().map(Path::to_path_buf).unwrap_or_default();
     let base = current
         .file_name()
@@ -495,8 +551,9 @@ pub async fn create_project_copy(
         candidate = dir.join(format!("{prefix} {base} ({n}).qdpx"));
         n += 1;
     }
-    access::grant(&candidate);
-    if let Some(blocked) = write(&app, &state, &candidate, data, Some(&current), true)? {
+    // Magnolia made it for the user: theirs to go on saving.
+    access::grant_project(&candidate);
+    if let Some(blocked) = write(app, &state, &candidate, data, Some(&current), true)? {
         return Ok(blocked);
     }
     state
@@ -529,7 +586,8 @@ fn new_project_file(
 
 #[tauri::command]
 pub async fn create_new_project_file(app: AppHandle, window: WebviewWindow) -> CmdResult<Value> {
-    Ok(match new_project_file(&app, &window)? {
+    let made = blocking(move || new_project_file(&app, &window)).await??;
+    Ok(match made {
         Some((file_path, project_name)) => {
             json!({ "filePath": file_path, "projectName": project_name })
         }
@@ -549,7 +607,7 @@ pub async fn confirm_losing_changes(
     error: Option<String>,
     locked_by: Option<String>,
     closing: bool,
-) -> bool {
+) -> CmdResult<bool> {
     use tauri_plugin_dialog::{MessageDialogButtons, MessageDialogKind};
     let error = match locked_by {
         Some(who) => t_with("dialog.unsavedLockedBy", &[("name", &who)]),
@@ -560,13 +618,14 @@ pub async fn confirm_losing_changes(
     } else {
         ("dialog.unsavedMessage", "dialog.openAnyway")
     };
-    app.dialog()
+    let dialog = app
+        .dialog()
         .message(t_with(message, &[("name", &name), ("error", &error)]))
         .title(t("dialog.unsavedTitle"))
         .kind(MessageDialogKind::Warning)
         .parent(&window)
-        .buttons(MessageDialogButtons::OkCancelCustom(t(go), t("dialog.cancel")))
-        .blocking_show()
+        .buttons(MessageDialogButtons::OkCancelCustom(t(go), t("dialog.cancel")));
+    blocking(move || dialog.blocking_show()).await
 }
 
 /// A native message dialog over `window`, for the page: `window.alert`
@@ -592,8 +651,12 @@ fn page_dialog(
 
 /// Show a message (`kind`: "info", "warning" or "error") and wait for OK.
 #[tauri::command]
-pub async fn show_message(app: AppHandle, window: WebviewWindow, message: String, kind: Option<String>) {
-    page_dialog(&app, &window, &message, kind.as_deref()).blocking_show();
+pub async fn show_message(app: AppHandle, window: WebviewWindow, message: String, kind: Option<String>) -> CmdResult<()> {
+    let dialog = page_dialog(&app, &window, &message, kind.as_deref());
+    blocking(move || {
+        dialog.blocking_show();
+    })
+    .await
 }
 
 /// Ask a yes-or-no question; true if the first button (`ok_label`) was chosen.
@@ -604,11 +667,11 @@ pub async fn ask_confirm(
     message: String,
     ok_label: String,
     cancel_label: String,
-) -> bool {
+) -> CmdResult<bool> {
     use tauri_plugin_dialog::MessageDialogButtons;
-    page_dialog(&app, &window, &message, Some("warning"))
-        .buttons(MessageDialogButtons::OkCancelCustom(ok_label, cancel_label))
-        .blocking_show()
+    let dialog = page_dialog(&app, &window, &message, Some("warning"))
+        .buttons(MessageDialogButtons::OkCancelCustom(ok_label, cancel_label));
+    blocking(move || dialog.blocking_show()).await
 }
 
 fn error_box(app: &AppHandle, title: &str, message: &str) {
@@ -803,14 +866,14 @@ fn reject_reason(path: &Path) -> Option<String> {
 /// the renderer reads them one at a time with `read_text_files`, so it can
 /// show how the import is going.
 #[tauri::command]
-pub async fn pick_import_files(
-    app: AppHandle,
-    window: WebviewWindow,
-    state: State<'_, AppState>,
-) -> CmdResult<Value> {
-    let project = state.store.active_project_path();
+pub async fn pick_import_files(app: AppHandle, window: WebviewWindow) -> CmdResult<Value> {
+    blocking(move || pick_import_files_now(&app, &window)).await?
+}
+
+fn pick_import_files_now(app: &AppHandle, window: &WebviewWindow) -> CmdResult<Value> {
+    let project = app.state::<AppState>().store.active_project_path();
     let mut d =
-        dialog(&app, Some(&window), &t("dialog.importDocument")).filter(t("dialog.supportedDocuments"), SUPPORTED);
+        dialog(app, Some(window), &t("dialog.importDocument")).filter(t("dialog.supportedDocuments"), SUPPORTED);
     if let Some(dir) = storage::last_import_dir(project.as_deref()) {
         d = d.set_directory(dir);
     }
@@ -831,24 +894,25 @@ pub async fn pick_import_files(
 
 /// Real filesystem paths (from a native source rather than a browser drop).
 #[tauri::command]
-pub async fn read_text_files(
-    state: State<'_, AppState>,
-    file_paths: Vec<String>,
-) -> CmdResult<Value> {
-    Ok(file_paths
-        .iter()
-        .map(|fp| {
-            let p = Path::new(fp);
-            if let Err(e) = access::check_granted(p) {
-                return json!({ "name": file_name(p), "error": e });
-            }
-            match reject_reason(p) {
-                Some(r) => json!({ "name": file_name(p), "error": r }),
-                None => read_document_path(&state, p),
-            }
-        })
-        .collect::<Vec<_>>()
-        .into())
+pub async fn read_text_files(app: AppHandle, file_paths: Vec<String>) -> CmdResult<Value> {
+    blocking(move || {
+        let state = app.state::<AppState>();
+        file_paths
+            .iter()
+            .map(|fp| {
+                let p = Path::new(fp);
+                if let Err(e) = access::check_granted(p) {
+                    return json!({ "name": file_name(p), "error": e });
+                }
+                match reject_reason(p) {
+                    Some(r) => json!({ "name": file_name(p), "error": r }),
+                    None => read_document_path(&state, p),
+                }
+            })
+            .collect::<Vec<_>>()
+            .into()
+    })
+    .await
 }
 
 /// Where a file dropped on the page lives on disk, if that can be found, so
@@ -862,18 +926,19 @@ pub async fn read_text_files(
 pub fn dropped_file_path(name: String, size: u64) -> Option<String> {
     #[cfg(any(target_os = "macos", target_os = "linux"))]
     {
+        let same = |p: &Path| {
+            p.file_name().is_some_and(|n| n.to_string_lossy() == name)
+                && std::fs::metadata(p).is_ok_and(|m| m.is_file() && m.len() == size)
+        };
         #[cfg(target_os = "macos")]
-        let dragged = drag_pasteboard_paths();
+        let found = drag_pasteboard_paths().into_iter().find(|p| same(p));
+        // Taken off the list once found, and gone after a while (linux.rs).
         #[cfg(target_os = "linux")]
-        let dragged = crate::linux::dragged_paths();
-        dragged.into_iter().find_map(|p| {
-            let same = p.file_name().is_some_and(|n| n.to_string_lossy() == name)
-                && std::fs::metadata(&p).is_ok_and(|m| m.is_file() && m.len() == size);
-            // The user dragged it here: theirs to import.
-            same.then(|| {
-                access::grant(&p);
-                p.to_string_lossy().into_owned()
-            })
+        let found = crate::linux::take_dragged(same);
+        // The user dragged it here: theirs to import.
+        found.map(|p| {
+            access::grant(&p);
+            p.to_string_lossy().into_owned()
         })
     }
     #[cfg(not(any(target_os = "macos", target_os = "linux")))]
@@ -914,10 +979,7 @@ fn drag_pasteboard_paths() -> Vec<PathBuf> {
 /// so the renderer sends them as the raw request body with the file name in
 /// the `x-file-name` header (URI-encoded).
 #[tauri::command]
-pub async fn read_dropped_file(
-    state: State<'_, AppState>,
-    request: Request<'_>,
-) -> CmdResult<Value> {
+pub async fn read_dropped_file(app: AppHandle, request: Request<'_>) -> CmdResult<Value> {
     let name = request
         .headers()
         .get("x-file-name")
@@ -940,22 +1002,23 @@ pub async fn read_dropped_file(
         InvokeBody::Raw(b) => b.clone(),
         InvokeBody::Json(_) => return Err("expected raw file bytes".into()),
     };
-    Ok(match read_document(&state, &name, bytes) {
+    blocking(move || match read_document(&app.state::<AppState>(), &name, bytes) {
         Ok(v) => v,
         Err(e) => json!({ "name": name, "error": e }),
     })
+    .await
 }
 
 /// Re-attach a file to an existing document whose bytes are missing from
 /// the project; the result honours the SOURCE's media type.
 #[tauri::command]
-pub async fn reimport_document(
-    app: AppHandle,
-    window: WebviewWindow,
-    state: State<'_, AppState>,
-    source_type: String,
-) -> CmdResult<Value> {
-    let exts: Vec<&str> = match source_type.as_str() {
+pub async fn reimport_document(app: AppHandle, window: WebviewWindow, source_type: String) -> CmdResult<Value> {
+    blocking(move || reimport_document_now(&app, &window, &source_type)).await?
+}
+
+fn reimport_document_now(app: &AppHandle, window: &WebviewWindow, source_type: &str) -> CmdResult<Value> {
+    let state = app.state::<AppState>();
+    let exts: Vec<&str> = match source_type {
         "pdf" => vec!["pdf", "docx", "rtf", "odt"],
         "image" => IMAGE.iter().chain(DECODED_IMAGE).copied().collect(),
         // Audio and video share containers (Atlas references video as .m4a).
@@ -964,7 +1027,7 @@ pub async fn reimport_document(
     };
     let project = state.store.active_project_path();
     let mut d =
-        dialog(&app, Some(&window), &t("dialog.reimportDocument")).filter(t("dialog.supportedDocuments"), &exts);
+        dialog(app, Some(window), &t("dialog.reimportDocument")).filter(t("dialog.supportedDocuments"), &exts);
     if let Some(dir) = storage::last_import_dir(project.as_deref()) {
         d = d.set_directory(dir);
     }
@@ -995,13 +1058,13 @@ pub async fn reimport_document(
 }
 
 #[tauri::command]
-pub async fn import_transcript(
-    app: AppHandle,
-    window: WebviewWindow,
-    state: State<'_, AppState>,
-) -> CmdResult<Value> {
-    let project = state.store.active_project_path();
-    let mut d = dialog(&app, Some(&window), &t("dialog.importTranscript")).filter(
+pub async fn import_transcript(app: AppHandle, window: WebviewWindow) -> CmdResult<Value> {
+    blocking(move || import_transcript_now(&app, &window)).await?
+}
+
+fn import_transcript_now(app: &AppHandle, window: &WebviewWindow) -> CmdResult<Value> {
+    let project = app.state::<AppState>().store.active_project_path();
+    let mut d = dialog(app, Some(window), &t("dialog.importTranscript")).filter(
         t("dialog.textFiles"),
         &["txt", "md", "markdown", "srt", "vtt", "html", "htm"],
     );
@@ -1035,35 +1098,41 @@ pub async fn export_pdf(
 ) -> CmdResult<Option<String>> {
     let title = dialog_title.unwrap_or_else(|| t("dialog.exportPdf"));
     let file_name = format!("{default_name}.pdf");
-    let Some(path) = crate::automation::export_path(&file_name)
-        .or_else(|| save_dialog(&app, &window, &title, &file_name, ("PDF Documents", &["pdf"])))
-    else {
-        return Ok(None);
-    };
-    let opts = print::PdfOptions::export(
-        &storage::paper_size(),
-        header_template.as_deref(),
-        footer_template.as_deref(),
-    );
-    let pdf = print::html_to_pdf(&app, &html, script.as_deref(), &opts)?;
-    std::fs::write(&path, pdf).map_err(|e| e.to_string())?;
-    Ok(Some(path_str(&path)))
+    blocking(move || {
+        let Some(path) = crate::automation::export_path(&file_name)
+            .or_else(|| save_dialog(&app, &window, &title, &file_name, ("PDF Documents", &["pdf"])))
+        else {
+            return Ok(None);
+        };
+        let opts = print::PdfOptions::export(
+            &storage::paper_size(),
+            header_template.as_deref(),
+            footer_template.as_deref(),
+        );
+        let pdf = print::html_to_pdf(&app, &html, script.as_deref(), &opts)?;
+        std::fs::write(&path, pdf).map_err(|e| e.to_string())?;
+        Ok(Some(path_str(&path)))
+    })
+    .await?
 }
 
 async fn export_text(
-    app: &AppHandle,
-    window: &WebviewWindow,
-    content: &str,
-    default_name: &str,
-    filter: (&str, &[&str]),
+    app: AppHandle,
+    window: WebviewWindow,
+    content: String,
+    default_name: String,
+    filter: (&'static str, &'static [&'static str]),
 ) -> CmdResult<Option<String>> {
-    let Some(path) = crate::automation::export_path(default_name)
-        .or_else(|| save_dialog(app, window, &t("dialog.export"), default_name, filter))
-    else {
-        return Ok(None);
-    };
-    std::fs::write(&path, content).map_err(|e| e.to_string())?;
-    Ok(Some(path_str(&path)))
+    blocking(move || {
+        let Some(path) = crate::automation::export_path(&default_name)
+            .or_else(|| save_dialog(&app, &window, &t("dialog.export"), &default_name, filter))
+        else {
+            return Ok(None);
+        };
+        std::fs::write(&path, content).map_err(|e| e.to_string())?;
+        Ok(Some(path_str(&path)))
+    })
+    .await?
 }
 
 #[tauri::command]
@@ -1073,7 +1142,7 @@ pub async fn export_csv(
     content: String,
     default_name: String,
 ) -> CmdResult<Option<String>> {
-    export_text(&app, &window, &with_bom(&content), &default_name, ("CSV", &["csv"])).await
+    export_text(app, window, with_bom(&content), default_name, ("CSV", &["csv"])).await
 }
 
 /// CSV text with a UTF-8 byte-order mark in front, which Excel needs to
@@ -1095,7 +1164,7 @@ pub async fn export_svg(
     content: String,
     default_name: String,
 ) -> CmdResult<Option<String>> {
-    export_text(&app, &window, &content, &default_name, ("SVG", &["svg"])).await
+    export_text(app, window, content, default_name, ("SVG", &["svg"])).await
 }
 
 #[tauri::command]
@@ -1105,17 +1174,20 @@ pub async fn export_codebook(
     codes: Vec<Value>,
 ) -> CmdResult<Option<String>> {
     let xml = codebook::serialize_codebook(&codes, &app_version(&app));
-    let Some(path) = save_dialog(
-        &app,
-        &window,
-        &t("dialog.exportCodebook"),
-        &format!("{}.qdc", t("dialog.codebookFileName")),
-        (&t("dialog.qdcCodebook"), &["qdc"]),
-    ) else {
-        return Ok(None);
-    };
-    std::fs::write(&path, xml).map_err(|e| e.to_string())?;
-    Ok(Some(path_str(&path)))
+    blocking(move || {
+        let Some(path) = save_dialog(
+            &app,
+            &window,
+            &t("dialog.exportCodebook"),
+            &format!("{}.qdc", t("dialog.codebookFileName")),
+            (&t("dialog.qdcCodebook"), &["qdc"]),
+        ) else {
+            return Ok(None);
+        };
+        std::fs::write(&path, xml).map_err(|e| e.to_string())?;
+        Ok(Some(path_str(&path)))
+    })
+    .await?
 }
 
 #[tauri::command]
@@ -1123,15 +1195,18 @@ pub async fn import_codebook(
     app: AppHandle,
     window: WebviewWindow,
 ) -> CmdResult<Option<Vec<Value>>> {
-    let Some(path) = dialog(&app, Some(&window), &t("dialog.importCodebook"))
-        .filter(t("dialog.qdcCodebook"), &["qdc"])
-        .blocking_pick_file()
-        .and_then(to_path)
-    else {
-        return Ok(None);
-    };
-    let xml = std::fs::read(&path).map_err(|e| e.to_string())?;
-    codebook::deserialize_codebook(&String::from_utf8_lossy(&xml)).map(Some)
+    blocking(move || {
+        let Some(path) = dialog(&app, Some(&window), &t("dialog.importCodebook"))
+            .filter(t("dialog.qdcCodebook"), &["qdc"])
+            .blocking_pick_file()
+            .and_then(to_path)
+        else {
+            return Ok(None);
+        };
+        let xml = std::fs::read(&path).map_err(|e| e.to_string())?;
+        codebook::deserialize_codebook(&String::from_utf8_lossy(&xml)).map(Some)
+    })
+    .await?
 }
 
 // ── Bundled licence files ──
@@ -1292,7 +1367,9 @@ pub async fn get_recent_projects() -> CmdResult<Vec<Value>> {
 
 #[tauri::command]
 pub async fn track_recent_project(name: String, file_path: String) -> CmdResult<()> {
-    access::check_granted(&file_path)?;
+    // Opening from the recent list makes a project writable (welcome
+    // window), so only the user's own projects may go on it.
+    access::check_writable_project(&file_path)?;
     storage::track_recent_project(&name, &file_path);
     Ok(())
 }
@@ -1311,25 +1388,25 @@ pub fn open_external(app: AppHandle, url: String) -> CmdResult<()> {
 }
 
 #[tauri::command]
-pub async fn welcome_action(
-    app: AppHandle,
-    window: WebviewWindow,
-    action: String,
-) -> CmdResult<()> {
+pub async fn welcome_action(app: AppHandle, window: WebviewWindow, action: String) -> CmdResult<()> {
+    blocking(move || welcome_action_now(&app, &window, &action)).await?
+}
+
+fn welcome_action_now(app: &AppHandle, window: &WebviewWindow, action: &str) -> CmdResult<()> {
     use tauri_plugin_opener::OpenerExt;
-    match action.as_str() {
-        "quit" => windows::quit(&app),
+    match action {
+        "quit" => windows::quit(app),
         "sponsor" => {
             let _ = app
                 .opener()
                 .open_url("https://github.com/sponsors/caledavis", None::<&str>);
         }
         "new-project" => {
-            if let Some((file_path, project_name)) = new_project_file(&app, &window)? {
+            if let Some((file_path, project_name)) = new_project_file(app, window)? {
                 storage::track_recent_project(&project_name, &file_path);
-                if windows::open_main(&app).is_some() {
+                if windows::open_main(app).is_some() {
                     windows::emit_when_ready(
-                        &app,
+                        app,
                         MAIN,
                         "new-project-at-path",
                         json!({ "filePath": file_path, "projectName": project_name }),
@@ -1338,27 +1415,31 @@ pub async fn welcome_action(
             }
         }
         "open-project" => {
-            if let Some(path) = pick_qdpx(&app, Some(&window)) {
+            if let Some(path) = pick_qdpx(app, Some(window)) {
                 // Validate before leaving the welcome screen.
                 match reader::read_qdpx(Path::new(&path), None) {
-                    Ok(_) => windows::open_project_in_main(&app, &path),
-                    Err(e) => error_box(&app, &t("dialog.openProjectFailed"), &e),
+                    Ok(_) => windows::open_project_in_main(app, &path),
+                    Err(e) => error_box(app, &t("dialog.openProjectFailed"), &e),
                 }
             }
         }
         "clear-recent" => storage::clear_recent_projects(),
         a if a.starts_with("open-recent:") => {
             let path = &a["open-recent:".len()..];
+            // Opening makes it writable, so only what's on the list.
+            if !storage::is_recent_project(path) {
+                return Err(access::refused(Path::new(path)));
+            }
             if !Path::new(path).exists() {
                 storage::remove_recent_project(path);
-                windows::emit_to(&app, window.label(), "recent-projects-changed", ());
+                windows::emit_to(app, window.label(), "recent-projects-changed", ());
                 error_box(
-                    &app,
+                    app,
                     &t("dialog.projectNotFound"),
                     &t_with("dialog.projectNotFoundMessage", &[("path", path)]),
                 );
             } else {
-                windows::open_project_in_main(&app, path);
+                windows::open_project_in_main(app, path);
             }
         }
         _ => {}
@@ -1403,6 +1484,30 @@ mod csv_tests {
 
 #[cfg(test)]
 mod dialog_tests {
+    use std::path::PathBuf;
+
+    #[test]
+    fn saved_files_get_the_filters_extension() {
+        let ext = |p: &str| super::with_extension(PathBuf::from(p), &["qdpx"]);
+        assert_eq!(ext("/a/Study"), PathBuf::from("/a/Study.qdpx"));
+        assert_eq!(ext("/a/Study v1.2"), PathBuf::from("/a/Study v1.2.qdpx"));
+        assert_eq!(ext("/a/Study.QDPX"), PathBuf::from("/a/Study.QDPX"));
+        assert_eq!(ext("/a/notes.docx"), PathBuf::from("/a/notes.docx.qdpx"));
+    }
+
+    #[test]
+    fn only_missing_projects_are_looked_for() {
+        let d = tempfile::tempdir().unwrap();
+        let there = d.path().join("Coder.qdpx");
+        let other = d.path().join("secret.txt");
+        std::fs::write(&there, "x").unwrap();
+        std::fs::write(&other, "x").unwrap();
+        assert!(!super::is_missing_project(there.to_str().unwrap()));
+        assert!(super::is_missing_project(d.path().join("Gone.qdpx").to_str().unwrap()));
+        // Not a project: never looked at, so it says nothing about the file.
+        assert!(super::is_missing_project(other.to_str().unwrap()));
+    }
+
     #[test]
     #[cfg(target_os = "linux")]
     fn linux_filters_match_any_case() {
@@ -1415,8 +1520,11 @@ mod dialog_tests {
 /// the open project file's size. Nothing from the project itself.
 #[tauri::command]
 pub fn diagnostics_info(app: AppHandle, file_path: Option<String>) -> Value {
+    // Only for a file the user chose (the open project), so a page can't
+    // ask whether any other file exists, or how big it is.
     let project_bytes = file_path
         .as_deref()
+        .filter(|p| access::is_granted(p))
         .and_then(|p| std::fs::metadata(p).ok())
         .map(|m| m.len());
     serde_json::json!({

@@ -184,7 +184,7 @@ pub fn automation_log(message: String) -> Result<(), String> {
 #[tauri::command]
 pub fn automation_grant(path: String) -> Result<(), String> {
     check()?;
-    crate::access::grant(path);
+    crate::access::grant_project(path);
     Ok(())
 }
 

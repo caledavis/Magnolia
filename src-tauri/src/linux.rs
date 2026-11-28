@@ -2,12 +2,40 @@
 //! per webview as its first page starts loading (`setup_webview`).
 
 use gtk::prelude::*;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
+use std::time::{Duration, Instant};
 use webkit2gtk::{WebContextExt, WebViewExt};
 
-/// Files in the drag the user most recently brought over a window.
-static DRAGGED: Mutex<Vec<PathBuf>> = Mutex::new(Vec::new());
+/// Files in the drag the user most recently brought over a window, not
+/// yet imported, and when they were last asked for.
+static DRAGGED: Mutex<Dragged> = Mutex::new(Dragged { paths: Vec::new(), at: None });
+
+/// How long a drag's files stay on offer after it, or after the last of
+/// them was asked for. Each file of a drop is asked for in turn, after the
+/// one before has been imported (a long video can take a few minutes);
+/// after this, nothing is left that `dropped_file_path` could hand out —
+/// not even the files of a drag that was brought over and taken away.
+const DRAG_LIFETIME: Duration = Duration::from_secs(10 * 60);
+
+struct Dragged {
+    paths: Vec<PathBuf>,
+    at: Option<Instant>,
+}
+
+impl Dragged {
+    /// The dragged file `matches` picks, taken off the list so it's handed
+    /// out once.
+    fn take(&mut self, now: Instant, matches: impl Fn(&Path) -> bool) -> Option<PathBuf> {
+        if self.at.is_none_or(|at| now.duration_since(at) > DRAG_LIFETIME) {
+            self.paths.clear();
+            return None;
+        }
+        let i = self.paths.iter().position(|p| matches(p))?;
+        self.at = Some(now);
+        Some(self.paths.remove(i))
+    }
+}
 
 const SET_UP: &str = "magnolia-set-up";
 
@@ -39,13 +67,34 @@ pub fn setup_webview<R: tauri::Runtime>(webview: &tauri::Webview<R>) {
                 .filter_map(|uri| gtk::glib::filename_from_uri(uri).ok().map(|(path, _)| path))
                 .collect();
             if !paths.is_empty() {
-                *DRAGGED.lock().unwrap() = paths;
+                *DRAGGED.lock().unwrap() = Dragged { paths, at: Some(Instant::now()) };
             }
         });
     });
 }
 
-/// The files of the most recent drag (see `setup_webview`).
-pub fn dragged_paths() -> Vec<PathBuf> {
-    DRAGGED.lock().unwrap().clone()
+/// The file of the most recent drag (see `setup_webview`) that `matches`
+/// picks, if it's still on offer; each is given only once.
+pub fn take_dragged(matches: impl Fn(&Path) -> bool) -> Option<PathBuf> {
+    DRAGGED.lock().unwrap().take(Instant::now(), matches)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn dragged_files_are_given_once_and_not_for_long() {
+        let start = Instant::now();
+        let mut d = Dragged { paths: vec!["/a/one.mp4".into(), "/a/two.mp4".into()], at: Some(start) };
+        let named = |n: &'static str| move |p: &Path| p.file_name().is_some_and(|f| f == n);
+        assert_eq!(d.take(start, named("two.mp4")), Some("/a/two.mp4".into()));
+        assert_eq!(d.take(start, named("two.mp4")), None);
+        // Asking keeps the rest on offer a while longer.
+        let later = start + DRAG_LIFETIME - Duration::from_secs(1);
+        assert_eq!(d.take(later, named("nothing")), None);
+        let much_later = later + DRAG_LIFETIME + Duration::from_secs(1);
+        assert_eq!(d.take(much_later, named("one.mp4")), None);
+        assert!(d.paths.is_empty());
+    }
 }

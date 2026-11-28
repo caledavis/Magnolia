@@ -454,19 +454,56 @@ async fn download(app: &AppHandle) {
 
 // ── Installing ──
 
-/// "Ready to Install" closed without installing → it installs as the app quits.
-pub fn install_pending_on_quit(_app: &AppHandle) {
-    if let Err(e) = install_pending() {
-        log::error!("[auto-update] install on quit failed: {e}");
-    }
+/// An install is running (see `install_then`): the app mustn't exit
+/// under it when its last window goes.
+static INSTALLING: AtomicBool = AtomicBool::new(false);
+
+pub fn installing() -> bool {
+    INSTALLING.load(Ordering::SeqCst)
+}
+
+/// Install the downloaded update on a thread of its own, then `finish`
+/// with the result on the main thread. This is reached from the main
+/// window's Destroyed handler, on the event loop: a deb or rpm install
+/// waits there for the password prompt, which froze every window —
+/// the "Installing…" one too — until it was answered.
+fn install_then(app: &AppHandle, finish: impl FnOnce(&AppHandle, Result<(), tauri_plugin_updater::Error>) + Send + 'static) {
+    let Some(d) = DOWNLOADED.lock().unwrap().take() else {
+        finish(app, Ok(()));
+        return;
+    };
+    INSTALLING.store(true, Ordering::SeqCst);
+    let app = app.clone();
+    std::thread::spawn(move || {
+        let result = d.update.install(&d.bytes);
+        let handle = app.clone();
+        let ran = app.run_on_main_thread(move || {
+            INSTALLING.store(false, Ordering::SeqCst);
+            finish(&handle, result);
+        });
+        if ran.is_err() {
+            INSTALLING.store(false, Ordering::SeqCst);
+        }
+    });
+}
+
+/// "Ready to Install" closed without installing → it installs as the app
+/// quits, then the app exits.
+pub fn install_pending_on_quit_and_exit(app: &AppHandle) {
+    install_then(app, |app, result| {
+        if let Err(e) = result {
+            log::error!("[auto-update] install on quit failed: {e}");
+        }
+        app.exit(0);
+    });
 }
 
 /// Install and Relaunch, once the project is flushed. A deb or rpm install
-/// waits here for the password prompt. A failure (a wrong or cancelled password
+/// waits for the password prompt. A failure (a wrong or cancelled password
 /// among them) goes in the update window rather than relaunching the old
 /// version as if it were the new one.
 pub fn install_pending_and_relaunch(app: &AppHandle) {
-    match install_pending() {
+    install_then(app, |app, result| match result {
         Ok(()) => app.restart(),
         Err(e) => {
             log::error!("[auto-update] install failed: {e}");
@@ -477,13 +514,19 @@ pub fn install_pending_and_relaunch(app: &AppHandle) {
             );
             show(app, error_view(&t("update.installFailed"), &message));
         }
-    }
+    });
 }
 
-fn install_pending() -> Result<(), tauri_plugin_updater::Error> {
-    match DOWNLOADED.lock().unwrap().take() {
-        Some(d) => d.update.install(&d.bytes),
-        None => Ok(()),
+/// Install and Relaunch was called off before anything installed (the
+/// project couldn't be saved, or a memo's Cancel): back to "Ready to
+/// Install" rather than "Installing…" for good.
+pub fn install_abandoned(app: &AppHandle) {
+    if view_state().as_deref() != Some("installing") {
+        return;
+    }
+    let version = DOWNLOADED.lock().unwrap().as_ref().map(|d| d.update.version.clone());
+    if let Some(version) = version {
+        show(app, ready_view(&version));
     }
 }
 

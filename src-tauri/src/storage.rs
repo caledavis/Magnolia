@@ -128,6 +128,13 @@ pub fn track_recent_project(name: &str, path: &str) {
     save_recents(&list);
 }
 
+/// Whether `path` is on the recent list, as the welcome window shows it.
+pub fn is_recent_project(path: &str) -> bool {
+    load_recent_projects()
+        .iter()
+        .any(|r| r.get("path").and_then(Value::as_str) == Some(path))
+}
+
 /// Drop entries whose file no longer exists and return the live ones.
 pub fn prune_recent_projects() -> Vec<Value> {
     let all = load_recent_projects();

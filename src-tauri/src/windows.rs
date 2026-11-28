@@ -75,12 +75,28 @@ fn app_url(page: &str) -> WebviewUrl {
     WebviewUrl::App(page.into())
 }
 
-/// External links open in the browser; the app never navigates away.
-fn is_app_url(url: &tauri::Url) -> bool {
-    matches!(url.scheme(), "tauri" | "asset" | "about" | "data" | "blob")
-        || url
-            .host_str()
-            .is_some_and(|h| h == "localhost" || h == "tauri.localhost" || h == "127.0.0.1")
+/// External links open in the browser; the app never navigates away. The
+/// app's own pages are at tauri://localhost (macOS, Linux) or
+/// http(s)://tauri.localhost (Windows); a development build's also at the
+/// dev server (`dev`). Any other "localhost" — some other program's
+/// server on this computer — is not the app.
+fn is_app_url(url: &tauri::Url, dev: Option<&tauri::Url>) -> bool {
+    let host = url.host_str();
+    match url.scheme() {
+        "about" | "data" | "blob" => true,
+        "tauri" => host == Some("localhost"),
+        "http" | "https" if host == Some("tauri.localhost") => true,
+        _ => dev.is_some_and(|d| d.origin() == url.origin()),
+    }
+}
+
+/// The dev server the pages come from, in a development build only.
+fn dev_url(app: &AppHandle) -> Option<tauri::Url> {
+    if cfg!(debug_assertions) {
+        app.config().build.dev_url.clone()
+    } else {
+        None
+    }
 }
 
 fn base_builder<'a>(
@@ -89,6 +105,7 @@ fn base_builder<'a>(
     page: &str,
 ) -> WebviewWindowBuilder<'a, tauri::Wry, AppHandle> {
     let handle = app.clone();
+    let dev = dev_url(app);
     let automated = crate::automation::active();
     let b = WebviewWindowBuilder::new(app, label, app_url(page))
         // Keep HTML5 drag-and-drop (codes, documents, OS file drops) in the
@@ -126,7 +143,7 @@ fn base_builder<'a>(
             }
         })
         .on_navigation(move |url| {
-            if is_app_url(url) {
+            if is_app_url(url, dev.as_ref()) {
                 return true;
             }
             if matches!(url.scheme(), "http" | "https" | "mailto") {
@@ -301,6 +318,7 @@ pub fn open_main(app: &AppHandle) -> Option<WebviewWindow> {
     {
         let mut ui = state(app).ui.lock().unwrap();
         ui.flush_pending = false;
+        ui.awaiting_memos = false;
         ui.is_quitting = false;
     }
     let height = app
@@ -336,17 +354,33 @@ pub fn open_main(app: &AppHandle) -> Option<WebviewWindow> {
     let handle = app.clone();
     w.on_window_event(move |e| match e {
         WindowEvent::CloseRequested { api, .. } => {
-            let mut ui = state(&handle).ui.lock().unwrap();
-            if ui.flush_pending {
-                return;
-            }
-            // Ask the renderer to save, then finish the close once it acks
-            // (flush_complete) — or force it if it goes silent.
+            // Always held: the window only goes once its project is saved
+            // (flush_complete, or the watchdog destroys it). Letting a
+            // second request through mid-save — a second click, or Quit
+            // while closing — closed it and exited halfway through the
+            // write. A Quit meanwhile has already noted `is_quitting`
+            // (quit), so the close in progress ends in an exit.
             api.prevent_close();
-            ui.flush_pending = true;
-            drop(ui);
-            emit_to(&handle, MAIN, "flush-and-close", ());
-            arm_flush_watchdog(&handle);
+            let memos = {
+                let mut ui = state(&handle).ui.lock().unwrap();
+                if ui.flush_pending {
+                    return;
+                }
+                let memos = memo_windows(&handle, None);
+                ui.awaiting_memos = !memos.is_empty();
+                memos
+            };
+            if memos.is_empty() {
+                start_flush(&handle);
+            } else {
+                // Each memo window asks to save its changes, or is kept by
+                // Cancel (memo_close_cancelled); the flush starts once the
+                // last has gone (memo_window_gone). Asked again on a
+                // second request, in case one was missed.
+                for w in memos {
+                    let _ = w.close();
+                }
+            }
         }
         WindowEvent::Destroyed => on_main_destroyed(&handle),
         _ => {}
@@ -354,6 +388,74 @@ pub fn open_main(app: &AppHandle) -> Option<WebviewWindow> {
     crate::updater::schedule_startup_check(app);
     menu::rebuild(app);
     Some(w)
+}
+
+/// Ask the renderer to save, then finish the close once it acks
+/// (flush_complete) — or force it if it goes silent.
+fn start_flush(app: &AppHandle) {
+    {
+        let mut ui = state(app).ui.lock().unwrap();
+        if ui.flush_pending {
+            return;
+        }
+        ui.flush_pending = true;
+        ui.awaiting_memos = false;
+    }
+    emit_to(app, MAIN, "flush-and-close", ());
+    arm_flush_watchdog(app);
+}
+
+/// The memo windows open now, but for `except` (one being destroyed).
+fn memo_windows(app: &AppHandle, except: Option<&str>) -> Vec<WebviewWindow> {
+    app.webview_windows()
+        .into_iter()
+        .filter(|(label, _)| is_memo_label(label) && Some(label.as_str()) != except)
+        .map(|(_, w)| w)
+        .collect()
+}
+
+fn is_memo_label(label: &str) -> bool {
+    label.starts_with(MEMO_PREFIX)
+}
+
+/// A memo window has gone. If the main window's close was waiting for
+/// it and it was the last, the close goes on to the save.
+fn memo_window_gone(app: &AppHandle, label: &str) {
+    let last = {
+        let ui = state(app).ui.lock().unwrap();
+        ui.awaiting_memos && memo_windows(app, Some(label)).is_empty()
+    };
+    if last {
+        start_flush(app);
+    }
+}
+
+/// A memo window's Cancel (in its Save / Don't Save / Cancel question)
+/// keeps it open, so the main window's close or the quit is off: forget
+/// it, so nothing closes later when the other memos go.
+pub fn memo_close_cancelled(app: &AppHandle) {
+    let was_waiting = {
+        let mut ui = state(app).ui.lock().unwrap();
+        let was = std::mem::take(&mut ui.awaiting_memos);
+        if was {
+            ui.is_quitting = false;
+            ui.restart_after_quit = false;
+        }
+        was
+    };
+    if was_waiting {
+        crate::updater::install_abandoned(app);
+    }
+}
+
+/// Listen for memo windows' "memo-close-cancelled" (see
+/// `memo_close_cancelled`), from whichever window it comes. Its payload
+/// (the memo's guid and project) isn't needed: any Cancel calls the
+/// close off.
+pub fn listen_for_memo_cancel(app: &AppHandle) {
+    use tauri::Listener;
+    let handle = app.clone();
+    app.listen_any("memo-close-cancelled", move |_| memo_close_cancelled(&handle));
 }
 
 /// Re-arm the flush watchdog; it fires only after a full timeout of renderer
@@ -385,11 +487,15 @@ pub fn arm_flush_watchdog(app: &AppHandle) {
 /// stay. Disarms the watchdog and forgets any quit (or update restart)
 /// that started it.
 pub fn flush_cancelled(app: &AppHandle) {
-    let mut ui = state(app).ui.lock().unwrap();
-    ui.flush_pending = false;
-    ui.flush_generation += 1;
-    ui.is_quitting = false;
-    ui.restart_after_quit = false;
+    {
+        let mut ui = state(app).ui.lock().unwrap();
+        ui.flush_pending = false;
+        ui.awaiting_memos = false;
+        ui.flush_generation += 1;
+        ui.is_quitting = false;
+        ui.restart_after_quit = false;
+    }
+    crate::updater::install_abandoned(app);
 }
 
 /// Renderer finished its flush-on-close save.
@@ -403,6 +509,7 @@ fn on_main_destroyed(app: &AppHandle) {
     let (quitting, restart) = {
         let mut ui = state(app).ui.lock().unwrap();
         ui.flush_pending = false;
+        ui.awaiting_memos = false;
         ui.flush_generation += 1;
         ui.window_data.clear();
         ui.queued_events.retain(|(label, _), _| label != MAIN);
@@ -429,8 +536,7 @@ fn finish_quit(app: &AppHandle, restart: bool) {
     if restart {
         crate::updater::install_pending_and_relaunch(app);
     } else {
-        crate::updater::install_pending_on_quit(app);
-        app.exit(0);
+        crate::updater::install_pending_on_quit_and_exit(app);
     }
 }
 
@@ -455,7 +561,10 @@ pub fn quit_for_update(app: &AppHandle) {
 }
 
 /// Open the project at `path` in the main window (creating it if needed).
+/// Every caller is the user opening it — the Open dialog, the file
+/// manager or command line, the recent list — so it's theirs to save.
 pub fn open_project_in_main(app: &AppHandle, path: &str) {
+    crate::access::grant_project(path);
     if open_main(app).is_some() {
         emit_when_ready(app, MAIN, "open-recent-project", json!(path));
     }
@@ -667,6 +776,9 @@ fn open_child(app: &AppHandle, label: &str, spec: ChildSpec, data: Value) {
                     if label == INTERCODER_RESULTS {
                         emit_to(&handle, MAIN, "intercoder-results-window-closed", ());
                     }
+                    if is_memo_label(&label) {
+                        memo_window_gone(&handle, &label);
+                    }
                     menu::rebuild(&handle);
                 }
             });
@@ -826,5 +938,33 @@ pub fn raise_other_windows(app: &AppHandle, source: &str) {
         if label != source && label != WELCOME {
             let _ = w.set_focus();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_app_url;
+    use tauri::Url;
+
+    fn url(s: &str) -> Url {
+        Url::parse(s).unwrap()
+    }
+
+    #[test]
+    fn only_the_apps_own_pages_are_the_app() {
+        assert!(is_app_url(&url("tauri://localhost/index.html"), None));
+        assert!(is_app_url(&url("http://tauri.localhost/index.html"), None));
+        assert!(is_app_url(&url("https://tauri.localhost/memo-edit.html"), None));
+        assert!(is_app_url(&url("about:blank"), None));
+        // Some other program's server on this computer, or the media server.
+        assert!(!is_app_url(&url("http://localhost:8080/"), None));
+        assert!(!is_app_url(&url("http://127.0.0.1:4000/x"), None));
+        assert!(!is_app_url(&url("ftp://localhost/"), None));
+        assert!(!is_app_url(&url("tauri://elsewhere/"), None));
+        assert!(!is_app_url(&url("https://example.com/"), None));
+        // The dev server, in a development build only.
+        let dev = url("http://localhost:5173");
+        assert!(is_app_url(&url("http://localhost:5173/index.html"), Some(&dev)));
+        assert!(!is_app_url(&url("http://localhost:5174/index.html"), Some(&dev)));
     }
 }
