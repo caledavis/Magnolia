@@ -35,16 +35,16 @@ fn read_json(name: &str) -> Option<Value> {
     serde_json::from_slice(&std::fs::read(file(name)).ok()?).ok()
 }
 
-fn write_json(name: &str, v: &Value, pretty: bool) {
+/// Write `name` whole (see write_atomically). A failure is logged and
+/// returned; the file keeps its old contents.
+fn write_json(name: &str, v: &Value, pretty: bool) -> std::io::Result<()> {
     let text = if pretty {
         serde_json::to_string_pretty(v)
     } else {
         serde_json::to_string(v)
     }
     .unwrap_or_default();
-    if let Err(e) = write_atomically(&file(name), text.as_bytes()) {
-        log::warn!("could not save {name}: {e}");
-    }
+    write_atomically(&file(name), text.as_bytes()).inspect_err(|e| log::warn!("could not save {name}: {e}"))
 }
 
 /// Replace `path` with `bytes` all at once: write a temporary file beside
@@ -80,8 +80,10 @@ pub fn load_preferences() -> Value {
     read_json(PREFS).unwrap_or(Value::Null)
 }
 
-pub fn save_preferences(prefs: &Value) {
-    write_json(PREFS, prefs, true);
+/// Save the preferences; the error, if they couldn't be (the user is told:
+/// a change that isn't saved is gone at the next launch).
+pub fn save_preferences(prefs: &Value) -> std::io::Result<()> {
+    write_json(PREFS, prefs, true)
 }
 
 /// The user's display name, stamped into magnolia-editor.json on save.
@@ -115,7 +117,7 @@ pub fn load_recent_projects() -> Vec<Value> {
 }
 
 fn save_recents(list: &[Value]) {
-    write_json(RECENTS, &Value::Array(list.to_vec()), false);
+    let _ = write_json(RECENTS, &Value::Array(list.to_vec()), false);
 }
 
 pub fn track_recent_project(name: &str, path: &str) {
@@ -183,7 +185,7 @@ pub fn set_last_import_dir(project: Option<&str>, dir: &Path) {
         .filter(Value::is_object)
         .unwrap_or(json!({}));
     all[project] = dir.to_string_lossy().into();
-    write_json(IMPORT_DIRS, &all, true);
+    let _ = write_json(IMPORT_DIRS, &all, true);
 }
 
 // ── Window layout ──
@@ -201,7 +203,7 @@ pub fn query_results_popped_out() -> bool {
 }
 
 pub fn set_query_results_popped_out(popped_out: bool) {
-    write_json(WINDOW_LAYOUT, &json!({ "queryResultsPoppedOut": popped_out }), true);
+    let _ = write_json(WINDOW_LAYOUT, &json!({ "queryResultsPoppedOut": popped_out }), true);
 }
 
 /// Each remembered window's last size in points (windows.rs).
@@ -215,7 +217,7 @@ pub fn window_sizes() -> serde_json::Map<String, Value> {
 }
 
 pub fn save_window_sizes(sizes: &serde_json::Map<String, Value>) {
-    write_json(WINDOW_SIZES, &Value::Object(sizes.clone()), true);
+    let _ = write_json(WINDOW_SIZES, &Value::Object(sizes.clone()), true);
 }
 
 // ── Updater state ──
@@ -230,7 +232,7 @@ pub fn skipped_version() -> Option<String> {
 }
 
 pub fn set_skipped_version(v: &str) {
-    write_json(UPDATE_STATE, &json!({ "skippedVersion": v }), true);
+    let _ = write_json(UPDATE_STATE, &json!({ "skippedVersion": v }), true);
 }
 
 #[cfg(test)]

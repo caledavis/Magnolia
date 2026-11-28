@@ -1377,7 +1377,8 @@
     "supportText1": "Magnolia er fri programvare med åpen kildekode, uten reklame, abonnementer eller innlåsing i skyen. Den utvikles og vedlikeholdes uavhengig. Hvis du har nytte av den i arbeidet ditt, hjelper sponsing til å holde den gratis og finansierer nye funksjoner, rettelser og videre støtte.",
     "supportText2": "Du kan sponse månedlig eller gi et engangsbidrag gjennom GitHub Sponsors. Lenken åpnes i nettleseren.",
     "createdBy": "Magnolia er laget og vedlikeholdes av dr. Cale Davis.",
-    "sponsorOnGithub": "Spons Magnolia på GitHub"
+    "sponsorOnGithub": "Spons Magnolia på GitHub",
+    "saveFailed": "Magnolia kunne ikke lagre innstillingene dine, så endringen blir ikke beholdt neste gang Magnolia åpnes.\n\n{{detail}}"
   },
   "app": {
     "report": "Rapport",

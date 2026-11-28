@@ -1332,7 +1332,8 @@
     "supportText1": "Magnolia 免费开源，没有广告、订阅或云端绑定。它由个人独立开发和维护。如果它对您的工作有用，赞助其开发有助于保持免费，并资助新功能、修复和持续支持。",
     "supportText2": "您可以通过 GitHub Sponsors 按月赞助或一次性捐助。链接将在浏览器中打开。",
     "createdBy": "Magnolia 由 Cale Davis 博士创建并维护。",
-    "sponsorOnGithub": "在 GitHub 上赞助 Magnolia"
+    "sponsorOnGithub": "在 GitHub 上赞助 Magnolia",
+    "saveFailed": "Magnolia 无法保存您的偏好设置，因此下次打开 Magnolia 时不会保留此更改。\n\n{{detail}}"
   },
   "app": {
     "report": "报告",

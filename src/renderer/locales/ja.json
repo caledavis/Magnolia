@@ -1332,7 +1332,8 @@
     "supportText1": "Magnolia は無料のオープンソースで、広告もサブスクリプションもクラウドへの囲い込みもありません。独立して開発・保守されています。お仕事に役立っているなら、開発を支援していただくと無料のまま続けられ、新機能、修正、継続的なサポートの資金になります。",
     "supportText2": "GitHub Sponsors で毎月の支援、または 1 回限りの支援ができます。リンクはブラウザで開きます。",
     "createdBy": "Magnolia の作成・保守：Dr Cale Davis",
-    "sponsorOnGithub": "GitHub で Magnolia を支援"
+    "sponsorOnGithub": "GitHub で Magnolia を支援",
+    "saveFailed": "Magnolia は環境設定を保存できませんでした。この変更は次回 Magnolia を開いたときには残りません。\n\n{{detail}}"
   },
   "app": {
     "report": "レポート",

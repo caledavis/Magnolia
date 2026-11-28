@@ -1467,7 +1467,8 @@
     "supportText1": "Magnolia yra nemokama ir atvirojo kodo, be reklamų, prenumeratų ir priklausomybės nuo debesijos. Ji kuriama ir prižiūrima nepriklausomai. Jei ji naudinga jūsų darbe, rėmimas padeda išlaikyti ją nemokamą ir finansuoja naujas funkcijas, pataisymus ir nuolatinę priežiūrą.",
     "supportText2": "Galite remti kas mėnesį arba skirti vienkartinę paramą per „GitHub Sponsors“. Nuoroda atsivers jūsų naršyklėje.",
     "createdBy": "Magnolia sukūrė ir prižiūri dr. Cale Davis.",
-    "sponsorOnGithub": "Remti Magnolia per „GitHub“"
+    "sponsorOnGithub": "Remti Magnolia per „GitHub“",
+    "saveFailed": "Magnolia nepavyko įrašyti jūsų nuostatų, todėl kitą kartą atvėrus Magnolia šis pakeitimas neišliks.\n\n{{detail}}"
   },
   "app": {
     "report": "Ataskaita",

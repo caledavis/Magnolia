@@ -1377,7 +1377,8 @@
     "supportText1": "Magnolia on ilmainen ja avointa lähdekoodia, ilman mainoksia, tilauksia tai pilvisidonnaisuutta. Sitä kehitetään ja ylläpidetään itsenäisesti. Jos siitä on hyötyä työssäsi, kehityksen tukeminen auttaa pitämään sen ilmaisena ja rahoittaa uusia ominaisuuksia, korjauksia ja jatkuvaa tukea.",
     "supportText2": "Voit tukea kuukausittain tai tehdä kertalahjoituksen GitHub Sponsorsin kautta. Linkki avautuu selaimessa.",
     "createdBy": "Magnolian on luonut ja sitä ylläpitää tohtori Cale Davis.",
-    "sponsorOnGithub": "Tue Magnoliaa GitHubissa"
+    "sponsorOnGithub": "Tue Magnoliaa GitHubissa",
+    "saveFailed": "Magnolia ei voinut tallentaa asetuksiasi, joten tämä muutos ei säily, kun Magnolia avataan seuraavan kerran.\n\n{{detail}}"
   },
   "app": {
     "report": "Raportti",

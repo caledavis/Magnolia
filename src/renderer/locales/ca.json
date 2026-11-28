@@ -1422,7 +1422,8 @@
     "supportText1": "El Magnolia és lliure i de codi obert, sense anuncis, subscripcions ni dependència del núvol. Es desenvolupa i es manté de manera independent. Si us és útil a la feina, patrocinar-ne el desenvolupament ajuda a mantenir-lo gratuït i finança funcions noves, correccions i suport continu.",
     "supportText2": "Podeu patrocinar-lo mensualment o fer una aportació única a través de GitHub Sponsors. L’enllaç s’obre al navegador.",
     "createdBy": "El Magnolia l’ha creat i el manté el Dr. Cale Davis.",
-    "sponsorOnGithub": "Patrocineu el Magnolia a GitHub"
+    "sponsorOnGithub": "Patrocineu el Magnolia a GitHub",
+    "saveFailed": "El Magnolia no ha pogut desar les vostres preferències, així que aquest canvi no es mantindrà la propera vegada que s’obri el Magnolia.\n\n{{detail}}"
   },
   "app": {
     "report": "Informe",

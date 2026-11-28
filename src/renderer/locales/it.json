@@ -1422,7 +1422,8 @@
     "supportText1": "Magnolia è gratuito e open source, senza pubblicità, abbonamenti o vincoli al cloud. È sviluppato e mantenuto in modo indipendente. Se ti è utile nel tuo lavoro, sostenerne lo sviluppo aiuta a mantenerlo gratuito e finanzia nuove funzioni, correzioni e assistenza continua.",
     "supportText2": "Puoi sostenerlo ogni mese o con un contributo una tantum tramite GitHub Sponsors. Il link si apre nel browser.",
     "createdBy": "Magnolia è stato creato ed è mantenuto dal dott. Cale Davis.",
-    "sponsorOnGithub": "Sostieni Magnolia su GitHub"
+    "sponsorOnGithub": "Sostieni Magnolia su GitHub",
+    "saveFailed": "Magnolia non è riuscito a salvare le tue preferenze, quindi questa modifica non verrà mantenuta alla prossima apertura di Magnolia.\n\n{{detail}}"
   },
   "app": {
     "report": "Report",

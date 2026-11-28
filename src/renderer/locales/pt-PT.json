@@ -1422,7 +1422,8 @@
     "supportText1": "O Magnolia é livre e de código aberto, sem anúncios, assinaturas ou dependência da nuvem. Ele é criado e mantido de forma independente. Se ele for útil no seu trabalho, patrocinar o desenvolvimento ajuda a mantê-lo gratuito e financia novos recursos, correções e suporte contínuo.",
     "supportText2": "Pode patrocinar mensalmente ou fazer uma contribuição única através do GitHub Sponsors. A ligação abre no navegador.",
     "createdBy": "O Magnolia foi criado e é mantido pelo Dr. Cale Davis.",
-    "sponsorOnGithub": "Patrocine o Magnolia no GitHub"
+    "sponsorOnGithub": "Patrocine o Magnolia no GitHub",
+    "saveFailed": "O Magnolia não conseguiu guardar as suas preferências, pelo que esta alteração não será mantida da próxima vez que abrir o Magnolia.\n\n{{detail}}"
   },
   "app": {
     "report": "Relatório",

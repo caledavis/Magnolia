@@ -1467,7 +1467,8 @@
     "supportText1": "Magnolia je svobodná a otevřená, bez reklam, předplatného a závislosti na cloudu. Vyvíjí se a udržuje nezávisle. Pokud vám pomáhá v práci, podpora jejího vývoje pomůže udržet ji zdarma a financuje nové funkce, opravy a průběžnou podporu.",
     "supportText2": "Můžete přispívat měsíčně nebo jednorázově přes GitHub Sponsors. Odkaz se otevře v prohlížeči.",
     "createdBy": "Magnolii vytvořil a udržuje Dr. Cale Davis.",
-    "sponsorOnGithub": "Podpořit Magnolii na GitHubu"
+    "sponsorOnGithub": "Podpořit Magnolii na GitHubu",
+    "saveFailed": "Magnolia nemohla uložit vaše předvolby, takže tato změna se při příštím spuštění Magnolie neprojeví.\n\n{{detail}}"
   },
   "app": {
     "report": "Zpráva",

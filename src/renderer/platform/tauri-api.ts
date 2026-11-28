@@ -31,6 +31,17 @@ const platform: MagnoliaAPI['platform'] = /Mac/i.test(navigator.userAgent)
     ? 'win32'
     : 'linux'
 
+/** Preferences that couldn't be saved (a full disk, a settings folder that
+ *  can't be written): tell the user, at most once a minute, since every
+ *  change saves and a failing disk fails them all. */
+let preferencesFailureShownAt = 0
+function reportPreferencesNotSaved(err: unknown): void {
+  console.error('Preferences not saved:', err)
+  if (Date.now() - preferencesFailureShownAt < 60_000) return
+  preferencesFailureShownAt = Date.now()
+  void invoke('show_message', { message: t('prefs.saveFailed', { detail: String(err) }), kind: 'warning' }).catch(() => {})
+}
+
 // The open project's .qdpx, forwarded with every binary read so resolution
 // survives a backend that lost track of it (mirrors the Electron preload).
 let activeProjectPath: string | null = null
@@ -656,10 +667,11 @@ const api: MagnoliaAPI = {
 
   updatePanelVisibility: (visibility) => void invoke('update_panel_visibility', { visibility }),
 
-  // Preferences
+  // Preferences. A change that couldn't be written to disk still applies
+  // this session, but would be gone at the next launch: say so.
   loadPreferences: () => invoke('load_preferences'),
-  savePreferences: (prefs) => invoke('save_preferences', { prefs }),
-  sendPreferencesUpdate: (prefs) => void invoke('preferences_update', { prefs }),
+  savePreferences: (prefs) => invoke<void>('save_preferences', { prefs }).catch(reportPreferencesNotSaved),
+  sendPreferencesUpdate: (prefs) => void invoke('preferences_update', { prefs }).catch(reportPreferencesNotSaved),
   onPreferencesUpdate: (callback) => on('preferences-update', callback),
   mcpSetEnabled: (enabled) => invoke('mcp_set_enabled', { enabled }),
   mcpReply: (callId, content, isError) => invoke('mcp_reply', { callId, content, isError }),

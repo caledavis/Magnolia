@@ -1456,16 +1456,17 @@ pub async fn load_preferences() -> CmdResult<Value> {
 
 #[tauri::command]
 pub async fn save_preferences(prefs: Value) -> CmdResult<()> {
-    storage::save_preferences(&prefs);
-    Ok(())
+    storage::save_preferences(&prefs).map_err(|e| e.to_string())
 }
 
 /// Persist and echo to the main window so its preferences store re-syncs.
 #[tauri::command]
 pub async fn preferences_update(app: AppHandle, prefs: Value) -> CmdResult<()> {
-    storage::save_preferences(&prefs);
+    // Tell the main window either way, so the app works with the change
+    // this session; then say whether it was saved for the next.
+    let saved = storage::save_preferences(&prefs);
     windows::emit_to(&app, MAIN, "preferences-update", prefs);
-    Ok(())
+    saved.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
