@@ -25,6 +25,36 @@ pub fn new_guid() -> String {
     uuid::Uuid::new_v4().to_string().to_uppercase()
 }
 
+/// Whether `guid` can name a file in a .qdpx (`sources/<guid>.txt`): hex
+/// digits and hyphens only, as every GUID is, so it can't reach outside the
+/// folder or be empty. Other programs' GUIDs are standard ones; anything
+/// else came from a fault or a crafted file.
+pub fn is_entry_safe_guid(guid: &str) -> bool {
+    !guid.is_empty()
+        && guid.len() <= 64
+        && guid.bytes().all(|b| b.is_ascii_hexdigit() || b == b'-')
+}
+
+/// A GUID standing in for `raw`, which isn't one: always the same for the
+/// same `raw` (within one run), so every reference to it maps alike.
+pub fn stand_in_guid(raw: &str) -> String {
+    use std::hash::{Hash, Hasher};
+    let half = |salt: u8| {
+        let mut h = std::hash::DefaultHasher::new();
+        salt.hash(&mut h);
+        raw.hash(&mut h);
+        h.finish()
+    };
+    let bits = (u128::from(half(1)) << 64) | u128::from(half(2));
+    uuid::Uuid::from_u128(bits).to_string().to_uppercase()
+}
+
+/// Whether `ext` can end a file name in a .qdpx (`<guid>.<ext>`): a short
+/// run of letters and digits, as every media extension is.
+pub fn is_safe_ext(ext: &str) -> bool {
+    !ext.is_empty() && ext.len() <= 10 && ext.bytes().all(|b| b.is_ascii_alphanumeric())
+}
+
 /// Codepoint length — Magnolia indexes every text offset by codepoint.
 pub fn cp_len(s: &str) -> usize {
     s.chars().count()

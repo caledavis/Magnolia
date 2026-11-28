@@ -5,7 +5,7 @@
 //! `_rawPdfSelections`, …) that `reader` consumes and strips before the
 //! project reaches the renderer.
 
-use crate::util::{Obj, js_parse_float, js_parse_int, normalize_guid, num, set_opt};
+use crate::util::{Obj, is_entry_safe_guid, js_parse_float, js_parse_int, normalize_guid, num, set_opt, stand_in_guid};
 use crate::xml_read::{attr, child, child_text, children, list};
 use roxmltree::Node;
 use serde_json::{Map, Value, json};
@@ -15,8 +15,22 @@ use serde_json::{Map, Value, json};
 /// element name and these route to the audio viewer.
 const AUDIO_EXTENSIONS: &[&str] = &["wav", "mp3", "ogg", "flac", "m4a", "aac"];
 
+/// A GUID as Magnolia keeps it (uppercase, no braces). One that isn't a
+/// GUID at all — from a fault or a crafted file, `../../x` say — becomes a
+/// stand-in that is one, the same for every mention of it, so what refers
+/// to it still does: GUIDs name files in the archive, and Magnolia mustn't
+/// write a file name like that into a project.
+fn guid_of(raw: Option<&str>) -> String {
+    let g = normalize_guid(raw);
+    if g.is_empty() || is_entry_safe_guid(&g) {
+        g
+    } else {
+        stand_in_guid(&g)
+    }
+}
+
 fn guid_attr(n: Node, name: &str) -> String {
-    normalize_guid(attr(n, name).as_deref())
+    guid_of(attr(n, name).as_deref())
 }
 
 fn int_attr(n: Node, name: &str) -> Value {
@@ -211,14 +225,14 @@ fn parse_transcript(n: Node) -> Option<Value> {
                 "fromSyncPoint",
                 attr(ts, "fromSyncPoint")
                     .filter(|s| !s.is_empty())
-                    .map(|s| normalize_guid(Some(&s))),
+                    .map(|s| guid_of(Some(&s))),
             );
             set_opt(
                 &mut o,
                 "toSyncPoint",
                 attr(ts, "toSyncPoint")
                     .filter(|s| !s.is_empty())
-                    .map(|s| normalize_guid(Some(&s))),
+                    .map(|s| guid_of(Some(&s))),
             );
             set_opt(
                 &mut o,
@@ -387,7 +401,7 @@ fn parse_case(n: Node) -> Value {
 fn opt_guid_attr(n: Node, name: &str) -> Option<String> {
     attr(n, name)
         .filter(|s| !s.is_empty())
-        .map(|s| normalize_guid(Some(&s)))
+        .map(|s| guid_of(Some(&s)))
 }
 
 fn parse_vertex(n: Node) -> Value {
@@ -520,13 +534,13 @@ pub fn not_kept(proj: Node) -> Map<String, Value> {
     let edge_links: std::collections::HashSet<String> = proj
         .descendants()
         .filter(|n| n.is_element() && n.tag_name().name() == "Edge")
-        .filter_map(|e| attr(e, "representedGUID").map(|g| normalize_guid(Some(&g))))
+        .filter_map(|e| attr(e, "representedGUID").map(|g| guid_of(Some(&g))))
         .collect();
     let mut counts: std::collections::BTreeMap<&str, u64> = Default::default();
     for n in proj.descendants().filter(Node::is_element) {
         let kind = match n.tag_name().name() {
             // Links between items, except those a map's arrows stand for.
-            "Link" if !attr(n, "guid").is_some_and(|g| edge_links.contains(&normalize_guid(Some(&g)))) => Some("links"),
+            "Link" if !attr(n, "guid").is_some_and(|g| edge_links.contains(&guid_of(Some(&g)))) => Some("links"),
             // A coding of a whole recording with no transcript to put it on
             // (a whole document's is kept as a passage covering all of it).
             "Coding"

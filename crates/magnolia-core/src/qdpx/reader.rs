@@ -213,6 +213,7 @@ pub fn read_qdpx(path: &Path, progress: Option<Progress>) -> Result<Value, Strin
         )
     })?;
     let mut project = deserialize_project(&xml)?;
+    give_sources_their_own_guids(&mut project);
     // Saved by a newer Magnolia: shown, but not saved over (see format.rs).
     if let Some(newer) = super::format::newer_format_in(&mut zip) {
         project["newerFormat"] = json!({ "savedBy": newer.saved_by });
@@ -453,9 +454,52 @@ pub fn read_qdpx(path: &Path, progress: Option<Progress>) -> Result<Value, Strin
     ] {
         take(&mut project, k);
     }
+    give_memos_their_own_guids(&mut project);
     project["sourceContents"] = Value::Object(source_contents);
     project["missingBinaries"] = missing.into();
     Ok(project)
+}
+
+/// A document's guid names its files in the archive (`sources/<guid>.txt`),
+/// so each needs one of its own: a document with none, or one another
+/// document already has (a fault, or another program's file), gets a new
+/// one, before anything is keyed by it. Otherwise every save of the project
+/// would fail on the clashing file names.
+fn give_sources_their_own_guids(project: &mut Value) {
+    let Some(sources) = project.get_mut("sources").and_then(Value::as_array_mut) else {
+        return;
+    };
+    let mut seen = HashSet::new();
+    for s in sources.iter_mut().filter(|s| s.is_object()) {
+        let guid = get_str(s, "guid").unwrap_or("").to_string();
+        if guid.is_empty() || !seen.insert(guid) {
+            let fresh = new_guid();
+            seen.insert(fresh.clone());
+            s["guid"] = fresh.into();
+        }
+    }
+}
+
+/// The same for memos, whose text is saved as `sources/<guid>.txt` too:
+/// one with no usable guid, or one a document or another memo already has,
+/// gets a new one.
+fn give_memos_their_own_guids(project: &mut Value) {
+    let mut seen: HashSet<String> = get_arr(project, "sources")
+        .iter()
+        .filter_map(|s| get_str(s, "guid"))
+        .map(|g| normalize_guid(Some(g)))
+        .collect();
+    let Some(memos) = project.get_mut("memos").and_then(Value::as_array_mut) else {
+        return;
+    };
+    for m in memos.iter_mut().filter(|m| m.is_object()) {
+        let guid = normalize_guid(get_str(m, "guid"));
+        if !crate::util::is_entry_safe_guid(&guid) || !seen.insert(guid) {
+            let fresh = new_guid();
+            seen.insert(fresh.clone());
+            m["guid"] = fresh.into();
+        }
+    }
 }
 
 /// Pass 1: attach one source's text / media handle from the archive.
@@ -1131,7 +1175,7 @@ fn apply_source_meta(
             source["formatData"] = Value::Object(out);
         }
     } else if flag("hasAudioBinary") {
-        let audio_ext = get_nonempty(fd, "audioExt").unwrap_or("audio").to_string();
+        let audio_ext = safe_ext(fd, "audioExt").unwrap_or("audio").to_string();
         let mut resolved =
             Some(audio_ext.clone()).filter(|e| zip.has(&in_sources(&format!("{guid}.{e}"))));
         if resolved.is_none()
@@ -1159,7 +1203,7 @@ fn apply_source_meta(
             source["formatData"] = Value::Object(out);
         }
     } else if flag("hasVideoBinary") {
-        let ext = get_nonempty(fd, "videoExt").unwrap_or("mp4").to_string();
+        let ext = safe_ext(fd, "videoExt").unwrap_or("mp4").to_string();
         let existing = source
             .get("formatData")
             .and_then(Value::as_object)
@@ -1201,7 +1245,7 @@ fn apply_source_meta(
         };
         source["formatData"] = Value::Object(merged);
     } else if flag("hasImageBinary") {
-        let ext = get_nonempty(fd, "imageExt").unwrap_or("png").to_string();
+        let ext = safe_ext(fd, "imageExt").unwrap_or("png").to_string();
         if zip.has(&in_sources(&format!("{guid}.{ext}"))) {
             put(
                 &mut out,
@@ -1213,8 +1257,37 @@ fn apply_source_meta(
             source["formatData"] = Value::Object(out);
         }
     } else {
-        source["formatData"] = fd.clone();
+        source["formatData"] = without_paths(fd);
     }
+}
+
+/// A side table's file extension, if it's one that can name a file.
+fn safe_ext<'a>(fd: &'a Value, key: &str) -> Option<&'a str> {
+    get_nonempty(fd, key).filter(|e| crate::util::is_safe_ext(e))
+}
+
+/// A side table's formatData without paths on disk or odd extensions.
+/// Magnolia writes neither (its binaries are `magnolia-bin://` handles and
+/// the flags above), and a path left in would have the next save copy that
+/// file — any file the user can read — into the project.
+fn without_paths(fd: &Value) -> Value {
+    let Some(o) = fd.as_object() else {
+        return fd.clone();
+    };
+    let kept = o
+        .iter()
+        .filter(|(k, v)| {
+            if k.ends_with("FilePath") {
+                return v.as_str().is_some_and(crate::binary_store::is_binary_handle);
+            }
+            if k.ends_with("Ext") {
+                return v.as_str().is_some_and(crate::util::is_safe_ext);
+            }
+            true
+        })
+        .map(|(k, v)| (k.clone(), v.clone()))
+        .collect();
+    Value::Object(kept)
 }
 
 /// Codings of a whole document (a `<Coding>` on the source itself) on a

@@ -14,7 +14,7 @@ use super::serializer::{audio_extension_for, representation_guid_for, serialize_
 use super::transcript_refi::build_transcript;
 use crate::binary_store::{BinaryStore, MediaSource};
 use crate::message::{tr, tr_count};
-use crate::util::{Obj, get_arr, get_nonempty, get_str, has, now_iso, truthy};
+use crate::util::{Obj, get_arr, get_nonempty, get_str, has, internal_name, now_iso, truthy};
 use base64::Engine;
 use serde_json::{Map, Value, json};
 use std::collections::HashSet;
@@ -250,8 +250,44 @@ pub fn write_qdpx(
     }
     prepared["sources"] = prepared_sources.into();
     let xml = serialize_project(&prepared, opts.app_version);
+    // The XML must read back before it replaces anything: a project file
+    // that doesn't parse can't be opened again, here or anywhere.
+    if let Err(e) = crate::xml_read::parse(&xml) {
+        return Err(WriteError::Io(tr(
+            "save.invalidXml",
+            "Magnolia couldn’t write this project correctly ({{detail}}), so “{{file}}” was left as it was. Please report this problem.",
+            &[("detail", &e.to_string()), ("file", &path.display().to_string())],
+        )));
+    }
+
+    // Entry names are built from guids: one that isn't a guid could name a
+    // file outside the archive's folders for whatever unpacks it, and two
+    // entries with one name make the whole save fail. The reader gives
+    // every source and memo a usable, distinct guid; this is the backstop.
+    let bad_guid = |s: &Value| {
+        WriteError::Guard(tr(
+            "guard.badGuid",
+            "Refusing to save “{{file}}”: the document “{{name}}” has an identifier ({{guid}}) that is missing, malformed or shared with another document, so it can’t be stored safely. Reopen the project and try again.",
+            &[
+                ("file", &path.display().to_string()),
+                ("name", get_str(s, "name").unwrap_or("")),
+                ("guid", get_str(s, "guid").unwrap_or("")),
+            ],
+        ))
+    };
+    let mut source_guids: HashSet<&str> = HashSet::new();
+    for s in &sources {
+        let guid = get_str(s, "guid").unwrap_or("");
+        if !crate::util::is_entry_safe_guid(guid) || !source_guids.insert(guid) {
+            return Err(bad_guid(s));
+        }
+    }
+
+    let carry_path = opts.carry_forward_from.unwrap_or(path);
 
     let mut zip = AtomicZip::create(path)?;
+    // The text entries written so far (each name once: see above).
+    let mut text_entries: HashSet<String> = HashSet::new();
     zip.add(
         &qde_filename_for(get_str(project, "name").unwrap_or("")),
         xml.as_bytes(),
@@ -263,16 +299,33 @@ pub fn write_qdpx(
             continue;
         }
         let guid = get_str(s, "guid").unwrap_or("");
-        let Some(content) = contents.get(guid) else {
-            continue;
-        };
-        let text = crate::util::js_to_string(content);
         let name = if kind == "pdf" {
             representation_guid_for(guid)
         } else {
             guid.to_string()
         };
-        zip.add(&format!("sources/{name}.txt"), text.as_bytes())?;
+        let dest = format!("sources/{name}.txt");
+        if !text_entries.insert(dest.clone()) {
+            return Err(bad_guid(s));
+        }
+        let Some(content) = contents.get(guid) else {
+            // Not sent (a fault elsewhere): the text the file already has
+            // is kept, rather than the document saved with none.
+            if let Ok(mut a) = Archive::open(carry_path) {
+                let dir = a.sources_dir();
+                let src = [Some(format!("{name}.txt")), internal_name(get_str(s, "plainTextPath")).map(str::to_string)]
+                    .into_iter()
+                    .flatten()
+                    .map(|n| format!("{dir}/{n}"))
+                    .find(|n| a.has(n));
+                if let Some(src) = src {
+                    zip.copy_from(a.inner(), &src, &dest)?;
+                }
+            }
+            continue;
+        };
+        let text = crate::util::js_to_string(content);
+        zip.add(&dest, text.as_bytes())?;
     }
 
     let json_entry =
@@ -297,16 +350,22 @@ pub fn write_qdpx(
     let memos = get_arr(project, "memos");
     if !memos.is_empty() {
         json_entry(&mut zip, "magnolia-memos.json", &project["memos"])?;
+        // Each memo's text as a file too, for other programs (Magnolia
+        // reads it from magnolia-memos.json). One whose guid can't name a
+        // file of its own is left out of these rather than fail the save.
         for m in memos {
+            let guid = get_str(m, "guid").unwrap_or("");
+            if !crate::util::is_entry_safe_guid(guid)
+                || !text_entries.insert(format!("sources/{guid}.txt"))
+            {
+                continue;
+            }
             let body = m
                 .get("content")
                 .filter(|v| !v.is_null())
                 .map(crate::util::js_to_string)
                 .unwrap_or_default();
-            zip.add(
-                &format!("sources/{}.txt", get_str(m, "guid").unwrap_or("")),
-                body.as_bytes(),
-            )?;
+            zip.add(&format!("sources/{guid}.txt"), body.as_bytes())?;
         }
     }
     if !get_arr(project, "quotes").is_empty() {
@@ -398,10 +457,10 @@ pub fn write_qdpx(
     }
 
     // ── Embed every imported binary ──
-    // Bytes come from (in order) inline base64, the import overlay, a legacy
-    // temp path, or the copy already inside the archive on disk — so a
-    // re-save can never drop a binary the project once held.
-    let carry_path = opts.carry_forward_from.unwrap_or(path);
+    // Bytes come from (in order) inline base64, the import overlay, or the
+    // copy already inside the archive on disk — so a re-save can never drop
+    // a binary the project once held. (Opened only now: a save that
+    // finished meanwhile may have moved an overlay binary into it.)
     let mut existing = Archive::open(carry_path).ok();
     let existing_dir = existing
         .as_ref()
@@ -424,6 +483,17 @@ pub fn write_qdpx(
             "audio" => audio_extension_for(s),
             _ => get_nonempty(fd, "videoExt").unwrap_or("mp4").to_string(),
         };
+        if !crate::util::is_safe_ext(&ext) {
+            return Err(WriteError::Guard(tr(
+                "guard.badExtension",
+                "Refusing to save “{{file}}”: the document “{{name}}” has a file type (“{{ext}}”) that can’t be stored safely. Reopen the project and try again.",
+                &[
+                    ("file", &path.display().to_string()),
+                    ("name", get_str(s, "name").unwrap_or("")),
+                    ("ext", &ext),
+                ],
+            )));
+        }
         let internal = format!("{guid}.{ext}");
         let handle_key = match kind {
             "pdf" => "pdfFilePath",
@@ -433,7 +503,6 @@ pub fn write_qdpx(
         };
         let handle = get_nonempty(fd, handle_key);
         let is_overlay = handle.is_some_and(|h| h.starts_with("magnolia-bin://overlay/"));
-        let is_handle = handle.is_some_and(|h| h.starts_with("magnolia-bin://"));
         // An archive handle names the binary's real in-archive file (other
         // tools don't use `<guid>.<ext>`); we still WRITE it as `<guid>.<ext>`.
         let carry_name = handle
@@ -454,12 +523,12 @@ pub fn write_qdpx(
                 .map(|b| MediaSource::Memory(std::sync::Arc::new(b)));
         } else if is_overlay {
             bytes = opts.store.and_then(|st| st.overlay_source(handle.unwrap()));
-        } else if let Some(p) = handle.filter(|_| !is_handle) {
-            bytes = std::fs::metadata(p)
-                .ok()
-                .filter(|m| m.is_file())
-                .map(|m| MediaSource::File { path: p.into(), offset: 0, len: m.len() });
         }
+        // Anything else that isn't a handle is a path on disk. Imports never
+        // give one (their bytes are in the overlay), so it's a stale legacy
+        // temp path or one a crafted file put there — and reading it would
+        // copy whatever file it names into the project. It's never read:
+        // the binary comes from the archive below, as a legacy one would.
 
         let dest = format!("sources/{internal}");
         if let Some(b) = bytes {
@@ -553,8 +622,8 @@ pub fn write_qdpx(
     // checking out and in can update the slot in place (see checkout).
     let (marker, project_id) = match Archive::open(carry_path) {
         Ok(mut latest) if !opts.drop_lock => (
-            latest.read(LOCK_ENTRY).and_then(|b| parse_lock_entry(&b)),
-            latest.read(PROJECT_ID_ENTRY).and_then(|b| parse_project_id(&b)),
+            latest.read_limited(LOCK_ENTRY, super::archive::MAX_MARKER_READ).and_then(|b| parse_lock_entry(&b)),
+            latest.read_limited(PROJECT_ID_ENTRY, super::archive::MAX_MARKER_READ).and_then(|b| parse_project_id(&b)),
         ),
         _ => (None, None),
     };

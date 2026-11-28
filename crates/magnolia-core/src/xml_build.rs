@@ -3,7 +3,8 @@
 //! `suppressEmptyNode`), so files written by either build diff cleanly.
 //!
 //! Escaping is ours, as it was in TS: attributes escape `& < > " '`, text
-//! escapes `& < >`.
+//! escapes `& < >`. Characters XML 1.0 can't hold at all (most C0 controls,
+//! U+FFFE, U+FFFF) are replaced in both — see [`xml_char`].
 
 #[derive(Debug, Clone, Default)]
 pub struct El {
@@ -101,9 +102,26 @@ pub fn document(decl_attrs: &[(&str, &str)], root: &El) -> String {
     out
 }
 
+/// What `c` is written as in XML. XML 1.0 forbids most C0 controls even as
+/// character references, and a file holding one won't open again (in
+/// Magnolia or anywhere), so they can't be written as they are. A coded
+/// passage's name is its own text, and text from PDFs and Word files often
+/// holds form feeds or vertical tabs (page and line breaks): those, like the
+/// other controls, become a space, keeping the words either side apart.
+/// The noncharacters U+FFFE and U+FFFF are dropped. Only the copy in the XML
+/// changes: a document's text is in its own .txt, which keeps them.
+fn xml_char(c: char) -> Option<char> {
+    match c {
+        '\t' | '\n' | '\r' => Some(c),
+        '\u{0}'..='\u{1F}' => Some(' '),
+        '\u{FFFE}' | '\u{FFFF}' => None,
+        _ => Some(c),
+    }
+}
+
 pub fn escape_attr(s: &str) -> String {
     let mut o = String::with_capacity(s.len());
-    for c in s.chars() {
+    for c in s.chars().filter_map(xml_char) {
         match c {
             '&' => o.push_str("&amp;"),
             '<' => o.push_str("&lt;"),
@@ -118,7 +136,7 @@ pub fn escape_attr(s: &str) -> String {
 
 pub fn escape_text(s: &str) -> String {
     let mut o = String::with_capacity(s.len());
-    for c in s.chars() {
+    for c in s.chars().filter_map(xml_char) {
         match c {
             '&' => o.push_str("&amp;"),
             '<' => o.push_str("&lt;"),

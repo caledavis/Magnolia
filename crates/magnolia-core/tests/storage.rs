@@ -513,8 +513,8 @@ fn failed_save_keeps_the_overlay_buffer() {
     let handle = store.put_overlay(BYTES.to_vec(), "mp4");
     let mut project = project_with_video(&handle);
     project["sources"].as_array_mut().unwrap().push(json!({
-        "guid": "MISSING", "name": "gone.mp4", "sourceType": "video", "selections": [],
-        "formatData": { "videoFilePath": "magnolia-bin://archive/MISSING.mp4", "videoExt": "mp4" }
+        "guid": "DEADBEEF-0000-4000-8000-000000000000", "name": "gone.mp4", "sourceType": "video", "selections": [],
+        "formatData": { "videoFilePath": "magnolia-bin://archive/DEADBEEF-0000-4000-8000-000000000000.mp4", "videoExt": "mp4" }
     }));
     match write_qdpx(
         &path,
