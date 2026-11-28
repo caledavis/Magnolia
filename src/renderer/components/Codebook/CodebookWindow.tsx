@@ -15,6 +15,8 @@ import { flattenCodes } from '../../utils/code-tree'
 import type { CodeMenuAction } from '../../models/window-messages'
 import { useTreeKeyboard } from '../../utils/use-tree-keyboard'
 import { keyActivate } from '../../utils/key-activate'
+import { reportExportFailure } from '../../utils/report-export-failure'
+import { errorMessage } from '../../utils/error-message'
 
 /** A row of the code list, drawn exactly like a row of the Codes pane
  *  (CodeTreeItem in CodeBrowser.tsx): chevron slot, colour pip, name,
@@ -452,12 +454,18 @@ export function CodebookWindow() {
     await exportPdfWithHeader(html, t('codebook.title'))
   }, [codes, t])
 
+  // Like the menu's Export and Import Codebook, a file that can't be
+  // written or read says so, rather than nothing.
   const handleExportQdc = useCallback(async () => {
-    await window.api.exportCodebook(codes)
+    await window.api.exportCodebook(codes).catch(reportExportFailure)
   }, [codes])
 
   const handleImportQdc = useCallback(async () => {
-    const imported = await window.api.importCodebook()
+    const imported = await window.api.importCodebook().catch((err: unknown) => {
+      console.error('[import-codebook] failed:', err)
+      void window.api.showMessage(t('merge.readFailed', { error: errorMessage(err) }), 'warning')
+      return null
+    })
     if (imported && imported.length > 0) {
       setCodes((prev) => {
         const existingGuids = new Set(flattenCodes(prev).map((c) => c.guid))
@@ -466,7 +474,7 @@ export function CodebookWindow() {
       })
       sendCodebookUpdate('merge-codes', imported)
     }
-  }, [])
+  }, [t])
 
   const selectedCode = selectedCodeGuid ? findCode(selectedCodeGuid) : null
 

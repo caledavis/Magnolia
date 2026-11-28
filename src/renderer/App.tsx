@@ -1400,9 +1400,11 @@ function App() {
     try {
       flushImportSave(await importZoteroItems((path) => window.api.zoteroGet(path), job))
     } catch (err) {
+      // Say so: before, a failed import only reached the console.
       console.error('[zotero-import] failed:', err)
+      void window.api.showMessage(t('zotero.failed', { error: errorMessage(err) }), 'error')
     }
-  }, [flushImportSave, checkoutLockedBy, setCheckoutConflict])
+  }, [flushImportSave, checkoutLockedBy, setCheckoutConflict, t])
 
   const handleImportDocument = useCallback(async () => {
     // Enforced lock: importing adds documents, a mutation — refuse it
