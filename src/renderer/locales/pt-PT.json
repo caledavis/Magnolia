@@ -196,13 +196,16 @@
         "missingFiles_one": "O Magnolia não vai guardar “{{file}}”: o conteúdo de {{count}} documento importado não foi encontrado ({{names}}). Ele não estava na memória, no cache temporário nem no ficheiro do projeto, então guardar agora o deixaria vazio. Importe o documento de novo e tente outra vez.",
         "missingFiles_many": "O Magnolia não vai guardar “{{file}}”: o conteúdo de {{count}} documentos importados não foi encontrado ({{names}}). Eles não estavam na memória, no cache temporário nem no ficheiro do projeto, então guardar agora os deixaria vazios. Importe os documentos de novo e tente outra vez.",
         "missingFiles_other": "O Magnolia não vai guardar “{{file}}”: o conteúdo de {{count}} documentos importados não foi encontrado ({{names}}). Eles não estavam na memória, no cache temporário nem no ficheiro do projeto, então guardar agora os deixaria vazios. Importe os documentos de novo e tente outra vez.",
-        "newerFormat": "“{{file}}” foi guardado por uma versão mais recente do Magnolia ({{savedBy}}). Esta versão pode mostrá-lo, mas não guardá-lo, para que nada do que a versão mais recente acrescentou se perca. Atualize o Magnolia para trabalhar neste projeto."
+        "newerFormat": "“{{file}}” foi guardado por uma versão mais recente do Magnolia ({{savedBy}}). Esta versão pode mostrá-lo, mas não guardá-lo, para que nada do que a versão mais recente acrescentou se perca. Atualize o Magnolia para trabalhar neste projeto.",
+        "badGuid": "O Magnolia não vai guardar “{{file}}”: o documento “{{name}}” tem um identificador ({{guid}}) em falta, inválido ou partilhado com outro documento, pelo que não pode ser guardado em segurança. Volte a abrir o projeto e tente novamente.",
+        "badExtension": "O Magnolia não vai guardar “{{file}}”: o documento “{{name}}” tem um tipo de ficheiro (“{{ext}}”) que não pode ser guardado em segurança. Volte a abrir o projeto e tente novamente."
       },
       "typesetFailed": "O Magnolia não conseguiu paginar este documento. Experimente guardá-lo novamente no programa de origem, ou guardá-lo como PDF e importar esse ficheiro.",
       "save": {
         "noPermission": "O Magnolia não tem permissão para alterar o ficheiro do projeto nem a pasta onde está. Verifique se a pasta não está bloqueada nem é só de leitura, ou guarde uma cópia noutro local.",
         "diskFull": "Não há espaço livre suficiente no disco. Liberte algum espaço e tente novamente.",
-        "notFound": "Não é possível encontrar a pasta do projeto. Pode ter sido movida ou mudado de nome, ou estar num disco que não está ligado."
+        "notFound": "Não é possível encontrar a pasta do projeto. Pode ter sido movida ou mudado de nome, ou estar num disco que não está ligado.",
+        "invalidXml": "O Magnolia não conseguiu gravar este projeto corretamente ({{detail}}), pelo que “{{file}}” ficou como estava. Comunique este problema, por favor."
       },
       "caseCategory": "Caso",
       "documentDescription": "Descrição de {{name}}",

@@ -193,13 +193,16 @@
         "noText_other": "„{{file}}“ wird nicht überschrieben: Das Projekt hat {{count}} Dokumente, aber keiner ihrer Texte ist geladen. Meist bedeutet das, dass das Projekt nicht vollständig geöffnet wurde; jetzt zu speichern würde den Text der Dokumente löschen. Öffnen Sie das Projekt erneut und stellen Sie es aus einer Sicherung wieder her, falls das Problem bleibt.",
         "missingFiles_one": "„{{file}}“ wird nicht gespeichert: Der Inhalt von {{count}} importierten Dokument wurde nicht gefunden ({{names}}). Er war weder im Speicher noch im temporären Cache noch in der vorhandenen Projektdatei; jetzt zu speichern würde es leer speichern. Importieren Sie das Dokument erneut und versuchen Sie es noch einmal.",
         "missingFiles_other": "„{{file}}“ wird nicht gespeichert: Der Inhalt von {{count}} importierten Dokumenten wurde nicht gefunden ({{names}}). Er war weder im Speicher noch im temporären Cache noch in der vorhandenen Projektdatei; jetzt zu speichern würde sie leer speichern. Importieren Sie die Dokumente erneut und versuchen Sie es noch einmal.",
-        "newerFormat": "„{{file}}“ wurde mit einer neueren Version von Magnolia gespeichert ({{savedBy}}). Diese Version kann es anzeigen, aber nicht speichern, damit nichts verloren geht, was die neuere Version hinzugefügt hat. Aktualisieren Sie Magnolia, um an diesem Projekt zu arbeiten."
+        "newerFormat": "„{{file}}“ wurde mit einer neueren Version von Magnolia gespeichert ({{savedBy}}). Diese Version kann es anzeigen, aber nicht speichern, damit nichts verloren geht, was die neuere Version hinzugefügt hat. Aktualisieren Sie Magnolia, um an diesem Projekt zu arbeiten.",
+        "badGuid": "„{{file}}“ wird nicht gespeichert: Das Dokument „{{name}}“ hat eine Kennung ({{guid}}), die fehlt, fehlerhaft ist oder mit einem anderen Dokument geteilt wird, und kann daher nicht sicher gespeichert werden. Öffnen Sie das Projekt erneut und versuchen Sie es noch einmal.",
+        "badExtension": "„{{file}}“ wird nicht gespeichert: Das Dokument „{{name}}“ hat einen Dateityp („{{ext}}“), der nicht sicher gespeichert werden kann. Öffnen Sie das Projekt erneut und versuchen Sie es noch einmal."
       },
       "typesetFailed": "Magnolia konnte dieses Dokument nicht in Seiten setzen. Speichern Sie es im ursprünglichen Programm erneut, oder speichern Sie es als PDF und importieren Sie dieses.",
       "save": {
         "noPermission": "Magnolia darf die Projektdatei oder den Ordner, in dem sie liegt, nicht ändern. Prüfen Sie, ob der Ordner gesperrt oder schreibgeschützt ist, oder speichern Sie eine Kopie an einem anderen Ort.",
         "diskFull": "Auf dem Datenträger ist nicht genug Platz frei. Schaffen Sie etwas Platz und versuchen Sie es erneut.",
-        "notFound": "Der Ordner des Projekts wurde nicht gefunden. Er wurde vielleicht verschoben oder umbenannt oder liegt auf einem Datenträger, der nicht angeschlossen ist."
+        "notFound": "Der Ordner des Projekts wurde nicht gefunden. Er wurde vielleicht verschoben oder umbenannt oder liegt auf einem Datenträger, der nicht angeschlossen ist.",
+        "invalidXml": "Magnolia konnte dieses Projekt nicht korrekt schreiben ({{detail}}), deshalb wurde „{{file}}“ nicht verändert. Bitte melden Sie dieses Problem."
       },
       "caseCategory": "Fall",
       "documentDescription": "Beschreibung von {{name}}",

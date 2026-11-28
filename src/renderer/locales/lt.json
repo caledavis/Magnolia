@@ -199,13 +199,16 @@
         "missingFiles_few": "Atsisakyta įrašyti „{{file}}“: nepavyko rasti {{count}} importuotų dokumentų turinio ({{names}}). Jo nebuvo nei atmintyje, nei laikinojoje talpykloje, nei esamame projekto faile, todėl įrašius dabar jie būtų tušti. Importuokite dokumentus dar kartą ir bandykite vėl.",
         "missingFiles_many": "Atsisakyta įrašyti „{{file}}“: nepavyko rasti {{count}} importuoto dokumento turinio ({{names}}). Jo nebuvo nei atmintyje, nei laikinojoje talpykloje, nei esamame projekto faile, todėl įrašius dabar jie būtų tušti. Importuokite dokumentus dar kartą ir bandykite vėl.",
         "missingFiles_other": "Atsisakyta įrašyti „{{file}}“: nepavyko rasti {{count}} importuotų dokumentų turinio ({{names}}). Jo nebuvo nei atmintyje, nei laikinojoje talpykloje, nei esamame projekto faile, todėl įrašius dabar jie būtų tušti. Importuokite dokumentus dar kartą ir bandykite vėl.",
-        "newerFormat": "„{{file}}“ įrašytas naujesne Magnolia versija ({{savedBy}}). Ši versija gali jį parodyti, bet ne įrašyti, kad nedingtų niekas, ką pridėjo naujesnė versija. Atnaujinkite Magnolia, kad galėtumėte dirbti su šiuo projektu."
+        "newerFormat": "„{{file}}“ įrašytas naujesne Magnolia versija ({{savedBy}}). Ši versija gali jį parodyti, bet ne įrašyti, kad nedingtų niekas, ką pridėjo naujesnė versija. Atnaujinkite Magnolia, kad galėtumėte dirbti su šiuo projektu.",
+        "badGuid": "Atsisakyta įrašyti „{{file}}“: dokumento „{{name}}“ identifikatoriaus ({{guid}}) nėra, jis netinkamas arba bendras su kitu dokumentu, todėl jo negalima saugiai įrašyti. Iš naujo atverkite projektą ir bandykite dar kartą.",
+        "badExtension": "Atsisakyta įrašyti „{{file}}“: dokumento „{{name}}“ failo tipo („{{ext}}“) negalima saugiai įrašyti. Iš naujo atverkite projektą ir bandykite dar kartą."
       },
       "typesetFailed": "Magnolia nepavyko išdėstyti šio dokumento puslapiais. Pabandykite vėl jį įrašyti programoje, iš kurios jis atkeliavo, arba įrašykite jį kaip PDF ir importuokite tą failą.",
       "save": {
         "noPermission": "Magnolia neturi leidimo keisti projekto failo ar aplanko, kuriame jis yra. Patikrinkite, ar aplankas neužrakintas ir nėra skirtas tik skaityti, arba įrašykite kopiją kitur.",
         "diskFull": "Diske nepakanka laisvos vietos. Atlaisvinkite vietos ir bandykite dar kartą.",
-        "notFound": "Nepavyksta rasti projekto aplanko. Galbūt jis perkeltas ar pervadintas arba yra neprijungtame diske."
+        "notFound": "Nepavyksta rasti projekto aplanko. Galbūt jis perkeltas ar pervadintas arba yra neprijungtame diske.",
+        "invalidXml": "Magnolia nepavyko teisingai įrašyti šio projekto ({{detail}}), todėl „{{file}}“ paliktas nepakeistas. Praneškite apie šią problemą."
       },
       "caseCategory": "Atvejis",
       "documentDescription": "Aprašas: {{name}}",

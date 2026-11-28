@@ -196,13 +196,16 @@
         "missingFiles_one": "Refus d’enregistrer « {{file}} » : le contenu de {{count}} document importé est introuvable ({{names}}). Il n’était ni en mémoire, ni dans le cache temporaire, ni dans le fichier du projet existant ; l’enregistrer maintenant l’enregistrerait vide. Importez de nouveau le document et réessayez.",
         "missingFiles_many": "Refus d’enregistrer « {{file}} » : le contenu de {{count}} documents importés est introuvable ({{names}}). Ils n’étaient ni en mémoire, ni dans le cache temporaire, ni dans le fichier du projet existant ; les enregistrer maintenant les enregistrerait vides. Importez de nouveau les documents et réessayez.",
         "missingFiles_other": "Refus d’enregistrer « {{file}} » : le contenu de {{count}} documents importés est introuvable ({{names}}). Ils n’étaient ni en mémoire, ni dans le cache temporaire, ni dans le fichier du projet existant ; les enregistrer maintenant les enregistrerait vides. Importez de nouveau les documents et réessayez.",
-        "newerFormat": "« {{file}} » a été enregistré par une version plus récente de Magnolia ({{savedBy}}). Cette version peut l’afficher mais pas l’enregistrer, afin que rien de ce que la version plus récente a ajouté ne soit perdu. Mettez Magnolia à jour pour travailler sur ce projet."
+        "newerFormat": "« {{file}} » a été enregistré par une version plus récente de Magnolia ({{savedBy}}). Cette version peut l’afficher mais pas l’enregistrer, afin que rien de ce que la version plus récente a ajouté ne soit perdu. Mettez Magnolia à jour pour travailler sur ce projet.",
+        "badGuid": "Refus d’enregistrer « {{file}} » : le document « {{name}} » a un identifiant ({{guid}}) absent, mal formé ou partagé avec un autre document, il ne peut donc pas être enregistré en toute sécurité. Rouvrez le projet et réessayez.",
+        "badExtension": "Refus d’enregistrer « {{file}} » : le document « {{name}} » a un type de fichier (« {{ext}} ») qui ne peut pas être enregistré en toute sécurité. Rouvrez le projet et réessayez."
       },
       "typesetFailed": "Magnolia n’a pas pu mettre ce document en pages. Essayez de l’enregistrer à nouveau dans le programme d’origine, ou de l’enregistrer en PDF et d’importer ce fichier.",
       "save": {
         "noPermission": "Magnolia n’est pas autorisé à modifier le fichier du projet ou le dossier qui le contient. Vérifiez que le dossier n’est ni verrouillé ni en lecture seule, ou enregistrez une copie ailleurs.",
         "diskFull": "Il n’y a pas assez d’espace libre sur le disque. Libérez de l’espace et réessayez.",
-        "notFound": "Le dossier du projet est introuvable. Il a peut-être été déplacé ou renommé, ou se trouve sur un disque qui n’est pas connecté."
+        "notFound": "Le dossier du projet est introuvable. Il a peut-être été déplacé ou renommé, ou se trouve sur un disque qui n’est pas connecté.",
+        "invalidXml": "Magnolia n’a pas pu écrire correctement ce projet ({{detail}}), « {{file}} » a donc été laissé tel quel. Veuillez signaler ce problème."
       },
       "caseCategory": "Cas",
       "documentDescription": "Description de {{name}}",

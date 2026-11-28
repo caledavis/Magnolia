@@ -193,13 +193,16 @@
         "noText_other": "Nægter at overskrive »{{file}}«: projektet har {{count}} dokumenter, men ingen af deres tekst er indlæst. Det betyder som regel, at projektet ikke blev åbnet helt, og at gemme nu ville slette dokumenternes tekst. Åbn projektet igen, og gendan det fra en sikkerhedskopi, hvis problemet fortsætter.",
         "missingFiles_one": "Nægter at gemme »{{file}}«: indholdet af {{count}} importeret dokument blev ikke fundet ({{names}}). Det var ikke i hukommelsen, den midlertidige cache eller den eksisterende projektfil, så at gemme nu ville gemme det tomt. Importér dokumentet igen, og prøv igen.",
         "missingFiles_other": "Nægter at gemme »{{file}}«: indholdet af {{count}} importerede dokumenter blev ikke fundet ({{names}}). De var ikke i hukommelsen, den midlertidige cache eller den eksisterende projektfil, så at gemme nu ville gemme dem tomme. Importér dokumenterne igen, og prøv igen.",
-        "newerFormat": "»{{file}}« er gemt med en nyere version af Magnolia ({{savedBy}}). Denne version kan vise det, men ikke gemme det, så intet af det, den nyere version har tilføjet, går tabt. Opdater Magnolia for at arbejde med dette projekt."
+        "newerFormat": "»{{file}}« er gemt med en nyere version af Magnolia ({{savedBy}}). Denne version kan vise det, men ikke gemme det, så intet af det, den nyere version har tilføjet, går tabt. Opdater Magnolia for at arbejde med dette projekt.",
+        "badGuid": "Nægter at gemme »{{file}}«: dokumentet »{{name}}« har et id ({{guid}}), der mangler, er ugyldigt eller deles med et andet dokument, så det kan ikke gemmes sikkert. Åbn projektet igen, og prøv igen.",
+        "badExtension": "Nægter at gemme »{{file}}«: dokumentet »{{name}}« har en filtype (»{{ext}}«), der ikke kan gemmes sikkert. Åbn projektet igen, og prøv igen."
       },
       "typesetFailed": "Magnolia kunne ikke sætte dokumentet op som sider. Prøv at gemme det igen i det program, det kom fra, eller gem det som PDF, og importér den.",
       "save": {
         "noPermission": "Magnolia har ikke tilladelse til at ændre projektfilen eller den mappe, den ligger i. Kontrollér, at mappen ikke er låst eller skrivebeskyttet, eller gem en kopi et andet sted.",
         "diskFull": "Der er ikke nok ledig plads på disken. Frigør noget plads, og prøv igen.",
-        "notFound": "Projektets mappe kan ikke findes. Den er måske flyttet eller omdøbt, eller ligger på en disk, der ikke er tilsluttet."
+        "notFound": "Projektets mappe kan ikke findes. Den er måske flyttet eller omdøbt, eller ligger på en disk, der ikke er tilsluttet.",
+        "invalidXml": "Magnolia kunne ikke skrive projektet korrekt ({{detail}}), så »{{file}}« blev ikke ændret. Rapportér venligst problemet."
       },
       "caseCategory": "Case",
       "documentDescription": "Beskrivelse af {{name}}",

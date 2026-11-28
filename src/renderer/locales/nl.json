@@ -193,13 +193,16 @@
         "noText_other": "Magnolia overschrijft “{{file}}” niet: het project heeft {{count}} documenten, maar van geen ervan is de tekst geladen. Meestal betekent dit dat het project niet volledig is geopend, en nu bewaren zou de tekst van de documenten wissen. Open het project opnieuw en zet het terug vanuit een back-up als het probleem blijft.",
         "missingFiles_one": "Magnolia bewaart “{{file}}” niet: de inhoud van {{count}} geïmporteerd document is niet gevonden ({{names}}). Die stond niet in het geheugen, de tijdelijke cache of het bestaande projectbestand, dus nu bewaren zou het leeg bewaren. Importeer het document opnieuw en probeer het nog eens.",
         "missingFiles_other": "Magnolia bewaart “{{file}}” niet: de inhoud van {{count}} geïmporteerde documenten is niet gevonden ({{names}}). Die stond niet in het geheugen, de tijdelijke cache of het bestaande projectbestand, dus nu bewaren zou ze leeg bewaren. Importeer de documenten opnieuw en probeer het nog eens.",
-        "newerFormat": "“{{file}}” is bewaard met een nieuwere versie van Magnolia ({{savedBy}}). Deze versie kan het tonen maar niet bewaren, zodat niets verloren gaat van wat de nieuwere versie heeft toegevoegd. Werk Magnolia bij om aan dit project te werken."
+        "newerFormat": "“{{file}}” is bewaard met een nieuwere versie van Magnolia ({{savedBy}}). Deze versie kan het tonen maar niet bewaren, zodat niets verloren gaat van wat de nieuwere versie heeft toegevoegd. Werk Magnolia bij om aan dit project te werken.",
+        "badGuid": "Magnolia slaat “{{file}}” niet op: het document “{{name}}” heeft een id ({{guid}}) die ontbreekt, ongeldig is of door een ander document wordt gedeeld, dus het kan niet veilig worden opgeslagen. Open het project opnieuw en probeer het nog eens.",
+        "badExtension": "Magnolia slaat “{{file}}” niet op: het document “{{name}}” heeft een bestandstype (“{{ext}}”) dat niet veilig kan worden opgeslagen. Open het project opnieuw en probeer het nog eens."
       },
       "typesetFailed": "Magnolia kon dit document niet in pagina’s opmaken. Sla het opnieuw op in het programma waar het vandaan komt, of sla het op als pdf en importeer die.",
       "save": {
         "noPermission": "Magnolia mag het projectbestand of de map waarin het staat niet wijzigen. Controleer of de map niet vergrendeld of alleen-lezen is, of bewaar een kopie ergens anders.",
         "diskFull": "Er is niet genoeg vrije ruimte op de schijf. Maak ruimte vrij en probeer het opnieuw.",
-        "notFound": "De map van het project is niet te vinden. Misschien is die verplaatst of hernoemd, of staat die op een schijf die niet is aangesloten."
+        "notFound": "De map van het project is niet te vinden. Misschien is die verplaatst of hernoemd, of staat die op een schijf die niet is aangesloten.",
+        "invalidXml": "Magnolia kon dit project niet correct schrijven ({{detail}}), dus “{{file}}” is ongewijzigd gelaten. Meld dit probleem alsjeblieft."
       },
       "caseCategory": "Casus",
       "documentDescription": "Beschrijving van {{name}}",

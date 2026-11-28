@@ -193,13 +193,16 @@
         "noText_other": "Nekter å overskrive «{{file}}»: prosjektet har {{count}} dokumenter, men ingen av tekstene er lastet inn. Det betyr vanligvis at prosjektet ikke ble helt åpnet, og å lagre nå ville slette teksten i dokumentene. Åpne prosjektet på nytt, og gjenopprett det fra en sikkerhetskopi hvis problemet vedvarer.",
         "missingFiles_one": "Nekter å lagre «{{file}}»: innholdet i {{count}} importert dokument ble ikke funnet ({{names}}). Det var ikke i minnet, i den midlertidige hurtigbufferen eller i den eksisterende prosjektfilen, så å lagre nå ville lagre det tomt. Importer dokumentet på nytt og prøv igjen.",
         "missingFiles_other": "Nekter å lagre «{{file}}»: innholdet i {{count}} importerte dokumenter ble ikke funnet ({{names}}). De var ikke i minnet, i den midlertidige hurtigbufferen eller i den eksisterende prosjektfilen, så å lagre nå ville lagre dem tomme. Importer dokumentene på nytt og prøv igjen.",
-        "newerFormat": "«{{file}}» ble lagret med en nyere versjon av Magnolia ({{savedBy}}). Denne versjonen kan vise det, men ikke lagre det, slik at ingenting av det den nyere versjonen har lagt til, går tapt. Oppdater Magnolia for å arbeide med dette prosjektet."
+        "newerFormat": "«{{file}}» ble lagret med en nyere versjon av Magnolia ({{savedBy}}). Denne versjonen kan vise det, men ikke lagre det, slik at ingenting av det den nyere versjonen har lagt til, går tapt. Oppdater Magnolia for å arbeide med dette prosjektet.",
+        "badGuid": "Nekter å lagre «{{file}}»: dokumentet «{{name}}» har en ID ({{guid}}) som mangler, er ugyldig eller deles med et annet dokument, så det kan ikke lagres trygt. Åpne prosjektet på nytt og prøv igjen.",
+        "badExtension": "Nekter å lagre «{{file}}»: dokumentet «{{name}}» har en filtype («{{ext}}») som ikke kan lagres trygt. Åpne prosjektet på nytt og prøv igjen."
       },
       "typesetFailed": "Magnolia kunne ikke sette opp dette dokumentet som sider. Prøv å lagre det på nytt i programmet det kom fra, eller lagre det som PDF og importer den.",
       "save": {
         "noPermission": "Magnolia har ikke lov til å endre prosjektfilen eller mappen den ligger i. Sjekk at mappen ikke er låst eller skrivebeskyttet, eller lagre en kopi et annet sted.",
         "diskFull": "Det er ikke nok ledig plass på disken. Frigjør litt plass og prøv igjen.",
-        "notFound": "Finner ikke mappen til prosjektet. Den kan være flyttet eller har fått nytt navn, eller ligge på en disk som ikke er koblet til."
+        "notFound": "Finner ikke mappen til prosjektet. Den kan være flyttet eller har fått nytt navn, eller ligge på en disk som ikke er koblet til.",
+        "invalidXml": "Magnolia kunne ikke skrive prosjektet riktig ({{detail}}), så «{{file}}» ble ikke endret. Rapporter dette problemet."
       },
       "caseCategory": "Case",
       "documentDescription": "Beskrivelse av {{name}}",

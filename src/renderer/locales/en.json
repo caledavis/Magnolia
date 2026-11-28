@@ -193,13 +193,16 @@
         "noText_other": "Refusing to overwrite “{{file}}”: the project has {{count}} documents, but none of their text is loaded. This usually means the project didn’t open fully, and saving now would erase the documents’ text. Reopen the project, and if the problem persists, restore it from a backup.",
         "missingFiles_one": "Refusing to save “{{file}}”: the contents of {{count}} imported document couldn’t be found ({{names}}). They weren’t in memory, the temporary cache or the existing project file, so saving now would save it empty. Import the document again and try again.",
         "missingFiles_other": "Refusing to save “{{file}}”: the contents of {{count}} imported documents couldn’t be found ({{names}}). They weren’t in memory, the temporary cache or the existing project file, so saving now would save them empty. Import the documents again and try again.",
-        "newerFormat": "“{{file}}” was saved by a newer version of Magnolia ({{savedBy}}). This version can show it but not save it, so that nothing the newer version added is lost. Update Magnolia to work on this project."
+        "newerFormat": "“{{file}}” was saved by a newer version of Magnolia ({{savedBy}}). This version can show it but not save it, so that nothing the newer version added is lost. Update Magnolia to work on this project.",
+        "badGuid": "Refusing to save “{{file}}”: the document “{{name}}” has an identifier ({{guid}}) that is missing, malformed or shared with another document, so it can’t be stored safely. Reopen the project and try again.",
+        "badExtension": "Refusing to save “{{file}}”: the document “{{name}}” has a file type (“{{ext}}”) that can’t be stored safely. Reopen the project and try again."
       },
       "typesetFailed": "Magnolia couldn’t lay this document out as pages. Try saving it again in the program it came from, or saving it as a PDF and importing that.",
       "save": {
         "noPermission": "Magnolia isn’t allowed to change the project file or the folder it’s in. Check that the folder isn’t locked or read-only, or save a copy somewhere else.",
         "diskFull": "There isn’t enough free space on the disk. Free up some space and try again.",
-        "notFound": "The project’s folder can’t be found. It may have been moved or renamed, or be on a disk that isn’t connected."
+        "notFound": "The project’s folder can’t be found. It may have been moved or renamed, or be on a disk that isn’t connected.",
+        "invalidXml": "Magnolia couldn’t write this project correctly ({{detail}}), so “{{file}}” was left as it was. Please report this problem."
       },
       "caseCategory": "Case",
       "documentDescription": "Description of {{name}}",
