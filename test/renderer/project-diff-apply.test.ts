@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { applyMerge, emptyApplyPlan, resolveBinarySources, dedupeIdenticalSources, type ApplyPlan } from '../../src/renderer/utils/project-diff-apply'
+import { applyMerge, emptyApplyPlan, resolveBinarySources, dedupeIdenticalSources, codingsOfSameDocuments, type ApplyPlan } from '../../src/renderer/utils/project-diff-apply'
 import { useCodeStore } from '../../src/renderer/stores/code-store'
 import { useTagStore } from '../../src/renderer/stores/tag-store'
 import { useMemoStore } from '../../src/renderer/stores/memo-store'
@@ -8,7 +8,7 @@ import { useLogbookStore } from '../../src/renderer/stores/logbook-store'
 import { useDocumentStore } from '../../src/renderer/stores/document-store'
 import { useProjectStore } from '../../src/renderer/stores/project-store'
 import type { Code, TextSource } from '../../src/renderer/models/types'
-import type { CodeDiffItem, SourceDiffItem } from '../../src/renderer/utils/project-diff'
+import { diffProjects, type CodeDiffItem, type SourceDiffItem } from '../../src/renderer/utils/project-diff'
 
 beforeEach(() => {
   useCodeStore.setState({ codes: [] })
@@ -413,5 +413,77 @@ describe('applyMerge — folders and notebooks', () => {
     applyMerge(plan)
     expect(docs().folders).toEqual([{ ...sub, parentGuid: null }])
     expect(docs().sourceFolder).toEqual({})
+  })
+})
+
+describe('merging a document both projects imported separately', () => {
+  it("still offers their codings on it, against this project's copy", async () => {
+    const mineDoc: TextSource = { guid: 'mine-doc', name: 'Interview.txt', sourceType: 'text', selections: [
+      { guid: 'm1', startPosition: 0, endPosition: 5, codings: [{ guid: 'mc1', codeGuid: 'A' }] }
+    ] }
+    const theirsDoc: TextSource = { guid: 'theirs-doc', name: 'Interview.txt', sourceType: 'text', selections: [
+      { guid: 't1', startPosition: 0, endPosition: 5, codings: [{ guid: 'tc1', codeGuid: 'A' }] },
+      { guid: 't2', startPosition: 6, endPosition: 11, codings: [{ guid: 'tc2', codeGuid: 'B', creatingUser: 'u-them' }] }
+    ] }
+    const mine = { project: { name: 'Mine', origin: 'x', users: [], codes: [], sources: [mineDoc], sets: [], notes: [] }, sourceContents: { 'mine-doc': 'Hello world' } }
+    const theirs = { project: { name: 'Theirs', origin: 'x', users: [{ guid: 'u-them', name: 'Sam' }], codes: [], sources: [theirsDoc], sets: [], notes: [] }, sourceContents: { 'theirs-doc': 'Hello world' } }
+    const diff = diffProjects(mine, theirs)
+    const pairs: [string, string][] = []
+    diff.sources = await dedupeIdenticalSources(diff.sources, mine.sourceContents, theirs.sourceContents, '/c.qdpx', vi.fn(), vi.fn(), (m, t) => pairs.push([m, t]))
+    expect(diff.sources).toEqual([])
+    expect(pairs).toEqual([['mine-doc', 'theirs-doc']])
+    diff.codings.push(...codingsOfSameDocuments(pairs, mine.project.sources, theirs.project.sources, theirs.project.users))
+    expect(diff.codings).toHaveLength(1)
+    const item = diff.codings[0]
+    expect(item.sourceGuid).toBe('mine-doc')
+    expect(item.onlyMine).toEqual([])
+    expect(item.onlyTheirs?.map((i) => i.coding.codeGuid)).toEqual(['B'])
+
+    // Applying it codes this project's copy, as Sam.
+    useDocumentStore.setState({ sources: [mineDoc], sourceContents: { 'mine-doc': 'Hello world' } })
+    const plan = emptyApplyPlan()
+    plan.codingsAdd = [{ sourceGuid: 'mine-doc', instance: item.onlyTheirs![0] }]
+    applyMerge(plan)
+    const added = useDocumentStore.getState().sources[0].selections.find((s) => s.startPosition === 6)!
+    expect(added.codings.map((c) => [c.codeGuid, c.creatingUser])).toEqual([['B', 'u-them']])
+    expect(useProjectStore.getState().users).toEqual([{ guid: 'u-them', name: 'Sam' }])
+  })
+})
+
+describe('merged codings keep who made them', () => {
+  it('passes the coder through and brings their user record', () => {
+    useProjectStore.setState({ users: [{ guid: 'u-me', name: 'Me' }], creatingUserGUID: 'u-me' })
+    useDocumentStore.setState({ sources: [{ guid: 's1', name: 's1.txt', sourceType: 'text', selections: [] }], sourceContents: { s1: 'some text here' } })
+    const mineDoc = useDocumentStore.getState().sources[0]
+    const theirsDoc: TextSource = { ...mineDoc, selections: [
+      { guid: 't1', startPosition: 0, endPosition: 4, creatingUser: 'u-them', codings: [{ guid: 'tc1', codeGuid: 'A', creatingUser: 'u-them' }] }
+    ] }
+    const diff = diffProjects(
+      { project: { name: 'M', origin: 'x', users: [{ guid: 'u-me', name: 'Me' }], codes: [], sources: [mineDoc], sets: [], notes: [] }, sourceContents: { s1: 'some text here' } },
+      { project: { name: 'T', origin: 'x', users: [{ guid: 'u-them', name: 'Sam' }], codes: [], sources: [theirsDoc], sets: [], notes: [] }, sourceContents: { s1: 'some text here' } }
+    )
+    const plan = emptyApplyPlan()
+    plan.codingsAdd = diff.codings[0].onlyTheirs!.map((instance) => ({ sourceGuid: 's1', instance }))
+    applyMerge(plan)
+    const sel = useDocumentStore.getState().sources[0].selections[0]
+    expect(sel.creatingUser).toBe('u-them')
+    expect(sel.codings[0].creatingUser).toBe('u-them')
+    expect(useProjectStore.getState().users).toEqual([{ guid: 'u-me', name: 'Me' }, { guid: 'u-them', name: 'Sam' }])
+  })
+
+  it('brings the coders of a document added from theirs, and of their codings taken wholesale', () => {
+    useProjectStore.setState({ users: [{ guid: 'u-me', name: 'Me' }] })
+    useDocumentStore.setState({ sources: [{ guid: 's1', name: 's1.txt', sourceType: 'text', selections: [] }], sourceContents: { s1: 'old' } })
+    const added: TextSource = { guid: 'new', name: 'new.txt', sourceType: 'text', selections: [{ guid: 'x', startPosition: 0, endPosition: 1, codings: [{ guid: 'xc', codeGuid: 'A', creatingUser: 'u-a' }] }] }
+    const changed: TextSource = { guid: 's1', name: 's1.txt', sourceType: 'text', selections: [{ guid: 'y', startPosition: 0, endPosition: 1, codings: [{ guid: 'yc', codeGuid: 'A', creatingUser: 'u-b' }] }] }
+    const diff = diffProjects(
+      { project: { name: 'M', origin: 'x', users: [{ guid: 'u-me', name: 'Me' }], codes: [], sources: useDocumentStore.getState().sources, sets: [], notes: [] }, sourceContents: { s1: 'old' } },
+      { project: { name: 'T', origin: 'x', users: [{ guid: 'u-a', name: 'Ann' }, { guid: 'u-b', name: 'Bo' }, { guid: 'u-c', name: 'Cy' }], codes: [], sources: [changed, added], sets: [], notes: [] }, sourceContents: { s1: 'new', new: 'n' } }
+    )
+    const plan = emptyApplyPlan()
+    plan.sources = diff.sources.filter((s) => s.bucket === 'onlyTheirs')
+    plan.codingsCoarse = diff.codings.filter((c) => c.coarse)
+    applyMerge(plan)
+    expect(useProjectStore.getState().users.map((u) => u.name)).toEqual(['Me', 'Ann', 'Bo'])
   })
 })

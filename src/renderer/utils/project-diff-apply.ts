@@ -6,9 +6,9 @@ import { useLogbookStore } from '../stores/logbook-store'
 import { useQueryStore } from '../stores/query-store'
 import { useDocumentStore } from '../stores/document-store'
 import { useProjectStore } from '../stores/project-store'
-import { anchorKey, type DiffItem, type CodeDiffItem, type CodingsDiffItem, type CodingInstance, type DocumentTextDiffItem, type SavedAnalysisDiffItem, type SourceDiffItem } from './project-diff'
+import { anchorKey, attachCoders, diffCodingsOnSameText, type DiffItem, type CodeDiffItem, type CodingsDiffItem, type CodingInstance, type DocumentTextDiffItem, type SavedAnalysisDiffItem, type SourceDiffItem } from './project-diff'
 import { mediaPathField } from './binary-handles'
-import type { Code, QDASet, TagCategory, Memo, Quote, LogbookEntry, SavedQuery, DocumentFolder, TextSource } from '../models/types'
+import type { Code, QDASet, TagCategory, Memo, Quote, LogbookEntry, SavedQuery, DocumentFolder, TextSource, User } from '../models/types'
 
 /**
  * Turns a set of user-approved diff items (see project-diff.ts) into real
@@ -185,7 +185,9 @@ export async function dedupeIdenticalSources(
   theirsContents: Record<string, string>,
   comparisonFilePath: string,
   readMineBinary: ReadMineBinaryFn,
-  readTheirsBinary: ReadTheirsBinaryFn
+  readTheirsBinary: ReadTheirsBinaryFn,
+  /** Told each pair dropped (mine's guid, theirs'): see codingsOfSameDocuments. */
+  onPair?: (mineGuid: string, theirsGuid: string) => void
 ): Promise<SourceDiffItem[]> {
   const onlyMine = sources.filter((i): i is SourceDiffItem & { mine: TextSource } => i.bucket === 'onlyMine' && !!i.mine)
   const onlyTheirs = sources.filter((i): i is SourceDiffItem & { theirs: TextSource } => i.bucket === 'onlyTheirs' && !!i.theirs)
@@ -199,11 +201,34 @@ export async function dedupeIdenticalSources(
       if (await sourcesAreIdentical(mineItem.mine, theirsItem.theirs, mineContents, theirsContents, comparisonFilePath, readMineBinary, readTheirsBinary)) {
         duplicateGuids.add(mineItem.guid)
         duplicateGuids.add(theirsItem.guid)
+        onPair?.(mineItem.guid, theirsItem.guid)
         break
       }
     }
   }
   return duplicateGuids.size === 0 ? sources : sources.filter((i) => !duplicateGuids.has(i.guid))
+}
+
+/** The codings of documents dedupeIdenticalSources found both projects
+ *  have (under different guids), itemised for review against mine's copy.
+ *  diffProjects only compares codings of documents with the same guid,
+ *  so without this, their codings on a document each side imported for
+ *  itself were silently left out of the merge. */
+export function codingsOfSameDocuments(
+  pairs: [mineGuid: string, theirsGuid: string][],
+  mineSources: TextSource[],
+  theirsSources: TextSource[],
+  theirsUsers: User[]
+): CodingsDiffItem[] {
+  const items: CodingsDiffItem[] = []
+  for (const [mineGuid, theirsGuid] of pairs) {
+    const mine = mineSources.find((s) => s.guid === mineGuid)
+    const theirs = theirsSources.find((s) => s.guid === theirsGuid)
+    const item = mine && theirs ? diffCodingsOnSameText(mine, theirs) : null
+    if (item) items.push(item)
+  }
+  attachCoders(items, [], theirsUsers)
+  return items
 }
 
 /** Callback signature for pulling a binary source's bytes out of a second
@@ -422,11 +447,33 @@ function applyItemizedCodings(
         sel.endPosition,
         sel.name ?? '',
         sel.pdfRegion,
-        sel.surveyCell
+        sel.surveyCell,
+        sel.creatingUser
       )
     }
-    useDocumentStore.getState().addCodingToSelection(sourceGuid, selectionGuid, instance.coding.codeGuid)
+    // Their coder, not whoever is merging (the default).
+    useDocumentStore.getState().addCodingToSelection(sourceGuid, selectionGuid, instance.coding.codeGuid, instance.coding.creatingUser)
   }
+}
+
+/** Adds theirs' records of the people whose codings the merge brings,
+ *  for any this project doesn't have: their codings name them by guid. */
+function addCoders(plan: ApplyPlan): void {
+  const wanted = [
+    ...plan.sources.filter((i) => i.bucket === 'onlyTheirs').flatMap((i) => i.users ?? []),
+    ...plan.codingsCoarse.flatMap((c) => c.users ?? []),
+    ...plan.codingsAdd.flatMap((c) => (c.instance.creator ? [c.instance.creator] : []))
+  ]
+  if (wanted.length === 0) return
+  const users = useProjectStore.getState().users
+  const known = new Set(users.map((u) => u.guid))
+  const added: User[] = []
+  for (const u of wanted) {
+    if (known.has(u.guid)) continue
+    known.add(u.guid)
+    added.push(u)
+  }
+  if (added.length > 0) useProjectStore.setState({ users: [...users, ...added] })
 }
 
 export function applyMerge(plan: ApplyPlan): void {
@@ -468,6 +515,7 @@ export function applyMerge(plan: ApplyPlan): void {
 
   applyDocumentTextAndCoarseCodings(plan.documentText, plan.codingsCoarse)
   applyItemizedCodings(plan.codingsAdd, plan.codingsRemove)
+  addCoders(plan)
 
   // Bulk setters (setTags/setMemos/etc.) don't call markDirty themselves
   // (they're also used for project *load*, which must NOT dirty a freshly

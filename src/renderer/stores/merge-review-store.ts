@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { diffProjects, type MergeDiff } from '../utils/project-diff'
-import { dedupeIdenticalSources, type ReadMineBinaryFn } from '../utils/project-diff-apply'
+import { codingsOfSameDocuments, dedupeIdenticalSources, type ReadMineBinaryFn } from '../utils/project-diff-apply'
 import { useDocumentStore } from './document-store'
 import { useProjectStore } from './project-store'
 import { useCodeStore } from './code-store'
@@ -122,6 +122,10 @@ function emptyApproved(): Record<FlatCategory, Set<string>> {
   }
 }
 
+/** Counts Compare requests, so only the latest one's result is shown: an
+ *  earlier comparison that takes longer to read mustn't land on top of it. */
+let compareRequest = 0
+
 export const useMergeReviewStore = create<MergeReviewState>((set) => ({
   comparisonFilePath: null,
   comparisonEditedBy: null,
@@ -134,9 +138,11 @@ export const useMergeReviewStore = create<MergeReviewState>((set) => ({
   reconciling: false,
 
   openCompare: async (filePath, opts) => {
+    const request = ++compareRequest
     set({ loading: true, error: null })
     try {
       const data = await window.api.readQdpxForCompare(filePath)
+      if (request !== compareRequest) return
       const { sourceContents, filePath: _fp, editorInfo, ...project } = data
       const mine = collectCurrentProject()
       const mineSourceContents = useDocumentStore.getState().sourceContents
@@ -149,9 +155,15 @@ export const useMergeReviewStore = create<MergeReviewState>((set) => ({
       // sees it as two unrelated adds (onlyMine AND onlyTheirs) even
       // though it's the same file — drop those pairs before the user
       // ever sees them listed as something to review.
+      const samePairs: [string, string][] = []
       diff.sources = await dedupeIdenticalSources(
-        diff.sources, mineSourceContents, sourceContents, filePath, readMineBinary, window.api.readCompareBinary
+        diff.sources, mineSourceContents, sourceContents, filePath, readMineBinary, window.api.readCompareBinary,
+        (mineGuid, theirsGuid) => samePairs.push([mineGuid, theirsGuid])
       )
+      // The document is the same, but their codings on it may not be:
+      // offer those as for any document the two have in common.
+      diff.codings.push(...codingsOfSameDocuments(samePairs, mine.sources, project.sources, project.users ?? []))
+      if (request !== compareRequest) return
       set({
         comparisonFilePath: filePath,
         comparisonEditedBy: editorInfo?.lastEditedBy ?? null,
@@ -163,6 +175,7 @@ export const useMergeReviewStore = create<MergeReviewState>((set) => ({
         reconciling: !!opts?.reconciling
       })
     } catch (err) {
+      if (request !== compareRequest) return
       set({ loading: false, error: err instanceof Error ? err.message : String(err) })
     }
   },
@@ -203,15 +216,19 @@ export const useMergeReviewStore = create<MergeReviewState>((set) => ({
     })
   },
 
-  reset: () => set({
-    comparisonFilePath: null,
-    comparisonEditedBy: null,
-    comparisonProject: null,
-    diff: null,
-    loading: false,
-    error: null,
-    approved: emptyApproved(),
-    codingsApproved: new Set(),
-    reconciling: false
-  })
+  reset: () => {
+    // A Compare still being read is no longer wanted.
+    compareRequest++
+    set({
+      comparisonFilePath: null,
+      comparisonEditedBy: null,
+      comparisonProject: null,
+      diff: null,
+      loading: false,
+      error: null,
+      approved: emptyApproved(),
+      codingsApproved: new Set(),
+      reconciling: false
+    })
+  }
 }))

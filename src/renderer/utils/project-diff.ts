@@ -12,7 +12,8 @@ import type {
   TextSource,
   PlainTextSelection,
   Coding,
-  SavedAnalysis
+  SavedAnalysis,
+  User
 } from '../models/types'
 import type { RelationshipMapConfig } from '../components/Analysis/RelationshipMap/types'
 
@@ -92,11 +93,17 @@ export interface CodingsDiffItem {
    *  coding guids won't survive independent edits to the same source). */
   onlyMine?: CodingInstance[]
   onlyTheirs?: CodingInstance[]
+  /** Coarse only: theirs' records of whoever made theirsSource's codings,
+   *  for the merge to add any this project doesn't have. */
+  users?: User[]
 }
 
 export interface CodingInstance {
   selection: PlainTextSelection
   coding: Coding
+  /** An onlyTheirs instance: theirs' record of whoever made it (absent
+   *  when theirs has none), so the merged coding keeps its coder. */
+  creator?: User
 }
 
 export interface RelationshipMapSummary {
@@ -126,6 +133,9 @@ export interface SourceDiffItem extends DiffItem<TextSource> {
    *  has a sourceContents entry, whether or not it also needs its bytes
    *  resolved. */
   theirsContent?: string
+  /** onlyTheirs only: theirs' records of whoever made the document's
+   *  codings, for the merge to add any this project doesn't have. */
+  users?: User[]
   /** True for onlyTheirs items whose sourceType is pdf/audio/video/image
    *  — their real bytes live in the comparison .qdpx's archive, addressed
    *  by a `magnolia-bin://` handle scoped to whichever project is
@@ -406,6 +416,54 @@ function flattenCodingInstances(source: TextSource): KeyedCodingInstance[] {
   return out
 }
 
+/** The codings of one document whose text is the same on both sides,
+ *  itemised (matched by anchor and code), filed under mine's guid — which
+ *  theirs' may not share, for a document both projects imported on their
+ *  own. Null when they have the same codings. */
+export function diffCodingsOnSameText(mineSource: TextSource, theirsSource: TextSource): CodingsDiffItem | null {
+  const mineInstances = flattenCodingInstances(mineSource)
+  const theirsInstances = flattenCodingInstances(theirsSource)
+  const { onlyMine, onlyTheirs } = bucketByKey(mineInstances, theirsInstances, (x) => x.key)
+  if (onlyMine.length === 0 && onlyTheirs.length === 0) return null
+  return {
+    sourceGuid: mineSource.guid,
+    sourceName: mineSource.name,
+    sourceType: mineSource.sourceType,
+    coarse: false,
+    onlyMine,
+    onlyTheirs
+  }
+}
+
+/** Theirs' user records for whoever made these selections and codings. */
+function usersOfSelections(selections: PlainTextSelection[], users: Map<string, User>): User[] | undefined {
+  const out = new Map<string, User>()
+  for (const sel of selections) {
+    for (const guid of [sel.creatingUser, ...sel.codings.map((c) => c.creatingUser)]) {
+      const user = guid ? users.get(guid) : undefined
+      if (user) out.set(user.guid, user)
+    }
+  }
+  return out.size > 0 ? [...out.values()] : undefined
+}
+
+/** Notes on what theirs' codings bring who made them: their user records,
+ *  so a merged coding keeps its coder and the project knows who that is. */
+export function attachCoders(codings: CodingsDiffItem[], sources: SourceDiffItem[], theirsUsers: User[]): void {
+  const users = new Map(theirsUsers.map((u) => [u.guid, u]))
+  if (users.size === 0) return
+  for (const item of codings) {
+    if (item.coarse && item.theirsSource) item.users = usersOfSelections(item.theirsSource.selections, users)
+    for (const inst of item.onlyTheirs ?? []) {
+      const creator = (inst.coding.creatingUser && users.get(inst.coding.creatingUser)) || undefined
+      if (creator) inst.creator = creator
+    }
+  }
+  for (const item of sources) {
+    if (item.bucket === 'onlyTheirs' && item.theirs) item.users = usersOfSelections(item.theirs.selections, users)
+  }
+}
+
 function diffDocumentTextAndCodings(
   mineSources: TextSource[],
   mineContents: Record<string, string>,
@@ -439,19 +497,8 @@ function diffDocumentTextAndCodings(
     }
 
     if (textIdentical) {
-      const mineInstances = flattenCodingInstances(mineSource)
-      const theirsInstances = flattenCodingInstances(theirsSource)
-      const { onlyMine, onlyTheirs } = bucketByKey(mineInstances, theirsInstances, (x) => x.key)
-      if (onlyMine.length > 0 || onlyTheirs.length > 0) {
-        codings.push({
-          sourceGuid: mineSource.guid,
-          sourceName: mineSource.name,
-          sourceType: mineSource.sourceType,
-          coarse: false,
-          onlyMine,
-          onlyTheirs
-        })
-      }
+      const item = diffCodingsOnSameText(mineSource, theirsSource)
+      if (item) codings.push(item)
     } else {
       codings.push({ sourceGuid: mineSource.guid, sourceName: mineSource.name, sourceType: mineSource.sourceType, coarse: true, theirsSource })
     }
@@ -499,6 +546,8 @@ export function diffProjects(mine: ProjectSide, theirs: ProjectSide): MergeDiff 
     theirs.project.sources,
     theirs.sourceContents
   )
+  const sources = diffSources(mine, theirs)
+  attachCoders(codings, sources, theirs.project.users ?? [])
   return {
     codes: diffCodes(mine.project.codes, theirs.project.codes),
     tags: diffTags(mine.project.sets, theirs.project.sets),
@@ -513,7 +562,7 @@ export function diffProjects(mine: ProjectSide, theirs: ProjectSide): MergeDiff 
     logbookEntries: diffByGuid(mine.project.logbookEntries ?? [], theirs.project.logbookEntries ?? [], ['title', 'content']),
     savedQueries: diffByGuid(mine.project.savedQueries ?? [], theirs.project.savedQueries ?? [], ['name', 'query']),
     folders: diffByGuid(mine.project.folders ?? [], theirs.project.folders ?? [], ['name', 'parentGuid', 'kind']),
-    sources: diffSources(mine, theirs),
+    sources,
     documentText,
     codings,
     savedAnalyses: diffSavedAnalyses(mine.project.savedAnalyses ?? [], theirs.project.savedAnalyses ?? [])
